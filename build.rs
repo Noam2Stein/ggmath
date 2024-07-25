@@ -79,6 +79,12 @@ fn vec_rs(n: usize, aligned: bool) -> String {
 
     let use_args = components.iter().map(|c| format!("{c}")).collect::<Box<[String]>>().join(", ");
 
+    let format_self = format!(
+        "\"({})\", {}",
+        components.iter().map(|c| "{}").collect::<Box<[&str]>>().join(", "),
+        components.iter().map(|c| format!("self.{c}")).collect::<Box<[String]>>().join(", ")
+    );
+
     let swizzle = {
         let mut swizzle = String::new();
         let mut combo = Vec::with_capacity(VECS.end - 1);
@@ -98,14 +104,16 @@ fn vec_rs(n: usize, aligned: bool) -> String {
                 let new_args = combo.iter().map(|c| format!("self.{c}")).collect::<Vec<String>>().join(", ");
 
                 swizzle.push_str(&format!("\
-                    pub fn {fn_name}(&self) -> {dst_ty}<C> {{
+                    #[inline(always)]
+                    pub fn {fn_name}(self) -> {dst_ty}<C> {{
                         {dst_ty}::new({new_args})
                     }}
                 "));
 
                 if !dst_n.is_power_of_two() {
                     swizzle.push_str(&format!("\
-                        pub fn {fn_name}_a(&self) -> {dst_ty}A<C> {{
+                        #[inline(always)]
+                        pub fn {fn_name}_a(self) -> {dst_ty}A<C> {{
                             {dst_ty}A::new({new_args})
                         }}
                     "));
@@ -119,25 +127,36 @@ fn vec_rs(n: usize, aligned: bool) -> String {
     cleanup_rs(
         &format!(
             "
+            use std::fmt::Display;
             use crate::*;
-
+            
+            #[derive(Debug, Clone, Copy, PartialEq)]
             pub struct {name}<C: Component> {{
                 {fields}
                 {align_fields}
             }}
 
+            #[inline(always)]
             pub const fn {name_lower}<C: Component>({args}) -> {name}<C> {{
                 {name}::new({use_args})
             }}
-
             impl<C: Component> {name}<C> {{
+                #[inline(always)]
                 pub const fn new({args}) -> Self {{
                     Self {{
                         {constructor_fields}
                         {constructor_align_fields}
                     }}
                 }}
+            }}
 
+            impl<C: Component> Display for {name}<C> {{
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
+                    write!(f, {format_self})
+                }}
+            }}
+
+            impl<C: Component> {name}<C> {{
                 {swizzle}
             }}
             "
