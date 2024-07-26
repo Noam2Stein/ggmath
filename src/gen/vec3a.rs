@@ -185,3 +185,46 @@ impl<C: Component> Vec3A<C> {
 	#[inline(always)] pub const fn zzzy(self) -> Vec4<C> { unsafe { swizzle!(self, Vec4, C, [z -> x * 1, z -> y * 1, z -> z * 1, y -> w * 1]) } }
 	#[inline(always)] pub const fn zzzz(self) -> Vec4<C> { unsafe { swizzle!(self, Vec4, C, [z -> x * 1, z -> y * 1, z -> z * 1, z -> w * 1]) } }
 }
+impl<C: Component> Vec3A<C> {
+	#[inline(always)] pub const fn set_xy(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> x * 2]) } }
+	#[inline(always)] pub const fn set_xz(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> x * 1, y -> z * 1]) } }
+	#[inline(always)] pub const fn set_yx(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> y * 1, y -> x * 1]) } }
+	#[inline(always)] pub const fn set_yz(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> y * 2]) } }
+	#[inline(always)] pub const fn set_zx(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> z * 1, y -> x * 1]) } }
+	#[inline(always)] pub const fn set_zy(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> z * 1, y -> y * 1]) } }
+	#[inline(always)] pub const fn set_xyz(&mut self, value: Vec3<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> x * 3]) } }
+	#[inline(always)] pub const fn set_xyz_a(&mut self, value: Vec3A<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> x * 3]) } }
+	#[inline(always)] pub const fn set_xzy(&mut self, value: Vec3<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> x * 1, y -> z * 1, z -> y * 1]) } }
+	#[inline(always)] pub const fn set_xzy_a(&mut self, value: Vec3A<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> x * 1, y -> z * 1, z -> y * 1]) } }
+	#[inline(always)] pub const fn set_yxz(&mut self, value: Vec3<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> y * 1, y -> x * 1, z -> z * 1]) } }
+	#[inline(always)] pub const fn set_yxz_a(&mut self, value: Vec3A<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> y * 1, y -> x * 1, z -> z * 1]) } }
+	#[inline(always)] pub const fn set_yzx(&mut self, value: Vec3<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> y * 2, z -> x * 2]) } }
+	#[inline(always)] pub const fn set_yzx_a(&mut self, value: Vec3A<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> y * 2, z -> x * 2]) } }
+	#[inline(always)] pub const fn set_zxy(&mut self, value: Vec3<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> z * 1, y -> x * 2]) } }
+	#[inline(always)] pub const fn set_zxy_a(&mut self, value: Vec3A<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> z * 1, y -> x * 2]) } }
+	#[inline(always)] pub const fn set_zyx(&mut self, value: Vec3<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> z * 1, y -> y * 1, z -> x * 1]) } }
+	#[inline(always)] pub const fn set_zyx_a(&mut self, value: Vec3A<C>) { unsafe { set_swizzle!(value, self, Vec3, C, [x -> z * 1, y -> y * 1, z -> x * 1]) } }
+}
+impl<C: Component> Vec3A<C> {
+	#[inline(always)] pub const fn with_x(mut self, value: C) -> Self { self.x = value; self }
+	#[inline(always)] pub const fn with_y(mut self, value: C) -> Self { self.y = value; self }
+	#[inline(always)] pub const fn with_z(mut self, value: C) -> Self { self.z = value; self }
+	#[inline(always)] pub const fn with_xy(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> x * 2]) } }
+	#[inline(always)] pub const fn with_xz(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> x * 1, y -> z * 1]) } }
+	#[inline(always)] pub const fn with_yx(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> y * 1, y -> x * 1]) } }
+	#[inline(always)] pub const fn with_yz(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> y * 2]) } }
+	#[inline(always)] pub const fn with_zx(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> z * 1, y -> x * 1]) } }
+	#[inline(always)] pub const fn with_zy(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> z * 1, y -> y * 1]) } }
+	#[inline(always)] pub const fn with_xyz(mut self, value: Vec3<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> x * 3]) } }
+	#[inline(always)] pub const fn with_xyz_a(mut self, value: Vec3A<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> x * 3]) } }
+	#[inline(always)] pub const fn with_xzy(mut self, value: Vec3<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> x * 1, y -> z * 1, z -> y * 1]) } }
+	#[inline(always)] pub const fn with_xzy_a(mut self, value: Vec3A<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> x * 1, y -> z * 1, z -> y * 1]) } }
+	#[inline(always)] pub const fn with_yxz(mut self, value: Vec3<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> y * 1, y -> x * 1, z -> z * 1]) } }
+	#[inline(always)] pub const fn with_yxz_a(mut self, value: Vec3A<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> y * 1, y -> x * 1, z -> z * 1]) } }
+	#[inline(always)] pub const fn with_yzx(mut self, value: Vec3<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> y * 2, z -> x * 2]) } }
+	#[inline(always)] pub const fn with_yzx_a(mut self, value: Vec3A<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> y * 2, z -> x * 2]) } }
+	#[inline(always)] pub const fn with_zxy(mut self, value: Vec3<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> z * 1, y -> x * 2]) } }
+	#[inline(always)] pub const fn with_zxy_a(mut self, value: Vec3A<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> z * 1, y -> x * 2]) } }
+	#[inline(always)] pub const fn with_zyx(mut self, value: Vec3<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> z * 1, y -> y * 1, z -> x * 1]) } }
+	#[inline(always)] pub const fn with_zyx_a(mut self, value: Vec3A<C>) -> Self { unsafe { with_swizzle!(self, value, Vec3, C, [x -> z * 1, y -> y * 1, z -> x * 1]) } }
+}

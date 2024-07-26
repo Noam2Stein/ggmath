@@ -135,6 +135,108 @@ fn vec_rs(n: usize, aligned: bool) -> String {
         swizzle.trim().to_string()
     };
 
+    let set_swizzle = {
+        let mut swizzle = String::new();
+        let mut combo: Vec<usize> = Vec::with_capacity(VECS.end - 1);
+        for dst_n in VECS.start..n + 1 {
+            let dst_ty = format!("Vec{dst_n}");
+            'combo: for combo_index in 0..n.pow(dst_n as u32) {
+                combo.clear();
+                for slot in (0..dst_n).rev() {
+                    let value = combo_index / n.pow(slot as u32) % n;
+                    if combo.contains(&value) {
+                        continue 'combo;
+                    }
+                    else {
+                        combo.push(value);
+                    }
+                }
+
+                let fn_name = combo.iter().map(|i| COMPONENTS[*i]).collect::<String>();
+                
+                let mut instructions = String::new();
+                let mut instruction_len = 1;
+                instructions.push_str(&format!("{} -> {} * ", COMPONENTS[0], COMPONENTS[combo[0]]));
+                for slot in 1..dst_n {
+                    let src_component = combo[slot];
+                    let src_prev_component = combo[slot - 1];
+
+                    if src_component == src_prev_component + 1 {
+                        instruction_len += 1;
+                    }
+                    else {
+                        instructions.push_str(&format!("{}, {} -> {} * ", &instruction_len.to_string(), COMPONENTS[slot], COMPONENTS[src_component]));
+                    }
+                };
+                instructions.push_str(&instruction_len.to_string());
+
+                swizzle.push_str(&format!("\
+                    #[inline(always)] pub const fn set_{fn_name}(&mut self, value: {dst_ty}<C>) {{ unsafe {{ set_swizzle!(value, self, {dst_ty}, C, [{instructions}]) }} }}
+                "));
+
+                if !dst_n.is_power_of_two() {
+                    swizzle.push_str(&format!("\
+                        #[inline(always)] pub const fn set_{fn_name}_a(&mut self, value: {dst_ty}A<C>) {{ unsafe {{ set_swizzle!(value, self, {dst_ty}, C, [{instructions}]) }} }}
+                    "));
+                }
+            }
+        }
+
+        swizzle.trim().to_string()
+    };
+
+    let with = (0..n).map(|i| format!("#[inline(always)] pub const fn with_{c}(mut self, value: C) -> Self {{ self.{c} = value; self }}", c = COMPONENTS[i])).collect::<Box<[String]>>().join("\n");
+
+    let with_swizzle = {
+        let mut swizzle = String::new();
+        let mut combo: Vec<usize> = Vec::with_capacity(VECS.end - 1);
+        for dst_n in VECS.start..n + 1 {
+            let dst_ty = format!("Vec{dst_n}");
+            'combo: for combo_index in 0..n.pow(dst_n as u32) {
+                combo.clear();
+                for slot in (0..dst_n).rev() {
+                    let value = combo_index / n.pow(slot as u32) % n;
+                    if combo.contains(&value) {
+                        continue 'combo;
+                    }
+                    else {
+                        combo.push(value);
+                    }
+                }
+
+                let fn_name = combo.iter().map(|i| COMPONENTS[*i]).collect::<String>();
+                
+                let mut instructions = String::new();
+                let mut instruction_len = 1;
+                instructions.push_str(&format!("{} -> {} * ", COMPONENTS[0], COMPONENTS[combo[0]]));
+                for slot in 1..dst_n {
+                    let src_component = combo[slot];
+                    let src_prev_component = combo[slot - 1];
+
+                    if src_component == src_prev_component + 1 {
+                        instruction_len += 1;
+                    }
+                    else {
+                        instructions.push_str(&format!("{}, {} -> {} * ", &instruction_len.to_string(), COMPONENTS[slot], COMPONENTS[src_component]));
+                    }
+                };
+                instructions.push_str(&instruction_len.to_string());
+
+                swizzle.push_str(&format!("\
+                    #[inline(always)] pub const fn with_{fn_name}(mut self, value: {dst_ty}<C>) -> Self {{ unsafe {{ with_swizzle!(self, value, {dst_ty}, C, [{instructions}]) }} }}
+                "));
+
+                if !dst_n.is_power_of_two() {
+                    swizzle.push_str(&format!("\
+                        #[inline(always)] pub const fn with_{fn_name}_a(mut self, value: {dst_ty}A<C>) -> Self {{ unsafe {{ with_swizzle!(self, value, {dst_ty}, C, [{instructions}]) }} }}
+                    "));
+                }
+            }
+        }
+
+        swizzle.trim().to_string()
+    };
+
     cleanup_rs(
         &format!(
             "
@@ -175,6 +277,13 @@ fn vec_rs(n: usize, aligned: bool) -> String {
 
             impl<C: Component> {name}<C> {{
                 {swizzle}
+            }}
+            impl<C: Component> {name}<C> {{
+                {set_swizzle}
+            }}
+            impl<C: Component> {name}<C> {{
+                {with}
+                {with_swizzle}
             }}
             "
         )

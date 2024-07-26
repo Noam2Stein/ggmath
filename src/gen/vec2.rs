@@ -71,3 +71,13 @@ impl<C: Component> Vec2<C> {
 	#[inline(always)] pub const fn yyyx(self) -> Vec4<C> { unsafe { swizzle!(self, Vec4, C, [y -> x * 1, y -> y * 1, y -> z * 1, x -> w * 1]) } }
 	#[inline(always)] pub const fn yyyy(self) -> Vec4<C> { unsafe { swizzle!(self, Vec4, C, [y -> x * 1, y -> y * 1, y -> z * 1, y -> w * 1]) } }
 }
+impl<C: Component> Vec2<C> {
+	#[inline(always)] pub const fn set_xy(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> x * 2]) } }
+	#[inline(always)] pub const fn set_yx(&mut self, value: Vec2<C>) { unsafe { set_swizzle!(value, self, Vec2, C, [x -> y * 1, y -> x * 1]) } }
+}
+impl<C: Component> Vec2<C> {
+	#[inline(always)] pub const fn with_x(mut self, value: C) -> Self { self.x = value; self }
+	#[inline(always)] pub const fn with_y(mut self, value: C) -> Self { self.y = value; self }
+	#[inline(always)] pub const fn with_xy(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> x * 2]) } }
+	#[inline(always)] pub const fn with_yx(mut self, value: Vec2<C>) -> Self { unsafe { with_swizzle!(self, value, Vec2, C, [x -> y * 1, y -> x * 1]) } }
+}
