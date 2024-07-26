@@ -1,5 +1,7 @@
 use std::{env, fs::{create_dir_all, remove_file, write}, ops::Range, path::PathBuf};
 
+use regex::Regex;
+
 const VECS: Range<usize> = 2..5;
 const COMPONENTS: [char; 4] = ['x', 'y', 'z', 'w'];
 
@@ -74,6 +76,8 @@ fn vec_rs(n: usize, aligned: bool) -> String {
 
     let constructor_fields = components.iter().map(|c| format!("{c},")).collect::<Box<[String]>>().join("\n");
     let constructor_align_fields = align_components.iter().map(|c| format!("{c}: unsafe {{ std::mem::zeroed() }},")).collect::<Box<[String]>>().join("\n");
+    
+    let constructor_fields_splat = components.iter().map(|c| format!("{c}: value,")).collect::<Box<[String]>>().join("\n");
     
     let args = components.iter().map(|c| format!("{c}: C")).collect::<Box<[String]>>().join(", ");
 
@@ -154,6 +158,13 @@ fn vec_rs(n: usize, aligned: bool) -> String {
                         {constructor_align_fields}
                     }}
                 }}
+                #[inline(always)]
+                pub const fn splat(value: C) -> Self {{
+                    Self {{
+                        {constructor_fields_splat}
+                        {constructor_align_fields}
+                    }}
+                }}
             }}
 
             impl<C: Component> std::fmt::Display for {name}<C> {{
@@ -214,11 +225,10 @@ fn cleanup_rs(src: &str) -> String {
     
     dst.remove(dst.len() - 1);
 
+    {
+        let regex = Regex::new(r"\n+(\s*[\)\]\}])").unwrap();
+        dst = regex.replace_all(&dst, "\n$1").into_owned();
+    };
+
     dst
-    .replace("\n\n\n\n\n", "\n\n")
-    .replace("\n\n\n\n", "\n\n")
-    .replace("\n\n\n", "\n\n")
-    .replace("\n\n)", "\n)")
-    .replace("\n\n]", "\n]")
-    .replace("\n\n}", "\n}")
 }

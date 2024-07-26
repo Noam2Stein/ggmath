@@ -22,6 +22,15 @@ impl<C: Component> Vec3A<C> {
 			_3: unsafe { std::mem::zeroed() },
 		}
 	}
+	#[inline(always)]
+	pub const fn splat(value: C) -> Self {
+		Self {
+			x: value,
+			y: value,
+			z: value,
+			_3: unsafe { std::mem::zeroed() },
+		}
+	}
 }
 
 impl<C: Component> std::fmt::Display for Vec3A<C> {

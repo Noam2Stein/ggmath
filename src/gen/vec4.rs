@@ -20,7 +20,15 @@ impl<C: Component> Vec4<C> {
 			y,
 			z,
 			w,
-
+		}
+	}
+	#[inline(always)]
+	pub const fn splat(value: C) -> Self {
+		Self {
+			x: value,
+			y: value,
+			z: value,
+			w: value,
 		}
 	}
 }

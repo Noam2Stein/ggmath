@@ -16,7 +16,13 @@ impl<C: Component> Vec2<C> {
 		Self {
 			x,
 			y,
-
+		}
+	}
+	#[inline(always)]
+	pub const fn splat(value: C) -> Self {
+		Self {
+			x: value,
+			y: value,
 		}
 	}
 }

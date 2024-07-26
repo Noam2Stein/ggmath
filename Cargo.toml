@@ -8,3 +8,6 @@ path = "src/lib.rs"
 
 [dependencies]
 num = "0.4.3"
+
+[build-dependencies]
+regex = "1.10.5"

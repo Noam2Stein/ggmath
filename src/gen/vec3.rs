@@ -18,7 +18,14 @@ impl<C: Component> Vec3<C> {
 			x,
 			y,
 			z,
-
+		}
+	}
+	#[inline(always)]
+	pub const fn splat(value: C) -> Self {
+		Self {
+			x: value,
+			y: value,
+			z: value,
 		}
 	}
 }
