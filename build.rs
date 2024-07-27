@@ -1,9 +1,42 @@
 use std::{env, fs::{create_dir_all, remove_file, write}, ops::Range, path::PathBuf};
 
+use lazy_static::lazy_static;
 use regex::Regex;
 
+struct VecType {
+    pub name: String,
+    pub n: usize,
+    pub is_aligned: bool,
+}
+
 const VECS: Range<usize> = 2..5;
-const COMPONENTS: [char; 4] = ['x', 'y', 'z', 'w'];
+const COMPONENTS: [char; VECS.end - 1] = ['x', 'y', 'z', 'w'];
+
+lazy_static!(
+    static ref VEC_TYPES: Box<[VecType]> = {
+        let mut result = Vec::with_capacity(VECS.len() * 2);
+        for n in VECS
+        {
+            result.push(
+                VecType {
+                    name: format!("Vec{n}"),
+                    n,
+                    is_aligned: false,
+                }   
+            );
+            if !n.is_power_of_two() {
+                result.push(
+                    VecType {
+                        name: format!("Vec{n}A"),
+                        n,
+                        is_aligned: true,
+                    }   
+                );
+            };
+        };
+        result.into_boxed_slice()
+    };
+);
 
 fn main() {
     let src_dir = PathBuf::from_iter([
@@ -11,19 +44,17 @@ fn main() {
         PathBuf::from("src/gen"),
     ].iter());
 
-    for path in std::fs::read_dir(&src_dir).unwrap() {
-        remove_file(path.unwrap().path()).unwrap();
+    for entry in std::fs::read_dir(&src_dir).unwrap() {
+        remove_file(entry.unwrap().path()).unwrap();
     };
 
-    let write = |path: &str, str: &str| {
-        let full_path = PathBuf::from_iter([&src_dir, &PathBuf::from(path)].iter());
-
-        let full_dir = full_path.parent().unwrap();
-        if !full_dir.exists() {
-            create_dir_all(full_dir).unwrap();
+    let write = |path_in_src: &str, str: &str| {
+        let path = PathBuf::from_iter([&src_dir, &PathBuf::from(path_in_src)].iter());
+        let dir = path.parent().unwrap();
+        if !dir.exists() {
+            create_dir_all(dir).unwrap();
         }
-
-        write(full_path, str.as_bytes()).unwrap();
+        write(path, str.as_bytes()).unwrap();
     };
 
     write("mod.rs", &mod_rs());
@@ -59,183 +90,164 @@ fn mod_rs() -> String {
         ).collect::<Box<[String]>>().join("\n").as_str()
     )
 }
-fn vec_rs(n: usize, aligned: bool) -> String {
-    let name = if aligned { format!("Vec{n}A") } else { format!("Vec{n}") };
-    let name_lower = if aligned { format!("vec{n}a") } else { format!("vec{n}") };
+fn vec_rs(n: usize, align: bool) -> String {
+    let _self = if align { format!("Vec{n}A") } else { format!("Vec{n}") };
+    let _self_lower = if align { format!("vec{n}a") } else { format!("vec{n}") };
 
     let components = (0..n).map(|i| COMPONENTS[i].to_string()).collect::<Box<[String]>>();
-    let align_components = if aligned {
-        (n..n.next_power_of_two()).map(|i| format!("_{i}")).collect::<Box<[String]>>()
-    }
-    else {
-        Box::new([])
-    };
+    let alignment_len = if align { n.next_power_of_two() - n } else { 0 };
 
     let fields = components.iter().map(|c| format!("pub(crate) {c}: C,")).collect::<Box<[String]>>().join("\n");
-    let align_fields = align_components.iter().map(|c| format!("pub(crate) {c}: C,")).collect::<Box<[String]>>().join("\n");
-
-    let constructor_fields = components.iter().map(|c| format!("{c},")).collect::<Box<[String]>>().join("\n");
-    let constructor_align_fields = align_components.iter().map(|c| format!("{c}: unsafe {{ std::mem::zeroed() }},")).collect::<Box<[String]>>().join("\n");
-    
-    let constructor_fields_splat = components.iter().map(|c| format!("{c}: value,")).collect::<Box<[String]>>().join("\n");
+    let alignment_field = if align { format!("pub(crate) _alignment: [C; {alignment_len}],") } else { String::new() };
     
     let args = components.iter().map(|c| format!("{c}: C")).collect::<Box<[String]>>().join(", ");
+    let reference_args = components.iter().map(|c| format!("{c}")).collect::<Box<[String]>>().join(", ");
 
-    let use_args = components.iter().map(|c| format!("{c}")).collect::<Box<[String]>>().join(", ");
-
+    let copy_components = components.iter().map(|c| format!("{c} -> {c} * 1") ).collect::<Box<[String]>>().join(", ");
+    let copy_components_splat = components.iter().map(|c| format!("value -> {c} * 1") ).collect::<Box<[String]>>().join(", ");
+    
     let format_self = format!(
         "\"({})\", {}",
         components.iter().map(|_| "{}").collect::<Box<[&str]>>().join(", "),
         components.iter().map(|c| format!("self.{c}")).collect::<Box<[String]>>().join(", ")
     );
 
-    let swizzle = {
-        let mut swizzle = String::new();
-        let mut combo = Vec::with_capacity(VECS.end - 1);
-        for dst_n in VECS {
-            let dst_ty = format!("Vec{dst_n}");
-            for combo_index in 0..n.pow(dst_n as u32) {
-                combo.clear();
-                for slot in (0..dst_n).rev() {
-                    combo.push(
-                        combo_index / n.pow(slot as u32) % n
-                    );
+    let swizzle = VEC_TYPES.iter().map(|dst_type| {
+        let dst_type_name = &dst_type.name;
+
+        (0..n.pow(dst_type.n as u32)).map(|combination| {
+            let mut combination_str = String::with_capacity(dst_type.n);
+            let mut copy_instructions = String::new();
+            
+            let mut previous_src_component = 0;
+            let mut current_copy_len = 1;
+            for dst_component in 0..dst_type.n {
+                let src_component = combination / n.pow(dst_component as u32) % n;
+
+                let src_component_c = COMPONENTS[src_component];
+                let dst_component_c = COMPONENTS[dst_component];
+
+                combination_str.push(src_component_c);
+                if dst_component == 0 {
+                    copy_instructions.push_str(&format!("self.{src_component_c} -> {dst_component_c} * "));
                 }
-
-                let fn_name = combo.iter().map(|i| COMPONENTS[*i]).collect::<String>();
-                
-                let mut instructions = String::new();
-                let mut instruction_len = 1;
-                instructions.push_str(&format!("{} -> {} * ", COMPONENTS[combo[0]], COMPONENTS[0]));
-                for slot in 1..dst_n {
-                    let src_component = combo[slot];
-                    let src_prev_component = combo[slot - 1];
-
-                    if src_component == src_prev_component + 1 {
-                        instruction_len += 1;
-                    }
-                    else {
-                        instructions.push_str(&format!("{}, {} -> {} * ", &instruction_len.to_string(), COMPONENTS[src_component], COMPONENTS[slot]));
-                    }
+                else if src_component == previous_src_component + 1 {
+                    current_copy_len += 1;
+                }
+                else {
+                    copy_instructions.push_str(&format!("{current_copy_len}, self.{src_component_c} -> {dst_component_c} * "));
+                    current_copy_len = 1;
                 };
-                instructions.push_str(&instruction_len.to_string());
 
-                swizzle.push_str(&format!("\
-                    #[inline(always)] pub const fn {fn_name}(self) -> {dst_ty}<C> {{ unsafe {{ swizzle!(self, {dst_ty}, C, [{instructions}]) }} }}
-                "));
-
-                if !dst_n.is_power_of_two() {
-                    swizzle.push_str(&format!("\
-                        #[inline(always)] pub const fn {fn_name}_a(self) -> {dst_ty}A<C> {{ unsafe {{ swizzle!(self, {dst_ty}A, C, [{instructions}]) }} }}
-                    "));
-                }
+                previous_src_component = src_component;
             }
-        }
+            copy_instructions.push_str(&current_copy_len.to_string());
 
-        swizzle.trim().to_string()
-    };
+            let fn_name = if dst_type.is_aligned { format!("{combination_str}_a") } else { format!("{combination_str}") };
 
-    let set_swizzle = {
-        let mut swizzle = String::new();
-        let mut combo: Vec<usize> = Vec::with_capacity(VECS.end - 1);
-        for dst_n in VECS.start..n + 1 {
-            let dst_ty = format!("Vec{dst_n}");
-            'combo: for combo_index in 0..n.pow(dst_n as u32) {
-                combo.clear();
-                for slot in (0..dst_n).rev() {
-                    let value = combo_index / n.pow(slot as u32) % n;
-                    if combo.contains(&value) {
-                        continue 'combo;
-                    }
-                    else {
-                        combo.push(value);
-                    }
+            format!(
+                "#[inline(always)] pub const fn {fn_name}(self) -> {dst_type_name}<C> {{ unsafe {{ copy_components_init!({dst_type_name}, C, [{copy_instructions}]) }} }}"
+            )
+        }).collect::<Box<[String]>>().join("\n")
+    }).collect::<Box<[String]>>().join("\n\n");
+
+    let set_swizzle = VEC_TYPES.iter().filter_map(|value_type| {
+        if value_type.n > n {
+            return None;
+        };
+
+        let value_type_name = &value_type.name;
+
+        Some((0..n.pow(value_type.n as u32)).filter_map(|combination| {
+            let mut combination_str = String::with_capacity(value_type.n);
+            let mut copy_instructions = String::new();
+            
+            let mut previous_self_component = 0;
+            let mut current_copy_len = 1;
+            for value_component in 0..value_type.n {
+                let self_component = combination / n.pow(value_component as u32) % n;
+
+                let self_component_c = COMPONENTS[self_component];
+                let value_component_c = COMPONENTS[value_component];
+
+                if combination_str.contains(self_component_c) {
+                    return None;
                 }
 
-                let fn_name = combo.iter().map(|i| COMPONENTS[*i]).collect::<String>();
-                
-                let mut instructions = String::new();
-                let mut instruction_len = 1;
-                instructions.push_str(&format!("{} -> {} * ", COMPONENTS[0], COMPONENTS[combo[0]]));
-                for slot in 1..dst_n {
-                    let src_component = combo[slot];
-                    let src_prev_component = combo[slot - 1];
-
-                    if src_component == src_prev_component + 1 {
-                        instruction_len += 1;
-                    }
-                    else {
-                        instructions.push_str(&format!("{}, {} -> {} * ", &instruction_len.to_string(), COMPONENTS[slot], COMPONENTS[src_component]));
-                    }
+                combination_str.push(self_component_c);
+                if value_component == 0 {
+                    copy_instructions.push_str(&format!("value.{value_component_c} -> self.{self_component_c} * "));
+                }
+                else if self_component == previous_self_component + 1 {
+                    current_copy_len += 1;
+                }
+                else {
+                    copy_instructions.push_str(&format!("{current_copy_len}, value.{value_component_c} -> self.{self_component_c} * "));
+                    current_copy_len = 1;
                 };
-                instructions.push_str(&instruction_len.to_string());
 
-                swizzle.push_str(&format!("\
-                    #[inline(always)] pub const fn set_{fn_name}(&mut self, value: {dst_ty}<C>) {{ unsafe {{ set_swizzle!(value, self, {dst_ty}, C, [{instructions}]) }} }}
-                "));
-
-                if !dst_n.is_power_of_two() {
-                    swizzle.push_str(&format!("\
-                        #[inline(always)] pub const fn set_{fn_name}_a(&mut self, value: {dst_ty}A<C>) {{ unsafe {{ set_swizzle!(value, self, {dst_ty}, C, [{instructions}]) }} }}
-                    "));
-                }
+                previous_self_component = self_component;
             }
-        }
+            copy_instructions.push_str(&current_copy_len.to_string());
 
-        swizzle.trim().to_string()
-    };
+            let fn_name = if value_type.is_aligned { format!("set_{combination_str}_a") } else { format!("set_{combination_str}") };
 
-    let with = (0..n).map(|i| format!("#[inline(always)] pub const fn with_{c}(mut self, value: C) -> Self {{ self.{c} = value; self }}", c = COMPONENTS[i])).collect::<Box<[String]>>().join("\n");
+            Some(format!(
+                "#[inline(always)] pub const fn {fn_name}(&mut self, value: {value_type_name}<C>) {{ unsafe {{ copy_components!(C, [{copy_instructions}]) }} }}"
+            ))
+        }).collect::<Box<[String]>>().join("\n"))
+    }).collect::<Box<[String]>>().join("\n\n");
 
-    let with_swizzle = {
-        let mut swizzle = String::new();
-        let mut combo: Vec<usize> = Vec::with_capacity(VECS.end - 1);
-        for dst_n in VECS.start..n + 1 {
-            let dst_ty = format!("Vec{dst_n}");
-            'combo: for combo_index in 0..n.pow(dst_n as u32) {
-                combo.clear();
-                for slot in (0..dst_n).rev() {
-                    let value = combo_index / n.pow(slot as u32) % n;
-                    if combo.contains(&value) {
-                        continue 'combo;
-                    }
-                    else {
-                        combo.push(value);
-                    }
+    let with = (0..n).map(|i|
+        format!("#[inline(always)] pub const fn with_{c}(mut self, value: C) -> Self {{ self.{c} = value; self }}", c = COMPONENTS[i])
+    ).collect::<Box<[String]>>().join("\n");
+
+    let with_swizzle = VEC_TYPES.iter().filter_map(|value_type| {
+        if value_type.n > n {
+            return None;
+        };
+
+        let value_type_name = &value_type.name;
+
+        Some((0..n.pow(value_type.n as u32)).filter_map(|combination| {
+            let mut combination_str = String::with_capacity(value_type.n);
+            let mut copy_instructions = String::new();
+            
+            let mut previous_self_component = 0;
+            let mut current_copy_len = 1;
+            for value_component in 0..value_type.n {
+                let self_component = combination / n.pow(value_component as u32) % n;
+
+                let self_component_c = COMPONENTS[self_component];
+                let value_component_c = COMPONENTS[value_component];
+
+                if combination_str.contains(self_component_c) {
+                    return None;
                 }
 
-                let fn_name = combo.iter().map(|i| COMPONENTS[*i]).collect::<String>();
-                
-                let mut instructions = String::new();
-                let mut instruction_len = 1;
-                instructions.push_str(&format!("{} -> {} * ", COMPONENTS[0], COMPONENTS[combo[0]]));
-                for slot in 1..dst_n {
-                    let src_component = combo[slot];
-                    let src_prev_component = combo[slot - 1];
-
-                    if src_component == src_prev_component + 1 {
-                        instruction_len += 1;
-                    }
-                    else {
-                        instructions.push_str(&format!("{}, {} -> {} * ", &instruction_len.to_string(), COMPONENTS[slot], COMPONENTS[src_component]));
-                    }
+                combination_str.push(self_component_c);
+                if value_component == 0 {
+                    copy_instructions.push_str(&format!("value.{value_component_c} -> self.{self_component_c} * "));
+                }
+                else if self_component == previous_self_component + 1 {
+                    current_copy_len += 1;
+                }
+                else {
+                    copy_instructions.push_str(&format!("{current_copy_len}, value.{value_component_c} -> self.{self_component_c} * "));
+                    current_copy_len = 1;
                 };
-                instructions.push_str(&instruction_len.to_string());
 
-                swizzle.push_str(&format!("\
-                    #[inline(always)] pub const fn with_{fn_name}(mut self, value: {dst_ty}<C>) -> Self {{ unsafe {{ with_swizzle!(self, value, {dst_ty}, C, [{instructions}]) }} }}
-                "));
-
-                if !dst_n.is_power_of_two() {
-                    swizzle.push_str(&format!("\
-                        #[inline(always)] pub const fn with_{fn_name}_a(mut self, value: {dst_ty}A<C>) -> Self {{ unsafe {{ with_swizzle!(self, value, {dst_ty}, C, [{instructions}]) }} }}
-                    "));
-                }
+                previous_self_component = self_component;
             }
-        }
+            copy_instructions.push_str(&current_copy_len.to_string());
 
-        swizzle.trim().to_string()
-    };
+            let fn_name = if value_type.is_aligned { format!("with_{combination_str}_a") } else { format!("with_{combination_str}") };
+
+            Some(format!(
+                "#[inline(always)] pub const fn {fn_name}(mut self, value: {value_type_name}<C>) -> Self {{ unsafe {{ copy_components!(C, [{copy_instructions}]); self }} }}"
+            ))
+        }).collect::<Box<[String]>>().join("\n"))
+    }).collect::<Box<[String]>>().join("\n\n");
 
     cleanup_rs(
         &format!(
@@ -243,46 +255,45 @@ fn vec_rs(n: usize, aligned: bool) -> String {
             use crate::*;
             
             #[derive(Debug, Clone, Copy, PartialEq)]
-            pub struct {name}<C: Component> {{
+            pub struct {_self}<C: Component> {{
                 {fields}
-                {align_fields}
+                {alignment_field}
             }}
 
             #[inline(always)]
-            pub const fn {name_lower}<C: Component>({args}) -> {name}<C> {{
-                {name}::new({use_args})
+            pub const fn {_self_lower}<C: Component>({args}) -> {_self}<C> {{
+                {_self}::new({reference_args})
             }}
-            impl<C: Component> {name}<C> {{
+            impl<C: Component> {_self}<C> {{
                 #[inline(always)]
                 pub const fn new({args}) -> Self {{
-                    Self {{
-                        {constructor_fields}
-                        {constructor_align_fields}
+                    unsafe {{
+                        copy_components_init!({_self}, C, [{copy_components}])
                     }}
                 }}
                 #[inline(always)]
                 pub const fn splat(value: C) -> Self {{
-                    Self {{
-                        {constructor_fields_splat}
-                        {constructor_align_fields}
+                    unsafe {{
+                        copy_components_init!({_self}, C, [{copy_components_splat}])
                     }}
                 }}
             }}
 
-            impl<C: Component> std::fmt::Display for {name}<C> {{
+            impl<C: Component> std::fmt::Display for {_self}<C> {{
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
                     write!(f, {format_self})
                 }}
             }}
 
-            impl<C: Component> {name}<C> {{
+            impl<C: Component> {_self}<C> {{
                 {swizzle}
             }}
-            impl<C: Component> {name}<C> {{
+            impl<C: Component> {_self}<C> {{
                 {set_swizzle}
             }}
-            impl<C: Component> {name}<C> {{
+            impl<C: Component> {_self}<C> {{
                 {with}
+                
                 {with_swizzle}
             }}
             "
