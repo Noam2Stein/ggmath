@@ -1,10 +1,11 @@
 #![feature(const_refs_to_cell)]
 #![feature(const_mut_refs)]
 
-mod copy_components;
+mod copy_elements;
+mod swizzle_fns;
 
-mod component;
-pub use component::*;
+mod element;
+pub use element::*;
 
 mod gen;
 pub use gen::*;

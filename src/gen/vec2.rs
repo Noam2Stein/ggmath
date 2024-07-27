@@ -1,85 +1,59 @@
 use crate::*;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Vec2<C: Component> {
-	pub(crate) x: C,
-	pub(crate) y: C,
+pub struct Vec2<T: Element> {
+	pub(crate) x: T,
+	pub(crate) y: T,
 }
 
 #[inline(always)]
-pub const fn vec2<C: Component>(x: C, y: C) -> Vec2<C> {
+pub const fn vec2<T: Element>(x: T, y: T) -> Vec2<T> {
 	Vec2::new(x, y)
 }
-impl<C: Component> Vec2<C> {
+impl<T: Element> Vec2<T> {
 	#[inline(always)]
-	pub const fn new(x: C, y: C) -> Self {
+	pub const fn new(x: T, y: T) -> Self {
 		unsafe {
-			copy_components_init!(Vec2, C, [x -> x * 1, y -> y * 1])
+			copy_elements_init!(Self, T, [x -> x * 1, y -> y * 1])
 		}
 	}
 	#[inline(always)]
-	pub const fn splat(value: C) -> Self {
+	pub const fn splat(value: T) -> Self {
 		unsafe {
-			copy_components_init!(Vec2, C, [value -> x * 1, value -> y * 1])
+			copy_elements_init!(Self, T, [value -> x * 1, value -> y * 1])
 		}
 	}
 }
 
-impl<C: Component> std::fmt::Display for Vec2<C> {
+impl<T: Element> std::fmt::Display for Vec2<T> {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "({}, {})", self.x, self.y)
 	}
 }
 
-impl<C: Component> Vec2<C> {
-	#[inline(always)] pub const fn xx(self) -> Vec2<C> { unsafe { copy_components_init!(Vec2, C, [self.x -> x * 1, self.x -> y * 1]) } }
-	#[inline(always)] pub const fn yx(self) -> Vec2<C> { unsafe { copy_components_init!(Vec2, C, [self.y -> x * 1, self.x -> y * 1]) } }
-	#[inline(always)] pub const fn xy(self) -> Vec2<C> { unsafe { copy_components_init!(Vec2, C, [self.x -> x * 2]) } }
-	#[inline(always)] pub const fn yy(self) -> Vec2<C> { unsafe { copy_components_init!(Vec2, C, [self.y -> x * 1, self.y -> y * 1]) } }
-
-	#[inline(always)] pub const fn xxx(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.x -> x * 1, self.x -> y * 1, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn yxx(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.y -> x * 1, self.x -> y * 1, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn xyx(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.x -> x * 2, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn yyx(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.y -> x * 1, self.y -> y * 1, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn xxy(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.x -> x * 1, self.x -> y * 2]) } }
-	#[inline(always)] pub const fn yxy(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.y -> x * 1, self.x -> y * 2]) } }
-	#[inline(always)] pub const fn xyy(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.x -> x * 2, self.y -> z * 1]) } }
-	#[inline(always)] pub const fn yyy(self) -> Vec3<C> { unsafe { copy_components_init!(Vec3, C, [self.y -> x * 1, self.y -> y * 1, self.y -> z * 1]) } }
-
-	#[inline(always)] pub const fn xxx_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.x -> x * 1, self.x -> y * 1, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn yxx_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.y -> x * 1, self.x -> y * 1, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn xyx_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.x -> x * 2, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn yyx_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.y -> x * 1, self.y -> y * 1, self.x -> z * 1]) } }
-	#[inline(always)] pub const fn xxy_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.x -> x * 1, self.x -> y * 2]) } }
-	#[inline(always)] pub const fn yxy_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.y -> x * 1, self.x -> y * 2]) } }
-	#[inline(always)] pub const fn xyy_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.x -> x * 2, self.y -> z * 1]) } }
-	#[inline(always)] pub const fn yyy_a(self) -> Vec3A<C> { unsafe { copy_components_init!(Vec3A, C, [self.y -> x * 1, self.y -> y * 1, self.y -> z * 1]) } }
-
-	#[inline(always)] pub const fn xxxx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 1, self.x -> y * 1, self.x -> z * 1, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn yxxx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.x -> y * 1, self.x -> z * 1, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn xyxx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 2, self.x -> z * 1, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn yyxx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.y -> y * 1, self.x -> z * 1, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn xxyx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 1, self.x -> y * 2, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn yxyx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.x -> y * 2, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn xyyx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 2, self.y -> z * 1, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn yyyx(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.y -> y * 1, self.y -> z * 1, self.x -> w * 1]) } }
-	#[inline(always)] pub const fn xxxy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 1, self.x -> y * 1, self.x -> z * 2]) } }
-	#[inline(always)] pub const fn yxxy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.x -> y * 1, self.x -> z * 2]) } }
-	#[inline(always)] pub const fn xyxy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 2, self.x -> z * 2]) } }
-	#[inline(always)] pub const fn yyxy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.y -> y * 1, self.x -> z * 2]) } }
-	#[inline(always)] pub const fn xxyy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 1, self.x -> y * 2, self.y -> w * 1]) } }
-	#[inline(always)] pub const fn yxyy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.x -> y * 2, self.y -> w * 1]) } }
-	#[inline(always)] pub const fn xyyy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.x -> x * 2, self.y -> z * 1, self.y -> w * 1]) } }
-	#[inline(always)] pub const fn yyyy(self) -> Vec4<C> { unsafe { copy_components_init!(Vec4, C, [self.y -> x * 1, self.y -> y * 1, self.y -> z * 1, self.y -> w * 1]) } }
+impl<T: Element> Vec2<T> {
+	swizzle_fns!(Vec2<T>, T, [
+			(xx, [x -> x, x -> y]), (yx, [y -> x, x -> y]), (xy, [x -> x * 2]), (yy, [y -> x, y -> y]),
+	]);
+	swizzle_fns!(Vec3<T>, T, [
+			(xxx, [x -> x, x -> y, x -> z]), (yxx, [y -> x, x -> y, x -> z]), (xyx, [x -> x * 2, x -> z]), (yyx, [y -> x, y -> y, x -> z]), (xxy, [x -> x, x -> y * 2]), (yxy, [y -> x, x -> y * 2]), (xyy, [x -> x * 2, y -> z]), (yyy, [y -> x, y -> y, y -> z]),
+	]);
+	swizzle_fns!(Vec3A<T>, T, [
+			(xxx_a, [x -> x, x -> y, x -> z]), (yxx_a, [y -> x, x -> y, x -> z]), (xyx_a, [x -> x * 2, x -> z]), (yyx_a, [y -> x, y -> y, x -> z]), (xxy_a, [x -> x, x -> y * 2]), (yxy_a, [y -> x, x -> y * 2]), (xyy_a, [x -> x * 2, y -> z]), (yyy_a, [y -> x, y -> y, y -> z]),
+	]);
+	swizzle_fns!(Vec4<T>, T, [
+			(xxxx, [x -> x, x -> y, x -> z, x -> w]), (yxxx, [y -> x, x -> y, x -> z, x -> w]), (xyxx, [x -> x * 2, x -> z, x -> w]), (yyxx, [y -> x, y -> y, x -> z, x -> w]), (xxyx, [x -> x, x -> y * 2, x -> w]), (yxyx, [y -> x, x -> y * 2, x -> w]), (xyyx, [x -> x * 2, y -> z, x -> w]), (yyyx, [y -> x, y -> y, y -> z, x -> w]), (xxxy, [x -> x, x -> y, x -> z * 2]), (yxxy, [y -> x, x -> y, x -> z * 2]), (xyxy, [x -> x * 2, x -> z * 2]), (yyxy, [y -> x, y -> y, x -> z * 2]), (xxyy, [x -> x, x -> y * 2, y -> w]), (yxyy, [y -> x, x -> y * 2, y -> w]), (xyyy, [x -> x * 2, y -> z, y -> w]), (yyyy, [y -> x, y -> y, y -> z, y -> w]),
+	]);
 }
-impl<C: Component> Vec2<C> {
-	#[inline(always)] pub const fn set_yx(&mut self, value: Vec2<C>) { unsafe { copy_components!(C, [value.x -> self.y * 1, value.y -> self.x * 1]) } }
-	#[inline(always)] pub const fn set_xy(&mut self, value: Vec2<C>) { unsafe { copy_components!(C, [value.x -> self.x * 2]) } }
+impl<T: Element> Vec2<T> {
+	set_swizzle_fns!(Vec2<T>, T, [
+			(set_yx, [x -> y, y -> x]), (set_xy, [x -> x * 2]),
+	]);
 }
-impl<C: Component> Vec2<C> {
-	#[inline(always)] pub const fn with_x(mut self, value: C) -> Self { self.x = value; self }
-	#[inline(always)] pub const fn with_y(mut self, value: C) -> Self { self.y = value; self }
+impl<T: Element> Vec2<T> {
+	#[inline(always)] pub const fn with_x(mut self, value: T) -> Self { self.x = value; self }#[inline(always)] pub const fn with_y(mut self, value: T) -> Self { self.y = value; self }
 
-	#[inline(always)] pub const fn with_yx(mut self, value: Vec2<C>) -> Self { unsafe { copy_components!(C, [value.x -> self.y * 1, value.y -> self.x * 1]); self } }
-	#[inline(always)] pub const fn with_xy(mut self, value: Vec2<C>) -> Self { unsafe { copy_components!(C, [value.x -> self.x * 2]); self } }
+	with_swizzle_fns!(Vec2<T>, T, [
+			(with_yx, [x -> y, y -> x]), (with_xy, [x -> x * 2]),
+	]);
 }

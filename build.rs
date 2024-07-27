@@ -97,10 +97,10 @@ fn vec_rs(n: usize, align: bool) -> String {
     let components = (0..n).map(|i| COMPONENTS[i].to_string()).collect::<Box<[String]>>();
     let alignment_len = if align { n.next_power_of_two() - n } else { 0 };
 
-    let fields = components.iter().map(|c| format!("pub(crate) {c}: C,")).collect::<Box<[String]>>().join("\n");
-    let alignment_field = if align { format!("pub(crate) _alignment: [C; {alignment_len}],") } else { String::new() };
+    let fields = components.iter().map(|c| format!("pub(crate) {c}: T,")).collect::<Box<[String]>>().join("\n");
+    let alignment_field = if align { format!("pub(crate) _alignment: [T; {alignment_len}],") } else { String::new() };
     
-    let args = components.iter().map(|c| format!("{c}: C")).collect::<Box<[String]>>().join(", ");
+    let args = components.iter().map(|c| format!("{c}: T")).collect::<Box<[String]>>().join(", ");
     let reference_args = components.iter().map(|c| format!("{c}")).collect::<Box<[String]>>().join(", ");
 
     let copy_components = components.iter().map(|c| format!("{c} -> {c} * 1") ).collect::<Box<[String]>>().join(", ");
@@ -115,41 +115,54 @@ fn vec_rs(n: usize, align: bool) -> String {
     let swizzle = VEC_TYPES.iter().map(|dst_type| {
         let dst_type_name = &dst_type.name;
 
-        (0..n.pow(dst_type.n as u32)).map(|combination| {
-            let mut combination_str = String::with_capacity(dst_type.n);
-            let mut copy_instructions = String::new();
-            
-            let mut previous_src_component = 0;
-            let mut current_copy_len = 1;
-            for dst_component in 0..dst_type.n {
-                let src_component = combination / n.pow(dst_component as u32) % n;
+        format!(
+            "\
+            swizzle_fns!({dst_type_name}<T>, T, [
+                {}
+            ]);\
+            ",
+            (0..n.pow(dst_type.n as u32)).map(|combination| {
+                let mut combination_str = String::with_capacity(dst_type.n);
+                let mut copy_instructions = String::new();
+                
+                let mut previous_src_component = 0;
+                let mut current_copy_len = 1;
+                for dst_component in 0..dst_type.n {
+                    let src_component = combination / n.pow(dst_component as u32) % n;
+    
+                    let src_component_c = COMPONENTS[src_component];
+                    let dst_component_c = COMPONENTS[dst_component];
+    
+                    combination_str.push(src_component_c);
+                    if dst_component == 0 {
+                        copy_instructions.push_str(&format!("{src_component_c} -> {dst_component_c}"));
+                    }
+                    else if src_component == previous_src_component + 1 {
+                        current_copy_len += 1;
+                    }
+                    else {
+                        if current_copy_len > 1 {
+                            copy_instructions.push_str(&format!(" * {current_copy_len}"));
+                        }
+                        copy_instructions.push_str(&format!(", {src_component_c} -> {dst_component_c}"));
 
-                let src_component_c = COMPONENTS[src_component];
-                let dst_component_c = COMPONENTS[dst_component];
-
-                combination_str.push(src_component_c);
-                if dst_component == 0 {
-                    copy_instructions.push_str(&format!("self.{src_component_c} -> {dst_component_c} * "));
+                        current_copy_len = 1;
+                    };
+    
+                    previous_src_component = src_component;
                 }
-                else if src_component == previous_src_component + 1 {
-                    current_copy_len += 1;
+                if current_copy_len > 1 {
+                    copy_instructions.push_str(&format!(" * {current_copy_len}"));
                 }
-                else {
-                    copy_instructions.push_str(&format!("{current_copy_len}, self.{src_component_c} -> {dst_component_c} * "));
-                    current_copy_len = 1;
-                };
-
-                previous_src_component = src_component;
-            }
-            copy_instructions.push_str(&current_copy_len.to_string());
-
-            let fn_name = if dst_type.is_aligned { format!("{combination_str}_a") } else { format!("{combination_str}") };
-
-            format!(
-                "#[inline(always)] pub const fn {fn_name}(self) -> {dst_type_name}<C> {{ unsafe {{ copy_components_init!({dst_type_name}, C, [{copy_instructions}]) }} }}"
-            )
-        }).collect::<Box<[String]>>().join("\n")
-    }).collect::<Box<[String]>>().join("\n\n");
+    
+                let fn_name = if dst_type.is_aligned { format!("{combination_str}_a") } else { format!("{combination_str}") };
+    
+                format!(
+                    "({fn_name}, [{copy_instructions}]),"
+                )
+            }).collect::<Box<[String]>>().join(" ")
+        )
+    }).collect::<Box<[String]>>().join("\n");
 
     let set_swizzle = VEC_TYPES.iter().filter_map(|value_type| {
         if value_type.n > n {
@@ -158,49 +171,62 @@ fn vec_rs(n: usize, align: bool) -> String {
 
         let value_type_name = &value_type.name;
 
-        Some((0..n.pow(value_type.n as u32)).filter_map(|combination| {
-            let mut combination_str = String::with_capacity(value_type.n);
-            let mut copy_instructions = String::new();
-            
-            let mut previous_self_component = 0;
-            let mut current_copy_len = 1;
-            for value_component in 0..value_type.n {
-                let self_component = combination / n.pow(value_component as u32) % n;
+        Some(format!(
+            "\
+            set_swizzle_fns!({value_type_name}<T>, T, [
+                {}
+            ]);\
+            ",
+            (0..n.pow(value_type.n as u32)).filter_map(|combination| {
+                let mut combination_str = String::with_capacity(value_type.n);
+                let mut copy_instructions = String::new();
+                
+                let mut previous_self_component = 0;
+                let mut current_copy_len = 1;
+                for value_component in 0..value_type.n {
+                    let self_component = combination / n.pow(value_component as u32) % n;
+    
+                    let self_component_c = COMPONENTS[self_component];
+                    let value_component_c = COMPONENTS[value_component];
+    
+                    if combination_str.contains(self_component_c) {
+                        return None;
+                    }
+    
+                    combination_str.push(self_component_c);
+                    if value_component == 0 {
+                        copy_instructions.push_str(&format!("{value_component_c} -> {self_component_c}"));
+                    }
+                    else if self_component == previous_self_component + 1 {
+                        current_copy_len += 1;
+                    }
+                    else {
+                        if current_copy_len > 1 {
+                            copy_instructions.push_str(&format!(" * {current_copy_len}"));
+                        }
+                        copy_instructions.push_str(&format!(", {value_component_c} -> {self_component_c}"));
 
-                let self_component_c = COMPONENTS[self_component];
-                let value_component_c = COMPONENTS[value_component];
-
-                if combination_str.contains(self_component_c) {
-                    return None;
+                        current_copy_len = 1;
+                    };
+    
+                    previous_self_component = self_component;
                 }
-
-                combination_str.push(self_component_c);
-                if value_component == 0 {
-                    copy_instructions.push_str(&format!("value.{value_component_c} -> self.{self_component_c} * "));
+                if current_copy_len > 1 {
+                    copy_instructions.push_str(&format!(" * {current_copy_len}"));
                 }
-                else if self_component == previous_self_component + 1 {
-                    current_copy_len += 1;
-                }
-                else {
-                    copy_instructions.push_str(&format!("{current_copy_len}, value.{value_component_c} -> self.{self_component_c} * "));
-                    current_copy_len = 1;
-                };
-
-                previous_self_component = self_component;
-            }
-            copy_instructions.push_str(&current_copy_len.to_string());
-
-            let fn_name = if value_type.is_aligned { format!("set_{combination_str}_a") } else { format!("set_{combination_str}") };
-
-            Some(format!(
-                "#[inline(always)] pub const fn {fn_name}(&mut self, value: {value_type_name}<C>) {{ unsafe {{ copy_components!(C, [{copy_instructions}]) }} }}"
-            ))
-        }).collect::<Box<[String]>>().join("\n"))
-    }).collect::<Box<[String]>>().join("\n\n");
+    
+                let fn_name = if value_type.is_aligned { format!("set_{combination_str}_a") } else { format!("set_{combination_str}") };
+    
+                Some(format!(
+                    "({fn_name}, [{copy_instructions}]),"
+                ))
+            }).collect::<Box<[String]>>().join(" ")
+        ))
+    }).collect::<Box<[String]>>().join("\n");
 
     let with = (0..n).map(|i|
-        format!("#[inline(always)] pub const fn with_{c}(mut self, value: C) -> Self {{ self.{c} = value; self }}", c = COMPONENTS[i])
-    ).collect::<Box<[String]>>().join("\n");
+        format!("#[inline(always)] pub const fn with_{c}(mut self, value: T) -> Self {{ self.{c} = value; self }}", c = COMPONENTS[i])
+    ).collect::<Box<[String]>>().join("");
 
     let with_swizzle = VEC_TYPES.iter().filter_map(|value_type| {
         if value_type.n > n {
@@ -209,45 +235,58 @@ fn vec_rs(n: usize, align: bool) -> String {
 
         let value_type_name = &value_type.name;
 
-        Some((0..n.pow(value_type.n as u32)).filter_map(|combination| {
-            let mut combination_str = String::with_capacity(value_type.n);
-            let mut copy_instructions = String::new();
-            
-            let mut previous_self_component = 0;
-            let mut current_copy_len = 1;
-            for value_component in 0..value_type.n {
-                let self_component = combination / n.pow(value_component as u32) % n;
+        Some(format!(
+            "\
+            with_swizzle_fns!({value_type_name}<T>, T, [
+                {}
+            ]);\
+            ",
+            (0..n.pow(value_type.n as u32)).filter_map(|combination| {
+                let mut combination_str = String::with_capacity(value_type.n);
+                let mut copy_instructions = String::new();
+                
+                let mut previous_self_component = 0;
+                let mut current_copy_len = 1;
+                for value_component in 0..value_type.n {
+                    let self_component = combination / n.pow(value_component as u32) % n;
+    
+                    let self_component_c = COMPONENTS[self_component];
+                    let value_component_c = COMPONENTS[value_component];
+    
+                    if combination_str.contains(self_component_c) {
+                        return None;
+                    }
+    
+                    combination_str.push(self_component_c);
+                    if value_component == 0 {
+                        copy_instructions.push_str(&format!("{value_component_c} -> {self_component_c}"));
+                    }
+                    else if self_component == previous_self_component + 1 {
+                        current_copy_len += 1;
+                    }
+                    else {
+                        if current_copy_len > 1 {
+                            copy_instructions.push_str(&format!(" * {current_copy_len}"));
+                        }
+                        copy_instructions.push_str(&format!(", {value_component_c} -> {self_component_c}"));
 
-                let self_component_c = COMPONENTS[self_component];
-                let value_component_c = COMPONENTS[value_component];
-
-                if combination_str.contains(self_component_c) {
-                    return None;
+                        current_copy_len = 1;
+                    };
+    
+                    previous_self_component = self_component;
                 }
-
-                combination_str.push(self_component_c);
-                if value_component == 0 {
-                    copy_instructions.push_str(&format!("value.{value_component_c} -> self.{self_component_c} * "));
+                if current_copy_len > 1 {
+                    copy_instructions.push_str(&format!(" * {current_copy_len}"));
                 }
-                else if self_component == previous_self_component + 1 {
-                    current_copy_len += 1;
-                }
-                else {
-                    copy_instructions.push_str(&format!("{current_copy_len}, value.{value_component_c} -> self.{self_component_c} * "));
-                    current_copy_len = 1;
-                };
-
-                previous_self_component = self_component;
-            }
-            copy_instructions.push_str(&current_copy_len.to_string());
-
-            let fn_name = if value_type.is_aligned { format!("with_{combination_str}_a") } else { format!("with_{combination_str}") };
-
-            Some(format!(
-                "#[inline(always)] pub const fn {fn_name}(mut self, value: {value_type_name}<C>) -> Self {{ unsafe {{ copy_components!(C, [{copy_instructions}]); self }} }}"
-            ))
-        }).collect::<Box<[String]>>().join("\n"))
-    }).collect::<Box<[String]>>().join("\n\n");
+    
+                let fn_name = if value_type.is_aligned { format!("with_{combination_str}_a") } else { format!("with_{combination_str}") };
+    
+                Some(format!(
+                    "({fn_name}, [{copy_instructions}]),"
+                ))
+            }).collect::<Box<[String]>>().join(" ")
+        ))
+    }).collect::<Box<[String]>>().join("\n");
 
     cleanup_rs(
         &format!(
@@ -255,43 +294,43 @@ fn vec_rs(n: usize, align: bool) -> String {
             use crate::*;
             
             #[derive(Debug, Clone, Copy, PartialEq)]
-            pub struct {_self}<C: Component> {{
+            pub struct {_self}<T: Element> {{
                 {fields}
                 {alignment_field}
             }}
 
             #[inline(always)]
-            pub const fn {_self_lower}<C: Component>({args}) -> {_self}<C> {{
+            pub const fn {_self_lower}<T: Element>({args}) -> {_self}<T> {{
                 {_self}::new({reference_args})
             }}
-            impl<C: Component> {_self}<C> {{
+            impl<T: Element> {_self}<T> {{
                 #[inline(always)]
                 pub const fn new({args}) -> Self {{
                     unsafe {{
-                        copy_components_init!({_self}, C, [{copy_components}])
+                        copy_elements_init!(Self, T, [{copy_components}])
                     }}
                 }}
                 #[inline(always)]
-                pub const fn splat(value: C) -> Self {{
+                pub const fn splat(value: T) -> Self {{
                     unsafe {{
-                        copy_components_init!({_self}, C, [{copy_components_splat}])
+                        copy_elements_init!(Self, T, [{copy_components_splat}])
                     }}
                 }}
             }}
 
-            impl<C: Component> std::fmt::Display for {_self}<C> {{
+            impl<T: Element> std::fmt::Display for {_self}<T> {{
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
                     write!(f, {format_self})
                 }}
             }}
 
-            impl<C: Component> {_self}<C> {{
+            impl<T: Element> {_self}<T> {{
                 {swizzle}
             }}
-            impl<C: Component> {_self}<C> {{
+            impl<T: Element> {_self}<T> {{
                 {set_swizzle}
             }}
-            impl<C: Component> {_self}<C> {{
+            impl<T: Element> {_self}<T> {{
                 {with}
                 
                 {with_swizzle}
