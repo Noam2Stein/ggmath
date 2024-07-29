@@ -101,7 +101,8 @@ fn vec_rs(n: usize, align: bool) -> String {
     let alignment_field = if align { format!("pub(crate) _alignment: [T; {alignment_len}],") } else { String::new() };
     
     let args = components.iter().map(|c| format!("{c}: T")).collect::<Box<[String]>>().join(", ");
-    let reference_args = components.iter().map(|c| format!("{c}")).collect::<Box<[String]>>().join(", ");
+
+    let reference = components.iter().map(|c| format!("{c}")).collect::<Box<[String]>>().join(", ");
 
     let copy_components = components.iter().map(|c| format!("{c} -> {c} * 1") ).collect::<Box<[String]>>().join(", ");
     let copy_components_splat = components.iter().map(|c| format!("value -> {c} * 1") ).collect::<Box<[String]>>().join(", ");
@@ -112,12 +113,27 @@ fn vec_rs(n: usize, align: bool) -> String {
         components.iter().map(|c| format!("self.{c}")).collect::<Box<[String]>>().join(", ")
     );
 
+    let impl_ops = format!("\
+        {}
+        {}\
+        ",
+        ["Neg", "Not"].map(|op| {
+            format!("\
+                vec_op!({op}, {op_lower}, {_self}, {reference});\
+            ", op_lower = op.to_lowercase())
+        }).join("\n"),
+        ["Add", "Sub", "Mul", "Div", "Rem", "BitAnd", "BitOr", "BitXor", "Shl", "Shr"].map(|op| format!("\
+            vec_rhs_op!({op}, {op_lower}, {_self}, {reference});
+            vec_assign_op!({op}Assign, {op_lower}_assign, {_self}, {reference});\
+        ", op_lower = op.to_lowercase())).join("\n")
+    );
+
     let swizzle = VEC_TYPES.iter().map(|dst_type| {
         let dst_type_name = &dst_type.name;
 
         format!(
             "\
-            swizzle_fns!({dst_type_name}<T>, T, [
+            vec_swizzle!({dst_type_name}<T>, T, [
                 {}
             ]);\
             ",
@@ -173,7 +189,7 @@ fn vec_rs(n: usize, align: bool) -> String {
 
         Some(format!(
             "\
-            set_swizzle_fns!({value_type_name}<T>, T, [
+            vec_set_swizzle!({value_type_name}<T>, T, [
                 {}
             ]);\
             ",
@@ -237,7 +253,7 @@ fn vec_rs(n: usize, align: bool) -> String {
 
         Some(format!(
             "\
-            with_swizzle_fns!({value_type_name}<T>, T, [
+            vec_with_swizzle!({value_type_name}<T>, T, [
                 {}
             ]);\
             ",
@@ -290,7 +306,8 @@ fn vec_rs(n: usize, align: bool) -> String {
 
     cleanup_rs(
         &format!(
-            "
+            "\
+            use std::fmt;
             use crate::*;
             
             #[derive(Debug, Clone, Copy, PartialEq)]
@@ -301,7 +318,7 @@ fn vec_rs(n: usize, align: bool) -> String {
 
             #[inline(always)]
             pub const fn {_self_lower}<T: Element>({args}) -> {_self}<T> {{
-                {_self}::new({reference_args})
+                {_self}::new({reference})
             }}
             impl<T: Element> {_self}<T> {{
                 #[inline(always)]
@@ -318,11 +335,13 @@ fn vec_rs(n: usize, align: bool) -> String {
                 }}
             }}
 
-            impl<T: Element> std::fmt::Display for {_self}<T> {{
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
+            impl<T: Element> fmt::Display for {_self}<T> {{
+                fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {{
                     write!(f, {format_self})
                 }}
             }}
+
+            {impl_ops}
 
             impl<T: Element> {_self}<T> {{
                 {swizzle}
@@ -332,7 +351,6 @@ fn vec_rs(n: usize, align: bool) -> String {
             }}
             impl<T: Element> {_self}<T> {{
                 {with}
-                
                 {with_swizzle}
             }}
             "

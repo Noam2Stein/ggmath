@@ -2,7 +2,8 @@
 #![feature(const_mut_refs)]
 
 mod copy_elements;
-mod swizzle_fns;
+mod vec_swizle;
+mod vec_op;
 
 mod element;
 pub use element::*;

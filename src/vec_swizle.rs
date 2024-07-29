@@ -1,5 +1,5 @@
 #[macro_export(local_inner_macros)]
-macro_rules! swizzle_fns {
+macro_rules! vec_swizzle {
     ($dst_type:ty, $element_type:ident, [$(($fn:ident, [$($src:ident -> $dst:ident $(* $count:literal)?), * $(,)?])), * $(,)?]) => {
         $(
             #[inline(always)] pub fn $fn(self) -> $dst_type {
@@ -11,7 +11,7 @@ macro_rules! swizzle_fns {
     };
 }
 #[macro_export(local_inner_macros)]
-macro_rules! set_swizzle_fns {
+macro_rules! vec_set_swizzle {
     ($value_type:ty, $element_type:ident, [$(($fn:ident, [$($src:ident -> $dst:ident $(* $count:literal)?), * $(,)?])), * $(,)?]) => {
         $(
             #[inline(always)] pub fn $fn(&mut self, value: $value_type) {
@@ -23,7 +23,7 @@ macro_rules! set_swizzle_fns {
     };
 }
 #[macro_export(local_inner_macros)]
-macro_rules! with_swizzle_fns {
+macro_rules! vec_with_swizzle {
     ($value_type:ty, $element_type:ident, [$(($fn:ident, [$($src:ident -> $dst:ident $(* $count:literal)?), * $(,)?])), * $(,)?]) => {
         $(
             #[inline(always)] pub fn $fn(mut self, value: $value_type) -> Self {
