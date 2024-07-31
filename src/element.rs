@@ -1,14 +1,14 @@
 use std::fmt::{Debug, Display};
 
 pub trait Element:
+Default +
 Send +
 Sync +
-Debug +
 Clone +
 Copy +
 PartialEq +
-Default +
-Display
+Debug +
+Display +
 {
 
 }
