@@ -137,10 +137,10 @@ fn vec_rs(vec_type: VecType) -> String {
     let _is_aligned = vec_type.is_aligned;
     let _ident = format_ident!("{}", vec_type.name());
     let _fn_ident = format_ident!("{}", vec_type.name().to_lowercase());
-    let _component_indicies = vec_type.component_indicies().collect::<Box<[usize]>>();
+    let _component_indicies = vec_type.component_indicies().map(|i| Literal::usize_unsuffixed(i)).collect::<Box<[Literal]>>();
     let _components = vec_type.components().map(|c| format_ident!("{c}")).collect::<Box<[Ident]>>();
     let _a_len = vec_type.a_len();
-
+    
     let a_field = if _is_aligned {
         quote! {
             pub(crate) _alignment: [T; #_a_len],
@@ -148,10 +148,10 @@ fn vec_rs(vec_type: VecType) -> String {
     }
     else {
         quote! {
-
+            
         }
     };
-
+    
     let with_fn_idents = vec_type.components().map(|c| format_ident!("with_{c}"));
     
     let fmt_literal = format!("({})", _components.iter().map(|_| "{}").collect::<Box<[&str]>>().join(", "));
@@ -403,8 +403,10 @@ fn vec_rs(vec_type: VecType) -> String {
         }
     };
 
+    let _len = Literal::usize_unsuffixed(_len);
+
     let quote = quote! {
-        use std::{fmt, ops::*};
+        use std::{fmt, ops::*, slice::SliceIndex};
         use crate::*;
 
         #[derive(Debug, Clone, Copy)]
@@ -419,6 +421,7 @@ fn vec_rs(vec_type: VecType) -> String {
         pub fn #_fn_ident<T: Element>(#(#_components: T), *) -> #_ident<T> {
             #_ident::new(#(#_components), *)
         }
+
         impl<T: Element> #_ident<T> {
             #[inline(always)]
             pub fn new(#(#_components: T), *) -> Self {
@@ -437,6 +440,19 @@ fn vec_rs(vec_type: VecType) -> String {
                 output
             }
 
+            pub fn get<I>(&self, index: I) -> Option<&<I as SliceIndex<[T]>>::Output>
+            where
+            I: SliceIndex<[T]>
+            {
+                <&[T; #_len]>::from(self).get(index)
+            }
+            pub fn get_mut<I>(&mut self, index: I) -> Option<&mut <I as SliceIndex<[T]>>::Output>
+            where
+            I: SliceIndex<[T]>
+            {
+                <&mut [T; #_len]>::from(self).get_mut(index)
+            }
+
             #(
                 #[inline(always)]
                 pub fn #with_fn_idents(mut self, #_components: T) -> Self {
@@ -449,6 +465,68 @@ fn vec_rs(vec_type: VecType) -> String {
         impl<T: Element> fmt::Display for #_ident<T> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, #fmt_literal, #(self.#_components), *)
+            }
+        }
+
+        impl<T: Element, I: SliceIndex<[T]>> Index<I> for #_ident<T> {
+            type Output = <I as SliceIndex<[T]>>::Output;
+            #[inline(always)]
+            fn index(&self, index: I) -> &Self::Output {
+                &<&[T; #_len]>::from(self)[index]
+            }
+        }
+        impl<T: Element, I: SliceIndex<[T]>> IndexMut<I> for #_ident<T> {
+            #[inline(always)]
+            fn index_mut(&mut self, index: I) -> &mut Self::Output {
+                &mut <&mut [T; #_len]>::from(self)[index]
+            }
+        }
+        impl<T: Element> From<[T; #_len]> for #_ident<T> {
+            #[inline(always)]
+            fn from(value: [T; #_len]) -> Self {
+                unsafe {
+                    *(&value as *const [T; #_len] as *const Self)
+                }
+            }
+        }
+        impl<'a, T: Element> From<&'a [T; #_len]> for &'a #_ident<T> {
+            #[inline(always)]
+            fn from(value: &'a [T; #_len]) -> Self {
+                unsafe {
+                    &*(value as *const [T; #_len] as *const #_ident<T>)
+                }
+            }
+        }
+        impl<'a, T: Element> From<&'a mut [T; #_len]> for &'a mut #_ident<T> {
+            #[inline(always)]
+            fn from(value: &'a mut [T; #_len]) -> Self {
+                unsafe {
+                    &mut *(value as *mut [T; #_len] as *mut #_ident<T>)
+                }
+            }
+        }
+        impl<T: Element> From<#_ident<T>> for [T; #_len] {
+            #[inline(always)]
+            fn from(value: #_ident<T>) -> Self {
+                unsafe {
+                    *(&value as *const #_ident<T> as *const Self)
+                }
+            }
+        }
+        impl<'a, T: Element> From<&'a #_ident<T>> for &'a [T; #_len] {
+            #[inline(always)]
+            fn from(value: &'a #_ident<T>) -> Self {
+                unsafe {
+                    &*(value as *const #_ident<T> as *const [T; #_len])
+                }
+            }
+        }
+        impl<'a, T: Element> From<&'a mut #_ident<T>> for &'a mut [T; #_len] {
+            #[inline(always)]
+            fn from(value: &'a mut #_ident<T>) -> Self {
+                unsafe {
+                    &mut *(value as *mut #_ident<T> as *mut [T; #_len])
+                }
             }
         }
 
