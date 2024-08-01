@@ -410,7 +410,7 @@ fn vec_rs(vec_type: VecType) -> String {
         #[derive(Debug, Clone, Copy)]
         pub struct #_ident<T: Element> {
             #(
-                pub(crate) #_components: T,
+                pub #_components: T,
             )*
             #a_field
         }
