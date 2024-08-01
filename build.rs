@@ -88,9 +88,14 @@ fn main() {
         PathBuf::from("src/gen"),
     ].iter());
 
-    for entry in std::fs::read_dir(&src_dir).unwrap() {
-        remove_file(entry.unwrap().path()).unwrap();
-    };
+    if src_dir.exists() {
+        for entry in std::fs::read_dir(&src_dir).unwrap() {
+            remove_file(entry.unwrap().path()).unwrap();
+        };
+    }
+    else {
+        create_dir_all(src_dir.clone()).unwrap();
+    }
 
     let write = |path_in_src: &str, str: &str| {
         let path = PathBuf::from_iter([&src_dir, &PathBuf::from(path_in_src)].iter());
