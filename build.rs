@@ -3,7 +3,7 @@ use std::{env, fs::{create_dir_all, remove_file, write}, ops::Range, path::PathB
 use lazy_static::lazy_static;
 use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use syn::{parse2, parse_file, parse_str, token::{RArrow, Star}, Ident};
+use syn::{parse2, parse_file, parse_str, token::{FatArrow, Semi}, Ident, Type};
 
 const VECS: Range<usize> = 2..5;
 const COMPONENTS: [char; VECS.end - 1] = ['x', 'y', 'z', 'w'];
@@ -42,17 +42,17 @@ impl VecType {
 
 #[derive(Clone)]
 struct CopyInstruction {
-    src: Ident,
-    dst: Ident,
+    src: TokenStream,
+    dst: TokenStream,
     len: usize,
 }
 impl ToTokens for CopyInstruction {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.src.to_tokens(tokens);
-        RArrow::default().to_tokens(tokens);
+        FatArrow::default().to_tokens(tokens);
         self.dst.to_tokens(tokens);
         if self.len > 1 {
-            Star::default().to_tokens(tokens);
+            Semi::default().to_tokens(tokens);
             Literal::usize_unsuffixed(self.len).to_tokens(tokens);
         };
     }
@@ -390,16 +390,72 @@ fn vec_rs(vec_type: VecType) -> String {
             )
         }).collect::<Box<[TokenStream]>>();
 
+        let new_swizzle = {
+            let mut combinations = Vec::new();
+
+            let mut field_lens = Vec::new();
+            push_fields(_len, &mut combinations, &mut field_lens);
+
+            fn push_fields(len: usize, combinations: &mut Vec<TokenStream>, field_lens: &mut Vec<usize>) {
+                for field in 1..VECS.end {
+                    field_lens.push(field);
+
+                    let sum = field_lens.iter().sum::<usize>();
+                    if sum == len && field_lens.len() > 1 {
+                        let fields = field_lens.iter().map(|field_len|
+                            match field_len {
+                                1 => parse_str::<Type>("T").unwrap(),
+                                _ => parse_str::<Type>(&format!("Vec{field_len}<T>")).unwrap(),
+                            }
+                        );
+                        let copy = (0..field_lens.len()).map(|i|
+                            CopyInstruction {
+                                src: parse_str(&i.to_string()).unwrap(),
+                                dst: parse_str(&COMPONENTS[field_lens[0..i].iter().sum::<usize>()].to_string()).unwrap(),
+                                len: field_lens[i],
+                            }
+                        );
+
+                        combinations.push(
+                            quote! {
+                                ((#(#fields), *), #(#copy), *)
+                            }
+                        )
+                    }
+                    else if sum < len {
+                        push_fields(len, combinations, field_lens);   
+                    }
+
+                    field_lens.pop();
+                }
+            }
+
+            quote! {
+                new_swizzle! {
+                    #_ident,
+                    [
+                        #(
+                            #combinations,
+                        )*
+                    ]
+                }
+            }
+        };
+
         quote! {
-            #(
-                #swizzle
-            )*
-            #(
-                #set_swizzle
-            )*
-            #(
-                #with_swizzle
-            )*
+            #new_swizzle
+
+            impl<T: Element> #_ident<T> {
+                #(
+                    #swizzle
+                )*
+                #(
+                    #set_swizzle
+                )*
+                #(
+                    #with_swizzle
+                )*
+            }
         }
     };
 
@@ -418,8 +474,8 @@ fn vec_rs(vec_type: VecType) -> String {
         }
 
         #[inline(always)]
-        pub fn #_fn_ident<T: Element>(#(#_components: T), *) -> #_ident<T> {
-            #_ident::new(#(#_components), *)
+        pub fn #_fn_ident<T: Element, V: Into<#_ident<T>>>(value: V) -> #_ident<T> {
+            value.into()
         }
 
         impl<T: Element> #_ident<T> {
@@ -563,10 +619,8 @@ fn vec_rs(vec_type: VecType) -> String {
         #(
             #assign_op_quotes
         )*
-
-        impl<T: Element> #_ident<T> {
-            #swizzle
-        }
+        
+        #swizzle
     };
 
     match &parse2(quote.clone()) {
