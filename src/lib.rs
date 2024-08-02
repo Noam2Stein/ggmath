@@ -2,6 +2,7 @@
 #![feature(const_mut_refs)]
 
 mod copy;
+mod cast;
 mod swizzle;
 
 mod element;

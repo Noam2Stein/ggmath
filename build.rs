@@ -156,6 +156,42 @@ fn vec_rs(vec_type: VecType) -> String {
     
     let fmt_literal = format!("({})", _components.iter().map(|_| "{}").collect::<Box<[&str]>>().join(", "));
 
+    let tuple_casts = {
+        let mut tuple_casts = Vec::new();
+
+        let mut field_lens = Vec::new();
+        push_fields(&_ident, _len, &mut tuple_casts, &mut field_lens);
+
+        fn push_fields(ident: &Ident, len: usize, output: &mut Vec<TokenStream>, field_lens: &mut Vec<usize>) {
+            for field in 1..VECS.end {
+                field_lens.push(field);
+
+                let sum = field_lens.iter().sum::<usize>();
+                if sum == len && field_lens.len() > 1 {
+                    let fields = field_lens.iter().map(|field_len|
+                        match field_len {
+                            1 => parse_str::<Type>("T").unwrap(),
+                            _ => parse_str::<Type>(&format!("Vec{field_len}<T>")).unwrap(),
+                        }
+                    );
+
+                    output.push(
+                        quote! {
+                            cast!(#ident<T>, (#(#fields), *), T: Element);
+                        }
+                    )
+                }
+                else if sum < len {
+                    push_fields(ident, len, output, field_lens);   
+                }
+
+                field_lens.pop();
+            }
+        }
+
+        tuple_casts
+    };
+
     let op_quotes = OPS.map(|op_str| {
         let op = format_ident!("{op_str}");
         let op_fn = format_ident!("{}", op_str.to_lowercase());
@@ -420,59 +456,7 @@ fn vec_rs(vec_type: VecType) -> String {
             )
         }).collect::<Box<[TokenStream]>>();
 
-        let new_swizzle = {
-            let mut new_swizzle = Vec::new();
-
-            let mut field_lens = Vec::new();
-            push_fields(_len, &mut new_swizzle, &mut field_lens);
-
-            fn push_fields(len: usize, output: &mut Vec<TokenStream>, field_lens: &mut Vec<usize>) {
-                for field in 1..VECS.end {
-                    field_lens.push(field);
-
-                    let sum = field_lens.iter().sum::<usize>();
-                    if sum == len && field_lens.len() > 1 {
-                        let fields = field_lens.iter().map(|field_len|
-                            match field_len {
-                                1 => parse_str::<Type>("T").unwrap(),
-                                _ => parse_str::<Type>(&format!("Vec{field_len}<T>")).unwrap(),
-                            }
-                        );
-                        let copy = (0..field_lens.len()).map(|i|
-                            CopyInstruction {
-                                src: parse_str(&i.to_string()).unwrap(),
-                                dst: parse_str(&COMPONENTS[field_lens[0..i].iter().sum::<usize>()].to_string()).unwrap(),
-                                len: field_lens[i],
-                            }
-                        );
-
-                        output.push(
-                            quote! {
-                                ((#(#fields), *), #(#copy), *)
-                            }
-                        )
-                    }
-                    else if sum < len {
-                        push_fields(len, output, field_lens);   
-                    }
-
-                    field_lens.pop();
-                }
-            }
-
-            new_swizzle
-        };
-
         quote! {
-            new_swizzle! {
-                #_ident,
-                [
-                    #(
-                        #new_swizzle,
-                    )*
-                ]
-            }
-
             impl<T: Element> #_ident<T> {
                 #(
                     #swizzle
@@ -591,6 +575,11 @@ fn vec_rs(vec_type: VecType) -> String {
             }
         }
 
+        cast!(#_ident<T>, [T; #_len], T: Element);
+        #(
+            #tuple_casts
+        )*
+
         impl<T: Element, I: SliceIndex<[T]>> Index<I> for #_ident<T> {
             type Output = <I as SliceIndex<[T]>>::Output;
             #[inline(always)]
@@ -602,42 +591,6 @@ fn vec_rs(vec_type: VecType) -> String {
             #[inline(always)]
             fn index_mut(&mut self, index: I) -> &mut Self::Output {
                 &mut <&mut [T; #_len]>::from(self)[index]
-            }
-        }
-        impl<T: Element> From<[T; #_len]> for #_ident<T> {
-            #[inline(always)]
-            fn from(value: [T; #_len]) -> Self {
-                #_ident::from_array(value)
-            }
-        }
-        impl<'a, T: Element> From<&'a [T; #_len]> for &'a #_ident<T> {
-            #[inline(always)]
-            fn from(value: &'a [T; #_len]) -> Self {
-                #_ident::from_slice(value)
-            }
-        }
-        impl<'a, T: Element> From<&'a mut [T; #_len]> for &'a mut #_ident<T> {
-            #[inline(always)]
-            fn from(value: &'a mut [T; #_len]) -> Self {
-                #_ident::from_slice_mut(value)
-            }
-        }
-        impl<T: Element> From<#_ident<T>> for [T; #_len] {
-            #[inline(always)]
-            fn from(value: #_ident<T>) -> Self {
-                value.into_array()
-            }
-        }
-        impl<'a, T: Element> From<&'a #_ident<T>> for &'a [T; #_len] {
-            #[inline(always)]
-            fn from(value: &'a #_ident<T>) -> Self {
-                value.as_slice()
-            }
-        }
-        impl<'a, T: Element> From<&'a mut #_ident<T>> for &'a mut [T; #_len] {
-            #[inline(always)]
-            fn from(value: &'a mut #_ident<T>) -> Self {
-                value.as_slice_mut()
             }
         }
 

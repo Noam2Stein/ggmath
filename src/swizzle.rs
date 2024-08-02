@@ -53,20 +53,3 @@ macro_rules! with_swizzle {
         )*
     };
 }
-#[macro_export(local_inner_macros)]
-macro_rules! new_swizzle {
-    { $self:ident, [$(($tuple:ty, $($src:tt => $dst:ident $(; $len:literal)?), * $(,)?)), * $(,)?] } => {
-        $(
-            impl<T: Element> From<$tuple> for $self<T> {
-                #[inline(always)]
-                fn from(value: $tuple) -> Self {
-                    let mut output = unsafe { std::mem::MaybeUninit::<Self>::uninit().assume_init() };
-                    unsafe {
-                        copy!(T, $(value.$src => output.$dst $(; $len)?), *)
-                    }
-                    output
-                }
-            }
-        )*
-    };
-}
