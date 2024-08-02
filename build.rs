@@ -264,6 +264,36 @@ fn vec_rs(vec_type: VecType) -> String {
             }
         }).collect::<Box<[TokenStream]>>();
 
+        let swizzle_mut = VEC_TYPES.iter().filter_map(|output_type| {
+            if output_type.is_aligned || output_type.len > _len {
+                return None;
+            }
+
+            let output_type_ident = format_ident!("{}", output_type.name());
+
+            let fns = (0.._len - output_type.len + 1).map(|component_index| {
+                let fn_ident = format_ident!("{}_mut", COMPONENTS[component_index..component_index + output_type.len].iter().collect::<String>());
+                let component = format_ident!("{}", COMPONENTS[component_index]);
+
+                quote! {
+                    (#fn_ident, #component)
+                }
+            }).collect::<Box<[TokenStream]>>();
+
+            Some(
+                quote! {
+                    swizzle_mut! {
+                        #output_type_ident<T>,
+                        [
+                            #(
+                                #fns,
+                            )*
+                        ]
+                    }
+                }
+            )
+        }).collect::<Box<[TokenStream]>>();
+
         let set_swizzle = VEC_TYPES.iter().filter_map(|value_type| {
             if value_type.len > _len {
                 return None;
@@ -391,12 +421,12 @@ fn vec_rs(vec_type: VecType) -> String {
         }).collect::<Box<[TokenStream]>>();
 
         let new_swizzle = {
-            let mut combinations = Vec::new();
+            let mut new_swizzle = Vec::new();
 
             let mut field_lens = Vec::new();
-            push_fields(_len, &mut combinations, &mut field_lens);
+            push_fields(_len, &mut new_swizzle, &mut field_lens);
 
-            fn push_fields(len: usize, combinations: &mut Vec<TokenStream>, field_lens: &mut Vec<usize>) {
+            fn push_fields(len: usize, output: &mut Vec<TokenStream>, field_lens: &mut Vec<usize>) {
                 for field in 1..VECS.end {
                     field_lens.push(field);
 
@@ -416,38 +446,39 @@ fn vec_rs(vec_type: VecType) -> String {
                             }
                         );
 
-                        combinations.push(
+                        output.push(
                             quote! {
                                 ((#(#fields), *), #(#copy), *)
                             }
                         )
                     }
                     else if sum < len {
-                        push_fields(len, combinations, field_lens);   
+                        push_fields(len, output, field_lens);   
                     }
 
                     field_lens.pop();
                 }
             }
 
-            quote! {
-                new_swizzle! {
-                    #_ident,
-                    [
-                        #(
-                            #combinations,
-                        )*
-                    ]
-                }
-            }
+            new_swizzle
         };
 
         quote! {
-            #new_swizzle
+            new_swizzle! {
+                #_ident,
+                [
+                    #(
+                        #new_swizzle,
+                    )*
+                ]
+            }
 
             impl<T: Element> #_ident<T> {
                 #(
                     #swizzle
+                )*
+                #(
+                    #swizzle_mut
                 )*
                 #(
                     #set_swizzle

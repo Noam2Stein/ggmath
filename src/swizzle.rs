@@ -14,6 +14,19 @@ macro_rules! swizzle {
     };
 }
 #[macro_export(local_inner_macros)]
+macro_rules! swizzle_mut {
+    { $output_vec:ident<$t:ty>, [$(($fn:ident, $component:ident $(,)?)), * $(,)?] } => {
+        $(
+            #[inline(always)]
+            pub fn $fn<'a>(&'a mut self) -> &'a mut $output_vec<$t> {
+                unsafe {
+                    &mut *(&mut self.$component as *mut _ as *mut $output_vec<$t>)
+                }
+            }
+        )*
+    };
+}
+#[macro_export(local_inner_macros)]
 macro_rules! set_swizzle {
     { $value_vec:ident<$t:ty>, [$(($fn:ident, $($src:ident => $dst:ident $(; $len:literal)?), * $(,)?)), * $(,)?] } => {
         $(
