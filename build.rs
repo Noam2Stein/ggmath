@@ -440,17 +440,53 @@ fn vec_rs(vec_type: VecType) -> String {
                 output
             }
 
+            #[inline(always)]
+            pub fn from_array(value: [T; #_len]) -> Self {
+                unsafe {
+                    *(&value as *const [T; #_len] as *const Self)
+                }
+            }
+            #[inline(always)]
+            pub fn from_slice(value: &[T; #_len]) -> &Self {
+                unsafe {
+                    &*(value as *const [T; #_len] as *const Self)
+                }
+            }
+            #[inline(always)]
+            pub fn from_slice_mut(value: &mut [T; #_len]) -> &mut Self {
+                unsafe {
+                    &mut *(value as *mut [T; #_len] as *mut Self)
+                }
+            }
+            #[inline(always)]
+            pub fn into_array(self) -> [T; #_len] {
+                unsafe {
+                    *(&self as *const Self as *const [T; #_len])
+                }
+            }
+            #[inline(always)]
+            pub fn as_slice(&self) -> &[T; #_len] {
+                unsafe {
+                    &*(self as *const Self as *const [T; #_len])
+                }
+            }
+            #[inline(always)]
+            pub fn as_slice_mut(&mut self) -> &mut [T; #_len] {
+                unsafe {
+                    &mut *(self as *mut Self as *mut [T; #_len])
+                }
+            }
             pub fn get<I>(&self, index: I) -> Option<&<I as SliceIndex<[T]>>::Output>
             where
             I: SliceIndex<[T]>
             {
-                <&[T; #_len]>::from(self).get(index)
+                self.as_slice().get(index)
             }
             pub fn get_mut<I>(&mut self, index: I) -> Option<&mut <I as SliceIndex<[T]>>::Output>
             where
             I: SliceIndex<[T]>
             {
-                <&mut [T; #_len]>::from(self).get_mut(index)
+                self.as_slice_mut().get_mut(index)
             }
 
             #(
@@ -484,49 +520,37 @@ fn vec_rs(vec_type: VecType) -> String {
         impl<T: Element> From<[T; #_len]> for #_ident<T> {
             #[inline(always)]
             fn from(value: [T; #_len]) -> Self {
-                unsafe {
-                    *(&value as *const [T; #_len] as *const Self)
-                }
+                #_ident::from_array(value)
             }
         }
         impl<'a, T: Element> From<&'a [T; #_len]> for &'a #_ident<T> {
             #[inline(always)]
             fn from(value: &'a [T; #_len]) -> Self {
-                unsafe {
-                    &*(value as *const [T; #_len] as *const #_ident<T>)
-                }
+                #_ident::from_slice(value)
             }
         }
         impl<'a, T: Element> From<&'a mut [T; #_len]> for &'a mut #_ident<T> {
             #[inline(always)]
             fn from(value: &'a mut [T; #_len]) -> Self {
-                unsafe {
-                    &mut *(value as *mut [T; #_len] as *mut #_ident<T>)
-                }
+                #_ident::from_slice_mut(value)
             }
         }
         impl<T: Element> From<#_ident<T>> for [T; #_len] {
             #[inline(always)]
             fn from(value: #_ident<T>) -> Self {
-                unsafe {
-                    *(&value as *const #_ident<T> as *const Self)
-                }
+                value.into_array()
             }
         }
         impl<'a, T: Element> From<&'a #_ident<T>> for &'a [T; #_len] {
             #[inline(always)]
             fn from(value: &'a #_ident<T>) -> Self {
-                unsafe {
-                    &*(value as *const #_ident<T> as *const [T; #_len])
-                }
+                value.as_slice()
             }
         }
         impl<'a, T: Element> From<&'a mut #_ident<T>> for &'a mut [T; #_len] {
             #[inline(always)]
             fn from(value: &'a mut #_ident<T>) -> Self {
-                unsafe {
-                    &mut *(value as *mut #_ident<T> as *mut [T; #_len])
-                }
+                value.as_slice_mut()
             }
         }
 

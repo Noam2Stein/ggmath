@@ -1,8 +1,6 @@
 use gmath::*;
 
 pub fn main() {
-    let g = [1, 2, 3, 4];
-
-    let vec = vec4(1, 2, 3, 4)[5];
+    let vec = <[i32; 4]>::from(vec4(1, 2, 3, 4));
     println!("{vec:?}");
 }
