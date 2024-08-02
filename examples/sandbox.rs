@@ -1,12 +1,9 @@
 use gmath::*;
 
 pub fn main() {
-    let vec_0 = vec2((2, 3));
-    let mut vec = vec4((1, vec_0, 4));
-    println!("{vec:?}");
+    println!("{}", test::<f32>() / Vec4::splat(2.0));
+}
 
-    let vec_mut = vec.zw_mut();
-    vec_mut.x = 5;
-
-    println!("{vec:?}");
+pub fn test<T: Num>() -> Vec4<T> {
+    Vec4::new(T::ZERO, T::ONE, T::ONE + T::ONE, T::ONE + T::ONE + T::ONE)
 }

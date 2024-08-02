@@ -152,7 +152,7 @@ fn vec_rs(vec_type: VecType) -> String {
         }
     };
     
-    let with_fn_idents = vec_type.components().map(|c| format_ident!("with_{c}"));
+    let with_fn_idents = vec_type.components().map(|c| format_ident!("with_{c}")).collect::<Box<[Ident]>>();
     
     let fmt_literal = format!("({})", _components.iter().map(|_| "{}").collect::<Box<[&str]>>().join(", "));
 
@@ -191,6 +191,8 @@ fn vec_rs(vec_type: VecType) -> String {
 
         tuple_casts
     };
+
+    let component_const_idents = vec_type.components().map(|c| format_ident!("{}", c.to_uppercase()));
 
     let op_quotes = OPS.map(|op_str| {
         let op = format_ident!("{op_str}");
@@ -495,7 +497,7 @@ fn vec_rs(vec_type: VecType) -> String {
 
         impl<T: Element> #_ident<T> {
             #[inline(always)]
-            pub fn new(#(#_components: T), *) -> Self {
+            pub const fn new(#(#_components: T), *) -> Self {
                 let mut output = unsafe { std::mem::MaybeUninit::<Self>::uninit().assume_init() };
                 #(
                     output.#_components = #_components;
@@ -503,7 +505,7 @@ fn vec_rs(vec_type: VecType) -> String {
                 output
             }
             #[inline(always)]
-            pub fn splat(value: T) -> Self {
+            pub const fn splat(value: T) -> Self {
                 let mut output = unsafe { std::mem::MaybeUninit::<Self>::uninit().assume_init() };
                 #(
                     output.#_components = value;
@@ -562,7 +564,7 @@ fn vec_rs(vec_type: VecType) -> String {
 
             #(
                 #[inline(always)]
-                pub fn #with_fn_idents(mut self, #_components: T) -> Self {
+                pub const fn #with_fn_idents(mut self, #_components: T) -> Self {
                     self.#_components = #_components;
                     self
                 }
@@ -592,6 +594,14 @@ fn vec_rs(vec_type: VecType) -> String {
             fn index_mut(&mut self, index: I) -> &mut Self::Output {
                 &mut <&mut [T; #_len]>::from(self)[index]
             }
+        }
+
+        impl<T: Num> #_ident<T> {
+            pub const ZERO: Self = Self::splat(T::ZERO);
+            pub const ONE: Self = Self::splat(T::ONE);
+            #(
+                pub const #component_const_idents: Self = Self::ZERO.#with_fn_idents(T::ONE);
+            )*
         }
 
         #(
