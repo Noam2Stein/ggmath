@@ -1,6 +1,17 @@
-use private::Seal;
+use std::fmt::{Debug, Display};
+use private::Sealed;
 
-pub trait Element: Seal
+pub trait Element:
+Sealed +
+Send +
+Sync +
+Debug +
+Clone +
+Copy +
+PartialEq +
+PartialOrd +
+Display +
+Default +
 {
     
 }
@@ -49,38 +60,26 @@ num::Float +
 }
 
 mod private {
-    use std::fmt::{Debug, Display};
-
-    pub trait Seal:
-    Send +
-    Sync +
-    Debug +
-    Clone +
-    Copy +
-    PartialEq +
-    PartialOrd +
-    Display +
-    Default +
-    {
+    pub trait Sealed {
         
     }
 }
 
-impl Seal for bool {}
-impl Seal for u8 {}
-impl Seal for u16 {}
-impl Seal for u32 {}
-impl Seal for u64 {}
-impl Seal for u128 {}
-impl Seal for usize {}
-impl Seal for i8 {}
-impl Seal for i16 {}
-impl Seal for i32 {}
-impl Seal for i64 {}
-impl Seal for i128 {}
-impl Seal for isize {}
-impl Seal for f32 {}
-impl Seal for f64 {}
+impl Sealed for bool {}
+impl Sealed for u8 {}
+impl Sealed for u16 {}
+impl Sealed for u32 {}
+impl Sealed for u64 {}
+impl Sealed for u128 {}
+impl Sealed for usize {}
+impl Sealed for i8 {}
+impl Sealed for i16 {}
+impl Sealed for i32 {}
+impl Sealed for i64 {}
+impl Sealed for i128 {}
+impl Sealed for isize {}
+impl Sealed for f32 {}
+impl Sealed for f64 {}
 
 impl Element for bool {
 
