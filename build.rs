@@ -421,10 +421,10 @@ fn vec_rs(vec_type: VecType) -> String {
     let _len = Literal::usize_unsuffixed(_len);
 
     let quote = quote! {
-        use std::{fmt, ops::*, slice::SliceIndex};
+        use std::{cmp::Ordering, fmt, ops::*, slice::SliceIndex};
         use crate::*;
 
-        #[derive(Debug, Clone, Copy)]
+        #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
         pub struct #_ident<T: Element> {
             #(
                 pub #_components: T,
@@ -528,6 +528,14 @@ fn vec_rs(vec_type: VecType) -> String {
         impl<T: Element> fmt::Display for #_ident<T> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, #fmt_literal, #(self.#_components), *)
+            }
+        }
+        impl<T: Element + Eq> Eq for #_ident<T> {
+
+        }
+        impl<T: Element + Ord> Ord for #_ident<T> {
+            fn cmp(&self, other: &Self) -> Ordering {
+                self.partial_cmp(other).unwrap()
             }
         }
         impl<T: Element, I: SliceIndex<[T]>> Index<I> for #_ident<T> {

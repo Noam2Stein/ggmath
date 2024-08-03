@@ -52,14 +52,15 @@ mod private {
     use std::fmt::{Debug, Display};
 
     pub trait Seal:
-    Default +
     Send +
     Sync +
+    Debug +
     Clone +
     Copy +
     PartialEq +
-    Debug +
+    PartialOrd +
     Display +
+    Default +
     {
         
     }
