@@ -6,7 +6,7 @@ pub trait Element: Seal
 }
 pub trait Num:
 Element +
-num::Num +
+num::traits::NumAssign +
 {
     const ZERO: Self;
     const ONE: Self;
