@@ -140,6 +140,16 @@ fn vec_rs(vec_type: VecType) -> String {
     let _component_indicies = vec_type.component_indicies().map(|i| Literal::usize_unsuffixed(i)).collect::<Box<[Literal]>>();
     let _components = vec_type.components().map(|c| format_ident!("{c}")).collect::<Box<[Ident]>>();
     let _a_len = vec_type.a_len();
+
+    let _component_indicies_but_first = &_component_indicies[1.._len];
+    let _components_but_first = &_components[1.._len];
+    let _component_indicies_but_last = &_component_indicies[0.._len - 1];
+    let _components_but_last = &_components[0.._len - 1];
+    let _component_indicies_but_firstlast = &_component_indicies[1.._len - 1];
+    let _components_but_firstlast = &_components[1.._len - 1];
+    let _first_component = &_components[0];
+    let _last_component = _components.last().unwrap();
+    let _last_component_index = Literal::usize_unsuffixed(_len - 1);
     
     let a_field = if _is_aligned {
         quote! {
@@ -196,10 +206,10 @@ fn vec_rs(vec_type: VecType) -> String {
 
     let (min_element_expr, max_element_expr) = {
         let mut str = String::new();
-        for c in _components[0.._len - 1].iter() {
+        for c in _components_but_last.iter() {
             str += &format!("self.{c}.fn(");
         };
-        str += &format!("self.{}", _components.last().unwrap());
+        str += &format!("self.{}", _last_component);
         str += &")".repeat(_len - 1);
 
         (
@@ -481,6 +491,57 @@ fn vec_rs(vec_type: VecType) -> String {
             pub fn map<B: Element, F: FnMut(T) -> B>(self, mut f: F) -> #_ident<B> {
                 #_ident::new(#(f(self.#_components)), *)
             }
+            #[inline(always)]
+            pub fn count<F: FnMut(T) -> bool>(self, mut f: F) -> u8 {
+                #(f(self.#_components) as u8) + *
+            }
+            #[inline(always)]
+            pub fn any<F: FnMut(T) -> bool>(self, mut f: F) -> bool {
+                #(f(self.#_components)) || *
+            }
+            #[inline(always)]
+            pub fn all<F: FnMut(T) -> bool>(self, mut f: F) -> bool {
+                #(f(self.#_components)) && *
+            }
+            #[inline(always)]
+            pub fn none<F: FnMut(T) -> bool>(self, f: F) -> bool {
+                !self.any(f)
+            }
+            #[inline(always)]
+            pub fn find<F: FnMut(T) -> bool>(self, mut f: F) -> Option<T> {
+                if f(self.#_first_component) {
+                    Some(
+                        self.#_first_component
+                    )
+                }
+                #(
+                    else if f(self.#_components_but_first) {
+                        Some(
+                            self.#_components_but_first
+                        )
+                    }
+                )*
+                else {
+                    None
+                }
+            }            #[inline(always)]
+            pub fn position<F: FnMut(T) -> bool>(self, mut f: F) -> Option<u8> {
+                if f(self.#_first_component) {
+                    Some(
+                        0
+                    )
+                }
+                #(
+                    else if f(self.#_components_but_first) {
+                        Some(
+                            #_component_indicies_but_first
+                        )
+                    }
+                )*
+                else {
+                    None
+                }
+            }
 
             #[inline(always)]
             pub fn from_array(value: [T; #_len]) -> Self {
@@ -626,20 +687,20 @@ fn vec_rs(vec_type: VecType) -> String {
         }
         impl<T: Element + BitAnd<T, Output = T>> #_ident<T> {
             #[inline(always)]
-            pub fn all(self) -> T {
+            pub fn bit_all(self) -> T {
                 #(self.#_components) & *
             }
         }
         impl<T: Element + BitOr<T, Output = T>> #_ident<T> {
             #[inline(always)]
-            pub fn any(self) -> T {
+            pub fn bit_any(self) -> T {
                 #(self.#_components) | *
             }
         }
         impl<T: Element + BitOr<T, Output = T> + Not<Output = T>> #_ident<T> {
             #[inline(always)]
-            pub fn none(self) -> T {
-                !self.any()
+            pub fn bit_none(self) -> T {
+                !self.bit_any()
             }
         }
         impl<T: Num> #_ident<T> {
@@ -650,8 +711,21 @@ fn vec_rs(vec_type: VecType) -> String {
             )*
         }
         impl #_ident<bool> {
-            pub fn count(self) -> u8 {
+            pub fn bit_count(self) -> u8 {
                 #(self.#_components as u8) + *
+            }
+            pub fn bit_position(self) -> u8 {
+                if self.#_first_component {
+                    0
+                }
+                #(
+                    else if self.#_components_but_firstlast {
+                        #_component_indicies_but_firstlast
+                    }
+                )*
+                else {
+                    #_last_component_index
+                }
             }
         }
 
