@@ -201,7 +201,7 @@ fn vec_rs(vec_type: VecType) -> String {
     let assign_op_traits = RHS_OPS.map(|op| format_ident!("{op}Assign"));
     let assign_op_fns = RHS_OPS.map(|op| format_ident!("{}_assign", op.to_lowercase()));
 
-    let swizzle = {
+    let (swizzle, swizzle_mut, set_swizzle, with_swizzle) = {
         let mut combination_str = String::new();
         let mut copy_instructions = Vec::<CopyInstruction>::new();
 
@@ -413,22 +413,7 @@ fn vec_rs(vec_type: VecType) -> String {
             )
         }).collect::<Box<[TokenStream]>>();
 
-        quote! {
-            impl<T: Element> #_ident<T> {
-                #(
-                    #swizzle
-                )*
-                #(
-                    #swizzle_mut
-                )*
-                #(
-                    #set_swizzle
-                )*
-                #(
-                    #with_swizzle
-                )*
-            }
-        }
+        (swizzle, swizzle_mut, set_swizzle, with_swizzle)
     };
 
     let _len = Literal::usize_unsuffixed(_len);
@@ -569,7 +554,20 @@ fn vec_rs(vec_type: VecType) -> String {
             #_ident { #(#_components), * }, [#((#assign_op_traits, #assign_op_fns)), *]
         }
 
-        #swizzle
+        impl<T: Element> #_ident<T> {
+            #(
+                #swizzle
+            )*
+            #(
+                #swizzle_mut
+            )*
+            #(
+                #set_swizzle
+            )*
+            #(
+                #with_swizzle
+            )*
+        }
     };
 
     match &parse2(quote.clone()) {
