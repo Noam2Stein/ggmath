@@ -3,10 +3,12 @@
 
 mod copy;
 mod cast;
-mod swizzle;
 
 mod element;
 pub use element::*;
+
+mod op;
+mod swizzle;
 
 mod gen;
 pub use gen::*;

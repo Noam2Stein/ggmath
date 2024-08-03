@@ -194,57 +194,12 @@ fn vec_rs(vec_type: VecType) -> String {
 
     let component_const_idents = vec_type.components().map(|c| format_ident!("{}", c.to_uppercase()));
 
-    let op_quotes = OPS.map(|op_str| {
-        let op = format_ident!("{op_str}");
-        let op_fn = format_ident!("{}", op_str.to_lowercase());
-        quote! {
-            impl<T> #op for #_ident<T>
-            where
-                T: Element + #op<Output: Element>,
-            {
-                type Output = #_ident<T::Output>;
-                #[inline(always)]
-                fn #op_fn(self) -> <Self as #op>::Output {
-                    Self::Output::new(#(self.#_components.#op_fn()), *)
-                }
-            }
-        }
-    });
-    let rhs_op_quotes = RHS_OPS.map(|op_str| {
-        let op = format_ident!("{op_str}");
-        let op_fn = format_ident!("{}", op_str.to_lowercase());
-        quote! {
-            impl<RhsElement, T> #op<#_ident<RhsElement>> for #_ident<T>
-            where
-                RhsElement: Element,
-                T: Element + #op<RhsElement, Output: Element>,
-            {
-                type Output = #_ident<T::Output>;
-                #[inline(always)]
-                fn #op_fn(self, rhs: #_ident<RhsElement>) -> <Self as #op<#_ident<RhsElement>>>::Output {
-                    Self::Output::new(#(self.#_components.#op_fn(rhs.#_components)), *)
-                }
-            }
-        }
-    });
-    let assign_op_quotes = RHS_OPS.map(|op_str| {
-        let op = format_ident!("{op_str}Assign");
-        let op_fn = format_ident!("{}_assign", op_str.to_lowercase());
-        quote! {
-            impl<RhsElement, T> #op<#_ident<RhsElement>> for #_ident<T>
-            where
-                RhsElement: Element,
-                T: Element + #op<RhsElement>,
-            {
-                #[inline(always)]
-                fn #op_fn(&mut self, rhs: #_ident<RhsElement>) {
-                    #(
-                        self.#_components.#op_fn(rhs.#_components);
-                    )*
-                }
-            }
-        }
-    });
+    let op_traits = OPS.map(|op| format_ident!("{op}"));
+    let op_fns = OPS.map(|op| format_ident!("{}", op.to_lowercase()));
+    let rhs_op_traits = RHS_OPS.map(|op| format_ident!("{op}"));
+    let rhs_op_fns = RHS_OPS.map(|op| format_ident!("{}", op.to_lowercase()));
+    let assign_op_traits = RHS_OPS.map(|op| format_ident!("{op}Assign"));
+    let assign_op_fns = RHS_OPS.map(|op| format_ident!("{}_assign", op.to_lowercase()));
 
     let swizzle = {
         let mut combination_str = String::new();
@@ -604,16 +559,16 @@ fn vec_rs(vec_type: VecType) -> String {
             )*
         }
 
-        #(
-            #op_quotes
-        )*
-        #(
-            #rhs_op_quotes
-        )*
-        #(
-            #assign_op_quotes
-        )*
-        
+        ops! {
+            #_ident { #(#_components), * }, [#((#op_traits, #op_fns)), *]
+        }
+        rhs_ops! {
+            #_ident { #(#_components), * }, [#((#rhs_op_traits, #rhs_op_fns)), *]
+        }
+        assign_ops! {
+            #_ident { #(#_components), * }, [#((#assign_op_traits, #assign_op_fns)), *]
+        }
+
         #swizzle
     };
 
