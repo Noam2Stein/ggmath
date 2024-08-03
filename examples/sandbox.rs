@@ -1,9 +1,7 @@
 use gmath::*;
 
 pub fn main() {
-    println!("{}", test::<f32>() / Vec4::splat(2.0));
-}
+    let vec = vec4((true, false, !vec3((false || vec2((true, false)).all(), false, true)).xy())).with_y(true);
 
-pub fn test<T: Num>() -> Vec4<T> {
-    Vec4::new(T::ZERO, T::ONE, T::ONE + T::ONE, T::ONE + T::ONE + T::ONE)
+    println!("{}", vec.all());
 }

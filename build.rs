@@ -547,6 +547,19 @@ fn vec_rs(vec_type: VecType) -> String {
                 }
             }
         }
+        impl<T: Element, I: SliceIndex<[T]>> Index<I> for #_ident<T> {
+            type Output = <I as SliceIndex<[T]>>::Output;
+            #[inline(always)]
+            fn index(&self, index: I) -> &Self::Output {
+                &self.as_slice()[index]
+            }
+        }
+        impl<T: Element, I: SliceIndex<[T]>> IndexMut<I> for #_ident<T> {
+            #[inline(always)]
+            fn index_mut(&mut self, index: I) -> &mut Self::Output {
+                &mut self.as_slice_mut()[index]
+            }
+        }
         impl<T: Element> fmt::Display for #_ident<T> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, #fmt_literal, #(self.#_components), *)
@@ -568,20 +581,30 @@ fn vec_rs(vec_type: VecType) -> String {
                 self.partial_cmp(other).unwrap()
             }
         }
-        impl<T: Element, I: SliceIndex<[T]>> Index<I> for #_ident<T> {
-            type Output = <I as SliceIndex<[T]>>::Output;
+        impl<T: Element + Add<T, Output = T>> #_ident<T> {
             #[inline(always)]
-            fn index(&self, index: I) -> &Self::Output {
-                &self.as_slice()[index]
+            pub fn sum(self) -> T {
+                #(self.#_components) + *
             }
         }
-        impl<T: Element, I: SliceIndex<[T]>> IndexMut<I> for #_ident<T> {
+        impl<T: Element + BitAnd<T, Output = T>> #_ident<T> {
             #[inline(always)]
-            fn index_mut(&mut self, index: I) -> &mut Self::Output {
-                &mut self.as_slice_mut()[index]
+            pub fn all(self) -> T {
+                #(self.#_components) & *
             }
         }
-
+        impl<T: Element + BitOr<T, Output = T>> #_ident<T> {
+            #[inline(always)]
+            pub fn any(self) -> T {
+                #(self.#_components) | *
+            }
+        }
+        impl<T: Element + BitOr<T, Output = T> + Not<Output = T>> #_ident<T> {
+            #[inline(always)]
+            pub fn none(self) -> T {
+                !self.any()
+            }
+        }
         impl<T: Num> #_ident<T> {
             pub const ZERO: Self = Self::splat(T::ZERO);
             pub const ONE: Self = Self::splat(T::ONE);
