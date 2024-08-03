@@ -464,6 +464,12 @@ fn vec_rs(vec_type: VecType) -> String {
             )*
 
             #[inline(always)]
+            pub fn from_array(value: [T; #_len]) -> Self {
+                unsafe {
+                    *(&value as *const [T; #_len] as *const Self)
+                }
+            }
+            #[inline(always)]
             pub const fn from_slice(value: &[T; #_len]) -> &Self {
                 unsafe {
                     &*(value as *const [T; #_len] as *const Self)
@@ -473,6 +479,12 @@ fn vec_rs(vec_type: VecType) -> String {
             pub const fn from_slice_mut(value: &mut [T; #_len]) -> &mut Self {
                 unsafe {
                     &mut *(value as *mut [T; #_len] as *mut Self)
+                }
+            }
+            #[inline(always)]
+            pub fn into_array(self) -> [T; #_len] {
+                unsafe {
+                    *(&self as *const Self as *const [T; #_len])
                 }
             }
             #[inline(always)]
@@ -545,7 +557,7 @@ fn vec_rs(vec_type: VecType) -> String {
             type IntoIter = std::array::IntoIter<Self::Item, #_len>;
 
             fn into_iter(self) -> Self::IntoIter {
-                (*self.as_slice()).into_iter()
+                self.into_array().into_iter()
             }
         }
         impl<T: Element + Eq> Eq for #_ident<T> {
