@@ -780,6 +780,20 @@ fn vec_rs(vec_type: VecType) -> String {
                     #_last_component_index
                 }
             }
+
+            #[inline(always)]
+            pub fn to_num<B: Num>(self) -> #_ident<B> {
+                #_ident::new(
+                    #(
+                        if self.#_components {
+                            B::ONE
+                        }
+                        else {
+                            B::ZERO
+                        },
+                    )*
+                )
+            }
         }
 
         cast!(#_ident<T>, [T; #_len], T: Element);
