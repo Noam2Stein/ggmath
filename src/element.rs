@@ -1,16 +1,6 @@
-use std::fmt::{Debug, Display};
 use private::Seal;
 
-pub trait Element:
-Seal +
-Default +
-Send +
-Sync +
-Clone +
-Copy +
-PartialEq +
-Debug +
-Display +
+pub trait Element: Seal
 {
     
 }
@@ -59,7 +49,18 @@ num::Float +
 }
 
 mod private {
-    pub trait Seal {
+    use std::fmt::{Debug, Display};
+
+    pub trait Seal:
+    Default +
+    Send +
+    Sync +
+    Clone +
+    Copy +
+    PartialEq +
+    Debug +
+    Display +
+    {
         
     }
 }
