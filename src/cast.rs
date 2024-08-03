@@ -8,20 +8,6 @@ macro_rules! cast {
                 }
             }
         }
-        impl<'a$(, $($generic)*)?> From<&'a $a> for &'a $b {
-            fn from(value: &'a $a) -> Self {
-                unsafe {
-                    &*(value as *const _ as *const $b)
-                }
-            }
-        }
-        impl<'a$(, $($generic)*)?> From<&'a mut $a> for &'a mut $b {
-            fn from(value: &'a mut $a) -> Self {
-                unsafe {
-                    &mut *(value as *mut _ as *mut $b)
-                }
-            }
-        }
         impl$(<$($generic)*>)? From<$b> for $a {
             fn from(value: $b) -> Self {
                 unsafe {
@@ -29,17 +15,31 @@ macro_rules! cast {
                 }
             }
         }
-        impl<'a$(, $($generic)*)?> From<&'a $b> for &'a $a {
-            fn from(value: &'a $b) -> Self {
+        impl$(<$($generic)*>)? AsRef<$a> for $b {
+            fn as_ref(&self) -> &$a {
                 unsafe {
-                    &*(value as *const _ as *const $a)
+                    &*(self as *const _ as *const $a)
                 }
             }
         }
-        impl<'a$(, $($generic)*)?> From<&'a mut $b> for &'a mut $a {
-            fn from(value: &'a mut $b) -> Self {
+        impl$(<$($generic)*>)? AsRef<$b> for $a {
+            fn as_ref(&self) -> &$b {
                 unsafe {
-                    &mut *(value as *mut _ as *mut $a)
+                    &*(self as *const _ as *const $b)
+                }
+            }
+        }
+        impl$(<$($generic)*>)? AsMut<$a> for $b {
+            fn as_mut(&mut self) -> &mut $a {
+                unsafe {
+                    &mut *(self as *mut _ as *mut $a)
+                }
+            }
+        }
+        impl$(<$($generic)*>)? AsMut<$b> for $a {
+            fn as_mut(&mut self) -> &mut $b {
+                unsafe {
+                    &mut *(self as *mut _ as *mut $b)
                 }
             }
         }
