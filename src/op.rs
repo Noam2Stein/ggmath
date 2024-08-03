@@ -59,6 +59,18 @@ macro_rules! rhs_op {
                 Self::Output::new($(self.$component.$fn(rhs.$component)), *)
             }
         }
+        impl<T, Rhs> $trait<Rhs> for $self<T>
+        where
+            T: Element + $trait<Rhs, Output: Element>,
+            Rhs: Element,
+        {
+            type Output = $self<T::Output>;
+    
+            #[inline(always)]
+            fn $fn(self, rhs: Rhs) -> <Self as $trait<Rhs>>::Output {
+                Self::Output::new($(self.$component.$fn(rhs)), *)
+            }
+        }
     };
 }
 #[macro_export(local_inner_macros)]
@@ -73,6 +85,18 @@ macro_rules! assign_op {
             fn $fn(&mut self, rhs: $self<Rhs>) {
                 $(
                     self.$component.$fn(rhs.$component);
+                )*
+            }
+        }
+        impl<T, Rhs> $trait<Rhs> for $self<T>
+        where
+            T: Element + $trait<Rhs>,
+            Rhs: Element,
+        {
+            #[inline(always)]
+            fn $fn(&mut self, rhs: Rhs) {
+                $(
+                    self.$component.$fn(rhs);
                 )*
             }
         }
