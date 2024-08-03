@@ -703,6 +703,23 @@ fn vec_rs(vec_type: VecType) -> String {
                 output
             }
         }
+        impl<T: SignedNum> #_ident<T> {
+            pub fn abs(self) -> Self {
+                Self::new(#(self.#_components.abs()), *)
+            }
+            pub fn abs_sub(self, other: Self) -> Self {
+                Self::new(#(self.#_components.abs_sub(&other.#_components)), *)
+            }
+            pub fn signum(self) -> Self {
+                Self::new(#(self.#_components.signum()), *)
+            }
+            pub fn is_positive(self) -> #_ident<bool> {
+                #_ident::new(#(self.#_components.is_positive()), *)
+            }
+            pub fn is_negative(self) -> #_ident<bool> {
+                #_ident::new(#(self.#_components.is_negative()), *)
+            }
+        }
         impl #_ident<bool> {
             #[inline(always)]
             pub fn b_all(self) -> bool {
