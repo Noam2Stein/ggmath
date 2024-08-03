@@ -679,12 +679,6 @@ fn vec_rs(vec_type: VecType) -> String {
                 self.partial_cmp(other).unwrap()
             }
         }
-        impl<T: Element + Add<T, Output = T>> #_ident<T> {
-            #[inline(always)]
-            pub fn sum(self) -> T {
-                #(self.#_components) + *
-            }
-        }
         impl<T: Element + BitAnd<T, Output = T>> #_ident<T> {
             #[inline(always)]
             pub fn bit_all(self) -> T {
@@ -709,6 +703,23 @@ fn vec_rs(vec_type: VecType) -> String {
             #(
                 pub const #component_const_idents: Self = Self::ZERO.#with_fn_idents(T::ONE);
             )*
+
+            #[inline(always)]
+            pub fn sum(self) -> T {
+                #(self.#_components) + *
+            }
+            #[inline(always)]
+            pub fn filter_sum<F: FnMut(T) -> bool>(self, mut f: F) -> T {
+                let mut output = T::ZERO;
+
+                #(
+                    if f(self.#_components) {
+                        output += self.#_components
+                    }
+                )*
+
+                output
+            }
         }
         impl #_ident<bool> {
             pub fn bit_count(self) -> u8 {
