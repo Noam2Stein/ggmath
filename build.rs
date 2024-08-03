@@ -464,6 +464,11 @@ fn vec_rs(vec_type: VecType) -> String {
             )*
 
             #[inline(always)]
+            pub fn map<B: Element, F: FnMut(T) -> B>(self, mut f: F) -> #_ident<B> {
+                #_ident::new(#(f(self.#_components)), *)
+            }
+
+            #[inline(always)]
             pub fn from_array(value: [T; #_len]) -> Self {
                 unsafe {
                     *(&value as *const [T; #_len] as *const Self)
@@ -611,6 +616,11 @@ fn vec_rs(vec_type: VecType) -> String {
             #(
                 pub const #component_const_idents: Self = Self::ZERO.#with_fn_idents(T::ONE);
             )*
+        }
+        impl #_ident<bool> {
+            pub fn count(self) -> u8 {
+                #(self.#_components as u8) + *
+            }
         }
 
         cast!(#_ident<T>, [T; #_len], T: Element);

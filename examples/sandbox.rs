@@ -1,7 +1,7 @@
 use gmath::*;
 
 pub fn main() {
-    let vec = vec4((true, false, !vec3((false || vec2((true, false)).all(), false, true)).xy())).with_y(true);
+    let vec = vec4((1, 2, 3, 4)).map(|x| x > 2).count();
 
-    println!("{}", vec.all());
+    println!("{}", vec);
 }
