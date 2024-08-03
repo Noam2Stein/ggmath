@@ -421,7 +421,7 @@ fn vec_rs(vec_type: VecType) -> String {
     let _len = Literal::usize_unsuffixed(_len);
 
     let quote = quote! {
-        use std::{cmp::Ordering, fmt, ops::*, slice::SliceIndex};
+        use std::{cmp::Ordering, fmt, ops::*, slice::{Iter, IterMut, SliceIndex}};
         use crate::*;
 
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
@@ -487,17 +487,27 @@ fn vec_rs(vec_type: VecType) -> String {
                     &mut *(self as *mut Self as *mut [T; #_len])
                 }
             }
+            #[inline(always)]
             pub fn get<I>(&self, index: I) -> Option<&<I as SliceIndex<[T]>>::Output>
             where
             I: SliceIndex<[T]>
             {
                 self.as_slice().get(index)
             }
+            #[inline(always)]
             pub fn get_mut<I>(&mut self, index: I) -> Option<&mut <I as SliceIndex<[T]>>::Output>
             where
             I: SliceIndex<[T]>
             {
                 self.as_slice_mut().get_mut(index)
+            }
+            #[inline(always)]
+            pub fn iter(&self) -> Iter<T> {
+                self.as_slice().iter()
+            }
+            #[inline(always)]
+            pub fn iter_mut(&mut self) -> IterMut<T> {
+                self.as_slice_mut().iter_mut()
             }
 
             #[inline(always)]
@@ -528,6 +538,14 @@ fn vec_rs(vec_type: VecType) -> String {
         impl<T: Element> fmt::Display for #_ident<T> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, #fmt_literal, #(self.#_components), *)
+            }
+        }
+        impl<T: Element> IntoIterator for #_ident<T> {
+            type Item = T;
+            type IntoIter = std::array::IntoIter<Self::Item, #_len>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                (*self.as_slice()).into_iter()
             }
         }
         impl<T: Element + Eq> Eq for #_ident<T> {
