@@ -492,6 +492,10 @@ fn vec_rs(vec_type: VecType) -> String {
                 #_ident::new(#(f(self.#_components)), *)
             }
             #[inline(always)]
+            pub fn map_with<B: Element, C: Element, F: FnMut(T, B) -> C>(self, other: #_ident<B>, mut f: F) -> #_ident<C> {
+                #_ident::new(#(f(self.#_components, other.#_components)), *)
+            }
+            #[inline(always)]
             pub fn count<F: FnMut(T) -> bool>(self, mut f: F) -> u8 {
                 #(f(self.#_components) as u8) + *
             }
