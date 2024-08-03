@@ -679,24 +679,6 @@ fn vec_rs(vec_type: VecType) -> String {
                 self.partial_cmp(other).unwrap()
             }
         }
-        impl<T: Element + BitAnd<T, Output = T>> #_ident<T> {
-            #[inline(always)]
-            pub fn bit_all(self) -> T {
-                #(self.#_components) & *
-            }
-        }
-        impl<T: Element + BitOr<T, Output = T>> #_ident<T> {
-            #[inline(always)]
-            pub fn bit_any(self) -> T {
-                #(self.#_components) | *
-            }
-        }
-        impl<T: Element + BitOr<T, Output = T> + Not<Output = T>> #_ident<T> {
-            #[inline(always)]
-            pub fn bit_none(self) -> T {
-                !self.bit_any()
-            }
-        }
         impl<T: Num> #_ident<T> {
             pub const ZERO: Self = Self::splat(T::ZERO);
             pub const ONE: Self = Self::splat(T::ONE);
@@ -722,10 +704,22 @@ fn vec_rs(vec_type: VecType) -> String {
             }
         }
         impl #_ident<bool> {
-            pub fn bit_count(self) -> u8 {
+            #[inline(always)]
+            pub fn b_all(self) -> bool {
+                #(self.#_components) & *
+            }
+            #[inline(always)]
+            pub fn b_any(self) -> bool {
+                #(self.#_components) | *
+            }
+            #[inline(always)]
+            pub fn b_none(self) -> bool {
+                !self.b_any()
+            }
+            pub fn b_count(self) -> u8 {
                 #(self.#_components as u8) + *
             }
-            pub fn bit_position(self) -> u8 {
+            pub fn b_position(self) -> u8 {
                 if self.#_first_component {
                     0
                 }
