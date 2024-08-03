@@ -153,6 +153,8 @@ fn vec_rs(vec_type: VecType) -> String {
     };
     
     let with_fn_idents = vec_type.components().map(|c| format_ident!("with_{c}")).collect::<Box<[Ident]>>();
+
+    let tuple = parse_str::<Type>(&format!("({})", vec_type.components().map(|_| "T").collect::<Box<[&str]>>().join(", "))).unwrap();
     
     let fmt_literal = format!("({})", _components.iter().map(|_| "{}").collect::<Box<[&str]>>().join(", "));
 
@@ -453,38 +455,34 @@ fn vec_rs(vec_type: VecType) -> String {
                 output
             }
 
-            #[inline(always)]
-            pub fn from_array(value: [T; #_len]) -> Self {
-                unsafe {
-                    *(&value as *const [T; #_len] as *const Self)
+            #(
+                #[inline(always)]
+                pub const fn #with_fn_idents(mut self, #_components: T) -> Self {
+                    self.#_components = #_components;
+                    self
                 }
-            }
+            )*
+
             #[inline(always)]
-            pub fn from_slice(value: &[T; #_len]) -> &Self {
+            pub const fn from_slice(value: &[T; #_len]) -> &Self {
                 unsafe {
                     &*(value as *const [T; #_len] as *const Self)
                 }
             }
             #[inline(always)]
-            pub fn from_slice_mut(value: &mut [T; #_len]) -> &mut Self {
+            pub const fn from_slice_mut(value: &mut [T; #_len]) -> &mut Self {
                 unsafe {
                     &mut *(value as *mut [T; #_len] as *mut Self)
                 }
             }
             #[inline(always)]
-            pub fn into_array(self) -> [T; #_len] {
-                unsafe {
-                    *(&self as *const Self as *const [T; #_len])
-                }
-            }
-            #[inline(always)]
-            pub fn as_slice(&self) -> &[T; #_len] {
+            pub const fn as_slice(&self) -> &[T; #_len] {
                 unsafe {
                     &*(self as *const Self as *const [T; #_len])
                 }
             }
             #[inline(always)]
-            pub fn as_slice_mut(&mut self) -> &mut [T; #_len] {
+            pub const fn as_slice_mut(&mut self) -> &mut [T; #_len] {
                 unsafe {
                     &mut *(self as *mut Self as *mut [T; #_len])
                 }
@@ -502,37 +500,47 @@ fn vec_rs(vec_type: VecType) -> String {
                 self.as_slice_mut().get_mut(index)
             }
 
-            #(
-                #[inline(always)]
-                pub const fn #with_fn_idents(mut self, #_components: T) -> Self {
-                    self.#_components = #_components;
-                    self
+            #[inline(always)]
+            pub const fn from_tuple(value: &#tuple) -> &Self {
+                unsafe {
+                    &*(value as *const #tuple as *const Self)
                 }
-            )*
+            }
+            #[inline(always)]
+            pub const fn from_tuple_mut(value: &mut #tuple) -> &mut Self {
+                unsafe {
+                    &mut *(value as *mut #tuple as *mut Self)
+                }
+            }
+            #[inline(always)]
+            pub const fn as_tuple(&self) -> &#tuple {
+                unsafe {
+                    &*(self as *const Self as *const #tuple)
+                }
+            }
+            #[inline(always)]
+            pub const fn as_tuple_mut(&mut self) -> &mut #tuple {
+                unsafe {
+                    &mut *(self as *mut Self as *mut #tuple)
+                }
+            }
         }
-
         impl<T: Element> fmt::Display for #_ident<T> {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, #fmt_literal, #(self.#_components), *)
             }
         }
-
-        cast!(#_ident<T>, [T; #_len], T: Element);
-        #(
-            #tuple_casts
-        )*
-
         impl<T: Element, I: SliceIndex<[T]>> Index<I> for #_ident<T> {
             type Output = <I as SliceIndex<[T]>>::Output;
             #[inline(always)]
             fn index(&self, index: I) -> &Self::Output {
-                &<&[T; #_len]>::from(self)[index]
+                &self.as_slice()[index]
             }
         }
         impl<T: Element, I: SliceIndex<[T]>> IndexMut<I> for #_ident<T> {
             #[inline(always)]
             fn index_mut(&mut self, index: I) -> &mut Self::Output {
-                &mut <&mut [T; #_len]>::from(self)[index]
+                &mut self.as_slice_mut()[index]
             }
         }
 
@@ -544,6 +552,10 @@ fn vec_rs(vec_type: VecType) -> String {
             )*
         }
 
+        cast!(#_ident<T>, [T; #_len], T: Element);
+        #(
+            #tuple_casts
+        )*
         ops! {
             #_ident { #(#_components), * }, [#((#op_traits, #op_fns)), *]
         }
@@ -553,7 +565,6 @@ fn vec_rs(vec_type: VecType) -> String {
         assign_ops! {
             #_ident { #(#_components), * }, [#((#assign_op_traits, #assign_op_fns)), *]
         }
-
         impl<T: Element> #_ident<T> {
             #(
                 #swizzle
