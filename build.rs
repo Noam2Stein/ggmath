@@ -691,6 +691,33 @@ fn vec_rs(vec_type: VecType) -> String {
             )*
 
             #[inline(always)]
+            pub fn from<B: Num>(value: #_ident<B>) -> Option<Self> {
+                Some(
+                    Self::new(
+                        #(
+                            match value.#_components.to() {
+                                Some(#_components) => #_components,
+                                None => return None,
+                            },
+                        )*
+                    )
+                )
+            }
+            #[inline(always)]
+            pub fn to<B: Num>(self) -> Option<#_ident<B>> {
+                Some(
+                    #_ident::<B>::new(
+                        #(
+                            match self.#_components.to() {
+                                Some(#_components) => #_components,
+                                None => return None,
+                            },
+                        )*
+                    )
+                )
+            }
+
+            #[inline(always)]
             pub fn sum(self) -> T {
                 #(self.#_components) + *
             }

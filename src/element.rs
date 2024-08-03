@@ -15,13 +15,22 @@ Default +
 {
     
 }
+
 pub trait Num:
 Element +
 num::traits::NumAssign +
+num::ToPrimitive +
 {
     const ZERO: Self;
     const ONE: Self;
+
+    fn from<T: Num>(value: T) -> Option<Self>;
+
+    fn to<T: Num>(self) -> Option<T> {
+        T::from(self)
+    }
 }
+
 pub trait SignedNum:
 Num +
 num::Signed +
@@ -129,58 +138,114 @@ impl Element for f64 {
 impl Num for u8 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_u8()
+    }
 }
 impl Num for u16 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_u16()
+    }
 }
 impl Num for u32 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_u32()
+    }
 }
 impl Num for u64 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_u64()
+    }
 }
 impl Num for u128 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_u128()
+    }
 }
 impl Num for usize {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+    
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_usize()
+    }
 }
 impl Num for i8 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_i8()
+    }
 }
 impl Num for i16 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_i16()
+    }
 }
 impl Num for i32 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_i32()
+    }
 }
 impl Num for i64 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_i64()
+    }
 }
 impl Num for i128 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_i128()
+    }
 }
 impl Num for isize {
     const ZERO: Self = 0;
     const ONE: Self = 1;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_isize()
+    }
 }
 impl Num for f32 {
     const ZERO: Self = 0.0;
     const ONE: Self = 1.0;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_f32()
+    }
 }
 impl Num for f64 {
     const ZERO: Self = 0.0;
     const ONE: Self = 1.0;
+
+    fn from<T: Num>(value: T) -> Option<Self> {
+        value.to_f64()
+    }
 }
 impl SignedNum for i8 {
     const NEG_ONE: Self = -1;
