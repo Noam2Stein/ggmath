@@ -3,7 +3,7 @@ use std::{env, fs::{create_dir_all, remove_file, write}, ops::Range, path::PathB
 use lazy_static::lazy_static;
 use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote, ToTokens};
-use syn::{parse2, parse_file, parse_str, token::{FatArrow, Semi}, Ident, Type};
+use syn::{parse2, parse_file, parse_str, token::{FatArrow, Semi}, Expr, Ident, Type};
 
 const VECS: Range<usize> = 2..5;
 const COMPONENTS: [char; VECS.end - 1] = ['x', 'y', 'z', 'w'];
@@ -192,6 +192,20 @@ fn vec_rs(vec_type: VecType) -> String {
         }
 
         tuple_casts
+    };
+
+    let (min_element_expr, max_element_expr) = {
+        let mut str = String::new();
+        for c in _components[0.._len - 1].iter() {
+            str += &format!("self.{c}.fn(");
+        };
+        str += &format!("self.{}", _components.last().unwrap());
+        str += &")".repeat(_len - 1);
+
+        (
+            parse_str::<Expr>(&str.replace("fn", "min")).unwrap(),
+            parse_str::<Expr>(&str.replace("fn", "max")).unwrap(),
+        )
     };
 
     let component_const_idents = vec_type.components().map(|c| format_ident!("{}", c.to_uppercase()));
@@ -580,6 +594,24 @@ fn vec_rs(vec_type: VecType) -> String {
         }
         impl<T: Element + Eq> Eq for #_ident<T> {
 
+        }
+        impl<T: Element + Ord> #_ident<T> {
+            #[inline(always)]
+            pub fn min_element(self) -> T {
+                #min_element_expr
+            }
+            #[inline(always)]
+            pub fn max_element(self) -> T {
+                #max_element_expr
+            }
+            #[inline(always)]
+            pub fn min(self, other: Self) -> Self {
+                Self::new(#(self.#_components.min(other.#_components)), *)
+            }
+            #[inline(always)]
+            pub fn max(self, other: Self) -> Self {
+                Self::new(#(self.#_components.max(other.#_components)), *)
+            }
         }
         impl<T: Element + Ord> Ord for #_ident<T> {
             fn cmp(&self, other: &Self) -> Ordering {
