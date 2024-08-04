@@ -325,45 +325,16 @@ impl Int for i128 {
 impl Int for isize {
 
 }
-impl UnsignedInt for u8 {
-
-}
-impl UnsignedInt for u16 {
-
-}
-impl UnsignedInt for u32 {
-
-}
-impl UnsignedInt for u64 {
-
-}
-impl UnsignedInt for u128 {
-
-}
-impl UnsignedInt for usize {
-
-}
-impl SignedInt for i8 {
-
-}
-impl SignedInt for i16 {
-
-}
-impl SignedInt for i32 {
-
-}
-impl SignedInt for i64 {
-
-}
-impl SignedInt for i128 {
-
-}
-impl SignedInt for isize {
-
-}
 impl Float for f32 {
 
 }
 impl Float for f64 {
 
+}
+
+impl<T: SignedNum + Int> SignedInt for T {
+
+}
+impl<T: UnsignedNum + Int> UnsignedInt for T {
+    
 }
