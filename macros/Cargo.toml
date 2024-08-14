@@ -1,0 +1,16 @@
+[package]
+name = "gmath_macros"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+proc-macro = true
+
+[dependencies]
+syn = "2.0.74"
+quote = "1.0.36"
+proc-macro2 = "1.0.86"
+strum = "0.26.3"
+strum_macros = "0.26.4"
