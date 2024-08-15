@@ -27,9 +27,9 @@ Default +
     fn splat_vec3a(value: Self) -> Self::Vec3AInner;
     fn splat_vec4(value: Self) -> Self::Vec4Inner;
 
-    any_vec_any!(
+    get_swizzle!(
         Self {
-            fn #inner_ident(vec: #inner_self) -> #inner_value;
+            fn #inner_ident(vec: #inner_self_ty) -> #inner_value_ty;
         }
     );
 }
@@ -291,17 +291,17 @@ macro_rules! default_impl_element {
             [value; 4]
         }
 
-        any_vec_get!(
+        get_swizzle!(
             Self {
-                #[inline(always)]
-                fn #inner_ident(vec: #inner_self) -> #inner_value {
-                    let mut output = unsafe { std::mem::MaybeUninit::<#inner_value>::uninit().assume_init() };
+                ##[inline(always)]
+                fn #inner_ident(vec: #inner_self_ty) -> #inner_value_ty {
+                    let mut output = unsafe { std::mem::MaybeUninit::<#inner_value_ty>::uninit().assume_init() };
                     unsafe {
-                        #{
-                            let src = &vec[#self_component] as *const _ as *const [Self; #len];
-                            let dst = &mut #vec[value_component] as *mut _ as *mut [Self; #len];
+                        #(
+                            let src = (&vec as *const _ as *const [Self; #len]).add(#self_component);
+                            let dst = (&mut output as *mut _ as *mut [Self; #len]).add(#value_component);
                             *dst = *src;
-                        }
+                        )
                     }
                     output
                 }
