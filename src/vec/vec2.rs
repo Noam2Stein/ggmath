@@ -12,31 +12,66 @@ pub fn vec2<T: Element>(value: impl Into<Vec2<T>>) -> Vec2<T> {
     value.into()
 }
 
+swizzle_macro!(
+    get_fns {
+        #[inline(always)]
+        pub fn $ident(self) -> $value_ty {
+            $wrap_value(T::$inner_ident($unwrap_self(self)))
+        }
+    }
+);
+swizzle_macro!(
+    mut_fns {
+        #[inline(always)]
+        pub fn $ident(&mut self) -> &mut $value_ty {
+            $wrap_value_mut(T::$inner_ident($unwrap_self_mut(self)))
+        }
+    }
+);
+swizzle_macro!(
+    set_fns {
+        #[inline(always)]
+        pub fn $ident(&mut self, value: $value_ty) {
+            T::$inner_ident($unwrap_self_mut(self), $unwrap_value(value))
+        }
+    }
+);
+swizzle_macro!(
+    with_fns {
+        #[inline(always)]
+        pub fn $ident(self, value: $value_ty) -> $self_ty {
+            $wrap_self(T::$inner_ident($unwrap_self(self), $unwrap_value(value)))
+        }
+    }
+);
 impl<T: Element> Vec2<T> {
     #[inline(always)]
     pub fn new(x: T, y: T) -> Self {
-        wrap(T::new_vec2(x, y))
+        T::wrap_vec2(T::new_vec2(x, y))
     }
     #[inline(always)]
     pub fn splat(value: T) -> Self {
-        wrap(T::splat_vec2(value))
+        T::wrap_vec2(T::splat_vec2(value))
     }
 
     vec2_get_swizzle!(
         T {
-            ##[inline(always)]
-            pub fn #ident(self) -> #value_ty {
-                #value_ty {
-                    inner: T::#inner_ident(self.inner)
-                }
-            }
+            get_fns!();
         }
     );
-}
-
-#[inline(always)]
-fn wrap<T: Element>(inner: T::Vec2Inner) -> Vec2<T> {
-    Vec2 {
-        inner
-    }
+    vec2_mut_swizzle!(
+        T {
+            mut_fns!();
+        }
+    );
+    vec2_set_swizzle!(
+        T {
+            set_fns!();
+        }
+    );
+    vec2_with_swizzle!(
+        T {
+            with_fns!();
+        }
+    );
 }
