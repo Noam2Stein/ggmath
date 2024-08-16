@@ -95,12 +95,8 @@ pub fn swizzle_macro(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
         macro_rules! #ident {
             (
                 $ident:ident, $inner_ident:ident,
-                $self_ty:ty, $inner_self_ty:ty,
-                $wrap_self:expr, $wrap_self_ref:expr, $wrap_self_mut:expr,
-                $unwrap_self:expr, $unwrap_self_ref:expr, $unwrap_self_mut:expr,
-                $value_ty:ty, $inner_value_ty:ty,
-                $wrap_value:expr, $wrap_value_ref:expr, $wrap_value_mut:expr,
-                $unwrap_value:expr, $unwrap_value_ref:expr, $unwrap_value_mut:expr,
+                $self_ty:ty, $inner_self_ty:ty, $self_ident:ident,
+                $value_ty:ty, $inner_value_ty:ty, $value_ident:ident,
                 $($self_component:literal, $value_component:literal, $len:literal), +) => {
                 #output
             }
@@ -153,20 +149,10 @@ fn process_swizzle<'a>(input: proc_macro::TokenStream, swizzles: impl Iterator<I
                     let inner_ident = swizzle.inner_ident();
                     let self_ty = swizzle.self_ty.ty(&input.element_ty);
                     let inner_self_ty = swizzle.self_ty.inner_ty(&input.element_ty);
-                    let wrap_self = swizzle.self_ty.wrap(&input.element_ty);
-                    let wrap_self_ref = swizzle.self_ty.wrap_ref(&input.element_ty);
-                    let wrap_self_mut = swizzle.self_ty.wrap_mut(&input.element_ty);
-                    let unwrap_self = swizzle.self_ty.unwrap(&input.element_ty);
-                    let unwrap_self_ref = swizzle.self_ty.unwrap_ref(&input.element_ty);
-                    let unwrap_self_mut = swizzle.self_ty.unwrap_mut(&input.element_ty);
+                    let self_ident = swizzle.self_ty.ident();
                     let value_ty = swizzle.value_ty.ty(&input.element_ty);
                     let inner_value_ty = swizzle.value_ty.inner_ty(&input.element_ty);
-                    let wrap_value = swizzle.value_ty.wrap(&input.element_ty);
-                    let wrap_value_ref = swizzle.value_ty.wrap_ref(&input.element_ty);
-                    let wrap_value_mut = swizzle.value_ty.wrap_mut(&input.element_ty);
-                    let unwrap_value = swizzle.value_ty.unwrap(&input.element_ty);
-                    let unwrap_value_ref = swizzle.value_ty.unwrap_ref(&input.element_ty);
-                    let unwrap_value_mut = swizzle.value_ty.unwrap_mut(&input.element_ty);
+                    let value_ident = swizzle.value_ty.ident();
         
                     let reflections = swizzle.reflections.iter().map(
                         |SwizzleReflection { self_component, value_component, len }| {
@@ -179,12 +165,8 @@ fn process_swizzle<'a>(input: proc_macro::TokenStream, swizzles: impl Iterator<I
                     quote! {
                         #macro_ident!(
                             #ident, #inner_ident,
-                            #self_ty, #inner_self_ty,
-                            #wrap_self, #wrap_self_ref, #wrap_self_mut,
-                            #unwrap_self, #unwrap_self_ref, #unwrap_self_mut,
-                            #value_ty, #inner_value_ty,
-                            #wrap_value, #wrap_value_ref, #wrap_value_mut,
-                            #unwrap_value, #unwrap_value_ref, #unwrap_value_mut,
+                            #self_ty, #inner_self_ty, #self_ident,
+                            #value_ty, #inner_value_ty, #value_ident,
                             #(#reflections), *
                         );
                     }        

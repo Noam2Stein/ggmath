@@ -2,21 +2,9 @@ use std::{fmt::{Debug, Display}, ops::*};
 
 use gmath_macros::*;
 
-use crate::vec::*;
-
 swizzle_macro!(
     get_swizzle_fns {
         fn $inner_ident(vec: $inner_self_ty) -> $inner_value_ty;
-    }
-);
-swizzle_macro!(
-    mut_swizzle_fns {
-        fn $inner_ident(vec: &mut $inner_self_ty) -> &mut $inner_value_ty;
-    }
-);
-swizzle_macro!(
-    set_swizzle_fns {
-        fn $inner_ident(vec: &mut $inner_self_ty, value: $inner_value_ty);
     }
 );
 swizzle_macro!(
@@ -38,37 +26,6 @@ Default +
     type Vec3Inner: Send + Sync + Debug + Copy + PartialEq + PartialOrd + Default;
     type Vec3AInner: Send + Sync + Debug + Copy + PartialEq + PartialOrd + Default;
     type Vec4Inner: Send + Sync + Debug + Copy + PartialEq + PartialOrd + Default;
-
-    fn wrap_element(value: Self) -> Self;
-    fn wrap_vec2(value: Self::Vec2Inner) -> Vec2<Self>;
-    fn wrap_vec3(value: Self::Vec3Inner) -> Vec3<Self>;
-    fn wrap_vec3a(value: Self::Vec3AInner) -> Vec3A<Self>;
-    fn wrap_vec4(value: Self::Vec4Inner) -> Vec4<Self>;
-    fn wrap_element_ref(value: &Self) -> &Self;
-    fn wrap_vec2_ref(value: &Self::Vec2Inner) -> &Vec2<Self>;
-    fn wrap_vec3_ref(value: &Self::Vec3Inner) -> &Vec3<Self>;
-    fn wrap_vec3a_ref(value: &Self::Vec3AInner) -> &Vec3A<Self>;
-    fn wrap_vec4_ref(value: &Self::Vec4Inner) -> &Vec4<Self>;
-    fn wrap_element_mut(value: &mut Self) -> &mut Self;
-    fn wrap_vec2_mut(value: &mut Self::Vec2Inner) -> &mut Vec2<Self>;
-    fn wrap_vec3_mut(value: &mut Self::Vec3Inner) -> &mut Vec3<Self>;
-    fn wrap_vec3a_mut(value: &mut Self::Vec3AInner) -> &mut Vec3A<Self>;
-    fn wrap_vec4_mut(value: &mut Self::Vec4Inner) -> &mut Vec4<Self>;
-    fn unwrap_element(value: Self) -> Self;
-    fn unwrap_vec2(value: Vec2<Self>) -> Self::Vec2Inner;
-    fn unwrap_vec3(value: Vec3<Self>) -> Self::Vec3Inner;
-    fn unwrap_vec3a(value: Vec3A<Self>) -> Self::Vec3AInner;
-    fn unwrap_vec4(value: Vec4<Self>) -> Self::Vec4Inner;
-    fn unwrap_element_ref(value: &Self) -> &Self;
-    fn unwrap_vec2_ref(value: &Vec2<Self>) -> &Self::Vec2Inner;
-    fn unwrap_vec3_ref(value: &Vec3<Self>) -> &Self::Vec3Inner;
-    fn unwrap_vec3a_ref(value: &Vec3A<Self>) -> &Self::Vec3AInner;
-    fn unwrap_vec4_ref(value: &Vec4<Self>) -> &Self::Vec4Inner;
-    fn unwrap_element_mut(value: &mut Self) -> &mut Self;
-    fn unwrap_vec2_mut(value: &mut Vec2<Self>) -> &mut Self::Vec2Inner;
-    fn unwrap_vec3_mut(value: &mut Vec3<Self>) -> &mut Self::Vec3Inner;
-    fn unwrap_vec3a_mut(value: &mut Vec3A<Self>) -> &mut Self::Vec3AInner;
-    fn unwrap_vec4_mut(value: &mut Vec4<Self>) -> &mut Self::Vec4Inner;
     
     fn new_vec2(x: Self, y: Self) -> Self::Vec2Inner;
     fn new_vec3(x: Self, y: Self, z: Self) -> Self::Vec3Inner;
@@ -83,16 +40,6 @@ Default +
     get_swizzle!(
         Self {
             get_swizzle_fns!();
-        }
-    );
-    mut_swizzle!(
-        Self {
-            mut_swizzle_fns!();
-        }
-    );
-    set_swizzle!(
-        Self {
-            set_swizzle_fns!();
         }
     );
     with_swizzle!(
@@ -336,32 +283,6 @@ swizzle_macro!(
     }
 );
 swizzle_macro!(
-    default_impl_mut_swizzle {
-        #[inline(always)]
-        fn $inner_ident(vec: &mut $inner_self_ty) -> &mut $inner_value_ty {
-            unsafe {
-                $(
-                    &mut *((vec as *mut _ as *mut [Self; $len]).add($self_component) as *mut $inner_value_ty)
-                )+
-            }
-        }
-    }
-);
-swizzle_macro!(
-    default_impl_set_swizzle {
-        #[inline(always)]
-        fn $inner_ident(vec: &mut $inner_self_ty, value: $inner_value_ty) {
-            unsafe {
-                $(
-                    let src = (&value as *const _ as *const [Self; $len]).add($value_component);
-                    let dst = (vec as *mut _ as *mut [Self; $len]).add($self_component);
-                    *dst = *src;
-                )+
-            }
-        }
-    }
-);
-swizzle_macro!(
     default_impl_with_swizzle {
         #[inline(always)]
         fn $inner_ident(mut vec: $inner_self_ty, value: $inner_value_ty) -> $inner_self_ty {
@@ -376,235 +297,114 @@ swizzle_macro!(
         }
     }
 );
-macro_rules! default_impl_element {
-    {} => {
-        type Vec2Inner = [Self; 2];
-        type Vec3Inner = [Self; 3];
-        type Vec3AInner = [Self; 4];
-        type Vec4Inner = [Self; 4];
+pub trait DefaultElementImpl:
+Send +
+Sync +
+Debug +
+Copy +
+PartialEq +
+PartialOrd +
+Display +
+Default +
+{
+    
+}
+impl<T: DefaultElementImpl> Element for T {
+    type Vec2Inner = [Self; 2];
+    type Vec3Inner = [Self; 3];
+    type Vec3AInner = [Self; 4];
+    type Vec4Inner = [Self; 4];
 
-        #[inline(always)]
-        fn wrap_element(value: Self) -> Self {
-            value
-        }
-        #[inline(always)]
-        fn wrap_vec2(value: Self::Vec2Inner) -> Vec2<Self> {
-            Vec2 { inner: value }
-        }
-        #[inline(always)]
-        fn wrap_vec3(value: Self::Vec3Inner) -> Vec3<Self> {
-            Vec3 { inner: value }
-        }
-        #[inline(always)]
-        fn wrap_vec3a(value: Self::Vec3AInner) -> Vec3A<Self> {
-            Vec3A { inner: value }
-        }
-        #[inline(always)]
-        fn wrap_vec4(value: Self::Vec4Inner) -> Vec4<Self> {
-            Vec4 { inner: value }
-        }
-        #[inline(always)]
-        fn wrap_element_ref(value: &Self) -> &Self {
-            value
-        }
-        #[inline(always)]
-        fn wrap_vec2_ref(value: &Self::Vec2Inner) -> &Vec2<Self> {
-            unsafe { & *(value as *const _ as *const Vec2<Self>) }
-        }
-        #[inline(always)]
-        fn wrap_vec3_ref(value: &Self::Vec3Inner) -> &Vec3<Self> {
-            unsafe { & *(value as *const _ as *const Vec3<Self>) }
-        }
-        #[inline(always)]
-        fn wrap_vec3a_ref(value: &Self::Vec3AInner) -> &Vec3A<Self> {
-            unsafe { & *(value as *const _ as *const Vec3A<Self>) }
-        }
-        #[inline(always)]
-        fn wrap_vec4_ref(value: &Self::Vec4Inner) -> &Vec4<Self> {
-            unsafe { & *(value as *const _ as *const Vec4<Self>) }
-        }
-        #[inline(always)]
-        fn wrap_element_mut(value: &mut Self) -> &mut Self {
-            value
-        }
-        #[inline(always)]
-        fn wrap_vec2_mut(value: &mut Self::Vec2Inner) -> &mut Vec2<Self> {
-            unsafe { &mut *(value as *mut _ as *mut Vec2<Self>) }
-        }
-        #[inline(always)]
-        fn wrap_vec3_mut(value: &mut Self::Vec3Inner) -> &mut Vec3<Self> {
-            unsafe { &mut *(value as *mut _ as *mut Vec3<Self>) }
-        }
-        #[inline(always)]
-        fn wrap_vec3a_mut(value: &mut Self::Vec3AInner) -> &mut Vec3A<Self> {
-            unsafe { &mut *(value as *mut _ as *mut Vec3A<Self>) }
-        }
-        #[inline(always)]
-        fn wrap_vec4_mut(value: &mut Self::Vec4Inner) -> &mut Vec4<Self> {
-            unsafe { &mut *(value as *mut _ as *mut Vec4<Self>) }
-        }
-        #[inline(always)]
-        fn unwrap_element(value: Self) -> Self {
-            value
-        }
-        #[inline(always)]
-        fn unwrap_vec2(value: Vec2<Self>) -> Self::Vec2Inner {
-            value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec3(value: Vec3<Self>) -> Self::Vec3Inner {
-            value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec3a(value: Vec3A<Self>) -> Self::Vec3AInner {
-            value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec4(value: Vec4<Self>) -> Self::Vec4Inner {
-            value.inner
-        }
-        #[inline(always)]
-        fn unwrap_element_ref(value: &Self) -> &Self {
-            value
-        }
-        #[inline(always)]
-        fn unwrap_vec2_ref(value: &Vec2<Self>) -> &Self::Vec2Inner {
-            &value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec3_ref(value: &Vec3<Self>) -> &Self::Vec3Inner {
-            &value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec3a_ref(value: &Vec3A<Self>) -> &Self::Vec3AInner {
-            &value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec4_ref(value: &Vec4<Self>) -> &Self::Vec4Inner {
-            &value.inner
-        }
-        #[inline(always)]
-        fn unwrap_element_mut(value: &mut Self) -> &mut Self {
-            value
-        }
-        #[inline(always)]
-        fn unwrap_vec2_mut(value: &mut Vec2<Self>) -> &mut Self::Vec2Inner {
-            &mut value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec3_mut(value: &mut Vec3<Self>) -> &mut Self::Vec3Inner {
-            &mut value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec3a_mut(value: &mut Vec3A<Self>) -> &mut Self::Vec3AInner {
-            &mut value.inner
-        }
-        #[inline(always)]
-        fn unwrap_vec4_mut(value: &mut Vec4<Self>) -> &mut Self::Vec4Inner {
-            &mut value.inner
-        }
+    #[inline(always)]
+    fn new_vec2(x: Self, y: Self) -> Self::Vec2Inner {
+        [x, y]
+    }
+    #[inline(always)]
+    fn new_vec3(x: Self, y: Self, z: Self) -> Self::Vec3Inner {
+        [x, y, z]
+    }
+    #[inline(always)]
+    fn new_vec3a(x: Self, y: Self, z: Self) -> Self::Vec3AInner {
+        [x, y, z, z]
+    }
+    #[inline(always)]
+    fn new_vec4(x: Self, y: Self, z: Self, w: Self) -> Self::Vec4Inner {
+        [x, y, z, w]
+    }
 
-        #[inline(always)]
-        fn new_vec2(x: Self, y: Self) -> Self::Vec2Inner {
-            [x, y]
-        }
-        #[inline(always)]
-        fn new_vec3(x: Self, y: Self, z: Self) -> Self::Vec3Inner {
-            [x, y, z]
-        }
-        #[inline(always)]
-        fn new_vec3a(x: Self, y: Self, z: Self) -> Self::Vec3AInner {
-            [x, y, z, z]
-        }
-        #[inline(always)]
-        fn new_vec4(x: Self, y: Self, z: Self, w: Self) -> Self::Vec4Inner {
-            [x, y, z, w]
-        }
+    #[inline(always)]
+    fn splat_vec2(value: Self) -> Self::Vec2Inner {
+        [value; 2]
+    }
+    #[inline(always)]
+    fn splat_vec3(value: Self) -> Self::Vec3Inner {
+        [value; 3]
+    }
+    #[inline(always)]
+    fn splat_vec3a(value: Self) -> Self::Vec3AInner {
+        [value; 4]
+    }
+    #[inline(always)]
+    fn splat_vec4(value: Self) -> Self::Vec4Inner {
+        [value; 4]
+    }
 
-        #[inline(always)]
-        fn splat_vec2(value: Self) -> Self::Vec2Inner {
-            [value; 2]
+    get_swizzle!(
+        Self {
+            default_impl_get_swizzle!();
         }
-        #[inline(always)]
-        fn splat_vec3(value: Self) -> Self::Vec3Inner {
-            [value; 3]
+    );
+    with_swizzle!(
+        Self {
+            default_impl_with_swizzle!();
         }
-        #[inline(always)]
-        fn splat_vec3a(value: Self) -> Self::Vec3AInner {
-            [value; 4]
-        }
-        #[inline(always)]
-        fn splat_vec4(value: Self) -> Self::Vec4Inner {
-            [value; 4]
-        }
-
-        get_swizzle!(
-            Self {
-                default_impl_get_swizzle!();
-            }
-        );
-        mut_swizzle!(
-            Self {
-                default_impl_mut_swizzle!();
-            }
-        );
-        set_swizzle!(
-            Self {
-                default_impl_set_swizzle!();
-            }
-        );
-        with_swizzle!(
-            Self {
-                default_impl_with_swizzle!();
-            }
-        );
-    };
+    );
 }
 
-impl Element for bool {
-    default_impl_element! {}
+impl DefaultElementImpl for bool {
+    
 }
-impl Element for u8 {
-    default_impl_element! {}
+impl DefaultElementImpl for u8 {
+    
 }
-impl Element for u16 {
-    default_impl_element! {}
+impl DefaultElementImpl for u16 {
+    
 }
-impl Element for u32 {
-    default_impl_element! {}
+impl DefaultElementImpl for u32 {
+    
 }
-impl Element for u64 {
-    default_impl_element! {}
+impl DefaultElementImpl for u64 {
+    
 }
-impl Element for u128 {
-    default_impl_element! {}
+impl DefaultElementImpl for u128 {
+    
 }
-impl Element for usize {
-    default_impl_element! {}
+impl DefaultElementImpl for usize {
+    
 }
-impl Element for i8 {
-    default_impl_element! {}
+impl DefaultElementImpl for i8 {
+    
 }
-impl Element for i16 {
-    default_impl_element! {}
+impl DefaultElementImpl for i16 {
+    
 }
-impl Element for i32 {
-    default_impl_element! {}
+impl DefaultElementImpl for i32 {
+    
 }
-impl Element for i64 {
-    default_impl_element! {}
+impl DefaultElementImpl for i64 {
+    
 }
-impl Element for i128 {
-    default_impl_element! {}
+impl DefaultElementImpl for i128 {
+    
 }
-impl Element for isize {
-    default_impl_element! {}
+impl DefaultElementImpl for isize {
+    
 }
-impl Element for f32 {
-    default_impl_element! {}
+impl DefaultElementImpl for f32 {
+    
 }
-impl Element for f64 {
-    default_impl_element! {}
+impl DefaultElementImpl for f64 {
+    
 }
 
 impl Num for u8 {
