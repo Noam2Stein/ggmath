@@ -23,42 +23,42 @@ pub enum RhsOp {
     Shr,
 }
 impl Op {
-    pub fn trait_ident(self) -> Ident {
+    pub fn std_trait(self) -> Ident {
         Ident::new(&self.to_string(), Span::call_site())
     }
-    pub fn fn_ident(self) -> Ident {
+    pub fn std_fn(self) -> Ident {
         Ident::new(&self.to_string().to_lowercase(), Span::call_site())
     }
-    pub fn element_trait_ident(self) -> Ident {
+    pub fn element_trait(self) -> Ident {
         Ident::new(&format!("Element{self}"), Span::call_site())
     }
-    pub fn element_fn_ident(self, vec_ty: VecType) -> Ident {
+    pub fn element_fn(self, vec_ty: VecType) -> Ident {
         Ident::new(&format!("{}_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
     }
 }
 impl RhsOp {
-    pub fn trait_ident(self) -> Ident {
+    pub fn std_trait(self) -> Ident {
         Ident::new(&self.to_string(), Span::call_site())
     }
-    pub fn fn_ident(self) -> Ident {
+    pub fn std_fn(self) -> Ident {
         Ident::new(&self.to_string().to_lowercase(), Span::call_site())
     }
-    pub fn assign_trait_ident(self) -> Ident {
-        Ident::new(&format!("{self}Assign"), Span::call_site())
-    }
-    pub fn assign_fn_ident(self) -> Ident {
-        Ident::new(&format!("{}_assign", self.to_string().to_lowercase()), Span::call_site())
-    }
-    pub fn element_trait_ident(self) -> Ident {
+    pub fn element_trait(self) -> Ident {
         Ident::new(&format!("Element{self}"), Span::call_site())
     }
-    pub fn element_fn_ident(self, vec_ty: VecType) -> Ident {
+    pub fn element_fn(self, vec_ty: VecType) -> Ident {
         Ident::new(&format!("{}_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
     }
-    pub fn assign_element_trait_ident(self) -> Ident {
+    pub fn std_assign_trait(self) -> Ident {
+        Ident::new(&format!("{self}Assign"), Span::call_site())
+    }
+    pub fn std_assign_fn(self) -> Ident {
+        Ident::new(&format!("{}_assign", self.to_string().to_lowercase()), Span::call_site())
+    }
+    pub fn element_assign_trait(self) -> Ident {
         Ident::new(&format!("Element{self}Assign"), Span::call_site())
     }
-    pub fn assign_element_fn_ident(self, vec_ty: VecType) -> Ident {
+    pub fn element_assign_fn(self, vec_ty: VecType) -> Ident {
         Ident::new(&format!("{}_assign_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
     }
 }

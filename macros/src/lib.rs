@@ -4,7 +4,7 @@ mod op;
 
 use proc_macro2::TokenStream;
 
-use quote::quote;
+use quote::{format_ident, quote};
 use strum::IntoEnumIterator;
 use syn::{parenthesized, parse::{Parse, ParseStream}, parse_macro_input, token, Ident, Token, Type};
 
@@ -148,15 +148,28 @@ declare_macro_macro!(
 );
 declare_macro_macro!(
     op_macro,
-    $trait:ident, $fn:ident, $element_trait:ident,
+    $std_trait:ident, $std_fn:ident, $element_trait:ident,
     $vec2_fn:ident, $vec3_fn:ident, $vec3a_fn:ident, $vec4_fn:ident,
 );
 declare_macro_macro!(
     rhs_op_macro,
-    $trait:ident, $fn:ident, $element_trait:ident,
+    $std_trait:ident, $std_fn:ident, $element_trait:ident,
     $vec2_fn:ident, $vec3_fn:ident, $vec3a_fn:ident, $vec4_fn:ident,
-    $assign_trait:ident, $assign_fn:ident, $assign_element_trait:ident,
-    $assign_vec2_fn:ident, $assign_vec3_fn:ident, $assign_vec3a_fn:ident, $assign_vec4_fn:ident,
+    $std_assign_trait:ident, $std_assign_fn:ident, $element_assign_trait:ident,
+    $vec2_assign_fn:ident, $vec3_assign_fn:ident, $vec3a_assign_fn:ident, $vec4_assign_fn:ident,
+);
+declare_macro_macro!(
+    vec_macro,
+    $self:ident, $self_lower:ident, $inner:ident,
+    $inner_new:ident, $inner_splat:ident,
+    $swizzle:ident, $get_swizzle:ident, $mut_swizzle:ident, $set_swizzle:ident, $with_swizzle:ident,
+    $display_literal:literal,
+    ($($component:ident, $component_index:literal), +),
+    ($($std_op_trait:ident, $std_op_fn:ident, $element_op_trait:ident, $element_op_fn:ident), +),
+    ($(
+        $std_rhs_op_trait:ident, $std_rhs_op_fn:ident, $element_rhs_op_trait:ident, $element_rhs_op_fn:ident,
+        $std_assign_op_trait:ident, $std_assign_op_fn:ident, $element_assign_op_trait:ident, $element_assign_op_fn:ident
+    ), +)
 );
 
 macro_rules! apply_swizzle_macro {
@@ -208,6 +221,10 @@ pub fn ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[proc_macro]
 pub fn rhs_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     process_rhs_ops(input.into()).into()
+}
+#[proc_macro]
+pub fn vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    process_vecs(input.into()).into()
 }
 
 fn process_swizzle<'a>(input: proc_macro::TokenStream, swizzles: impl Iterator<Item = &'a Swizzle> + Clone) -> proc_macro::TokenStream {
@@ -291,18 +308,18 @@ fn process_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         |call| {
             Op::iter().map(
                 |op| {
-                    let trait_ident = op.trait_ident();
-                    let fn_ident = op.fn_ident();
-                    let element_trait_ident = op.element_trait_ident();
-                    let vec2_fn_ident = op.element_fn_ident(VecType::Vec2);
-                    let vec3_fn_ident = op.element_fn_ident(VecType::Vec3);
-                    let vec3a_fn_ident = op.element_fn_ident(VecType::Vec3A);
-                    let vec4_fn_ident = op.element_fn_ident(VecType::Vec4);
+                    let std_trait = op.std_trait();
+                    let std_fn = op.std_fn();
+                    let element_trait = op.element_trait();
+                    let vec2_fn = op.element_fn(VecType::Vec2);
+                    let vec3_fn = op.element_fn(VecType::Vec3);
+                    let vec3a_fn = op.element_fn(VecType::Vec3A);
+                    let vec4_fn = op.element_fn(VecType::Vec4);
                 
                     process_call(call,
                         quote! {
-                            #trait_ident, #fn_ident, #element_trait_ident,
-                            #vec2_fn_ident, #vec3_fn_ident, #vec3a_fn_ident, #vec4_fn_ident,
+                            #std_trait, #std_fn, #element_trait,
+                            #vec2_fn, #vec3_fn, #vec3a_fn, #vec4_fn,
                         }
                     )
                 }
@@ -317,28 +334,104 @@ fn process_rhs_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         |call| {
             RhsOp::iter().map(
                 |op| {
-                    let trait_ident = op.trait_ident();
-                    let fn_ident = op.fn_ident();
-                    let element_trait_ident = op.element_trait_ident();
-                    let vec2_fn_ident = op.element_fn_ident(VecType::Vec2);
-                    let vec3_fn_ident = op.element_fn_ident(VecType::Vec3);
-                    let vec3a_fn_ident = op.element_fn_ident(VecType::Vec3A);
-                    let vec4_fn_ident = op.element_fn_ident(VecType::Vec4);
-                    let assign_trait_ident = op.assign_trait_ident();
-                    let assign_fn_ident = op.assign_fn_ident();
-                    let assign_element_trait_ident = op.assign_element_trait_ident();
-                    let assign_vec2_fn_ident = op.assign_element_fn_ident(VecType::Vec2);
-                    let assign_vec3_fn_ident = op.assign_element_fn_ident(VecType::Vec3);
-                    let assign_vec3a_fn_ident = op.assign_element_fn_ident(VecType::Vec3A);
-                    let assign_vec4_fn_ident = op.assign_element_fn_ident(VecType::Vec4);
+                    let std_trait = op.std_trait();
+                    let std_fn = op.std_fn();
+                    let element_trait = op.element_trait();
+                    let vec2_fn = op.element_fn(VecType::Vec2);
+                    let vec3_fn = op.element_fn(VecType::Vec3);
+                    let vec3a_fn = op.element_fn(VecType::Vec3A);
+                    let vec4_fn = op.element_fn(VecType::Vec4);
+
+                    let std_assign_trait = op.std_assign_trait();
+                    let std_assign_fn = op.std_assign_fn();
+                    let element_assign_trait = op.element_assign_trait();
+                    let vec2_assign_fn = op.element_assign_fn(VecType::Vec2);
+                    let vec3_assign_fn = op.element_assign_fn(VecType::Vec3);
+                    let vec3a_assign_fn = op.element_assign_fn(VecType::Vec3A);
+                    let vec4_assign_fn = op.element_assign_fn(VecType::Vec4);
                     
                     process_call(call,
                         quote! {
-                            #trait_ident, #fn_ident, #element_trait_ident,
-                            #vec2_fn_ident, #vec3_fn_ident, #vec3a_fn_ident, #vec4_fn_ident,
-                            #assign_trait_ident, #assign_fn_ident, #assign_element_trait_ident,
-                            #assign_vec2_fn_ident, #assign_vec3_fn_ident, #assign_vec3a_fn_ident, #assign_vec4_fn_ident,
+                            #std_trait, #std_fn, #element_trait,
+                            #vec2_fn, #vec3_fn, #vec3a_fn, #vec4_fn,
+                            #std_assign_trait, #std_assign_fn, #element_assign_trait,
+                            #vec2_assign_fn, #vec3_assign_fn, #vec3a_assign_fn, #vec4_assign_fn,
                         }
+                    )
+                }
+            ).collect::<TokenStream>()
+        }
+    ).collect::<TokenStream>().into()
+}
+fn process_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as ApplyMacroInput);
+
+    input.calls.iter().map(
+        |call| {
+            VecType::iter().filter_map(
+                |vec| {
+                    if vec.len() <= 1 {
+                        return None;
+                    };
+
+                    let self_ = vec.ident();
+                    let self_lower = vec.ident_lower();
+                    let inner = vec.inner_ident();
+                    let inner_new = format_ident!("new_{self_lower}");
+                    let inner_splat = format_ident!("splat_{self_lower}");
+                    let swizzle = vec.swizzle();
+                    let get_swizzle = vec.get_swizzle();
+                    let mut_swizzle = vec.mut_swizzle();
+                    let set_swizzle = vec.set_swizzle();
+                    let with_swizzle = vec.with_swizzle();
+                    let display_literal = vec.display_literal();
+                    let components = vec.components();
+                    let component_indicies = vec.component_indicies();
+
+                    let ops = Op::iter().map(
+                        |op| {
+                            let std_trait = op.std_trait();
+                            let std_fn = op.std_fn();
+                            let element_trait = op.element_trait();
+                            let element_fn = op.element_fn(vec);
+                        
+                            quote! {
+                                #std_trait, #std_fn, #element_trait, #element_fn
+                            }
+                        }
+                    );
+
+                    let rhs_ops = RhsOp::iter().map(
+                        |op| {
+                            let std_trait = op.std_trait();
+                            let std_fn = op.std_fn();
+                            let element_trait = op.element_trait();
+                            let element_fn = op.element_fn(vec);
+        
+                            let std_assign_trait = op.std_assign_trait();
+                            let std_assign_fn = op.std_assign_fn();
+                            let element_assign_trait = op.element_assign_trait();
+                            let element_assign_fn = op.element_assign_fn(vec);
+                            
+                            quote! {
+                                #std_trait, #std_fn, #element_trait, #element_fn,
+                                #std_assign_trait, #std_assign_fn, #element_assign_trait, #element_assign_fn
+                            }
+                        }
+                    );
+
+                    Some(
+                        process_call(call,
+                            quote! {
+                                #self_, #self_lower, #inner,
+                                #inner_new, #inner_splat,
+                                #swizzle, #get_swizzle, #mut_swizzle, #set_swizzle, #with_swizzle,
+                                #display_literal,
+                                (#(#components, #component_indicies), *),
+                                (#(#ops), *),
+                                (#(#rhs_ops), *)
+                            }
+                        )
                     )
                 }
             ).collect::<TokenStream>()

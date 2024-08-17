@@ -4,7 +4,7 @@ use proc_macro2::Span;
 use strum::IntoEnumIterator;
 use syn::Ident;
 
-use crate::vec::VecType;
+use crate::vec::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SwizzleOp {
@@ -147,8 +147,6 @@ impl Swizzles {
 }
 
 pub static SWIZZLES: LazyLock<Swizzles> = LazyLock::new(|| {
-    const COMPONENTS: [char; 4] = ['x', 'y', 'z', 'w'];
-
     let mut output = Swizzles {
         vec2: VecSwizzles {
             get: Vec::with_capacity(2usize.pow(2) + 2usize.pow(3) * 2 + 2usize.pow(4)),

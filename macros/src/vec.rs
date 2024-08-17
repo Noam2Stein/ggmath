@@ -1,6 +1,8 @@
-use proc_macro2::Span;
+use proc_macro2::{Literal, Span};
 use strum_macros::{Display, EnumIter, EnumString};
-use syn::{parse_quote, Expr, Ident, Type};
+use syn::{parse_quote, Ident, Type};
+
+pub const COMPONENTS: [char; 4] = ['x', 'y', 'z', 'w'];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter, EnumString, Display)]
 pub enum VecType {
@@ -29,6 +31,9 @@ impl VecType {
     pub fn ident_lower(self) -> Ident {
         Ident::new(&self.to_string().to_lowercase(), Span::call_site())
     }
+    pub fn inner_ident(self) -> Ident {
+        Ident::new(&format!("{self}Inner"), Span::call_site())
+    }
     pub fn ty(self, element_ty: &Type) -> Type {
         match self {
             Self::Element => parse_quote! { #element_ty },
@@ -47,58 +52,34 @@ impl VecType {
             Self::Vec4 => parse_quote! { <#element_ty as Element>::Vec4Inner },
         }
     }
-    pub fn wrap(self, element_ty: &Type) -> Expr {
+    pub fn swizzle(self) -> Ident {
+        Ident::new(&format!("{}_swizzle", self.to_string().to_lowercase()), Span::call_site())
+    }
+    pub fn get_swizzle(self) -> Ident {
+        Ident::new(&format!("{}_get_swizzle", self.to_string().to_lowercase()), Span::call_site())
+    }
+    pub fn mut_swizzle(self) -> Ident {
+        Ident::new(&format!("{}_mut_swizzle", self.to_string().to_lowercase()), Span::call_site())
+    }
+    pub fn set_swizzle(self) -> Ident {
+        Ident::new(&format!("{}_set_swizzle", self.to_string().to_lowercase()), Span::call_site())
+    }
+    pub fn with_swizzle(self) -> Ident {
+        Ident::new(&format!("{}_with_swizzle", self.to_string().to_lowercase()), Span::call_site())
+    }
+    pub fn display_literal(self) -> &'static str {
         match self {
-            Self::Element => parse_quote! { },
-            Self::Vec2 => parse_quote! { <#element_ty as Element>::wrap_vec2 },
-            Self::Vec3 => parse_quote! { <#element_ty as Element>::wrap_vec3 },
-            Self::Vec3A => parse_quote! { <#element_ty as Element>::wrap_vec3a },
-            Self::Vec4 => parse_quote! { <#element_ty as Element>::wrap_vec4 },
+            Self::Element => "{}",
+            Self::Vec2 => "({}, {})",
+            Self::Vec3 => "({}, {}, {})",
+            Self::Vec3A => "({}, {}, {})",
+            Self::Vec4 => "({}, {}, {}, {})",
         }
     }
-    pub fn wrap_ref(self, element_ty: &Type) -> Expr {
-        match self {
-            Self::Element => parse_quote! { },
-            Self::Vec2 => parse_quote! { <#element_ty as Element>::wrap_vec2_ref },
-            Self::Vec3 => parse_quote! { <#element_ty as Element>::wrap_vec3_ref },
-            Self::Vec3A => parse_quote! { <#element_ty as Element>::wrap_vec3a_ref },
-            Self::Vec4 => parse_quote! { <#element_ty as Element>::wrap_vec4_ref },
-        }
+    pub fn component_indicies(self) -> impl Iterator<Item = Literal> {
+        (0..self.len()).map(|i| Literal::usize_suffixed(i))
     }
-    pub fn wrap_mut(self, element_ty: &Type) -> Expr {
-        match self {
-            Self::Element => parse_quote! { },
-            Self::Vec2 => parse_quote! { <#element_ty as Element>::wrap_vec2_mut },
-            Self::Vec3 => parse_quote! { <#element_ty as Element>::wrap_vec3_mut },
-            Self::Vec3A => parse_quote! { <#element_ty as Element>::wrap_vec3a_mut },
-            Self::Vec4 => parse_quote! { <#element_ty as Element>::wrap_vec4_mut },
-        }
-    }
-    pub fn unwrap(self, element_ty: &Type) -> Expr {
-        match self {
-            Self::Element => parse_quote! { },
-            Self::Vec2 => parse_quote! { <#element_ty as Element>::unwrap_vec2 },
-            Self::Vec3 => parse_quote! { <#element_ty as Element>::unwrap_vec3 },
-            Self::Vec3A => parse_quote! { <#element_ty as Element>::unwrap_vec3a },
-            Self::Vec4 => parse_quote! { <#element_ty as Element>::unwrap_vec4 },
-        }
-    }
-    pub fn unwrap_ref(self, element_ty: &Type) -> Expr {
-        match self {
-            Self::Element => parse_quote! { },
-            Self::Vec2 => parse_quote! { <#element_ty as Element>::unwrap_vec2_ref },
-            Self::Vec3 => parse_quote! { <#element_ty as Element>::unwrap_vec3_ref },
-            Self::Vec3A => parse_quote! { <#element_ty as Element>::unwrap_vec3a_ref },
-            Self::Vec4 => parse_quote! { <#element_ty as Element>::unwrap_vec4_ref },
-        }
-    }
-    pub fn unwrap_mut(self, element_ty: &Type) -> Expr {
-        match self {
-            Self::Element => parse_quote! { },
-            Self::Vec2 => parse_quote! { <#element_ty as Element>::unwrap_vec2_mut },
-            Self::Vec3 => parse_quote! { <#element_ty as Element>::unwrap_vec3_mut },
-            Self::Vec3A => parse_quote! { <#element_ty as Element>::unwrap_vec3a_mut },
-            Self::Vec4 => parse_quote! { <#element_ty as Element>::unwrap_vec4_mut },
-        }
+    pub fn components(self) -> impl Iterator<Item = Ident> {
+        COMPONENTS[0..self.len()].iter().map(|c| Ident::new(&c.to_string(), Span::call_site()))
     }
 }

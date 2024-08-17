@@ -1,9 +1,9 @@
 use gmath::*;
 
 pub fn main() {
-    let mut vec = Vec4::new(1, 2, 3, 4).xywz();
-    let (xy, zw) = vec.xy_zw_mut();
-    println!("{xy} {zw}");
+    let mut t = Vec2::new(1, 2);
+    t += t + Vec2::new(3, 4);
+    print!("{t}");
 
     //let vec = vec4((1, 2, 3, 4));
     //let vec2 = vec4((4, 3, 2, 1));
