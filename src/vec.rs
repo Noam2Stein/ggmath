@@ -1,4 +1,4 @@
-use std::{fmt::{self, Display, Formatter}, ops::*};
+use std::{fmt::{self, Display, Formatter}, ops};
 
 use gmath_macros::*;
 
@@ -171,26 +171,26 @@ vec_macro!(
             }
         }
         $(
-            impl<T: $element_op_trait> $std_op_trait for $self<T> {
+            impl<T: $op_trait> ops::$op_trait for $self<T> {
                 type Output = $self<T::Output>;
                 #[inline(always)]
-                fn $std_op_fn(self) -> Self::Output {
-                    $self::wrap(T::$element_op_fn(self.inner))
+                fn $op_fn(self) -> Self::Output {
+                    $self::wrap(T::$inner_op_fn(self.inner))
                 }
             }
         )+
         $(
-            impl<Rhs: Element, T: $element_rhs_op_trait<Rhs>> $std_rhs_op_trait<$self<Rhs>> for $self<T> {
+            impl<Rhs: Element, T: $rhs_op_trait<Rhs>> ops::$rhs_op_trait<$self<Rhs>> for $self<T> {
                 type Output = $self<T::Output>;
                 #[inline(always)]
-                fn $std_rhs_op_fn(self, rhs: $self<Rhs>) -> Self::Output {
-                    $self::wrap(T::$element_rhs_op_fn(self.inner, rhs.inner))
+                fn $rhs_op_fn(self, rhs: $self<Rhs>) -> Self::Output {
+                    $self::wrap(T::$inner_rhs_op_fn(self.inner, rhs.inner))
                 }
             }
-            impl<Rhs: Element, T: $element_assign_op_trait<Rhs>> $std_assign_op_trait<$self<Rhs>> for $self<T> {
+            impl<Rhs: Element, T: $assign_op_trait<Rhs>> ops::$assign_op_trait<$self<Rhs>> for $self<T> {
                 #[inline(always)]
-                fn $std_assign_op_fn(&mut self, rhs: $self<Rhs>) {
-                    T::$element_assign_op_fn(&mut self.inner, rhs.inner);
+                fn $assign_op_fn(&mut self, rhs: $self<Rhs>) {
+                    T::$inner_assign_op_fn(&mut self.inner, rhs.inner);
                 }
             }
         )+

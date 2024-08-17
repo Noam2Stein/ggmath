@@ -148,14 +148,14 @@ declare_macro_macro!(
 );
 declare_macro_macro!(
     op_macro,
-    $std_trait:ident, $std_fn:ident, $element_trait:ident,
+    $trait:ident, $fn:ident,
     $vec2_fn:ident, $vec3_fn:ident, $vec3a_fn:ident, $vec4_fn:ident,
 );
 declare_macro_macro!(
     rhs_op_macro,
-    $std_trait:ident, $std_fn:ident, $element_trait:ident,
+    $trait:ident, $fn:ident,
     $vec2_fn:ident, $vec3_fn:ident, $vec3a_fn:ident, $vec4_fn:ident,
-    $std_assign_trait:ident, $std_assign_fn:ident, $element_assign_trait:ident,
+    $assign_trait:ident, $assign_fn:ident,
     $vec2_assign_fn:ident, $vec3_assign_fn:ident, $vec3a_assign_fn:ident, $vec4_assign_fn:ident,
 );
 declare_macro_macro!(
@@ -165,10 +165,10 @@ declare_macro_macro!(
     $swizzle:ident, $get_swizzle:ident, $mut_swizzle:ident, $set_swizzle:ident, $with_swizzle:ident,
     $display_literal:literal,
     ($($component:ident, $component_index:literal), +),
-    ($($std_op_trait:ident, $std_op_fn:ident, $element_op_trait:ident, $element_op_fn:ident), +),
+    ($($op_trait:ident, $op_fn:ident, $inner_op_fn:ident), +),
     ($(
-        $std_rhs_op_trait:ident, $std_rhs_op_fn:ident, $element_rhs_op_trait:ident, $element_rhs_op_fn:ident,
-        $std_assign_op_trait:ident, $std_assign_op_fn:ident, $element_assign_op_trait:ident, $element_assign_op_fn:ident
+        $rhs_op_trait:ident, $rhs_op_fn:ident, $inner_rhs_op_fn:ident,
+        $assign_op_trait:ident, $assign_op_fn:ident, $inner_assign_op_fn:ident
     ), +)
 );
 
@@ -308,17 +308,16 @@ fn process_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         |call| {
             Op::iter().map(
                 |op| {
-                    let std_trait = op.std_trait();
-                    let std_fn = op.std_fn();
-                    let element_trait = op.element_trait();
-                    let vec2_fn = op.element_fn(VecType::Vec2);
-                    let vec3_fn = op.element_fn(VecType::Vec3);
-                    let vec3a_fn = op.element_fn(VecType::Vec3A);
-                    let vec4_fn = op.element_fn(VecType::Vec4);
+                    let trait_ = op.trait_();
+                    let fn_ = op.fn_();
+                    let vec2_fn = op.inner_fn(VecType::Vec2);
+                    let vec3_fn = op.inner_fn(VecType::Vec3);
+                    let vec3a_fn = op.inner_fn(VecType::Vec3A);
+                    let vec4_fn = op.inner_fn(VecType::Vec4);
                 
                     process_call(call,
                         quote! {
-                            #std_trait, #std_fn, #element_trait,
+                            #trait_, #fn_,
                             #vec2_fn, #vec3_fn, #vec3a_fn, #vec4_fn,
                         }
                     )
@@ -334,27 +333,25 @@ fn process_rhs_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         |call| {
             RhsOp::iter().map(
                 |op| {
-                    let std_trait = op.std_trait();
-                    let std_fn = op.std_fn();
-                    let element_trait = op.element_trait();
-                    let vec2_fn = op.element_fn(VecType::Vec2);
-                    let vec3_fn = op.element_fn(VecType::Vec3);
-                    let vec3a_fn = op.element_fn(VecType::Vec3A);
-                    let vec4_fn = op.element_fn(VecType::Vec4);
+                    let trait_ = op.trait_();
+                    let fn_ = op.fn_();
+                    let vec2_fn = op.inner_fn(VecType::Vec2);
+                    let vec3_fn = op.inner_fn(VecType::Vec3);
+                    let vec3a_fn = op.inner_fn(VecType::Vec3A);
+                    let vec4_fn = op.inner_fn(VecType::Vec4);
 
-                    let std_assign_trait = op.std_assign_trait();
-                    let std_assign_fn = op.std_assign_fn();
-                    let element_assign_trait = op.element_assign_trait();
-                    let vec2_assign_fn = op.element_assign_fn(VecType::Vec2);
-                    let vec3_assign_fn = op.element_assign_fn(VecType::Vec3);
-                    let vec3a_assign_fn = op.element_assign_fn(VecType::Vec3A);
-                    let vec4_assign_fn = op.element_assign_fn(VecType::Vec4);
+                    let assign_trait = op.assign_trait();
+                    let assign_fn = op.assign_fn();
+                    let vec2_assign_fn = op.inner_assign_fn(VecType::Vec2);
+                    let vec3_assign_fn = op.inner_assign_fn(VecType::Vec3);
+                    let vec3a_assign_fn = op.inner_assign_fn(VecType::Vec3A);
+                    let vec4_assign_fn = op.inner_assign_fn(VecType::Vec4);
                     
                     process_call(call,
                         quote! {
-                            #std_trait, #std_fn, #element_trait,
+                            #trait_, #fn_,
                             #vec2_fn, #vec3_fn, #vec3a_fn, #vec4_fn,
-                            #std_assign_trait, #std_assign_fn, #element_assign_trait,
+                            #assign_trait, #assign_fn,
                             #vec2_assign_fn, #vec3_assign_fn, #vec3a_assign_fn, #vec4_assign_fn,
                         }
                     )
@@ -390,32 +387,29 @@ fn process_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
                     let ops = Op::iter().map(
                         |op| {
-                            let std_trait = op.std_trait();
-                            let std_fn = op.std_fn();
-                            let element_trait = op.element_trait();
-                            let element_fn = op.element_fn(vec);
+                            let trait_ = op.trait_();
+                            let fn_ = op.fn_();
+                            let inner_fn = op.inner_fn(vec);
                         
                             quote! {
-                                #std_trait, #std_fn, #element_trait, #element_fn
+                                #trait_, #fn_, #inner_fn
                             }
                         }
                     );
 
                     let rhs_ops = RhsOp::iter().map(
                         |op| {
-                            let std_trait = op.std_trait();
-                            let std_fn = op.std_fn();
-                            let element_trait = op.element_trait();
-                            let element_fn = op.element_fn(vec);
+                            let trait_ = op.trait_();
+                            let fn_ = op.fn_();
+                            let inner_fn = op.inner_fn(vec);
         
-                            let std_assign_trait = op.std_assign_trait();
-                            let std_assign_fn = op.std_assign_fn();
-                            let element_assign_trait = op.element_assign_trait();
-                            let element_assign_fn = op.element_assign_fn(vec);
+                            let assign_trait = op.assign_trait();
+                            let assign_fn = op.assign_fn();
+                            let inner_assign_fn = op.inner_assign_fn(vec);
                             
                             quote! {
-                                #std_trait, #std_fn, #element_trait, #element_fn,
-                                #std_assign_trait, #std_assign_fn, #element_assign_trait, #element_assign_fn
+                                #trait_, #fn_, #inner_fn,
+                                #assign_trait, #assign_fn, #inner_assign_fn
                             }
                         }
                     );

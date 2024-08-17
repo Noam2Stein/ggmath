@@ -1,4 +1,4 @@
-use std::{fmt::{Debug, Display}, ops::*};
+use std::{fmt::{Debug, Display}, ops};
 
 use gmath_macros::*;
 
@@ -51,9 +51,9 @@ Default +
 
 op_macro!(
     op_trait {
-        pub trait $element_trait:
+        pub trait $trait:
         Element +
-        $std_trait<Output: Element> +
+        ops::$trait<Output: Element> +
         {
             fn $vec2_fn(value: Self::Vec2Inner) -> <Self::Output as Element>::Vec2Inner;
             fn $vec3_fn(value: Self::Vec3Inner) -> <Self::Output as Element>::Vec3Inner;
@@ -64,9 +64,9 @@ op_macro!(
 );
 rhs_op_macro!(
     rhs_op_trait {
-        pub trait $element_trait<Rhs: Element = Self>:
+        pub trait $trait<Rhs: Element = Self>:
         Element +
-        $std_trait<Rhs, Output: Element> +
+        ops::$trait<Rhs, Output: Element> +
         {
             fn $vec2_fn(value: Self::Vec2Inner, rhs: Rhs::Vec2Inner) -> <Self::Output as Element>::Vec2Inner;
             fn $vec3_fn(value: Self::Vec3Inner, rhs: Rhs::Vec3Inner) -> <Self::Output as Element>::Vec3Inner;
@@ -74,9 +74,9 @@ rhs_op_macro!(
             fn $vec4_fn(value: Self::Vec4Inner, rhs: Rhs::Vec4Inner) -> <Self::Output as Element>::Vec4Inner;
         }
 
-        pub trait $element_assign_trait<Rhs: Element = Self>:
+        pub trait $assign_trait<Rhs: Element = Self>:
         Element +
-        $std_assign_trait<Rhs> +
+        ops::$assign_trait<Rhs> +
         {
             fn $vec2_assign_fn(value: &mut Self::Vec2Inner, rhs: Rhs::Vec2Inner);
             fn $vec3_assign_fn(value: &mut Self::Vec3Inner, rhs: Rhs::Vec3Inner);
@@ -94,16 +94,16 @@ rhs_ops!(
 
 pub trait Num:
 Element +
-ElementAdd<Output = Self> +
-ElementSub<Output = Self> +
-ElementMul<Output = Self> +
-ElementDiv<Output = Self> +
-ElementRem<Output = Self> +
-ElementAddAssign +
-ElementSubAssign +
-ElementMulAssign +
-ElementDivAssign +
-ElementRemAssign +
+Add<Output = Self> +
+Sub<Output = Self> +
+Mul<Output = Self> +
+Div<Output = Self> +
+Rem<Output = Self> +
+AddAssign +
+SubAssign +
+MulAssign +
+DivAssign +
+RemAssign +
 {
     const ZERO: Self;
     const ONE: Self;
@@ -134,7 +134,7 @@ ElementRemAssign +
 
 pub trait SignedNum:
 Num +
-ElementNeg<Output = Self> +
+Neg<Output = Self> +
 {
     const NEG_ONE: Self;
     const MAX_NEG: Self;
@@ -406,66 +406,66 @@ impl<T: DefaultElementImpl> Element for T {
 
 op_macro!(
     default_impl_op_traits {
-        impl<T: DefaultElementImpl + $std_trait<Output: Element>> $element_trait for T {
+        impl<T: DefaultElementImpl + ops::$trait<Output: Element>> $trait for T {
             #[inline(always)]
             fn $vec2_fn(value: Self::Vec2Inner) -> <Self::Output as Element>::Vec2Inner {
-                <Self::Output as Element>::new_vec2(value[0].$std_fn(), value[1].$std_fn())
+                <Self::Output as Element>::new_vec2(value[0].$fn(), value[1].$fn())
             }
             #[inline(always)]
             fn $vec3_fn(value: Self::Vec3Inner) -> <Self::Output as Element>::Vec3Inner {
-                <Self::Output as Element>::new_vec3(value[0].$std_fn(), value[1].$std_fn(), value[2].$std_fn())
+                <Self::Output as Element>::new_vec3(value[0].$fn(), value[1].$fn(), value[2].$fn())
             }
             #[inline(always)]
             fn $vec3a_fn(value: Self::Vec3AInner) -> <Self::Output as Element>::Vec3AInner {
-                <Self::Output as Element>::new_vec3a(value[0].$std_fn(), value[1].$std_fn(), value[2].$std_fn())
+                <Self::Output as Element>::new_vec3a(value[0].$fn(), value[1].$fn(), value[2].$fn())
             }
             #[inline(always)]
             fn $vec4_fn(value: Self::Vec4Inner) -> <Self::Output as Element>::Vec4Inner {
-                <Self::Output as Element>::new_vec4(value[0].$std_fn(), value[1].$std_fn(), value[2].$std_fn(), value[3].$std_fn())
+                <Self::Output as Element>::new_vec4(value[0].$fn(), value[1].$fn(), value[2].$fn(), value[3].$fn())
             }
         }
     }
 );
 rhs_op_macro!(
     default_impl_rhs_op_traits {
-        impl<Rhs: Element, T: DefaultElementImpl + $std_trait<Rhs, Output: Element>> $element_trait<Rhs> for T {
+        impl<Rhs: Element, T: DefaultElementImpl + ops::$trait<Rhs, Output: Element>> $trait<Rhs> for T {
             #[inline(always)]
             fn $vec2_fn(value: Self::Vec2Inner, rhs: Rhs::Vec2Inner) -> <Self::Output as Element>::Vec2Inner {
-                <Self::Output as Element>::new_vec2(value[0].$std_fn(Rhs::x_vec2(rhs)), value[1].$std_fn(Rhs::y_vec2(rhs)))
+                <Self::Output as Element>::new_vec2(value[0].$fn(Rhs::x_vec2(rhs)), value[1].$fn(Rhs::y_vec2(rhs)))
             }
             #[inline(always)]
             fn $vec3_fn(value: Self::Vec3Inner, rhs: Rhs::Vec3Inner) -> <Self::Output as Element>::Vec3Inner {
-                <Self::Output as Element>::new_vec3(value[0].$std_fn(Rhs::x_vec3(rhs)), value[1].$std_fn(Rhs::y_vec3(rhs)), value[2].$std_fn(Rhs::z_vec3(rhs)))
+                <Self::Output as Element>::new_vec3(value[0].$fn(Rhs::x_vec3(rhs)), value[1].$fn(Rhs::y_vec3(rhs)), value[2].$fn(Rhs::z_vec3(rhs)))
             }
             #[inline(always)]
             fn $vec3a_fn(value: Self::Vec3AInner, rhs: Rhs::Vec3AInner) -> <Self::Output as Element>::Vec3AInner {
-                <Self::Output as Element>::new_vec3a(value[0].$std_fn(Rhs::x_vec3a(rhs)), value[1].$std_fn(Rhs::y_vec3a(rhs)), value[2].$std_fn(Rhs::z_vec3a(rhs)))
+                <Self::Output as Element>::new_vec3a(value[0].$fn(Rhs::x_vec3a(rhs)), value[1].$fn(Rhs::y_vec3a(rhs)), value[2].$fn(Rhs::z_vec3a(rhs)))
             }
             #[inline(always)]
             fn $vec4_fn(value: Self::Vec4Inner, rhs: Rhs::Vec4Inner) -> <Self::Output as Element>::Vec4Inner {
-                <Self::Output as Element>::new_vec4(value[0].$std_fn(Rhs::x_vec4(rhs)), value[1].$std_fn(Rhs::y_vec4(rhs)), value[2].$std_fn(Rhs::z_vec4(rhs)), value[3].$std_fn(Rhs::w_vec4(rhs)))
+                <Self::Output as Element>::new_vec4(value[0].$fn(Rhs::x_vec4(rhs)), value[1].$fn(Rhs::y_vec4(rhs)), value[2].$fn(Rhs::z_vec4(rhs)), value[3].$fn(Rhs::w_vec4(rhs)))
             }
         }
-        impl<Rhs: Element, T: DefaultElementImpl + $std_assign_trait<Rhs>> $element_assign_trait<Rhs> for T {
+        impl<Rhs: Element, T: DefaultElementImpl + ops::$assign_trait<Rhs>> $assign_trait<Rhs> for T {
             fn $vec2_assign_fn(value: &mut Self::Vec2Inner, rhs: Rhs::Vec2Inner) {
-                value[0].$std_assign_fn(Rhs::x_vec2(rhs));
-                value[1].$std_assign_fn(Rhs::y_vec2(rhs));
+                value[0].$assign_fn(Rhs::x_vec2(rhs));
+                value[1].$assign_fn(Rhs::y_vec2(rhs));
             }
             fn $vec3_assign_fn(value: &mut Self::Vec3Inner, rhs: Rhs::Vec3Inner) {
-                value[0].$std_assign_fn(Rhs::x_vec3(rhs));
-                value[1].$std_assign_fn(Rhs::y_vec3(rhs));
-                value[2].$std_assign_fn(Rhs::z_vec3(rhs));
+                value[0].$assign_fn(Rhs::x_vec3(rhs));
+                value[1].$assign_fn(Rhs::y_vec3(rhs));
+                value[2].$assign_fn(Rhs::z_vec3(rhs));
             }
             fn $vec3a_assign_fn(value: &mut Self::Vec3AInner, rhs: Rhs::Vec3AInner) {
-                value[0].$std_assign_fn(Rhs::x_vec3a(rhs));
-                value[1].$std_assign_fn(Rhs::y_vec3a(rhs));
-                value[2].$std_assign_fn(Rhs::z_vec3a(rhs));
+                value[0].$assign_fn(Rhs::x_vec3a(rhs));
+                value[1].$assign_fn(Rhs::y_vec3a(rhs));
+                value[2].$assign_fn(Rhs::z_vec3a(rhs));
             }
             fn $vec4_assign_fn(value: &mut Self::Vec4Inner, rhs: Rhs::Vec4Inner) {
-                value[0].$std_assign_fn(Rhs::x_vec4(rhs));
-                value[1].$std_assign_fn(Rhs::y_vec4(rhs));
-                value[2].$std_assign_fn(Rhs::z_vec4(rhs));
-                value[3].$std_assign_fn(Rhs::w_vec4(rhs));
+                value[0].$assign_fn(Rhs::x_vec4(rhs));
+                value[1].$assign_fn(Rhs::y_vec4(rhs));
+                value[2].$assign_fn(Rhs::z_vec4(rhs));
+                value[3].$assign_fn(Rhs::w_vec4(rhs));
             }
         }
     }
