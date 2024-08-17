@@ -1,4 +1,7 @@
+use std::fmt::{self, Display, Formatter};
+
 use gmath_macros::*;
+
 use crate::element::*;
 
 macro_rules! wrap {
@@ -85,7 +88,7 @@ macro_rules! vec_ty {
         $ident:ident, $inner:ident, $ident_lower:ident,
         $new:ident, $splat:ident,
         $get_swizzle:ident, $mut_swizzle:ident, $set_swizzle:ident, $with_swizzle:ident,
-        $($component:ident), +
+        $display_literal:literal, $($component:ident, $component_index:literal), +
     ) => {
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
         pub struct $ident<T: Element> {
@@ -159,6 +162,11 @@ macro_rules! vec_ty {
                 }
             );
         }
+        impl<T: Element> Display for $ident<T> {
+            fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+                write!(f, $display_literal, $(self.$component()), +)
+            }
+        }
     };
 }
 
@@ -166,23 +174,23 @@ vec_ty!(
     Vec2, Vec2Inner, vec2,
     new_vec2, splat_vec2,
     vec2_get_swizzle, vec2_mut_swizzle, vec2_set_swizzle, vec2_with_swizzle,
-    x, y
+    "({}, {})", x, 0, y, 1
 );
 vec_ty!(
     Vec3, Vec3Inner, vec3,
     new_vec3, splat_vec3,
     vec3_get_swizzle, vec3_mut_swizzle, vec3_set_swizzle, vec3_with_swizzle,
-    x, y, z
+    "({}, {}, {})", x, 0, y, 1, z, 2
 );
 vec_ty!(
     Vec3A, Vec3AInner, vec3a,
     new_vec3a, splat_vec3a,
     vec3a_get_swizzle, vec3a_mut_swizzle, vec3a_set_swizzle, vec3a_with_swizzle,
-    x, y, z
+    "({}, {}, {})", x, 0, y, 1, z, 2
 );
 vec_ty!(
     Vec4, Vec4Inner, vec4,
     new_vec4, splat_vec4,
     vec4_get_swizzle, vec4_mut_swizzle, vec4_set_swizzle, vec4_with_swizzle,
-    x, y, z, w
+    "({}, {}, {}, {})", x, 0, y, 1, z, 2, w, 3
 );
