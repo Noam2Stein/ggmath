@@ -82,12 +82,14 @@ swizzle_macro!(
         }
     }
 );
-
 macro_rules! vec_ty {
     (
         $ident:ident, $inner:ident, $ident_lower:ident,
         $new:ident, $splat:ident,
         $get_swizzle:ident, $mut_swizzle:ident, $set_swizzle:ident, $with_swizzle:ident,
+        $add:ident, $sub:ident, $mul:ident, $div:ident, $rem:ident,
+        $add_assign:ident, $sub_assign:ident, $mul_assign:ident, $div_assign:ident, $rem_assign:ident,
+        $neg:ident,
         $display_literal:literal, $($component:ident, $component_index:literal), +
     ) => {
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
@@ -140,6 +142,15 @@ macro_rules! vec_ty {
             pub fn unwrap_mut<'a>(&'a mut self) -> &'a mut T::$inner {
                 &mut self.inner
             }
+
+            #[inline(always)]
+            pub fn map<F: FnMut(T) -> T>(self, mut f: F) -> Self {
+                Self::new(
+                    $(
+                        f(self.$component())
+                    ), +
+                )
+            }
         
             $get_swizzle!(
                 T {
@@ -174,23 +185,35 @@ vec_ty!(
     Vec2, Vec2Inner, vec2,
     new_vec2, splat_vec2,
     vec2_get_swizzle, vec2_mut_swizzle, vec2_set_swizzle, vec2_with_swizzle,
+    add_vec2, sub_vec2, mul_vec2, div_vec2, rem_vec2,
+    add_assign_vec2, sub_assign_vec2, mul_assign_vec2, div_assign_vec2, rem_assign_vec2,
+    neg_vec2,
     "({}, {})", x, 0, y, 1
 );
 vec_ty!(
     Vec3, Vec3Inner, vec3,
     new_vec3, splat_vec3,
     vec3_get_swizzle, vec3_mut_swizzle, vec3_set_swizzle, vec3_with_swizzle,
+    add_vec3, sub_vec3, mul_vec3, div_vec3, rem_vec3,
+    add_assign_vec3, sub_assign_vec3, mul_assign_vec3, div_assign_vec3, rem_assign_vec3,
+    neg_vec3,
     "({}, {}, {})", x, 0, y, 1, z, 2
 );
 vec_ty!(
     Vec3A, Vec3AInner, vec3a,
     new_vec3a, splat_vec3a,
     vec3a_get_swizzle, vec3a_mut_swizzle, vec3a_set_swizzle, vec3a_with_swizzle,
+    add_vec3a, sub_vec3a, mul_vec3a, div_vec3a, rem_vec3a,
+    add_assign_vec3a, sub_assign_vec3a, mul_assign_vec3a, div_assign_vec3a, rem_assign_vec3a,
+    neg_vec3a,
     "({}, {}, {})", x, 0, y, 1, z, 2
 );
 vec_ty!(
     Vec4, Vec4Inner, vec4,
     new_vec4, splat_vec4,
     vec4_get_swizzle, vec4_mut_swizzle, vec4_set_swizzle, vec4_with_swizzle,
+    add_vec4, sub_vec4, mul_vec4, div_vec4, rem_vec4,
+    add_assign_vec4, sub_assign_vec4, mul_assign_vec4, div_assign_vec4, rem_assign_vec4,
+    neg_vec4,
     "({}, {}, {}, {})", x, 0, y, 1, z, 2, w, 3
 );

@@ -182,7 +182,7 @@ pub static SWIZZLES: LazyLock<Swizzles> = LazyLock::new(|| {
     macro_rules! output {
         ($ty:expr) => {
             match $ty {
-                VecType::SingleElement => unreachable!(),
+                VecType::Element => unreachable!(),
                 VecType::Vec2 => &mut output.vec2,
                 VecType::Vec3 => &mut output.vec3,
                 VecType::Vec3A => &mut output.vec3a,
