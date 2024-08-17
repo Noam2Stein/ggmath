@@ -273,8 +273,8 @@ swizzle_macro!(
             let mut output = unsafe { std::mem::MaybeUninit::<$inner_value_ty>::uninit().assume_init() };
             unsafe {
                 $(
-                    let src = (&vec as *const _ as *const [Self; $len]).add($self_component);
-                    let dst = (&mut output as *mut _ as *mut [Self; $len]).add($value_component);
+                    let src = (&vec as *const _ as *const Self).add($self_component) as *const [Self; $len];
+                    let dst = (&mut output as *mut _ as *mut Self).add($value_component) as *mut [Self; $len];
                     *dst = *src;
                 )+
             }
@@ -288,8 +288,8 @@ swizzle_macro!(
         fn $inner_ident(mut vec: $inner_self_ty, value: $inner_value_ty) -> $inner_self_ty {
             unsafe {
                 $(
-                    let src = (&value as *const _ as *const [Self; $len]).add($value_component);
-                    let dst = (&mut vec as *mut _ as *mut [Self; $len]).add($self_component);
+                    let src = (&value as *const _ as *const Self).add($value_component) as *const [Self; $len];
+                    let dst = (&mut vec as *mut _ as *mut Self).add($self_component) as *mut [Self; $len];
                     *dst = *src;
                 )+
             }

@@ -44,14 +44,17 @@ swizzle_macro!(
         }
     }
 );
-swizzle_macro!(
+mut_swizzle_macro!(
     mut_fns {
         #[inline(always)]
-        pub fn $ident(&mut self) -> &mut $value_ty {
+        #[allow(unused_parens)]
+        pub fn $ident(&mut self) -> ($(&mut $value_ty), +) {
             unsafe {
-                $(
-                    &mut *((self as *mut _ as *mut [Self; $len]).add($self_component) as *mut $value_ty)
-                )+
+                (
+                    $(
+                        &mut *((self as *mut _ as *mut T).add($self_component) as *mut $value_ty)
+                    ), +
+                )
             }
         }
     }
@@ -62,7 +65,7 @@ swizzle_macro!(
         pub fn $ident(&mut self, value: $value_ty) {
             unsafe {
                 $(
-                    *(self as *mut _ as *mut [Self; $len]).add($self_component) = *(&value as *const _ as *const [Self; $len]).add($value_component);
+                    *((self as *mut _ as *mut T).add($self_component) as *mut [T; $len]) = *((&value as *const _ as *const T).add($value_component) as *mut [T; $len]);
                 )+
             }
         }

@@ -20,6 +20,9 @@ impl VecType {
             Self::Vec4 => 4,
         }
     }
+    pub fn is_aligned(self) -> bool {
+        self == Self::Vec3A
+    }
     pub fn ident(self) -> Ident {
         Ident::new(
             match self {
@@ -64,7 +67,7 @@ impl VecType {
     }
     pub fn wrap(self, element_ty: &Type) -> Expr {
         match self {
-            Self::SingleElement => parse_quote! { <#element_ty as Element>::wrap_element },
+            Self::SingleElement => parse_quote! { },
             Self::Vec2 => parse_quote! { <#element_ty as Element>::wrap_vec2 },
             Self::Vec3 => parse_quote! { <#element_ty as Element>::wrap_vec3 },
             Self::Vec3A => parse_quote! { <#element_ty as Element>::wrap_vec3a },
@@ -73,7 +76,7 @@ impl VecType {
     }
     pub fn wrap_ref(self, element_ty: &Type) -> Expr {
         match self {
-            Self::SingleElement => parse_quote! { <#element_ty as Element>::wrap_element_ref },
+            Self::SingleElement => parse_quote! { },
             Self::Vec2 => parse_quote! { <#element_ty as Element>::wrap_vec2_ref },
             Self::Vec3 => parse_quote! { <#element_ty as Element>::wrap_vec3_ref },
             Self::Vec3A => parse_quote! { <#element_ty as Element>::wrap_vec3a_ref },
@@ -82,7 +85,7 @@ impl VecType {
     }
     pub fn wrap_mut(self, element_ty: &Type) -> Expr {
         match self {
-            Self::SingleElement => parse_quote! { <#element_ty as Element>::wrap_element_mut },
+            Self::SingleElement => parse_quote! { },
             Self::Vec2 => parse_quote! { <#element_ty as Element>::wrap_vec2_mut },
             Self::Vec3 => parse_quote! { <#element_ty as Element>::wrap_vec3_mut },
             Self::Vec3A => parse_quote! { <#element_ty as Element>::wrap_vec3a_mut },
@@ -91,7 +94,7 @@ impl VecType {
     }
     pub fn unwrap(self, element_ty: &Type) -> Expr {
         match self {
-            Self::SingleElement => parse_quote! { <#element_ty as Element>::unwrap_element },
+            Self::SingleElement => parse_quote! { },
             Self::Vec2 => parse_quote! { <#element_ty as Element>::unwrap_vec2 },
             Self::Vec3 => parse_quote! { <#element_ty as Element>::unwrap_vec3 },
             Self::Vec3A => parse_quote! { <#element_ty as Element>::unwrap_vec3a },
@@ -100,7 +103,7 @@ impl VecType {
     }
     pub fn unwrap_ref(self, element_ty: &Type) -> Expr {
         match self {
-            Self::SingleElement => parse_quote! { <#element_ty as Element>::unwrap_element_ref },
+            Self::SingleElement => parse_quote! { },
             Self::Vec2 => parse_quote! { <#element_ty as Element>::unwrap_vec2_ref },
             Self::Vec3 => parse_quote! { <#element_ty as Element>::unwrap_vec3_ref },
             Self::Vec3A => parse_quote! { <#element_ty as Element>::unwrap_vec3a_ref },
@@ -109,7 +112,7 @@ impl VecType {
     }
     pub fn unwrap_mut(self, element_ty: &Type) -> Expr {
         match self {
-            Self::SingleElement => parse_quote! { <#element_ty as Element>::unwrap_element_mut },
+            Self::SingleElement => parse_quote! { },
             Self::Vec2 => parse_quote! { <#element_ty as Element>::unwrap_vec2_mut },
             Self::Vec3 => parse_quote! { <#element_ty as Element>::unwrap_vec3_mut },
             Self::Vec3A => parse_quote! { <#element_ty as Element>::unwrap_vec3a_mut },
