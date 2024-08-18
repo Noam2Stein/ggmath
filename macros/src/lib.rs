@@ -155,8 +155,14 @@ declare_macro_macro!(
     rhs_op_macro,
     $trait:ident, $fn:ident,
     $vec2_fn:ident, $vec3_fn:ident, $vec3a_fn:ident, $vec4_fn:ident,
+    $vec2_splat_fn:ident, $vec3_splat_fn:ident, $vec3a_splat_fn:ident, $vec4_splat_fn:ident,
+    // scalar 'op' vec currently impossible because of rustc false recursion-detection
+    /*
+    $splat_vec2_fn:ident, $splat_vec3_fn:ident, $splat_vec3a_fn:ident, $splat_vec4_fn:ident,
+    */
     $assign_trait:ident, $assign_fn:ident,
     $vec2_assign_fn:ident, $vec3_assign_fn:ident, $vec3a_assign_fn:ident, $vec4_assign_fn:ident,
+    $vec2_splat_assign_fn:ident, $vec3_splat_assign_fn:ident, $vec3a_splat_assign_fn:ident, $vec4_splat_assign_fn:ident,
 );
 declare_macro_macro!(
     vec_macro,
@@ -167,8 +173,9 @@ declare_macro_macro!(
     ($($component:ident, $component_index:literal), +),
     ($($op_trait:ident, $op_fn:ident, $inner_op_fn:ident), +),
     ($(
-        $rhs_op_trait:ident, $rhs_op_fn:ident, $inner_rhs_op_fn:ident,
-        $assign_op_trait:ident, $assign_op_fn:ident, $inner_assign_op_fn:ident
+        // scalar 'op' vec currently impossible because of rustc false recursion-detection
+        $rhs_op_trait:ident, $rhs_op_fn:ident, $inner_rhs_op_fn:ident, $inner_splat_rhs_op_fn:ident, /*$inner_splat_self_rhs_op_fn:ident,*/
+        $assign_op_trait:ident, $assign_op_fn:ident, $inner_assign_op_fn:ident, $inner_splat_assign_op_fn:ident
     ), +)
 );
 
@@ -310,10 +317,10 @@ fn process_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 |op| {
                     let trait_ = op.trait_();
                     let fn_ = op.fn_();
-                    let vec2_fn = op.inner_fn(VecType::Vec2);
-                    let vec3_fn = op.inner_fn(VecType::Vec3);
-                    let vec3a_fn = op.inner_fn(VecType::Vec3A);
-                    let vec4_fn = op.inner_fn(VecType::Vec4);
+                    let vec2_fn = op.vec_fn(VecType::Vec2);
+                    let vec3_fn = op.vec_fn(VecType::Vec3);
+                    let vec3a_fn = op.vec_fn(VecType::Vec3A);
+                    let vec4_fn = op.vec_fn(VecType::Vec4);
                 
                     process_call(call,
                         quote! {
@@ -335,24 +342,45 @@ fn process_rhs_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 |op| {
                     let trait_ = op.trait_();
                     let fn_ = op.fn_();
-                    let vec2_fn = op.inner_fn(VecType::Vec2);
-                    let vec3_fn = op.inner_fn(VecType::Vec3);
-                    let vec3a_fn = op.inner_fn(VecType::Vec3A);
-                    let vec4_fn = op.inner_fn(VecType::Vec4);
+                    let vec2_fn = op.vec_fn(VecType::Vec2);
+                    let vec3_fn = op.vec_fn(VecType::Vec3);
+                    let vec3a_fn = op.vec_fn(VecType::Vec3A);
+                    let vec4_fn = op.vec_fn(VecType::Vec4);
+                    let vec2_splat_fn = op.vec_splat_fn(VecType::Vec2);
+                    let vec3_splat_fn = op.vec_splat_fn(VecType::Vec3);
+                    let vec3a_splat_fn = op.vec_splat_fn(VecType::Vec3A);
+                    let vec4_splat_fn = op.vec_splat_fn(VecType::Vec4);
+                    // scalar 'op' vec currently impossible because of rustc false recursion-detection
+                    /*
+                    let splat_vec2_fn = op.splat_vec_fn(VecType::Vec2);
+                    let splat_vec3_fn = op.splat_vec_fn(VecType::Vec3);
+                    let splat_vec3a_fn = op.splat_vec_fn(VecType::Vec3A);
+                    let splat_vec4_fn = op.splat_vec_fn(VecType::Vec4);
+                    */
 
                     let assign_trait = op.assign_trait();
                     let assign_fn = op.assign_fn();
-                    let vec2_assign_fn = op.inner_assign_fn(VecType::Vec2);
-                    let vec3_assign_fn = op.inner_assign_fn(VecType::Vec3);
-                    let vec3a_assign_fn = op.inner_assign_fn(VecType::Vec3A);
-                    let vec4_assign_fn = op.inner_assign_fn(VecType::Vec4);
+                    let vec2_assign_fn = op.vec_assign_fn(VecType::Vec2);
+                    let vec3_assign_fn = op.vec_assign_fn(VecType::Vec3);
+                    let vec3a_assign_fn = op.vec_assign_fn(VecType::Vec3A);
+                    let vec4_assign_fn = op.vec_assign_fn(VecType::Vec4);
+                    let vec2_splat_assign_fn = op.vec_splat_assign_fn(VecType::Vec2);
+                    let vec3_splat_assign_fn = op.vec_splat_assign_fn(VecType::Vec3);
+                    let vec3a_splat_assign_fn = op.vec_splat_assign_fn(VecType::Vec3A);
+                    let vec4_splat_assign_fn = op.vec_splat_assign_fn(VecType::Vec4);
                     
                     process_call(call,
                         quote! {
                             #trait_, #fn_,
                             #vec2_fn, #vec3_fn, #vec3a_fn, #vec4_fn,
+                            #vec2_splat_fn, #vec3_splat_fn, #vec3a_splat_fn, #vec4_splat_fn,
+                            // scalar 'op' vec currently impossible because of rustc false recursion-detection
+                            /*
+                            #splat_vec2_fn, #splat_vec3_fn, #splat_vec3a_fn, #splat_vec4_fn,
+                            */
                             #assign_trait, #assign_fn,
                             #vec2_assign_fn, #vec3_assign_fn, #vec3a_assign_fn, #vec4_assign_fn,
+                            #vec2_splat_assign_fn, #vec3_splat_assign_fn, #vec3a_splat_assign_fn, #vec4_splat_assign_fn,
                         }
                     )
                 }
@@ -389,10 +417,10 @@ fn process_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         |op| {
                             let trait_ = op.trait_();
                             let fn_ = op.fn_();
-                            let inner_fn = op.inner_fn(vec);
+                            let vec_fn = op.vec_fn(vec);
                         
                             quote! {
-                                #trait_, #fn_, #inner_fn
+                                #trait_, #fn_, #vec_fn
                             }
                         }
                     );
@@ -401,15 +429,22 @@ fn process_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                         |op| {
                             let trait_ = op.trait_();
                             let fn_ = op.fn_();
-                            let inner_fn = op.inner_fn(vec);
+                            let vec_fn = op.vec_fn(vec);
+                            let vec_splat_fn = op.vec_splat_fn(vec);
+                            
+                            // scalar 'op' vec currently impossible because of rustc false recursion-detection
+                            /*
+                            let splat_vec_fn = op.splat_vec_fn(vec);
+                            */
         
                             let assign_trait = op.assign_trait();
                             let assign_fn = op.assign_fn();
-                            let inner_assign_fn = op.inner_assign_fn(vec);
+                            let vec_assign_fn = op.vec_assign_fn(vec);
+                            let vec_splat_assign_fn = op.vec_splat_assign_fn(vec);
                             
                             quote! {
-                                #trait_, #fn_, #inner_fn,
-                                #assign_trait, #assign_fn, #inner_assign_fn
+                                #trait_, #fn_, #vec_fn, #vec_splat_fn, /*#splat_vec_fn,*/
+                                #assign_trait, #assign_fn, #vec_assign_fn, #vec_splat_assign_fn
                             }
                         }
                     );

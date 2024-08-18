@@ -181,16 +181,30 @@ vec_macro!(
         )+
         $(
             impl<Rhs: Element, T: $rhs_op_trait<Rhs>> ops::$rhs_op_trait<$self<Rhs>> for $self<T> {
-                type Output = $self<T::Output>;
+                type Output = $self<<T as ops::$rhs_op_trait<Rhs>>::Output>;
                 #[inline(always)]
                 fn $rhs_op_fn(self, rhs: $self<Rhs>) -> Self::Output {
                     $self::wrap(T::$inner_rhs_op_fn(self.inner, rhs.inner))
                 }
             }
-            impl<Rhs: Element, T: $assign_op_trait<Rhs>> ops::$assign_op_trait<$self<Rhs>> for $self<T> {
+            impl<Rhs: Element, T: $rhs_op_trait<Rhs>> ops::$rhs_op_trait<Rhs> for $self<T> {
+                type Output = $self<<T as ops::$rhs_op_trait<Rhs>>::Output>;
                 #[inline(always)]
-                fn $assign_op_fn(&mut self, rhs: $self<Rhs>) {
+                fn $rhs_op_fn(self, rhs: Rhs) -> Self::Output {
+                    $self::wrap(T::$inner_splat_rhs_op_fn(self.inner, rhs))
+                }
+            }
+
+            impl<RhsElement: Element, T: $assign_op_trait<RhsElement>> ops::$assign_op_trait<$self<RhsElement>> for $self<T> {
+                #[inline(always)]
+                fn $assign_op_fn(&mut self, rhs: $self<RhsElement>) {
                     T::$inner_assign_op_fn(&mut self.inner, rhs.inner);
+                }
+            }
+            impl<Rhs: Element, T: $assign_op_trait<Rhs>> ops::$assign_op_trait<Rhs> for $self<T> {
+                #[inline(always)]
+                fn $assign_op_fn(&mut self, rhs: Rhs) {
+                    T::$inner_splat_assign_op_fn(&mut self.inner, rhs);
                 }
             }
         )+

@@ -29,7 +29,7 @@ impl Op {
     pub fn fn_(self) -> Ident {
         Ident::new(&self.to_string().to_lowercase(), Span::call_site())
     }
-    pub fn inner_fn(self, vec_ty: VecType) -> Ident {
+    pub fn vec_fn(self, vec_ty: VecType) -> Ident {
         Ident::new(&format!("{}_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
     }
 }
@@ -40,8 +40,14 @@ impl RhsOp {
     pub fn fn_(self) -> Ident {
         Ident::new(&self.to_string().to_lowercase(), Span::call_site())
     }
-    pub fn inner_fn(self, vec_ty: VecType) -> Ident {
+    pub fn vec_fn(self, vec_ty: VecType) -> Ident {
         Ident::new(&format!("{}_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
+    }
+    pub fn vec_splat_fn(self, vec_ty: VecType) -> Ident {
+        Ident::new(&format!("{}_{}_splat", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
+    }
+    pub fn splat_vec_fn(self, vec_ty: VecType) -> Ident {
+        Ident::new(&format!("{}_splat_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
     }
     pub fn assign_trait(self) -> Ident {
         Ident::new(&format!("{self}Assign"), Span::call_site())
@@ -49,7 +55,10 @@ impl RhsOp {
     pub fn assign_fn(self) -> Ident {
         Ident::new(&format!("{}_assign", self.to_string().to_lowercase()), Span::call_site())
     }
-    pub fn inner_assign_fn(self, vec_ty: VecType) -> Ident {
+    pub fn vec_assign_fn(self, vec_ty: VecType) -> Ident {
         Ident::new(&format!("{}_assign_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
+    }
+    pub fn vec_splat_assign_fn(self, vec_ty: VecType) -> Ident {
+        Ident::new(&format!("{}_assign_splat_{}", self.to_string().to_lowercase(), vec_ty.to_string().to_lowercase(), ), Span::call_site())
     }
 }

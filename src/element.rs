@@ -72,6 +72,19 @@ rhs_op_macro!(
             fn $vec3_fn(value: Self::Vec3Inner, rhs: Rhs::Vec3Inner) -> <Self::Output as Element>::Vec3Inner;
             fn $vec3a_fn(value: Self::Vec3AInner, rhs: Rhs::Vec3AInner) -> <Self::Output as Element>::Vec3AInner;
             fn $vec4_fn(value: Self::Vec4Inner, rhs: Rhs::Vec4Inner) -> <Self::Output as Element>::Vec4Inner;
+
+            fn $vec2_splat_fn(value: Self::Vec2Inner, rhs: Rhs) -> <Self::Output as Element>::Vec2Inner;
+            fn $vec3_splat_fn(value: Self::Vec3Inner, rhs: Rhs) -> <Self::Output as Element>::Vec3Inner;
+            fn $vec3a_splat_fn(value: Self::Vec3AInner, rhs: Rhs) -> <Self::Output as Element>::Vec3AInner;
+            fn $vec4_splat_fn(value: Self::Vec4Inner, rhs: Rhs) -> <Self::Output as Element>::Vec4Inner;
+
+            /* scalar 'op' vec currently impossible because of rustc false recursion-detection
+
+            fn $splat_vec2_fn(value: Self, rhs: Rhs::Vec2Inner) -> <Self::Output as Element>::Vec2Inner;
+            fn $splat_vec3_fn(value: Self, rhs: Rhs::Vec3Inner) -> <Self::Output as Element>::Vec3Inner;
+            fn $splat_vec3a_fn(value: Self, rhs: Rhs::Vec3AInner) -> <Self::Output as Element>::Vec3AInner;
+            fn $splat_vec4_fn(value: Self, rhs: Rhs::Vec4Inner) -> <Self::Output as Element>::Vec4Inner;
+            */
         }
 
         pub trait $assign_trait<Rhs: Element = Self>:
@@ -82,6 +95,11 @@ rhs_op_macro!(
             fn $vec3_assign_fn(value: &mut Self::Vec3Inner, rhs: Rhs::Vec3Inner);
             fn $vec3a_assign_fn(value: &mut Self::Vec3AInner, rhs: Rhs::Vec3AInner);
             fn $vec4_assign_fn(value: &mut Self::Vec4Inner, rhs: Rhs::Vec4Inner);
+
+            fn $vec2_splat_assign_fn(value: &mut Self::Vec2Inner, rhs: Rhs);
+            fn $vec3_splat_assign_fn(value: &mut Self::Vec3Inner, rhs: Rhs);
+            fn $vec3a_splat_assign_fn(value: &mut Self::Vec3AInner, rhs: Rhs);
+            fn $vec4_splat_assign_fn(value: &mut Self::Vec4Inner, rhs: Rhs);
         }
     }
 );
@@ -445,6 +463,43 @@ rhs_op_macro!(
             fn $vec4_fn(value: Self::Vec4Inner, rhs: Rhs::Vec4Inner) -> <Self::Output as Element>::Vec4Inner {
                 <Self::Output as Element>::new_vec4(value[0].$fn(Rhs::x_vec4(rhs)), value[1].$fn(Rhs::y_vec4(rhs)), value[2].$fn(Rhs::z_vec4(rhs)), value[3].$fn(Rhs::w_vec4(rhs)))
             }
+
+            #[inline(always)]
+            fn $vec2_splat_fn(value: Self::Vec2Inner, rhs: Rhs) -> <Self::Output as Element>::Vec2Inner {
+                <Self::Output as Element>::new_vec2(value[0].$fn(rhs), value[1].$fn(rhs))
+            }
+            #[inline(always)]
+            fn $vec3_splat_fn(value: Self::Vec3Inner, rhs: Rhs) -> <Self::Output as Element>::Vec3Inner {
+                <Self::Output as Element>::new_vec3(value[0].$fn(rhs), value[1].$fn(rhs), value[2].$fn(rhs))
+            }
+            #[inline(always)]
+            fn $vec3a_splat_fn(value: Self::Vec3AInner, rhs: Rhs) -> <Self::Output as Element>::Vec3AInner {
+                <Self::Output as Element>::new_vec3a(value[0].$fn(rhs), value[1].$fn(rhs), value[2].$fn(rhs))
+            }
+            #[inline(always)]
+            fn $vec4_splat_fn(value: Self::Vec4Inner, rhs: Rhs) -> <Self::Output as Element>::Vec4Inner {
+                <Self::Output as Element>::new_vec4(value[0].$fn(rhs), value[1].$fn(rhs), value[2].$fn(rhs), value[3].$fn(rhs))
+            }
+
+            /* scalar 'op' vec currently impossible because of rustc false recursion-detection
+
+            #[inline(always)]
+            fn $splat_vec2_fn(value: Self, rhs: Rhs::Vec2Inner) -> <Self::Output as Element>::Vec2Inner {
+                <Self::Output as Element>::new_vec2(value.$fn(Rhs::x_vec2(rhs)), value.$fn(Rhs::y_vec2(rhs)))
+            }
+            #[inline(always)]
+            fn $splat_vec3_fn(value: Self, rhs: Rhs::Vec3Inner) -> <Self::Output as Element>::Vec3Inner {
+                <Self::Output as Element>::new_vec3(value.$fn(Rhs::x_vec3(rhs)), value.$fn(Rhs::y_vec3(rhs)), value.$fn(Rhs::z_vec3(rhs)))
+            }
+            #[inline(always)]
+            fn $splat_vec3a_fn(value: Self, rhs: Rhs::Vec3AInner) -> <Self::Output as Element>::Vec3AInner {
+                <Self::Output as Element>::new_vec3a(value.$fn(Rhs::x_vec3a(rhs)), value.$fn(Rhs::y_vec3a(rhs)), value.$fn(Rhs::z_vec3a(rhs)))
+            }
+            #[inline(always)]
+            fn $splat_vec4_fn(value: Self, rhs: Rhs::Vec4Inner) -> <Self::Output as Element>::Vec4Inner {
+                <Self::Output as Element>::new_vec4(value.$fn(Rhs::x_vec4(rhs)), value.$fn(Rhs::y_vec4(rhs)), value.$fn(Rhs::z_vec4(rhs)), value.$fn(Rhs::w_vec4(rhs)))
+            }
+            */
         }
         impl<Rhs: Element, T: DefaultElementImpl + ops::$assign_trait<Rhs>> $assign_trait<Rhs> for T {
             fn $vec2_assign_fn(value: &mut Self::Vec2Inner, rhs: Rhs::Vec2Inner) {
@@ -466,6 +521,27 @@ rhs_op_macro!(
                 value[1].$assign_fn(Rhs::y_vec4(rhs));
                 value[2].$assign_fn(Rhs::z_vec4(rhs));
                 value[3].$assign_fn(Rhs::w_vec4(rhs));
+            }
+
+            fn $vec2_splat_assign_fn(value: &mut Self::Vec2Inner, rhs: Rhs) {
+                value[0].$assign_fn(rhs);
+                value[1].$assign_fn(rhs);
+            }
+            fn $vec3_splat_assign_fn(value: &mut Self::Vec3Inner, rhs: Rhs) {
+                value[0].$assign_fn(rhs);
+                value[1].$assign_fn(rhs);
+                value[2].$assign_fn(rhs);
+            }
+            fn $vec3a_splat_assign_fn(value: &mut Self::Vec3AInner, rhs: Rhs) {
+                value[0].$assign_fn(rhs);
+                value[1].$assign_fn(rhs);
+                value[2].$assign_fn(rhs);
+            }
+            fn $vec4_splat_assign_fn(value: &mut Self::Vec4Inner, rhs: Rhs) {
+                value[0].$assign_fn(rhs);
+                value[1].$assign_fn(rhs);
+                value[2].$assign_fn(rhs);
+                value[3].$assign_fn(rhs);
             }
         }
     }
