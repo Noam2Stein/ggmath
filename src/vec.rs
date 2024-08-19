@@ -136,6 +136,39 @@ vec_macro!(
             }
 
             #[inline(always)]
+            pub fn from_array(value: [T; $alen]) -> Self {
+                Self::wrap(T::$inner_from_array(value))
+            }
+            #[inline(always)]
+            pub fn from_slice(value: &[T; $alen]) -> &Self {
+                unsafe {
+                    & *(value as *const _ as *const Self)
+                }
+            }
+            #[inline(always)]
+            pub fn from_slice_mut(value: &mut [T; $alen]) -> &mut Self {
+                unsafe {
+                    &mut *(value as *mut _ as *mut Self)
+                }
+            }
+            #[inline(always)]
+            pub fn into_array(self) -> [T; $alen] {
+                T::$inner_into_array(self.inner)
+            }
+            #[inline(always)]
+            pub fn as_slice(&self) -> &[T; $alen] {
+                unsafe {
+                    & *(self as *const _ as *const [T; $alen])
+                }
+            }
+            #[inline(always)]
+            pub fn as_slice_mut(&mut self) -> &mut [T; $alen] {
+                unsafe {
+                    &mut *(self as *mut _ as *mut [T; $alen])
+                }
+            }
+
+            #[inline(always)]
             pub fn map<F: FnMut(T) -> T>(self, mut f: F) -> Self {
                 Self::new(
                     $(
@@ -168,6 +201,38 @@ vec_macro!(
         impl<T: Element> Display for $self<T> {
             fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
                 write!(f, $display_literal, $(self.$component()), +)
+            }
+        }
+        impl<T: Element> From<[T; $alen]> for $self<T> {
+            #[inline(always)]
+            fn from(value: [T; $alen]) -> Self {
+                Self::from_array(value)
+            }
+        }
+        impl<T: Element> AsRef<$self<T>> for [T; $alen] {
+            fn as_ref(&self) -> &$self<T> {
+                $self::from_slice(self)
+            }
+        }
+        impl<T: Element> AsMut<$self<T>> for [T; $alen] {
+            fn as_mut(&mut self) -> &mut $self<T> {
+                $self::from_slice_mut(self)
+            }
+        }
+        impl<T: Element> From<$self<T>> for [T; $alen] {
+            #[inline(always)]
+            fn from(value: $self<T>) -> Self {
+                value.into_array()
+            }
+        }
+        impl<T: Element> AsRef<[T; $alen]> for $self<T> {
+            fn as_ref(&self) -> &[T; $alen] {
+                self.as_slice()
+            }
+        }
+        impl<T: Element> AsMut<[T; $alen]> for $self<T> {
+            fn as_mut(&mut self) -> &mut [T; $alen] {
+                self.as_slice_mut()
             }
         }
         $(

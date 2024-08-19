@@ -37,6 +37,15 @@ Default +
     fn splat_vec3a(value: Self) -> Self::Vec3AInner;
     fn splat_vec4(value: Self) -> Self::Vec4Inner;
 
+    fn vec2_from_array(value: [Self; 2]) -> Self::Vec2Inner;
+    fn vec3_from_array(value: [Self; 3]) -> Self::Vec3Inner;
+    fn vec3a_from_array(value: [Self; 4]) -> Self::Vec3AInner;
+    fn vec4_from_array(value: [Self; 4]) -> Self::Vec4Inner;
+    fn array_from_vec2(value: Self::Vec2Inner) -> [Self; 2];
+    fn array_from_vec3(value: Self::Vec3Inner) -> [Self; 3];
+    fn array_from_vec3a(value: Self::Vec3AInner) -> [Self; 4];
+    fn array_from_vec4(value: Self::Vec4Inner) -> [Self; 4];
+
     get_swizzle!(
         Self {
             get_swizzle_fns!();
@@ -408,6 +417,39 @@ impl<T: DefaultElementImpl> Element for T {
     #[inline(always)]
     fn splat_vec4(value: Self) -> Self::Vec4Inner {
         [value; 4]
+    }
+
+    #[inline(always)]
+    fn vec2_from_array(value: [Self; 2]) -> Self::Vec2Inner {
+        value
+    }
+    #[inline(always)]
+    fn vec3_from_array(value: [Self; 3]) -> Self::Vec3Inner {
+        value
+    }
+    #[inline(always)]
+    fn vec3a_from_array(value: [Self; 4]) -> Self::Vec3AInner {
+        value
+    }
+    #[inline(always)]
+    fn vec4_from_array(value: [Self; 4]) -> Self::Vec4Inner {
+        value
+    }
+    #[inline(always)]
+    fn array_from_vec2(value: Self::Vec2Inner) -> [Self; 2] {
+        value
+    }
+    #[inline(always)]
+    fn array_from_vec3(value: Self::Vec3Inner) -> [Self; 3] {
+        value
+    }
+    #[inline(always)]
+    fn array_from_vec3a(value: Self::Vec3AInner) -> [Self; 4] {
+        value
+    }
+    #[inline(always)]
+    fn array_from_vec4(value: Self::Vec4Inner) -> [Self; 4] {
+        value
     }
 
     get_swizzle!(

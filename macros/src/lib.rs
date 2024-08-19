@@ -166,8 +166,9 @@ declare_macro_macro!(
 );
 declare_macro_macro!(
     vec_macro,
-    $self:ident, $self_lower:ident, $inner:ident,
+    $self:ident, $self_lower:ident, $inner:ident, $len:literal, $alen:literal,
     $inner_new:ident, $inner_splat:ident,
+    $inner_from_array:ident, $inner_into_array:ident,
     $swizzle:ident, $get_swizzle:ident, $mut_swizzle:ident, $set_swizzle:ident, $with_swizzle:ident,
     $display_literal:literal,
     ($($component:ident, $component_index:literal), +),
@@ -402,8 +403,12 @@ fn process_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     let self_ = vec.ident();
                     let self_lower = vec.ident_lower();
                     let inner = vec.inner_ident();
+                    let len = vec.len();
+                    let alen = vec.alen();
                     let inner_new = format_ident!("new_{self_lower}");
                     let inner_splat = format_ident!("splat_{self_lower}");
+                    let inner_from_array = format_ident!("{self_lower}_from_array");
+                    let inner_into_array = format_ident!("array_from_{self_lower}");
                     let swizzle = vec.swizzle();
                     let get_swizzle = vec.get_swizzle();
                     let mut_swizzle = vec.mut_swizzle();
@@ -452,8 +457,9 @@ fn process_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                     Some(
                         process_call(call,
                             quote! {
-                                #self_, #self_lower, #inner,
+                                #self_, #self_lower, #inner, #len, #alen,
                                 #inner_new, #inner_splat,
+                                #inner_from_array, #inner_into_array,
                                 #swizzle, #get_swizzle, #mut_swizzle, #set_swizzle, #with_swizzle,
                                 #display_literal,
                                 (#(#components, #component_indicies), *),

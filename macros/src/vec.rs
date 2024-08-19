@@ -25,6 +25,15 @@ impl VecType {
     pub fn is_aligned(self) -> bool {
         self == Self::Vec3A
     }
+    pub fn alen(self) -> usize {
+        match self {
+            Self::Element => 1,
+            Self::Vec2 => 2,
+            Self::Vec3 => 3,
+            Self::Vec3A => 4,
+            Self::Vec4 => 4,
+        }
+    }
     pub fn ident(self) -> Ident {
         Ident::new(&self.to_string(), Span::call_site())
     }
