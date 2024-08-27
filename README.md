@@ -1,39 +1,30 @@
 # gmath
-A fast, flexible, and generic, rust math-library for games and graphics.
+a **g**eneric-**g**ames-**math** crate which is flexible and heavily optimized.
 
-This library exists because the existing math-libraries had these missing features:
+This crate exists because the existing math-libraries had these missing features:
 
-* Generic-typing with maximum performance, proper traits and SIMD support.
-* Support for both column-major and row-major matricies.
+* generic types with SIMD support.
+* both column-major and row-major matricies.
 
 ## Features
 
+* the core of this crate contains vectors, matricies and quaternions. other data-types that are useful in game-development are optional features.
+
 ### Data-Types
 
-Vectors, matricies and quaternions are supported.
-
-Types:
-* Vectors:
-  * Vec2
-  * Vec3
-  * Vec3A (memory-aligned for SIMD)
-  * Vec4
-* Matricies:
-  * Mat3
-  * Mat3A
-  * Mat4
-* Quat
-
-All of these types are generic over T: Element.
+* Vectors: Vec2, Vec3, Vec4 - generic over T: Element.
+* Matricies: Mat3, Mat4 - generic over T: Element.
+* Quat - generic over T: Float.
 
 ### Traits
 
-the 'Element' trait represents types that can be stored inside the library's data types.
-'Element' is implemented by: u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f32, f64 and bool.
+the 'Element' trait represents types that can be stored inside the crate's data types.
+'Element' is implemented by the bool, uint, int and float types.
 
-There are sub-traits of 'Element' which add more constraints over T and allow the data-types to implement more functions.
+each 'Element' has its own internal implementation of vector fns, for example: on supported platforms, the f32 'Element' uses SIMD vectors, and it's implementation of vector fns like addition and swizzle use swizzle to be more perforant.
 
-Element sub-traits:
+'Element' has sub-traits which add more constraints over the type and allow data-types to implement more functions.
+
 * Num: Element.
 * SignedNum: Num.
 * UnsignedNum: Num.
@@ -46,26 +37,13 @@ Element sub-traits:
 
 Matricies can be represented either as column-major or row-major, and each variant is in a different module ('cm', 'rm').
 
-Both of these variations implement Mat traits that allow code to be generic over how matricies are stored.
+Both of these variations implement matrix-traits that allow code to be generic over how matricies are stored.
+for example a function that takes in a matrix could use 'impl Mat3' instead of 'cm::Mat3' or 'rm::Mat3'.
 
-### Swizzle
+### Vector-Swizzle
 
-Vectors support swizzling with 4 variations:
-* swizzle (getter).
-* set_swizzle (sets the given components using a mutable reference).
-* with_swizzle (returns a copy of self with the given components set).
-* swizzle_mut (returns a reference to a continuous sub-section of the vec as a smaller vec-type).
-* constructor swizzle (combining vectors and elements to construct a new vector for example: vec4((1.0, vec2((2.0, 3.0)), 4.0))).
-
-## Modules
-
-* mod element
-* mod vec
-* mod mat
-  * cm
-  * rm
-* mod quat
-* use element::*
-* use vec::*
-* use mat::*
-* use quat::*
+* swizzle - getter.
+* set_swizzle - sets the given components using a mutable reference.
+* with_swizzle - returns a copy of self with the given components set.
+* swizzle_mut - returns a reference (or multiple split references) to a continuous sub-section of the vector.
+* constructor swizzle (building a vector out of existing vectors. for example: vec4((1.0, vec2((2.0, 3.0)), 4.0))).
