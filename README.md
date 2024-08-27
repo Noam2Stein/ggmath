@@ -1,4 +1,4 @@
-# gmath
+# ggmath
 a **g**eneric-**g**ames-**math** crate which is flexible and heavily optimized.
 
 This crate exists because the existing math-libraries had these missing features:
