@@ -6,9 +6,9 @@ mod impl_;
 pub unsafe trait Element:
     fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display
 {
-    type Vec2Inner;
-    type Vec3Inner;
-    type Vec4Inner;
+    type Vec2Inner: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
+    type Vec3Inner: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
+    type Vec4Inner: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
 }
 #[allow(unused_macros)]
 #[macro_export(local_inner_macros)]
