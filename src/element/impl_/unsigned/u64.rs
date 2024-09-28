@@ -1,3 +1,3 @@
-use crate::element::default_impl::ElementDefaultImpl;
+use crate::primitive_element_default_impl;
 
-impl ElementDefaultImpl for u64 {}
+primitive_element_default_impl!(u64);

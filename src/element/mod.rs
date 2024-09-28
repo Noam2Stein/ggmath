@@ -1,15 +1,22 @@
 use std::fmt::{self, Display};
 
+use crate::vec::inner::*;
+
 pub mod default_impl;
 mod impl_;
 
 pub unsafe trait Element:
     fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display
 {
-    type Vec2Inner: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Vec3Inner: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Vec4Inner: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
+    type InnerVec2: InnerVec2<T = Self>;
+    type InnerVec3: InnerVec3<T = Self>;
+    type InnerVec4: InnerVec4<T = Self>;
 }
+
+pub trait ElementContainer: fmt::Debug + Copy + PartialEq + PartialOrd {
+    type T: Element;
+}
+
 #[allow(unused_macros)]
 #[macro_export(local_inner_macros)]
 macro_rules! impl_element {
