@@ -1,18 +1,10 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::element::*;
+use crate::{element::*, vec::*};
 
-pub trait MatMajor: fmt::Debug + Copy + PartialEq + PartialOrd + Default {
-    type Mat2Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat2x3Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat2x4Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat3x2Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat3Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat3x4Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat4x2Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat4x3Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-    type Mat4Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
-}
+mod major;
+pub use major::*;
+
 pub trait MatCxR: fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display {
     type T: Element;
     const C: usize;
