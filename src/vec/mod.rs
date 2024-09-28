@@ -11,7 +11,7 @@ macro_rules! vecn {
     ($outer:ident($inner:ident): $n:literal) => {
         #[repr(transparent)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-        pub struct $outer<T: Element> {
+        pub struct $outer<T: Element = f32> {
             inner: T::$inner,
         }
         impl<T: Element> Display for $outer<T> {
