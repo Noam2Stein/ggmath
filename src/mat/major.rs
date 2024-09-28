@@ -1,6 +1,9 @@
 use super::*;
 
-pub trait MatMajor: fmt::Debug + Copy + PartialEq + PartialOrd + Default {
+trait Seal {}
+
+#[allow(private_bounds)]
+pub trait MatMajor: Seal + fmt::Debug + Copy + PartialEq + PartialOrd + Default {
     type Mat2Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
     type Mat2x3Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
     type Mat2x4Inner<T: Element>: fmt::Debug + Copy + PartialEq + PartialOrd + Default;
@@ -14,6 +17,7 @@ pub trait MatMajor: fmt::Debug + Copy + PartialEq + PartialOrd + Default {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct CM;
+impl Seal for CM {}
 impl MatMajor for CM {
     type Mat2Inner<T: Element> = [Vec2<T>; 2];
     type Mat2x3Inner<T: Element> = [Vec3<T>; 2];
@@ -28,6 +32,7 @@ impl MatMajor for CM {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct RM;
+impl Seal for RM {}
 impl MatMajor for RM {
     type Mat2Inner<T: Element> = [Vec2<T>; 2];
     type Mat2x3Inner<T: Element> = [Vec2<T>; 3];

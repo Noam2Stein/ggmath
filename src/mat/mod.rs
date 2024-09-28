@@ -5,7 +5,10 @@ use crate::{element::*, vec::*};
 mod major;
 pub use major::*;
 
-pub trait MatCxR: fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display {
+trait Seal {}
+
+#[allow(private_bounds)]
+pub trait MatCxR: Seal + fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display {
     type T: Element;
     const C: usize;
     const R: usize;
@@ -19,6 +22,8 @@ macro_rules! mat {
         pub struct $outer<M: MatMajor, T: Element = f32> {
             inner: M::$inner<T>,
         }
+        impl<M: MatMajor, T: Element> Seal for $outer<M, T> {}
+
         impl<M: MatMajor, T: Element> Display for $outer<M, T> {
             fn fmt(&self, _f: &mut Formatter<'_>) -> fmt::Result {
                 todo!()

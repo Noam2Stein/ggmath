@@ -2,7 +2,10 @@ use std::fmt::{self, Display, Formatter};
 
 use crate::element::*;
 
-pub trait VecN: fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display {
+trait Seal {}
+
+#[allow(private_bounds)]
+pub trait VecN: Seal + fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display {
     type T: Element;
     const N: usize;
 }
@@ -14,6 +17,8 @@ macro_rules! vecn {
         pub struct $outer<T: Element = f32> {
             inner: T::$inner,
         }
+        impl<T: Element> Seal for $outer<T> {}
+
         impl<T: Element> Display for $outer<T> {
             fn fmt(&self, _f: &mut Formatter<'_>) -> fmt::Result {
                 todo!()
