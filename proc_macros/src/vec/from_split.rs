@@ -6,10 +6,17 @@ pub fn impl_from_splits_transmute(tokens: proc_macro::TokenStream) -> proc_macro
 
     quote_spanned! {
         ty.span() =>
-        impl ggmath::FromVec2Splits for ggmath::Vec2Inner<#ty> {}
-        impl ggmath::FromVec3Splits for ggmath::Vec3Inner<#ty> {}
-        impl ggmath::FromVec4Splits for ggmath::Vec4Inner<#ty> {}
+        impl ggmath::FromVec2Splits for ggmath::inner::Vec2Inner<#ty> {}
+        impl ggmath::FromVec3Splits for ggmath::inner::Vec3Inner<#ty> {}
+        impl ggmath::FromVec4Splits for ggmath::inner::Vec4Inner<#ty> {}
 
-        impl ggmath::FromVecSplit<(#t, #t)> for ggmath::Vec2Inner<#ty>
-    }.into()
+        impl ggmath::FromVecSplit<(#ty, #ty)> for ggmath::inner::Vec2Inner<#ty> {
+            fn from_split(split: (#ty, #ty)) -> Self {
+                unsafe {
+                    std::mem::transmute(split)
+                }
+            }
+        }
+    }
+    .into()
 }
