@@ -1,3 +1,4 @@
-use crate::primitive_element_default_impl;
+use ggmath_macros::impl_element_default;
+use crate as ggmath;
 
-primitive_element_default_impl!(isize);
+impl_element_default!(isize);

@@ -1,3 +1,2 @@
-use crate::primitive_element_default_impl;
-
-primitive_element_default_impl!(bool);
+use crate as ggmath;
+crate::element::default_impl::impl_element_default!(bool);

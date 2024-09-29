@@ -19,7 +19,7 @@ macro_rules! vecn {
     ($outer:ident($inner:ident): $n:literal) => {
         #[repr(transparent)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-        pub struct $outer<T: Element = f32> {
+        pub struct $outer<T: Element> {
             inner: T::$inner,
         }
         impl<T: Element> Seal for $outer<T> {}
@@ -44,7 +44,6 @@ macro_rules! vecn {
         }
     };
 }
-
 vecn!(Vec2(InnerVec2): 2);
 vecn!(Vec3(InnerVec3): 3);
 vecn!(Vec4(InnerVec4): 4);

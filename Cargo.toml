@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ggmath_macros = { path = "macros" }
+ggmath_proc_macros = { path = "proc_macros" }

@@ -1,6 +1,6 @@
 use super::*;
 
-pub use ggmath_macros::impl_from_split_transmute;
+pub use ggmath_proc_macros::impl_from_splits_transmute;
 
 pub trait FromVecSplit<S>: ElementContainer {
     fn from_split(split: S) -> Self;

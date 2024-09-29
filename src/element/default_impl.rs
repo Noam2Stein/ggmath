@@ -2,6 +2,8 @@ use crate::vec::*;
 
 use super::*;
 
+pub use ggmath_proc_macros::impl_element_default;
+
 pub trait ElementDefaultImpl:
     fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display
 {
@@ -44,6 +46,6 @@ where
         [T::default(); 4]
     }
 }
-impl<T: Element, const N: usize> ElementContainer for [T; N] {
+impl<T: ElementDefaultImpl + Element, const N: usize> ElementContainer for [T; N] {
     type T = T;
 }

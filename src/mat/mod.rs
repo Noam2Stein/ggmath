@@ -19,7 +19,7 @@ macro_rules! mat {
     ($outer:ident($inner:ident): $c:literal * $r:literal) => {
         #[repr(transparent)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-        pub struct $outer<M: MatMajor, T: Element = f32> {
+        pub struct $outer<M: MatMajor, T: Element> {
             inner: M::$inner<T>,
         }
         impl<M: MatMajor, T: Element> Seal for $outer<M, T> {}
@@ -37,7 +37,6 @@ macro_rules! mat {
         }
     };
 }
-
 mat!(Mat2  (Mat2Inner  ): 2 * 2);
 mat!(Mat2x3(Mat2x3Inner): 2 * 3);
 mat!(Mat2x4(Mat2x4Inner): 2 * 4);
