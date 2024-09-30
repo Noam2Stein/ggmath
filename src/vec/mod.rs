@@ -14,7 +14,7 @@ pub trait VecN: Seal + fmt::Debug + Copy + PartialEq + PartialOrd + Default + Di
 }
 
 macro_rules! vecn {
-    ($outer:ident($inner:ident): $n:literal) => {
+    ($outer:ident($inner:ident): $n:literal, $default:ident $(,)?) => {
         #[repr(transparent)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub struct $outer<T: Element> {
@@ -24,7 +24,9 @@ macro_rules! vecn {
 
         impl<T: Element> Default for $outer<T> {
             fn default() -> Self {
-                Self { inner: T::$default }
+                Self {
+                    inner: T::$default(),
+                }
             }
         }
         impl<T: Element> Display for $outer<T> {
@@ -38,8 +40,8 @@ macro_rules! vecn {
         }
     };
 }
-vecn!(Vec2(InnerVec2): 2);
-vecn!(Vec3(InnerVec3): 3);
-vecn!(Vec4(InnerVec4): 4);
+vecn!(Vec2(InnerVec2): 2, default_vec2);
+vecn!(Vec3(InnerVec3): 3, default_vec3);
+vecn!(Vec4(InnerVec4): 4, default_vec4);
 
 type Vec1<T> = T;

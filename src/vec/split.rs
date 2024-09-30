@@ -26,7 +26,7 @@ macro_rules! vec_splits {
                 type Output = $output<T>;
                 fn into_vec(self) -> Self::Output {
                     Self::Output {
-                        inner: <T as Element>::$fn(self)
+                        inner: <T as ElementVecsFromSplits>::$fn(unsafe { std::mem::transmute(self) })
                     }
                 }
             }
