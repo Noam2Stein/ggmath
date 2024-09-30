@@ -5,7 +5,7 @@ pub fn impl_element_default(tokens: proc_macro::TokenStream) -> proc_macro::Toke
     let ty = parse_macro_input!(tokens as Type);
 
     quote! {
-        impl ggmath::default_impl::ElementDefaultImpl for #ty {}
+        unsafe impl ggmath::default_impl::ElementDefaultImpl for #ty {}
 
         const _: () = {
             const fn validate<T: ggmath::Element>() {}
@@ -14,5 +14,6 @@ pub fn impl_element_default(tokens: proc_macro::TokenStream) -> proc_macro::Toke
         };
 
         ggmath::impl_from_splits_transmute!(#ty);
-    }.into()
+    }
+    .into()
 }

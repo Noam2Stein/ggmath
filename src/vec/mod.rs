@@ -11,7 +11,8 @@ pub use from_split::*;
 trait Seal {}
 
 #[allow(private_bounds)]
-pub trait VecN: Seal + ElementContainer + Default + Display {
+pub trait VecN: Seal + fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display {
+    type T: Element;
     const N: usize;
 }
 
@@ -24,9 +25,6 @@ macro_rules! vecn {
         }
         impl<T: Element> Seal for $outer<T> {}
 
-        impl<T: Element> ElementContainer for $outer<T> {
-            type T = T;
-        }
         impl<T: Element> Default for $outer<T> {
             fn default() -> Self {
                 Self {
@@ -40,6 +38,7 @@ macro_rules! vecn {
             }
         }
         impl<T: Element> VecN for $outer<T> {
+            type T = T;
             const N: usize = $n;
         }
     };

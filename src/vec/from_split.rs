@@ -3,7 +3,7 @@ use super::*;
 pub use ggmath_proc_macros::impl_from_split_transmute;
 pub use ggmath_proc_macros::impl_from_splits_transmute;
 
-pub trait FromVecSplit<S>: ElementContainer {
+pub trait FromVecSplit<S> {
     fn from_split(split: S) -> Self;
 }
 
@@ -41,7 +41,7 @@ where
 macro_rules! from_vec_splits {
     ($ident:ident: [$(($($vec:ident), * $(,)?)), * $(,)?]) => {
         #[allow(unused_parens)]
-        pub trait $ident: ElementContainer + $(FromVecSplit<($($vec<<Self as ElementContainer>::T>), *)> +)* {
+        pub trait $ident<T: Element>: $(FromVecSplit<($($vec<T>), *)> +)* {
 
         }
     };

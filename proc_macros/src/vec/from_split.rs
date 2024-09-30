@@ -34,9 +34,9 @@ pub fn impl_from_splits_transmute(tokens: proc_macro::TokenStream) -> proc_macro
 
     quote_spanned! {
         ty.span() =>
-        impl ggmath::FromVec2Splits for ggmath::inner::Vec2Inner<#ty> {}
-        impl ggmath::FromVec3Splits for ggmath::inner::Vec3Inner<#ty> {}
-        impl ggmath::FromVec4Splits for ggmath::inner::Vec4Inner<#ty> {}
+        impl ggmath::FromVec2Splits<#ty> for ggmath::inner::Vec2Inner<#ty> {}
+        impl ggmath::FromVec3Splits<#ty> for ggmath::inner::Vec3Inner<#ty> {}
+        impl ggmath::FromVec4Splits<#ty> for ggmath::inner::Vec4Inner<#ty> {}
 
         ggmath::impl_from_split_transmute!((#ty, #ty) for ggmath::inner::Vec2Inner<#ty>);
         ggmath::impl_from_split_transmute!(ggmath::Vec2<#ty> for ggmath::inner::Vec2Inner<#ty>);
