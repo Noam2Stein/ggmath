@@ -38,22 +38,7 @@ pub fn impl_from_splits_transmute(tokens: proc_macro::TokenStream) -> proc_macro
         impl ggmath::FromVec3Splits for ggmath::inner::Vec3Inner<#ty> {}
         impl ggmath::FromVec4Splits for ggmath::inner::Vec4Inner<#ty> {}
 
-        ggmath::impl_from_split_transmute!((#ty, #ty) for ggmath::inner::Vec2Inner<#ty>);
-        ggmath::impl_from_split_transmute!(ggmath::Vec2<#ty> for ggmath::inner::Vec2Inner<#ty>);
-
-        ggmath::impl_from_split_transmute!((#ty, #ty, #ty) for ggmath::inner::Vec3Inner<#ty>);
-        ggmath::impl_from_split_transmute!((ggmath::Vec2<#ty>, #ty) for ggmath::inner::Vec3Inner<#ty>);
-        ggmath::impl_from_split_transmute!((#ty, ggmath::Vec2<#ty>) for ggmath::inner::Vec3Inner<#ty>);
-        ggmath::impl_from_split_transmute!(ggmath::Vec3<#ty> for ggmath::inner::Vec3Inner<#ty>);
-
-        ggmath::impl_from_split_transmute!((#ty, #ty, #ty, #ty) for ggmath::inner::Vec4Inner<#ty>);
-        ggmath::impl_from_split_transmute!((ggmath::Vec2<#ty>, #ty, #ty) for ggmath::inner::Vec4Inner<#ty>);
-        ggmath::impl_from_split_transmute!((#ty, ggmath::Vec2<#ty>, #ty) for ggmath::inner::Vec4Inner<#ty>);
-        ggmath::impl_from_split_transmute!((#ty, #ty, ggmath::Vec2<#ty>) for ggmath::inner::Vec4Inner<#ty>);
-        ggmath::impl_from_split_transmute!((ggmath::Vec2<#ty>, ggmath::Vec2<#ty>) for ggmath::inner::Vec4Inner<#ty>);
-        ggmath::impl_from_split_transmute!((#ty, ggmath::Vec3<#ty>) for ggmath::inner::Vec4Inner<#ty>);
-        ggmath::impl_from_split_transmute!((ggmath::Vec3<#ty>, #ty) for ggmath::inner::Vec4Inner<#ty>);
-        ggmath::impl_from_split_transmute!(ggmath::Vec4<#ty> for ggmath::inner::Vec4Inner<#ty>);
+        impl ggmath::FromVecSplit<(#t, #t)> for ggmath::Vec2Inner<#ty>
     }
     .into()
 }
