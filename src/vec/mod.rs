@@ -2,11 +2,8 @@ use std::fmt::{self, Display, Formatter};
 
 use crate::element::*;
 
-pub mod inner;
-use inner::*;
-
-mod from_split;
-pub use from_split::*;
+mod split;
+pub use split::*;
 
 trait Seal {}
 
@@ -27,9 +24,7 @@ macro_rules! vecn {
 
         impl<T: Element> Default for $outer<T> {
             fn default() -> Self {
-                Self {
-                    inner: T::$inner::default(),
-                }
+                Self { inner: T::$default }
             }
         }
         impl<T: Element> Display for $outer<T> {

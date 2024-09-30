@@ -1,7 +1,6 @@
 use proc_macro::TokenStream;
 
 mod element;
-mod vec;
 
 macro_rules! export {
     ($($path:ident)::* => $ident:ident) => {
@@ -12,8 +11,5 @@ macro_rules! export {
     };
 }
 
-export!(element => impl_element);
-export!(element::default_impl => impl_element_default);
-
-export!(vec::from_split => impl_from_split_transmute);
-export!(vec::from_split => impl_from_splits_transmute);
+export!(element => impl_element_inner_vecs);
+export!(element => impl_element_vecs_from_splits_transmute);
