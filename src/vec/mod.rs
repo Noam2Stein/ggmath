@@ -1,47 +1,50 @@
-use std::fmt::{self, Display, Formatter};
-
 use crate::element::*;
 
+mod array;
+mod default;
+mod display;
+mod get;
 mod split;
+pub use array::*;
 pub use split::*;
 
 trait Seal {}
 
 #[allow(private_bounds)]
-pub trait VecN: Seal + fmt::Debug + Copy + PartialEq + PartialOrd + Default + Display {
-    type T: Element;
-    const N: usize;
+pub trait VecN<T: Element, const N: usize>:
+    Seal
+    + std::fmt::Debug
+    + Copy
+    + PartialEq
+    + PartialOrd
+    + Default
+    + std::fmt::Display
+    + VecNArray<T, N>
+{
 }
 
-macro_rules! vecn {
-    ($outer:ident($inner:ident): $n:literal, $default:ident $(,)?) => {
-        #[repr(transparent)]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-        pub struct $outer<T: Element> {
-            inner: T::$inner,
-        }
-        impl<T: Element> Seal for $outer<T> {}
-
-        impl<T: Element> Default for $outer<T> {
-            fn default() -> Self {
-                Self {
-                    inner: T::$default(),
-                }
-            }
-        }
-        impl<T: Element> Display for $outer<T> {
-            fn fmt(&self, _f: &mut Formatter<'_>) -> fmt::Result {
-                todo!()
-            }
-        }
-        impl<T: Element> VecN for $outer<T> {
-            type T = T;
-            const N: usize = $n;
-        }
-    };
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Vec2<T: Element> {
+    inner: T::InnerVec2,
 }
-vecn!(Vec2(InnerVec2): 2, default_vec2);
-vecn!(Vec3(InnerVec3): 3, default_vec3);
-vecn!(Vec4(InnerVec4): 4, default_vec4);
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Vec3<T: Element> {
+    inner: T::InnerVec3,
+}
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Vec4<T: Element> {
+    inner: T::InnerVec4,
+}
+
+impl<T: Element> VecN<T, 2> for Vec2<T> {}
+impl<T: Element> VecN<T, 3> for Vec3<T> {}
+impl<T: Element> VecN<T, 4> for Vec4<T> {}
+
+impl<T: Element> Seal for Vec2<T> {}
+impl<T: Element> Seal for Vec3<T> {}
+impl<T: Element> Seal for Vec4<T> {}
 
 type Vec1<T> = T;

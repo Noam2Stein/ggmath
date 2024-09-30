@@ -2,11 +2,11 @@ use super::*;
 
 trait Seal {}
 
-pub trait VecSplit {
-    type Output: VecN;
+pub trait VecSplit<T: Element, const N: usize> {
+    type Output: VecN<T, N>;
     fn into_vec(self) -> Self::Output;
 }
-impl<V: VecN> VecSplit for V {
+impl<T: Element, const N: usize, V: VecN<T, N>> VecSplit<T, N> for V {
     type Output = V;
     fn into_vec(self) -> Self::Output {
         self
@@ -15,14 +15,14 @@ impl<V: VecN> VecSplit for V {
 
 macro_rules! vec_splits {
     (
-        $output:ident:
+        $output:ident($n:literal):
         $(
             ($($vec:ident), * $(,)?)($fn:ident)
         ), *
         $(,)?
     ) => {
         $(
-            impl<T: Element> VecSplit for ($($vec<T>), *) {
+            impl<T: Element> VecSplit<T, $n> for ($($vec<T>), *) {
                 type Output = $output<T>;
                 fn into_vec(self) -> Self::Output {
                     Self::Output {
@@ -34,17 +34,17 @@ macro_rules! vec_splits {
     };
 }
 vec_splits!(
-    Vec2:
+    Vec2(2):
     (Vec1, Vec1)(from_x_y),
 );
 vec_splits!(
-    Vec3:
+    Vec3(3):
     (Vec1, Vec1, Vec1)(from_x_y_z),
     (Vec2, Vec1)(from_xy_z),
     (Vec1, Vec2)(from_x_yz),
 );
 vec_splits!(
-    Vec4:
+    Vec4(4):
     (Vec1, Vec1, Vec1, Vec1)(from_x_y_z_w),
     (Vec2, Vec1, Vec1)(from_xy_z_w),
     (Vec1, Vec2, Vec1)(from_x_yz_w),
