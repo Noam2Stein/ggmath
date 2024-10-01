@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 
 mod element;
+mod vec;
 
 macro_rules! export {
     ($($path:ident)::* => $ident:ident) => {
@@ -12,3 +13,4 @@ macro_rules! export {
 }
 
 export!(element => impl_element_inner_vecs);
+export!(vec::get => impl_vec_cget_shortnames);

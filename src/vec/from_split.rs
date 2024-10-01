@@ -64,19 +64,19 @@ vec_splits!(
 vec_splits!(
     Vec3(3):
     (Vec1, Vec1, Vec1) self => Self::Output::from_array([self.0, self.1, self.2]),
-    (Vec2, Vec1) self => Self::Output::from_array([self.0.x(), self.0.y(), self.1]),
-    (Vec1, Vec2) self => Self::Output::from_array([self.0, self.1.x(), self.1.y()]),
+    (Vec2, Vec1) self => Self::Output::from_array([self.0[0], self.0[1], self.1]),
+    (Vec1, Vec2) self => Self::Output::from_array([self.0, self.1[0], self.1[1]]),
     (Vec3) self => self,
 );
 vec_splits!(
     Vec4(4):
     (Vec1, Vec1, Vec1, Vec1) self => Self::Output::from_array([self.0, self.1, self.2, self.3]),
-    (Vec2, Vec1, Vec1) self => Self::Output::from_array([self.0.x(), self.0.y(), self.1, self.2]),
-    (Vec1, Vec2, Vec1) self => Self::Output::from_array([self.0, self.1.x(), self.1.y(), self.2]),
-    (Vec1, Vec1, Vec2) self => Self::Output::from_array([self.0, self.1, self.2.x(), self.2.y()]),
-    (Vec2, Vec2) self => Self::Output::from_array([self.0.x(), self.0.y(), self.1.x(), self.1.y()]),
-    (Vec3, Vec1) self => Self::Output::from_array([self.0.x(), self.0.y(), self.0.z(), self.1]),
-    (Vec1, Vec3) self => Self::Output::from_array([self.0, self.1.x(), self.1.y(), self.1.z()]),
+    (Vec2, Vec1, Vec1) self => Self::Output::from_array([self.0[0], self.0[1], self.1, self.2]),
+    (Vec1, Vec2, Vec1) self => Self::Output::from_array([self.0, self.1[0], self.1[1], self.2]),
+    (Vec1, Vec1, Vec2) self => Self::Output::from_array([self.0, self.1, self.2[0], self.2[1]]),
+    (Vec2, Vec2) self => Self::Output::from_array([self.0[0], self.0[1], self.1[0], self.1[1]]),
+    (Vec3, Vec1) self => Self::Output::from_array([self.0[0], self.0[1], self.0[2], self.1]),
+    (Vec1, Vec3) self => Self::Output::from_array([self.0, self.1[0], self.1[1], self.1[2]]),
     (Vec4) self => self,
 );
 

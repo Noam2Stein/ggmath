@@ -1,58 +1,109 @@
+use gomath_proc_macros::impl_vec_cget_shortnames;
+
 use super::*;
 
+impl_vec_cget_shortnames!(Vec2: x, y);
+impl_vec_cget_shortnames!(Vec3: x, y, z);
+impl_vec_cget_shortnames!(Vec4: x, y, z, w);
+
 pub trait ElementVecGet: ElementInnerVecs {
-    fn vec2_x(value: Self::InnerVec2) -> Self;
-    fn vec2_y(value: Self::InnerVec2) -> Self;
+    fn vec2_cget<const X: usize>(value: Self::InnerVec2) -> Self;
+    fn vec2_cget2<const X: usize, const Y: usize>(value: Self::InnerVec2) -> Self::InnerVec2;
+    fn vec2_cget3<const X: usize, const Y: usize, const Z: usize>(
+        value: Self::InnerVec2,
+    ) -> Self::InnerVec3;
+    fn vec2_cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
+        value: Self::InnerVec2,
+    ) -> Self::InnerVec4;
 
-    fn vec3_x(value: Self::InnerVec3) -> Self;
-    fn vec3_y(value: Self::InnerVec3) -> Self;
-    fn vec3_z(value: Self::InnerVec3) -> Self;
+    fn vec3_cget<const X: usize>(value: Self::InnerVec3) -> Self;
+    fn vec3_cget2<const X: usize, const Y: usize>(value: Self::InnerVec3) -> Self::InnerVec2;
+    fn vec3_cget3<const X: usize, const Y: usize, const Z: usize>(
+        value: Self::InnerVec3,
+    ) -> Self::InnerVec3;
+    fn vec3_cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
+        value: Self::InnerVec3,
+    ) -> Self::InnerVec4;
 
-    fn vec4_x(value: Self::InnerVec4) -> Self;
-    fn vec4_y(value: Self::InnerVec4) -> Self;
-    fn vec4_z(value: Self::InnerVec4) -> Self;
-    fn vec4_w(value: Self::InnerVec4) -> Self;
+    fn vec4_cget<const X: usize>(value: Self::InnerVec4) -> Self;
+    fn vec4_cget2<const X: usize, const Y: usize>(value: Self::InnerVec4) -> Self::InnerVec2;
+    fn vec4_cget3<const X: usize, const Y: usize, const Z: usize>(
+        value: Self::InnerVec4,
+    ) -> Self::InnerVec3;
+    fn vec4_cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
+        value: Self::InnerVec4,
+    ) -> Self::InnerVec4;
 }
 
 impl<T: Element> Vec2<T> {
     #[inline(always)]
-    pub fn x(self) -> T {
-        T::vec2_x(self.inner)
+    pub fn cget<const X: usize>(self) -> T {
+        T::vec2_cget::<X>(self.inner)
     }
     #[inline(always)]
-    pub fn y(self) -> T {
-        T::vec2_y(self.inner)
+    pub fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
+        Vec2 {
+            inner: T::vec2_cget2::<X, Y>(self.inner),
+        }
+    }
+    #[inline(always)]
+    pub fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
+        Vec3 {
+            inner: T::vec2_cget3::<X, Y, Z>(self.inner),
+        }
+    }
+    #[inline(always)]
+    pub fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
+        Vec4 {
+            inner: T::vec2_cget4::<X, Y, Z, W>(self.inner),
+        }
     }
 }
 impl<T: Element> Vec3<T> {
     #[inline(always)]
-    pub fn x(self) -> T {
-        T::vec3_x(self.inner)
+    pub fn cget<const X: usize>(self) -> T {
+        T::vec3_cget::<X>(self.inner)
     }
     #[inline(always)]
-    pub fn y(self) -> T {
-        T::vec3_y(self.inner)
+    pub fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
+        Vec2 {
+            inner: T::vec3_cget2::<X, Y>(self.inner),
+        }
     }
     #[inline(always)]
-    pub fn z(self) -> T {
-        T::vec3_z(self.inner)
+    pub fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
+        Vec3 {
+            inner: T::vec3_cget3::<X, Y, Z>(self.inner),
+        }
+    }
+    #[inline(always)]
+    pub fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
+        Vec4 {
+            inner: T::vec3_cget4::<X, Y, Z, W>(self.inner),
+        }
     }
 }
 impl<T: Element> Vec4<T> {
     #[inline(always)]
-    pub fn x(self) -> T {
-        T::vec4_x(self.inner)
+    pub fn cget<const X: usize>(self) -> T {
+        T::vec4_cget::<X>(self.inner)
     }
     #[inline(always)]
-    pub fn y(self) -> T {
-        T::vec4_y(self.inner)
+    pub fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
+        Vec2 {
+            inner: T::vec4_cget2::<X, Y>(self.inner),
+        }
     }
     #[inline(always)]
-    pub fn z(self) -> T {
-        T::vec4_z(self.inner)
+    pub fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
+        Vec3 {
+            inner: T::vec4_cget3::<X, Y, Z>(self.inner),
+        }
     }
     #[inline(always)]
-    pub fn w(self) -> T {
-        T::vec4_w(self.inner)
+    pub fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
+        Vec4 {
+            inner: T::vec4_cget4::<X, Y, Z, W>(self.inner),
+        }
     }
 }
