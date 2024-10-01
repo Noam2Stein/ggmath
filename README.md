@@ -1,49 +1,30 @@
-# ggmath
-a **g**eneric-**g**ames-**math** crate which is flexible and heavily optimized.
+*** everything here is unfinished and not ready for production, and anything mentioned in the README may not be implemented yet. ***
 
-This crate exists because the existing math-libraries had these missing features:
+[Trello board](https://trello.com/b/6NH6VXTh/gomath)
 
-* generic types with SIMD support.
-* both column-major and row-major matricies.
+# gomath - generic-optimized-math
+a generic, optimized, math rust-crate for games and graphics, that is flexible to be compatible with any crate's needs.
+
+advantages:
+* generic types that are optimized with SIMD with no unsafe features like effects
+* size & alignment guarentees designed to work well with the gpu
+* both column-major and row-major matricies
+
+disadvantages:
+* const contexts - operations in const contexts are not supported on stable rust because of the const-traits feature.
 
 ## Features
 
-* the core of this crate contains vectors, matricies and quaternions. other data-types that are useful in game-development are optional features.
+core features:
+* elements: primitives
+* vectors: Vec(2-4)<T: Element>
+* matricies: Mat(2-4)x(2-4)<T: Element>
+* quaternion: Quat<T: ElementFloat>
 
-### Data-Types
+optional features:
+* rectangles: Rect(2-4) - { min, size }
+* bounds: Bounds(2-4) - { center, extents }
+* rays: Ray(2-4)
 
-* Vectors: Vec2, Vec3, Vec4 - generic over T: Element.
-* Matricies: Mat3, Mat4 - generic over T: Element.
-* Quat - generic over T: Float.
-
-### Traits
-
-the 'Element' trait represents types that can be stored inside the crate's data types.
-'Element' is implemented by the bool, uint, int and float types.
-
-each 'Element' has its own internal implementation of vector fns, for example: on supported platforms, the f32 'Element' uses SIMD vectors, and it's implementation of vector fns like addition and swizzle use swizzle to be more perforant.
-
-'Element' has sub-traits which add more constraints over the type and allow data-types to implement more functions.
-
-* Num: Element.
-* SignedNum: Num.
-* UnsignedNum: Num.
-* Int: Num.
-* Float: SignedNum.
-* SignedInt: SignedNum + Int.
-* UnsignedInt: UnsignedNum + Int.
-
-### Matricies
-
-Matricies can be represented either as column-major or row-major, and each variant is in a different module ('cm', 'rm').
-
-Both of these variations implement matrix-traits that allow code to be generic over how matricies are stored.
-for example a function that takes in a matrix could use 'impl Mat3' instead of 'cm::Mat3' or 'rm::Mat3'.
-
-### Vector-Swizzle
-
-* swizzle - getter.
-* set_swizzle - sets the given components using a mutable reference.
-* with_swizzle - returns a copy of self with the given components set.
-* swizzle_mut - returns a reference (or multiple split references) to a continuous sub-section of the vector.
-* constructor swizzle (building a vector out of existing vectors. for example: vec4((1.0, vec2((2.0, 3.0)), 4.0))).
+nightly optional features:
+* const - operations in const contexts
