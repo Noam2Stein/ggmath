@@ -6,6 +6,13 @@ impl_vec_cget_shortnames!(Vec2: x, y);
 impl_vec_cget_shortnames!(Vec3: x, y, z);
 impl_vec_cget_shortnames!(Vec4: x, y, z, w);
 
+pub trait VecNCGet<T: Element, const N: usize> {
+    fn cget<const X: usize>(self) -> T;
+    fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T>;
+    fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T>;
+    fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T>;
+}
+
 pub trait ElementVecGet: ElementInnerVecs {
     fn vec2_cget<const X: usize>(value: Self::InnerVec2) -> Self;
     fn vec2_cget2<const X: usize, const Y: usize>(value: Self::InnerVec2) -> Self::InnerVec2;
@@ -35,73 +42,73 @@ pub trait ElementVecGet: ElementInnerVecs {
     ) -> Self::InnerVec4;
 }
 
-impl<T: Element> Vec2<T> {
+impl<T: Element> VecNCGet<T, 2> for Vec2<T> {
     #[inline(always)]
-    pub fn cget<const X: usize>(self) -> T {
+    fn cget<const X: usize>(self) -> T {
         T::vec2_cget::<X>(self.inner)
     }
     #[inline(always)]
-    pub fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
+    fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
         Vec2 {
             inner: T::vec2_cget2::<X, Y>(self.inner),
         }
     }
     #[inline(always)]
-    pub fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
+    fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
         Vec3 {
             inner: T::vec2_cget3::<X, Y, Z>(self.inner),
         }
     }
     #[inline(always)]
-    pub fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
+    fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
         Vec4 {
             inner: T::vec2_cget4::<X, Y, Z, W>(self.inner),
         }
     }
 }
-impl<T: Element> Vec3<T> {
+impl<T: Element> VecNCGet<T, 3> for Vec3<T> {
     #[inline(always)]
-    pub fn cget<const X: usize>(self) -> T {
+    fn cget<const X: usize>(self) -> T {
         T::vec3_cget::<X>(self.inner)
     }
     #[inline(always)]
-    pub fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
+    fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
         Vec2 {
             inner: T::vec3_cget2::<X, Y>(self.inner),
         }
     }
     #[inline(always)]
-    pub fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
+    fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
         Vec3 {
             inner: T::vec3_cget3::<X, Y, Z>(self.inner),
         }
     }
     #[inline(always)]
-    pub fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
+    fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
         Vec4 {
             inner: T::vec3_cget4::<X, Y, Z, W>(self.inner),
         }
     }
 }
-impl<T: Element> Vec4<T> {
+impl<T: Element> VecNCGet<T, 4> for Vec4<T> {
     #[inline(always)]
-    pub fn cget<const X: usize>(self) -> T {
+    fn cget<const X: usize>(self) -> T {
         T::vec4_cget::<X>(self.inner)
     }
     #[inline(always)]
-    pub fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
+    fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T> {
         Vec2 {
             inner: T::vec4_cget2::<X, Y>(self.inner),
         }
     }
     #[inline(always)]
-    pub fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
+    fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T> {
         Vec3 {
             inner: T::vec4_cget3::<X, Y, Z>(self.inner),
         }
     }
     #[inline(always)]
-    pub fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
+    fn cget4<const X: usize, const Y: usize, const Z: usize, const W: usize>(self) -> Vec4<T> {
         Vec4 {
             inner: T::vec4_cget4::<X, Y, Z, W>(self.inner),
         }

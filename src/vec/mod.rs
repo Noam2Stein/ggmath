@@ -1,15 +1,15 @@
 use crate::element::*;
 
 mod array;
+mod cget;
 mod default;
 mod display;
 mod from_split;
-mod get;
 mod inner;
 pub use array::*;
+pub use cget::*;
 pub use default::*;
 pub use from_split::*;
-pub use get::*;
 pub use inner::*;
 
 trait Seal {}
@@ -24,6 +24,7 @@ pub trait VecN<T: Element, const N: usize>:
     + Default
     + std::fmt::Display
     + VecNArray<T, N>
+    + VecNCGet<T, N>
 {
 }
 
