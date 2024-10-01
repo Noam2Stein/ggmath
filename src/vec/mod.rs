@@ -5,10 +5,12 @@ mod default;
 mod display;
 mod from_split;
 mod get;
+mod inner;
 pub use array::*;
 pub use default::*;
 pub use from_split::*;
 pub use get::*;
+pub use inner::*;
 
 trait Seal {}
 
@@ -42,11 +44,6 @@ pub struct Vec4<T: Element> {
 }
 
 pub trait ElementVec: ElementInnerVecs + ElementVecDefault + ElementVecGet {}
-pub unsafe trait ElementInnerVecs {
-    type InnerVec2: std::fmt::Debug + Copy + PartialEq + PartialOrd;
-    type InnerVec3: std::fmt::Debug + Copy + PartialEq + PartialOrd;
-    type InnerVec4: std::fmt::Debug + Copy + PartialEq + PartialOrd;
-}
 
 impl<T: Element> VecN<T, 2> for Vec2<T> {}
 impl<T: Element> VecN<T, 3> for Vec3<T> {}
