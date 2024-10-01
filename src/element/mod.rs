@@ -3,7 +3,7 @@ use std::fmt::{self, Display};
 pub mod default_impl;
 mod impl_;
 
-pub use ggmath_proc_macros::impl_element_inner_vecs;
+pub use gomath_proc_macros::impl_element_inner_vecs;
 
 use crate::vec::*;
 
