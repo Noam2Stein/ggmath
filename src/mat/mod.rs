@@ -19,7 +19,7 @@ macro_rules! mat {
     ($outer:ident($inner:ident): $c:literal * $r:literal) => {
         #[repr(transparent)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-        pub struct $outer<M: MatMajor, T: Element> {
+        pub struct $outer<M: MatMajor, T: Element = f32> {
             inner: M::$inner<T>,
         }
         impl<M: MatMajor, T: Element> Seal for $outer<M, T> {}
