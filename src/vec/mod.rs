@@ -6,11 +6,13 @@ mod default;
 mod display;
 mod from_split;
 mod inner;
+mod set;
 pub use array::*;
 pub use cget::*;
 pub use default::*;
 pub use from_split::*;
 pub use inner::*;
+pub use set::*;
 
 trait Seal {}
 
@@ -25,6 +27,7 @@ pub trait VecN<T: Element, const N: usize>:
     + std::fmt::Display
     + VecNArray<T, N>
     + VecNCGet<T, N>
+    + VecNSet<T, N>
 {
 }
 

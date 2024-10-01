@@ -13,4 +13,5 @@ macro_rules! export {
 }
 
 export!(element => impl_element_inner_vecs);
-export!(vec::get => impl_vec_cget_shortnames);
+export!(vec::cget => impl_vec_cget_shortnames);
+export!(vec::set => impl_vec_set_shortnames);
