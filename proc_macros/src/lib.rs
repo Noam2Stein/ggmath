@@ -12,4 +12,3 @@ macro_rules! export {
 }
 
 export!(element => impl_element_inner_vecs);
-export!(element => impl_element_vecs_from_splits_transmute);

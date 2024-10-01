@@ -1,1 +1,5 @@
-crate::element::default_impl::impl_element_default!(i128);
+type Ty = i128;
+
+use crate::element::default_impl::*;
+
+impl ElementDefaultImpl for Ty {}

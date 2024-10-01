@@ -1,2 +1,5 @@
-use crate as ggmath;
-crate::element::default_impl::impl_element_default!(i64);
+type Ty = i64;
+
+use crate::element::default_impl::*;
+
+impl ElementDefaultImpl for Ty {}

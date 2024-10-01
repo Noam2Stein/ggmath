@@ -1,9 +1,5 @@
-use crate::{
-    self as ggmath,
-    element::{default_impl::*, *},
-};
-
 type Ty = bool;
 
-impl Element for Ty {}
+use crate::element::default_impl::*;
+
 impl ElementDefaultImpl for Ty {}

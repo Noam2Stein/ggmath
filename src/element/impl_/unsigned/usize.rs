@@ -1,1 +1,5 @@
-crate::element::default_impl::impl_element_default!(usize);
+type Ty = usize;
+
+use crate::element::default_impl::*;
+
+impl ElementDefaultImpl for Ty {}

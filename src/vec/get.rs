@@ -1,5 +1,19 @@
 use super::*;
 
+pub trait ElementVecGet: ElementInnerVecs {
+    fn vec2_x(value: Self::InnerVec2) -> Self;
+    fn vec2_y(value: Self::InnerVec2) -> Self;
+
+    fn vec3_x(value: Self::InnerVec3) -> Self;
+    fn vec3_y(value: Self::InnerVec3) -> Self;
+    fn vec3_z(value: Self::InnerVec3) -> Self;
+
+    fn vec4_x(value: Self::InnerVec4) -> Self;
+    fn vec4_y(value: Self::InnerVec4) -> Self;
+    fn vec4_z(value: Self::InnerVec4) -> Self;
+    fn vec4_w(value: Self::InnerVec4) -> Self;
+}
+
 impl<T: Element> Vec2<T> {
     #[inline(always)]
     pub fn x(self) -> T {
