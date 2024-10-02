@@ -2,6 +2,7 @@ use crate::element::*;
 
 mod array;
 mod cget;
+mod cget_mut;
 mod default;
 mod display;
 mod from_split;
@@ -9,6 +10,7 @@ mod inner;
 mod set;
 pub use array::*;
 pub use cget::*;
+pub use cget_mut::*;
 pub use default::*;
 pub use from_split::*;
 pub use inner::*;
