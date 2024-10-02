@@ -4,18 +4,12 @@ use super::*;
 
 impl<T: Element> Display for Vec2<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {})", self.cget::<0>(), self.cget::<1>())
+        write!(f, "({}, {})", self.x(), self.y())
     }
 }
 impl<T: Element> Display for Vec3<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "({}, {}, {})",
-            self.cget::<0>(),
-            self.cget::<1>(),
-            self.cget::<2>()
-        )
+        write!(f, "({}, {}, {})", self.x(), self.y(), self.z())
     }
 }
 impl<T: Element> Display for Vec4<T> {
@@ -23,10 +17,10 @@ impl<T: Element> Display for Vec4<T> {
         write!(
             f,
             "({}, {}, {}, {})",
-            self.cget::<0>(),
-            self.cget::<1>(),
-            self.cget::<2>(),
-            self.cget::<3>()
+            self.x(),
+            self.y(),
+            self.z(),
+            self.w()
         )
     }
 }

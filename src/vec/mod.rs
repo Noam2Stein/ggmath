@@ -3,18 +3,20 @@ use crate::element::*;
 mod array;
 mod cget;
 mod cget_mut;
+mod cset;
+mod cwith;
 mod default;
 mod display;
 mod from_split;
 mod inner;
-mod set;
 pub use array::*;
 pub use cget::*;
 pub use cget_mut::*;
+pub use cset::*;
+pub use cwith::*;
 pub use default::*;
 pub use from_split::*;
 pub use inner::*;
-pub use set::*;
 
 trait Seal {}
 
@@ -29,7 +31,9 @@ pub trait VecN<T: Element, const N: usize>:
     + std::fmt::Display
     + VecNArray<T, N>
     + VecNCGet<T, N>
-    + VecNSet<T, N>
+    + VecNCGetMut<T, N>
+    + VecNCWith<T, N>
+    + VecNCSet<T, N>
 {
 }
 
@@ -49,7 +53,10 @@ pub struct Vec4<T: Element = f32> {
     inner: T::InnerVec4,
 }
 
-pub trait ElementVec: ElementInnerVecs + ElementVecDefault + ElementVecGet {}
+pub trait ElementVec:
+    ElementInnerVecs + ElementVecDefault + ElementVecGet + ElementVecWith
+{
+}
 
 impl<T: Element> VecN<T, 2> for Vec2<T> {}
 impl<T: Element> VecN<T, 3> for Vec3<T> {}

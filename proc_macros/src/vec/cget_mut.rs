@@ -3,15 +3,15 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{parse_macro_input, punctuated::Punctuated, Ident, Token, Type};
 
-pub fn impl_vec_cget_mut_shortnames(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn vec_cget_mut_wrappers(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     struct SplitItem {
-        space: usize,
+        start: usize,
         len: usize,
         s: String,
     }
     impl SplitItem {
-        fn taken_space(&self) -> usize {
-            self.space + self.len
+        fn end(&self) -> usize {
+            self.start + self.len
         }
         fn output_ty(&self) -> TokenStream {
             match self.len {
@@ -33,82 +33,79 @@ pub fn impl_vec_cget_mut_shortnames(tokens: proc_macro::TokenStream) -> proc_mac
                 ),
                 Span::call_site(),
             );
-            let space = self.space;
+            let space = self.start;
             quote! {
                 self.#fn_ident::<#space>()
             }
         }
     }
     fn push_fns(components: &Box<[Ident]>, split: &mut Vec<SplitItem>, fns: &mut TokenStream) {
-        let left_len =
-            components.len() - split.iter().map(|item| item.taken_space()).sum::<usize>();
-        if left_len > 0 {
-            for space in 0..left_len {
-                for len in 1..left_len - space + 1 {
-                    split.push(SplitItem {
-                        space,
-                        len,
-                        s: components[components.len() - left_len + space
-                            ..components.len() - left_len + space + len]
-                            .iter()
-                            .map(|c| c.to_string())
-                            .collect(),
-                    });
+        for start in split.last().map_or(0, |last| last.end())..components.len() {
+            for len in 1..components.len() - start + 1 {
+                split.push(SplitItem {
+                    start,
+                    len,
+                    s: components[start..start + len]
+                        .iter()
+                        .map(|c| c.to_string())
+                        .collect(),
+                });
 
-                    fns.extend({
-                        let fn_ident = Ident::new(
-                            &format!(
-                                "{}_mut",
-                                split
-                                    .iter()
-                                    .map(|item| item.s.as_str())
-                                    .collect::<Box<[&str]>>()
-                                    .join("_")
-                            ),
-                            Span::call_site(),
-                        );
-                        let fn_output_ty = match split.as_slice() {
-                            [only_item] => only_item.output_ty(),
-                            split => {
-                                let item_output_tys = split.iter().map(|item| item.output_ty());
-                                quote! {
-                                    (#(#item_output_tys), *)
-                                }
+                fns.extend({
+                    let fn_ident = Ident::new(
+                        &format!(
+                            "{}_mut",
+                            split
+                                .iter()
+                                .map(|item| item.s.as_str())
+                                .collect::<Box<[&str]>>()
+                                .join("_")
+                        ),
+                        Span::call_site(),
+                    );
+                    let fn_output_ty = match split.as_slice() {
+                        [only_item] => only_item.output_ty(),
+                        split => {
+                            let item_output_tys = split.iter().map(|item| item.output_ty());
+                            quote! {
+                                (#(#item_output_tys), *)
                             }
-                        };
-                        let fn_call = match split.as_slice() {
-                            [only_item] => only_item.only_item_fn_call(),
-                            split => {
-                                let call_fn_ident = Ident::new(
-                                    &format!(
-                                        "cget_mut_{}",
-                                        split
-                                            .iter()
-                                            .map(|item| item.len.to_string())
-                                            .collect::<Box<[String]>>()
-                                            .join("_")
-                                    ),
-                                    Span::call_site(),
-                                );
-                                let spaces = split.iter().map(|item| item.space);
-                                quote! {
-                                    self.#call_fn_ident::<#(#spaces), *>()
-                                }
+                        }
+                    };
+                    let fn_call = match split.as_slice() {
+                        [only_item] => only_item.only_item_fn_call(),
+                        split => {
+                            let call_fn_ident = Ident::new(
+                                &format!(
+                                    "cget_mut_{}",
+                                    split
+                                        .iter()
+                                        .map(|item| item.len.to_string())
+                                        .collect::<Box<[String]>>()
+                                        .join("_")
+                                ),
+                                Span::call_site(),
+                            );
+                            let spaces = split.iter().map(|item| item.start);
+                            quote! {
+                                self.#call_fn_ident::<#(#spaces), *>()
                             }
-                        };
+                        }
+                    };
 
-                        quote! {
-                            #[inline(always)]
-                            pub fn #fn_ident(&mut self) -> #fn_output_ty {
+                    quote! {
+                        #[inline(always)]
+                        pub fn #fn_ident(&mut self) -> #fn_output_ty {
+                            unsafe {
                                 #fn_call
                             }
                         }
-                    });
+                    }
+                });
 
-                    push_fns(components, split, fns);
+                push_fns(components, split, fns);
 
-                    split.pop();
-                }
+                split.pop();
             }
         }
     }

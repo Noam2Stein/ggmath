@@ -3,7 +3,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, punctuated::Punctuated, Ident, Token, Type};
 
-pub fn vec_cget_wrappers(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn vec_cwith_wrappers(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Parse)]
     struct Input {
         t: Type,
@@ -18,29 +18,29 @@ pub fn vec_cget_wrappers(tokens: proc_macro::TokenStream) -> proc_macro::TokenSt
 
     for x in 0..components.len() {
         fns.extend({
-            let ident = components[x].clone();
+            let ident = Ident::new(&format!("with_{}", components[x]), components[x].span());
             quote! {
                 #[inline(always)]
-                pub fn #ident(self) -> T {
+                pub fn #ident(self, value: T) -> Self {
                     unsafe {
-                        self.cget::<#x>()
+                        self.cwith::<#x>(value)
                     }
                 }
             }
         });
     }
     for x in 0..components.len() {
-        for y in 0..components.len() {
+        for y in (0..components.len()).filter(|y| *y != x) {
             fns.extend({
                 let ident = Ident::new(
-                    &format!("{}{}", components[x], components[y]),
+                    &format!("with_{}{}", components[x], components[y]),
                     components[x].span(),
                 );
                 quote! {
                     #[inline(always)]
-                    pub fn #ident(self) -> Vec2<T> {
+                    pub fn #ident(self, value: Vec2<T>) -> Self {
                         unsafe {
-                            self.cget2::<#x, #y>()
+                            self.cwith2::<#x, #y>(value)
                         }
                     }
                 }
@@ -48,18 +48,18 @@ pub fn vec_cget_wrappers(tokens: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
     }
     for x in 0..components.len() {
-        for y in 0..components.len() {
-            for z in 0..components.len() {
+        for y in (0..components.len()).filter(|y| *y != x) {
+            for z in (0..components.len()).filter(|z| *z != x && *z != y) {
                 fns.extend({
                     let ident = Ident::new(
-                        &format!("{}{}{}", components[x], components[y], components[z]),
+                        &format!("with_{}{}{}", components[x], components[y], components[z]),
                         components[x].span(),
                     );
                     quote! {
                         #[inline(always)]
-                        pub fn #ident(self) -> Vec3<T> {
+                        pub fn #ident(self, value: Vec3<T>) -> Self {
                             unsafe {
-                                self.cget3::<#x, #y, #z>()
+                                self.cwith3::<#x, #y, #z>(value)
                             }
                         }
                     }
@@ -68,22 +68,22 @@ pub fn vec_cget_wrappers(tokens: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
     }
     for x in 0..components.len() {
-        for y in 0..components.len() {
-            for z in 0..components.len() {
-                for w in 0..components.len() {
+        for y in (0..components.len()).filter(|y| *y != x) {
+            for z in (0..components.len()).filter(|z| *z != x && *z != y) {
+                for w in (0..components.len()).filter(|w| *w != x && *w != y && *w != z) {
                     fns.extend({
                         let ident = Ident::new(
                             &format!(
-                                "{}{}{}{}",
+                                "with_{}{}{}{}",
                                 components[x], components[y], components[z], components[w]
                             ),
                             components[x].span(),
                         );
                         quote! {
                             #[inline(always)]
-                            pub fn #ident(self) -> Vec4<T> {
+                            pub fn #ident(self, value: Vec4<T>) -> Self {
                                 unsafe {
-                                    self.cget4::<#x, #y, #z, #w>()
+                                    self.cwith4::<#x, #y, #z, #w>(value)
                                 }
                             }
                         }

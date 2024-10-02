@@ -3,7 +3,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, punctuated::Punctuated, Ident, Token, Type};
 
-pub fn impl_vec_set_shortnames(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn vec_cset_wrappers(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Parse)]
     struct Input {
         t: Type,
@@ -22,7 +22,9 @@ pub fn impl_vec_set_shortnames(tokens: proc_macro::TokenStream) -> proc_macro::T
             quote! {
                 #[inline(always)]
                 pub fn #ident(&mut self, value: T) {
-                    self.set::<#x>(value)
+                    unsafe {
+                        self.cset::<#x>(value)
+                    }
                 }
             }
         });
@@ -37,7 +39,9 @@ pub fn impl_vec_set_shortnames(tokens: proc_macro::TokenStream) -> proc_macro::T
                 quote! {
                     #[inline(always)]
                     pub fn #ident(&mut self, value: Vec2<T>) {
-                        self.set2::<#x, #y>(value)
+                        unsafe {
+                            self.cset2::<#x, #y>(value)
+                        }
                     }
                 }
             });
@@ -54,7 +58,9 @@ pub fn impl_vec_set_shortnames(tokens: proc_macro::TokenStream) -> proc_macro::T
                     quote! {
                         #[inline(always)]
                         pub fn #ident(&mut self, value: Vec3<T>) {
-                            self.set3::<#x, #y, #z>(value)
+                            unsafe {
+                                self.cset3::<#x, #y, #z>(value)
+                            }
                         }
                     }
                 });
@@ -76,7 +82,9 @@ pub fn impl_vec_set_shortnames(tokens: proc_macro::TokenStream) -> proc_macro::T
                         quote! {
                             #[inline(always)]
                             pub fn #ident(&mut self, value: Vec4<T>) {
-                                self.set4::<#x, #y, #z, #w>(value)
+                                unsafe {
+                                    self.cset4::<#x, #y, #z, #w>(value)
+                                }
                             }
                         }
                     });
