@@ -1,6 +1,6 @@
 use super::*;
 
-impl<T: ElementDefaultImpl> ElementVecWith for T {
+impl<T: ElementDefaultImpl> ElementVecConstWith for T {
     #[inline(always)]
     unsafe fn vec2_cwith<const X: usize>(mut vec: Self::InnerVec2, value: Self) -> Self::InnerVec2 {
         *vec.get_unchecked_mut(X) = value;

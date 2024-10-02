@@ -26,23 +26,6 @@ pub trait VecNArray<T: Element, const N: usize>:
     fn as_array_mut(&mut self) -> &mut [T; N] {
         unsafe { transmute(self) }
     }
-
-    #[inline(always)]
-    fn get<I: SliceIndex<[T]>>(&self, index: I) -> Option<&I::Output> {
-        self.as_array().get(index)
-    }
-    #[inline(always)]
-    fn get_mut<I: SliceIndex<[T]>>(&mut self, index: I) -> Option<&mut I::Output> {
-        self.as_array_mut().get_mut(index)
-    }
-    #[inline(always)]
-    unsafe fn get_unchecked<I: SliceIndex<[T]>>(&self, index: I) -> &I::Output {
-        self.as_array().get_unchecked(index)
-    }
-    #[inline(always)]
-    unsafe fn get_unchecked_mut<I: SliceIndex<[T]>>(&mut self, index: I) -> &mut I::Output {
-        self.as_array_mut().get_unchecked_mut(index)
-    }
 }
 
 impl<T: Element> VecNArray<T, 2> for Vec2<T> {

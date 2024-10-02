@@ -6,7 +6,7 @@ vec_cwith_wrappers!(Vec2: x, y);
 vec_cwith_wrappers!(Vec3: x, y, z);
 vec_cwith_wrappers!(Vec4: x, y, z, w);
 
-pub trait VecNCWith<T: Element, const N: usize> {
+pub trait VecNConstWith<T: Element, const N: usize> {
     unsafe fn cwith<const X: usize>(self, value: T) -> Self;
     unsafe fn cwith2<const X: usize, const Y: usize>(self, value: Vec2<T>) -> Self;
     unsafe fn cwith3<const X: usize, const Y: usize, const Z: usize>(self, value: Vec3<T>) -> Self;
@@ -16,7 +16,7 @@ pub trait VecNCWith<T: Element, const N: usize> {
     ) -> Self;
 }
 
-pub trait ElementVecWith: ElementInnerVecs {
+pub trait ElementVecConstWith: ElementVecInner {
     unsafe fn vec2_cwith<const X: usize>(vec: Self::InnerVec2, value: Self) -> Self::InnerVec2;
     unsafe fn vec2_cwith2<const X: usize, const Y: usize>(
         vec: Self::InnerVec2,
@@ -48,7 +48,7 @@ pub trait ElementVecWith: ElementInnerVecs {
     ) -> Self::InnerVec4;
 }
 
-impl<T: Element> VecNCWith<T, 2> for Vec2<T> {
+impl<T: Element> VecNConstWith<T, 2> for Vec2<T> {
     #[inline(always)]
     unsafe fn cwith<const X: usize>(self, value: T) -> Self {
         Self {
@@ -76,7 +76,7 @@ impl<T: Element> VecNCWith<T, 2> for Vec2<T> {
         panic!("'with4' can't be performed on a vec2 (4 > 2)")
     }
 }
-impl<T: Element> VecNCWith<T, 3> for Vec3<T> {
+impl<T: Element> VecNConstWith<T, 3> for Vec3<T> {
     #[inline(always)]
     unsafe fn cwith<const X: usize>(self, value: T) -> Self {
         Self {
@@ -103,7 +103,7 @@ impl<T: Element> VecNCWith<T, 3> for Vec3<T> {
         panic!("'with4' can't be performed on a vec3 (4 > 3)")
     }
 }
-impl<T: Element> VecNCWith<T, 4> for Vec4<T> {
+impl<T: Element> VecNConstWith<T, 4> for Vec4<T> {
     #[inline(always)]
     unsafe fn cwith<const X: usize>(self, value: T) -> Self {
         Self {

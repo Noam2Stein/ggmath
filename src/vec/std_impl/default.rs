@@ -1,6 +1,6 @@
 use super::*;
 
-pub trait ElementVecDefault: ElementInnerVecs {
+pub trait ElementVecDefault: ElementVecInner {
     fn default_vec2() -> Self::InnerVec2;
     fn default_vec3() -> Self::InnerVec3;
     fn default_vec4() -> Self::InnerVec4;

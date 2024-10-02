@@ -6,7 +6,7 @@ vec_cget_wrappers!(Vec2: x, y);
 vec_cget_wrappers!(Vec3: x, y, z);
 vec_cget_wrappers!(Vec4: x, y, z, w);
 
-pub trait VecNCGet<T: Element, const N: usize> {
+pub trait VecNConstGet<T: Element, const N: usize> {
     unsafe fn cget<const X: usize>(self) -> T;
     unsafe fn cget2<const X: usize, const Y: usize>(self) -> Vec2<T>;
     unsafe fn cget3<const X: usize, const Y: usize, const Z: usize>(self) -> Vec3<T>;
@@ -15,7 +15,7 @@ pub trait VecNCGet<T: Element, const N: usize> {
     ) -> Vec4<T>;
 }
 
-pub trait ElementVecGet: ElementInnerVecs {
+pub trait ElementVecConstGet: ElementVecInner {
     unsafe fn vec2_cget<const X: usize>(value: Self::InnerVec2) -> Self;
     unsafe fn vec2_cget2<const X: usize, const Y: usize>(value: Self::InnerVec2)
         -> Self::InnerVec2;
@@ -47,7 +47,7 @@ pub trait ElementVecGet: ElementInnerVecs {
     ) -> Self::InnerVec4;
 }
 
-impl<T: Element> VecNCGet<T, 2> for Vec2<T> {
+impl<T: Element> VecNConstGet<T, 2> for Vec2<T> {
     #[inline(always)]
     unsafe fn cget<const X: usize>(self) -> T {
         T::vec2_cget::<X>(self.inner)
@@ -73,7 +73,7 @@ impl<T: Element> VecNCGet<T, 2> for Vec2<T> {
         }
     }
 }
-impl<T: Element> VecNCGet<T, 3> for Vec3<T> {
+impl<T: Element> VecNConstGet<T, 3> for Vec3<T> {
     #[inline(always)]
     unsafe fn cget<const X: usize>(self) -> T {
         T::vec3_cget::<X>(self.inner)
@@ -99,7 +99,7 @@ impl<T: Element> VecNCGet<T, 3> for Vec3<T> {
         }
     }
 }
-impl<T: Element> VecNCGet<T, 4> for Vec4<T> {
+impl<T: Element> VecNConstGet<T, 4> for Vec4<T> {
     #[inline(always)]
     unsafe fn cget<const X: usize>(self) -> T {
         T::vec4_cget::<X>(self.inner)

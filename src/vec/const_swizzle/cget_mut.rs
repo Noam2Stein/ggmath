@@ -8,7 +8,7 @@ vec_cget_mut_wrappers!(Vec2: x, y);
 vec_cget_mut_wrappers!(Vec3: x, y, z);
 vec_cget_mut_wrappers!(Vec4: x, y, z, w);
 
-pub trait VecNCGetMut<T: Element, const N: usize>: VecNArray<T, N> {
+pub trait VecNConstGetMut<T: Element, const N: usize>: VecNGetMut<T, N> {
     unsafe fn cget_mut<const V0: usize>(&mut self) -> &mut T {
         self.get_unchecked_mut(V0)
     }
@@ -115,6 +115,6 @@ pub trait VecNCGetMut<T: Element, const N: usize>: VecNArray<T, N> {
     }
 }
 
-impl<T: Element> VecNCGetMut<T, 2> for Vec2<T> {}
-impl<T: Element> VecNCGetMut<T, 3> for Vec3<T> {}
-impl<T: Element> VecNCGetMut<T, 4> for Vec4<T> {}
+impl<T: Element> VecNConstGetMut<T, 2> for Vec2<T> {}
+impl<T: Element> VecNConstGetMut<T, 3> for Vec3<T> {}
+impl<T: Element> VecNConstGetMut<T, 4> for Vec4<T> {}

@@ -6,7 +6,7 @@ vec_cset_wrappers!(Vec2: x, y);
 vec_cset_wrappers!(Vec3: x, y, z);
 vec_cset_wrappers!(Vec4: x, y, z, w);
 
-pub trait VecNCSet<T: Element, const N: usize>: VecNArray<T, N> {
+pub trait VecNConstSet<T: Element, const N: usize>: VecNGetMut<T, N> {
     unsafe fn cset<const X: usize>(&mut self, value: T) {
         *self.get_unchecked_mut(X) = value;
     }
@@ -30,6 +30,6 @@ pub trait VecNCSet<T: Element, const N: usize>: VecNArray<T, N> {
     }
 }
 
-impl<T: Element> VecNCSet<T, 2> for Vec2<T> {}
-impl<T: Element> VecNCSet<T, 3> for Vec3<T> {}
-impl<T: Element> VecNCSet<T, 4> for Vec4<T> {}
+impl<T: Element> VecNConstSet<T, 2> for Vec2<T> {}
+impl<T: Element> VecNConstSet<T, 3> for Vec3<T> {}
+impl<T: Element> VecNConstSet<T, 4> for Vec4<T> {}

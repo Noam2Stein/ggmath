@@ -14,7 +14,7 @@ macro_rules! export {
 
 export!(element => impl_element_inner_vecs);
 
-export!(vec::cget_mut => vec_cget_mut_wrappers);
-export!(vec::cget => vec_cget_wrappers);
-export!(vec::cset => vec_cset_wrappers);
-export!(vec::cwith => vec_cwith_wrappers);
+export!(vec::const_swizzle::cget_mut => vec_cget_mut_wrappers);
+export!(vec::const_swizzle::cget => vec_cget_wrappers);
+export!(vec::const_swizzle::cset => vec_cset_wrappers);
+export!(vec::const_swizzle::cwith => vec_cwith_wrappers);

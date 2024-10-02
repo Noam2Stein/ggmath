@@ -1,6 +1,6 @@
 use super::*;
 
-impl<T: ElementDefaultImpl> ElementVecGet for T {
+impl<T: ElementDefaultImpl> ElementVecConstGet for T {
     #[inline(always)]
     unsafe fn vec2_cget<const X: usize>(value: Self::InnerVec2) -> Self {
         *value.get_unchecked(X)
