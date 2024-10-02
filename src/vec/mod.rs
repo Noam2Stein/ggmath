@@ -43,6 +43,7 @@ pub trait VecN<T: Element, const N: usize>:
     + PartialOrd
     + Default
     + std::fmt::Display
+    + VecNInner
     + VecNArray<T, N>
     + VecNConstGet<T, N>
     + VecNConstGetMut<T, N>
