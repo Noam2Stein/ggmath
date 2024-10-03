@@ -6,7 +6,7 @@ fn main() {
     *vec0_ref.0 = 0;
     *vec0_ref.1 = 1;
     let mut vec0 = vec0.xz();
-    vec0 += splat2(vec3((-1, -2, vec3((1, 2, 2)).product())).sum());
+    vec0 += splat2(vec3((-1, -2, vec3((1, 2, 2)).component_dot())).component_sum());
     let vec = vec4((vec0, 3, 4));
     println!("{vec}");
 }

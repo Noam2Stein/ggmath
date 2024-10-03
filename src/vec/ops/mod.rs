@@ -5,10 +5,10 @@ use gomath_proc_macros::{assign_ops, rhs_ops, self_ops};
 use super::*;
 use crate::element::ops::*;
 
-mod product;
-mod sum;
-pub use product::*;
-pub use sum::*;
+mod component_dot;
+mod component_sum;
+pub use component_dot::*;
+pub use component_sum::*;
 
 macro_rules! self_op {
     ($vecn_trait:ident: $element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
