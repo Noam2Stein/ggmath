@@ -26,6 +26,15 @@ pub trait VecNArray<T: Element, const N: usize>:
     fn as_array_mut(&mut self) -> &mut [T; N] {
         unsafe { transmute(self) }
     }
+
+    #[inline(always)]
+    fn iter(self) -> std::array::IntoIter<T, N> {
+        self.into_array().into_iter()
+    }
+    #[inline(always)]
+    fn iter_mut(&mut self) -> std::slice::IterMut<T> {
+        self.as_array_mut().iter_mut()
+    }
 }
 
 impl<T: Element> VecNArray<T, 2> for Vec2<T> {
