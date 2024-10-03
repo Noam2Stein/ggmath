@@ -40,6 +40,18 @@ pub trait VecNArray<T: Element, const N: usize>:
     fn map<OutputT: Element>(self, f: impl FnMut(T) -> OutputT) -> Self::WithT<OutputT> {
         <Self::WithT<OutputT>>::from_array(self.as_array().map(f))
     }
+    #[inline(always)]
+    fn count(self, mut f: impl FnMut(T) -> bool) -> usize {
+        self.iter().map(|c| f(c)).count()
+    }
+    #[inline(always)]
+    fn any(self, f: impl FnMut(T) -> bool) -> bool {
+        self.iter().any(f)
+    }
+    #[inline(always)]
+    fn all(self, f: impl FnMut(T) -> bool) -> bool {
+        self.iter().all(f)
+    }
 }
 
 impl<T: Element> VecNArray<T, 2> for Vec2<T> {
