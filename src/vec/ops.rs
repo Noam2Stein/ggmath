@@ -1,6 +1,6 @@
 use std::ops::*;
 
-use gomath_proc_macros::{rhs_ops, self_ops};
+use gomath_proc_macros::{assign_ops, rhs_ops, self_ops};
 
 use super::*;
 use crate::element::ops::*;
@@ -58,3 +58,27 @@ macro_rules! rhs_op {
     };
 }
 rhs_ops!(rhs_op);
+
+macro_rules! assign_op {
+    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+        impl<Rhs: Element, T: $element_trait<Rhs>> $std_trait<Vec2<Rhs>> for Vec2<T> {
+            #[inline(always)]
+            fn $std_fn(&mut self, rhs: Vec2<Rhs>) {
+                T::$vec2_fn(self, rhs)
+            }
+        }
+        impl<Rhs: Element, T: $element_trait<Rhs>> $std_trait<Vec3<Rhs>> for Vec3<T> {
+            #[inline(always)]
+            fn $std_fn(&mut self, rhs: Vec3<Rhs>) {
+                T::$vec3_fn(self, rhs)
+            }
+        }
+        impl<Rhs: Element, T: $element_trait<Rhs>> $std_trait<Vec4<Rhs>> for Vec4<T> {
+            #[inline(always)]
+            fn $std_fn(&mut self, rhs: Vec4<Rhs>) {
+                T::$vec4_fn(self, rhs)
+            }
+        }
+    };
+}
+assign_ops!(assign_op);

@@ -28,3 +28,20 @@ pub fn rhs_ops(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     }
     .into()
 }
+
+pub fn assign_ops(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let macro_ident = parse_macro_input!(tokens as Ident);
+
+    quote_spanned! {
+        macro_ident.span() =>
+        #macro_ident!(ElementAddAssign(vec2_add_assign, vec3_add_assign, vec4_add_assign): AddAssign(add_assign));
+        #macro_ident!(ElementSubAssign(vec2_sub_assign, vec3_sub_assign, vec4_sub_assign): SubAssign(sub_assign));
+        #macro_ident!(ElementMulAssign(vec2_mul_assign, vec3_mul_assign, vec4_mul_assign): MulAssign(mul_assign));
+        #macro_ident!(ElementDivAssign(vec2_div_assign, vec3_div_assign, vec4_div_assign): DivAssign(div_assign));
+        #macro_ident!(ElementRemAssign(vec2_rem_assign, vec3_rem_assign, vec4_rem_assign): RemAssign(rem_assign));
+        #macro_ident!(ElementBitAndAssign(vec2_bitand_assign, vec3_bitand_assign, vec4_bitand_assign): BitAndAssign(bitand_assign));
+        #macro_ident!(ElementBitOrAssign(vec2_bitor_assign, vec3_bitor_assign, vec4_bitor_assign): BitOrAssign(bitor_assign));
+        #macro_ident!(ElementBitXorAssign(vec2_bitxor_assign, vec3_bitxor_assign, vec4_bitxor_assign): BitXorAssign(bitxor_assign));
+    }
+    .into()
+}

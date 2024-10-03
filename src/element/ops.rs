@@ -1,6 +1,6 @@
 use std::ops::*;
 
-use gomath_proc_macros::{rhs_ops, self_ops};
+use gomath_proc_macros::{assign_ops, rhs_ops, self_ops};
 
 use super::*;
 
@@ -30,3 +30,14 @@ macro_rules! rhs_op {
     };
 }
 rhs_ops!(rhs_op);
+
+macro_rules! assign_op {
+    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+        pub trait $element_trait<Rhs: Element = Self>: Element + $std_trait<Rhs> {
+            fn $vec2_fn(vec: &mut Vec2<Self>, rhs: Vec2<Rhs>);
+            fn $vec3_fn(vec: &mut Vec3<Self>, rhs: Vec3<Rhs>);
+            fn $vec4_fn(vec: &mut Vec4<Self>, rhs: Vec4<Rhs>);
+        }
+    };
+}
+assign_ops!(assign_op);

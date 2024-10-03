@@ -22,3 +22,4 @@ export!(vec::const_swizzle::cwith => vec_cwith_wrappers);
 
 export!(ops => self_ops);
 export!(ops => rhs_ops);
+export!(ops => assign_ops);
