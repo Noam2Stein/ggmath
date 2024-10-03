@@ -6,7 +6,7 @@ fn main() {
     *vec0_ref.0 = 0;
     *vec0_ref.1 = 1;
     let mut vec0 = vec0.xz();
-    vec0 += splat2(1);
+    vec0 += splat2(0).map(|c| c + 1);
     let vec = vec4((vec0, 3, 4));
     println!("{vec}");
 }

@@ -8,6 +8,7 @@ use super::*;
 
 pub trait VecNArray<T: Element, const N: usize>:
     Sized
+    + VecNWithT<N>
     + Index<usize, Output = T>
     + IndexMut<usize>
     + Index<Range<usize>, Output = [T]>
@@ -34,6 +35,10 @@ pub trait VecNArray<T: Element, const N: usize>:
     #[inline(always)]
     fn iter_mut(&mut self) -> std::slice::IterMut<T> {
         self.as_array_mut().iter_mut()
+    }
+    #[inline(always)]
+    fn map<OutputT: Element>(self, f: impl FnMut(T) -> OutputT) -> Self::WithT<OutputT> {
+        <Self::WithT<OutputT>>::from_array(self.as_array().map(f))
     }
 }
 
