@@ -2,7 +2,7 @@ use std::fmt::{self, Display};
 
 use crate::vec::*;
 
-mod impl_;
+mod primitive_impl;
 
 pub mod default_impl;
 pub mod ops;
