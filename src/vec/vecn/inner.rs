@@ -2,6 +2,8 @@ use std::mem::{transmute, transmute_copy};
 
 use super::*;
 
+pub use gomath_proc_macros::impl_element_vec_inner;
+
 pub unsafe trait VecNInner: Sized {
     type Inner: std::fmt::Debug + Copy + PartialEq + PartialOrd;
 

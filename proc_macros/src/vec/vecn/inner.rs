@@ -2,7 +2,7 @@ use derive_syn_parse::Parse;
 use quote::{quote, quote_spanned};
 use syn::{parse_macro_input, spanned::Spanned, Token, Type};
 
-pub fn impl_element_inner_vecs(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn impl_element_vec_inner(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Parse)]
     struct Input {
         t: Type,
