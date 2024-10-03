@@ -3,7 +3,7 @@ use crate::element::*;
 mod base;
 pub use base::*;
 
-mod ops;
+pub mod ops;
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

@@ -7,7 +7,7 @@ use crate::element::ops::*;
 use super::*;
 
 macro_rules! self_op {
-    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+    ($vecn_trait:ident: $element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
         impl<T: ElementDefaultImpl + $std_trait<Output: Element>> $element_trait for T {
             #[inline(always)]
             fn $vec2_fn(vec: Vec2<Self>) -> Vec2<<Self as $std_trait>::Output> {
@@ -32,7 +32,7 @@ macro_rules! self_op {
 self_ops!(self_op);
 
 macro_rules! rhs_op {
-    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+    ($vecn_trait:ident: $element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
         impl<Rhs: Element, T: ElementDefaultImpl + $std_trait<Rhs, Output: Element>>
             $element_trait<Rhs> for T
         {
@@ -72,7 +72,7 @@ macro_rules! rhs_op {
 rhs_ops!(rhs_op);
 
 macro_rules! assign_op {
-    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+    ($vecn_trait:ident: $element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
         impl<Rhs: Element, T: ElementDefaultImpl + $std_trait<Rhs>> $element_trait<Rhs> for T {
             #[inline(always)]
             fn $vec2_fn(vec: &mut Vec2<Self>, rhs: Vec2<Rhs>) {

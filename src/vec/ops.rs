@@ -6,7 +6,15 @@ use super::*;
 use crate::element::ops::*;
 
 macro_rules! self_op {
-    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+    ($vecn_trait:ident: $element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+        pub trait $vecn_trait<T: $element_trait, const N: usize>:
+            VecN<T, N> + $std_trait<Output = Self::WithT<T::Output>>
+        {
+        }
+        impl<T: $element_trait> $vecn_trait<T, 2> for Vec2<T> {}
+        impl<T: $element_trait> $vecn_trait<T, 3> for Vec3<T> {}
+        impl<T: $element_trait> $vecn_trait<T, 4> for Vec4<T> {}
+
         impl<T: $element_trait> $std_trait for Vec2<T> {
             type Output = Vec2<T::Output>;
             #[inline(always)]
@@ -33,7 +41,15 @@ macro_rules! self_op {
 self_ops!(self_op);
 
 macro_rules! rhs_op {
-    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+    ($vecn_trait:ident: $element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+        pub trait $vecn_trait<T: $element_trait<Rhs>, const N: usize, Rhs: Element = T>:
+            VecN<T, N> + $std_trait<Self::WithT<Rhs>, Output = Self::WithT<T::Output>>
+        {
+        }
+        impl<Rhs: Element, T: $element_trait<Rhs>> $vecn_trait<T, 2, Rhs> for Vec2<T> {}
+        impl<Rhs: Element, T: $element_trait<Rhs>> $vecn_trait<T, 3, Rhs> for Vec3<T> {}
+        impl<Rhs: Element, T: $element_trait<Rhs>> $vecn_trait<T, 4, Rhs> for Vec4<T> {}
+
         impl<Rhs: Element, T: $element_trait<Rhs>> $std_trait<Vec2<Rhs>> for Vec2<T> {
             type Output = Vec2<T::Output>;
             #[inline(always)]
@@ -60,7 +76,15 @@ macro_rules! rhs_op {
 rhs_ops!(rhs_op);
 
 macro_rules! assign_op {
-    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+    ($vecn_trait:ident: $element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+        pub trait $vecn_trait<T: $element_trait<Rhs>, const N: usize, Rhs: Element = T>:
+            VecN<T, N> + $std_trait<Self::WithT<Rhs>>
+        {
+        }
+        impl<Rhs: Element, T: $element_trait<Rhs>> $vecn_trait<T, 2, Rhs> for Vec2<T> {}
+        impl<Rhs: Element, T: $element_trait<Rhs>> $vecn_trait<T, 3, Rhs> for Vec3<T> {}
+        impl<Rhs: Element, T: $element_trait<Rhs>> $vecn_trait<T, 4, Rhs> for Vec4<T> {}
+
         impl<Rhs: Element, T: $element_trait<Rhs>> $std_trait<Vec2<Rhs>> for Vec2<T> {
             #[inline(always)]
             fn $std_fn(&mut self, rhs: Vec2<Rhs>) {
