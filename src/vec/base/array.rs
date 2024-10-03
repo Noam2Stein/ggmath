@@ -42,15 +42,15 @@ pub trait VecNArray<T: Element, const N: usize>:
     }
     #[inline(always)]
     fn count(self, mut f: impl FnMut(T) -> bool) -> usize {
-        self.iter().map(|c| f(c)).count()
+        Iterator::count(self.iter().filter(|c| f(*c)))
     }
     #[inline(always)]
     fn any(self, f: impl FnMut(T) -> bool) -> bool {
-        self.iter().any(f)
+        Iterator::any(&mut self.iter(), f)
     }
     #[inline(always)]
     fn all(self, f: impl FnMut(T) -> bool) -> bool {
-        self.iter().all(f)
+        Iterator::all(&mut self.iter(), f)
     }
 }
 
