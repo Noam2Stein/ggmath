@@ -1,8 +1,19 @@
 use std::ops::*;
 
-use gomath_proc_macros::rhs_ops;
+use gomath_proc_macros::{rhs_ops, self_ops};
 
 use super::*;
+
+macro_rules! self_op {
+    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+        pub trait $element_trait: Element + $std_trait<Output: Element> {
+            fn $vec2_fn(vec: Vec2<Self>) -> Vec2<<Self as $std_trait>::Output>;
+            fn $vec3_fn(vec: Vec3<Self>) -> Vec3<<Self as $std_trait>::Output>;
+            fn $vec4_fn(vec: Vec4<Self>) -> Vec4<<Self as $std_trait>::Output>;
+        }
+    };
+}
+self_ops!(self_op);
 
 macro_rules! rhs_op {
     ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {

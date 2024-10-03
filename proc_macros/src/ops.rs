@@ -1,6 +1,17 @@
 use quote::quote_spanned;
 use syn::{parse_macro_input, Ident};
 
+pub fn self_ops(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let macro_ident = parse_macro_input!(tokens as Ident);
+
+    quote_spanned! {
+        macro_ident.span() =>
+        #macro_ident!(ElementNeg(vec2_neg, vec3_neg, vec4_neg): Neg(neg));
+        #macro_ident!(ElementNot(vec2_not, vec3_not, vec4_not): Not(not));
+    }
+    .into()
+}
+
 pub fn rhs_ops(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let macro_ident = parse_macro_input!(tokens as Ident);
 

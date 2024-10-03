@@ -1,10 +1,35 @@
 use std::ops::*;
 
-use gomath_proc_macros::rhs_ops;
+use gomath_proc_macros::{rhs_ops, self_ops};
 
 use crate::element::ops::*;
 
 use super::*;
+
+macro_rules! self_op {
+    ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
+        impl<T: ElementDefaultImpl + $std_trait<Output: Element>> $element_trait for T {
+            #[inline(always)]
+            fn $vec2_fn(vec: Vec2<Self>) -> Vec2<<Self as $std_trait>::Output> {
+                Vec2::from_array([vec.x().$std_fn(), vec.y().$std_fn()])
+            }
+            #[inline(always)]
+            fn $vec3_fn(vec: Vec3<Self>) -> Vec3<<Self as $std_trait>::Output> {
+                Vec3::from_array([vec.x().$std_fn(), vec.y().$std_fn(), vec.z().$std_fn()])
+            }
+            #[inline(always)]
+            fn $vec4_fn(vec: Vec4<Self>) -> Vec4<<Self as $std_trait>::Output> {
+                Vec4::from_array([
+                    vec.x().$std_fn(),
+                    vec.y().$std_fn(),
+                    vec.z().$std_fn(),
+                    vec.w().$std_fn(),
+                ])
+            }
+        }
+    };
+}
+self_ops!(self_op);
 
 macro_rules! rhs_op {
     ($element_trait:ident($vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident): $std_trait:ident($std_fn:ident)) => {
