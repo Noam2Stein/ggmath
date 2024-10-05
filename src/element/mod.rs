@@ -2,9 +2,9 @@ use std::fmt::{self, Display};
 
 use crate::vec::*;
 
-mod primitive_impl;
+mod impl_;
+pub use impl_::*;
 
-pub mod default_impl;
 pub mod num;
 pub mod ops;
 
