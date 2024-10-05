@@ -1,12 +1,10 @@
-use gomath::vec::{ops::*, *};
+use gomath::{element::num_traits::*, vec::*};
 
 fn main() {
-    let mut vec0 = vec3((6, 242, 5));
-    let vec0_ref = vec0.x_z_mut();
-    *vec0_ref.0 = 0;
-    *vec0_ref.1 = 1;
-    let mut vec0 = vec0.xz();
-    vec0 += splat2(vec3((-1, -2, vec3((1, 2, 2)).component_dot())).component_sum());
-    let vec = vec4((vec0, 3, 4));
-    println!("{vec}");
+    let t = test(vec2((0.5, 1.2)), vec2((1, 1)));
+    println!("{t}");
+}
+
+fn test(a: Vec2<impl NumElement>, b: Vec2<impl NumElement>) -> Vec2<impl NumElement> {
+    a + b.map(|c| c.as_num())
 }

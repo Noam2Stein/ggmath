@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 gomath_proc_macros = { path = "proc_macros" }
+num = "0.4.3"

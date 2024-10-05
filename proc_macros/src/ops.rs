@@ -25,6 +25,8 @@ pub fn rhs_ops(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #macro_ident!(VecNBitAnd: ElementBitAnd(vec2_bitand, vec3_bitand, vec4_bitand): BitAnd(bitand));
         #macro_ident!(VecNBitOr: ElementBitOr(vec2_bitor, vec3_bitor, vec4_bitor): BitOr(bitor));
         #macro_ident!(VecNBitXor: ElementBitXor(vec2_bitxor, vec3_bitxor, vec4_bitxor): BitXor(bitxor));
+        #macro_ident!(VecNShr: ElementShr(vec2_shr, vec3_shr, vec4_shr): Shr(shr));
+        #macro_ident!(VecNShl: ElementShl(vec2_shl, vec3_shl, vec4_shl): Shl(shl));
     }
     .into()
 }
@@ -42,6 +44,8 @@ pub fn assign_ops(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #macro_ident!(VecNBitAndAssign: ElementBitAndAssign(vec2_bitand_assign, vec3_bitand_assign, vec4_bitand_assign): BitAndAssign(bitand_assign));
         #macro_ident!(VecNBitOrAssign: ElementBitOrAssign(vec2_bitor_assign, vec3_bitor_assign, vec4_bitor_assign): BitOrAssign(bitor_assign));
         #macro_ident!(VecNBitXorAssign: ElementBitXorAssign(vec2_bitxor_assign, vec3_bitxor_assign, vec4_bitxor_assign): BitXorAssign(bitxor_assign));
+        #macro_ident!(VecNShrAssign: ElementShrAssign(vec2_shr_assign, vec3_shr_assign, vec4_shr_assign): ShrAssign(shr_assign));
+        #macro_ident!(VecNShlAssign: ElementShlAssign(vec2_shl_assign, vec3_shl_assign, vec4_shl_assign): ShlAssign(shl_assign));
     }
     .into()
 }
