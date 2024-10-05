@@ -1,24 +1,22 @@
-use super::*;
+use num_traits::*;
+
+use super::{ops::*, *};
+
+mod convert;
+mod float;
+mod int;
+mod signed;
+mod unsigned;
+pub use convert::*;
+pub use float::*;
+pub use int::*;
+pub use signed::*;
+pub use unsigned::*;
 
 pub trait NumElement:
     Element
     + ElementNumConvert
-    + ElementFromNum<f32>
-    + ElementFromNum<f64>
-    + ElementFromNum<u8>
-    + ElementFromNum<u16>
-    + ElementFromNum<u32>
-    + ElementFromNum<u64>
-    + ElementFromNum<u128>
-    + ElementFromNum<usize>
-    + ElementFromNum<i8>
-    + ElementFromNum<i16>
-    + ElementFromNum<i32>
-    + ElementFromNum<i64>
-    + ElementFromNum<i128>
-    + ElementFromNum<isize>
     + Num
-    + NumCast
     + ElementAdd
     + ElementAddAssign
     + ElementSub

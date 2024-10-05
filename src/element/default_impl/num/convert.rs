@@ -1,5 +1,3 @@
-use cast::AsPrimitive;
-
 use super::*;
 
 impl<T: ElementDefaultImpl + Num, N: NumElement + AsPrimitive<T>> ElementFromNum<N> for T {

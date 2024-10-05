@@ -1,6 +1,6 @@
 use super::*;
 
-pub use ::num::PrimInt;
+pub use num_traits::PrimInt;
 
 pub trait IntElement:
     NumElement

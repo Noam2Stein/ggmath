@@ -1,6 +1,6 @@
 use super::*;
 
-mod num_traits;
+mod num;
 mod ops;
 mod vec;
 

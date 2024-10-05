@@ -1,4 +1,4 @@
-use gomath::{element::num_traits::*, vec::*};
+use gomath::{element::num::*, vec::*};
 
 fn main() {
     let t = test(vec2((0.5, 1.2)), vec2((1, 1)));

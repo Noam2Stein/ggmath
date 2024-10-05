@@ -1,6 +1,23 @@
 use super::*;
 
-pub trait ElementNumConvert: Element {
+pub trait ElementNumConvert:
+    Element
+    + NumCast
+    + ElementFromNum<f32>
+    + ElementFromNum<f64>
+    + ElementFromNum<u8>
+    + ElementFromNum<u16>
+    + ElementFromNum<u32>
+    + ElementFromNum<u64>
+    + ElementFromNum<u128>
+    + ElementFromNum<usize>
+    + ElementFromNum<i8>
+    + ElementFromNum<i16>
+    + ElementFromNum<i32>
+    + ElementFromNum<i64>
+    + ElementFromNum<i128>
+    + ElementFromNum<isize>
+{
     fn as_num<N: NumElement>(self) -> N;
     fn vec2_as_num<N: NumElement>(value: Vec2<Self>) -> Vec2<N>;
     fn vec3_as_num<N: NumElement>(value: Vec3<Self>) -> Vec3<N>;

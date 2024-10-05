@@ -1,6 +1,6 @@
 use super::*;
 
-pub use ::num::Float;
+pub use num_traits::Float;
 
 pub trait FloatElement: SignedElement + Float {}
 

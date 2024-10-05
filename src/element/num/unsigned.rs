@@ -1,6 +1,6 @@
 use super::*;
 
-pub use ::num::Unsigned;
+pub use num_traits::Unsigned;
 
 pub trait UnsignedElement: NumElement + Unsigned {}
 

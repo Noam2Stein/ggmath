@@ -1,6 +1,6 @@
 use super::*;
 
-pub use ::num::Signed;
+pub use num_traits::Signed;
 
 pub trait SignedElement: NumElement + Signed + ElementNeg<Output = Self> {
     const NEG_ONE: Self;
