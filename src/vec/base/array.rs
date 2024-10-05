@@ -6,30 +6,24 @@ use std::{
 
 use super::*;
 
-pub trait VecNArray<T: Element, const N: usize>:
-    Sized
-    + VecNWithT<N>
-    + Index<usize, Output = T>
-    + IndexMut<usize>
-    + Index<Range<usize>, Output = [T]>
-    + IndexMut<Range<usize>>
-{
-    fn from_array(value: [T; N]) -> Self;
+impl<N: VecNum, T: Element> VecN<N, T> {
     #[inline(always)]
-    fn into_array(self) -> [T; N] {
+    fn from_array(value: N::Array<T>) -> Self {}
+    #[inline(always)]
+    fn into_array(self) -> N::Array<T> {
         unsafe { transmute_copy(&self) }
     }
     #[inline(always)]
-    fn as_array(&self) -> &[T; N] {
+    fn as_array(&self) -> &N::Array<T> {
         unsafe { transmute(self) }
     }
     #[inline(always)]
-    fn as_array_mut(&mut self) -> &mut [T; N] {
+    fn as_array_mut(&mut self) -> &mut N::Array<T> {
         unsafe { transmute(self) }
     }
 
     #[inline(always)]
-    fn iter(self) -> std::array::IntoIter<T, N> {
+    fn iter(self) -> <N::Array<T> as IntoIterator>::IntoIter {
         self.into_array().into_iter()
     }
     #[inline(always)]
@@ -37,8 +31,8 @@ pub trait VecNArray<T: Element, const N: usize>:
         self.as_array_mut().iter_mut()
     }
     #[inline(always)]
-    fn map<OutputT: Element>(self, f: impl FnMut(T) -> OutputT) -> Self::WithT<OutputT> {
-        <Self::WithT<OutputT>>::from_array(self.as_array().map(f))
+    fn map<T2: Element>(self, f: impl FnMut(T) -> T2) -> VecN<N, T2> {
+        <Self::WithT<T2>>::from_array(self.as_array().map(f))
     }
     #[inline(always)]
     fn count(self, mut f: impl FnMut(T) -> bool) -> usize {
@@ -54,31 +48,13 @@ pub trait VecNArray<T: Element, const N: usize>:
     }
 }
 
-impl<T: Element> VecNArray<T, 2> for Vec2<T> {
-    #[inline(always)]
-    fn from_array(value: [T; 2]) -> Self {
-        unsafe { transmute_copy(&value) }
-    }
-}
-impl<T: Element> VecNArray<T, 3> for Vec3<T> {
-    #[inline(always)]
-    fn from_array(value: [T; 3]) -> Self {
-        unsafe { transmute_copy(&[value[0], value[1], value[2], T::default()]) }
-    }
-}
-impl<T: Element> VecNArray<T, 4> for Vec4<T> {
-    #[inline(always)]
-    fn from_array(value: [T; 4]) -> Self {
-        unsafe { transmute_copy(&value) }
-    }
-}
-
-impl<T: Element, Idx: SliceIndex<[T]>> Index<Idx> for Vec2<T> {
+impl<N: VecNum, T: Element, Idx: SliceIndex<[T]>> Index<Idx> for Vec2<T> {
     type Output = Idx::Output;
     fn index(&self, index: Idx) -> &Self::Output {
         self.as_array().index(index)
     }
 }
+
 impl<T: Element, Idx: SliceIndex<[T]>> IndexMut<Idx> for Vec2<T> {
     fn index_mut(&mut self, index: Idx) -> &mut Self::Output {
         self.as_array_mut().index_mut(index)
