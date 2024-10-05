@@ -1,328 +1,100 @@
+use vec::swizzle::ElementVecGet;
+
 use super::*;
 
-impl<T: ElementDefaultImpl> ElementVecGet for T {
-    fn vec2_get(vec: Self::InnerVec2, x: usize) -> Result<Self, &'static str> {
-        Ok(match vec.get(x) {
+impl<const N: usize, T: ElementDefaultImpl> ElementVecGet<N> for T
+where
+    MaybeVecNum<N>: VecNum<N>,
+{
+    fn vec_get(vec: vec::inner::InnerVec<N, Self>, index: usize) -> Result<Self, &'static str> {
+        Ok(match vec.get(index) {
             Some(some) => *some,
             None => return Err("x is out of vec2 bounds"),
         })
     }
-    fn vec2_get2(
-        vec: Self::InnerVec2,
-        x: usize,
-        y: usize,
+    fn vec_get2(
+        vec: vec::inner::InnerVec<N, Self>,
+        indicies: [usize; 2],
     ) -> Result<Self::InnerVec2, &'static str> {
         Ok([
-            match vec.get(x) {
+            match vec.get(indicies[0]) {
                 Some(some) => *some,
                 None => return Err("x is out of vec2 bounds"),
             },
-            match vec.get(y) {
+            match vec.get(indicies[1]) {
                 Some(some) => *some,
                 None => return Err("y is out of vec2 bounds"),
             },
         ])
     }
-    fn vec2_get3(
-        vec: Self::InnerVec2,
-        x: usize,
-        y: usize,
-        z: usize,
+    fn vec_get3(
+        vec: vec::inner::InnerVec<N, Self>,
+        indicies: [usize; 3],
     ) -> Result<Self::InnerVec3, &'static str> {
         Ok([
-            match vec.get(x) {
+            match vec.get(indicies[0]) {
                 Some(some) => *some,
                 None => return Err("x is out of vec2 bounds"),
             },
-            match vec.get(y) {
+            match vec.get(indicies[1]) {
                 Some(some) => *some,
                 None => return Err("y is out of vec2 bounds"),
             },
-            match vec.get(z) {
+            match vec.get(indicies[2]) {
                 Some(some) => *some,
                 None => return Err("z is out of vec2 bounds"),
             },
             T::default(),
         ])
     }
-    fn vec2_get4(
-        vec: Self::InnerVec2,
-        x: usize,
-        y: usize,
-        z: usize,
-        w: usize,
+    fn vec_get4(
+        vec: vec::inner::InnerVec<N, Self>,
+        indicies: [usize; 4],
     ) -> Result<Self::InnerVec4, &'static str> {
         Ok([
-            match vec.get(x) {
+            match vec.get(indicies[0]) {
                 Some(some) => *some,
                 None => return Err("x is out of vec2 bounds"),
             },
-            match vec.get(y) {
+            match vec.get(indicies[1]) {
                 Some(some) => *some,
                 None => return Err("y is out of vec2 bounds"),
             },
-            match vec.get(z) {
+            match vec.get(indicies[2]) {
                 Some(some) => *some,
                 None => return Err("z is out of vec2 bounds"),
             },
-            match vec.get(w) {
+            match vec.get(indicies[3]) {
                 Some(some) => *some,
                 None => return Err("w is out of vec2 bounds"),
             },
         ])
     }
 
-    fn vec3_get(vec: Self::InnerVec3, x: usize) -> Result<Self, &'static str> {
-        Ok(if x < 3 {
-            unsafe { *vec.get_unchecked(x) }
-        } else {
-            return Err("x is out of vec3 bounds");
-        })
+    unsafe fn vec_get_unchecked(vec: vec::inner::InnerVec<N, Self>, index: usize) -> Self {
+        *vec.get_unchecked(index)
     }
-    fn vec3_get2(
-        vec: Self::InnerVec3,
-        x: usize,
-        y: usize,
-    ) -> Result<Self::InnerVec2, &'static str> {
-        Ok([
-            if x < 3 {
-                unsafe { *vec.get_unchecked(x) }
-            } else {
-                return Err("x is out of vec3 bounds");
-            },
-            if y < 3 {
-                unsafe { *vec.get_unchecked(y) }
-            } else {
-                return Err("y is out of vec3 bounds");
-            },
-        ])
+    unsafe fn vec_get2_unchecked(
+        vec: vec::inner::InnerVec<N, Self>,
+        indicies: [usize; 2],
+    ) -> Self::InnerVec2 {
+        indicies.map(|i| vec.get_unchecked(indicies[i]))
     }
-    fn vec3_get3(
-        vec: Self::InnerVec3,
-        x: usize,
-        y: usize,
-        z: usize,
-    ) -> Result<Self::InnerVec3, &'static str> {
-        Ok([
-            if x < 3 {
-                unsafe { *vec.get_unchecked(x) }
-            } else {
-                return Err("x is out of vec3 bounds");
-            },
-            if y < 3 {
-                unsafe { *vec.get_unchecked(y) }
-            } else {
-                return Err("y is out of vec3 bounds");
-            },
-            if z < 3 {
-                unsafe { *vec.get_unchecked(z) }
-            } else {
-                return Err("z is out of vec3 bounds");
-            },
-            T::default(),
-        ])
-    }
-    fn vec3_get4(
-        vec: Self::InnerVec3,
-        x: usize,
-        y: usize,
-        z: usize,
-        w: usize,
-    ) -> Result<Self::InnerVec4, &'static str> {
-        Ok([
-            if x < 3 {
-                unsafe { *vec.get_unchecked(x) }
-            } else {
-                return Err("x is out of vec3 bounds");
-            },
-            if y < 3 {
-                unsafe { *vec.get_unchecked(y) }
-            } else {
-                return Err("y is out of vec3 bounds");
-            },
-            if z < 3 {
-                unsafe { *vec.get_unchecked(z) }
-            } else {
-                return Err("z is out of vec3 bounds");
-            },
-            if w < 3 {
-                unsafe { *vec.get_unchecked(w) }
-            } else {
-                return Err("w is out of vec3 bounds");
-            },
-        ])
-    }
-
-    fn vec4_get(vec: Self::InnerVec4, x: usize) -> Result<Self, &'static str> {
-        Ok(match vec.get(x) {
-            Some(some) => *some,
-            None => return Err("x is out of vec4 bounds"),
-        })
-    }
-    fn vec4_get2(
-        vec: Self::InnerVec4,
-        x: usize,
-        y: usize,
-    ) -> Result<Self::InnerVec2, &'static str> {
-        Ok([
-            match vec.get(x) {
-                Some(some) => *some,
-                None => return Err("x is out of vec4 bounds"),
-            },
-            match vec.get(y) {
-                Some(some) => *some,
-                None => return Err("y is out of vec4 bounds"),
-            },
-        ])
-    }
-    fn vec4_get3(
-        vec: Self::InnerVec4,
-        x: usize,
-        y: usize,
-        z: usize,
-    ) -> Result<Self::InnerVec3, &'static str> {
-        Ok([
-            match vec.get(x) {
-                Some(some) => *some,
-                None => return Err("x is out of vec4 bounds"),
-            },
-            match vec.get(y) {
-                Some(some) => *some,
-                None => return Err("y is out of vec4 bounds"),
-            },
-            match vec.get(z) {
-                Some(some) => *some,
-                None => return Err("z is out of vec4 bounds"),
-            },
-            T::default(),
-        ])
-    }
-    fn vec4_get4(
-        vec: Self::InnerVec4,
-        x: usize,
-        y: usize,
-        z: usize,
-        w: usize,
-    ) -> Result<Self::InnerVec4, &'static str> {
-        Ok([
-            match vec.get(x) {
-                Some(some) => *some,
-                None => return Err("x is out of vec4 bounds"),
-            },
-            match vec.get(y) {
-                Some(some) => *some,
-                None => return Err("y is out of vec4 bounds"),
-            },
-            match vec.get(z) {
-                Some(some) => *some,
-                None => return Err("z is out of vec4 bounds"),
-            },
-            match vec.get(w) {
-                Some(some) => *some,
-                None => return Err("w is out of vec4 bounds"),
-            },
-        ])
-    }
-
-    unsafe fn vec2_get_unchecked(vec: Self::InnerVec2, x: usize) -> Self {
-        *vec.get_unchecked(x)
-    }
-    unsafe fn vec2_get2_unchecked(vec: Self::InnerVec2, x: usize, y: usize) -> Self::InnerVec2 {
-        [*vec.get_unchecked(x), *vec.get_unchecked(y)]
-    }
-    unsafe fn vec2_get3_unchecked(
-        vec: Self::InnerVec2,
-        x: usize,
-        y: usize,
-        z: usize,
+    unsafe fn vec_get3_unchecked(
+        vec: vec::inner::InnerVec<N, Self>,
+        indicies: [usize; 3],
     ) -> Self::InnerVec3 {
         [
-            *vec.get_unchecked(x),
-            *vec.get_unchecked(y),
-            *vec.get_unchecked(z),
+            *vec.get_unchecked(indicies[0]),
+            *vec.get_unchecked(indicies[1]),
+            *vec.get_unchecked(indicies[2]),
             T::default(),
         ]
     }
-    unsafe fn vec2_get4_unchecked(
-        vec: Self::InnerVec2,
-        x: usize,
-        y: usize,
-        z: usize,
-        w: usize,
+    unsafe fn vec_get4_unchecked(
+        vec: vec::inner::InnerVec<N, Self>,
+        indicies: [usize; 4],
     ) -> Self::InnerVec4 {
-        [
-            *vec.get_unchecked(x),
-            *vec.get_unchecked(y),
-            *vec.get_unchecked(z),
-            *vec.get_unchecked(w),
-        ]
-    }
-
-    unsafe fn vec3_get_unchecked(vec: Self::InnerVec3, x: usize) -> Self {
-        *vec.get_unchecked(x)
-    }
-    unsafe fn vec3_get2_unchecked(vec: Self::InnerVec3, x: usize, y: usize) -> Self::InnerVec2 {
-        [*vec.get_unchecked(x), *vec.get_unchecked(y)]
-    }
-    unsafe fn vec3_get3_unchecked(
-        vec: Self::InnerVec3,
-        x: usize,
-        y: usize,
-        z: usize,
-    ) -> Self::InnerVec3 {
-        [
-            *vec.get_unchecked(x),
-            *vec.get_unchecked(y),
-            *vec.get_unchecked(z),
-            T::default(),
-        ]
-    }
-    unsafe fn vec3_get4_unchecked(
-        vec: Self::InnerVec3,
-        x: usize,
-        y: usize,
-        z: usize,
-        w: usize,
-    ) -> Self::InnerVec4 {
-        [
-            *vec.get_unchecked(x),
-            *vec.get_unchecked(y),
-            *vec.get_unchecked(z),
-            *vec.get_unchecked(w),
-        ]
-    }
-
-    unsafe fn vec4_get_unchecked(vec: Self::InnerVec4, x: usize) -> Self {
-        *vec.get_unchecked(x)
-    }
-    unsafe fn vec4_get2_unchecked(vec: Self::InnerVec4, x: usize, y: usize) -> Self::InnerVec2 {
-        [*vec.get_unchecked(x), *vec.get_unchecked(y)]
-    }
-    unsafe fn vec4_get3_unchecked(
-        vec: Self::InnerVec4,
-        x: usize,
-        y: usize,
-        z: usize,
-    ) -> Self::InnerVec3 {
-        [
-            *vec.get_unchecked(x),
-            *vec.get_unchecked(y),
-            *vec.get_unchecked(z),
-            T::default(),
-        ]
-    }
-    unsafe fn vec4_get4_unchecked(
-        vec: Self::InnerVec4,
-        x: usize,
-        y: usize,
-        z: usize,
-        w: usize,
-    ) -> Self::InnerVec4 {
-        [
-            *vec.get_unchecked(x),
-            *vec.get_unchecked(y),
-            *vec.get_unchecked(z),
-            *vec.get_unchecked(w),
-        ]
+        indicies.map(|i| vec.get_unchecked(indicies[i]))
     }
 }

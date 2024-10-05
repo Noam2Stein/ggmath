@@ -1,3 +1,5 @@
+use vec::inner::ElementVecInner;
+
 use super::*;
 
 unsafe impl<T: ElementDefaultImpl> ElementVecInner for T {

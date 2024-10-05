@@ -18,10 +18,23 @@ impl<T: ElementDefaultImpl + NumElement + Signed> SignedElement for T {
         <Self as Signed>::is_negative(&self)
     }
 }
-impl<T: ElementDefaultImpl + NumElement + Signed, const N: usize, V: VecN<T, N>>
-    SignedElementVecFns<N, V> for T
+impl<const N: usize, T: ElementDefaultImpl + NumElement + Signed> SignedElementVecFns<N> for T
+where
+    MaybeVecNum<N>: VecNum,
 {
-    fn abs(value: V) -> V {
+    fn neg_one() -> VecN<N, Self> {
+        -Self::one()
+    }
+    fn abs(value: VecN<N, Self>) -> VecN<N, Self> {
         value.map(|c| c.abs())
+    }
+    fn signum(value: VecN<N, Self>) -> VecN<N, Self> {
+        value.map(|c| c.signum())
+    }
+    fn are_positive(value: VecN<N, Self>) -> VecN<N, bool> {
+        value.map(|c| c.is_positive())
+    }
+    fn are_negative(value: VecN<N, Self>) -> VecN<N, bool> {
+        value.map(|c| c.is_negative())
     }
 }

@@ -2,29 +2,32 @@ use std::mem::transmute;
 
 use super::*;
 
-pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
-    fn get_mut(&mut self, v0: usize) -> Result<&mut T, &'static str> {
+impl<const N: usize, T: Element> VecN<N, T>
+where
+    MaybeVecNum<N>: VecNum<N>,
+{
+    pub fn get_mut(&mut self, v0: usize) -> Result<&mut T, &'static str> {
         if v0 + 1 > N {
             Err("v0 outside of vec bounds")
         } else {
             Ok(unsafe { self.get_unchecked_mut(v0) })
         }
     }
-    fn get_mut2(&mut self, v0: usize) -> Result<&mut Vec2<T>, &'static str> {
+    pub fn get_mut2(&mut self, v0: usize) -> Result<&mut Vec2<T>, &'static str> {
         if v0 + 2 > N {
             Err("v0 outside of vec bounds")
         } else {
             Ok(unsafe { self.get_unchecked_mut2(v0) })
         }
     }
-    fn get_mut3(&mut self, v0: usize) -> Result<&mut Vec3<T>, &'static str> {
+    pub fn get_mut3(&mut self, v0: usize) -> Result<&mut Vec3<T>, &'static str> {
         if v0 + 3 > N {
             Err("v0 outside of vec bounds")
         } else {
             Ok(unsafe { self.get_unchecked_mut3(v0) })
         }
     }
-    fn get_mut4(&mut self, v0: usize) -> Result<&mut Vec4<T>, &'static str> {
+    pub fn get_mut4(&mut self, v0: usize) -> Result<&mut Vec4<T>, &'static str> {
         if v0 + 4 > N {
             Err("v0 outside of vec bounds")
         } else {
@@ -32,7 +35,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         }
     }
 
-    fn get_mut_1_1(&mut self, v0: usize, v1: usize) -> Result<(&mut T, &mut T), &'static str> {
+    pub fn get_mut_1_1(&mut self, v0: usize, v1: usize) -> Result<(&mut T, &mut T), &'static str> {
         if v0 + 1 > N {
             Err("v0 outside of vec bounds")
         } else if v1 + 1 > N {
@@ -48,7 +51,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_2_1(
+    pub fn get_mut_2_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -68,7 +71,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_3_1(
+    pub fn get_mut_3_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -88,7 +91,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_1_2(
+    pub fn get_mut_1_2(
         &mut self,
         v0: usize,
         v1: usize,
@@ -108,7 +111,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_2_2(
+    pub fn get_mut_2_2(
         &mut self,
         v0: usize,
         v1: usize,
@@ -128,7 +131,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_1_3(
+    pub fn get_mut_1_3(
         &mut self,
         v0: usize,
         v1: usize,
@@ -149,7 +152,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         }
     }
 
-    fn get_mut_1_1_1(
+    pub fn get_mut_1_1_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -177,7 +180,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_2_1_1(
+    pub fn get_mut_2_1_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -205,7 +208,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_1_2_1(
+    pub fn get_mut_1_2_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -233,7 +236,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
             })
         }
     }
-    fn get_mut_1_1_2(
+    pub fn get_mut_1_1_2(
         &mut self,
         v0: usize,
         v1: usize,
@@ -262,7 +265,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         }
     }
 
-    fn get_mut_1_1_1_1(
+    pub fn get_mut_1_1_1_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -302,52 +305,52 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
     }
 
     #[inline(always)]
-    unsafe fn get_unchecked_mut(&mut self, v0: usize) -> &mut T {
+    pub unsafe fn get_unchecked_mut(&mut self, v0: usize) -> &mut T {
         self.as_array_mut().get_unchecked_mut(v0)
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut2(&mut self, v0: usize) -> &mut Vec2<T> {
+    pub unsafe fn get_unchecked_mut2(&mut self, v0: usize) -> &mut Vec2<T> {
         transmute(self.get_unchecked_mut(v0))
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut3(&mut self, v0: usize) -> &mut Vec3<T> {
+    pub unsafe fn get_unchecked_mut3(&mut self, v0: usize) -> &mut Vec3<T> {
         transmute(self.get_unchecked_mut(v0))
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut4(&mut self, v0: usize) -> &mut Vec4<T> {
+    pub unsafe fn get_unchecked_mut4(&mut self, v0: usize) -> &mut Vec4<T> {
         transmute(self.get_unchecked_mut(v0))
     }
 
     #[inline(always)]
-    unsafe fn get_unchecked_mut_1_1(&mut self, v0: usize, v1: usize) -> (&mut T, &mut T) {
+    pub unsafe fn get_unchecked_mut_1_1(&mut self, v0: usize, v1: usize) -> (&mut T, &mut T) {
         (
             transmute(self.get_unchecked_mut(v0)),
             transmute(self.get_unchecked_mut(v1)),
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_2_1(&mut self, v0: usize, v1: usize) -> (&mut Vec2<T>, &mut T) {
+    pub unsafe fn get_unchecked_mut_2_1(&mut self, v0: usize, v1: usize) -> (&mut Vec2<T>, &mut T) {
         (
             transmute(self.get_unchecked_mut(v0)),
             transmute(self.get_unchecked_mut(v1)),
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_3_1(&mut self, v0: usize, v1: usize) -> (&mut Vec3<T>, &mut T) {
+    pub unsafe fn get_unchecked_mut_3_1(&mut self, v0: usize, v1: usize) -> (&mut Vec3<T>, &mut T) {
         (
             transmute(self.get_unchecked_mut(v0)),
             transmute(self.get_unchecked_mut(v1)),
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_1_2(&mut self, v0: usize, v1: usize) -> (&mut T, &mut Vec2<T>) {
+    pub unsafe fn get_unchecked_mut_1_2(&mut self, v0: usize, v1: usize) -> (&mut T, &mut Vec2<T>) {
         (
             transmute(self.get_unchecked_mut(v0)),
             transmute(self.get_unchecked_mut(v1)),
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_2_2(
+    pub unsafe fn get_unchecked_mut_2_2(
         &mut self,
         v0: usize,
         v1: usize,
@@ -358,7 +361,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_1_3(&mut self, v0: usize, v1: usize) -> (&mut T, &mut Vec3<T>) {
+    pub unsafe fn get_unchecked_mut_1_3(&mut self, v0: usize, v1: usize) -> (&mut T, &mut Vec3<T>) {
         (
             transmute(self.get_unchecked_mut(v0)),
             transmute(self.get_unchecked_mut(v1)),
@@ -366,7 +369,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
     }
 
     #[inline(always)]
-    unsafe fn get_unchecked_mut_1_1_1(
+    pub unsafe fn get_unchecked_mut_1_1_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -379,7 +382,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_2_1_1(
+    pub unsafe fn get_unchecked_mut_2_1_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -392,7 +395,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_1_2_1(
+    pub unsafe fn get_unchecked_mut_1_2_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -405,7 +408,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         )
     }
     #[inline(always)]
-    unsafe fn get_unchecked_mut_1_1_2(
+    pub unsafe fn get_unchecked_mut_1_1_2(
         &mut self,
         v0: usize,
         v1: usize,
@@ -419,7 +422,7 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
     }
 
     #[inline(always)]
-    unsafe fn get_unchecked_mut_1_1_1_1(
+    pub unsafe fn get_unchecked_mut_1_1_1_1(
         &mut self,
         v0: usize,
         v1: usize,
@@ -434,7 +437,3 @@ pub trait VecNGetMut<T: Element, const N: usize>: VecNArray<T, N> {
         )
     }
 }
-
-impl<T: Element> VecNGetMut<T, 2> for Vec2<T> {}
-impl<T: Element> VecNGetMut<T, 3> for Vec3<T> {}
-impl<T: Element> VecNGetMut<T, 4> for Vec4<T> {}

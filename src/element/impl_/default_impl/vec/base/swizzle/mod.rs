@@ -1,3 +1,5 @@
+use vec::swizzle::ElementVecSwizzle;
+
 use super::*;
 
 mod get;

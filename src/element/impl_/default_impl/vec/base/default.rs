@@ -1,3 +1,5 @@
+use std_impl::ElementVecDefault;
+
 use super::*;
 
 impl<T: ElementDefaultImpl> ElementVecDefault for T {

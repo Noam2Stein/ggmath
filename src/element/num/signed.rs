@@ -4,9 +4,9 @@ pub trait SignedElement:
     NumElement
     + Signed
     + ElementNeg<Output = Self>
-    + SignedElementVecFns<2, Vec2<Self>>
-    + SignedElementVecFns<3, Vec3<Self>>
-    + SignedElementVecFns<4, Vec4<Self>>
+    + SignedElementVecFns<2>
+    + SignedElementVecFns<3>
+    + SignedElementVecFns<4>
 {
     fn neg_one() -> Self;
     fn abs(self) -> Self;
@@ -14,12 +14,15 @@ pub trait SignedElement:
     fn is_positive(self) -> bool;
     fn is_negative(self) -> bool;
 }
-pub trait SignedElementVecFns<const N: usize, V: VecN<Self, N>>: NumElement {
-    fn neg_one() -> V;
-    fn abs(value: V) -> V;
-    fn signum(value: V) -> V;
-    fn are_positive(value: V) -> V::WithT<bool>;
-    fn are_negative(value: V) -> V::WithT<bool>;
+pub trait SignedElementVecFns<const N: usize>: NumElement
+where
+    MaybeVecNum<N>: VecNum,
+{
+    fn neg_one() -> VecN<N, Self>;
+    fn abs(value: VecN<N, Self>) -> VecN<N, Self>;
+    fn signum(value: VecN<N, Self>) -> VecN<N, Self>;
+    fn are_positive(value: VecN<N, Self>) -> VecN<N, bool>;
+    fn are_negative(value: VecN<N, Self>) -> VecN<N, bool>;
 }
 
 macro_rules! validate {

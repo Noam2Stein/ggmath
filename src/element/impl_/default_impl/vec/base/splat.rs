@@ -1,3 +1,5 @@
+use vec::splat::ElementVecSplat;
+
 use super::*;
 
 impl<T: ElementDefaultImpl> ElementVecSplat for T {
