@@ -51,7 +51,9 @@ impl<const N: usize, T: Element> VecN<N, T>
 where
     MaybeVecNum<N>: VecNum<N>,
 {
-    pub fn with(self, index: usize, value: T) -> Result<Self, &'static str> {}
+    pub fn with(self, index: usize, value: T) -> Result<Self, &'static str> {
+        MaybeVecNum::<N>::with
+    }
     pub fn with2(self, indicies: [usize; 2], value: Vec2<T>) -> Result<Self, &'static str> {}
     pub fn with3(self, indicies: [usize; 3], value: Vec3<T>) -> Result<Self, &'static str> {}
     pub fn with4(self, indicies: [usize; 4], value: Vec4<T>) -> Result<Self, &'static str> {}
@@ -62,45 +64,46 @@ where
     pub unsafe fn with4_unchecked(self, indicies: [usize; 4], value: Vec4<T>) -> Self {}
 }
 
-pub(super) trait VecNumWith<const N: usize>
-where
-    MaybeVecNum<N>: VecNum<N>,
-{
-    fn with<T: Element>(
-        vec: VecN<N, T>,
-        index: usize,
-        value: T,
-    ) -> Result<VecN<N, T>, &'static str>;
-    fn with2<T: Element>(
-        vec: VecN<N, T>,
-        indicies: [usize; 2],
-        value: Vec2<T>,
-    ) -> Result<VecN<N, T>, &'static str>;
-    fn with3<T: Element>(
-        vec: VecN<N, T>,
-        indicies: [usize; 3],
-        value: Vec3<T>,
-    ) -> Result<VecN<N, T>, &'static str>;
-    fn with4<T: Element>(
-        vec: VecN<N, T>,
-        indicies: [usize; 4],
-        value: Vec4<T>,
-    ) -> Result<VecN<N, T>, &'static str>;
+pub(super) trait VecNumWith < const N : usize > where MaybeVecNum < N > : VecNum < N > {     fn with < T : Element > (vec : VecN < N, T > , index : usize, value : T,)     -> Result < VecN < N, T > , &'static str > ; fn with2 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     Result < VecN < N, T > , & 'static str > ; fn with3 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     Result < VecN < N, T > , & 'static str > ; fn with4 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     Result < VecN < N, T > , & 'static str > ; unsafe fn with_unchecked < T :     Element > (vec : VecN < N, T > , index : usize, value : T) -> Self; unsafe     fn with2_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     VecN < N, T > ; unsafe fn with3_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     VecN < N, T > ; unsafe fn with4_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     VecN < N, T > ; } impl VecNumWith < 2 > for MaybeVecNum < 2 > {     fn with < T : Element > (vec : VecN < N, T > , index : usize, value : T,)     -> Result < VecN < N, T > , & \'static str >     { T :: vec_with < > (vec, index, value) } fn with2 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with2 < > (vec, indicies, value) } fn with3 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with3 < > (vec, indicies, value) } fn with4 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with4 < > (vec, indicies, value) } unsafe fn with_unchecked < T     : Element > (vec : VecN < N, T > , index : usize, value : T) -> Self     { T :: vec_with_unchecked < > (vec, index, value) } unsafe fn     with2_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     VecN < N, T > { T :: vec_with2_unchecked < > (vec, indicies, value) }     unsafe fn with3_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     VecN < N, T > { T :: vec_with3_unchecked < > (vec, indicies, value) }     unsafe fn with4_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     VecN < N, T > { T :: vec_with4_unchecked < > (vec, indicies, value) } } impl VecNumWith < 3 > for MaybeVecNum < 3 > {     fn with < T : Element > (vec : VecN < N, T > , index : usize, value : T,)     -> Result < VecN < N, T > , & \'static str >     { T :: vec_with < > (vec, index, value) } fn with2 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with2 < > (vec, indicies, value) } fn with3 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with3 < > (vec, indicies, value) } fn with4 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with4 < > (vec, indicies, value) } unsafe fn with_unchecked < T     : Element > (vec : VecN < N, T > , index : usize, value : T) -> Self     { T :: vec_with_unchecked < > (vec, index, value) } unsafe fn     with2_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     VecN < N, T > { T :: vec_with2_unchecked < > (vec, indicies, value) }     unsafe fn with3_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     VecN < N, T > { T :: vec_with3_unchecked < > (vec, indicies, value) }     unsafe fn with4_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     VecN < N, T > { T :: vec_with4_unchecked < > (vec, indicies, value) } } impl VecNumWith < 4 > for MaybeVecNum < 4 > {     fn with < T : Element > (vec : VecN < N, T > , index : usize, value : T,)     -> Result < VecN < N, T > , & \'static str >     { T :: vec_with < > (vec, index, value) } fn with2 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with2 < > (vec, indicies, value) } fn with3 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with3 < > (vec, indicies, value) } fn with4 < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     Result < VecN < N, T > , & \'static str >     { T :: vec_with4 < > (vec, indicies, value) } unsafe fn with_unchecked < T     : Element > (vec : VecN < N, T > , index : usize, value : T) -> Self     { T :: vec_with_unchecked < > (vec, index, value) } unsafe fn     with2_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 2], value : Vec2 < T > ,) ->     VecN < N, T > { T :: vec_with2_unchecked < > (vec, indicies, value) }     unsafe fn with3_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 3], value : Vec3 < T > ,) ->     VecN < N, T > { T :: vec_with3_unchecked < > (vec, indicies, value) }     unsafe fn with4_unchecked < T : Element >     (vec : VecN < N, T > , indicies : [usize; 4], value : Vec4 < T > ,) ->     VecN < N, T > { T :: vec_with4_unchecked < > (vec, indicies, value) } } const _ : () = {};
 
-    unsafe fn with_unchecked<T: Element>(vec: VecN<N, T>, index: usize, value: T) -> Self;
-    unsafe fn with2_unchecked<T: Element>(
-        vec: VecN<N, T>,
-        indicies: [usize; 2],
-        value: Vec2<T>,
-    ) -> VecN<N, T>;
-    unsafe fn with3_unchecked<T: Element>(
-        vec: VecN<N, T>,
-        indicies: [usize; 3],
-        value: Vec3<T>,
-    ) -> VecN<N, T>;
-    unsafe fn with4_unchecked<T: Element>(
-        vec: VecN<N, T>,
-        indicies: [usize; 4],
-        value: Vec4<T>,
-    ) -> VecN<N, T>;
-}
+vecnum_trait!(
+    pub(super) trait VecNumWith {
+        fn with<T: Element>(
+            vec: VecN<N, T>,
+            index: usize,
+            value: T,
+        ) -> Result<VecN<N, T>, &'static str>;
+        fn with2<T: Element>(
+            vec: VecN<N, T>,
+            indicies: [usize; 2],
+            value: Vec2<T>,
+        ) -> Result<VecN<N, T>, &'static str>;
+        fn with3<T: Element>(
+            vec: VecN<N, T>,
+            indicies: [usize; 3],
+            value: Vec3<T>,
+        ) -> Result<VecN<N, T>, &'static str>;
+        fn with4<T: Element>(
+            vec: VecN<N, T>,
+            indicies: [usize; 4],
+            value: Vec4<T>,
+        ) -> Result<VecN<N, T>, &'static str>;
+
+        unsafe fn with_unchecked<T: Element>(vec: VecN<N, T>, index: usize, value: T) -> Self;
+        unsafe fn with2_unchecked<T: Element>(
+            vec: VecN<N, T>,
+            indicies: [usize; 2],
+            value: Vec2<T>,
+        ) -> VecN<N, T>;
+        unsafe fn with3_unchecked<T: Element>(
+            vec: VecN<N, T>,
+            indicies: [usize; 3],
+            value: Vec3<T>,
+        ) -> VecN<N, T>;
+        unsafe fn with4_unchecked<T: Element>(
+            vec: VecN<N, T>,
+            indicies: [usize; 4],
+            value: Vec4<T>,
+        ) -> VecN<N, T>;
+    }
+);

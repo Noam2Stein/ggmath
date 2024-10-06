@@ -69,7 +69,7 @@ vecnum_trait!(
         fn get4<T: Element>(
             vec: InnerVec<N, T>,
             indicies: [usize; 4],
-        ) -> Result<Vec4<T>, &'static str>;
+        ) -> Result<InnerVec<T>, &'static str>;
 
         unsafe fn get_unchecked<T: Element>(vec: InnerVec<N, T>, index: usize) -> T;
         unsafe fn get2_unchecked<T: Element>(
