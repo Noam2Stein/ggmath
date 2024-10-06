@@ -55,98 +55,34 @@ where
     }
 }
 
-pub(super) trait VecNumGet<const N: usize>
-where
-    MaybeVecNum<N>: VecNum<N>,
-{
-    fn get<T: Element>(vec: VecN<N, T>, index: usize) -> Result<T, &'static str>;
-    fn get2<T: Element>(vec: VecN<N, T>, indicies: [usize; 2]) -> Result<Vec2<T>, &'static str>;
-    fn get3<T: Element>(vec: VecN<N, T>, indicies: [usize; 3]) -> Result<Vec3<T>, &'static str>;
-    fn get4<T: Element>(vec: VecN<N, T>, indicies: [usize; 4]) -> Result<Vec4<T>, &'static str>;
+vecnum_trait!(
+    pub(super) trait VecNumGet {
+        fn get<T: Element>(vec: InnerVec<N, T>, index: usize) -> Result<T, &'static str>;
+        fn get2<T: Element>(
+            vec: InnerVec<N, T>,
+            indicies: [usize; 2],
+        ) -> Result<Vec2<T>, &'static str>;
+        fn get3<T: Element>(
+            vec: InnerVec<N, T>,
+            indicies: [usize; 3],
+        ) -> Result<Vec3<T>, &'static str>;
+        fn get4<T: Element>(
+            vec: InnerVec<N, T>,
+            indicies: [usize; 4],
+        ) -> Result<Vec4<T>, &'static str>;
 
-    unsafe fn get_unchecked<T: Element>(vec: VecN<N, T>, index: usize) -> T;
-    unsafe fn get2_unchecked<T: Element>(vec: VecN<N, T>, indicies: [usize; 2]) -> Vec2<T>;
-    unsafe fn get3_unchecked<T: Element>(vec: VecN<N, T>, indicies: [usize; 3]) -> Vec3<T>;
-    unsafe fn get4_unchecked<T: Element>(vec: VecN<N, T>, indicies: [usize; 4]) -> Vec4<T>;
-}
-impl VecNumGet<2> for MaybeVecNum<2> {
-    fn get<T: Element>(vec: VecN<2, T>, index: usize) -> Result<T, &'static str> {
-        T::vec_get(vec, index)
+        unsafe fn get_unchecked<T: Element>(vec: InnerVec<N, T>, index: usize) -> T;
+        unsafe fn get2_unchecked<T: Element>(
+            vec: InnerVec<N, T>,
+            indicies: [usize; 2],
+        ) -> InnerVec<2, T>;
+        unsafe fn get3_unchecked<T: Element>(
+            vec: InnerVec<N, T>,
+            indicies: [usize; 3],
+        ) -> InnerVec<3, T>;
+        unsafe fn get4_unchecked<T: Element>(
+            vec: InnerVec<N, T>,
+            indicies: [usize; 4],
+        ) -> InnerVec<4, T>;
     }
-    fn get2<T: Element>(vec: VecN<2, T>, indicies: [usize; 2]) -> Result<Vec2<T>, &'static str> {
-        T::vec_get2(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-    fn get3<T: Element>(vec: VecN<2, T>, indicies: [usize; 3]) -> Result<Vec3<T>, &'static str> {
-        T::vec_get3(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-    fn get4<T: Element>(vec: VecN<2, T>, indicies: [usize; 4]) -> Result<Vec4<T>, &'static str> {
-        T::vec_get4(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-
-    unsafe fn get_unchecked<T: Element>(vec: VecN<2, T>, index: usize) -> T {
-        T::vec_get_unchecked(vec, index)
-    }
-    unsafe fn get2_unchecked<T: Element>(vec: VecN<2, T>, indicies: [usize; 2]) -> Vec2<T> {
-        VecN::from_inner(T::vec_get2_unchecked(vec, indicies))
-    }
-    unsafe fn get3_unchecked<T: Element>(vec: VecN<2, T>, indicies: [usize; 3]) -> Vec3<T> {
-        VecN::from_inner(T::vec_get3_unchecked(vec, indicies))
-    }
-    unsafe fn get4_unchecked<T: Element>(vec: VecN<2, T>, indicies: [usize; 4]) -> Vec4<T> {
-        VecN::from_inner(T::vec_get4_unchecked(vec, indicies))
-    }
-}
-impl VecNumGet<3> for MaybeVecNum<3> {
-    fn get<T: Element>(vec: VecN<3, T>, index: usize) -> Result<T, &'static str> {
-        T::vec_get(vec, index)
-    }
-    fn get2<T: Element>(vec: VecN<3, T>, indicies: [usize; 2]) -> Result<Vec2<T>, &'static str> {
-        T::vec_get2(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-    fn get3<T: Element>(vec: VecN<3, T>, indicies: [usize; 3]) -> Result<Vec3<T>, &'static str> {
-        T::vec_get3(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-    fn get4<T: Element>(vec: VecN<3, T>, indicies: [usize; 4]) -> Result<Vec4<T>, &'static str> {
-        T::vec_get4(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-
-    unsafe fn get_unchecked<T: Element>(vec: VecN<3, T>, index: usize) -> T {
-        T::vec_get_unchecked(vec, index)
-    }
-    unsafe fn get2_unchecked<T: Element>(vec: VecN<3, T>, indicies: [usize; 2]) -> Vec2<T> {
-        VecN::from_inner(T::vec_get2_unchecked(vec, indicies))
-    }
-    unsafe fn get3_unchecked<T: Element>(vec: VecN<3, T>, indicies: [usize; 3]) -> Vec3<T> {
-        VecN::from_inner(T::vec_get3_unchecked(vec, indicies))
-    }
-    unsafe fn get4_unchecked<T: Element>(vec: VecN<3, T>, indicies: [usize; 4]) -> Vec4<T> {
-        VecN::from_inner(T::vec_get4_unchecked(vec, indicies))
-    }
-}
-impl VecNumGet<4> for MaybeVecNum<4> {
-    fn get<T: Element>(vec: VecN<4, T>, index: usize) -> Result<T, &'static str> {
-        T::vec_get(vec, index)
-    }
-    fn get2<T: Element>(vec: VecN<4, T>, indicies: [usize; 2]) -> Result<Vec2<T>, &'static str> {
-        T::vec_get2(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-    fn get3<T: Element>(vec: VecN<4, T>, indicies: [usize; 3]) -> Result<Vec3<T>, &'static str> {
-        T::vec_get3(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-    fn get4<T: Element>(vec: VecN<4, T>, indicies: [usize; 4]) -> Result<Vec4<T>, &'static str> {
-        T::vec_get4(vec, indicies).map(|inner| VecN::from_inner(inner))
-    }
-
-    unsafe fn get_unchecked<T: Element>(vec: VecN<4, T>, index: usize) -> T {
-        T::vec_get_unchecked(vec, index)
-    }
-    unsafe fn get2_unchecked<T: Element>(vec: VecN<4, T>, indicies: [usize; 2]) -> Vec2<T> {
-        VecN::from_inner(T::vec_get2_unchecked(vec, indicies))
-    }
-    unsafe fn get3_unchecked<T: Element>(vec: VecN<4, T>, indicies: [usize; 3]) -> Vec3<T> {
-        VecN::from_inner(T::vec_get3_unchecked(vec, indicies))
-    }
-    unsafe fn get4_unchecked<T: Element>(vec: VecN<4, T>, indicies: [usize; 4]) -> Vec4<T> {
-        VecN::from_inner(T::vec_get4_unchecked(vec, indicies))
-    }
-}
+);

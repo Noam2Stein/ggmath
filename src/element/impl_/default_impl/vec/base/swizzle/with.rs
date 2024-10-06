@@ -4,7 +4,7 @@ use super::*;
 
 impl<const N: usize, T: ElementDefaultImpl> ElementVecWith<N> for T
 where
-    MaybeVecNum<N>: VecNum,
+    MaybeVecNum<N>: VecNum<N>,
 {
     fn vec_with(
         vec: vec::inner::InnerVec<N, Self>,

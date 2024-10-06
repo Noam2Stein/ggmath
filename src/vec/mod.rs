@@ -1,5 +1,6 @@
 use crate::element::*;
 
+use gomath_proc_macros::vecnum_trait;
 use inner::*;
 
 pub mod array;
@@ -33,16 +34,12 @@ pub trait ElementVec:
 {
 }
 
-pub trait VecNum<const N: usize>:
-    VecNumInner + const_swizzle::VecNumConstSwizzle<N> + swizzle::VecNumSwizzle<N> + ops::VecNumOps<N>
-where
-    MaybeVecNum<N>: VecNum<N>,
-{
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct MaybeVecNum<const VALUE: usize>;
 
-impl VecNum<2> for MaybeVecNum<2> {}
-impl VecNum<3> for MaybeVecNum<3> {}
-impl VecNum<4> for MaybeVecNum<4> {}
+vecnum_trait!(
+    pub trait VecNum:
+        VecNumInner + swizzle::VecNumSwizzle + const_swizzle::VecNumConstSwizzle
+    {
+    }
+);

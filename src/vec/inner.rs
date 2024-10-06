@@ -10,7 +10,10 @@ pub unsafe trait ElementVecInner: Sized {
     type InnerVec4: std::fmt::Debug + Copy + PartialEq + PartialOrd;
 }
 
-pub type InnerVec<const N: usize, T> = <MaybeVecNum<N> as VecNumInner>::InnerVec<T>;
+pub type InnerVec<const N: usize, T> = <MaybeVecNum<N> as VecNumInner<N>>::InnerVec<T>;
+pub type InnerVec2<T> = InnerVec<2, T>;
+pub type InnerVec3<T> = InnerVec<3, T>;
+pub type InnerVec4<T> = InnerVec<4, T>;
 
 impl<const N: usize, T: Element> VecN<N, T>
 where
@@ -42,15 +45,8 @@ where
     }
 }
 
-pub(super) trait VecNumInner {
-    type InnerVec<T: ElementVecInner>: std::fmt::Debug + Copy + PartialEq + PartialOrd;
-}
-impl VecNumInner for MaybeVecNum<2> {
-    type InnerVec<T: ElementVecInner> = T::InnerVec2;
-}
-impl VecNumInner for MaybeVecNum<3> {
-    type InnerVec<T: ElementVecInner> = T::InnerVec3;
-}
-impl VecNumInner for MaybeVecNum<4> {
-    type InnerVec<T: ElementVecInner> = T::InnerVec4;
-}
+vecnum_trait!(
+    pub(super) trait VecNumInner {
+        type InnerVec<T: ElementVecInner>: std::fmt::Debug + Copy + PartialEq + PartialOrd;
+    }
+);

@@ -1,6 +1,9 @@
 use super::*;
 
-pub trait ElementVecWith<const N: usize>: ElementVecInner {
+pub trait ElementVecWith<const N: usize>: ElementVecInner
+where
+    MaybeVecNum<N>: VecNum<N>,
+{
     fn vec_with(
         vec: InnerVec<N, Self>,
         index: usize,
@@ -23,25 +26,25 @@ pub trait ElementVecWith<const N: usize>: ElementVecInner {
     ) -> Result<InnerVec<N, Self>, &'static str>;
 
     unsafe fn vec_with_unchecked(
-        vec: Self::InnerVec4,
+        vec: InnerVec<N, Self>,
         index: usize,
         value: Self,
-    ) -> Self::InnerVec4;
+    ) -> InnerVec<N, Self>;
     unsafe fn vec_with2_unchecked(
-        vec: Self::InnerVec4,
+        vec: InnerVec<N, Self>,
         indicies: [usize; 2],
         value: Self::InnerVec2,
-    ) -> Self::InnerVec4;
+    ) -> InnerVec<N, Self>;
     unsafe fn vec_with3_unchecked(
-        vec: Self::InnerVec4,
+        vec: InnerVec<N, Self>,
         indicies: [usize; 3],
         value: Self::InnerVec3,
-    ) -> Self::InnerVec4;
+    ) -> InnerVec<N, Self>;
     unsafe fn vec_with4_unchecked(
-        vec: Self::InnerVec4,
+        vec: InnerVec<N, Self>,
         indicies: [usize; 4],
         value: Self::InnerVec4,
-    ) -> Self::InnerVec4;
+    ) -> InnerVec<N, Self>;
 }
 
 impl<const N: usize, T: Element> VecN<N, T>

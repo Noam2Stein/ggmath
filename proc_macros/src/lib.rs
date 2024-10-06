@@ -12,6 +12,7 @@ macro_rules! export {
     };
 }
 
+export!(vec => vecnum_trait);
 export!(vec::inner => impl_element_vec_inner);
 export!(vec::const_swizzle::cget_mut => vec_cget_mut_wrappers);
 export!(vec::const_swizzle::cget => vec_cget_wrappers);
