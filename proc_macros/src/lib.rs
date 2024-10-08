@@ -7,11 +7,12 @@ macro_rules! export {
     ($($path:ident)::* => $ident:ident) => {
         #[proc_macro]
         pub fn $ident(tokens: TokenStream) -> TokenStream {
-            $($path)::*::$ident(tokens)
+            $($path::)*$ident(tokens)
         }
     };
 }
 
+export!(vec => vec_api);
 export!(vec => vecnum_trait);
 export!(vec::inner => impl_element_vec_inner);
 export!(vec::const_swizzle::cget_mut => vec_cget_mut_wrappers);

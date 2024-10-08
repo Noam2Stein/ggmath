@@ -6,14 +6,14 @@ impl<const N: usize, T: ElementDefaultImpl> ElementVecGet<N> for T
 where
     MaybeVecNum<N>: VecNum<N>,
 {
-    fn vec_get(vec: vec::inner::InnerVec<N, Self>, index: usize) -> Result<Self, &'static str> {
+    fn vec_get(vec: vec::inner::InnerVecN<N, Self>, index: usize) -> Result<Self, &'static str> {
         Ok(match vec.get(index) {
             Some(some) => *some,
             None => return Err("x is out of vec2 bounds"),
         })
     }
     fn vec_get2(
-        vec: vec::inner::InnerVec<N, Self>,
+        vec: vec::inner::InnerVecN<N, Self>,
         indicies: [usize; 2],
     ) -> Result<Self::InnerVec2, &'static str> {
         Ok([
@@ -28,7 +28,7 @@ where
         ])
     }
     fn vec_get3(
-        vec: vec::inner::InnerVec<N, Self>,
+        vec: vec::inner::InnerVecN<N, Self>,
         indicies: [usize; 3],
     ) -> Result<Self::InnerVec3, &'static str> {
         Ok([
@@ -48,7 +48,7 @@ where
         ])
     }
     fn vec_get4(
-        vec: vec::inner::InnerVec<N, Self>,
+        vec: vec::inner::InnerVecN<N, Self>,
         indicies: [usize; 4],
     ) -> Result<Self::InnerVec4, &'static str> {
         Ok([
@@ -71,17 +71,17 @@ where
         ])
     }
 
-    unsafe fn vec_get_unchecked(vec: vec::inner::InnerVec<N, Self>, index: usize) -> Self {
+    unsafe fn vec_get_unchecked(vec: vec::inner::InnerVecN<N, Self>, index: usize) -> Self {
         *vec.get_unchecked(index)
     }
     unsafe fn vec_get2_unchecked(
-        vec: vec::inner::InnerVec<N, Self>,
+        vec: vec::inner::InnerVecN<N, Self>,
         indicies: [usize; 2],
     ) -> Self::InnerVec2 {
         indicies.map(|i| vec.get_unchecked(indicies[i]))
     }
     unsafe fn vec_get3_unchecked(
-        vec: vec::inner::InnerVec<N, Self>,
+        vec: vec::inner::InnerVecN<N, Self>,
         indicies: [usize; 3],
     ) -> Self::InnerVec3 {
         [
@@ -92,7 +92,7 @@ where
         ]
     }
     unsafe fn vec_get4_unchecked(
-        vec: vec::inner::InnerVec<N, Self>,
+        vec: vec::inner::InnerVecN<N, Self>,
         indicies: [usize; 4],
     ) -> Self::InnerVec4 {
         indicies.map(|i| vec.get_unchecked(indicies[i]))

@@ -10,37 +10,37 @@ pub unsafe trait ElementVecInner: Sized {
     type InnerVec4: std::fmt::Debug + Copy + PartialEq + PartialOrd;
 }
 
-pub type InnerVec<const N: usize, T> = <MaybeVecNum<N> as VecNumInner<N>>::InnerVec<T>;
-pub type InnerVec2<T> = InnerVec<2, T>;
-pub type InnerVec3<T> = InnerVec<3, T>;
-pub type InnerVec4<T> = InnerVec<4, T>;
+pub type InnerVecN<const N: usize, T> = <MaybeVecNum<N> as VecNumInner<N>>::InnerVec<T>;
+pub type InnerVec2<T> = InnerVecN<2, T>;
+pub type InnerVec3<T> = InnerVecN<3, T>;
+pub type InnerVec4<T> = InnerVecN<4, T>;
 
 impl<const N: usize, T: Element> VecN<N, T>
 where
     MaybeVecNum<N>: VecNum<N>,
 {
     #[inline(always)]
-    pub fn from_inner(inner: InnerVec<N, T>) -> Self {
+    pub fn from_inner(inner: InnerVecN<N, T>) -> Self {
         Self { inner }
     }
     #[inline(always)]
-    pub fn from_inner_ref(inner: &InnerVec<N, T>) -> &Self {
+    pub fn from_inner_ref(inner: &InnerVecN<N, T>) -> &Self {
         unsafe { transmute(inner) }
     }
     #[inline(always)]
-    pub fn from_inner_mut(inner: &mut InnerVec<N, T>) -> &mut Self {
+    pub fn from_inner_mut(inner: &mut InnerVecN<N, T>) -> &mut Self {
         unsafe { transmute(inner) }
     }
     #[inline(always)]
-    pub fn inner(&self) -> &InnerVec<N, T> {
+    pub fn inner(&self) -> &InnerVecN<N, T> {
         &self.inner
     }
     #[inline(always)]
-    pub fn inner_mut(&mut self) -> &mut InnerVec<N, T> {
+    pub fn inner_mut(&mut self) -> &mut InnerVecN<N, T> {
         &mut self.inner
     }
     #[inline(always)]
-    pub fn into_inner(self) -> InnerVec<N, T> {
+    pub fn into_inner(self) -> InnerVecN<N, T> {
         self.inner
     }
 }
