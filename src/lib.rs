@@ -1,4 +1,3 @@
-pub mod element;
-pub mod mat;
-pub mod ops;
+pub mod construct;
+pub mod scalar;
 pub mod vec;

@@ -1,71 +1,35 @@
-use crate::element::*;
+use crate::{construct::*, scalar::*};
 
-use gomath_proc_macros::vecnum_trait;
-use inner::*;
+mod len;
+mod scalar;
+mod storage;
+pub use len::*;
+pub use scalar::*;
+pub use storage::*;
 
-pub mod array;
-pub mod from_split;
-pub mod inner;
-pub mod num;
-pub mod ops;
-pub mod splat;
-pub mod std_impl;
-pub mod swizzle_dynamic;
-pub mod swizzle_static;
+mod api;
+pub use api::*;
 
 #[repr(transparent)]
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct VecN<const N: usize, T: Element>
+pub struct Vector<const N: usize, S: VecStorage, T: Scalar>
 where
-    MaybeVecNum<N>: VecNum<N>,
+    ScalarCount<N>: VecLen<N>,
 {
-    inner: InnerVecN<N, T>,
-}
-pub type Vec2<T = f32> = VecN<2, T>;
-pub type Vec3<T = f32> = VecN<3, T>;
-pub type Vec4<T = f32> = VecN<4, T>;
-
-pub trait ElementVec:
-    ElementVecInner
-    + std_impl::ElementVecDefault
-    + swizzle_static::ElementVecConstSwizzle
-    + swizzle_dynamic::ElementVecSwizzle
-    + splat::ElementVecSplat
-{
+    inner: InnerVector<N, S, T>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-pub struct MaybeVecNum<const VALUE: usize>;
+pub type Vec2S<S, T> = Vector<2, S, T>;
+pub type Vec3S<S, T> = Vector<3, S, T>;
+pub type Vec4S<S, T> = Vector<4, S, T>;
 
-vecnum_trait!(
-    pub trait VecNum:
-        VecNumInner + swizzle_dynamic::VecNumSwizzle + swizzle_static::VecNumConstSwizzle
-    {
-    }
-);
+pub type VecN<const N: usize, T> = Vector<N, VecAligned, T>;
+pub type Vec2<T> = Vector<2, VecAligned, T>;
+pub type Vec3<T> = Vector<3, VecAligned, T>;
+pub type Vec4<T> = Vector<4, VecAligned, T>;
 
-pub type VecNOrOne<const N: usize, T: Element> = <MaybeVecNum<N> as VecNumOrOne>::VecOrOne<T>;
-pub trait VecNumOrOne: Seal {
-    type VecOrOne<T: Element>: 'static
-        + std::fmt::Debug
-        + Copy
-        + PartialEq
-        + PartialOrd
-        + Default
-        + std::fmt::Display;
-}
-impl VecNumOrOne for MaybeVecNum<1> {
-    type VecOrOne<T: Element> = T;
-}
-impl VecNumOrOne for MaybeVecNum<2> {
-    type VecOrOne<T: Element> = Vec2<T>;
-}
-impl VecNumOrOne for MaybeVecNum<3> {
-    type VecOrOne<T: Element> = Vec3<T>;
-}
-impl VecNumOrOne for MaybeVecNum<4> {
-    type VecOrOne<T: Element> = Vec4<T>;
-}
+pub type VecNP<const N: usize, T> = Vector<N, VecPacked, T>;
+pub type Vec2P<T> = Vector<2, VecPacked, T>;
+pub type Vec3P<T> = Vector<3, VecPacked, T>;
+pub type Vec4P<T> = Vector<4, VecPacked, T>;
 
-trait Seal {}
-impl<const N: usize> Seal for MaybeVecNum<N> {}
+pub type InnerVector<const N: usize, S, T> = <ScalarCount<N> as VecLen<N>>::InnerVector<S, T>;
