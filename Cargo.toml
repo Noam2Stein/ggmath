@@ -2,6 +2,3 @@
 edition = "2021"
 name    = "gomath"
 version = "0.1.0"
-
-[dependencies]
-gomath_proc_macros = { path = "proc_macros" }

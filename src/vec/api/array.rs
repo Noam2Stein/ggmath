@@ -1,10 +1,10 @@
-use std::mem::{transmute, transmute_copy};
+use std::mem::transmute;
 
 use super::*;
 
-pub trait ScalarVecArrayImpl<const N: usize, S: VecStorage>: ScalarInnerVecs
+pub trait ScalarVecArrayImpl<const N: usize, S: VecStorageInnerVecs>: ScalarInnerVecs
 where
-    ScalarCount<N>: VecLen,
+    ScalarCount<N>: VecLenInnerVec,
 {
     fn from_array(array: [Self; N]) -> InnerVector<N, S, Self>;
 
@@ -15,12 +15,12 @@ where
 
 impl<const N: usize, S: VecStorage, T: Scalar> Vector<N, S, T>
 where
-    ScalarCount<N>: VecLen,
+    ScalarCount<N>: VecLen<N>,
 {
     #[inline(always)]
     pub fn from_array(array: [T; N]) -> Self {
         Self {
-            inner: T::from_array(array),
+            inner: ScalarCount::<N>::from_array(array),
         }
     }
     #[inline(always)]
@@ -48,22 +48,67 @@ where
 
 pub(super) trait VecLenArray<const N: usize>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLenInnerVec,
 {
-    fn from_array<S: VecStorage, T: Scalar>(array: [T; N]) -> InnerVector<N, S, T>;
+    fn from_array<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(
+        array: [T; N],
+    ) -> InnerVector<N, S, T>;
 
-    fn into_array<S: VecStorage, T: Scalar>(vec: InnerVector<N, S, T>) -> [T; N];
-    fn as_array<S: VecStorage, T: Scalar>(vec: &InnerVector<N, S, T>) -> &[T; N];
-    fn as_array_mut<S: VecStorage, T: Scalar>(vec: &mut InnerVector<N, S, T>) -> &mut [T; N];
+    fn into_array<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(vec: InnerVector<N, S, T>) -> [T; N];
+    fn as_array<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(vec: &InnerVector<N, S, T>) -> &[T; N];
+    fn as_array_mut<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(
+        vec: &mut InnerVector<N, S, T>,
+    ) -> &mut [T; N];
+}
+impl<const N: usize> VecLenArray<N> for ScalarCount<N>
+where
+    ScalarCount<N>: VecLenInnerVec,
+{
+    fn from_array<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(
+        array: [T; N],
+    ) -> InnerVector<N, S, T> {
+        S::from_array(array)
+    }
+
+    fn into_array<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(vec: InnerVector<N, S, T>) -> [T; N] {
+        S::into_array(vec)
+    }
+    fn as_array<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(vec: &InnerVector<N, S, T>) -> &[T; N] {
+        S::as_array(vec)
+    }
+    fn as_array_mut<S: VecStorage, T: ScalarVecArrayImpl<N, S>>(
+        vec: &mut InnerVector<N, S, T>,
+    ) -> &mut [T; N] {
+        S::as_array_mut(vec)
+    }
 }
 
 pub(super) trait VecStorageArray<const N: usize>: VecStorageInnerVecs
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLenInnerVec,
 {
-    fn from_array<T: Scalar>(array: [T; N]) -> InnerVector<N, Self, T>;
+    fn from_array<T: ScalarVecArrayImpl<N, Self>>(array: [T; N]) -> InnerVector<N, Self, T>;
 
-    fn into_array<T: Scalar>(vec: InnerVector<N, Self, T>) -> [T; N];
-    fn as_array<T: Scalar>(vec: &InnerVector<N, Self, T>) -> &[T; N];
-    fn as_array_mut<T: Scalar>(vec: &mut InnerVector<N, Self, T>) -> &mut [T; N];
+    fn into_array<T: ScalarVecArrayImpl<N, Self>>(vec: InnerVector<N, Self, T>) -> [T; N];
+    fn as_array<T: ScalarVecArrayImpl<N, Self>>(vec: &InnerVector<N, Self, T>) -> &[T; N];
+    fn as_array_mut<T: ScalarVecArrayImpl<N, Self>>(
+        vec: &mut InnerVector<N, Self, T>,
+    ) -> &mut [T; N];
+}
+impl VecStorageArray<2> for VecPacked {
+    fn from_array<T: ScalarVecArrayImpl<N, Self>>(array: [T; N]) -> InnerVector<N, Self, T> {
+        T::from_array(array)
+    }
+
+    fn into_array<T: ScalarVecArrayImpl<N, Self>>(vec: InnerVector<N, Self, T>) -> [T; N] {
+        T::into_array(vec)
+    }
+    fn as_array<T: ScalarVecArrayImpl<N, Self>>(vec: &InnerVector<N, Self, T>) -> &[T; N] {
+        T::as_array(vec)
+    }
+    fn as_array_mut<T: ScalarVecArrayImpl<N, Self>>(
+        vec: &mut InnerVector<N, Self, T>,
+    ) -> &mut [T; N] {
+        T::as_array_mut(vec)
+    }
 }
