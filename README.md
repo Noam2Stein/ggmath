@@ -2,42 +2,53 @@
 
 [Trello board](https://trello.com/b/6NH6VXTh/gomath)
 
-# gomath - generic-optimized-math
-a generic, optimized, math rust-crate for games and graphics, that is flexible to be compatible with any crate's needs.
+# GGMath - generic-graphics-math
+a generic graphics-math Rust crate
 
-advantages:
-* generic types that are optimized with SIMD with no unsafe features like effects
-* both column-major and row-major matricies
-* size & alignment guarentees designed to work well with the gpu
+* flexible - doesn't force redundant restrictions. for example: supports both column-major and row-major matricies
+* powerful - has a fully generic API. for example: vectors are generic over length (2, 3, 4), scalar type (f32, usize, bool...), and storage (packed, aligned)
+* simple API - when not using generics, the API is as simple as writing ```let gg = fvec2(1.0, 2.0)```
+* 0-cost abstraction - the built code is fully optimized with SIMD for scalars and targets that support it
+
+restrictions:
+* only supports static vectors (2, 3, 4) and matricies (2, 3, 4)x(2, 3, 4)
+* will not support const-contexts beyond simple consts like ZERO and ONE on stable rust until const-traits are stablized
 
 # features
 
 core features:
-* elements: primitives
-* vectors: Vec(2-4)<T: Element>
-* matricies: Mat(2-4)x(2-4)<T: Element>
-* quaternion: Quat<T: ElementFloat>
+* scalars
+* vectors
+* matricies
+* quaternion
 
 optional features:
-* rectangles: Rect(2-4) - { min, size }
-* bounds: Bounds(2-4) - { center, extents }
-* rays: Ray(2-4)
+* rectangles: { min, size }
+* bounds: { center, extents }
+* rays
 
 nightly optional features:
 * const - operations in const contexts
 
-## Element
+## Scalar
 
-the Element trait allows types to be put inside math types (vecs, mats...) and has sub traits:
+the ```Scalar``` trait allows types to be put inside math types (vecs, mats...) and has sub traits:
 
-* operators: ElementAdd, ElementNot... - allows vecs to impl the same operators
-* primitive categories: ElementFloat, ElementSigned... - allows abstracting over which type of float for example
+* operators: ScalarAdd, ScalarNot...
+* num traits: ScalarFloat, ScalarSigned...
 
-## optimized-generic vectors
+## Vector
 
-Vec2<T>, Vec3<T> and Vec4<T> are just transparent wrappers around their InnerVec(N) counterparts which are vector backends specified by the Element.
+the ```Vector``` struct is generic over:
+* &lt;const N: usize&gt; where ScalarCount&lt;N&gt;: VecLen&lt;N&gt; - only 2, 3, and 4 are vector lengths
+* &lt;S: VecStorage&gt; - VecAligned is faster, VecPacked saves memory
+* &lt;T: Scalar&gt;
 
-so each Element has its own vector backend. so on some platforms an f32 will use a SIMD impl while on other platforms that dont support SIMD f32 will use the ElementDefaultImpl which uses scalars and arrays.
+don't want to worry about Storage? use VecN&lt;N, T&gt; (type alias)
+
+don't want to be generic over N? use Vec2/3/4&lt;T&gt;
+
+don't want to be generic? use FVec2/IVec3/BVec4
 
 ## column & row major matricies
 
