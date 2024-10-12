@@ -2,7 +2,7 @@ use super::*;
 
 #[allow(private_bounds)]
 pub trait VecStorage: Seal + VecStorageInnerVecs + VecStorageApi {}
-pub(super) trait VecStorageInnerVecs: Sized + Seal + VecStorageApi {
+pub(super) trait VecStorageInnerVecs: Sized + Seal {
     type InnerVec2<T: ScalarInnerVecs>: InnerConstruct;
     type InnerVec3<T: ScalarInnerVecs>: InnerConstruct;
     type InnerVec4<T: ScalarInnerVecs>: InnerConstruct;

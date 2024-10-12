@@ -11,7 +11,7 @@ where
 {
 }
 
-pub(super) trait VecLenApi<const N: usize>
+pub(super) trait VecLenApi<const N: usize>: array::VecLenArray<N>
 where
     ScalarCount<N>: VecLen<N>,
 {
@@ -20,6 +20,9 @@ impl VecLenApi<2> for ScalarCount<2> {}
 impl VecLenApi<3> for ScalarCount<3> {}
 impl VecLenApi<4> for ScalarCount<4> {}
 
-pub(super) trait VecStorageApi {}
+pub(super) trait VecStorageApi:
+    array::VecStorageArray<2> + array::VecStorageArray<3> + array::VecStorageArray<4>
+{
+}
 impl VecStorageApi for VecPacked {}
 impl VecStorageApi for VecAligned {}
