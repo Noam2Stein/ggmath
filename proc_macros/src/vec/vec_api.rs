@@ -3,6 +3,7 @@ use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     parse2, parse_macro_input, parse_quote,
+    punctuated::Punctuated,
     spanned::Spanned,
     token::{Async, Const, Mut, Pub, Unsafe},
     Attribute, Error, Expr, FnArg, GenericArgument, Generics, Ident, ItemFn, Lifetime, Pat,
@@ -17,6 +18,19 @@ pub fn vec_api(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Ok(input) => input,
         Err(err) => return err.to_compile_error().into(),
     };
+
+    let impl_block = impl_block(&input);
+    let scalar = scalar(&input);
+
+    quote! {
+        #impl_block
+        #scalar
+    }
+    .into()
+}
+
+fn impl_block(input: &ProcessedInput) -> TokenStream {
+    let input = input.clone();
 
     let impl_abstract_fns = input
         .abstract_fns
@@ -34,7 +48,25 @@ pub fn vec_api(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 #impl_free_fns
             )*
         }
-    }.into()
+    }
+}
+fn scalar(input: &ProcessedInput) -> TokenStream {
+    let api_ident = &input.ident;
+    let trait_ident = Ident::new(&format!("ScalarVec{api_ident}Impl"), api_ident.span());
+
+    let fns = input
+        .abstract_fns
+        .iter()
+        .cloned()
+        .map(|abstract_fn| abstract_fn.into_scalar_fn());
+
+    quote! {
+        pub trait #trait_ident<const N: usize, S: VecStorage>: ScalarInnerVecs where ScalarCount<N>: VecLen<N> {
+            #(
+                #fns
+            )*
+        }
+    }
 }
 
 struct Input {
@@ -56,6 +88,7 @@ impl Parse for Input {
     }
 }
 
+#[derive(Clone)]
 struct ProcessedInput {
     ident: Ident,
     abstract_fns: Vec<AbstractApiFn>,
@@ -88,6 +121,7 @@ impl TryFrom<Input> for ProcessedInput {
     }
 }
 
+#[derive(Clone)]
 struct AbstractApiFn {
     attrs: Vec<Attribute>,
     constness: Option<Const>,
@@ -163,7 +197,34 @@ impl From<AbstractApiFn> for ItemFn {
         }
     }
 }
+impl AbstractApiFn {
+    fn into_scalar_fn(self) -> TraitItemFn {
+        TraitItemFn {
+            attrs: self.attrs,
+            sig: Signature {
+                constness: self.constness,
+                asyncness: self.asyncness,
+                unsafety: self.unsafety,
+                abi: None,
+                fn_token: Default::default(),
+                ident: self.ident,
+                generics: self.generics,
+                paren_token: Default::default(),
+                inputs: self
+                    .inputs
+                    .into_iter()
+                    .map(|input| input.into_scalar_fn_arg())
+                    .collect(),
+                variadic: None,
+                output: self.output.into_scalar_fn_output(),
+            },
+            default: None,
+            semi_token: Default::default(),
+        }
+    }
+}
 
+#[derive(Clone)]
 enum ApiFnArg {
     Receiver(Receiver),
     Typed {
@@ -232,7 +293,31 @@ impl ApiFnArg {
         }
     }
 }
+impl ApiFnArg {
+    fn into_scalar_fn_arg(self) -> FnArg {
+        match self {
+            Self::Receiver(Receiver {
+                attrs,
+                reference,
+                mutability,
+                self_token: _,
+                colon_token: _,
+                ty: _,
+            }) => match reference {
+                Some((_, lifetime)) => {
+                    parse_quote!(#(#attrs)* vec: &#lifetime #mutability InnerVector<N, S, Self>)
+                }
+                None => parse_quote!(#(#attrs)* vec: InnerVector<N, S, Self>),
+            },
+            Self::Typed { attrs, ident, ty } => {
+                let ty = ty.into_scalar_fn_ty();
+                parse_quote!(#(#attrs)* #ident: #ty)
+            }
+        }
+    }
+}
 
+#[derive(Clone)]
 enum ApiReturnType {
     Default,
     Type(ApiType),
@@ -261,12 +346,30 @@ impl ApiReturnType {
             Self::Type(ty) => ty.wrap_inner(inner),
         }
     }
+
+    fn into_scalar_fn_output(self) -> ReturnType {
+        match self {
+            Self::Default => ReturnType::Default,
+            Self::Type(ty) => {
+                ReturnType::Type(Default::default(), Box::new(ty.into_scalar_fn_ty()))
+            }
+        }
+    }
 }
 
+#[derive(Clone)]
 enum ApiType {
     SelfVec,
-    Vec(ApiTypeVec),
+    Vec {
+        n: VecGenericArgument,
+        s: VecGenericArgument,
+        t: VecGenericArgument,
+    },
     T,
+    Array {
+        elem: Box<ApiType>,
+        len: VecGenericArgument,
+    },
     Reference {
         lifetime: Option<Lifetime>,
         mutability: Option<Mut>,
@@ -296,11 +399,11 @@ impl TryFrom<Type> for ApiType {
                                     .cloned()
                                     .collect::<Box<[GenericArgument]>>()
                                 {
-                                    [n, s, t] => ApiType::Vec(ApiTypeVec {
+                                    [n, s, t] => ApiType::Vec {
                                         n: VecGenericArgument::from_general(n, "N"),
                                         s: VecGenericArgument::from_general(s, "S"),
                                         t: VecGenericArgument::from_general(t, "T"),
-                                    }),
+                                    },
                                     args => {
                                         return Err(Error::new(
                                             args.first().map_or_else(
@@ -326,6 +429,10 @@ impl TryFrom<Type> for ApiType {
                     Self::Type(Type::Path(value))
                 }
             }
+            Type::Array(value) => Self::Array {
+                elem: Box::new((*value.elem).try_into()?),
+                len: VecGenericArgument::from_general(value.len, "N"),
+            },
             Type::Reference(value) => Self::Reference {
                 lifetime: value.lifetime,
                 mutability: value.mutability,
@@ -339,8 +446,32 @@ impl From<ApiType> for Type {
     fn from(value: ApiType) -> Self {
         match value {
             ApiType::SelfVec => parse_quote!(Self),
-            ApiType::Vec(value) => value.into(),
+            ApiType::Vec { n, s, t } => {
+                let n = match n {
+                    VecGenericArgument::Default => quote! { N },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
+                let s = match s {
+                    VecGenericArgument::Default => quote! { S },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
+                let t = match t {
+                    VecGenericArgument::Default => quote! { T },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
+
+                parse_quote!(Vector<#n, #s, #t>)
+            }
             ApiType::T => parse_quote!(T),
+            ApiType::Array { elem, len } => {
+                let elem = Type::from(*elem);
+                let len = match len {
+                    VecGenericArgument::Default => quote! { N },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
+
+                parse_quote!([#elem; #len])
+            }
             ApiType::Reference {
                 lifetime,
                 mutability,
@@ -359,8 +490,12 @@ impl ApiType {
     fn pass_inner(&self, outer: Expr) -> Expr {
         match self {
             Self::SelfVec => parse_quote!(#outer.inner),
-            Self::Vec(_) => parse_quote!(#outer.inner),
+            Self::Vec { n: _, s: _, t: _ } => parse_quote!(#outer.inner),
             Self::T => outer,
+            Self::Array { elem, len: _ } => {
+                let f = elem.pass_inner(parse_quote!(item));
+                parse_quote!(#outer.map(|item| #f))
+            }
             Self::Reference {
                 lifetime: _,
                 mutability: _,
@@ -369,12 +504,15 @@ impl ApiType {
             Self::Type(_) => outer,
         }
     }
-
     fn wrap_inner(&self, inner: Expr) -> Expr {
         match self {
             Self::SelfVec => parse_quote!(Self { inner: #inner }),
-            Self::Vec(_) => parse_quote!(Vector { inner: #inner }),
+            Self::Vec { n: _, s: _, t: _ } => parse_quote!(Vector { inner: #inner }),
             Self::T => inner,
+            Self::Array { elem, len: _ } => {
+                let f = elem.wrap_inner(parse_quote!(item));
+                parse_quote!(#inner.map(|item| #f))
+            }
             Self::Reference {
                 lifetime: _,
                 mutability: _,
@@ -383,33 +521,52 @@ impl ApiType {
             Self::Type(_) => inner,
         }
     }
-}
 
-#[derive(Default)]
-struct ApiTypeVec {
-    n: VecGenericArgument,
-    s: VecGenericArgument,
-    t: VecGenericArgument,
-}
-impl From<ApiTypeVec> for Type {
-    fn from(value: ApiTypeVec) -> Self {
-        let n = match value.n {
-            VecGenericArgument::Default => quote! { N },
-            VecGenericArgument::Other(tokens) => tokens,
-        };
-        let s = match value.s {
-            VecGenericArgument::Default => quote! { S },
-            VecGenericArgument::Other(tokens) => tokens,
-        };
-        let t = match value.t {
-            VecGenericArgument::Default => quote! { T },
-            VecGenericArgument::Other(tokens) => tokens,
-        };
+    fn into_scalar_fn_ty(self) -> Type {
+        match self {
+            ApiType::SelfVec => parse_quote!(InnerVector<N, S, Self>),
+            ApiType::Vec { n, s, t } => {
+                let n = match n {
+                    VecGenericArgument::Default => quote! { N },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
+                let s = match s {
+                    VecGenericArgument::Default => quote! { S },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
+                let t = match t {
+                    VecGenericArgument::Default => quote! { Self },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
 
-        parse_quote!(Vector<#n, #s, #t>)
+                parse_quote!(InnerVector<#n, #s, #t>)
+            }
+            ApiType::T => parse_quote!(Self),
+            Self::Array { elem, len } => {
+                let elem = elem.into_scalar_fn_ty();
+                let len = match len {
+                    VecGenericArgument::Default => quote! { N },
+                    VecGenericArgument::Other(tokens) => tokens,
+                };
+
+                parse_quote!([#elem; #len])
+            }
+            ApiType::Reference {
+                lifetime,
+                mutability,
+                elem,
+            } => Type::Reference(TypeReference {
+                and_token: Default::default(),
+                lifetime,
+                mutability,
+                elem: Box::new(elem.into_scalar_fn_ty()),
+            }),
+            ApiType::Type(ty) => ty,
+        }
     }
 }
 
+#[derive(Clone)]
 enum VecGenericArgument {
     Default,
     Other(TokenStream),
@@ -420,7 +577,7 @@ impl Default for VecGenericArgument {
     }
 }
 impl VecGenericArgument {
-    fn from_general(value: &GenericArgument, default: &str) -> Self {
+    fn from_general(value: impl ToTokens, default: &str) -> Self {
         let value = value
             .to_token_stream()
             .into_iter()
