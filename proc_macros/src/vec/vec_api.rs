@@ -3,7 +3,6 @@ use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
     parse2, parse_macro_input, parse_quote,
-    punctuated::Punctuated,
     spanned::Spanned,
     token::{Async, Const, Mut, Pub, Unsafe},
     Attribute, Error, Expr, FnArg, GenericArgument, Generics, Ident, ItemFn, Lifetime, Pat,
@@ -19,25 +18,28 @@ pub fn vec_api(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Err(err) => return err.to_compile_error().into(),
     };
 
-    let impl_block = impl_block(&input);
+    let impl_block = vec(&input);
     let scalar = scalar(&input);
+    let len = len(&input);
+    let storage = storage(&input);
 
     quote! {
         #impl_block
         #scalar
+        #len
+        #storage
     }
     .into()
 }
 
-fn impl_block(input: &ProcessedInput) -> TokenStream {
-    let input = input.clone();
-
+fn vec(input: &ProcessedInput) -> TokenStream {
     let impl_abstract_fns = input
         .abstract_fns
-        .into_iter()
-        .map(|abstract_fn| ItemFn::from(abstract_fn));
+        .iter()
+        .cloned()
+        .map(|abstract_fn| abstract_fn.into_impl(&input.ident));
 
-    let impl_free_fns = input.free_fns;
+    let impl_free_fns = input.free_fns.iter().cloned();
 
     quote! {
         impl<const N: usize, S: VecStorage, T: Scalar> Vector<N, S, T> where ScalarCount<N>: VecLen<N> {
@@ -51,14 +53,13 @@ fn impl_block(input: &ProcessedInput) -> TokenStream {
     }
 }
 fn scalar(input: &ProcessedInput) -> TokenStream {
-    let api_ident = &input.ident;
-    let trait_ident = Ident::new(&format!("ScalarVec{api_ident}Impl"), api_ident.span());
+    let trait_ident = scalar_trait_ident(&input.ident);
 
     let fns = input
         .abstract_fns
         .iter()
         .cloned()
-        .map(|abstract_fn| abstract_fn.into_scalar_fn());
+        .map(|abstract_fn| abstract_fn.into_scalar_trait_fn());
 
     quote! {
         pub trait #trait_ident<const N: usize, S: VecStorage>: ScalarInnerVecs where ScalarCount<N>: VecLen<N> {
@@ -67,6 +68,90 @@ fn scalar(input: &ProcessedInput) -> TokenStream {
             )*
         }
     }
+}
+fn len(input: &ProcessedInput) -> TokenStream {
+    let trait_ident = len_trait_ident(&input.ident);
+
+    let fns = input
+        .abstract_fns
+        .iter()
+        .cloned()
+        .map(|abstract_fn| abstract_fn.into_len_trait_fn());
+
+    let impls = (2..5).map(|n| {
+        let fns = input
+            .abstract_fns
+            .iter()
+            .cloned()
+            .map(|abstract_fn| abstract_fn.into_len_trait_impl(&input.ident, n));
+
+        quote! {
+            impl #trait_ident<#n> for ScalarCount<#n> {
+                #(
+                    #fns
+                )*
+            }
+        }
+    });
+
+    quote! {
+        pub trait #trait_ident<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
+            #(
+                #fns
+            )*
+        }
+        #(
+            #impls
+        )*
+    }
+}
+fn storage(input: &ProcessedInput) -> TokenStream {
+    let trait_ident = storage_trait_ident(&input.ident);
+
+    let fns = input
+        .abstract_fns
+        .iter()
+        .cloned()
+        .map(|abstract_fn| abstract_fn.into_storage_trait_fn());
+
+    let impls = (2..5).map(|n| ["VecPacked", "VecAligned"].map(|s| {
+        let s = Ident::new(s, Span::call_site());
+
+        let fns = input
+            .abstract_fns
+            .iter()
+            .cloned()
+            .map(|abstract_fn| abstract_fn.into_storage_trait_impl(&input.ident, n, &s));
+
+        quote! {
+            impl #trait_ident<#n> for #s {
+                #(
+                    #fns
+                )*
+            }
+        }
+    })).flatten();
+
+    quote! {
+        pub trait #trait_ident<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
+            #(
+                #fns
+            )*
+        }
+        #(
+            #impls
+        )*
+    }
+}
+
+fn scalar_trait_ident(api_ident: &Ident) -> Ident {
+    Ident::new(&format!("ScalarVec{api_ident}Api"), api_ident.span())
+}
+fn len_trait_ident(api_ident: &Ident) -> Ident {
+    Ident::new(&format!("VecLen{api_ident}Api"), api_ident.span())
+}
+fn storage_trait_ident(api_ident: &Ident) -> Ident {
+    Ident::new(&format!("VecStorage{api_ident}Api"), api_ident.span())
 }
 
 struct Input {
@@ -152,53 +237,101 @@ impl TryFrom<TraitItemFn> for AbstractApiFn {
         })
     }
 }
-impl From<AbstractApiFn> for ItemFn {
-    fn from(value: AbstractApiFn) -> Self {
-        let mut attrs = value.attrs;
+impl AbstractApiFn {
+    fn into_scalar_trait_fn(self) -> TraitItemFn {
+        self.into_trait_fn(|input| input.into_scalar_fn_arg(), |output| output.into_scalar_fn_output())
+    }
+    fn into_len_trait_fn(mut self) -> TraitItemFn {
+        self.generics.params.insert(0, parse_quote!(S: VecStorageInnerVecs));
+        self.generics.params.insert(1, parse_quote!(T: ScalarInnerVecs));
+
+        self.into_trait_fn(|input| input.into_len_fn_arg(), |output| output.into_len_fn_output())
+    }
+    fn into_storage_trait_fn(mut self) -> TraitItemFn {
+        self.generics.params.insert(1, parse_quote!(T: ScalarInnerVecs));
+
+        self.into_trait_fn(|input| input.into_storage_fn_arg(), |output| output.into_storage_fn_output())
+    }
+
+    fn into_impl(self, api_ident: &Ident) -> ItemFn {
+        let mut attrs = self.attrs;
         attrs.insert(0, parse_quote!( #[inline(always)] ));
 
-        let call_ident = &value.ident;
+        let call_trait_ident = len_trait_ident(&api_ident);
+        let call_ident = &self.ident;
 
-        let mut call_generics = value.generics.clone();
+        let mut call_generics = self.generics.clone();
         call_generics.params.insert(0, parse_quote!(S));
         call_generics.params.insert(1, parse_quote!(T));
 
-        let call_inputs = value.inputs.iter().map(|input| input.pass_inner());
+        let call_inputs = self.inputs.iter().map(|input| input.pass_inner());
 
-        let call = value.output.wrap_inner(
+        let call = self.output.wrap_inner(
             parse2(quote! {
-                <ScalarCount<N> as TheNTrait>::#call_ident::#call_generics(#(#call_inputs), *)
+                <ScalarCount<N> as #call_trait_ident>::#call_ident::#call_generics(#(#call_inputs), *)
             })
             .unwrap_or_else(|err| panic!("failed to parse N fn call: {err}")),
         );
 
-        Self {
+        ItemFn {
             attrs,
             vis: Visibility::Public(Pub::default()),
             sig: Signature {
-                constness: value.constness,
-                asyncness: value.asyncness,
-                unsafety: value.unsafety,
+                constness: self.constness,
+                asyncness: self.asyncness,
+                unsafety: self.unsafety,
                 abi: None,
                 fn_token: Default::default(),
-                ident: value.ident,
-                generics: value.generics,
+                ident: self.ident,
+                generics: self.generics,
                 paren_token: Default::default(),
-                inputs: value
+                inputs: self
                     .inputs
                     .into_iter()
                     .map(|input| FnArg::from(input))
                     .collect(),
                 variadic: None,
-                output: value.output.into(),
+                output: self.output.into(),
             },
             block: parse2(quote! { { #call } })
                 .unwrap_or_else(|err| panic!("failed to parse abstract fn block: {err}")),
         }
     }
-}
-impl AbstractApiFn {
-    fn into_scalar_fn(self) -> TraitItemFn {
+    fn into_len_trait_impl(self, api_ident: &Ident, n: usize) -> ItemFn {
+        let mut generics = self.generics;
+        generics
+            .params
+            .insert(0, parse_quote!(S: VecStorageInnerVecs));
+        generics.params.insert(1, parse_quote!(T: ScalarInnerVecs));
+
+        ItemFn {
+            attrs: self.attrs,
+            vis: Visibility::Inherited,
+            sig: Signature {
+                constness: self.constness,
+                asyncness: self.asyncness,
+                unsafety: self.unsafety,
+                abi: None,
+                fn_token: Default::default(),
+                ident: self.ident,
+                generics: generics,
+                paren_token: Default::default(),
+                inputs: self
+                    .inputs
+                    .into_iter()
+                    .map(|input| input.into_len_fn_arg())
+                    .collect(),
+                variadic: None,
+                output: self.output.into_len_fn_output(),
+            },
+            block: ,
+        }
+    }
+    fn into_storage_trait_impl(self, api_ident: &Ident, n: usize, s: &Ident) -> ItemFn {
+        
+    }
+
+    fn into_trait_fn(self, input_f: impl FnMut(ApiFnArg) -> FnArg, output_f: impl FnOnce(ApiReturnType) -> ReturnType) -> TraitItemFn {
         TraitItemFn {
             attrs: self.attrs,
             sig: Signature {
@@ -213,10 +346,10 @@ impl AbstractApiFn {
                 inputs: self
                     .inputs
                     .into_iter()
-                    .map(|input| input.into_scalar_fn_arg())
+                    .map(input_f)
                     .collect(),
                 variadic: None,
-                output: self.output.into_scalar_fn_output(),
+                output: (output_f)(self.output),
             },
             default: None,
             semi_token: Default::default(),
@@ -315,6 +448,12 @@ impl ApiFnArg {
             }
         }
     }
+    fn into_len_fn_arg(self) -> FnArg {
+        self.into()
+    }
+    fn into_storage_fn_arg(self) -> FnArg {
+
+    }
 }
 
 #[derive(Clone)]
@@ -353,6 +492,19 @@ impl ApiReturnType {
             Self::Type(ty) => {
                 ReturnType::Type(Default::default(), Box::new(ty.into_scalar_fn_ty()))
             }
+        }
+    }
+    fn into_len_fn_output(self) -> ReturnType {
+        self.into()
+    }
+    fn into_storage_fn_output(self) -> ReturnType {
+        
+    }
+
+    fn into_ty_with_len(self) -> ReturnType {
+        match self {
+            ApiReturnType::Default => ReturnType::Default,
+            ApiReturnType::Type(ty) => ty.into_ty_with_len()
         }
     }
 }

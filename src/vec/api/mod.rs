@@ -11,7 +11,7 @@ where
 {
 }
 
-pub(super) trait VecLenApi<const N: usize>: array::VecLenArray<N>
+pub(super) trait VecLenApi<const N: usize>: array::VecLenArrayApi<N>
 where
     ScalarCount<N>: VecLen<N>,
 {
