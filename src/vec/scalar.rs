@@ -10,3 +10,8 @@ pub trait ScalarVec:
     + ScalarVecApiImpl<4, VecAligned>
 {
 }
+pub unsafe trait ScalarInnerVecs: Construct {
+    type InnerAlignedVec2: InnerConstruct;
+    type InnerAlignedVec3: InnerConstruct;
+    type InnerAlignedVec4: InnerConstruct;
+}

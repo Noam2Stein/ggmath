@@ -32,4 +32,4 @@ pub type Vec2P<T> = Vector<2, VecPacked, T>;
 pub type Vec3P<T> = Vector<3, VecPacked, T>;
 pub type Vec4P<T> = Vector<4, VecPacked, T>;
 
-pub type InnerVector<const N: usize, S, T> = <ScalarCount<N> as VecLenInnerVec>::InnerVector<S, T>;
+pub type InnerVector<const N: usize, S, T> = <S as VecStorageInnerVecs>::InnerVec<N, T>;

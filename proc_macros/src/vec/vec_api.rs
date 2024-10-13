@@ -114,7 +114,7 @@ fn len(input: &ProcessedInput) -> TokenStream {
     });
 
     quote! {
-        pub trait #trait_ident<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #trait_ident<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
             #(
                 #fns
             )*
@@ -170,7 +170,7 @@ fn storage(input: &ProcessedInput) -> TokenStream {
         .flatten();
 
     quote! {
-        pub trait #trait_ident<const N: usize>: VecStorageInnerVecs where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #trait_ident<const N: usize>: VecStorageInnerVecs where ScalarCount<N>: VecLen<N> {
             #(
                 #fns
             )*
