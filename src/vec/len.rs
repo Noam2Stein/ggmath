@@ -9,6 +9,7 @@ where
 pub trait VecLenInnerVec {
     type InnerVector<S: VecStorageInnerVecs, T: ScalarInnerVecs>: InnerConstruct;
 }
+
 pub struct ScalarCount<const VALUE: usize>;
 impl Seal for ScalarCount<2> {}
 impl Seal for ScalarCount<4> {}

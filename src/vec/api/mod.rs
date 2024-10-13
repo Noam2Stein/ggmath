@@ -5,7 +5,7 @@ pub mod construct;
 pub mod or_scalar;
 
 pub trait ScalarVecApiImpl<const N: usize, S: VecStorage>:
-    ScalarInnerVecs + array::ScalarVecArrayImpl<N, S>
+    ScalarInnerVecs + array::ScalarVecArrayApi<N, S>
 where
     ScalarCount<N>: VecLen<N>,
 {
@@ -21,7 +21,7 @@ impl VecLenApi<3> for ScalarCount<3> {}
 impl VecLenApi<4> for ScalarCount<4> {}
 
 pub(super) trait VecStorageApi:
-    array::VecStorageArray<2> + array::VecStorageArray<3> + array::VecStorageArray<4>
+    array::VecStorageArrayApi<2> + array::VecStorageArrayApi<3> + array::VecStorageArrayApi<4>
 {
 }
 impl VecStorageApi for VecPacked {}
