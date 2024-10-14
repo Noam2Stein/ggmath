@@ -1,7 +1,7 @@
 use derive_syn_parse::Parse;
 use proc_macro2::Literal;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, token::Paren, Attribute, Error, Ident, Token, Type};
+use syn::{parse_macro_input, token::Paren, Error, Ident, Token, Type};
 
 pub fn aligned_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let Input {
@@ -11,7 +11,6 @@ pub fn aligned_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         _paren,
         size,
         _colon,
-        attrs,
         vec2,
         _comma,
         vec4,
@@ -36,17 +35,17 @@ pub fn aligned_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     );
 
     quote! {
-        unsafe impl gomath::vec::ScalarAlignedVecs for #ty {
+        unsafe impl gomath::vec::inner::ScalarAlignedVecs for #ty {
             type InnerAlignedVec2 = #vec2;
             type InnerAlignedVec4 = #vec4;
         }
 
         #[repr(align(#vec2_align))]
-        #(#attrs)*
+        #[derive(Debug, Clone, Copy)]
         pub struct #vec2([#ty; 2]);
 
         #[repr(align(#vec4_align))]
-        #(#attrs)*
+        #[derive(Debug, Clone, Copy)]
         pub struct #vec4([#ty; 4]);
 
         const _: () = assert!(
@@ -83,8 +82,6 @@ struct Input {
     #[inside(_paren)]
     size: Literal,
     _colon: Token![:],
-    #[call(Attribute::parse_outer)]
-    attrs: Vec<Attribute>,
     vec2: Ident,
     _comma: Token![,],
     vec4: Ident,

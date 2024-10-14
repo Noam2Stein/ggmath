@@ -6,6 +6,6 @@ where
 {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
-        self.inner.eq(&other.inner)
+        self.into_array().eq(&other.into_array())
     }
 }

@@ -1,7 +1,7 @@
 use super::*;
 
 pub trait ScalarVec:
-    ScalarAlignedVecs
+    inner::ScalarAlignedVecs
     + ScalarVecApiImpl<2, VecPacked>
     + ScalarVecApiImpl<3, VecPacked>
     + ScalarVecApiImpl<4, VecPacked>

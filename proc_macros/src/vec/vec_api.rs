@@ -71,7 +71,7 @@ fn scalar(input: &ProcessedInput) -> TokenStream {
         });
 
     quote! {
-        pub trait #trait_ident<const N: usize, S: VecStorage>: ScalarAlignedVecs where ScalarCount<N>: VecLen<N> {
+        pub trait #trait_ident<const N: usize, S: VecStorage>: inner::ScalarAlignedVecs where ScalarCount<N>: VecLen<N> {
             #(
                 #fns
             )*
@@ -114,7 +114,7 @@ fn len(input: &ProcessedInput) -> TokenStream {
     });
 
     quote! {
-        pub(super) trait #trait_ident<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #trait_ident<const N: usize>: inner::VecLenInnerVec where ScalarCount<N>: VecLen<N> {
             #(
                 #fns
             )*
@@ -170,7 +170,7 @@ fn storage(input: &ProcessedInput) -> TokenStream {
         .flatten();
 
     quote! {
-        pub(super) trait #trait_ident<const N: usize>: VecStorageInnerVecs where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #trait_ident<const N: usize>: inner::VecStorageInnerVecs where ScalarCount<N>: VecLen<N> {
             #(
                 #fns
             )*
@@ -489,9 +489,9 @@ impl ApiFnArg {
 
                     match reference {
                         Some((_, lifetime)) => {
-                            parse_quote!(#(#attrs)* vec: &#lifetime #mutability InnerVector<#n, #t, #s>)
+                            parse_quote!(#(#attrs)* vec: &#lifetime #mutability inner::InnerVector<#n, #t, #s>)
                         }
-                        None => parse_quote!(#(#attrs)* vec: InnerVector<#n, #t, #s>),
+                        None => parse_quote!(#(#attrs)* vec: inner::InnerVector<#n, #t, #s>),
                     }
                 }
             },
@@ -646,13 +646,13 @@ impl ApiType {
                     let s = perspective.s();
                     let t = perspective.t();
 
-                    parse_quote! { InnerVector<#n, #t, #s> }
+                    parse_quote! { inner::InnerVector<#n, #t, #s> }
                 }
             },
             ApiType::Vec(generics) => {
                 let (n, t, s) = generics.tokens(perspective);
 
-                parse_quote!(InnerVector<#n, #t, #s>)
+                parse_quote!(inner::InnerVector<#n, #t, #s>)
             }
             ApiType::T => {
                 let t = perspective.t();

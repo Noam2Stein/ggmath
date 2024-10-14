@@ -1,3 +1,5 @@
+//! staticly-lengthed vectors of [scalars](scalar) where the length is between 2-4.
+
 use crate::{construct::*, scalar::*};
 
 mod len;
@@ -7,6 +9,8 @@ pub use len::*;
 pub use scalar::*;
 pub use storage::*;
 
+pub mod inner;
+
 mod api;
 pub use api::*;
 
@@ -15,7 +19,7 @@ pub struct Vector<const N: usize, T: Scalar, S: VecStorage>
 where
     ScalarCount<N>: VecLen<N>,
 {
-    inner: InnerVector<N, T, S>,
+    inner: inner::InnerVector<N, T, S>,
 }
 
 pub type Vector2<T, S> = Vector<2, T, S>;
@@ -31,5 +35,3 @@ pub type VecNP<const N: usize, T> = Vector<N, VecPacked, T>;
 pub type Vec2P<T> = Vector<2, T, VecPacked>;
 pub type Vec3P<T> = Vector<3, T, VecPacked>;
 pub type Vec4P<T> = Vector<4, T, VecPacked>;
-
-pub type InnerVector<const N: usize, T, S> = <S as VecStorageInnerVecs>::InnerVec<N, T>;

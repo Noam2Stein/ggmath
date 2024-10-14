@@ -21,15 +21,15 @@ impl VecLenOrOne for ScalarCount<1> {
 }
 impl VecLenOrOne for ScalarCount<2> {
     type VectorOrScalar<T: Scalar, S: VecStorage> = Vector2<T, S>;
-    type InnerVectorOrScalar<T: Scalar, S: VecStorage> = InnerVector<2, T, S>;
+    type InnerVectorOrScalar<T: Scalar, S: VecStorage> = inner::InnerVector<2, T, S>;
 }
 impl VecLenOrOne for ScalarCount<3> {
     type VectorOrScalar<T: Scalar, S: VecStorage> = Vector3<T, S>;
-    type InnerVectorOrScalar<T: Scalar, S: VecStorage> = InnerVector<3, T, S>;
+    type InnerVectorOrScalar<T: Scalar, S: VecStorage> = inner::InnerVector<3, T, S>;
 }
 impl VecLenOrOne for ScalarCount<4> {
     type VectorOrScalar<T: Scalar, S: VecStorage> = Vector4<T, S>;
-    type InnerVectorOrScalar<T: Scalar, S: VecStorage> = InnerVector<4, T, S>;
+    type InnerVectorOrScalar<T: Scalar, S: VecStorage> = inner::InnerVector<4, T, S>;
 }
 
 trait Seal {}
