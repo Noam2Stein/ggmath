@@ -2,7 +2,10 @@ use std::mem::{transmute, transmute_copy};
 
 use gomath_proc_macros::vec_api;
 
-use super::*;
+use super::{
+    inner::{InnerVector, ScalarAlignedVecs},
+    *,
+};
 
 vec_api!(
     Array:
@@ -22,3 +25,12 @@ vec_api!(
         unsafe { transmute(self) }
     }
 );
+
+impl<const N: usize, T: ScalarAlignedVecs> ScalarVecArrayApi<N, VecPacked> for T
+where
+    ScalarCount<N>: VecLen<N>,
+{
+    fn from_array(array: [Self; N]) -> InnerVector<N, Self, VecPacked> {
+        array
+    }
+}

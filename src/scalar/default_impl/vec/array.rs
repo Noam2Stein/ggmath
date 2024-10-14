@@ -4,14 +4,6 @@ use crate::vec::array::*;
 
 use super::*;
 
-impl<const N: usize, T: ScalarDefaultImpl> ScalarVecArrayApi<N, VecPacked> for T
-where
-    ScalarCount<N>: VecLen<N>,
-{
-    fn from_array(array: [Self; N]) -> InnerVector<N, Self, VecPacked> {
-        array
-    }
-}
 impl<T: ScalarDefaultImpl> ScalarVecArrayApi<2, VecAligned> for T {
     fn from_array(array: [Self; 2]) -> InnerVector<2, Self, VecAligned> {
         unsafe { transmute_copy(&array) }
