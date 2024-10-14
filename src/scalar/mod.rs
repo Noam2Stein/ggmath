@@ -7,7 +7,7 @@ pub mod default_impl;
 
 mod primitive_impls;
 
-use crate::{construct::Construct, vec::ScalarVec};
+use crate::{construct::Construct, vec::*};
 
 /// trait for types that can be put inside mathamatical types like [vectors](crate::vec::Vector) and [matricies](crate::mat::Matrix).
 ///
@@ -27,6 +27,17 @@ use crate::{construct::Construct, vec::ScalarVec};
 /// To make an unoptimized scalar type use [scalar_default_impl](default_impl::scalar_default_impl).
 ///
 /// To make a wrapper scaler type for an existing scalar (for example Meters(f32)) use ```todo!()```
-pub trait Scalar: Construct + PartialOrd + ScalarVec {}
+pub trait Scalar:
+    Construct
+    + PartialOrd
+    + inner::ScalarInnerVecs
+    + api::ScalarVecApi<2, VecPacked>
+    + api::ScalarVecApi<3, VecPacked>
+    + api::ScalarVecApi<4, VecPacked>
+    + api::ScalarVecApi<2, VecAligned>
+    + api::ScalarVecApi<3, VecAligned>
+    + api::ScalarVecApi<4, VecAligned>
+{
+}
 
 pub use gomath_proc_macros::scalar_aliases;

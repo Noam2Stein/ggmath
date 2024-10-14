@@ -91,7 +91,7 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
         let args = vec_alias.args;
 
         let docs: TokenStream = parse_str(&format!(
-            "/// type-aliase for an [{ty}] [{vec_ident}](gomath::vec::{vec_ident})"
+            "/// type-aliase for an [```{ty}```] [```{vec_ident}```](gomath::vec::{vec_ident})"
         ))
         .unwrap();
 
@@ -105,7 +105,7 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 
     if let Some(mod_token) = modness {
         let docs: TokenStream =
-            parse_str(&format!("/// mathamatical type-aliases for ```{ty}```")).unwrap();
+            parse_str(&format!("/// mathamatical type-aliases for [```{ty}```]")).unwrap();
         quote! {
             #docs
             #vis #mod_token #ty {

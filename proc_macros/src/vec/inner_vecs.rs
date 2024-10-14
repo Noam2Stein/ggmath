@@ -3,7 +3,7 @@ use proc_macro2::Literal;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, token::Paren, Error, Ident, Token, Type};
 
-pub fn aligned_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn inner_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let Input {
         _lt,
         ty,
@@ -35,7 +35,7 @@ pub fn aligned_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     );
 
     quote! {
-        unsafe impl gomath::vec::inner::ScalarAlignedVecs for #ty {
+        unsafe impl gomath::vec::inner::ScalarInnerVecs for #ty {
             type InnerAlignedVec2 = #vec2;
             type InnerAlignedVec4 = #vec4;
         }

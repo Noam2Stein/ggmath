@@ -1,14 +1,12 @@
-use crate::vec::*;
+use crate::vec::{api::*, *};
 
 use super::*;
 
 mod array;
 
-impl<T: ScalarDefaultImpl> ScalarVec for T {}
-
-impl<T: ScalarDefaultImpl> ScalarVecApiImpl<2, VecPacked> for T {}
-impl<T: ScalarDefaultImpl> ScalarVecApiImpl<3, VecPacked> for T {}
-impl<T: ScalarDefaultImpl> ScalarVecApiImpl<4, VecPacked> for T {}
-impl<T: ScalarDefaultImpl> ScalarVecApiImpl<2, VecAligned> for T {}
-impl<T: ScalarDefaultImpl> ScalarVecApiImpl<3, VecAligned> for T {}
-impl<T: ScalarDefaultImpl> ScalarVecApiImpl<4, VecAligned> for T {}
+impl<T: ScalarDefaultImpl> ScalarVecApi<2, VecPacked> for T {}
+impl<T: ScalarDefaultImpl> ScalarVecApi<3, VecPacked> for T {}
+impl<T: ScalarDefaultImpl> ScalarVecApi<4, VecPacked> for T {}
+impl<T: ScalarDefaultImpl> ScalarVecApi<2, VecAligned> for T {}
+impl<T: ScalarDefaultImpl> ScalarVecApi<3, VecAligned> for T {}
+impl<T: ScalarDefaultImpl> ScalarVecApi<4, VecAligned> for T {}

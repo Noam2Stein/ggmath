@@ -14,6 +14,6 @@ pub use gomath_proc_macros::scalar_default_impl;
 /// Has scalar supertraits that can't be implemented automatically by generics.
 ///
 /// Use [scalar_default_impl] instead.
-pub trait ScalarDefaultImpl: Construct + PartialOrd + ScalarAlignedVecs {}
+pub trait ScalarDefaultImpl: Construct + PartialOrd + ScalarInnerVecs {}
 
 impl<T: ScalarDefaultImpl> Scalar for T {}

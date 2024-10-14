@@ -1,7 +1,5 @@
 use std::mem::transmute_copy;
 
-use crate::vec::array::*;
-
 use super::*;
 
 impl<T: ScalarDefaultImpl> ScalarVecArrayApi<2, VecAligned> for T {

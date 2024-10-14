@@ -1,11 +1,16 @@
 use super::*;
 
-pub mod array;
-pub mod construct;
-pub mod or_scalar;
+mod array;
+mod or_scalar;
+pub use array::*;
+pub use or_scalar::*;
 
-pub trait ScalarVecApiImpl<const N: usize, S: VecStorage>:
-    inner::ScalarAlignedVecs + array::ScalarVecArrayApi<N, S>
+mod construct;
+
+/// Scalar supertrait for implementing the vector API for a specific <N, S>.
+/// This is an empty trait with more supertraits for every related fn set.
+pub trait ScalarVecApi<const N: usize, S: VecStorage>:
+    inner::ScalarInnerVecs + array::ScalarVecArrayApi<N, S>
 where
     ScalarCount<N>: VecLen<N>,
 {

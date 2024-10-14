@@ -1,43 +1,61 @@
+//! Behaviour for selecting an inner-vector type based on a vector's length, scalar, and storage.
+//!
+//!
+
 use super::*;
 
+/// The type of the inner-value inside a vector
 pub type InnerVector<const N: usize, T, S> = <S as VecStorageInnerVecs>::InnerVec<N, T>;
 
+/// Scalar supertrait that specifies inner-types for vectors that can't be declared generically.
+///
+/// - Unsafe to implement manually because the implementation is expected to comply with type-layout guarentees.
+/// Instead, implement using [```aligned_vecs```].
+pub unsafe trait ScalarInnerVecs: Construct {
+    /// Inner-type for ```VecAligned``` Vec2s.
+    /// - Guarenteed: ```size = align = size_of::<T>().next_power_of_two() * 2```
+    type InnerAlignedVec2: InnerConstruct;
+
+    /// Inner-type for ```VecAligned``` Vec4s and Vec3s.
+    /// - Guarenteed: ```size = align = size_of::<T>().next_power_of_two() * 4```
+    type InnerAlignedVec4: InnerConstruct;
+}
+
+pub use gomath_proc_macros::inner_vecs;
+
+#[doc(hidden)]
+#[allow(private_bounds)]
 pub trait VecLenInnerVec: Seal {
-    type InnerAlignedVec<T: ScalarAlignedVecs>: InnerConstruct;
+    type InnerAlignedVec<T: ScalarInnerVecs>: InnerConstruct;
 }
 impl Seal for ScalarCount<2> {}
 impl Seal for ScalarCount<4> {}
 impl Seal for ScalarCount<3> {}
 impl VecLenInnerVec for ScalarCount<2> {
-    type InnerAlignedVec<T: ScalarAlignedVecs> = T::InnerAlignedVec2;
+    type InnerAlignedVec<T: ScalarInnerVecs> = T::InnerAlignedVec2;
 }
 impl VecLenInnerVec for ScalarCount<3> {
-    type InnerAlignedVec<T: ScalarAlignedVecs> = T::InnerAlignedVec4;
+    type InnerAlignedVec<T: ScalarInnerVecs> = T::InnerAlignedVec4;
 }
 impl VecLenInnerVec for ScalarCount<4> {
-    type InnerAlignedVec<T: ScalarAlignedVecs> = T::InnerAlignedVec4;
+    type InnerAlignedVec<T: ScalarInnerVecs> = T::InnerAlignedVec4;
 }
 
+#[doc(hidden)]
+#[allow(private_bounds)]
 pub trait VecStorageInnerVecs: Seal {
-    type InnerVec<const N: usize, T: ScalarAlignedVecs>: InnerConstruct
+    type InnerVec<const N: usize, T: ScalarInnerVecs>: InnerConstruct
     where
         ScalarCount<N>: VecLenInnerVec;
 }
 impl Seal for VecPacked {}
 impl VecStorageInnerVecs for VecPacked {
-    type InnerVec<const N: usize, T: ScalarAlignedVecs> = [T; N] where ScalarCount<N>: VecLenInnerVec;
+    type InnerVec<const N: usize, T: ScalarInnerVecs> = [T; N] where ScalarCount<N>: VecLenInnerVec;
 }
 impl Seal for VecAligned {}
 impl VecStorageInnerVecs for VecAligned {
-    type InnerVec<const N: usize, T: ScalarAlignedVecs> =
+    type InnerVec<const N: usize, T: ScalarInnerVecs> =
         <ScalarCount<N> as VecLenInnerVec>::InnerAlignedVec<T> where ScalarCount<N>: VecLenInnerVec;
 }
-
-pub unsafe trait ScalarAlignedVecs: Construct {
-    type InnerAlignedVec2: InnerConstruct;
-    type InnerAlignedVec4: InnerConstruct;
-}
-
-pub use gomath_proc_macros::aligned_vecs;
 
 trait Seal: Sized {}

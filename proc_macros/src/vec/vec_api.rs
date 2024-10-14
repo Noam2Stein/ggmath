@@ -71,7 +71,7 @@ fn scalar(input: &ProcessedInput) -> TokenStream {
         });
 
     quote! {
-        pub trait #trait_ident<const N: usize, S: VecStorage>: inner::ScalarAlignedVecs where ScalarCount<N>: VecLen<N> {
+        pub trait #trait_ident<const N: usize, S: VecStorage>: inner::ScalarInnerVecs where ScalarCount<N>: VecLen<N> {
             #(
                 #fns
             )*

@@ -23,7 +23,7 @@ pub fn scalar_default_impl(input: proc_macro::TokenStream) -> proc_macro::TokenS
         mod #aligned_vecs_mod {
             use super::*;
 
-            gomath::vec::inner::aligned_vecs!(
+            gomath::vec::inner::inner_vecs!(
                 <#ty>(#size):
                 DefaultImplAlignedVec2, DefaultImplAlignedVec4
             );

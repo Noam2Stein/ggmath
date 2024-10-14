@@ -3,7 +3,7 @@ use std::mem::{transmute, transmute_copy};
 use gomath_proc_macros::vec_api;
 
 use super::{
-    inner::{InnerVector, ScalarAlignedVecs},
+    inner::{InnerVector, ScalarInnerVecs},
     *,
 };
 
@@ -26,7 +26,7 @@ vec_api!(
     }
 );
 
-impl<const N: usize, T: ScalarAlignedVecs> ScalarVecArrayApi<N, VecPacked> for T
+impl<const N: usize, T: ScalarInnerVecs> ScalarVecArrayApi<N, VecPacked> for T
 where
     ScalarCount<N>: VecLen<N>,
 {

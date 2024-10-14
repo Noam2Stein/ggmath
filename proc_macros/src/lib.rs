@@ -56,5 +56,5 @@ export!(
     scalar_aliases in scalar
 );
 
-export!(aligned_vecs in vec);
+export!(inner_vecs in vec);
 export!(vec_api in vec);
