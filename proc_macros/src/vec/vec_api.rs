@@ -52,7 +52,7 @@ fn vec(input: &ProcessedInput) -> TokenStream {
     let impl_free_fns = input.free_fns.iter().cloned();
 
     quote! {
-        impl<const N: usize, S: VecStorage, T: Scalar> Vector<N, S, T> where ScalarCount<N>: VecLen<N> {
+        impl<const N: usize, T: Scalar, S: VecStorage> Vector<N, T, S> where ScalarCount<N>: VecLen<N> {
             #(
                 #impl_abstract_fns
             )*
@@ -71,7 +71,7 @@ fn scalar(input: &ProcessedInput) -> TokenStream {
         });
 
     quote! {
-        pub trait #trait_ident<const N: usize, S: VecStorage>: ScalarInnerVecs where ScalarCount<N>: VecLen<N> {
+        pub trait #trait_ident<const N: usize, S: VecStorage>: ScalarAlignedVecs where ScalarCount<N>: VecLen<N> {
             #(
                 #fns
             )*
@@ -489,9 +489,9 @@ impl ApiFnArg {
 
                     match reference {
                         Some((_, lifetime)) => {
-                            parse_quote!(#(#attrs)* vec: &#lifetime #mutability InnerVector<#n, #s, #t>)
+                            parse_quote!(#(#attrs)* vec: &#lifetime #mutability InnerVector<#n, #t, #s>)
                         }
-                        None => parse_quote!(#(#attrs)* vec: InnerVector<#n, #s, #t>),
+                        None => parse_quote!(#(#attrs)* vec: InnerVector<#n, #t, #s>),
                     }
                 }
             },
@@ -574,7 +574,7 @@ impl TryFrom<Type> for ApiType {
                                     .collect::<Box<[GenericArgument]>>())
                                     .try_into()?,
                             ),
-                            args => return Err(Error::new_spanned(args, "expected <N, S, T>")),
+                            args => return Err(Error::new_spanned(args, "expected <N, T, S>")),
                         },
                         "T" => match &segment.arguments {
                             PathArguments::None => ApiType::T,
@@ -646,13 +646,13 @@ impl ApiType {
                     let s = perspective.s();
                     let t = perspective.t();
 
-                    parse_quote! { InnerVector<#n, #s, #t> }
+                    parse_quote! { InnerVector<#n, #t, #s> }
                 }
             },
             ApiType::Vec(generics) => {
-                let (n, s, t) = generics.tokens(perspective);
+                let (n, t, s) = generics.tokens(perspective);
 
-                parse_quote!(InnerVector<#n, #s, #t>)
+                parse_quote!(InnerVector<#n, #t, #s>)
             }
             ApiType::T => {
                 let t = perspective.t();
@@ -682,14 +682,14 @@ impl ApiType {
 #[derive(Clone)]
 struct VecGenerics {
     n: VecGeneric<N>,
-    s: VecGeneric<S>,
     t: VecGeneric<T>,
+    s: VecGeneric<S>,
 }
 impl TryFrom<&[GenericArgument]> for VecGenerics {
     type Error = Error;
     fn try_from(value: &[GenericArgument]) -> Result<Self, Self::Error> {
         match &*value {
-            [n, s, t] => Ok(Self {
+            [n, t, s] => Ok(Self {
                 n: VecGeneric::from_tokens(n),
                 s: VecGeneric::from_tokens(s),
                 t: VecGeneric::from_tokens(t),
@@ -698,7 +698,7 @@ impl TryFrom<&[GenericArgument]> for VecGenerics {
                 return Err(Error::new(
                     args.first()
                         .map_or_else(|| Span::call_site(), |arg| arg.span()),
-                    "expected <N, S, T>",
+                    "expected <N, T, S>",
                 ))
             }
         }
@@ -708,8 +708,8 @@ impl VecGenerics {
     fn tokens(&self, perspective: &Perspective) -> (TokenStream, TokenStream, TokenStream) {
         (
             self.n.tokens(perspective),
-            self.s.tokens(perspective),
             self.t.tokens(perspective),
+            self.s.tokens(perspective),
         )
     }
 }
@@ -757,19 +757,19 @@ impl VecGenericKey for N {
     }
 }
 #[derive(Clone)]
-struct S;
-impl VecGenericKey for S {
-    const SELF_VEC_VALUE: &'static str = "S";
-    fn self_vec_value(perspective: &Perspective) -> TokenStream {
-        perspective.s()
-    }
-}
-#[derive(Clone)]
 struct T;
 impl VecGenericKey for T {
     const SELF_VEC_VALUE: &'static str = "T";
     fn self_vec_value(perspective: &Perspective) -> TokenStream {
         perspective.t()
+    }
+}
+#[derive(Clone)]
+struct S;
+impl VecGenericKey for S {
+    const SELF_VEC_VALUE: &'static str = "S";
+    fn self_vec_value(perspective: &Perspective) -> TokenStream {
+        perspective.s()
     }
 }
 

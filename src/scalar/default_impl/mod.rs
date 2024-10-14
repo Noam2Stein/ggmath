@@ -1,16 +1,11 @@
-use crate::vec::{array::ScalarVecArrayApi, ScalarInnerVecs, VecAligned};
+use crate::vec::ScalarAlignedVecs;
 
 use super::*;
 
 mod vec;
 
-pub trait ScalarDefaultImpl:
-    Construct
-    + ScalarInnerVecs
-    + ScalarVecArrayApi<2, VecAligned>
-    + ScalarVecArrayApi<3, VecAligned>
-    + ScalarVecArrayApi<4, VecAligned>
-{
-}
+pub use gomath_proc_macros::scalar_default_impl;
+
+pub trait ScalarDefaultImpl: Construct + ScalarAlignedVecs {}
 
 impl<T: ScalarDefaultImpl> Scalar for T {}

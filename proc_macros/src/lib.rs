@@ -7,6 +7,11 @@ macro_rules! export {
     };
 }
 
+mod scalar;
 mod vec;
 
+export!(scalar_default_impl in scalar);
+export!(scalar_aliases in scalar);
+
 export!(vec_api in vec);
+export!(aligned_vecs in vec);

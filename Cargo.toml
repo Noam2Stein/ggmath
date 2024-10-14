@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name    = "gomath"
+name = "gomath"
 version = "0.1.0"
 
 [dependencies]

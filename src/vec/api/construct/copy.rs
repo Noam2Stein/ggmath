@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize, S: VecStorage, T: Scalar> Clone for Vector<N, S, T>
+impl<const N: usize, T: Scalar, S: VecStorage> Clone for Vector<N, T, S>
 where
     ScalarCount<N>: VecLen<N>,
 {
@@ -10,7 +10,7 @@ where
     }
 }
 
-impl<const N: usize, S: VecStorage, T: Scalar> Copy for Vector<N, S, T> where
+impl<const N: usize, T: Scalar, S: VecStorage> Copy for Vector<N, T, S> where
     ScalarCount<N>: VecLen<N>
 {
 }

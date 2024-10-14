@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use super::*;
 
-impl<const N: usize, S: VecStorage, T: Scalar> Display for Vector<N, S, T>
+impl<const N: usize, T: Scalar, S: VecStorage> Display for Vector<N, T, S>
 where
     ScalarCount<N>: VecLen<N>,
 {
