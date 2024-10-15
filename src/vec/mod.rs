@@ -2,15 +2,15 @@
 
 use crate::{construct::*, scalar::*};
 
+mod alignment;
 mod len;
-mod storage;
+pub use alignment::*;
 pub use len::*;
-pub use storage::*;
 
 pub mod api;
 pub mod inner;
 
-/// Statically-lengthed vector generic over N - length, T - Scalar, and S - Storage.
+/// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
 ///
 /// Storage affects the inner implementation of vector fns.
 ///
@@ -32,21 +32,21 @@ pub mod inner;
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, S: VecStorage>
+pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
 where
     ScalarCount<N>: VecLen<N>,
 {
-    inner: inner::InnerVector<N, T, S>,
+    inner: inner::InnerVector<N, T, A>,
 }
 
 /// type alias to [```Vector```]```<2, T, S>```
-pub type Vector2<T, S> = Vector<2, T, S>;
+pub type Vector2<T, A> = Vector<2, T, A>;
 
 /// type alias to [```Vector```]```<3, T, S>```
-pub type Vector3<T, S> = Vector<3, T, S>;
+pub type Vector3<T, A> = Vector<3, T, A>;
 
 /// type alias to [```Vector```]```<4, T, S>```
-pub type Vector4<T, S> = Vector<4, T, S>;
+pub type Vector4<T, A> = Vector<4, T, A>;
 
 /// Statically-lengthed vector generic over N - length, and T - Scalar.
 /// - type alias to [```Vector```]```<N, T, VecAligned>```

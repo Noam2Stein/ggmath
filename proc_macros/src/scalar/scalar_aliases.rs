@@ -1,109 +1,112 @@
+use crate::idents::*;
 use derive_syn_parse::Parse;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
-    parse_macro_input, parse_quote, parse_str, AngleBracketedGenericArguments, Generics, Ident,
-    Token, Type, Visibility,
+    parse_macro_input, parse_quote, parse_str, spanned::Spanned, AngleBracketedGenericArguments,
+    Generics, Ident, Token, Type, Visibility,
 };
 
 pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let Input {
         vis,
-        modness,
+        mod_,
         ty,
         _colon,
-        ident,
+        prefix,
     } = parse_macro_input!(input as Input);
 
     let ty = ty.to_token_stream();
 
-    let aliases_vis = match modness {
+    let aliases_vis = match mod_ {
         None => vis.clone(),
         Some(_) => Visibility::Public(Default::default()),
     };
     let vec_aliases = [
         VecAlias {
-            ident: parse_quote!(Vector),
+            ident: Vector,
             params: parse_quote!(<const N: usize, S>),
             args: parse_quote!(<N, #ty, S>),
         },
         VecAlias {
-            ident: parse_quote!(Vector2),
+            ident: Vector2,
             params: parse_quote!(<S>),
             args: parse_quote!(<#ty, S>),
         },
         VecAlias {
-            ident: parse_quote!(Vector3),
+            ident: Vector3,
             params: parse_quote!(<S>),
             args: parse_quote!(<#ty, S>),
         },
         VecAlias {
-            ident: parse_quote!(Vector4),
+            ident: Vector4,
             params: parse_quote!(<S>),
             args: parse_quote!(<#ty, S>),
         },
         VecAlias {
-            ident: parse_quote!(VecN),
+            ident: VecN,
             params: parse_quote!(<const N: usize>),
             args: parse_quote!(<N, #ty>),
         },
         VecAlias {
-            ident: parse_quote!(Vec2),
+            ident: Vec2,
             params: parse_quote!(<>),
             args: parse_quote!(<#ty>),
         },
         VecAlias {
-            ident: parse_quote!(Vec3),
+            ident: Vec3,
             params: parse_quote!(<>),
             args: parse_quote!(<#ty>),
         },
         VecAlias {
-            ident: parse_quote!(Vec4),
+            ident: Vec4,
             params: parse_quote!(<>),
             args: parse_quote!(<#ty>),
         },
         VecAlias {
-            ident: parse_quote!(VecNP),
+            ident: VecNP,
             params: parse_quote!(<const N: usize>),
             args: parse_quote!(<N, #ty>),
         },
         VecAlias {
-            ident: parse_quote!(Vec2P),
+            ident: Vec2P,
             params: parse_quote!(<>),
             args: parse_quote!(<#ty>),
         },
         VecAlias {
-            ident: parse_quote!(Vec3P),
+            ident: Vec3P,
             params: parse_quote!(<>),
             args: parse_quote!(<#ty>),
         },
         VecAlias {
-            ident: parse_quote!(Vec4P),
+            ident: Vec4P,
             params: parse_quote!(<>),
             args: parse_quote!(<#ty>),
         },
     ]
-    .map(|vec_alias| {
-        let ident = Ident::new(&format!("{ident}{}", vec_alias.ident), ident.span());
-        let params = vec_alias.params;
+    .map(
+        |VecAlias {
+             ident,
+             params,
+             args,
+         }| {
+            let prefixed_ident = Ident::new(&format!("{prefix}{ident}"), ident.span());
 
-        let vec_ident = vec_alias.ident;
-        let args = vec_alias.args;
+            let docs: TokenStream = parse_str(&format!(
+                "/// type-aliase for an [```{ty}```] [```{ident}```](gomath::vec::{ident})"
+            ))
+            .unwrap();
 
-        let docs: TokenStream = parse_str(&format!(
-            "/// type-aliase for an [```{ty}```] [```{vec_ident}```](gomath::vec::{vec_ident})"
-        ))
-        .unwrap();
-
-        quote! {
-            #docs
-            #aliases_vis type #ident #params = gomath::vec::#vec_ident #args;
-        }
-    })
+            quote! {
+                #docs
+                #aliases_vis type #prefixed_ident #params = #gomath::vec::#ident #args;
+            }
+        },
+    )
     .into_iter()
     .collect();
 
-    if let Some(mod_token) = modness {
+    if let Some(mod_token) = mod_ {
         let docs: TokenStream =
             parse_str(&format!("/// mathamatical type-aliases for [```{ty}```]")).unwrap();
         quote! {
@@ -123,14 +126,14 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
 #[derive(Parse)]
 struct Input {
     vis: Visibility,
-    modness: Option<Token![mod]>,
+    mod_: Option<Token![mod]>,
     ty: Type,
     _colon: Token![:],
-    ident: Ident,
+    prefix: Ident,
 }
 
 struct VecAlias {
-    ident: Ident,
+    ident: ConstIdent,
     params: Generics,
     args: AngleBracketedGenericArguments,
 }

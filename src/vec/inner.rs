@@ -5,7 +5,7 @@
 use super::*;
 
 /// The type of the inner-value inside a vector
-pub type InnerVector<const N: usize, T, S> = <S as VecStorageInnerVecs>::InnerVec<N, T>;
+pub type InnerVector<const N: usize, T, S> = <S as VecAlignmentInnerVecs>::InnerVec<N, T>;
 
 /// Scalar supertrait that specifies inner-types for vectors that can't be declared generically.
 ///
@@ -43,17 +43,17 @@ impl VecLenInnerVec for ScalarCount<4> {
 
 #[doc(hidden)]
 #[allow(private_bounds)]
-pub trait VecStorageInnerVecs: Seal {
+pub trait VecAlignmentInnerVecs: Seal {
     type InnerVec<const N: usize, T: ScalarInnerVecs>: InnerConstruct
     where
         ScalarCount<N>: VecLenInnerVec;
 }
 impl Seal for VecPacked {}
-impl VecStorageInnerVecs for VecPacked {
+impl VecAlignmentInnerVecs for VecPacked {
     type InnerVec<const N: usize, T: ScalarInnerVecs> = [T; N] where ScalarCount<N>: VecLenInnerVec;
 }
 impl Seal for VecAligned {}
-impl VecStorageInnerVecs for VecAligned {
+impl VecAlignmentInnerVecs for VecAligned {
     type InnerVec<const N: usize, T: ScalarInnerVecs> =
         <ScalarCount<N> as VecLenInnerVec>::InnerAlignedVec<T> where ScalarCount<N>: VecLenInnerVec;
 }

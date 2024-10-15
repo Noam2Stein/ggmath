@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize, T: Scalar, S: VecStorage> PartialEq for Vector<N, T, S>
+impl<const N: usize, T: Scalar, S: VecAlignment> PartialEq for Vector<N, T, S>
 where
     ScalarCount<N>: VecLen<N>,
 {

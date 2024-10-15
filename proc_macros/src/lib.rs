@@ -12,6 +12,7 @@ macro_rules! export {
     };
 }
 
+mod idents;
 mod scalar;
 mod vec;
 

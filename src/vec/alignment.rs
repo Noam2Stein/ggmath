@@ -1,6 +1,6 @@
 use super::*;
 
-/// Sealed trait for the inner storage requirements for a vector.
+/// Sealed trait for the alignment rules of a vector.
 /// - Doesn't affect the outer vector API, just the inner implementation.
 /// - Use the [```VecN```]```<N, T>``` type alias to use the default storage.
 ///
@@ -58,7 +58,7 @@ use super::*;
 /// Basically only use ```VecPacked``` (```VecNP```) when storing large arrays of vectors that you don't perform much computation on.
 /// On any other case use ```VecAligned``` (```VecN```, The default).
 #[allow(private_bounds)]
-pub trait VecStorage: Seal + inner::VecStorageInnerVecs + api::VecStorageApi {}
+pub trait VecAlignment: Seal + inner::VecAlignmentInnerVecs + api::VecAlignmentApi {}
 
 /// Vector inner storage that ensures that the vector has the next alignment from ```[T; N]```'s size, and a size equal to the alignment.
 /// ```
@@ -88,7 +88,7 @@ pub trait VecStorage: Seal + inner::VecStorageInnerVecs + api::VecStorageApi {}
 /// Always recommended except for when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecAligned;
 impl Seal for VecAligned {}
-impl VecStorage for VecAligned {}
+impl VecAlignment for VecAligned {}
 
 /// Vector inner storage that ensures that the vector has the same type-layout as ```[T; N]```.
 /// ```
@@ -115,6 +115,6 @@ impl VecStorage for VecAligned {}
 /// Only recommended when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecPacked;
 impl Seal for VecPacked {}
-impl VecStorage for VecPacked {}
+impl VecAlignment for VecPacked {}
 
 trait Seal {}
