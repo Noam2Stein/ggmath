@@ -1,8 +1,9 @@
 use std::iter::once;
 
+use quote::{quote, quote_spanned};
 use syn::{
-    parse_quote, Attribute, Error, Expr, FnArg, Generics, Ident, ItemFn, Pat, Receiver, Result,
-    ReturnType, Signature, Token, TraitItemFn, Type, Visibility,
+    parse2, parse_quote, spanned::Spanned, Attribute, Error, Expr, FnArg, Generics, Ident, ItemFn,
+    Pat, Receiver, Result, ReturnType, Signature, Token, TraitItemFn, Visibility,
 };
 
 use crate::idents::*;
@@ -49,13 +50,19 @@ impl FromPerspective for AbstractApiFn {
     fn from_perspective(self, perspective: &Perspective) -> Self::Output {
         let mut generics = self.generics;
         match perspective {
-            Perspective::Len(_) => generics.params.insert(0, parse_quote!(#A: #VecAlignment)),
+            Perspective::Len(_) => generics.params.insert(
+                0,
+                parse2(quote_spanned!(generics.span() => #A: #VecAlignment))
+                    .unwrap_or_else(|err| panic!("failed to parse fn generic A: {err}")),
+            ),
             _ => {}
         };
         match perspective {
-            Perspective::Len(_) | Perspective::Alignment(_) => {
-                generics.params.insert(0, parse_quote!(#T: #Scalar))
-            }
+            Perspective::Len(_) | Perspective::Alignment(_) => generics.params.insert(
+                0,
+                parse2(quote_spanned!(generics.span() => #T: #Scalar))
+                    .unwrap_or_else(|err| panic!("failed to parse fn generic T: {err}")),
+            ),
             _ => {}
         };
 
@@ -92,23 +99,23 @@ impl AbstractApiFn {
         call_wrap: impl FnOnce(Expr, &ApiReturnType) -> Expr,
     ) -> ItemFn {
         let block = {
-            let call_ty: Type = match perspective {
+            let call_ty = match perspective {
                 Perspective::Vec => {
                     let len_trait = len_trait_ident(api_ident);
-                    parse_quote!(<#ScalarCount<#N> as #len_trait<#N>>)
+                    quote! { <#ScalarCount<#N> as #len_trait<#N>> }
                 }
                 Perspective::Len(_) => {
                     let alignment_trait = alignment_trait_ident(api_ident);
                     let n = perspective.n();
-                    parse_quote!(<#A as #alignment_trait<#n>>)
+                    quote! { <#A as #alignment_trait<#n>> }
                 }
                 Perspective::Alignment(_) => {
                     let scalar_trait = scalar_trait_ident(api_ident);
                     let n = perspective.n();
-                    parse_quote!(<#T as #scalar_trait<#n, Self>>)
+                    quote! { <#T as #scalar_trait<#n, Self>> }
                 }
                 Perspective::Scalar => {
-                    unreachable!()
+                    unreachable!("impl of scalar perspective")
                 }
             };
 
@@ -116,26 +123,36 @@ impl AbstractApiFn {
 
             let mut call_generics = self.generics.params.clone();
             match &perspective {
-                Perspective::Vec => call_generics.insert(0, parse_quote!(#A: #VecAlignment)),
+                Perspective::Vec => call_generics.insert(
+                    0,
+                    parse2(quote!(#A)).unwrap_or_else(|err| {
+                        panic!("failed to parse fn call generic argument A: {err}")
+                    }),
+                ),
                 _ => {}
             };
             match &perspective {
-                Perspective::Vec | Perspective::Len(_) => {
-                    call_generics.insert(0, parse_quote!(#T: #Scalar))
-                }
+                Perspective::Vec | Perspective::Len(_) => call_generics.insert(
+                    0,
+                    parse2(quote!(#T)).unwrap_or_else(|err| {
+                        panic!("failed to parse fn call generic argument T: {err}")
+                    }),
+                ),
                 _ => {}
             };
 
             let call_args = self.inputs.iter().map(call_input_f);
 
             let expr = call_wrap(
-                parse_quote!(
+                parse2(quote!(
                     #call_ty::#call_ident::<#call_generics>(#(#call_args), *)
-                ),
+                ))
+                .unwrap_or_else(|err| panic!("failed to parse fn call expr: {err}")),
                 &self.output,
             );
 
-            parse_quote!({ #expr })
+            parse2(quote_spanned! {self.ident.span() => { #expr }})
+                .unwrap_or_else(|err| panic!("failed to parse fn block: {err}"))
         };
 
         let trait_fn = self.from_perspective(perspective);
@@ -212,15 +229,16 @@ impl FromPerspective for ApiFnArg {
 
                     match reference {
                         Some((_, lifetime)) => {
-                            parse_quote!(#(#attrs)* vec: &#lifetime #mutability inner::#InnerVector<#n, #t, #a>)
+                            parse2(quote! { #(#attrs)* vec: &#lifetime #mutability inner::#InnerVector<#n, #t, #a> }).unwrap_or_else(|err| panic!("failed to parse ref receiver as vec: {err}"))
                         }
-                        None => parse_quote!(#(#attrs)* vec: inner::#InnerVector<#n, #t, #a>),
+                        None => parse2(quote! { #(#attrs)* vec: inner::#InnerVector<#n, #t, #a> }).unwrap_or_else(|err| panic!("failed to parse receiver as vec: {err}")),
                     }
                 }
             },
             Self::Typed { attrs, ident, ty } => {
                 let ty = ty.from_perspective(perspective);
-                parse_quote!(#(#attrs)* #ident: #ty)
+                parse2(quote! { #(#attrs)* #ident: #ty })
+                    .unwrap_or_else(|err| panic!("failed to parse argument: {err}"))
             }
         }
     }
@@ -236,8 +254,10 @@ impl ApiFnArg {
                 colon_token: _,
                 ty: _,
             }) => match reference {
-                Some(_) => parse_quote!(& #mutability self.inner),
-                None => parse_quote!(self.inner),
+                Some(_) => parse2(quote! { & #mutability self.inner })
+                    .unwrap_or_else(|err| panic!("failed to parse ref receiver pass inner: {err}")),
+                None => parse2(quote! { self.inner })
+                    .unwrap_or_else(|err| panic!("failed to parse receiver pass inner: {err}")),
             },
             ApiFnArg::Typed {
                 attrs: _,

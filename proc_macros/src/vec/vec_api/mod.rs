@@ -162,7 +162,7 @@ fn alignment(input: &ProcessedInput) -> TokenStream {
         .flatten();
 
     quote! {
-        pub(super) trait #trait_ident<const N: usize>: inner::VecStorageInnerVecs where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #trait_ident<const #N: usize>: inner::#VecAlignmentInnerVecs where #ScalarCount<#N>: #VecLen<#N> {
             #(
                 #fns
             )*

@@ -30,7 +30,7 @@ impl VecLenApi<4> for ScalarCount<4> {}
 
 #[allow(private_bounds)]
 pub(super) trait VecAlignmentApi:
-    array::VecStorageArrayApi<2> + array::VecStorageArrayApi<3> + array::VecStorageArrayApi<4>
+    array::VecAlignmentArrayApi<2> + array::VecAlignmentArrayApi<3> + array::VecAlignmentArrayApi<4>
 {
 }
 impl VecAlignmentApi for VecPacked {}
