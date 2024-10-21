@@ -1,33 +1,27 @@
-use derive_syn_parse::Parse;
-use proc_macro2::{Literal, TokenStream};
-use quote::quote;
-use syn::{parse_macro_input, token::Paren, Type};
+use super::*;
 
-use crate::idents::*;
+use quote::quote;
+use syn::{token::Paren, Type};
 
 pub fn scalar_default_impl(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let Input { ty, _paren, size } = parse_macro_input!(input as Input);
-
-    let inner_vecs = TokenStream::from(crate::inner_vecs(
-        quote! {
-            #ty(#size)
-        }
-        .into(),
-    ));
+    #[derive(Parse)]
+    struct Input {
+        ty: Type,
+        #[paren]
+        _paren_token: Paren,
+        #[inside(_paren_token)]
+        size: Literal,
+    }
+    let Input {
+        ty,
+        _paren_token,
+        size,
+    } = parse_macro_input!(input as Input);
 
     quote! {
-        impl #gomath::scalar::default_impl::#ScalarDefaultImpl for #ty {}
+        impl ggmath::scalar::default_impl::ScalarDefaultImpl for #ty {}
 
-        #inner_vecs
+        ggmath::vec::inner::inner_vecs!(#ty(#size));
     }
     .into()
-}
-
-#[derive(Parse)]
-struct Input {
-    ty: Type,
-    #[paren]
-    _paren: Paren,
-    #[inside(_paren)]
-    size: Literal,
 }

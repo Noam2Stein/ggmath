@@ -1,15 +1,11 @@
-use proc_macro2::{Literal, Span, TokenStream};
-use quote::{ToTokens, TokenStreamExt};
-use syn::{parse_quote, Expr, Ident, PathSegment, Type};
+use super::{perspective::*, *};
 
-use crate::idents::*;
-
-use super::{FromPerspective, Perspective};
+use syn::{Expr, ExprLit, Lit, LitInt, PathSegment, Type};
 
 #[derive(Debug, Clone)]
 pub enum NArgument {
-    SelfVec,
-    Known(KnownVecLen),
+    SelfVec(Span),
+    Known(NArgumentKnown),
     Generic(Expr),
 }
 impl From<Expr> for NArgument {
@@ -17,8 +13,8 @@ impl From<Expr> for NArgument {
         if let Expr::Path(value) = &value {
             match *value.path.segments.iter().collect::<Box<[&PathSegment]>>() {
                 [segment] => {
-                    if segment.ident.to_string() == N.s && segment.arguments.is_empty() {
-                        return Self::SelfVec;
+                    if segment.ident.to_string() == "N" {
+                        return Self::SelfVec(value.span());
                     }
                 }
                 _ => {}
@@ -30,39 +26,38 @@ impl From<Expr> for NArgument {
 }
 impl FromPerspective for NArgument {
     type Output = Expr;
-    fn from_perspective(self, perspective: &Perspective) -> Self::Output {
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
         match self {
-            Self::SelfVec => perspective.n(),
-            Self::Known(known) => parse_quote!(#known),
+            Self::SelfVec(span) => perspective.n(span),
+            Self::Known(known) => Expr::Lit(ExprLit {
+                attrs: Vec::new(),
+                lit: known.from_perspective(perspective),
+            }),
             Self::Generic(generic) => generic,
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum KnownVecLen {
-    U2,
-    U3,
-    U4,
+#[derive(Debug, Clone)]
+pub enum NArgumentKnown {
+    U2(Span),
+    U3(Span),
+    U4(Span),
 }
-impl ToTokens for KnownVecLen {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append(Literal::usize_unsuffixed(self.into_usize()));
-    }
-}
-impl KnownVecLen {
-    pub fn into_usize(self) -> usize {
+impl FromPerspective for NArgumentKnown {
+    type Output = Lit;
+    fn from_perspective(self, _perspective: Perspective) -> Self::Output {
         match self {
-            Self::U2 => 2,
-            Self::U3 => 3,
-            Self::U4 => 4,
+            Self::U2(span) => Lit::Int(LitInt::new("2", span)),
+            Self::U3(span) => Lit::Int(LitInt::new("3", span)),
+            Self::U4(span) => Lit::Int(LitInt::new("4", span)),
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub enum TArgument {
-    SelfVec,
+    SelfVec(Span),
     Specific(Type),
 }
 impl From<Type> for TArgument {
@@ -70,8 +65,8 @@ impl From<Type> for TArgument {
         if let Type::Path(value) = &value {
             match *value.path.segments.iter().collect::<Box<[&PathSegment]>>() {
                 [segment] => {
-                    if segment.ident.to_string() == T.s && segment.arguments.is_empty() {
-                        return Self::SelfVec;
+                    if segment.ident.to_string() == "T" {
+                        return Self::SelfVec(value.span());
                     }
                 }
                 _ => {}
@@ -83,9 +78,9 @@ impl From<Type> for TArgument {
 }
 impl FromPerspective for TArgument {
     type Output = Type;
-    fn from_perspective(self, perspective: &Perspective) -> Self::Output {
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
         match self {
-            Self::SelfVec => perspective.t(),
+            Self::SelfVec(span) => perspective.t(span),
             Self::Specific(specific) => specific,
         }
     }
@@ -93,8 +88,8 @@ impl FromPerspective for TArgument {
 
 #[derive(Debug, Clone)]
 pub enum AArgument {
-    SelfVec,
-    Known(KnownVecAlignment),
+    SelfVec(Span),
+    Known(AArgumentKnown),
     Generic(Type),
 }
 impl From<Type> for AArgument {
@@ -102,8 +97,8 @@ impl From<Type> for AArgument {
         if let Type::Path(value) = &value {
             match *value.path.segments.iter().collect::<Box<[&PathSegment]>>() {
                 [segment] => {
-                    if segment.ident.to_string() == A.s && segment.arguments.is_empty() {
-                        return Self::SelfVec;
+                    if segment.ident.to_string() == "A" && segment.arguments.is_empty() {
+                        return Self::SelfVec(value.span());
                     }
                 }
                 _ => {}
@@ -115,30 +110,27 @@ impl From<Type> for AArgument {
 }
 impl FromPerspective for AArgument {
     type Output = Type;
-    fn from_perspective(self, perspective: &Perspective) -> Self::Output {
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
         match self {
-            Self::SelfVec => perspective.a(),
-            Self::Known(known) => parse_quote!(#known),
+            Self::SelfVec(span) => perspective.a(span),
+            Self::Known(known) => parse2(known.from_perspective(perspective).to_token_stream())
+                .unwrap_or_else(|err| panic!("failed to parse known A argument: {err}")),
             Self::Generic(generic) => generic,
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum KnownVecAlignment {
-    VecAligned,
-    VecPacked,
+#[derive(Debug, Clone)]
+pub enum AArgumentKnown {
+    VecAligned(Span),
+    VecPacked(Span),
 }
-impl ToTokens for KnownVecAlignment {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.append(Ident::new(self.as_str(), Span::call_site()));
-    }
-}
-impl KnownVecAlignment {
-    pub fn as_str(self) -> &'static str {
+impl FromPerspective for AArgumentKnown {
+    type Output = Ident;
+    fn from_perspective(self, _perspective: Perspective) -> Self::Output {
         match self {
-            Self::VecAligned => VecAligned.s,
-            Self::VecPacked => VecPacked.s,
+            Self::VecAligned(span) => Ident::new("VecAligned", span),
+            Self::VecPacked(span) => Ident::new("VecPacked", span),
         }
     }
 }

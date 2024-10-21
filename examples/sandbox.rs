@@ -1,4 +1,4 @@
-use gomath::scalar::aliases::f32::*;
+use ggmath::scalar::aliases::f32::*;
 
 fn main() {
     println!(

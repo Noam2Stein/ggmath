@@ -40,4 +40,4 @@ pub trait Scalar:
 {
 }
 
-pub use gomath_proc_macros::scalar_aliases;
+pub use ggmath_proc_macros::scalar_aliases;

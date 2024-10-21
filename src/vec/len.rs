@@ -9,12 +9,14 @@ use super::*;
 /// # Examples
 /// ```
 /// // Line is generic over dimension count.
+/// use ggmath::vec::*;
+///
 /// struct Line<const N: usize>
 /// where
 ///     ScalarCount<N>: VecLen<N>,
 /// {
-///     start: FVecN<N>,
-///     end: FVecN<N>,
+///     start: VecN<N, f32>,
+///     end: VecN<N, f32>,
 /// }
 ///
 /// type Line2D = Line<2>;

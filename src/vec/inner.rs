@@ -21,7 +21,7 @@ pub unsafe trait ScalarInnerVecs: Construct {
     type InnerAlignedVec4: InnerConstruct;
 }
 
-pub use gomath_proc_macros::inner_vecs;
+pub use ggmath_proc_macros::inner_vecs;
 
 #[doc(hidden)]
 #[allow(private_bounds)]

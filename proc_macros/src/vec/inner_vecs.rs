@@ -1,14 +1,24 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-use derive_syn_parse::Parse;
-use proc_macro2::{Literal, Span};
-use quote::{quote, ToTokens};
-use syn::{parse_macro_input, token::Paren, Error, Ident, Type};
+use super::*;
 
-use crate::idents::*;
+use quote::quote;
+use syn::{token::Paren, Type};
 
 pub fn inner_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let Input { ty, _paren, size } = parse_macro_input!(input as Input);
+    #[derive(Parse)]
+    struct Input {
+        ty: Type,
+        #[paren]
+        _paren_token: Paren,
+        #[inside(_paren_token)]
+        size: Literal,
+    }
+    let Input {
+        ty,
+        _paren_token,
+        size,
+    } = parse_macro_input!(input as Input);
 
     let size = match size.to_string().parse::<usize>() {
         Ok(ok) => ok,
@@ -23,7 +33,7 @@ pub fn inner_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let vec4_align = Literal::usize_unsuffixed(size * 4);
     let size = Literal::usize_unsuffixed(size);
 
-    let ty_assert_errm = format!(
+    let ty_size_assert_errm = format!(
         "the provided size for {}: {size} bytes, is not its size",
         ty.to_token_stream()
     );
@@ -41,7 +51,7 @@ pub fn inner_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         mod #mod_ident {
             use super::*;
 
-            unsafe impl #gomath::vec::inner::#ScalarInnerVecs for #ty {
+            unsafe impl ggmath::vec::inner::ScalarInnerVecs for #ty {
                 type InnerAlignedVec2 = InnerAlignedVec2;
                 type InnerAlignedVec4 = InnerAlignedVec4;
             }
@@ -56,7 +66,7 @@ pub fn inner_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
             const _: () = assert!(
                 size_of::<#ty>() == #size,
-                #ty_assert_errm,
+                #ty_size_assert_errm,
             );
             const _: () = assert!(
                 size_of::<InnerAlignedVec2>() == #size * 2,
@@ -77,13 +87,4 @@ pub fn inner_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         }
     }
     .into()
-}
-
-#[derive(Parse)]
-struct Input {
-    ty: Type,
-    #[paren]
-    _paren: Paren,
-    #[inside(_paren)]
-    size: Literal,
 }

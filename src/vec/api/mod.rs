@@ -3,9 +3,7 @@
 use super::*;
 
 mod array;
-mod or_scalar;
 pub use array::*;
-pub use or_scalar::*;
 
 mod construct;
 
@@ -35,3 +33,10 @@ pub(super) trait VecAlignmentApi:
 }
 impl VecAlignmentApi for VecPacked {}
 impl VecAlignmentApi for VecAligned {}
+
+mod prelude {
+    pub use crate::{
+        scalar::*,
+        vec::{inner::*, *},
+    };
+}

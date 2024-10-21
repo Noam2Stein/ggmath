@@ -2,6 +2,16 @@
 
 #![warn(missing_docs)]
 
+use derive_syn_parse::Parse;
+use proc_macro2::*;
+use quote::{quote_spanned, ToTokens, TokenStreamExt};
+use syn::{
+    parse::{Parse, ParseStream},
+    parse2, parse_macro_input, parse_quote_spanned, parse_str,
+    spanned::Spanned,
+    Error, Token,
+};
+
 macro_rules! export {
     ($(#[$meta:meta])* $ident:ident in $($path:ident)::*) => {
         $(#[$meta])*
@@ -12,7 +22,6 @@ macro_rules! export {
     };
 }
 
-mod idents;
 mod scalar;
 mod vec;
 
@@ -58,4 +67,5 @@ export!(
 );
 
 export!(inner_vecs in vec);
+
 export!(vec_api in vec);

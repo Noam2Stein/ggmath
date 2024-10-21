@@ -8,7 +8,7 @@ use super::*;
 
 mod vec;
 
-pub use gomath_proc_macros::scalar_default_impl;
+pub use ggmath_proc_macros::scalar_default_impl;
 
 /// Automatically implements Scalar using a default implementation.
 /// Has scalar supertraits that can't be implemented automatically by generics.

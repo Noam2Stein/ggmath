@@ -1,125 +1,140 @@
+use super::{generics::*, perspective::*, *};
+
 use syn::{
-    parse_quote, punctuated::Punctuated, Expr, GenericArgument, Lifetime, PathArguments, Token,
-    Type, TypeArray, TypePath, TypeReference,
+    punctuated::Punctuated, token::Bracket, Expr, GenericArgument, Lifetime, PathArguments,
+    PathSegment, Type, TypeArray, TypePath, TypeReference,
 };
-
-use crate::idents::*;
-
-use super::{generics::*, perspective::*};
 
 #[derive(Debug, Clone)]
 pub enum ApiType {
     Vec(ApiTypeVec),
-    T,
+    T(Span),
     Array(ApiTypeArray),
     Reference(ApiTypeReference),
-    Other(Type),
+    _Other(Type),
 }
-impl From<Type> for ApiType {
-    fn from(value: Type) -> Self {
+impl TryFrom<Type> for ApiType {
+    type Error = Error;
+    fn try_from(value: Type) -> std::result::Result<Self, Self::Error> {
         match value {
-            Type::Array(value) => Self::Array(value.into()),
-            Type::Path(value) => value.into(),
-            Type::Reference(value) => Self::Reference(value.into()),
-            value => Self::Other(value),
+            Type::Array(value) => Ok(Self::Array(value.try_into()?)),
+            Type::Path(value) => value.try_into(),
+            Type::Reference(value) => Ok(Self::Reference(value.try_into()?)),
+            _ => Err(Error::new(value.span(), "unsupported type")),
         }
     }
 }
-impl From<TypePath> for ApiType {
-    fn from(value: TypePath) -> Self {
+impl TryFrom<TypePath> for ApiType {
+    type Error = Error;
+    fn try_from(value: TypePath) -> std::result::Result<Self, Self::Error> {
         if value.path.segments.len() != 1 {
-            return Self::Other(Type::Path(value));
+            return Err(Error::new(
+                value.span(),
+                "unsupported type, expected a one segment path",
+            ));
         };
 
-        let last_segment = value.path.segments.iter().last().unwrap();
+        let segment = value.path.segments.iter().last().unwrap();
 
         macro_rules! match_ident {
             ($($vec_alias:tt => ($vec_alias_n:expr, $vec_alias_t:expr, $vec_alias_a:expr)), * $(,)?) => {
-                match last_segment.ident.to_string().as_str() {
-                    $(stringify!($vec_alias) => Self::Vec(ApiTypeVec::from_arguments(
-                        last_segment.arguments.clone(),
+                match segment.ident.to_string().as_str() {
+                    $(stringify!($vec_alias) => Ok(Self::Vec(ApiTypeVec::from_arguments(
+                        segment.clone(),
                         $vec_alias_n,
                         $vec_alias_t,
                         $vec_alias_a,
-                    )),)*
-                    "T" => Self::T,
-                    _ => Self::Other(Type::Path(value)),
+                    ))),)*
+                    "T" => Ok(Self::T(segment.ident.span())),
+                    _ => Err(Error::new(segment.ident.span(), "unsupported type")),
                 }
             };
         }
         match_ident!(
-            Self => (Some(NArgument::SelfVec), Some(TArgument::SelfVec), Some(AArgument::SelfVec)),
+            Self => (Some(NArgument::SelfVec(segment.ident.span())), Some(TArgument::SelfVec(segment.ident.span())), Some(AArgument::SelfVec(segment.ident.span()))),
             Vector => (None, None, None),
-            Vector2 => (Some(NArgument::Known(KnownVecLen::U2)), None, None),
-            Vector3 => (Some(NArgument::Known(KnownVecLen::U3)), None, None),
-            Vector4 => (Some(NArgument::Known(KnownVecLen::U4)), None, None),
-            VecN => (None, None, Some(AArgument::Known(KnownVecAlignment::VecAligned))),
-            Vec2 => (Some(NArgument::Known(KnownVecLen::U2)), None, Some(AArgument::Known(KnownVecAlignment::VecAligned))),
-            Vec3 => (Some(NArgument::Known(KnownVecLen::U3)), None, Some(AArgument::Known(KnownVecAlignment::VecAligned))),
-            Vec4 => (Some(NArgument::Known(KnownVecLen::U4)), None, Some(AArgument::Known(KnownVecAlignment::VecAligned))),
-            VecNP => (None, None, Some(AArgument::Known(KnownVecAlignment::VecPacked))),
-            Vec2P => (Some(NArgument::Known(KnownVecLen::U2)), None, Some(AArgument::Known(KnownVecAlignment::VecPacked))),
-            Vec3P => (Some(NArgument::Known(KnownVecLen::U3)), None, Some(AArgument::Known(KnownVecAlignment::VecPacked))),
-            Vec4P => (Some(NArgument::Known(KnownVecLen::U4)), None, Some(AArgument::Known(KnownVecAlignment::VecPacked))),
+            Vector2 => (Some(NArgument::Known(NArgumentKnown::U2(segment.ident.span()))), None, None),
+            Vector3 => (Some(NArgument::Known(NArgumentKnown::U3(segment.ident.span()))), None, None),
+            Vector4 => (Some(NArgument::Known(NArgumentKnown::U4(segment.ident.span()))), None, None),
+            VecN => (None, None, Some(AArgument::Known(AArgumentKnown::VecAligned(segment.ident.span())))),
+            Vec2 => (Some(NArgument::Known(NArgumentKnown::U2(segment.ident.span()))), None, Some(AArgument::Known(AArgumentKnown::VecAligned(segment.ident.span())))),
+            Vec3 => (Some(NArgument::Known(NArgumentKnown::U3(segment.ident.span()))), None, Some(AArgument::Known(AArgumentKnown::VecAligned(segment.ident.span())))),
+            Vec4 => (Some(NArgument::Known(NArgumentKnown::U4(segment.ident.span()))), None, Some(AArgument::Known(AArgumentKnown::VecAligned(segment.ident.span())))),
+            VecNP => (None, None, Some(AArgument::Known(AArgumentKnown::VecPacked(segment.ident.span())))),
+            Vec2P => (Some(NArgument::Known(NArgumentKnown::U2(segment.ident.span()))), None, Some(AArgument::Known(AArgumentKnown::VecPacked(segment.ident.span())))),
+            Vec3P => (Some(NArgument::Known(NArgumentKnown::U3(segment.ident.span()))), None, Some(AArgument::Known(AArgumentKnown::VecPacked(segment.ident.span())))),
+            Vec4P => (Some(NArgument::Known(NArgumentKnown::U4(segment.ident.span()))), None, Some(AArgument::Known(AArgumentKnown::VecPacked(segment.ident.span())))),
         )
     }
 }
 impl FromPerspective for ApiType {
     type Output = Type;
-    fn from_perspective(self, perspective: &Perspective) -> Self::Output {
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
         match self {
-            ApiType::T => {
-                let t = perspective.t();
-                parse_quote!(#t)
-            }
+            ApiType::T(span) => perspective.t(span),
             ApiType::Vec(ty) => ty.from_perspective(perspective),
             Self::Array(ty) => Type::Array(ty.from_perspective(perspective)),
             ApiType::Reference(ty) => Type::Reference(ty.from_perspective(perspective)),
-            ApiType::Other(ty) => ty,
+            ApiType::_Other(ty) => ty,
         }
     }
 }
 impl ApiType {
-    pub fn pass_inner(&self, outer: Expr) -> Expr {
+    pub fn outer_value_into_inner(&self, value: &Ident) -> Expr {
         match self {
-            Self::Vec(_) => parse_quote!(#outer.inner),
-            Self::T => outer,
-            Self::Array(ApiTypeArray { elem, len: _ }) => {
-                let f = elem.pass_inner(parse_quote!(item));
-                parse_quote!(#outer.map(|item| #f))
+            Self::Vec(_) => parse_quote_spanned! { value.span() => #value.inner },
+            Self::T(_) => parse_quote_spanned! { value.span() => #value },
+            Self::Array(ApiTypeArray {
+                bracket_token: _,
+                elem,
+                semi_token: _,
+                len: _,
+            }) => {
+                let f = elem.outer_value_into_inner(&Ident::new("item", value.span()));
+                parse_quote_spanned! { value.span() => #value.map(|item| #f) }
             }
-            Self::Reference(_) => parse_quote!(unsafe { std::mem::transmute(#outer) }),
-            Self::Other(_) => outer,
+            Self::Reference(_) => {
+                parse_quote_spanned! { value.span() => unsafe { std::mem::transmute(#value) } }
+            }
+            Self::_Other(_) => parse_quote_spanned! { value.span() => #value },
         }
     }
-    pub fn wrap_inner(&self, inner: Expr) -> Expr {
+    pub fn inner_value_into_outer(&self, value: &Ident) -> Expr {
         match self {
-            Self::Vec(_) => parse_quote!(Vector { inner: #inner }),
-            Self::T => inner,
-            Self::Array(ApiTypeArray { elem, len: _ }) => {
-                let f = elem.wrap_inner(parse_quote!(item));
-                parse_quote!(#inner.map(|item| #f))
+            Self::Vec(_) => parse_quote_spanned! { value.span() => Vector { inner: #value } },
+            Self::T(_) => parse_quote_spanned! { value.span() => #value },
+            Self::Array(ApiTypeArray {
+                bracket_token: _,
+                elem,
+                semi_token: _,
+                len: _,
+            }) => {
+                let f = elem.inner_value_into_outer(&Ident::new("item", value.span()));
+                parse_quote_spanned! { value.span() => #value.map(|item| #f) }
             }
-            Self::Reference(_) => parse_quote!(unsafe { std::mem::transmute(#inner) }),
-            Self::Other(_) => inner,
+            Self::Reference(_) => {
+                parse_quote_spanned! { value.span() => unsafe { std::mem::transmute(#value) } }
+            }
+            Self::_Other(_) => parse_quote_spanned! { value.span() => #value },
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct ApiTypeVec {
+    ident_span: Span,
     n: NArgument,
     t: TArgument,
     a: AArgument,
 }
 impl ApiTypeVec {
     fn from_arguments(
-        arguments: PathArguments,
+        segment: PathSegment,
         n: Option<NArgument>,
         t: Option<TArgument>,
         a: Option<AArgument>,
     ) -> Self {
-        let mut arguments = match arguments {
+        let mut arguments = match segment.arguments {
             PathArguments::AngleBracketed(arguments) => arguments.args,
             PathArguments::None => Punctuated::new(),
             PathArguments::Parenthesized(_) => {
@@ -131,86 +146,100 @@ impl ApiTypeVec {
         let n = n.unwrap_or_else(|| match arguments.next().unwrap() {
             GenericArgument::Const(argument) => argument.into(),
             GenericArgument::AssocConst(argument) => argument.value.into(),
-            _ => panic!("expected const generic argument for {N}"),
+            _ => panic!("expected const generic argument for N"),
         });
 
         let t = t.unwrap_or_else(|| match arguments.next().unwrap() {
             GenericArgument::Type(argument) => argument.into(),
             GenericArgument::AssocType(argument) => argument.ty.into(),
-            _ => panic!("expected const generic argument for {T}"),
+            _ => panic!("expected const generic argument for T"),
         });
 
         let a = a.unwrap_or_else(|| match arguments.next().unwrap() {
             GenericArgument::Type(argument) => argument.into(),
             GenericArgument::AssocType(argument) => argument.ty.into(),
-            _ => panic!("expected const generic argument for {A}"),
+            _ => panic!("expected const generic argument for A"),
         });
 
-        Self { n, t, a }
+        Self {
+            ident_span: segment.ident.span(),
+            n,
+            t,
+            a,
+        }
     }
 }
 impl FromPerspective for ApiTypeVec {
     type Output = Type;
-    fn from_perspective(self, perspective: &Perspective) -> Self::Output {
-        match perspective {
-            Perspective::Vec => {
-                if let NArgument::SelfVec = self.n {
-                    if let TArgument::SelfVec = self.t {
-                        if let AArgument::SelfVec = self.a {
-                            return parse_quote!(Self);
-                        }
-                    }
-                };
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
+        if perspective != Perspective::Vec {
+            let n = self.n.from_perspective(perspective);
+            let t = self.t.from_perspective(perspective);
+            let a = self.a.from_perspective(perspective);
 
-                let t = self.t.from_perspective(perspective);
-                match self.n {
-                    NArgument::Known(KnownVecLen::U2) => match self.a {
-                        AArgument::Known(KnownVecAlignment::VecAligned) => parse_quote!(#Vec2<#t>),
-                        AArgument::Known(KnownVecAlignment::VecPacked) => parse_quote!(#Vec2P<#t>),
-                        a => {
-                            let a = a.from_perspective(perspective);
-                            parse_quote!(Vector2<#t, #a>)
-                        }
-                    },
-                    NArgument::Known(KnownVecLen::U3) => match self.a {
-                        AArgument::Known(KnownVecAlignment::VecAligned) => parse_quote!(#Vec3<#t>),
-                        AArgument::Known(KnownVecAlignment::VecPacked) => parse_quote!(#Vec3P<#t>),
-                        a => {
-                            let a = a.from_perspective(perspective);
-                            parse_quote!(Vector3<#t, #a>)
-                        }
-                    },
-                    NArgument::Known(KnownVecLen::U4) => match self.a {
-                        AArgument::Known(KnownVecAlignment::VecAligned) => parse_quote!(#Vec4<#t>),
-                        AArgument::Known(KnownVecAlignment::VecPacked) => parse_quote!(#Vec4P<#t>),
-                        a => {
-                            let a = a.from_perspective(perspective);
-                            parse_quote!(Vector4<#t, #a>)
-                        }
-                    },
-                    n => {
-                        let n = n.from_perspective(perspective);
-                        match self.a {
-                            AArgument::Known(KnownVecAlignment::VecAligned) => {
-                                parse_quote!(#VecN<#n, #t>)
-                            }
-                            AArgument::Known(KnownVecAlignment::VecPacked) => {
-                                parse_quote!(#VecNP<#n, #t>)
-                            }
-                            a => {
-                                let a = a.from_perspective(perspective);
-                                parse_quote!(Vector<#n, #t, #a>)
-                            }
-                        }
-                    }
+            return parse_quote_spanned! { self.ident_span => crate::vec::inner::InnerVector<#n, #t, #a> };
+        }
+
+        if let NArgument::SelfVec(_) = self.n {
+            if let TArgument::SelfVec(_) = self.t {
+                if let AArgument::SelfVec(_) = self.a {
+                    return parse_quote_spanned! { self.ident_span => Self };
                 }
             }
-            perspective => {
-                let n = self.n.from_perspective(perspective);
-                let t = self.t.from_perspective(perspective);
-                let a = self.a.from_perspective(perspective);
+        }
 
-                parse_quote!(inner::#InnerVector<#n, #t, #a>)
+        let t = self.t.from_perspective(perspective);
+        match self.n {
+            NArgument::Known(NArgumentKnown::U2(_)) => match self.a {
+                AArgument::Known(AArgumentKnown::VecAligned(_)) => {
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vec2<#t> }
+                }
+                AArgument::Known(AArgumentKnown::VecPacked(_)) => {
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vec2P<#t> }
+                }
+                a => {
+                    let a = a.from_perspective(perspective);
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vector2<#t, #a> }
+                }
+            },
+            NArgument::Known(NArgumentKnown::U3(_)) => match self.a {
+                AArgument::Known(AArgumentKnown::VecAligned(_)) => {
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vec3<#t> }
+                }
+                AArgument::Known(AArgumentKnown::VecPacked(_)) => {
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vec3P<#t> }
+                }
+                a => {
+                    let a = a.from_perspective(perspective);
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vector3<#t, #a> }
+                }
+            },
+            NArgument::Known(NArgumentKnown::U4(_)) => match self.a {
+                AArgument::Known(AArgumentKnown::VecAligned(_)) => {
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vec4<#t> }
+                }
+                AArgument::Known(AArgumentKnown::VecPacked(_)) => {
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vec4P<#t> }
+                }
+                a => {
+                    let a = a.from_perspective(perspective);
+                    parse_quote_spanned! { self.ident_span => crate::vec::Vector4<#t, #a> }
+                }
+            },
+            n => {
+                let n = n.from_perspective(perspective);
+                match self.a {
+                    AArgument::Known(AArgumentKnown::VecAligned(_)) => {
+                        parse_quote_spanned! { self.ident_span => crate::vec::VecN<#n, #t> }
+                    }
+                    AArgument::Known(AArgumentKnown::VecPacked(_)) => {
+                        parse_quote_spanned! { self.ident_span => crate::vec::VecNP<#n, #t> }
+                    }
+                    a => {
+                        let a = a.from_perspective(perspective);
+                        parse_quote_spanned! { self.ident_span => crate::vec::Vector<#n, #t, #a> }
+                    }
+                }
             }
         }
     }
@@ -218,24 +247,29 @@ impl FromPerspective for ApiTypeVec {
 
 #[derive(Debug, Clone)]
 pub struct ApiTypeArray {
+    bracket_token: Bracket,
     elem: Box<ApiType>,
+    semi_token: Token![;],
     len: NArgument,
 }
-impl From<TypeArray> for ApiTypeArray {
-    fn from(value: TypeArray) -> Self {
-        Self {
-            elem: Box::new((*value.elem).into()),
+impl TryFrom<TypeArray> for ApiTypeArray {
+    type Error = Error;
+    fn try_from(value: TypeArray) -> std::result::Result<Self, Self::Error> {
+        Ok(Self {
+            bracket_token: value.bracket_token,
+            elem: Box::new((*value.elem).try_into()?),
+            semi_token: value.semi_token,
             len: value.len.into(),
-        }
+        })
     }
 }
 impl FromPerspective for ApiTypeArray {
     type Output = TypeArray;
-    fn from_perspective(self, perspective: &Perspective) -> Self::Output {
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
         TypeArray {
-            bracket_token: Default::default(),
+            bracket_token: self.bracket_token,
             elem: Box::new(self.elem.from_perspective(perspective)),
-            semi_token: Default::default(),
+            semi_token: self.semi_token,
             len: self.len.from_perspective(perspective),
         }
     }
@@ -243,24 +277,27 @@ impl FromPerspective for ApiTypeArray {
 
 #[derive(Debug, Clone)]
 pub struct ApiTypeReference {
+    and_token: Token![&],
     lifetime: Option<Lifetime>,
     mutability: Option<Token![mut]>,
     elem: Box<ApiType>,
 }
-impl From<TypeReference> for ApiTypeReference {
-    fn from(value: TypeReference) -> Self {
-        Self {
+impl TryFrom<TypeReference> for ApiTypeReference {
+    type Error = Error;
+    fn try_from(value: TypeReference) -> std::result::Result<Self, Self::Error> {
+        Ok(Self {
+            and_token: value.and_token,
             lifetime: value.lifetime,
             mutability: value.mutability,
-            elem: Box::new((*value.elem).into()),
-        }
+            elem: Box::new((*value.elem).try_into()?),
+        })
     }
 }
 impl FromPerspective for ApiTypeReference {
     type Output = TypeReference;
-    fn from_perspective(self, perspective: &Perspective) -> Self::Output {
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
         TypeReference {
-            and_token: Default::default(),
+            and_token: self.and_token,
             lifetime: self.lifetime,
             mutability: self.mutability,
             elem: Box::new((*self.elem).from_perspective(perspective)),

@@ -1,9 +1,9 @@
 //! Type aliases for primitives.
 //! For example: ```FVec3```, ```IVec2```, ```BVecN<N>```
 
-use crate as gomath;
+use crate as ggmath;
 
-use gomath_proc_macros::scalar_aliases;
+use ggmath_proc_macros::scalar_aliases;
 
 scalar_aliases!(pub mod f32: F);
 scalar_aliases!(pub mod f64: D);

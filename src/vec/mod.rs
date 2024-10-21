@@ -9,6 +9,7 @@ pub use len::*;
 
 pub mod api;
 pub mod inner;
+pub mod or_scalar;
 
 /// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
 ///
