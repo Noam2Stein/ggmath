@@ -1,6 +1,6 @@
 use super::{perspective::*, *};
 
-use syn::{Expr, ExprLit, Lit, LitInt, PathSegment, Type};
+use syn::{Expr, ExprLit, ExprPath, Lit, LitInt, PathSegment, Type};
 
 #[derive(Debug, Clone)]
 pub enum NArgument {
@@ -22,6 +22,29 @@ impl From<Expr> for NArgument {
         };
 
         Self::Generic(value)
+    }
+}
+impl TryFrom<Type> for NArgument {
+    type Error = Error;
+    fn try_from(value: Type) -> Result<Self, Self::Error> {
+        if let Type::Path(value) = value {
+            match *value.path.segments.iter().collect::<Box<[&PathSegment]>>() {
+                [segment] => {
+                    if segment.ident.to_string() == "N" {
+                        return Ok(Self::SelfVec(value.span()));
+                    }
+                }
+                _ => {}
+            };
+
+            Ok(Self::Generic(Expr::Path(ExprPath {
+                attrs: Vec::new(),
+                qself: value.qself,
+                path: value.path,
+            })))
+        } else {
+            Err(Error::new(value.span(), "expected Path"))
+        }
     }
 }
 impl FromPerspective for NArgument {

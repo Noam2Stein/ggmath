@@ -58,7 +58,14 @@ use super::*;
 /// Basically only use ```VecPacked``` (```VecNP```) when storing large arrays of vectors that you don't perform much computation on.
 /// On any other case use ```VecAligned``` (```VecN```, The default).
 #[allow(private_bounds)]
-pub trait VecAlignment: Seal + inner::VecAlignmentInnerVecs + api::VecAlignmentApi {}
+pub trait VecAlignment:
+    Seal
+    + inner::VecAlignmentInnerVecs
+    + api::VecAlignmentApi<2>
+    + api::VecAlignmentApi<3>
+    + api::VecAlignmentApi<4>
+{
+}
 
 /// Vector inner storage that ensures that the vector has the next alignment from ```[T; N]```'s size, and a size equal to the alignment.
 /// ```

@@ -11,7 +11,8 @@ pub enum ApiType {
     T(Span),
     Array(ApiTypeArray),
     Reference(ApiTypeReference),
-    _Other(Type),
+    Option(ApiTypeOption),
+    Other(Type),
 }
 impl TryFrom<Type> for ApiType {
     type Error = Error;
@@ -39,13 +40,15 @@ impl TryFrom<TypePath> for ApiType {
         macro_rules! match_ident {
             ($($vec_alias:tt => ($vec_alias_n:expr, $vec_alias_t:expr, $vec_alias_a:expr)), * $(,)?) => {
                 match segment.ident.to_string().as_str() {
-                    $(stringify!($vec_alias) => Ok(Self::Vec(ApiTypeVec::from_arguments(
+                    $(stringify!($vec_alias) => Ok(Self::Vec(ApiTypeVec::try_from_arguments(
                         segment.clone(),
                         $vec_alias_n,
                         $vec_alias_t,
                         $vec_alias_a,
-                    ))),)*
+                    )?)),)*
                     "T" => Ok(Self::T(segment.ident.span())),
+                    "Option" => Ok(Self::Option(segment.clone().try_into()?)),
+                    "usize" => Ok(Self::Other(Type::Path(value))),
                     _ => Err(Error::new(segment.ident.span(), "unsupported type")),
                 }
             };
@@ -71,11 +74,12 @@ impl FromPerspective for ApiType {
     type Output = Type;
     fn from_perspective(self, perspective: Perspective) -> Self::Output {
         match self {
-            ApiType::T(span) => perspective.t(span),
-            ApiType::Vec(ty) => ty.from_perspective(perspective),
+            Self::Vec(ty) => ty.from_perspective(perspective),
+            Self::T(span) => perspective.t(span),
             Self::Array(ty) => Type::Array(ty.from_perspective(perspective)),
-            ApiType::Reference(ty) => Type::Reference(ty.from_perspective(perspective)),
-            ApiType::_Other(ty) => ty,
+            Self::Reference(ty) => Type::Reference(ty.from_perspective(perspective)),
+            Self::Option(ty) => Type::Path(ty.from_perspective(perspective)),
+            Self::Other(ty) => ty,
         }
     }
 }
@@ -96,12 +100,24 @@ impl ApiType {
             Self::Reference(_) => {
                 parse_quote_spanned! { value.span() => unsafe { std::mem::transmute(#value) } }
             }
-            Self::_Other(_) => parse_quote_spanned! { value.span() => #value },
+            Self::Option(ApiTypeOption {
+                ident_span: _,
+                inner,
+            }) => {
+                let f = inner.outer_value_into_inner(&Ident::new("some", value.span()));
+                parse_quote_spanned! { value.span() => #value.map(|some| #f) }
+            }
+            Self::Other(_) => parse_quote_spanned! { value.span() => #value },
         }
     }
     pub fn inner_value_into_outer(&self, value: &Ident) -> Expr {
         match self {
-            Self::Vec(_) => parse_quote_spanned! { value.span() => Vector { inner: #value } },
+            Self::Vec(vec) => {
+                let n = vec.n.clone().from_perspective(Perspective::Vec);
+                let t = vec.t.clone().from_perspective(Perspective::Vec);
+                let a = vec.a.clone().from_perspective(Perspective::Vec);
+                parse_quote_spanned! { value.span() => Vector::<#n, #t, #a> { inner: #value } }
+            }
             Self::T(_) => parse_quote_spanned! { value.span() => #value },
             Self::Array(ApiTypeArray {
                 bracket_token: _,
@@ -115,7 +131,14 @@ impl ApiType {
             Self::Reference(_) => {
                 parse_quote_spanned! { value.span() => unsafe { std::mem::transmute(#value) } }
             }
-            Self::_Other(_) => parse_quote_spanned! { value.span() => #value },
+            Self::Option(ApiTypeOption {
+                ident_span: _,
+                inner,
+            }) => {
+                let f = inner.inner_value_into_outer(&Ident::new("some", value.span()));
+                parse_quote_spanned! { value.span() => #value.map(|some| #f) }
+            }
+            Self::Other(_) => parse_quote_spanned! { value.span() => #value },
         }
     }
 }
@@ -128,12 +151,12 @@ pub struct ApiTypeVec {
     a: AArgument,
 }
 impl ApiTypeVec {
-    fn from_arguments(
+    fn try_from_arguments(
         segment: PathSegment,
         n: Option<NArgument>,
         t: Option<TArgument>,
         a: Option<AArgument>,
-    ) -> Self {
+    ) -> Result<Self, Error> {
         let mut arguments = match segment.arguments {
             PathArguments::AngleBracketed(arguments) => arguments.args,
             PathArguments::None => Punctuated::new(),
@@ -143,11 +166,15 @@ impl ApiTypeVec {
         }
         .into_iter();
 
-        let n = n.unwrap_or_else(|| match arguments.next().unwrap() {
-            GenericArgument::Const(argument) => argument.into(),
-            GenericArgument::AssocConst(argument) => argument.value.into(),
-            _ => panic!("expected const generic argument for N"),
-        });
+        let n = n.map_or_else(
+            || match arguments.next().unwrap() {
+                GenericArgument::Const(argument) => Ok(argument.into()),
+                GenericArgument::AssocConst(argument) => Ok(argument.value.into()),
+                GenericArgument::Type(argument) => argument.try_into(),
+                _ => panic!("expected const generic argument for N"),
+            },
+            |n| Ok(n),
+        )?;
 
         let t = t.unwrap_or_else(|| match arguments.next().unwrap() {
             GenericArgument::Type(argument) => argument.into(),
@@ -161,12 +188,12 @@ impl ApiTypeVec {
             _ => panic!("expected const generic argument for A"),
         });
 
-        Self {
+        Ok(Self {
             ident_span: segment.ident.span(),
             n,
             t,
             a,
-        }
+        })
     }
 }
 impl FromPerspective for ApiTypeVec {
@@ -272,6 +299,48 @@ impl FromPerspective for ApiTypeArray {
             semi_token: self.semi_token,
             len: self.len.from_perspective(perspective),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ApiTypeOption {
+    ident_span: Span,
+    inner: Box<ApiType>,
+}
+impl TryFrom<PathSegment> for ApiTypeOption {
+    type Error = Error;
+    fn try_from(value: PathSegment) -> Result<Self, Self::Error> {
+        if value.ident.to_string().as_str() != "Option" {
+            return Err(Error::new(value.ident.span(), "expected Option"));
+        };
+
+        let args = match value.arguments {
+            PathArguments::AngleBracketed(angled) => {
+                angled.args.into_iter().collect::<Box<[GenericArgument]>>()
+            }
+            _ => return Err(Error::new(value.ident.span(), "expected Option<...>")),
+        };
+
+        let inner = match &*args {
+            [arg] => match arg {
+                GenericArgument::Type(inner) => inner.clone().try_into()?,
+                _ => return Err(Error::new(value.ident.span(), "expected Option<'type'>")),
+            },
+            _ => return Err(Error::new(value.ident.span(), "expected Option<'type'>")),
+        };
+
+        Ok(Self {
+            ident_span: value.ident.span(),
+            inner: Box::new(inner),
+        })
+    }
+}
+impl FromPerspective for ApiTypeOption {
+    type Output = TypePath;
+    fn from_perspective(self, perspective: Perspective) -> Self::Output {
+        let inner = self.inner.from_perspective(perspective);
+
+        parse_quote_spanned! { self.ident_span => Option<#inner> }
     }
 }
 

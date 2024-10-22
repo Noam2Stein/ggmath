@@ -10,6 +10,7 @@ pub fn vec_api(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         Err(err) => return err.to_compile_error().into(),
     };
 
+    let errors = input.errors.iter().map(|err| err.to_compile_error());
     let impl_block = vec(&input);
     let scalar = scalar(&input);
     let len = len(&input);
@@ -19,6 +20,9 @@ pub fn vec_api(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         input.api_ident.span() =>
         use crate::vec::api::prelude::*;
 
+        const _: () = {
+            #(#errors)*
+        };
         #impl_block
         #scalar
         #len
@@ -183,12 +187,14 @@ struct ProcessedInput {
     api_ident: Ident,
     abstract_fns: Vec<AbstractApiFn>,
     free_fns: Vec<ItemFn>,
+    errors: Vec<Error>,
 }
 impl TryFrom<Input> for ProcessedInput {
     type Error = Error;
     fn try_from(Input { attrs, ident, fns }: Input) -> Result<Self, Self::Error> {
         let mut abstract_fns = Vec::new();
         let mut free_fns = Vec::new();
+        let mut errors = Vec::new();
 
         for fn_ in fns {
             if let Some(block) = fn_.default {
@@ -201,7 +207,10 @@ impl TryFrom<Input> for ProcessedInput {
                     block: Box::new(block),
                 });
             } else {
-                abstract_fns.push(fn_.try_into()?);
+                match fn_.try_into() {
+                    Ok(ok) => abstract_fns.push(ok),
+                    Err(err) => errors.push(err),
+                }
             }
         }
 
@@ -210,6 +219,7 @@ impl TryFrom<Input> for ProcessedInput {
             api_ident: ident,
             abstract_fns,
             free_fns,
+            errors,
         })
     }
 }

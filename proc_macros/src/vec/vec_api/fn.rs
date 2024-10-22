@@ -2,7 +2,10 @@ use super::{arg::*, perspective::*, return_ty::*, traits::*, *};
 
 use std::iter::once;
 
-use syn::{token::Paren, Attribute, Generics, ItemFn, Signature, TraitItemFn, Visibility};
+use syn::{
+    token::Paren, Attribute, GenericArgument, GenericParam, Generics, ItemFn, Signature,
+    TraitItemFn, Visibility,
+};
 
 #[derive(Clone)]
 pub struct AbstractApiFn {
@@ -126,7 +129,12 @@ impl AbstractApiFn {
 
             let call_ident = &self.ident;
 
-            let mut call_generics = self.generics.params.clone();
+            let mut call_generics = self
+                .generics
+                .params
+                .iter()
+                .filter_map(|param| generic_param_to_arg(param))
+                .collect::<Vec<GenericArgument>>();
             match perspective {
                 Perspective::Vec => call_generics.insert(
                     0,
@@ -155,8 +163,8 @@ impl AbstractApiFn {
                 .output
                 .pass_from_perspective(&Ident::new("output", self.ident.span()), perspective);
 
-            parse2(quote_spanned! {self.ident.span() => {
-                let output = #call_ty::#call_ident::<#call_generics>(#(#call_args), *);
+            parse2(quote_spanned! { self.ident.span() => {
+                let output = #call_ty::#call_ident::<#(#call_generics), *>(#(#call_args), *);
                 #call_into_outer
             }})
             .unwrap_or_else(|err| panic!("failed to parse fn block: {err}"))
@@ -179,5 +187,19 @@ impl AbstractApiFn {
             sig: trait_fn.sig,
             block,
         }
+    }
+}
+
+fn generic_param_to_arg(param: &GenericParam) -> Option<GenericArgument> {
+    match param {
+        GenericParam::Const(param) => Some(GenericArgument::Const({
+            let ident = &param.ident;
+            parse_quote_spanned! { param.span() => #ident }
+        })),
+        GenericParam::Type(param) => Some(GenericArgument::Const({
+            let ident = &param.ident;
+            parse_quote_spanned! { param.span() => #ident }
+        })),
+        GenericParam::Lifetime(_) => None,
     }
 }

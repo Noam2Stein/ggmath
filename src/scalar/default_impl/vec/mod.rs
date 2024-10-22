@@ -1,8 +1,9 @@
-use crate::vec::{api::*, *};
+use crate::vec::{api::*, inner::*, *};
 
 use super::*;
 
 mod array;
+mod swizzle;
 
 impl<T: ScalarDefaultImpl> ScalarVecApi<2, VecPacked> for T {}
 impl<T: ScalarDefaultImpl> ScalarVecApi<3, VecPacked> for T {}

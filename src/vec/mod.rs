@@ -53,13 +53,13 @@ pub type Vector4<T, A> = Vector<4, T, A>;
 /// - type alias to [```Vector```]```<N, T, VecAligned>```
 pub type VecN<const N: usize, T> = Vector<N, T, VecAligned>;
 
-/// type alias to [```VecN```]```<2, T>```
+/// type alias to [```Vector```]```<2, T, VecAligned>```
 pub type Vec2<T> = VecN<2, T>;
 
-/// type alias to [```VecN```]```<3, T>```
+/// type alias to [```Vector```]```<3, T, VecAligned>```
 pub type Vec3<T> = VecN<3, T>;
 
-/// type alias to [```VecN```]```<4, T>```
+/// type alias to [```Vector```]```<4, T, VecAligned>```
 pub type Vec4<T> = VecN<4, T>;
 
 /// Statically-lengthed vector generic over N - length, and T - Scalar.
@@ -67,14 +67,14 @@ pub type Vec4<T> = VecN<4, T>;
 /// - If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```VecN```].
 pub type VecNP<const N: usize, T> = Vector<N, T, VecPacked>;
 
-/// type alias to [```VecNP```]```<2, T>```
+/// - type alias to [```Vector```]```<2, T, VecPacked>```
 /// - If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec2```].
 pub type Vec2P<T> = VecNP<2, T>;
 
-/// type alias to [```VecNP```]```<3, T>```
+/// - type alias to [```Vector```]```<3, T, VecPacked>```
 /// - If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec3```].
 pub type Vec3P<T> = VecNP<3, T>;
 
-/// type alias to [```VecNP```]```<4, T>```
+/// - type alias to [```Vector```]```<4, T, VecPacked>```
 /// - If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec4```].
 pub type Vec4P<T> = VecNP<4, T>;
