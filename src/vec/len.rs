@@ -29,7 +29,8 @@ use super::*;
 /// }
 /// ```
 #[allow(private_bounds)]
-pub trait VecLen<const N: usize>: Seal + inner::VecLenInnerVec + api::VecLenApi<N>
+pub trait VecLen<const N: usize>:
+    Seal + inner::VecLenInnerVec + interfaces::VecLenInterfaces<N>
 where
     ScalarCount<N>: VecLen<N>,
 {

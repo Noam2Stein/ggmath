@@ -61,9 +61,9 @@ use super::*;
 pub trait VecAlignment:
     Seal
     + inner::VecAlignmentInnerVecs
-    + api::VecAlignmentApi<2>
-    + api::VecAlignmentApi<3>
-    + api::VecAlignmentApi<4>
+    + interfaces::VecAlignmentInterfaces<2>
+    + interfaces::VecAlignmentInterfaces<3>
+    + interfaces::VecAlignmentInterfaces<4>
 {
 }
 

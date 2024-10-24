@@ -1,7 +1,52 @@
-use std::mem::transmute;
+ggmath_proc_macros::vec_interface!(
+    /// trait for types that can be put inside mathamatical types like [vectors](crate::vec::Vector) and [matricies](crate::mat::Matrix).
+    ///
+    /// useful when using mathamatical types while being generic over the scalar type.
+    /// # Examples
+    /// ```
+    /// fn print_x<T: Scalar>(vec: Vec2<T>) {
+    ///     println!("x is equal to {}", vec.x())
+    /// }
+    /// ```
+    ///
+    /// # Implementing [Scalar]
+    /// To implement [Scalar] you need to implement all [Vector](crate::vec::Vector) fns for the scalar type.
+    /// This is so that each vector fn can be optimized differently for each scalar.
+    /// for example, [f32] uses SIMD to implement fns on most targets.
+    ///
+    /// To make an unoptimized scalar type use [scalar_default_impl](default_impl::scalar_default_impl).
+    ///
+    /// To make a wrapper scaler type for an existing scalar (for example Meters(f32)) use ```todo!()```
+    Scalar: Construct + ScalarInnerVecs,
 
-ggmath_proc_macros::vec_api!(
-    Swizzle:
+    pub Core:
+
+    fn from_array(array: [T; N]) -> Self [
+        match A [
+            VecAligned => [
+                match N [
+                    2 | 4 => {
+                        unsafe { transmute_copy(&array) }
+                    },
+                    3 => {
+                        unsafe { transmute_copy(&[array[0], array[1], array[2], array[2]]) }
+                    },
+                ]
+            ],
+            VecPacked => {
+                unsafe { transmute(self) }
+            },
+        ]
+    ]
+    fn into_array(self) -> [T; N] {
+        unsafe { transmute_copy(&self) }
+    }
+    fn as_array(&self) -> &[T; N] {
+        unsafe { transmute(self) }
+    }
+    fn as_array_mut(&mut self) -> &mut [T; N] {
+        unsafe { transmute(self) }
+    }
 
     fn get(self, index: usize) -> Option<T> {
         if index >= N {
@@ -31,40 +76,56 @@ ggmath_proc_macros::vec_api!(
             Some(unsafe { self.get_4_unchecked(indicies) })
         }
     }
-    unsafe fn get_unchecked(self, index: usize) -> T;
-    unsafe fn get_2_unchecked(self, indicies: [usize; 2]) -> Vector2<T, A>;
-    unsafe fn get_3_unchecked(self, indicies: [usize; 3]) -> Vector3<T, A>;
-    unsafe fn get_4_unchecked(self, indicies: [usize; 4]) -> Vector4<T, A>;
+    unsafe fn get_unchecked(self, index: usize) -> T {
+        self.as_array().get_unchecked(index)
+    }
+    unsafe fn get_2_unchecked(self, indicies: [usize; 2]) -> Vector2<T, A> {
+        Vector2::<T, A>::from_array([
+            self.get_unchecked(indicies[0]),
+            self.get_unchecked(indicies[1]),
+        ])
+    }
+    unsafe fn get_3_unchecked(self, indicies: [usize; 3]) -> Vector3<T, A> {
+        Vector3::<T, A>::from_array([
+            self.get_unchecked(indicies[0]),
+            self.get_unchecked(indicies[1]),
+            self.get_unchecked(indicies[2]),
+        ])
+    }
+    unsafe fn get_4_unchecked(self, indicies: [usize; 4]) -> Vector4<T, A> {
+        Vector4::<T, A>::from_array([
+            self.get_unchecked(indicies[0]),
+            self.get_unchecked(indicies[1]),
+            self.get_unchecked(indicies[2]),
+            self.get_unchecked(indicies[3]),
+        ])
+    }
 
     fn get_mut(&mut self, index: usize) -> Option<&mut T> {
         if index + 1 > N {
             None
-        }
-        else {
+        } else {
             Some(unsafe { self.get_mut_unchecked(index) })
         }
     }
     fn get_mut_2(&mut self, index: usize) -> Option<&mut Vec2P<T>> {
         if index + 2 > N {
             None
-        }
-        else {
+        } else {
             Some(unsafe { self.get_mut_2_unchecked(index) })
         }
     }
     fn get_mut_3(&mut self, index: usize) -> Option<&mut Vec3P<T>> {
         if index + 3 > N {
             None
-        }
-        else {
+        } else {
             Some(unsafe { self.get_mut_3_unchecked(index) })
         }
     }
     fn get_mut_4(&mut self, index: usize) -> Option<&mut Vec4P<T>> {
         if index + 4 > N {
             None
-        }
-        else {
+        } else {
             Some(unsafe { self.get_mut_4_unchecked(index) })
         }
     }
@@ -80,7 +141,6 @@ ggmath_proc_macros::vec_api!(
     unsafe fn get_mut_4_unchecked(&mut self, index: usize) -> &mut Vec4P<T> {
         transmute(self.get_mut_unchecked(index))
     }
-
     fn get_mut_1_1(&mut self, indicies: [usize; 2]) -> Option<(&mut T, &mut T)> {
         if indicies[0] == indicies[1] {
             None
@@ -294,10 +354,24 @@ ggmath_proc_macros::vec_api!(
             Some(unsafe { self.with_4_unchecked(indicies, values) })
         }
     }
-    unsafe fn with_unchecked(self, index: usize, value: T) -> Self;
-    unsafe fn with_2_unchecked(self, indicies: [usize; 2], values: Vector2<T, A>) -> Self;
-    unsafe fn with_3_unchecked(self, indicies: [usize; 3], values: Vector3<T, A>) -> Self;
-    unsafe fn with_4_unchecked(self, indicies: [usize; 4], values: Vector4<T, A>) -> Self;
+    unsafe fn with_unchecked(mut self, index: usize, value: T) -> Self {
+        *self.get_mut_unchecked(index) = value;
+    }
+    unsafe fn with_2_unchecked(mut self, indicies: [usize; 2], values: Vector2<T, A>) -> Self {
+        *self.get_mut_unchecked(indicies[0]) = values[0];
+        *self.get_mut_unchecked(indicies[1]) = values[1];
+    }
+    unsafe fn with_3_unchecked(mut self, indicies: [usize; 3], values: Vector3<T, A>) -> Self {
+        *self.get_mut_unchecked(indicies[0]) = values[0];
+        *self.get_mut_unchecked(indicies[1]) = values[1];
+        *self.get_mut_unchecked(indicies[2]) = values[2];
+    }
+    unsafe fn with_4_unchecked(mut self, indicies: [usize; 4], values: Vector4<T, A>) -> Self {
+        *self.get_mut_unchecked(indicies[0]) = values[0];
+        *self.get_mut_unchecked(indicies[1]) = values[1];
+        *self.get_mut_unchecked(indicies[2]) = values[2];
+        *self.get_mut_unchecked(indicies[3]) = values[3];
+    }
 
     fn set(&mut self, index: usize, value: T) -> Result<(), ()> {
         if index >= N {
@@ -362,5 +436,38 @@ ggmath_proc_macros::vec_api!(
     }
     unsafe fn set_4_unchecked(&mut self, indicies: [usize; 4], values: Vector4<T, A>) {
         *self = self.with_4_unchecked(indicies, values)
+    }
+
+    for N = 3 {
+        fn from_1_2(value: (T, Vector2<T, A>)) -> Self {
+            Self::from_array([value.0, value.1.x(), value.1.y()])
+        }
+        fn from_2_1(value: (Vector2<T, A>, T)) -> Self {
+            Self::from_array([value.0.x(), value.0.y(), value.1])
+        }
+    }
+    for N = 4 {
+        fn from_1_1_2(value: (T, T, Vector2<T, A>)) -> Self {
+            Self::from_array([value.0, value.1, value.2.x(), value.2.y()])
+        }
+        fn from_1_2_1(value: (T, Vector2<T, A>, T)) -> Self {
+            Self::from_array([value.0, value.1.x(), value.1.y(), value.2])
+        }
+        fn from_2_1_1(value: (Vector2<T, A>, T, T)) -> Self {
+            Self::from_array([value.0.x(), value.0.y(), value.1, value.2])
+        }
+        fn from_1_3(value: (T, Vector3<T, A>)) -> Self {
+            Self::from_array([value.0, value.1.x(), value.1.y(), value.1.z()])
+        }
+        fn from_2_2(value: (Vector2<T, A>, Vector2<T, A>)) -> Self {
+            Self::from_array([value.0.x(), value.0.y(), value.1.x(), value.1.y()])
+        }
+        fn from_1_3(value: (Vector3<T, A>, T)) -> Self {
+            Self::from_array([value.0.x(), value.0.y(), value.0.z(), value.1])
+        }
+    }
+
+    fn splat(value: T) -> Self {
+        Self::from_array([value; N])
     }
 );

@@ -7,9 +7,12 @@ mod len;
 pub use alignment::*;
 pub use len::*;
 
-pub mod api;
 pub mod inner;
 pub mod or_scalar;
+
+pub(crate) mod interfaces;
+
+mod impl_construct;
 
 /// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
 ///

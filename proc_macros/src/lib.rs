@@ -1,4 +1,6 @@
 //! proc macros for GGMath.
+//!
+//! - Will be replaced by declarative macros once rust supports
 
 #![warn(missing_docs)]
 
@@ -22,6 +24,7 @@ macro_rules! export {
     };
 }
 
+mod array_ext;
 mod scalar;
 mod vec;
 
@@ -68,4 +71,4 @@ export!(
 
 export!(inner_vecs in vec);
 
-export!(vec_api in vec);
+export!(vec_interface in vec);
