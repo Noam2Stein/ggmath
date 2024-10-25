@@ -1,9 +1,11 @@
-use crate as ggmath;
+use ggmath_proc_macros::inner_vecs;
 
-use crate::scalar::default_impl::scalar_default_impl;
+use crate::{self as ggmath, scalar::Scalar};
 
 #[cfg(target_pointer_width = "32")]
-scalar_default_impl!(isize(4));
+inner_vecs!(isize(4));
 
 #[cfg(target_pointer_width = "64")]
-scalar_default_impl!(isize(8));
+inner_vecs!(isize(8));
+
+impl Scalar for isize {}

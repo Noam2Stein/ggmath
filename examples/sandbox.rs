@@ -1,6 +1,7 @@
 use ggmath::scalar::aliases::f32::*;
 
 fn main() {
+    let vec = FVec2::from_array([1.0, 2.0]);
     println!(
         "size: {}, align: {}",
         align_of::<FVec3>(), // Vector<3, f32, VecAligned>

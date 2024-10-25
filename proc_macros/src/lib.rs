@@ -29,28 +29,6 @@ mod scalar;
 mod vec;
 
 export!(
-/// Implements ```Scalar``` for the given type using the default implementation.
-///
-/// ```
-/// scalar_default_impl!($type($size_in_bytes));
-/// ```
-///
-/// - ```$type``` has to be: Construct + PartialOrd.
-/// - if ```$size_in_bytes``` is incorrect the code will not compile.
-///
-/// # Examples
-/// ```
-/// #[derive(Debug, Clone, Copy, PartialEq, Default)]
-/// struct Fraction {
-///     numerator: f32,
-///     denominator: f32,
-/// }
-/// scalar_default_impl!(Fraction(8));
-/// ```
-    scalar_default_impl in scalar
-);
-
-export!(
 /// expands into type aliases for vector, matricies... for a specific scalar type.
 ///
 /// ```

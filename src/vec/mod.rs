@@ -36,7 +36,7 @@ mod impl_construct;
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
+pub struct Vector<const N: usize, T: Scalar, A: seal::VecAlignment>
 where
     ScalarCount<N>: VecLen<N>,
 {

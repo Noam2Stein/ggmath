@@ -1,5 +1,7 @@
-use crate as ggmath;
+use ggmath_proc_macros::inner_vecs;
 
-use crate::scalar::default_impl::scalar_default_impl;
+use crate::{self as ggmath, scalar::Scalar};
 
-scalar_default_impl!(u16(2));
+inner_vecs!(u16(2));
+
+impl Scalar for u16 {}

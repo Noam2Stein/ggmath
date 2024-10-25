@@ -1,16 +1,14 @@
-use crate::vec::{ScalarCount, VecAlignment, VecLen, Vector};
-
 ggmath_proc_macros::vec_interface!(
     ScalarDefault: Scalar + Default,
-    VecLenDefault,
-    VecAlignmentDefault,
 
     Default:
 
     fn default() -> Self {
-        Self::from_array([<T as Default>::default(); N])
+        Vector::from_array([<T as Default>::default(); N])
     }
 );
+
+use crate::vec::{ScalarCount, VecAlignment, VecLen, Vector};
 
 impl<const N: usize, T: ScalarDefault, A: VecAlignment> Default for Vector<N, T, A>
 where
