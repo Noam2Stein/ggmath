@@ -8,7 +8,9 @@ pub use alignment::*;
 pub use len::*;
 
 pub mod inner;
-pub mod or_scalar;
+
+mod api;
+pub use api::*;
 
 pub(crate) mod interfaces;
 

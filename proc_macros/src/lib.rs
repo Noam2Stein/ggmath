@@ -19,7 +19,7 @@ macro_rules! export {
         $(#[$meta])*
         #[proc_macro]
         pub fn $ident(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
-            $($path::)*$ident::$ident(tokens)
+            $($path::)*$ident(tokens)
         }
     };
 }
@@ -44,9 +44,13 @@ export!(
 /// // pub type FVec2 = Vec2<f32>;
 /// // ...
 /// ```
-    scalar_aliases in scalar
+    scalar_aliases in scalar::scalar_aliases
 );
 
-export!(inner_vecs in vec);
+export!(inner_vecs in vec::inner_vecs);
 
-export!(vec_interface in vec);
+export!(vec_interface in vec::vec_interface);
+
+export!(swizzles_macro in vec::swizzles);
+export!(swizzles in vec::swizzles);
+export!(non_repeat_swizzles in vec::swizzles);
