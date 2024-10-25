@@ -1,6 +1,6 @@
 *** everything here is unfinished and not ready for production, and anything mentioned in the README may not be implemented yet. ***
 
-[Trello board](https://trello.com/b/6NH6VXTh/gomath)
+[Trello board](https://trello.com/b/6NH6VXTh/ggmath)
 
 # GGMath - Generic Graphics Math
 a generic graphics-math Rust crate
