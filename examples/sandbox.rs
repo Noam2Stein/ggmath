@@ -1,5 +1,5 @@
-use ggmath::scalar::aliases::f32::*;
+use ggmath::{scalar::aliases::f32::*, vec::*};
 
 fn main() {
-    println!("{}", FVecN::from_array([1.0, 3.0, 2.0]).xzy())
+    println!("{}", fvecn((vec2p((1.0, 3.0)), 2.0)).xzy())
 }

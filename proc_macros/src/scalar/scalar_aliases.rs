@@ -1,41 +1,43 @@
 use super::*;
 
 use quote::quote;
-use syn::{AngleBracketedGenericArguments, Generics, Type, Visibility};
+use syn::{
+    punctuated::Punctuated, token::Paren, AngleBracketedGenericArguments, FnArg, Generics,
+    ParenthesizedGenericArguments, Pat, Signature, Type, Visibility,
+};
 
 pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Parse)]
     struct Input {
         vis: Visibility,
-        mod_token: Option<Token![mod]>,
+        #[prefix(Token![mod])]
+        mod_ident: Ident,
+        #[prefix(Token![for])]
         t: Type,
-        _colon_token: Token![:],
+        #[paren]
+        _t_paren: Paren,
+        #[inside(_t_paren)]
         prefix: Ident,
     }
     let Input {
         vis,
-        mod_token,
+        mod_ident,
         t,
-        _colon_token,
+        _t_paren,
         prefix,
     } = parse_macro_input!(input as Input);
 
-    let alias_vis = match mod_token {
-        None => vis.clone(),
-        Some(_) => Visibility::Public(Default::default()),
-    };
+    let prefix_lower = Ident::new(&prefix.to_string().to_lowercase(), prefix.span());
 
-    struct Alias {
+    struct TypeAlias {
         ident: Ident,
-        path: Vec<Ident>,
         params: Generics,
         args: AngleBracketedGenericArguments,
     }
-    macro_rules! aliases {
-        [$($ident:ident $(($($param:tt)*))? => ($($arg:tt)*) $(in $($path_segment:ident)::*)?), * $(,)?] => {
-            [$(Alias {
+    macro_rules! type_aliases {
+        [$($ident:ident $(($($param:tt)*))? => ($($arg:tt)*)), * $(,)?] => {
+            [$(TypeAlias {
                 ident: Ident::new(stringify!($ident), Span::call_site()),
-                path: vec![$($(Ident::new(stringify!($path_segment), Span::call_site())), *)?],
                 params: parse2(quote! { <$($($param)*)?> })
                     .unwrap_or_else(|err| panic!("failed to parse '{}' generic params: {err}", stringify!($ident))),
                 args: parse2(quote! { <$($arg)*> })
@@ -43,7 +45,7 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
             },)*]
         };
     }
-    let aliases = aliases![
+    let type_aliases = type_aliases![
         Vector(const N: usize, A) => (N, #t, A),
         Vector2(A) => (#t, A),
         Vector3(A) => (#t, A),
@@ -56,53 +58,133 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
         Vec2P => (#t),
         Vec3P => (#t),
         Vec4P => (#t),
-        VectorOrScalar(const N: usize, A) => (N, #t, A) in or_scalar,
-        VecNOrScalar(const N: usize) => (N, #t) in or_scalar,
-        VecNPOrScalar(const N: usize) => (N, #t) in or_scalar,
+        VectorOrScalar(const N: usize, A) => (N, #t, A),
+        VecNOrScalar(const N: usize) => (N, #t),
+        VecNPOrScalar(const N: usize) => (N, #t),
     ]
     .map(
-        |Alias {
+        |TypeAlias {
              ident,
-             path,
              params,
              args,
          }| {
             let prefixed_ident = Ident::new(&format!("{prefix}{ident}"), ident.span());
 
             let docs: TokenStream = parse_str(&format!(
-                "/// type-aliase for an [```{}```] [```{ident}```](ggmath::vec::{}{ident})",
+                "/// type-alias for an [```{}```] [```{ident}```]",
                 t.to_token_stream(),
-                path.iter()
-                    .map(|path| format!("{path}::"))
-                    .collect::<String>()
             ))
             .unwrap_or_else(|err| panic!("failed to parse '{ident}' docs: {err}"));
 
             quote! {
                 #docs
-                #alias_vis type #prefixed_ident #params = ggmath::vec::#(#path::)* #ident #args;
+                pub type #prefixed_ident #params = #ident #args;
             }
         },
     );
 
-    if let Some(mod_token) = mod_token {
+    #[derive(Parse)]
+    struct FnAlias {
+        sig: Signature,
+        #[prefix(Token![=>])]
+        call_generics: AngleBracketedGenericArguments,
+    }
+    struct FnAliases {
+        vec: Vec<FnAlias>,
+    }
+    impl Parse for FnAliases {
+        fn parse(input: ParseStream) -> syn::Result<Self> {
+            Ok(Self {
+                vec: Punctuated::<FnAlias, Token![,]>::parse_terminated(input)?
+                    .into_iter()
+                    .collect(),
+            })
+        }
+    }
+    macro_rules! fn_aliases {
+        [$($tt:tt)*] => {
+            match parse2::<FnAliases>(quote! { $($tt)* }) {
+                Ok(ok) => ok,
+                Err(err) => return err.to_compile_error().into(),
+            }.vec
+        };
+    }
+    let fn_aliases = fn_aliases![
+        fn vector<const N: usize, A: VecAlignment>(value: impl IntoVector<N, #t>) -> Vector<N, #t, A> where ScalarCount<N>: VecLen<N> => <N, #t, A>,
+        fn vector2<A: VecAlignment>(value: impl IntoVector<2, #t>) -> Vector2<#t, A> => <#t, A>,
+        fn vector3<A: VecAlignment>(value: impl IntoVector<3, #t>) -> Vector3<#t, A> => <#t, A>,
+        fn vector4<A: VecAlignment>(value: impl IntoVector<4, #t>) -> Vector4<#t, A> => <#t, A>,
+        fn vecn<const N: usize>(value: impl IntoVector<N, #t>) -> VecN<N, #t> where ScalarCount<N>: VecLen<N> => <N, #t>,
+        fn vec2(value: impl IntoVector<2, #t>) -> Vec2<#t> => <#t>,
+        fn vec3(value: impl IntoVector<3, #t>) -> Vec3<#t> => <#t>,
+        fn vec4(value: impl IntoVector<4, #t>) -> Vec4<#t> => <#t>,
+        fn vecnp<const N: usize>(value: impl IntoVector<N, #t>) -> VecNP<N, #t> where ScalarCount<N>: VecLen<N> => <N, #t>,
+        fn vec2p(value: impl IntoVector<2, #t>) -> Vec2P<#t> => <#t>,
+        fn vec3p(value: impl IntoVector<3, #t>) -> Vec3P<#t> => <#t>,
+        fn vec4p(value: impl IntoVector<4, #t>) -> Vec4P<#t> => <#t>,
+    ]
+    .into_iter()
+    .map(|FnAlias { sig, call_generics }| {
+        let Signature {
+            constness,
+            asyncness,
+            unsafety,
+            abi,
+            fn_token,
+            ident,
+            generics,
+            paren_token: _,
+            inputs,
+            variadic,
+            output,
+        } = sig;
+
+        let prefixed_ident = Ident::new(
+            &format!("{prefix_lower}{ident}"),
+            ident.span(),
+        );
+
+        let where_clause = &generics.where_clause;
+
+        let input_idents = inputs.iter().map(|input| match input {
+            FnArg::Receiver(receiver) => Ident::new("self", receiver.span()),
+            FnArg::Typed(typed) => match &*typed.pat {
+                Pat::Type(pat) => match &*pat.pat {
+                    Pat::Ident(pat) => pat.ident.clone(),
+                    _ => panic!("unsupported argument pat pat"),
+                }
+                Pat::Ident(pat) => pat.ident.clone(),
+                _ => panic!("unsupported argument pat"),
+            }
+        });
+
         let docs: TokenStream = parse_str(&format!(
-            "/// mathamatical type-aliases for [```{}```]",
-            t.to_token_stream()
+            "/// type-alias for [```{ident}```] with [```{}```]",
+            t.to_token_stream(),
         ))
-        .unwrap_or_else(|err| panic!("failed to parse mod docs: {err}"));
+        .unwrap_or_else(|err| panic!("failed to parse '{ident}' docs: {err}"));
 
         quote! {
             #docs
-            #vis #mod_token #t {
-                use super::*;
-
-                #(#aliases)*
+            pub #constness #asyncness #unsafety #abi #fn_token #prefixed_ident #generics (#inputs) #variadic #output #where_clause {
+                #ident::#call_generics(#(#input_idents), *)
             }
         }
-    } else {
-        quote! {
-            #(#aliases)*
+    });
+
+    let mod_docs: TokenStream = parse_str(&format!(
+        "/// mathamatical type-aliases for [```{}```]",
+        t.to_token_stream()
+    ))
+    .unwrap_or_else(|err| panic!("failed to parse mod docs: {err}"));
+
+    quote! {
+        #mod_docs
+        #vis mod #mod_ident {
+            use super::ggmath::vec::{or_scalar::*, *};
+
+            #(#type_aliases)*
+            #(#fn_aliases)*
         }
     }
     .into()
