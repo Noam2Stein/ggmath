@@ -51,6 +51,5 @@ export!(inner_vecs in vec::inner_vecs);
 
 export!(vec_interface in vec::vec_interface);
 
-export!(swizzles_macro in vec::swizzles);
 export!(swizzles in vec::swizzles);
 export!(non_repeat_swizzles in vec::swizzles);
