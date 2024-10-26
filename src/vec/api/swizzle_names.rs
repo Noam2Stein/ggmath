@@ -221,3 +221,98 @@ non_repeat_swizzles!(4 with_(x, y, z, w) => {
         )*
     }
 });
+
+// SET
+
+non_repeat_swizzles!(1 set_(x, y) => {
+    impl<T: Scalar, A: VecAlignment> Vector2<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, value: T) {
+                unsafe { self.set_unchecked($($component), *, value) }
+            }
+        )*
+    }
+});
+non_repeat_swizzles!(2 set_(x, y) => {
+    impl<T: Scalar, A: VecAlignment> Vector2<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, values: Vector2<T, A>) {
+                unsafe { self.set_2_unchecked([$($component), *], values) }
+            }
+        )*
+    }
+});
+
+non_repeat_swizzles!(1 set_(x, y, z) => {
+    impl<T: Scalar, A: VecAlignment> Vector3<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, value: T) {
+                unsafe { self.set_unchecked($($component), *, value) }
+            }
+        )*
+    }
+});
+non_repeat_swizzles!(2 set_(x, y, z) => {
+    impl<T: Scalar, A: VecAlignment> Vector3<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, values: Vector2<T, A>) {
+                unsafe { self.set_2_unchecked([$($component), *], values) }
+            }
+        )*
+    }
+});
+non_repeat_swizzles!(3 set_(x, y, z) => {
+    impl<T: Scalar, A: VecAlignment> Vector3<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, values: Vector3<T, A>) {
+                unsafe { self.set_3_unchecked([$($component), *], values) }
+            }
+        )*
+    }
+});
+
+non_repeat_swizzles!(1 set_(x, y, z, w) => {
+    impl<T: Scalar, A: VecAlignment> Vector4<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, value: T) {
+                unsafe { self.set_unchecked($($component), *, value) }
+            }
+        )*
+    }
+});
+non_repeat_swizzles!(2 set_(x, y, z, w) => {
+    impl<T: Scalar, A: VecAlignment> Vector4<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, values: Vector2<T, A>) {
+                unsafe { self.set_2_unchecked([$($component), *], values) }
+            }
+        )*
+    }
+});
+non_repeat_swizzles!(3 set_(x, y, z, w) => {
+    impl<T: Scalar, A: VecAlignment> Vector4<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, values: Vector3<T, A>) {
+                unsafe { self.set_3_unchecked([$($component), *], values) }
+            }
+        )*
+    }
+});
+non_repeat_swizzles!(4 set_(x, y, z, w) => {
+    impl<T: Scalar, A: VecAlignment> Vector4<T, A> {
+        $(
+            #[inline(always)]
+            pub fn $ident(&mut self, values: Vector4<T, A>) {
+                unsafe { self.set_4_unchecked([$($component), *], values) }
+            }
+        )*
+    }
+});
