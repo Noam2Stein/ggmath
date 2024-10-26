@@ -20,6 +20,7 @@ pub fn non_repeat_swizzles(tokens: proc_macro::TokenStream) -> proc_macro::Token
 #[derive(Parse)]
 struct Input {
     swizzle_component_count: LitInt,
+    ident_prefix: Option<Ident>,
     #[paren]
     _paren: Paren,
     #[inside(_paren)]
@@ -53,6 +54,7 @@ pub fn filter_swizzles(
 ) -> proc_macro::TokenStream {
     let Input {
         swizzle_component_count,
+        ident_prefix,
         _paren,
         components,
         _brace,
@@ -67,12 +69,12 @@ pub fn filter_swizzles(
     let swizzles = collect_swizzles(components.len() as u8, swizzle_component_count, filter)
         .into_iter()
         .map(|swizzle| {
-            let name = swizzle_ident(&swizzle, &components);
+            let ident = swizzle_ident(ident_prefix.as_ref(), &swizzle, &components);
             let swizzle = swizzle
                 .into_iter()
                 .map(|component| LitInt::new(component.to_string().as_str(), Span::call_site()));
 
-            quote! { #name[#(#swizzle)*] }
+            quote! { #ident[#(#swizzle)*] }
         });
 
     quote! {
@@ -130,12 +132,16 @@ fn collect_swizzles_helper(
     }
 }
 
-fn swizzle_ident(swizzle: &[u8], components: &[char]) -> Ident {
+fn swizzle_ident(prefix: Option<&Ident>, swizzle: &[u8], components: &[char]) -> Ident {
     Ident::new(
-        &swizzle
-            .iter()
-            .map(|swizzle_component| components[*swizzle_component as usize])
-            .collect::<String>(),
+        &format!(
+            "{}{}",
+            prefix.map_or("".to_string(), |prefix| prefix.to_string()),
+            &swizzle
+                .iter()
+                .map(|swizzle_component| components[*swizzle_component as usize])
+                .collect::<String>(),
+        ),
         Span::call_site(),
     )
 }
