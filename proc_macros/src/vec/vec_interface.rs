@@ -282,7 +282,9 @@ fn impl_block(input: &VecInterface) -> TokenStream {
 
         quote_spanned! {
             ident.span() =>
-            #[inline(always)] #vis #sig {
+            #[inline(always)]
+            #[allow(unused_mut)]
+            #vis #sig {
                 <ScalarCount<N> as #len_trait<N>>::#ident::<T, A, #(#generics), *>(#(#input_idents), *)
             }
         }
@@ -398,6 +400,7 @@ fn len(input: &VecInterface) -> TokenStream {
             input.ident.span() =>
             impl #len_trait<#n> for ScalarCount<#n> {
                 #(
+                    #[allow(unused_mut)]
                     #fn_impls
                 )*
             }
@@ -474,6 +477,7 @@ fn alignment(input: &VecInterface) -> TokenStream {
                     input.ident.span() =>
                     impl #alignment_trait<#n> for #a {
                         #(
+                            #[allow(unused_mut)]
                             #fn_impls
                         )*
                     }
