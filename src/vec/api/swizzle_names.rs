@@ -1,3 +1,5 @@
+use std::mem::transmute;
+
 use ggmath_proc_macros::{non_repeat_swizzles, swizzles};
 
 use super::*;
@@ -126,6 +128,255 @@ swizzles!(4(x, y, z, w) => {
         )*
     }
 });
+
+// GET MUT
+
+impl<T: Scalar, A: VecAlignment> Vector2<T, A> {
+    #[inline(always)]
+    pub fn x_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(0) }
+    }
+    #[inline(always)]
+    pub fn y_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(1) }
+    }
+
+    #[inline(always)]
+    pub fn x_y_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.x_mut()), transmute(self.y_mut())) }
+    }
+
+    #[inline(always)]
+    pub fn xy_mut(&mut self) -> &mut Vec2P<T> {
+        unsafe { transmute(self.x_mut()) }
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector3<T, A> {
+    #[inline(always)]
+    pub fn x_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(0) }
+    }
+    #[inline(always)]
+    pub fn y_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(1) }
+    }
+    #[inline(always)]
+    pub fn z_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(2) }
+    }
+
+    #[inline(always)]
+    pub fn x_y_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.x_mut()), transmute(self.y_mut())) }
+    }
+    #[inline(always)]
+    pub fn x_z_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.x_mut()), transmute(self.z_mut())) }
+    }
+    #[inline(always)]
+    pub fn y_z_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.y_mut()), transmute(self.z_mut())) }
+    }
+
+    #[inline(always)]
+    pub fn x_y_z_mut(&mut self) -> (&mut T, &mut T, &mut T) {
+        unsafe {
+            (
+                transmute(self.x_mut()),
+                transmute(self.y_mut()),
+                transmute(self.z_mut()),
+            )
+        }
+    }
+
+    #[inline(always)]
+    pub fn x_yz_mut(&mut self) -> (&mut T, &mut Vec2P<T>) {
+        unsafe { transmute(self.x_y_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn xy_mut(&mut self) -> &mut Vec2P<T> {
+        unsafe { transmute(self.x_mut()) }
+    }
+    #[inline(always)]
+    pub fn yz_mut(&mut self) -> &mut Vec2P<T> {
+        unsafe { transmute(self.y_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn xy_z_mut(&mut self) -> (&mut Vec2P<T>, &mut T) {
+        unsafe { transmute(self.x_y_mut()) }
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector4<T, A> {
+    #[inline(always)]
+    pub fn x_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(0) }
+    }
+    #[inline(always)]
+    pub fn y_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(1) }
+    }
+    #[inline(always)]
+    pub fn z_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(2) }
+    }
+    #[inline(always)]
+    pub fn w_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut_unchecked(3) }
+    }
+
+    #[inline(always)]
+    pub fn x_y_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.x_mut()), transmute(self.y_mut())) }
+    }
+    #[inline(always)]
+    pub fn x_z_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.x_mut()), transmute(self.z_mut())) }
+    }
+    #[inline(always)]
+    pub fn x_w_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.x_mut()), transmute(self.w_mut())) }
+    }
+    #[inline(always)]
+    pub fn y_z_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.y_mut()), transmute(self.z_mut())) }
+    }
+    #[inline(always)]
+    pub fn y_w_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.y_mut()), transmute(self.w_mut())) }
+    }
+    #[inline(always)]
+    pub fn z_w_mut(&mut self) -> (&mut T, &mut T) {
+        unsafe { (transmute(self.z_mut()), transmute(self.w_mut())) }
+    }
+
+    #[inline(always)]
+    pub fn x_y_z_mut(&mut self) -> (&mut T, &mut T, &mut T) {
+        unsafe {
+            (
+                transmute(self.x_mut()),
+                transmute(self.y_mut()),
+                transmute(self.z_mut()),
+            )
+        }
+    }
+    #[inline(always)]
+    pub fn x_y_w_mut(&mut self) -> (&mut T, &mut T, &mut T) {
+        unsafe {
+            (
+                transmute(self.x_mut()),
+                transmute(self.y_mut()),
+                transmute(self.w_mut()),
+            )
+        }
+    }
+    #[inline(always)]
+    pub fn x_z_w_mut(&mut self) -> (&mut T, &mut T, &mut T) {
+        unsafe {
+            (
+                transmute(self.x_mut()),
+                transmute(self.z_mut()),
+                transmute(self.w_mut()),
+            )
+        }
+    }
+    #[inline(always)]
+    pub fn y_z_w_mut(&mut self) -> (&mut T, &mut T, &mut T) {
+        unsafe {
+            (
+                transmute(self.y_mut()),
+                transmute(self.z_mut()),
+                transmute(self.w_mut()),
+            )
+        }
+    }
+
+    #[inline(always)]
+    pub fn x_y_z_w_mut(&mut self) -> (&mut T, &mut T, &mut T, &mut T) {
+        unsafe {
+            (
+                transmute(self.x_mut()),
+                transmute(self.y_mut()),
+                transmute(self.z_mut()),
+                transmute(self.w_mut()),
+            )
+        }
+    }
+
+    #[inline(always)]
+    pub fn xy_mut(&mut self) -> &mut Vec2P<T> {
+        unsafe { transmute(self.x_mut()) }
+    }
+    #[inline(always)]
+    pub fn yz_mut(&mut self) -> &mut Vec2P<T> {
+        unsafe { transmute(self.y_mut()) }
+    }
+    #[inline(always)]
+    pub fn zw_mut(&mut self) -> &mut Vec2P<T> {
+        unsafe { transmute(self.z_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn xy_z_mut(&mut self) -> (&mut Vec2P<T>, &mut T) {
+        unsafe { transmute(self.x_z_mut()) }
+    }
+    #[inline(always)]
+    pub fn xy_w_mut(&mut self) -> (&mut Vec2P<T>, &mut T) {
+        unsafe { transmute(self.x_w_mut()) }
+    }
+    #[inline(always)]
+    pub fn yz_w_mut(&mut self) -> (&mut Vec2P<T>, &mut T) {
+        unsafe { transmute(self.y_w_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn xy_z_w_mut(&mut self) -> (&mut Vec2P<T>, &mut T, &mut T) {
+        unsafe { transmute(self.x_z_w_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn x_yz_mut(&mut self) -> (&mut T, &mut Vec2P<T>) {
+        unsafe { transmute(self.x_y_mut()) }
+    }
+    #[inline(always)]
+    pub fn x_zw_mut(&mut self) -> (&mut T, &mut Vec2P<T>) {
+        unsafe { transmute(self.x_z_mut()) }
+    }
+    #[inline(always)]
+    pub fn y_zw_mut(&mut self) -> (&mut T, &mut Vec2P<T>) {
+        unsafe { transmute(self.y_z_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn x_yz_w_mut(&mut self) -> (&mut T, &mut Vec2P<T>, &mut T) {
+        unsafe { transmute(self.x_y_w_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn x_y_zw_mut(&mut self) -> (&mut T, &mut T, &mut Vec2P<T>) {
+        unsafe { transmute(self.x_y_z_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn xyz_mut(&mut self) -> &mut Vec3P<T> {
+        unsafe { transmute(self.x_mut()) }
+    }
+    #[inline(always)]
+    pub fn yzw_mut(&mut self) -> &mut Vec3P<T> {
+        unsafe { transmute(self.y_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn xyz_w_mut(&mut self) -> (&mut Vec3P<T>, &mut T) {
+        unsafe { transmute(self.x_w_mut()) }
+    }
+
+    #[inline(always)]
+    pub fn x_yzw_mut(&mut self) -> (&mut T, &mut Vec3P<T>) {
+        unsafe { transmute(self.x_y_mut()) }
+    }
+}
 
 // WITH
 
