@@ -3,24 +3,26 @@
 [Trello board](https://trello.com/b/6NH6VXTh/ggmath)
 
 # GGMath - Generic Graphics Math
-a generic graphics-math Rust crate
+a generic graphics-math Rust crate... for good games.
 
 * simple API - when not using generics, the API is as simple as writing:
 ``` rust
-fn main() {
-  let _2_4_: FVec2 = vec2((2.0, 4.0));
-  let vec: FVec4 = vec4((1.0, _2_4_, 3.0)).xywz();
+use ggmath::{scalar::aliases::f32::*, vec::*};
 
-  assert_eq!(vec, ve4(1.0, 2.0, 3.0, 4.0));
+fn main() {
+  let _2_4_ = vec2((2.0, 4.0));
+  let vec = fvec4((1.0, _2_4_, 3.0)).xywz();
+
+  assert_eq!(vec, vecn(1.0, 2.0, 3.0, 4.0));
 }
 ```
 
-* powerful - has a fully generic API. for example: vectors are generic over length, scalar type, and storage (packed, aligned)
+* powerful - has a fully generic API. for example: vectors are generic over length, scalar type, and alignment (packed, aligned)
 ``` rust
-struct MyStruct<const N: usize, S: VecStorage, T: Scalar> where ScalarCount<N>: VecLen<N> {
-  gg: Vector<N, S, T>,
+struct MyStruct<const N: usize, T: Scalar, A: VecAlignment> where ScalarCount<N>: VecLen<N> {
+  gg: Vector<N, T, A>,
   og: VecN<N, T>,
-  go: Vec3S<S, f32>,
+  go: FVec3<A>,
   //oo: not in rust!
 }
 ```
@@ -30,7 +32,7 @@ struct MyStruct<const N: usize, S: VecStorage, T: Scalar> where ScalarCount<N>: 
 fn example(_mat: Mat4<RowMajor>) {}
 ```
 
-* 0-cost abstraction - the built code is fully optimized with SIMD for scalars and targets that support it
+* 0-cost abstraction - fully optimized with SIMD on stable Rust
 
 restrictions:
 * only supports static vectors (2, 3, 4) and matricies (2, 3, 4)x(2, 3, 4)
@@ -47,10 +49,10 @@ the ```Scalar``` trait allows types to be put inside math types (vecs, mats...) 
 
 the ```Vector``` struct is generic over:
 * &lt;const N: usize&gt; where ScalarCount&lt;N&gt;: VecLen&lt;N&gt; - only 2, 3, and 4 are vector lengths
-* &lt;S: VecStorage&gt; - VecAligned is faster, VecPacked saves memory
 * &lt;T: Scalar&gt;
+* &lt;A: VecAlignment&gt; - same API, VecAligned is faster, VecPacked saves memory
 
-don't want to worry about Storage? use VecN&lt;N, T&gt; (type alias)
+don't want to worry about Alignment? use VecN&lt;N, T&gt; (type alias)
 
 don't want to be generic over N? use Vec2/3/4&lt;T&gt;
 
@@ -62,10 +64,10 @@ the ```Matrix``` struct is generic over:
 * &lt;const C: usize&gt; where ScalarCount&lt;C&gt;: VecLen&lt;C&gt; - column count
 * &lt;const R: usize&gt; where ScalarCount&lt;R&gt;: VecLen&lt;R&gt; - row count
 * &lt;M: MatrixMajorAxis&gt; - internally row-major or column major?
-* &lt;S: VecStorage&gt; - a matrix is built off of vectors...
 * &lt;T: Scalar&gt;
+* &lt;A: VecAlignment&gt; - a matrix is built off of vectors...
 
-don't want to worry about Storage? use MatCxR&lt;C, R, M, T&gt;
+don't want to worry about Alignment? use MatCxR&lt;C, R, M, T&gt;
 
 don't want to worry about MatrixMajorAxis? use column_major/row_major/generic_major::MatCxR&lt;C, R, T&gt;
 
