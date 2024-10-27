@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name    = "ggmath"
+name = "ggmath"
 version = "0.1.0"
 
 [dependencies]
