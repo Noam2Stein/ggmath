@@ -147,8 +147,7 @@ fn evaluate_fn_match<const N: usize>(
         }
     }
 
-    #[allow(unstable_name_collisions)]
-    values.zip(expected_keys).try_map(|(value, key)| {
+    ArrayExt::try_map(ArrayExt::zip(values, expected_keys), |(value, key)| {
         value.map_or_else(
             || {
                 Err(Error::new(
@@ -170,15 +169,19 @@ fn evaluate_fn_defaults(input: VecInterfaceFnTree) -> Result<[[Block; 3]; 2], Er
             ])
         },
         |input| {
-            #[allow(unstable_name_collisions)]
             let [[aligned2, packed2], [aligned3, packed3], [aligned4, packed4]] =
-                evaluate_fn_match(input, LEN_STRS)?.try_map(evaluate_fn_defaults_for_n)?;
+                ArrayExt::try_map(
+                    evaluate_fn_match(input, LEN_STRS)?,
+                    evaluate_fn_defaults_for_n,
+                )?;
 
             Ok([[aligned2, aligned3, aligned4], [packed2, packed3, packed4]])
         },
         |input| {
-            #[allow(unstable_name_collisions)]
-            evaluate_fn_match(input, ALIGN_STRS)?.try_map(evaluate_fn_defaults_for_a)
+            ArrayExt::try_map(
+                evaluate_fn_match(input, ALIGN_STRS)?,
+                evaluate_fn_defaults_for_a,
+            )
         },
     )
 }
@@ -188,8 +191,10 @@ fn evaluate_fn_defaults_for_n(input: VecInterfaceFnTree) -> Result<[Block; 2], E
         |input| Ok([input.clone(), input]),
         |input| Err(Error::new(input.item.span(), "'N' already matched")),
         |input| {
-            #[allow(unstable_name_collisions)]
-            evaluate_fn_match(input, ALIGN_STRS)?.try_map(evaluate_fn_defaults_for_n_a)
+            ArrayExt::try_map(
+                evaluate_fn_match(input, ALIGN_STRS)?,
+                evaluate_fn_defaults_for_n_a,
+            )
         },
     )
 }
@@ -198,8 +203,10 @@ fn evaluate_fn_defaults_for_a(input: VecInterfaceFnTree) -> Result<[Block; 3], E
         input,
         |input| Ok([input.clone(), input.clone(), input]),
         |input| {
-            #[allow(unstable_name_collisions)]
-            evaluate_fn_match(input, LEN_STRS)?.try_map(evaluate_fn_defaults_for_n_a)
+            ArrayExt::try_map(
+                evaluate_fn_match(input, LEN_STRS)?,
+                evaluate_fn_defaults_for_n_a,
+            )
         },
         |input| Err(Error::new(input.item.span(), "'A' already matched")),
     )

@@ -2,8 +2,8 @@ use super::*;
 
 use quote::quote;
 use syn::{
-    punctuated::Punctuated, token::Paren, AngleBracketedGenericArguments, FnArg, Generics,
-    ParenthesizedGenericArguments, Pat, Signature, Type, Visibility,
+    punctuated::Punctuated, token::Paren, AngleBracketedGenericArguments, FnArg, Generics, Pat,
+    Signature, Type, Visibility,
 };
 
 pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream {

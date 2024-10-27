@@ -1,9 +1,11 @@
+use std::ops::Range;
+
 use super::*;
 
 use is_sorted::IsSorted;
 use quote::quote;
 use syn::{
-    punctuated::Punctuated,
+    ext::IdentExt,
     token::{Brace, Paren},
     Lit, LitInt,
 };
@@ -24,8 +26,14 @@ pub fn swizzles(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let swizzles = collect_swizzles(&input).into_iter().map(|swizzle| {
         let ident = swizzle_ident(&input, &swizzle);
-        let poses = swizzle.blocks.iter().map(|block| block.pos);
-        let lengths = swizzle.blocks.iter().map(|block| block.len);
+        let poses = swizzle
+            .blocks
+            .iter()
+            .map(|block| LitInt::new(block.pos.to_string().as_str(), Span::call_site()));
+        let lengths = swizzle
+            .blocks
+            .iter()
+            .map(|block| LitInt::new(block.len.to_string().as_str(), Span::call_site()));
 
         quote! { #ident[#(#poses #lengths)*] }
     });
@@ -48,10 +56,13 @@ struct Input {
     #[paren]
     _paren: Paren,
     #[inside(_paren)]
-    block_seperator: Option<Ident>,
-    #[inside(_paren)]
     #[call(Self::parse_components)]
     components: Vec<char>,
+    #[prefix(Option<Token![:]> as block_seperator_peek in _paren)]
+    #[inside(_paren)]
+    #[parse_if(block_seperator_peek.is_some())]
+    #[call(Ident::parse_any)]
+    block_seperator: Option<Ident>,
     ident_postfix: Option<Ident>,
     #[prefix(Token![=>])]
     #[brace]
@@ -74,7 +85,12 @@ impl Input {
         Ok(output)
     }
     fn parse_components(input: ParseStream) -> syn::Result<Vec<char>> {
-        Ok(Punctuated::<Ident, Token![,]>::parse_terminated(input)?
+        let mut output = Vec::new();
+        while input.peek(Ident::peek_any) {
+            output.push(input.parse::<Ident>()?);
+        }
+
+        Ok(output
             .into_iter()
             .map(|component| {
                 let str = component.to_string();
@@ -117,6 +133,14 @@ struct SwizzleBlock {
     pos: u8,
     len: u8,
 }
+impl SwizzleBlock {
+    fn range(self) -> Range<u8> {
+        self.pos..self.pos + self.len
+    }
+    fn intersects(self, other: Self) -> bool {
+        self.pos < other.pos + other.len && other.pos < self.pos + self.len
+    }
+}
 
 fn collect_swizzles(input: &Input) -> Vec<Swizzle> {
     let mut output =
@@ -134,7 +158,7 @@ fn collect_swizzles_helper(
     stack: &mut Vec<SwizzleBlock>,
 ) {
     if let Some(block_len) = input.block_lengths.get(stack.len()) {
-        for block_pos in 0..input.components.len() {
+        for block_pos in 0..input.components.len() + 1 - (*block_len) as usize {
             stack.push(SwizzleBlock {
                 pos: block_pos as u8,
                 len: *block_len,
@@ -151,7 +175,12 @@ fn collect_swizzles_helper(
     }
 }
 fn filter_swizzle_stack(input: &Input, stack: &[SwizzleBlock]) -> bool {
-    if input.flags.only_sorted && stack.iter().is_sorted() {
+    if input.flags.only_sorted && !IsSorted::is_sorted(&mut stack.iter()) {
+        false
+    } else if input.flags.only_unique
+        && (0..stack.len())
+            .any(|i0| (0..stack.len()).any(|i1| stack[i0].intersects(stack[i1]) && i0 != i1))
+    {
         false
     } else {
         true
@@ -169,7 +198,8 @@ fn swizzle_ident(input: &Input, swizzle: &Swizzle) -> Ident {
             &swizzle
                 .blocks
                 .iter()
-                .map(|block| (block.pos..block.pos + block.len)
+                .map(|block| block
+                    .range()
                     .map(|component| input.components[component as usize])
                     .collect::<String>())
                 .collect::<Box<[String]>>()
