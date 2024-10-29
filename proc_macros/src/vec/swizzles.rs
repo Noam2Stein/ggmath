@@ -14,7 +14,7 @@ pub fn swizzles(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(tokens as Input);
     let Input {
         flags: _,
-        block_lengths: _,
+        block_types: _,
         ident_prefix: _,
         _paren,
         block_seperator: _,
@@ -30,17 +30,25 @@ pub fn swizzles(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
             .blocks
             .iter()
             .map(|block| LitInt::new(block.pos.to_string().as_str(), Span::call_site()));
+        let pos_idents = swizzle
+            .blocks
+            .iter()
+            .map(|block| Ident::new(&format!("_{}", block.pos), Span::call_site()));
         let lengths = swizzle
             .blocks
             .iter()
             .map(|block| LitInt::new(block.len.to_string().as_str(), Span::call_site()));
+        let len_idents = swizzle
+            .blocks
+            .iter()
+            .map(|block| Ident::new(&format!("_{}", block.len), Span::call_site()));
 
-        quote! { #ident[#(#poses #lengths)*] }
+        quote! { #ident[#(#poses #pos_idents #lengths #len_idents)*] }
     });
 
     quote! {
         macro_rules! some_swizzles_macro {
-            ($($ident:ident[$($pos:literal $len:literal)*])*) => { #macro_output }
+            ($($ident:ident[$($pos:literal $pos_ident:ident $len:literal $len_ident:ident)*])*) => { #macro_output }
         }
         some_swizzles_macro!(#(#swizzles)*);
     }
@@ -50,8 +58,8 @@ pub fn swizzles(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[derive(Parse)]
 struct Input {
     flags: InputFlags,
-    #[call(Self::parse_blocks)]
-    block_lengths: Vec<u8>,
+    #[call(Self::parse_block_types)]
+    block_types: Vec<BlockType>,
     ident_prefix: Option<Ident>,
     #[paren]
     _paren: Paren,
@@ -76,10 +84,10 @@ struct InputFlags {
     only_unique: bool,
 }
 impl Input {
-    fn parse_blocks(input: ParseStream) -> syn::Result<Vec<u8>> {
+    fn parse_block_types(input: ParseStream) -> syn::Result<Vec<BlockType>> {
         let mut output = Vec::new();
         while input.peek(Lit) {
-            output.push(input.parse::<LitInt>()?.base10_parse()?);
+            output.push(input.parse()?);
         }
 
         Ok(output)
@@ -123,6 +131,23 @@ impl Parse for InputFlags {
         Ok(output)
     }
 }
+struct BlockType {
+    min_len: u8,
+    max_len: u8,
+}
+impl Parse for BlockType {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let min_len = input.parse::<LitInt>()?.base10_parse()?;
+        let max_len = if input.peek(Token![..]) {
+            input.parse::<Token![..]>()?;
+            input.parse::<LitInt>()?.base10_parse()?
+        } else {
+            min_len
+        };
+
+        Ok(Self { min_len, max_len })
+    }
+}
 
 #[derive(Debug, Clone)]
 struct Swizzle {
@@ -143,10 +168,9 @@ impl SwizzleBlock {
 }
 
 fn collect_swizzles(input: &Input) -> Vec<Swizzle> {
-    let mut output =
-        Vec::with_capacity(input.block_lengths.len().pow(input.components.len() as u32));
+    let mut output = Vec::with_capacity(input.block_types.len().pow(input.components.len() as u32));
 
-    let mut stack = Vec::with_capacity(input.block_lengths.len());
+    let mut stack = Vec::with_capacity(input.block_types.len());
 
     collect_swizzles_helper(input, &mut output, &mut stack);
 
@@ -157,16 +181,18 @@ fn collect_swizzles_helper(
     output: &mut Vec<Swizzle>,
     stack: &mut Vec<SwizzleBlock>,
 ) {
-    if let Some(block_len) = input.block_lengths.get(stack.len()) {
-        for block_pos in 0..input.components.len() + 1 - (*block_len) as usize {
-            stack.push(SwizzleBlock {
-                pos: block_pos as u8,
-                len: *block_len,
-            });
-            if filter_swizzle_stack(input, &stack) {
-                collect_swizzles_helper(input, output, stack);
+    if let Some(block_type) = input.block_types.get(stack.len()) {
+        for block_len in block_type.min_len..=block_type.max_len {
+            for block_pos in 0..input.components.len() + 1 - block_len as usize {
+                stack.push(SwizzleBlock {
+                    pos: block_pos as u8,
+                    len: block_len,
+                });
+                if filter_swizzle_stack(input, &stack) {
+                    collect_swizzles_helper(input, output, stack);
+                }
+                stack.pop();
             }
-            stack.pop();
         }
     } else {
         output.push(Swizzle {
