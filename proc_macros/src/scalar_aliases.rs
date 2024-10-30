@@ -53,9 +53,6 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
         Vec2P => (#t),
         Vec3P => (#t),
         Vec4P => (#t),
-        VectorOrScalar(const N: usize, A) => (N, #t, A),
-        VecNOrScalar(const N: usize) => (N, #t),
-        VecNPOrScalar(const N: usize) => (N, #t),
     ]
     .map(
         |TypeAlias {
@@ -171,7 +168,7 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     quote! {
         #mod_docs
         #vis mod #mod_ident {
-            use super::ggmath::vector::{alignment::*, length::*, or_scalar::*, *};
+            use super::ggmath::vector::{alignment::*, into_vec::*, length::*, *};
 
             #(#type_aliases)*
             #(#fn_aliases)*

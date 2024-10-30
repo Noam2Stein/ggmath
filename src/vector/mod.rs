@@ -4,8 +4,8 @@ pub mod alignment;
 pub mod inner;
 pub mod length;
 
-mod api;
-pub use api::*;
+pub mod into_vec;
+pub mod swizzle_names;
 
 pub(crate) mod interfaces;
 
