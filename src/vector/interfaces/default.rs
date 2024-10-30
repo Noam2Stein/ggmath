@@ -8,7 +8,7 @@ ggmath_proc_macros::vec_interface!(
     }
 );
 
-use crate::vec::{ScalarCount, VecAlignment, VecLen, Vector};
+use crate::vector::{ScalarCount, VecAlignment, VecLen, Vector};
 
 impl<const N: usize, T: ScalarDefault, A: VecAlignment> Default for Vector<N, T, A>
 where

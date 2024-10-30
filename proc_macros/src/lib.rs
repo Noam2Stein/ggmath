@@ -4,6 +4,19 @@
 
 #![warn(missing_docs)]
 
+macro_rules! export {
+    ($(#[$meta:meta])* $ident:ident) => {
+        $(#[$meta])*
+        #[proc_macro]
+        pub fn $ident(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+            $ident::$ident(tokens)
+        }
+    };
+}
+
+mod utils;
+use utils::*;
+
 use derive_syn_parse::Parse;
 use proc_macro2::*;
 use quote::{quote_spanned, ToTokens, TokenStreamExt};
@@ -14,19 +27,10 @@ use syn::{
     Error, Token,
 };
 
-macro_rules! export {
-    ($(#[$meta:meta])* $ident:ident in $($path:ident)::*) => {
-        $(#[$meta])*
-        #[proc_macro]
-        pub fn $ident(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
-            $($path::)*$ident(tokens)
-        }
-    };
-}
-
-mod array_ext;
-mod scalar;
-mod vec;
+mod inner_vecs;
+mod scalar_aliases;
+mod swizzles;
+mod vec_interface;
 
 export!(
 /// expands into type aliases for vector, matricies... for a specific scalar type.
@@ -44,11 +48,11 @@ export!(
 /// // pub type FVec2 = Vec2<f32>;
 /// // ...
 /// ```
-    scalar_aliases in scalar::scalar_aliases
+    scalar_aliases
 );
 
-export!(inner_vecs in vec::inner_vecs);
+export!(inner_vecs);
 
-export!(vec_interface in vec::vec_interface);
+export!(vec_interface);
 
-export!(swizzles in vec::swizzles);
+export!(swizzles);

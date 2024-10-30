@@ -171,7 +171,7 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     quote! {
         #mod_docs
         #vis mod #mod_ident {
-            use super::ggmath::vec::{or_scalar::*, *};
+            use super::ggmath::vector::{alignment::*, length::*, or_scalar::*, *};
 
             #(#type_aliases)*
             #(#fn_aliases)*

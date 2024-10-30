@@ -1,6 +1,5 @@
 use super::*;
 
-use array_ext::ArrayExt;
 use syn::{
     punctuated::Punctuated,
     token::{Brace, Bracket, Pub},
@@ -42,7 +41,7 @@ pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
     quote_spanned! {
         input.ident.span() =>
-        use crate::vec::{inner::*, *};
+        use crate::vector::{alignment::*, inner::*, length::*, *};
 
         const _: () = {
             #(#errors)*
@@ -499,7 +498,7 @@ fn alignment(input: &VecInterface) -> TokenStream {
     quote_spanned! {
         alignment_trait.span() =>
 
-        pub(super) trait #alignment_trait<const N: usize>: seal::VecAlignment where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #alignment_trait<const N: usize>: alignment_seal::VecAlignment where ScalarCount<N>: VecLen<N> {
             #(#fn_declarations)*
         }
 

@@ -13,4 +13,4 @@
 pub mod construct;
 pub mod primitive_aliases;
 pub mod scalar;
-pub mod vec;
+pub mod vector;

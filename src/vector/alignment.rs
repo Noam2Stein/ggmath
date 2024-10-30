@@ -59,7 +59,7 @@ use super::*;
 /// On any other case use ```VecAligned``` (```VecN```, The default).
 #[allow(private_bounds)]
 pub trait VecAlignment:
-    seal::VecAlignment
+    alignment_seal::VecAlignment
     + interfaces::VecAlignmentInterfaces<2>
     + interfaces::VecAlignmentInterfaces<3>
     + interfaces::VecAlignmentInterfaces<4>
@@ -93,7 +93,7 @@ pub trait VecAlignment:
 ///
 /// Always recommended except for when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecAligned;
-impl seal::VecAlignment for VecAligned {}
+impl alignment_seal::VecAlignment for VecAligned {}
 impl VecAlignment for VecAligned {}
 
 /// Vector inner storage that ensures that the vector has the same type-layout as ```[T; N]```.
@@ -120,10 +120,10 @@ impl VecAlignment for VecAligned {}
 ///
 /// Only recommended when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecPacked;
-impl seal::VecAlignment for VecPacked {}
+impl alignment_seal::VecAlignment for VecPacked {}
 impl VecAlignment for VecPacked {}
 
-pub(super) mod seal {
+pub(super) mod alignment_seal {
     use super::*;
 
     pub trait VecAlignment: inner::VecAlignmentInnerVecs {}

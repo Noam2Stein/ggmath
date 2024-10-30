@@ -1,10 +1,8 @@
 //! Staticly-lengthed vectors of [scalars](scalar) with lengths between 2 and 4.
 
-use crate::{construct::*, scalar::*};
-
 pub mod alignment;
 pub mod inner;
-pub mod len;
+pub mod length;
 
 mod api;
 pub use api::*;
@@ -12,6 +10,10 @@ pub use api::*;
 pub(crate) mod interfaces;
 
 mod impl_construct;
+
+use crate::{construct::*, scalar::*};
+use alignment::*;
+use length::*;
 
 /// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
 ///
@@ -35,9 +37,9 @@ mod impl_construct;
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: seal::VecAlignment>
+pub struct Vector<const N: usize, T: Scalar, A: alignment_seal::VecAlignment>
 where
-    ScalarCount<N>: VecLen<N>,
+    length::ScalarCount<N>: length::VecLen<N>,
 {
     inner: inner::InnerVector<N, T, A>,
 }
