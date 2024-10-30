@@ -168,7 +168,8 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     quote! {
         #mod_docs
         #vis mod #mod_ident {
-            use super::ggmath::vector::{alignment::*, into_vec::*, length::*, *};
+            use super::*;
+            use ggmath::vector::{alignment::*, into_vec::*, length::*, *};
 
             #(#type_aliases)*
             #(#fn_aliases)*
