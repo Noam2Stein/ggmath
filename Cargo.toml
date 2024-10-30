@@ -1,3 +1,3 @@
 [workspace]
 
-members = [ "ggmath", "proc_macros", "sandbox" ]
+members = [ "examples/adding_scalars", "ggmath", "proc_macros", "sandbox" ]
