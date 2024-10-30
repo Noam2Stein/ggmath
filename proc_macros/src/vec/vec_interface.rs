@@ -3,7 +3,7 @@ use super::*;
 use array_ext::ArrayExt;
 use syn::{
     punctuated::Punctuated,
-    token::{Brace, Bracket},
+    token::{Brace, Bracket, Pub},
     Block, ConstParam, FnArg, GenericParam, Generics, Lit, LitInt, Pat, Receiver, Signature,
     TypeParam, Visibility,
 };
@@ -57,7 +57,7 @@ pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 struct VecInterface {
     scalar_trait: TypeParam,
-    vis: Visibility,
+    is_pub: bool,
     ident: Ident,
     fns: Vec<VecInterfaceFn>,
     errors: Vec<Error>,
@@ -67,7 +67,13 @@ impl Parse for VecInterface {
         let scalar_trait = TypeParam::parse(input)?;
         <Token![,]>::parse(input)?;
 
-        let vis = Visibility::parse(input)?;
+        let is_pub = match Visibility::parse(input)? {
+            Visibility::Inherited => false,
+            Visibility::Public(_) => true,
+            Visibility::Restricted(vis) => {
+                return Err(Error::new(vis.span(), "only pub or nothingis supported"))
+            }
+        };
         let ident = Ident::parse(input)?;
         <Token![:]>::parse(input)?;
 
@@ -92,7 +98,7 @@ impl Parse for VecInterface {
 
         Ok(Self {
             scalar_trait,
-            vis,
+            is_pub,
             ident,
             fns,
             errors,
@@ -279,9 +285,13 @@ struct VecInterfaceFnMatchPat {
 fn impl_block(input: &VecInterface) -> TokenStream {
     let scalar_trait = &input.scalar_trait.ident;
     let len_trait = len_trait_ident(input);
-    let vis = &input.vis;
 
     let fn_impls = input.fns.iter().map(|r#fn| {
+        let vis = if input.is_pub {
+            Visibility::Public(Pub { span: r#fn.sig.fn_token.span() })
+        }
+        else { Visibility::Inherited };
+
         let sig = &r#fn.sig;
         let ident = &r#fn.sig.ident;
         let generics = generic_args(&r#fn.sig.generics);
@@ -300,9 +310,7 @@ fn impl_block(input: &VecInterface) -> TokenStream {
     quote_spanned! {
         input.ident.span() =>
         impl<const N: usize, T: #scalar_trait, A: VecAlignment> Vector<N, T, A> where ScalarCount<N>: VecLen<N> {
-            #(
-                #fn_impls
-            )*
+            #(#fn_impls)*
         }
     }
 }
@@ -327,6 +335,7 @@ fn scalar(input: &VecInterface) -> TokenStream {
                         sig.ident = scalar_fn_ident(&sig.ident, n_str, a_str);
 
                         search_replace_fn(
+                            quote_spanned! { sig.fn_token.span => #[allow(unused_mut)] #[allow(missing_docs)] },
                             sig.clone(),
                             Some(default.to_token_stream()),
                             |span| quote_spanned! { span => #n },
@@ -343,9 +352,7 @@ fn scalar(input: &VecInterface) -> TokenStream {
         trait_ident.span() =>
         #(#trait_attrs)*
         pub trait #trait_ident: #trait_supertraits {
-            #(
-                #fn_declarations
-            )*
+            #(#fn_declarations)*
         }
     }
 }
@@ -374,6 +381,7 @@ fn len(input: &VecInterface) -> TokenStream {
 
     let fn_declarations = fn_sigs.iter().map(|sig| {
         search_replace_fn(
+            quote_spanned! { sig.fn_token.span => #[allow(missing_docs)] },
             sig.clone(),
             None,
             |span| quote_spanned! { span => N },
@@ -393,6 +401,7 @@ fn len(input: &VecInterface) -> TokenStream {
             let input_idents = sig.inputs.iter().map(|input| arg_ident(input));
 
             search_replace_fn(
+                quote_spanned! { sig.fn_token.span => #[allow(unused_mut)] #[allow(missing_docs)] },
                 sig.clone(),
                 Some(quote_spanned! { sig.ident.span() => {
                     <A as #alignment_trait<N>>::#fn_ident::<T, #(#generics), *>(#(#input_idents), *)
@@ -406,10 +415,7 @@ fn len(input: &VecInterface) -> TokenStream {
         quote_spanned! {
             input.ident.span() =>
             impl #len_trait<#n> for ScalarCount<#n> {
-                #(
-                    #[allow(unused_mut)]
-                    #fn_impls
-                )*
+                #(#fn_impls)*
             }
         }
     });
@@ -417,13 +423,10 @@ fn len(input: &VecInterface) -> TokenStream {
     quote_spanned! {
         len_trait.span() =>
         pub(super) trait #len_trait<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
-            #(
-                #fn_declarations
-            )*
+            #(#fn_declarations)*
         }
-        #(
-            #impls
-        )*
+
+        #(#impls)*
     }
 }
 fn alignment(input: &VecInterface) -> TokenStream {
@@ -446,6 +449,7 @@ fn alignment(input: &VecInterface) -> TokenStream {
 
     let fn_declarations = fn_sigs.iter().map(|sig| {
         search_replace_fn(
+            quote_spanned! { sig.fn_token.span => #[allow(missing_docs)] },
             sig.clone(),
             None,
             |span| quote_spanned! { span => N },
@@ -470,6 +474,7 @@ fn alignment(input: &VecInterface) -> TokenStream {
                     let input_idents = sig.inputs.iter().map(|input| arg_ident(input));
 
                     search_replace_fn(
+                        quote_spanned! { sig.fn_token.span => #[allow(unused_mut)] #[allow(missing_docs)] },
                         sig.clone(),
                         Some(quote_spanned! { sig.ident.span() => {
                             T::#scalar_fn::<#(#generics), *>(#(#input_idents), *)
@@ -483,10 +488,7 @@ fn alignment(input: &VecInterface) -> TokenStream {
                 quote_spanned! {
                     input.ident.span() =>
                     impl #alignment_trait<#n> for #a {
-                        #(
-                            #[allow(unused_mut)]
-                            #fn_impls
-                        )*
+                        #(#fn_impls)*
                     }
                 }
             })
@@ -496,18 +498,17 @@ fn alignment(input: &VecInterface) -> TokenStream {
 
     quote_spanned! {
         alignment_trait.span() =>
+
         pub(super) trait #alignment_trait<const N: usize>: seal::VecAlignment where ScalarCount<N>: VecLen<N> {
-            #(
-                #fn_declarations
-            )*
+            #(#fn_declarations)*
         }
-        #(
-            #impls
-        )*
+
+        #(#impls)*
     }
 }
 
 fn search_replace_fn(
+    attrs: TokenStream,
     mut sig: Signature,
     block: Option<TokenStream>,
     n: impl Fn(Span) -> TokenStream + Copy,
@@ -562,7 +563,7 @@ fn search_replace_fn(
     let mut input = sig.to_token_stream();
     input.extend(block.unwrap_or_else(|| quote_spanned! { sig.fn_token.span() => ; }));
 
-    let mut output = TokenStream::new();
+    let mut output = attrs;
     search_replace(
         input,
         &mut output,

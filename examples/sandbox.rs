@@ -1,5 +1,8 @@
-use ggmath::{scalar::aliases::f32::*, vec::*};
+use ggmath::scalar::aliases::f32::*;
 
 fn main() {
-    println!("{}", fvecn((vec2p((1.0, 4.0)).with_y(3.0), 2.0)).xzy())
+    let vec2 = fvec2((1.0, 3.0));
+    let vec3 = fvec3((vec2, 2.0));
+
+    println!("{}", vec3.xzy())
 }
