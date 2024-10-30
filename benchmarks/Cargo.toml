@@ -1,8 +1,0 @@
-[package]
-edition = "2021"
-name    = "benchmarks"
-version = "0.1.0"
-
-[dependencies]
-ggmath = { path = "../ggmath" }
-glam   = "0.29.1"
