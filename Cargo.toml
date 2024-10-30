@@ -1,7 +1,12 @@
 [package]
 edition = "2021"
-name = "ggmath"
+name    = "ggmath"
 version = "0.1.0"
+
+[features]
+default = [ "primitive_aliases" ]
+
+primitive_aliases = [  ]
 
 [dependencies]
 ggmath_proc_macros = { path = "proc_macros" }

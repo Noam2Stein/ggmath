@@ -41,6 +41,7 @@ pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
     quote_spanned! {
         input.ident.span() =>
+        #[allow(unused_imports)]
         use crate::vector::{alignment::*, inner::*, length::*, *};
 
         const _: () = {

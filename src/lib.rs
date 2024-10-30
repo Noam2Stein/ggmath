@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+//#![warn(missing_docs)]
 
 //! Generic-Graphics-Math with internal optimized SIMD.
 //!
@@ -11,6 +11,8 @@
 //! - Optional additional types (Rect, Ray...).
 
 pub mod construct;
-pub mod primitive_aliases;
 pub mod scalar;
 pub mod vector;
+
+#[cfg(feature = "primitive_aliases")]
+pub mod primitive_aliases;

@@ -2,7 +2,7 @@
 //!
 //! - Will be replaced by declarative macros once rust supports
 
-#![warn(missing_docs)]
+//#![warn(missing_docs)]
 
 macro_rules! export {
     ($(#[$meta:meta])* $ident:ident) => {
