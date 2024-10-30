@@ -5,6 +5,10 @@ pub use default::*;
 
 use super::{ScalarCount, VecAligned, VecLen, VecPacked};
 
+pub(crate) mod scalar_traits {
+    pub use super::*;
+}
+
 #[allow(private_bounds)]
 pub(super) trait VecLenInterfaces<const N: usize>: VecLenCore<N> + VecLenDefault<N>
 where

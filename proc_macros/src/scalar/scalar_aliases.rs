@@ -47,14 +47,9 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     }
     let type_aliases = type_aliases![
         Vector(const N: usize, A) => (N, #t, A),
-        Vector2(A) => (#t, A),
-        Vector3(A) => (#t, A),
-        Vector4(A) => (#t, A),
-        VecN(const N: usize) => (N, #t),
         Vec2 => (#t),
         Vec3 => (#t),
         Vec4 => (#t),
-        VecNP(const N: usize) => (N, #t),
         Vec2P => (#t),
         Vec3P => (#t),
         Vec4P => (#t),
@@ -111,14 +106,9 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
     }
     let fn_aliases = fn_aliases![
         fn vector<const N: usize, A: VecAlignment>(value: impl IntoVector<N, #t>) -> Vector<N, #t, A> where ScalarCount<N>: VecLen<N> => <N, #t, A>,
-        fn vector2<A: VecAlignment>(value: impl IntoVector<2, #t>) -> Vector2<#t, A> => <#t, A>,
-        fn vector3<A: VecAlignment>(value: impl IntoVector<3, #t>) -> Vector3<#t, A> => <#t, A>,
-        fn vector4<A: VecAlignment>(value: impl IntoVector<4, #t>) -> Vector4<#t, A> => <#t, A>,
-        fn vecn<const N: usize>(value: impl IntoVector<N, #t>) -> VecN<N, #t> where ScalarCount<N>: VecLen<N> => <N, #t>,
         fn vec2(value: impl IntoVector<2, #t>) -> Vec2<#t> => <#t>,
         fn vec3(value: impl IntoVector<3, #t>) -> Vec3<#t> => <#t>,
         fn vec4(value: impl IntoVector<4, #t>) -> Vec4<#t> => <#t>,
-        fn vecnp<const N: usize>(value: impl IntoVector<N, #t>) -> VecNP<N, #t> where ScalarCount<N>: VecLen<N> => <N, #t>,
         fn vec2p(value: impl IntoVector<2, #t>) -> Vec2P<#t> => <#t>,
         fn vec3p(value: impl IntoVector<3, #t>) -> Vec3P<#t> => <#t>,
         fn vec4p(value: impl IntoVector<4, #t>) -> Vec4P<#t> => <#t>,

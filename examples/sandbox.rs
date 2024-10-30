@@ -1,4 +1,4 @@
-use ggmath::scalar::aliases::f32::*;
+use ggmath::primitive_aliases::f32::*;
 
 fn main() {
     let vec2 = fvec2((1.0, 3.0));

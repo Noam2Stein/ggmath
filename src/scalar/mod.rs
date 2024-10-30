@@ -4,8 +4,6 @@
 
 mod primitive_impls;
 
-pub mod aliases;
-
-pub use crate::vec::interfaces::Scalar;
+pub use crate::vector::interfaces::scalar_traits::*;
 
 pub use ggmath_proc_macros::scalar_aliases;

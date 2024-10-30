@@ -57,21 +57,21 @@ ggmath_proc_macros::vec_interface!(
             Some(unsafe { self.get_unchecked(index) })
         }
     }
-    fn get_2(self, indicies: [usize; 2]) -> Option<Vector2<T, A>> {
+    fn get_2(self, indicies: [usize; 2]) -> Option<Vector<2, T, A>> {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else {
             Some(unsafe { self.get_2_unchecked(indicies) })
         }
     }
-    fn get_3(self, indicies: [usize; 3]) -> Option<Vector3<T, A>> {
+    fn get_3(self, indicies: [usize; 3]) -> Option<Vector<3, T, A>> {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else {
             Some(unsafe { self.get_3_unchecked(indicies) })
         }
     }
-    fn get_4(self, indicies: [usize; 4]) -> Option<Vector4<T, A>> {
+    fn get_4(self, indicies: [usize; 4]) -> Option<Vector<4, T, A>> {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else {
@@ -81,21 +81,21 @@ ggmath_proc_macros::vec_interface!(
     unsafe fn get_unchecked(self, index: usize) -> T {
         *self.as_array().get_unchecked(index)
     }
-    unsafe fn get_2_unchecked(self, indicies: [usize; 2]) -> Vector2<T, A> {
-        Vector2::<T, A>::from_array([
+    unsafe fn get_2_unchecked(self, indicies: [usize; 2]) -> Vector<2, T, A> {
+        Vector::<2, T, A>::from_array([
             self.get_unchecked(indicies[0]),
             self.get_unchecked(indicies[1]),
         ])
     }
-    unsafe fn get_3_unchecked(self, indicies: [usize; 3]) -> Vector3<T, A> {
-        Vector3::<T, A>::from_array([
+    unsafe fn get_3_unchecked(self, indicies: [usize; 3]) -> Vector<3, T, A> {
+        Vector::<3, T, A>::from_array([
             self.get_unchecked(indicies[0]),
             self.get_unchecked(indicies[1]),
             self.get_unchecked(indicies[2]),
         ])
     }
-    unsafe fn get_4_unchecked(self, indicies: [usize; 4]) -> Vector4<T, A> {
-        Vector4::<T, A>::from_array([
+    unsafe fn get_4_unchecked(self, indicies: [usize; 4]) -> Vector<4, T, A> {
+        Vector::<4, T, A>::from_array([
             self.get_unchecked(indicies[0]),
             self.get_unchecked(indicies[1]),
             self.get_unchecked(indicies[2]),
@@ -315,7 +315,7 @@ ggmath_proc_macros::vec_interface!(
             Some(unsafe { self.with_unchecked(index, value) })
         }
     }
-    fn with_2(self, indicies: [usize; 2], values: Vector2<T, A>) -> Option<Self> {
+    fn with_2(self, indicies: [usize; 2], values: Vector<2, T, A>) -> Option<Self> {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else if indicies[0] == indicies[1] {
@@ -324,7 +324,7 @@ ggmath_proc_macros::vec_interface!(
             Some(unsafe { self.with_2_unchecked(indicies, values) })
         }
     }
-    fn with_3(self, indicies: [usize; 3], values: Vector3<T, A>) -> Option<Self> {
+    fn with_3(self, indicies: [usize; 3], values: Vector<3, T, A>) -> Option<Self> {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else if indicies[0] == indicies[1] {
@@ -337,7 +337,7 @@ ggmath_proc_macros::vec_interface!(
             Some(unsafe { self.with_3_unchecked(indicies, values) })
         }
     }
-    fn with_4(self, indicies: [usize; 4], values: Vector4<T, A>) -> Option<Self> {
+    fn with_4(self, indicies: [usize; 4], values: Vector<4, T, A>) -> Option<Self> {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else if indicies[0] == indicies[1] {
@@ -360,18 +360,18 @@ ggmath_proc_macros::vec_interface!(
         *self.get_mut_unchecked(index) = value;
         self
     }
-    unsafe fn with_2_unchecked(mut self, indicies: [usize; 2], values: Vector2<T, A>) -> Self {
+    unsafe fn with_2_unchecked(mut self, indicies: [usize; 2], values: Vector<2, T, A>) -> Self {
         *self.get_mut_unchecked(indicies[0]) = values.get_unchecked(0);
         *self.get_mut_unchecked(indicies[1]) = values.get_unchecked(1);
         self
     }
-    unsafe fn with_3_unchecked(mut self, indicies: [usize; 3], values: Vector3<T, A>) -> Self {
+    unsafe fn with_3_unchecked(mut self, indicies: [usize; 3], values: Vector<3, T, A>) -> Self {
         *self.get_mut_unchecked(indicies[0]) = values.get_unchecked(0);
         *self.get_mut_unchecked(indicies[1]) = values.get_unchecked(1);
         *self.get_mut_unchecked(indicies[2]) = values.get_unchecked(2);
         self
     }
-    unsafe fn with_4_unchecked(mut self, indicies: [usize; 4], values: Vector4<T, A>) -> Self {
+    unsafe fn with_4_unchecked(mut self, indicies: [usize; 4], values: Vector<4, T, A>) -> Self {
         *self.get_mut_unchecked(indicies[0]) = values.get_unchecked(0);
         *self.get_mut_unchecked(indicies[1]) = values.get_unchecked(1);
         *self.get_mut_unchecked(indicies[2]) = values.get_unchecked(2);
@@ -387,7 +387,7 @@ ggmath_proc_macros::vec_interface!(
             Ok(())
         }
     }
-    fn set_2(&mut self, indicies: [usize; 2], values: Vector2<T, A>) -> Result<(), ()> {
+    fn set_2(&mut self, indicies: [usize; 2], values: Vector<2, T, A>) -> Result<(), ()> {
         if indicies.into_iter().any(|index| index >= N) {
             Err(())
         } else if indicies[0] == indicies[1] {
@@ -397,7 +397,7 @@ ggmath_proc_macros::vec_interface!(
             Ok(())
         }
     }
-    fn set_3(&mut self, indicies: [usize; 3], values: Vector3<T, A>) -> Result<(), ()> {
+    fn set_3(&mut self, indicies: [usize; 3], values: Vector<3, T, A>) -> Result<(), ()> {
         if indicies.into_iter().any(|index| index >= N) {
             Err(())
         } else if indicies[0] == indicies[1] {
@@ -411,7 +411,7 @@ ggmath_proc_macros::vec_interface!(
             Ok(())
         }
     }
-    fn set_4(&mut self, indicies: [usize; 4], values: Vector4<T, A>) -> Result<(), ()> {
+    fn set_4(&mut self, indicies: [usize; 4], values: Vector<4, T, A>) -> Result<(), ()> {
         if indicies.into_iter().any(|index| index >= N) {
             Err(())
         } else if indicies[0] == indicies[1] {
@@ -434,13 +434,13 @@ ggmath_proc_macros::vec_interface!(
     unsafe fn set_unchecked(&mut self, index: usize, value: T) {
         *self = self.with_unchecked(index, value)
     }
-    unsafe fn set_2_unchecked(&mut self, indicies: [usize; 2], values: Vector2<T, A>) {
+    unsafe fn set_2_unchecked(&mut self, indicies: [usize; 2], values: Vector<2, T, A>) {
         *self = self.with_2_unchecked(indicies, values)
     }
-    unsafe fn set_3_unchecked(&mut self, indicies: [usize; 3], values: Vector3<T, A>) {
+    unsafe fn set_3_unchecked(&mut self, indicies: [usize; 3], values: Vector<3, T, A>) {
         *self = self.with_3_unchecked(indicies, values)
     }
-    unsafe fn set_4_unchecked(&mut self, indicies: [usize; 4], values: Vector4<T, A>) {
+    unsafe fn set_4_unchecked(&mut self, indicies: [usize; 4], values: Vector<4, T, A>) {
         *self = self.with_4_unchecked(indicies, values)
     }
 
