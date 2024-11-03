@@ -1,6 +1,8 @@
 use std::mem::{transmute, transmute_copy};
 
 ggmath_proc_macros::vec_interface!(
+    pub Core:
+
     /// trait for types that can be put inside mathamatical types like [vectors](crate::vec::Vector) and [matricies](crate::mat::Matrix).
     ///
     /// useful when using mathamatical types while being generic over the scalar type.
@@ -20,8 +22,6 @@ ggmath_proc_macros::vec_interface!(
     ///
     /// To make a wrapper scaler type for an existing scalar (for example Meters(f32)) use ```todo!()```
     Scalar: Construct + ScalarInnerVecs,
-
-    pub Core:
 
     fn from_array(array: [T; N]) -> Self [
         match A [

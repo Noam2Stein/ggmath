@@ -1,7 +1,7 @@
 ggmath_proc_macros::vec_interface!(
-    ScalarDefault: Scalar + Default,
-
     Default:
+
+    ScalarDefault: Scalar + Default,
 
     fn default() -> Self {
         Vector::from_array([<T as Default>::default(); N])

@@ -2,7 +2,7 @@ use super::*;
 
 use syn::{
     punctuated::Punctuated,
-    token::{Brace, Bracket, Pub},
+    token::{Brace, Bracket},
     Block, ConstParam, FnArg, GenericParam, Generics, Lit, LitInt, Pat, Receiver, Signature,
     TypeParam, Visibility,
 };
@@ -56,26 +56,31 @@ pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 }
 
 struct VecInterface {
-    scalar_trait: TypeParam,
-    is_pub: bool,
+    vis: Option<Token![pub]>,
     ident: Ident,
+    scalar_trait: TypeParam,
     fns: Vec<VecInterfaceFn>,
     errors: Vec<Error>,
 }
 impl Parse for VecInterface {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let scalar_trait = TypeParam::parse(input)?;
-        <Token![,]>::parse(input)?;
-
-        let is_pub = match Visibility::parse(input)? {
-            Visibility::Inherited => false,
-            Visibility::Public(_) => true,
+        let vis = match Visibility::parse(input)? {
+            Visibility::Inherited => None,
+            Visibility::Public(vis) => Some(vis),
             Visibility::Restricted(vis) => {
-                return Err(Error::new(vis.span(), "only pub or nothingis supported"))
+                return Err(Error::new(
+                    vis.span(),
+                    "restricted visibility is not supported supported",
+                ))
             }
         };
-        let ident = Ident::parse(input)?;
+        let ident = Ident::parse(input)
+            .map_err(|err| Error::new(err.span(), "expected the interface's ident"))?;
         <Token![:]>::parse(input)?;
+
+        let scalar_trait = TypeParam::parse(input)
+            .map_err(|err| Error::new(err.span(), "expected the scalar trait's ident"))?;
+        <Token![,]>::parse(input)?;
 
         let mut fns = Vec::new();
         let mut errors = Vec::new();
@@ -98,7 +103,7 @@ impl Parse for VecInterface {
 
         Ok(Self {
             scalar_trait,
-            is_pub,
+            vis,
             ident,
             fns,
             errors,
@@ -287,10 +292,7 @@ fn impl_block(input: &VecInterface) -> TokenStream {
     let len_trait = len_trait_ident(input);
 
     let fn_impls = input.fns.iter().map(|r#fn| {
-        let vis = if input.is_pub {
-            Visibility::Public(Pub { span: r#fn.sig.fn_token.span() })
-        }
-        else { Visibility::Inherited };
+        let vis = input.vis;
 
         let sig = &r#fn.sig;
         let ident = &r#fn.sig.ident;
