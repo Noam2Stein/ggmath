@@ -16,3 +16,5 @@ pub mod vector;
 
 #[cfg(feature = "primitive_aliases")]
 pub mod primitive_aliases;
+
+use crate as ggmath;

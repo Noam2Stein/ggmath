@@ -1,7 +1,7 @@
 //! Type aliases for primitives.
 //! For example for (```FVec3```, ```IVec2```, ```BVecN<N>```
 
-use crate as ggmath;
+use super::*;
 
 use ggmath_proc_macros::scalar_aliases;
 
