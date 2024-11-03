@@ -57,7 +57,9 @@ pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
 struct VecInterface {
     vis: Option<Token![pub]>,
+    impl_: Option<Token![impl]>,
     ident: Ident,
+    generics: Generics,
     scalar_trait: TypeParam,
     fns: Vec<VecInterfaceFn>,
     errors: Vec<Error>,
@@ -74,8 +76,17 @@ impl Parse for VecInterface {
                 ))
             }
         };
+
+        let impl_ = input.parse()?;
+
         let ident = Ident::parse(input)
             .map_err(|err| Error::new(err.span(), "expected the interface's ident"))?;
+
+        let mut generics = Generics::parse(input)?;
+        if input.peek(Token![where]) {
+            generics.where_clause = input.parse()?;
+        }
+
         <Token![:]>::parse(input)?;
 
         let scalar_trait = TypeParam::parse(input)
@@ -102,9 +113,11 @@ impl Parse for VecInterface {
         }
 
         Ok(Self {
-            scalar_trait,
             vis,
+            impl_,
             ident,
+            generics,
+            scalar_trait,
             fns,
             errors,
         })
@@ -291,6 +304,14 @@ fn impl_block(input: &VecInterface) -> TokenStream {
     let scalar_trait = &input.scalar_trait.ident;
     let len_trait = len_trait_ident(input);
 
+    let generics = input.generics.params.iter();
+    let generics_args = generic_args(&input.generics);
+
+    let impl_trait = input.impl_.map(|impl_| {
+        let trait_ = &input.ident;
+        quote_spanned! { impl_.span() => #trait_<#(#generics_args), *> for }
+    });
+
     let fn_impls = input.fns.iter().map(|r#fn| {
         let vis = input.vis;
 
@@ -311,7 +332,7 @@ fn impl_block(input: &VecInterface) -> TokenStream {
 
     quote_spanned! {
         input.ident.span() =>
-        impl<const N: usize, T: #scalar_trait, A: VecAlignment> Vector<N, T, A> where ScalarCount<N>: VecLen<N> {
+        impl<const N: usize, T: #scalar_trait<#(#generics_args), *>, A: VecAlignment, #(#generics), *> #impl_trait Vector<N, T, A> where ScalarCount<N>: VecLen<N> {
             #(#fn_impls)*
         }
     }
@@ -320,6 +341,9 @@ fn scalar(input: &VecInterface) -> TokenStream {
     let trait_attrs = &input.scalar_trait.attrs;
     let trait_ident = &input.scalar_trait.ident;
     let trait_supertraits = &input.scalar_trait.bounds;
+
+    let generics = &input.generics;
+    let where_clause = &input.generics.where_clause;
 
     let fn_declarations = input
         .fns
@@ -353,7 +377,7 @@ fn scalar(input: &VecInterface) -> TokenStream {
     quote_spanned! {
         trait_ident.span() =>
         #(#trait_attrs)*
-        pub trait #trait_ident: #trait_supertraits {
+        pub trait #trait_ident #generics: #trait_supertraits #where_clause {
             #(#fn_declarations)*
         }
     }
