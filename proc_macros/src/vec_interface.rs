@@ -2,7 +2,7 @@ use super::*;
 
 use syn::{
     punctuated::Punctuated, token::Brace, Block, ConstParam, FnArg, GenericParam, Generics, Lit,
-    LitInt, Pat, Receiver, Signature, TypeParam, Visibility,
+    LitInt, Pat, Receiver, Signature, Type, TypeParam, Visibility,
 };
 
 const LEN_STRS: [&str; 3] = ["2", "3", "4"];
@@ -60,7 +60,7 @@ struct VecInterface {
     generics: Generics,
     scalar_trait: TypeParam,
     fns: Vec<VecInterfaceFn>,
-    //associated_types: Vec<VecInterfaceAssociatedType>,
+    assoc_types: Vec<VecInterfaceAssocType>,
     errors: Vec<Error>,
 }
 impl Parse for VecInterface {
@@ -93,21 +93,29 @@ impl Parse for VecInterface {
         <Token![,]>::parse(input)?;
 
         let mut fns = Vec::new();
+        let mut assoc_types = Vec::new();
         let mut errors = Vec::new();
         while !input.is_empty() {
-            while !input.peek(Token![fn])
-                && !input.peek(Token![unsafe])
-                && !input.peek(Token![async])
-            {
+            if input.peek(Token![fn]) || input.peek(Token![unsafe]) || input.peek(Token![async]) {
+                match input.parse() {
+                    Ok(ok) => fns.push(ok),
+                    Err(err) => errors.push(err),
+                }
+            } else if input.peek(Token![type]) {
+                match input.parse() {
+                    Ok(ok) => assoc_types.push(ok),
+                    Err(err) => errors.push(err),
+                }
+            } else {
                 errors.push(Error::new(
                     input.parse::<TokenTree>()?.span(),
                     "expected Signature",
                 ));
-            }
-
-            match input.parse() {
-                Ok(ok) => fns.push(ok),
-                Err(err) => errors.push(err),
+                while !input.peek(Token![fn])
+                    && !input.peek(Token![unsafe])
+                    && !input.peek(Token![async])
+                    && !input.peek(Token![type])
+                {}
             }
         }
 
@@ -118,11 +126,13 @@ impl Parse for VecInterface {
             generics,
             scalar_trait,
             fns,
+            assoc_types,
             errors,
         })
     }
 }
 
+#[derive(Clone)]
 struct VecInterfaceFn {
     sig: Signature,
     defaults: [[Block; 3]; 2],
@@ -135,10 +145,19 @@ impl Parse for VecInterfaceFn {
         })
     }
 }
+
+#[derive(Clone, Parse)]
+struct VecInterfaceAssocType {
+    #[prefix(Token![type])]
+    ident: Ident,
+    generics: Generics,
+    value: VecInterfaceItemTree<Type>,
+}
+
 fn evaluate_match<const N: usize, S: Parse + Clone>(
-    input: VecInterfaceMatch<S>,
+    input: VecInterfaceItemMatch<S>,
     expected_keys: [&str; N],
-) -> Result<[VecInterfaceTree<S>; N], Error> {
+) -> Result<[VecInterfaceItemTree<S>; N], Error> {
     let mut values = [(); N].map(|_| None);
 
     for pat in input.pats {
@@ -182,7 +201,7 @@ fn evaluate_match<const N: usize, S: Parse + Clone>(
         )
     })
 }
-fn evaluate_item<S: Parse + Clone>(input: VecInterfaceTree<S>) -> Result<[[S; 3]; 2], Error> {
+fn evaluate_item<S: Parse + Clone>(input: VecInterfaceItemTree<S>) -> Result<[[S; 3]; 2], Error> {
     redirect_match(
         input,
         |input| {
@@ -201,7 +220,7 @@ fn evaluate_item<S: Parse + Clone>(input: VecInterfaceTree<S>) -> Result<[[S; 3]
     )
 }
 fn evaluate_fn_defaults_for_n<S: Parse + Clone>(
-    input: VecInterfaceTree<S>,
+    input: VecInterfaceItemTree<S>,
 ) -> Result<[S; 2], Error> {
     redirect_match(
         input,
@@ -210,7 +229,7 @@ fn evaluate_fn_defaults_for_n<S: Parse + Clone>(
         |input| ArrayExt::try_map(evaluate_match(input, ALIGN_STRS)?, redirect_n_match),
     )
 }
-fn redirect_a_match<S: Parse + Clone>(input: VecInterfaceTree<S>) -> Result<[S; 3], Error> {
+fn redirect_a_match<S: Parse + Clone>(input: VecInterfaceItemTree<S>) -> Result<[S; 3], Error> {
     redirect_match(
         input,
         |input| Ok([input.clone(), input.clone(), input]),
@@ -218,7 +237,7 @@ fn redirect_a_match<S: Parse + Clone>(input: VecInterfaceTree<S>) -> Result<[S; 
         |input| Err(Error::new(input.item.span(), "'A' already matched")),
     )
 }
-fn redirect_n_match<S: Parse + Clone>(input: VecInterfaceTree<S>) -> Result<S, Error> {
+fn redirect_n_match<S: Parse + Clone>(input: VecInterfaceItemTree<S>) -> Result<S, Error> {
     redirect_match(
         input,
         |input| Ok(input),
@@ -227,14 +246,14 @@ fn redirect_n_match<S: Parse + Clone>(input: VecInterfaceTree<S>) -> Result<S, E
     )
 }
 fn redirect_match<S: Parse + Clone, Output>(
-    input: VecInterfaceTree<S>,
+    input: VecInterfaceItemTree<S>,
     handle_single: impl FnOnce(S) -> Result<Output, Error>,
-    handle_match_n: impl FnOnce(VecInterfaceMatch<S>) -> Result<Output, Error>,
-    handle_match_a: impl FnOnce(VecInterfaceMatch<S>) -> Result<Output, Error>,
+    handle_match_n: impl FnOnce(VecInterfaceItemMatch<S>) -> Result<Output, Error>,
+    handle_match_a: impl FnOnce(VecInterfaceItemMatch<S>) -> Result<Output, Error>,
 ) -> Result<Output, Error> {
     match input {
-        VecInterfaceTree::Single(input) => handle_single(input),
-        VecInterfaceTree::Match(input) => match input.item.to_string().as_str() {
+        VecInterfaceItemTree::Single(input) => handle_single(input),
+        VecInterfaceItemTree::Match(input) => match input.item.to_string().as_str() {
             "N" => handle_match_n(input),
             "A" => handle_match_a(input),
             _ => Err(Error::new(input.item.span(), "expected either 'N' or 'A'")),
@@ -243,14 +262,14 @@ fn redirect_match<S: Parse + Clone, Output>(
 }
 
 #[derive(Parse, Clone)]
-enum VecInterfaceTree<S: Parse + Clone> {
+enum VecInterfaceItemTree<S: Parse + Clone> {
     #[peek(Token![@], name = "Match")]
-    Match(VecInterfaceMatch<S>),
+    Match(VecInterfaceItemMatch<S>),
     #[peek_with(|_| true, name = "Single")]
     Single(S),
 }
 #[derive(Parse, Clone)]
-struct VecInterfaceMatch<S: Parse + Clone> {
+struct VecInterfaceItemMatch<S: Parse + Clone> {
     #[prefix(Token![@])]
     #[prefix(Token![match])]
     item: Ident,
@@ -258,10 +277,10 @@ struct VecInterfaceMatch<S: Parse + Clone> {
     _brace: Brace,
     #[inside(_brace)]
     #[call(Self::parse_pats)]
-    pats: Vec<VecInterfaceMatchPat<S>>,
+    pats: Vec<VecInterfaceItemMatchPat<S>>,
 }
-impl<S: Parse + Clone> VecInterfaceMatch<S> {
-    fn parse_pats(input: ParseStream) -> syn::Result<Vec<VecInterfaceMatchPat<S>>> {
+impl<S: Parse + Clone> VecInterfaceItemMatch<S> {
+    fn parse_pats(input: ParseStream) -> syn::Result<Vec<VecInterfaceItemMatchPat<S>>> {
         let mut output = Vec::new();
         while !input.is_empty() {
             output.push(input.parse()?);
@@ -272,11 +291,11 @@ impl<S: Parse + Clone> VecInterfaceMatch<S> {
     }
 }
 #[derive(Parse, Clone)]
-struct VecInterfaceMatchPat<S: Parse + Clone> {
+struct VecInterfaceItemMatchPat<S: Parse + Clone> {
     #[call(Punctuated::parse_separated_nonempty)]
     keys: Punctuated<TokenTree, syn::token::Or>,
     #[prefix(Token![=>])]
-    value: VecInterfaceTree<S>,
+    value: VecInterfaceItemTree<S>,
 }
 
 fn impl_block(input: &VecInterface) -> TokenStream {
