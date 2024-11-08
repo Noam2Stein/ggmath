@@ -76,7 +76,7 @@ impl Parse for VecInterface {
             }
         };
 
-        let impl_ = input.parse()?;
+        let impl_trait = Option::parse(input)?;
 
         let ident = Ident::parse(input)
             .map_err(|err| Error::new(err.span(), "expected the interface's ident"))?;
@@ -93,7 +93,7 @@ impl Parse for VecInterface {
         <Token![,]>::parse(input)?;
 
         let mut fns = Vec::new();
-        let mut assoc_types = Vec::new();
+        let mut assoc_types = Vec::<VecInterfaceAssocType>::new();
         let mut errors = Vec::new();
         while !input.is_empty() {
             if input.peek(Token![fn]) || input.peek(Token![unsafe]) || input.peek(Token![async]) {
@@ -111,17 +111,29 @@ impl Parse for VecInterface {
                     input.parse::<TokenTree>()?.span(),
                     "expected Signature",
                 ));
-                while !input.peek(Token![fn])
+                while !input.is_empty()
+                    && !input.peek(Token![fn])
                     && !input.peek(Token![unsafe])
                     && !input.peek(Token![async])
                     && !input.peek(Token![type])
-                {}
+                {
+                    TokenTree::parse(input).unwrap();
+                }
+            }
+        }
+
+        if impl_trait.is_none() {
+            for assoc_type in &assoc_types {
+                errors.push(Error::new(
+                    assoc_type.ident.span(),
+                    "associated types are only allowed when using impl trait",
+                ));
             }
         }
 
         Ok(Self {
             vis,
-            impl_trait: impl_,
+            impl_trait,
             ident,
             generics,
             scalar_trait,
@@ -151,7 +163,9 @@ struct VecInterfaceAssocType {
     #[prefix(Token![type])]
     ident: Ident,
     generics: Generics,
+    #[prefix(Token![=])]
     value: VecInterfaceItemTree<Type>,
+    _semi: Token![;],
 }
 
 fn evaluate_match<const N: usize, S: Parse + Clone>(
@@ -385,6 +399,8 @@ fn len(input: &VecInterface) -> TokenStream {
     let len_trait = len_trait_ident(input);
     let alignment_trait = alignment_trait_ident(input);
 
+    let generic_params = input.generics.params.iter();
+
     let fn_sigs = input
         .fns
         .iter()
@@ -446,7 +462,7 @@ fn len(input: &VecInterface) -> TokenStream {
 
     quote_spanned! {
         len_trait.span() =>
-        pub(super) trait #len_trait<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #len_trait<const N: usize #(, #generic_params)*>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
             #(#fn_declarations)*
         }
 
@@ -456,6 +472,8 @@ fn len(input: &VecInterface) -> TokenStream {
 fn alignment(input: &VecInterface) -> TokenStream {
     let scalar_trait = &input.scalar_trait.ident;
     let alignment_trait = alignment_trait_ident(input);
+
+    let generic_params = input.generics.params.iter();
 
     let fn_sigs = input
         .fns
@@ -485,9 +503,11 @@ fn alignment(input: &VecInterface) -> TokenStream {
     let impls = LEN_STRS
         .map(|n_str| {
             let n = LitInt::new(n_str, alignment_trait.span());
-
+            
             ALIGN_STRS.map(|a_str| {
                 let a = Ident::new(a_str, alignment_trait.span());
+                
+                let generic_params = input.generics.params.iter();
 
                 let fn_impls = fn_sigs.iter().map(|sig| {
                     let scalar_fn = scalar_fn_ident(&sig.ident, n_str, a_str);
@@ -511,7 +531,7 @@ fn alignment(input: &VecInterface) -> TokenStream {
 
                 quote_spanned! {
                     input.ident.span() =>
-                    impl #alignment_trait<#n> for #a {
+                    impl #alignment_trait<#n #(, #generic_params)*> for #a {
                         #(#fn_impls)*
                     }
                 }
@@ -523,7 +543,7 @@ fn alignment(input: &VecInterface) -> TokenStream {
     quote_spanned! {
         alignment_trait.span() =>
 
-        pub(super) trait #alignment_trait<const N: usize>: alignment_seal::VecAlignment where ScalarCount<N>: VecLen<N> {
+        pub(super) trait #alignment_trait<const N: usize #(, #generic_params)*>: alignment_seal::VecAlignment where ScalarCount<N>: VecLen<N> {
             #(#fn_declarations)*
         }
 
