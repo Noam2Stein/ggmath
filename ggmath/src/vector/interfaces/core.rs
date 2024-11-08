@@ -23,23 +23,19 @@ ggmath_proc_macros::vec_interface!(
     /// To make a wrapper scaler type for an existing scalar (for example Meters(f32)) use ```todo!()```
     Scalar: Construct + ScalarInnerVecs,
 
-    fn from_array(array: [T; N]) -> Self [
-        match A [
-            VecAligned => [
-                match N [
-                    2 | 4 => {
-                        unsafe { transmute_copy(&array) }
-                    },
-                    3 => {
-                        unsafe { transmute_copy(&[array[0], array[1], array[2], array[2]]) }
-                    },
-                ]
-            ],
-            VecPacked => {
-                Vector { inner: array }
+    fn from_array(array: [T; N]) -> Self @match A {
+        VecAligned => @match N {
+            2 | 4 => {
+                unsafe { transmute_copy(&array) }
             },
-        ]
-    ]
+            3 => {
+                unsafe { transmute_copy(&[array[0], array[1], array[2], array[2]]) }
+            },
+        },
+        VecPacked => {
+            Vector { inner: array }
+        },
+    }
     fn into_array(self) -> [T; N] {
         unsafe { transmute_copy(&self) }
     }

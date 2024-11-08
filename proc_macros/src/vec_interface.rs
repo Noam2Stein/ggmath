@@ -1,7 +1,7 @@
 use super::*;
 
 use syn::{
-    punctuated::Punctuated, token::Bracket, Block, ConstParam, FnArg, GenericParam, Generics, Lit,
+    punctuated::Punctuated, token::Brace, Block, ConstParam, FnArg, GenericParam, Generics, Lit,
     LitInt, Pat, Receiver, Signature, TypeParam, Visibility,
 };
 
@@ -174,7 +174,7 @@ fn evaluate_match<const N: usize, S: Parse + Clone>(
         value.map_or_else(
             || {
                 Err(Error::new(
-                    input._brackets1.span.close(),
+                    input._brace.span.close(),
                     format!("'{key}' not covered"),
                 ))
             },
@@ -244,23 +244,19 @@ fn redirect_match<S: Parse + Clone, Output>(
 
 #[derive(Parse, Clone)]
 enum VecInterfaceTree<S: Parse + Clone> {
-    #[peek(Bracket, name = "Match")]
+    #[peek(Token![@], name = "Match")]
     Match(VecInterfaceMatch<S>),
     #[peek_with(|_| true, name = "Single")]
     Single(S),
 }
 #[derive(Parse, Clone)]
 struct VecInterfaceMatch<S: Parse + Clone> {
-    #[bracket]
-    _brackets0: Bracket,
-    #[inside(_brackets0)]
-    _match_token: syn::token::Match,
-    #[inside(_brackets0)]
+    #[prefix(Token![@])]
+    #[prefix(Token![match])]
     item: Ident,
-    #[inside(_brackets0)]
-    #[bracket]
-    _brackets1: Bracket,
-    #[inside(_brackets1)]
+    #[brace]
+    _brace: Brace,
+    #[inside(_brace)]
     #[call(Self::parse_pats)]
     pats: Vec<VecInterfaceMatchPat<S>>,
 }
