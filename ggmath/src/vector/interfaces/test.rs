@@ -5,7 +5,9 @@ ggmath_proc_macros::vec_interface!(
 
     ScalarAdd: Scalar + Add<Rhs, Output: Scalar>,
 
-    fn add(self, rhs: Vector<N, Rhs, A>) -> Vector<N, <T as Add<Rhs>>::Output, A> {
+    type Output = Vector<N, <T as Add<Rhs>>::Output, A>;
+
+    fn add(self, rhs: Vector<N, Rhs, A>) -> Self::Output {
 
     }
 );
