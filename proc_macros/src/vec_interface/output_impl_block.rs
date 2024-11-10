@@ -1,20 +1,20 @@
 use super::*;
 
 pub fn impl_block(interface: &VecInterface) -> TokenStream {
-    let scalar_trait_ident = &interface.scalar_trait.ident;
-    let len_trait_ident = len_trait_ident(interface);
+    let output_impl_generics = {
+        let scalar_trait_ident = &interface.scalar_trait.ident;
+        let interface_generic_args = generic_args(&interface.generics);
+        let interface_generic_params = interface.generics.params.iter();
 
-    let interface_generic_args = generic_args(&interface.generics);
-
-    let interface_generic_params = interface.generics.params.iter();
-    let output_impl_generics = quote_spanned! {
-        interface.generics.span() =>
-        <
-            const N: usize,
-            T: #scalar_trait_ident<#(#interface_generic_args), *>,
-            A: VecAlignment
-            #(, #interface_generic_params)*
-        >
+        quote_spanned! {
+            interface.generics.span() =>
+            <
+                const N: usize,
+                T: #scalar_trait_ident<#(#interface_generic_args), *>,
+                A: VecAlignment
+                #(, #interface_generic_params)*
+            >
+        }
     };
 
     let output_impl_types = if let Some(impl_trait) = &interface.impl_trait {
@@ -44,7 +44,10 @@ pub fn impl_block(interface: &VecInterface) -> TokenStream {
     };
 
     let output_fns = interface.fns.iter().map(|r#fn| {
-        let item_vis = &interface.vis;
+        let len_trait_ident = with_span(&len_trait_ident(interface), r#fn.sig.ident.span());
+        let interface_generic_args = generic_args(&interface.generics);
+
+        let item_vis = &interface.vis.map(|_| quote_spanned! { r#fn.sig.fn_token.span() => pub });
         let fn_sig = &r#fn.sig;
 
         let fn_call_ident = &r#fn.sig.ident;

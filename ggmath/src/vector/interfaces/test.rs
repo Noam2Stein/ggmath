@@ -7,9 +7,7 @@ ggmath_proc_macros::vec_interface!(
 
     type Output = Vector<N, <T as Add<Rhs>>::Output, A>;
 
-    fn add(self, rhs: Vector<N, Rhs, A>) -> Self::Output {
-        for index in 0..N {
-            self.set(index, self.get(index).unwrap().add(rhs.get(index)))
-        }
+    fn add(mut self, rhs: Vector<N, Rhs, A>) -> <Self as Add<Vector<N, Rhs, A>>>::Output {
+        (0..N).map(|index| self.get(index).unwrap().add(rhs.get(index).unwrap()))
     }
 );

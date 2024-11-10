@@ -1,13 +1,6 @@
 use super::*;
 
 pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
-    let trait_attrs = &interface.scalar_trait.attrs;
-    let trait_ident = &interface.scalar_trait.ident;
-    let trait_supertraits = &interface.scalar_trait.bounds;
-
-    let interface_generics = &interface.generics;
-    let interface_where_clause = &interface.generics.where_clause;
-
     let output_fns = interface
         .fns
         .iter()
@@ -36,6 +29,13 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
         })
         .flatten()
         .flatten();
+
+    let trait_attrs = &interface.scalar_trait.attrs;
+    let trait_ident = &interface.scalar_trait.ident;
+    let trait_supertraits = &interface.scalar_trait.bounds;
+
+    let interface_generics = &interface.generics;
+    let interface_where_clause = &interface.generics.where_clause;
 
     quote_spanned! {
         trait_ident.span() =>

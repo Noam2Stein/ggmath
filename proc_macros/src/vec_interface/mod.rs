@@ -91,6 +91,7 @@ fn generic_args(generics: &Generics) -> Vec<TokenStream> {
         })
         .collect()
 }
+
 fn arg_ident(arg: &FnArg) -> Ident {
     match arg {
         FnArg::Receiver(_) => Ident::new("self", arg.span()),
@@ -99,4 +100,38 @@ fn arg_ident(arg: &FnArg) -> Ident {
             _ => panic!("non-ident arguments are not supported"),
         },
     }
+}
+
+fn with_span<T: ToTokens + Parse>(tokens: &T, span: Span) -> T {
+    parse2(
+        tokens
+            .to_token_stream()
+            .clone()
+            .into_iter()
+            .map(|token| match token {
+                TokenTree::Group(token) => {
+                    let mut token = Group::new(token.delimiter(), with_span(&token.stream(), span));
+                    token.set_span(span);
+
+                    TokenTree::Group(token)
+                }
+                TokenTree::Ident(mut token) => {
+                    token.set_span(span);
+
+                    TokenTree::Ident(token)
+                }
+                TokenTree::Literal(mut token) => {
+                    token.set_span(span);
+
+                    TokenTree::Literal(token)
+                }
+                TokenTree::Punct(mut token) => {
+                    token.set_span(span);
+
+                    TokenTree::Punct(token)
+                }
+            })
+            .collect::<TokenStream>(),
+    )
+    .unwrap()
 }

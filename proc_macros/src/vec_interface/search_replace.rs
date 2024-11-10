@@ -75,58 +75,6 @@ pub fn search_replace_fn(
     output
 }
 
-pub fn search_replace_assoc_type(
-    attrs: TokenStream,
-    ident: Ident,
-    generics: &Generics,
-    type_value: Option<TokenStream>,
-    n: impl Fn(Span) -> TokenStream + Copy,
-    t: impl Fn(Span) -> TokenStream + Copy,
-    a: impl Fn(Span) -> TokenStream + Copy,
-) -> TokenStream {
-    let mut output = attrs;
-
-    output.append_all(quote_spanned! { ident.span() => type #ident });
-
-    search_replace(
-        generics.to_token_stream(),
-        &mut output,
-        |span| {
-            let n = n(span);
-            let t = t(span);
-            let a = a(span);
-            quote_spanned! { span => <Vector<#n, #t, #a>> }
-        },
-        |span| quote_spanned! { span => vec },
-        n,
-        t,
-        a,
-    );
-
-    if let Some(type_value) = type_value {
-        output.append_all(quote_spanned! { type_value.span() => = });
-
-        search_replace(
-            type_value.to_token_stream(),
-            &mut output,
-            |span| {
-                let n = n(span);
-                let t = t(span);
-                let a = a(span);
-                quote_spanned! { span => <Vector<#n, #t, #a>> }
-            },
-            |span| quote_spanned! { span => vec },
-            n,
-            t,
-            a,
-        );
-    }
-
-    output.append_all(quote_spanned! { ident.span() => ; });
-
-    output
-}
-
 fn search_replace(
     input: TokenStream,
     output: &mut TokenStream,
@@ -142,7 +90,10 @@ fn search_replace(
                 output.append({
                     let mut output = TokenStream::new();
                     search_replace(token.stream(), &mut output, self_ty, self_arg, n_f, t, a);
-                    Group::new(token.delimiter(), output)
+
+                    let mut output_group = Group::new(token.delimiter(), output);
+                    output_group.set_span(token.span());
+                    output_group
                 });
             }
             TokenTree::Ident(token) => match token.to_string().as_str() {

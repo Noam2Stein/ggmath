@@ -68,7 +68,7 @@ impl Parse for VecInterface {
             } else {
                 errors.push(Error::new(
                     input.parse::<TokenTree>()?.span(),
-                    "expected Signature",
+                    "expected a trait item",
                 ));
                 while !input.is_empty()
                     && !input.peek(Token![fn])
