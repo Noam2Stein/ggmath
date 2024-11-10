@@ -34,24 +34,17 @@ fn scalar_fn_ident(ident: &Ident, n: &str, a: &str) -> Ident {
         ident.span(),
     )
 }
-fn scalar_assoc_type_ident(ident: &Ident, n: &str, a: &str) -> Ident {
+fn len_trait_ident(input: &VecInterface) -> Ident {
     Ident::new(
-        &format!(
-            "{}Vec{n}_{ident}",
-            match a {
-                "VecAligned" => "Aligned",
-                "VecPacked" => "Packed",
-                _ => unreachable!(),
-            }
-        ),
-        ident.span(),
+        &format!("VecLen{}", input.scalar_trait.ident),
+        input.scalar_trait.ident.span(),
     )
 }
-fn len_trait_ident(input: &VecInterface) -> Ident {
-    Ident::new(&format!("VecLen{}", input.ident), input.ident.span())
-}
 fn alignment_trait_ident(input: &VecInterface) -> Ident {
-    Ident::new(&format!("VecAlignment{}", input.ident), input.ident.span())
+    Ident::new(
+        &format!("VecAlignment{}", input.scalar_trait.ident),
+        input.scalar_trait.ident.span(),
+    )
 }
 
 pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -64,7 +57,7 @@ pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let storage = alignment(&input);
 
     quote_spanned! {
-        input.ident.span() =>
+        input.scalar_trait.ident.span() =>
         #[allow(unused_imports)]
         use crate::vector::{alignment::*, inner::*, length::*, *};
 

@@ -1,26 +1,21 @@
+use syn::{ext::IdentExt, ItemType};
+
 use super::*;
 
 #[derive(Clone)]
 pub struct VecInterface {
     pub vis: Option<Token![pub]>,
-    pub impl_trait: Option<Token![impl]>,
-    pub ident: Ident,
     pub generics: Generics,
+    pub impl_trait: Option<Type>,
     pub scalar_trait: TypeParam,
     pub fns: Vec<VecInterfaceFn>,
-    pub assoc_types: Vec<VecInterfaceAssocType>,
+    pub assoc_types: Vec<ItemType>,
     pub errors: Vec<Error>,
 }
 #[derive(Clone)]
 pub struct VecInterfaceFn {
     pub sig: Signature,
     pub defaults: [[Block; 3]; 2],
-}
-#[derive(Clone)]
-pub struct VecInterfaceAssocType {
-    pub ident: Ident,
-    pub generics: Generics,
-    pub value: [[Type; 3]; 2],
 }
 
 impl Parse for VecInterface {
@@ -36,12 +31,16 @@ impl Parse for VecInterface {
             }
         };
 
-        let impl_trait = Option::parse(input)?;
-
-        let ident = Ident::parse(input)
-            .map_err(|err| Error::new(err.span(), "expected the interface's ident"))?;
+        <Token![impl]>::parse(input)?;
 
         let mut generics = Generics::parse(input)?;
+
+        let impl_trait = if input.peek(Ident::peek_any) {
+            Some(input.parse()?)
+        } else {
+            None
+        };
+
         if input.peek(Token![where]) {
             generics.where_clause = input.parse()?;
         }
@@ -53,7 +52,7 @@ impl Parse for VecInterface {
         <Token![,]>::parse(input)?;
 
         let mut fns = Vec::new();
-        let mut assoc_types = Vec::<VecInterfaceAssocType>::new();
+        let mut assoc_types = Vec::<ItemType>::new();
         let mut errors = Vec::new();
         while !input.is_empty() {
             if input.peek(Token![fn]) || input.peek(Token![unsafe]) || input.peek(Token![async]) {
@@ -93,9 +92,8 @@ impl Parse for VecInterface {
 
         Ok(Self {
             vis,
-            impl_trait,
-            ident,
             generics,
+            impl_trait,
             scalar_trait,
             fns,
             assoc_types,
@@ -108,22 +106,6 @@ impl Parse for VecInterfaceFn {
         Ok(Self {
             sig: input.parse()?,
             defaults: evaluate_item(input.parse()?)?,
-        })
-    }
-}
-impl Parse for VecInterfaceAssocType {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        <Token![type]>::parse(input)?;
-        let ident = input.parse()?;
-        let generics = input.parse()?;
-        <Token![=]>::parse(input)?;
-        let value = evaluate_item(input.parse()?)?;
-        <Token![;]>::parse(input)?;
-
-        Ok(Self {
-            ident,
-            generics,
-            value,
         })
     }
 }

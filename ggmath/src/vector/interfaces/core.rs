@@ -1,7 +1,7 @@
 use std::mem::{transmute, transmute_copy};
 
 ggmath_proc_macros::vec_interface!(
-    pub Core:
+    pub impl:
 
     /// trait for types that can be put inside mathamatical types like [vectors](crate::vec::Vector) and [matricies](crate::mat::Matrix).
     ///
