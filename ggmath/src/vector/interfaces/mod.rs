@@ -1,9 +1,7 @@
 mod core;
 mod default;
-mod ops;
 pub use core::*;
 pub use default::*;
-pub use ops::*;
 
 use super::{ScalarCount, VecAligned, VecLen, VecPacked};
 
