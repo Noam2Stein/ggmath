@@ -4,6 +4,7 @@ pub mod alignment;
 pub mod inner;
 pub mod length;
 
+mod index;
 pub mod into_vec;
 pub mod swizzle_wrappers;
 
