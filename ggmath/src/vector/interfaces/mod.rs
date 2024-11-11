@@ -13,7 +13,7 @@ pub(crate) mod scalar_traits {
 
 #[allow(private_bounds)]
 pub(super) trait VecLenInterfaces<const N: usize>:
-    VecLenScalar<N> + VecLenScalarDefault<N> + VecLenScalarNeg<N> + VecLenScalarNot<N>
+    VecLenScalar<N> + VecLenScalarDefault<N>
 where
     ScalarCount<N>: VecLen<N>,
 {
@@ -24,10 +24,7 @@ impl VecLenInterfaces<4> for ScalarCount<4> {}
 
 #[allow(private_bounds)]
 pub(super) trait VecAlignmentInterfaces<const N: usize>:
-    VecAlignmentScalar<N>
-    + VecAlignmentScalarDefault<N>
-    + VecAlignmentScalarNeg<N>
-    + VecAlignmentScalarNot<N>
+    VecAlignmentScalar<N> + VecAlignmentScalarDefault<N>
 where
     ScalarCount<N>: VecLen<N>,
 {
