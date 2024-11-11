@@ -11,6 +11,7 @@
 //! - Optional additional types (Rect, Ray...).
 
 pub mod construct;
+pub mod matrix;
 pub mod scalar;
 pub mod vector;
 
