@@ -27,8 +27,11 @@ use syn::{
     Error, Token,
 };
 
+mod assign_ops;
 mod inner_vecs;
+mod rhs_ops;
 mod scalar_aliases;
+mod self_ops;
 mod swizzles;
 mod vec_interface;
 
@@ -56,3 +59,7 @@ export!(inner_vecs);
 export!(vec_interface);
 
 export!(swizzles);
+
+export!(self_ops);
+export!(rhs_ops);
+export!(assign_ops);
