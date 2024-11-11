@@ -93,7 +93,22 @@ pub trait VecAlignment:
 ///
 /// Always recommended except for when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecAligned;
-impl alignment_seal::VecAlignment for VecAligned {}
+impl alignment_seal::VecAlignment for VecAligned {
+    #[inline(always)]
+    fn into_aligned<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecAligned>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        vec
+    }
+    #[inline(always)]
+    fn into_packed<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecPacked>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        Vector::from_array(vec.into_array())
+    }
+}
 impl VecAlignment for VecAligned {}
 
 /// Vector inner storage that ensures that the vector has the same type-layout as ```[T; N]```.
@@ -120,11 +135,51 @@ impl VecAlignment for VecAligned {}
 ///
 /// Only recommended when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecPacked;
-impl alignment_seal::VecAlignment for VecPacked {}
+impl alignment_seal::VecAlignment for VecPacked {
+    #[inline(always)]
+    fn into_aligned<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecAligned>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        Vector::from_array(vec.into_array())
+    }
+    #[inline(always)]
+    fn into_packed<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecPacked>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        vec
+    }
+}
 impl VecAlignment for VecPacked {}
 
 pub(super) mod alignment_seal {
     use super::*;
 
-    pub trait VecAlignment: inner::VecAlignmentInnerVecs {}
+    pub trait VecAlignment: inner::VecAlignmentInnerVecs {
+        fn into_aligned<const N: usize, T: Scalar>(
+            vec: Vector<N, T, Self>,
+        ) -> Vector<N, T, VecAligned>
+        where
+            ScalarCount<N>: VecLen<N>;
+        fn into_packed<const N: usize, T: Scalar>(
+            vec: Vector<N, T, Self>,
+        ) -> Vector<N, T, VecPacked>
+        where
+            ScalarCount<N>: VecLen<N>;
+    }
+}
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    ScalarCount<N>: VecLen<N>,
+{
+    #[inline(always)]
+    pub fn into_aligned(self) -> Vector<N, T, VecAligned> {
+        A::into_aligned(self)
+    }
+    #[inline(always)]
+    pub fn into_packed(self) -> Vector<N, T, VecPacked> {
+        A::into_packed(self)
+    }
 }
