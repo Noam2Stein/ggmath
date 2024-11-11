@@ -9,24 +9,15 @@ pub(crate) mod scalar_traits {
     pub use super::*;
 }
 
-#[allow(private_bounds)]
-pub(super) trait VecLenInterfaces<const N: usize>:
-    VecLenScalar<N> + VecLenScalarDefault<N>
-where
-    ScalarCount<N>: VecLen<N>,
-{
-}
+ggmath_proc_macros::interfaces_mod_traits!(
+    Scalar
+    ScalarDefault
+);
+
 impl VecLenInterfaces<2> for ScalarCount<2> {}
 impl VecLenInterfaces<3> for ScalarCount<3> {}
 impl VecLenInterfaces<4> for ScalarCount<4> {}
 
-#[allow(private_bounds)]
-pub(super) trait VecAlignmentInterfaces<const N: usize>:
-    VecAlignmentScalar<N> + VecAlignmentScalarDefault<N>
-where
-    ScalarCount<N>: VecLen<N>,
-{
-}
 impl VecAlignmentInterfaces<2> for VecAligned {}
 impl VecAlignmentInterfaces<3> for VecAligned {}
 impl VecAlignmentInterfaces<4> for VecAligned {}

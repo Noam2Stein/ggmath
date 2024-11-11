@@ -18,6 +18,7 @@ mod utils;
 use utils::*;
 
 use derive_syn_parse::Parse;
+use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::*;
 use quote::{quote_spanned, ToTokens, TokenStreamExt};
 use syn::{
@@ -28,6 +29,7 @@ use syn::{
 };
 
 mod inner_vecs;
+mod interfaces_mod_traits;
 mod scalar_aliases;
 mod swizzles;
 mod vec_interface;
@@ -56,3 +58,5 @@ export!(inner_vecs);
 export!(vec_interface);
 
 export!(swizzles);
+
+export!(interfaces_mod_traits);

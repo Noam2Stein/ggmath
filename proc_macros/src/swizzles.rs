@@ -11,7 +11,7 @@ use syn::{
     Lit, LitInt,
 };
 
-pub fn swizzles(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn swizzles(tokens: TokenStream1) -> TokenStream1 {
     let input = parse_macro_input!(tokens as Input);
     let Input {
         flags: _,

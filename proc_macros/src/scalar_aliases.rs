@@ -6,7 +6,7 @@ use syn::{
     Signature, Type, Visibility,
 };
 
-pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn scalar_aliases(input: TokenStream1) -> TokenStream1 {
     #[derive(Parse)]
     struct Input {
         vis: Visibility,
