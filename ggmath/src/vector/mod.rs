@@ -4,10 +4,10 @@ pub mod alignment;
 pub mod inner;
 pub mod length;
 
-pub mod into_vec;
-pub mod swizzle_wrappers;
-
 pub(crate) mod interfaces;
+
+mod api;
+pub use api::*;
 
 mod impl_std;
 
