@@ -4,13 +4,12 @@ pub mod alignment;
 pub mod inner;
 pub mod length;
 
-mod index;
 pub mod into_vec;
 pub mod swizzle_wrappers;
 
 pub(crate) mod interfaces;
 
-mod impl_construct;
+mod impl_std;
 
 use crate::{construct::*, scalar::*};
 use alignment::*;
