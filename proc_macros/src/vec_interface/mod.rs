@@ -47,7 +47,7 @@ fn alignment_trait_ident(input: &VecInterface) -> Ident {
     )
 }
 
-pub fn vec_interface(input: TokenStream1) -> TokenStream1 {
+pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as VecInterface);
 
     let errors = input.errors.iter().map(|err| err.to_compile_error());

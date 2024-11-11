@@ -2,7 +2,9 @@ use super::*;
 
 use quote::quote;
 
-pub const RHS_OPS: &[&str] = &["Add", "Sub", "Mul", "Div"];
+pub const RHS_OPS: &[&str] = &[
+    "Add", "BitAnd", "BitOr", "BitXor", "Div", "Mul", "Rem", "Shl", "Shr", "Sub",
+];
 
 pub fn rhs_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = TokenStream::from(input);

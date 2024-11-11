@@ -13,7 +13,33 @@ pub(crate) mod scalar_traits {
 
 ggmath_proc_macros::interfaces_mod_traits!(
     Scalar
+
     ScalarDefault
+
+    ScalarNeg
+    ScalarNot
+
+    ScalarAdd
+    ScalarBitOr
+    ScalarBitAnd
+    ScalarBitXor
+    ScalarDiv
+    ScalarMul
+    ScalarRem
+    ScalarShl
+    ScalarShr
+    ScalarSub
+
+    ScalarAddAssign
+    ScalarBitAndAssign
+    ScalarBitOrAssign
+    ScalarBitXorAssign
+    ScalarDivAssign
+    ScalarMulAssign
+    ScalarRemAssign
+    ScalarShlAssign
+    ScalarShrAssign
+    ScalarSubAssign
 );
 
 impl VecLenInterfaces<2> for ScalarCount<2> {}

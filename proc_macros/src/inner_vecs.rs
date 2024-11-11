@@ -5,7 +5,7 @@ use super::*;
 use quote::quote;
 use syn::{token::Paren, Type};
 
-pub fn inner_vecs(input: TokenStream1) -> TokenStream1 {
+pub fn inner_vecs(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Parse)]
     struct Input {
         ty: Type,
