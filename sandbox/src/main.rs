@@ -1,4 +1,4 @@
-use ggmath::primitive_aliases::f32::{fvec2, fvec3, fvec4};
+use ggmath::primitive_aliases::f32::*;
 
 fn main() {
     let a = fvec2((1.0, 0.5)) * 2.0;
