@@ -19,17 +19,17 @@ use length::*;
 ///
 /// Storage affects the inner implementation of vector fns.
 ///
-/// Only use this type when being generic over N, T, and S.
+/// Only use this type when being generic over N, T, and A.
 /// there are simpler type aliases to this type for when being not generic.
 ///
-/// - ```Vector2<T, S>```, ```Vector3<T, S>```, and ```Vector4<T, S>``` fill N.
+/// - ```Vector2<T, A>```, ```Vector3<T, A>```, and ```Vector4<T, A>``` fill N.
 /// - ```VecN<N, T>```, ```Vec2<T>```, ```Vec3<T>```, and ```Vec4<T>``` use the default storage [```VecAligned```].
 /// - ```VecNP<N, T>```, ```Vec2P<T>```, ```Vec3P<T>```, and ```Vec4P<T>``` use the non-default storage [```VecPacked```].
 /// - [```scalar::aliases```](crate::scalar::aliases) contains aliases for each primitive.
 ///
 /// # Examples
 /// ```
-/// fn print_vec<const N: usize, T: Scalar, S: VecStorage>(vec: Vector<N, T, S>)
+/// fn print_vec<const N: usize, T: Scalar, A: VecStorage>(vec: Vector<N, T, A>)
 /// where
 ///     ScalarCount<N>: VecLen<N>, // Required by Vector to ensure that N is either 2, 3, or 4.
 /// {

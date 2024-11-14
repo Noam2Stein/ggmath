@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter, Result};
 
 use super::*;
 
-impl<const N: usize, T: Scalar, S: VecAlignment> Debug for Vector<N, T, S>
+impl<const N: usize, T: Scalar, A: VecAlignment> Debug for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen<N>,
 {

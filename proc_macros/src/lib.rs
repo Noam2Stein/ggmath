@@ -52,7 +52,7 @@ export!(
 /// ```
 /// scalar_aliases!(pub f32: F);
 /// // expands into:
-/// // pub type FVector<const N: usize, S> = Vector<N, f32, S>;
+/// // pub type FVector<const N: usize, A> = Vector<N, f32, A>;
 /// // pub type FVec2 = Vec2<f32>;
 /// // ...
 /// ```

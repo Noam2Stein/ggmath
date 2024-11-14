@@ -5,7 +5,7 @@
 use super::*;
 
 /// The type of the inner-value inside a vector
-pub type InnerVector<const N: usize, T, S> = <S as VecAlignmentInnerVecs>::InnerVec<N, T>;
+pub type InnerVector<const N: usize, T, A> = <A as VecAlignmentInnerVecs>::InnerVec<N, T>;
 
 /// Scalar supertrait that specifies inner-types for vectors that can't be declared generically.
 ///
