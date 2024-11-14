@@ -10,6 +10,8 @@ inner_vecs!(isize(8));
 
 impl Scalar for isize {}
 
+impl ScalarDefault for isize {}
+
 impl ScalarNeg for isize {}
 impl ScalarAdd<isize> for isize {}
 impl ScalarSub<isize> for isize {}

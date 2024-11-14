@@ -6,6 +6,8 @@ inner_vecs!(f32(4));
 
 impl Scalar for f32 {}
 
+impl ScalarDefault for f32 {}
+
 impl ScalarNeg for f32 {}
 impl ScalarAdd<f32> for f32 {}
 impl ScalarSub<f32> for f32 {}

@@ -6,6 +6,8 @@ inner_vecs!(u8(1));
 
 impl Scalar for u8 {}
 
+impl ScalarDefault for u8 {}
+
 impl ScalarAdd<u8> for u8 {}
 impl ScalarSub<u8> for u8 {}
 impl ScalarMul<u8> for u8 {}

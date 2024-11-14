@@ -6,6 +6,8 @@ inner_vecs!(i16(2));
 
 impl Scalar for i16 {}
 
+impl ScalarDefault for i16 {}
+
 impl ScalarNeg for i16 {}
 impl ScalarAdd<i16> for i16 {}
 impl ScalarSub<i16> for i16 {}

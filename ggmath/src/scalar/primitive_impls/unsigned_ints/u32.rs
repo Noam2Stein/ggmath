@@ -6,6 +6,8 @@ inner_vecs!(u32(4));
 
 impl Scalar for u32 {}
 
+impl ScalarDefault for u32 {}
+
 impl ScalarAdd<u32> for u32 {}
 impl ScalarSub<u32> for u32 {}
 impl ScalarMul<u32> for u32 {}
