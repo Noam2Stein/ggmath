@@ -16,5 +16,6 @@ pub trait ScalarNum:
     + ScalarMul<Self, Output = Self>
     + ScalarDiv<Self, Output = Self>
     + ScalarRem<Self, Output = Self>
+    + PartialOrd
 {
 }

@@ -1,3 +1,5 @@
+use std::array;
+
 use crate::construct::InnerConstruct;
 
 use super::*;
@@ -89,6 +91,26 @@ pub trait RectRepr: Sized {
     fn extents<const N: usize, T: ScalarNum, A: VecAlignment>(
         rect: Rectangle<N, T, A, Self>,
     ) -> Vector<N, T, A>
+    where
+        ScalarCount<N>: VecLen<N>;
+
+    fn intersects<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> bool
+    where
+        ScalarCount<N>: VecLen<N>;
+    fn intersection<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> Option<Rectangle<N, T, A, Self>>
+    where
+        ScalarCount<N>: VecLen<N>;
+
+    fn display_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result
     where
         ScalarCount<N>: VecLen<N>;
 }
@@ -247,6 +269,54 @@ impl RectRepr for RectCornered {
         ScalarCount<N>: VecLen<N>,
     {
         rect.inner.1 / T::from(2)
+    }
+
+    fn intersects<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> bool
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        (0..N).all(|i| rect.min()[i] < other.max()[i] && other.min()[i] < rect.max()[i])
+    }
+    fn intersection<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> Option<Rectangle<N, T, A, Self>>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        if rect.intersects(other) {
+            Some(Rectangle::from_min_max(
+                Vector::from_array(array::from_fn(|i| {
+                    if rect.min()[i] > other.min()[i] {
+                        rect.min()[i]
+                    } else {
+                        other.min()[i]
+                    }
+                })),
+                Vector::from_array(array::from_fn(|i| {
+                    if rect.max()[i] < other.min()[i] {
+                        rect.max()[i]
+                    } else {
+                        other.max()[i]
+                    }
+                })),
+            ))
+        } else {
+            None
+        }
+    }
+
+    fn display_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        write!(f, "{{ min: {}, size: {} }}", rect.min(), rect.size())
     }
 }
 
@@ -408,6 +478,66 @@ impl RectRepr for RectCentered {
     {
         rect.inner.1
     }
+
+    fn intersects<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> bool
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        (0..N).all(|i| {
+            rect.extents()[i] + other.extents()[i]
+                < if rect.center()[i] > other.center()[i] {
+                    rect.center()[i] - other.center()[i]
+                } else {
+                    other.center()[i] - rect.center()[i]
+                }
+        })
+    }
+    fn intersection<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> Option<Rectangle<N, T, A, Self>>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        if rect.intersects(other) {
+            Some(Rectangle::from_min_max(
+                Vector::from_array(array::from_fn(|i| {
+                    if rect.min()[i] > other.min()[i] {
+                        rect.min()[i]
+                    } else {
+                        other.min()[i]
+                    }
+                })),
+                Vector::from_array(array::from_fn(|i| {
+                    if rect.max()[i] < other.min()[i] {
+                        rect.max()[i]
+                    } else {
+                        other.max()[i]
+                    }
+                })),
+            ))
+        } else {
+            None
+        }
+    }
+
+    fn display_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        write!(
+            f,
+            "{{ center: {}, extents: {} }}",
+            rect.center(),
+            rect.extents()
+        )
+    }
 }
 
 impl RectRepr for RectMinMaxed {
@@ -564,5 +694,53 @@ impl RectRepr for RectMinMaxed {
         ScalarCount<N>: VecLen<N>,
     {
         (rect.inner.1 - rect.inner.0) / T::from(2)
+    }
+
+    fn intersects<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> bool
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        (0..N).all(|i| rect.min()[i] < other.max()[i] && other.min()[i] < rect.max()[i])
+    }
+    fn intersection<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> Option<Rectangle<N, T, A, Self>>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        if rect.intersects(other) {
+            Some(Rectangle::from_min_max(
+                Vector::from_array(array::from_fn(|i| {
+                    if rect.min()[i] > other.min()[i] {
+                        rect.min()[i]
+                    } else {
+                        other.min()[i]
+                    }
+                })),
+                Vector::from_array(array::from_fn(|i| {
+                    if rect.max()[i] < other.min()[i] {
+                        rect.max()[i]
+                    } else {
+                        other.max()[i]
+                    }
+                })),
+            ))
+        } else {
+            None
+        }
+    }
+
+    fn display_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        write!(f, "{{ min: {}, max: {} }}", rect.min(), rect.max())
     }
 }

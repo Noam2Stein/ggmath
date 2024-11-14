@@ -6,6 +6,8 @@ use crate::{
 pub mod repr;
 use repr::*;
 
+mod impl_std;
+
 pub struct Rectangle<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr>
 where
     ScalarCount<N>: VecLen<N>,
@@ -62,6 +64,18 @@ where
     pub fn from_center_extents(center: Vector<N, T, A>, extents: Vector<N, T, A>) -> Self {
         R::from_center_extents(center, extents)
     }
+    #[inline(always)]
+    pub fn from_min_max(min: Vector<N, T, A>, max: Vector<N, T, A>) -> Self {
+        R::from_min_max(min, max)
+    }
+    #[inline(always)]
+    pub fn from_min_center(min: Vector<N, T, A>, max: Vector<N, T, A>) -> Self {
+        R::from_min_max(min, max)
+    }
+    #[inline(always)]
+    pub fn from_center_max(center: Vector<N, T, A>, max: Vector<N, T, A>) -> Self {
+        R::from_center_max(center, max)
+    }
 
     #[inline(always)]
     pub fn min(self) -> Vector<N, T, A> {
@@ -82,5 +96,17 @@ where
     #[inline(always)]
     pub fn extents(self) -> Vector<N, T, A> {
         R::extents(self)
+    }
+
+    #[inline(always)]
+    pub fn intersects(self, other: Rectangle<N, T, impl VecAlignment, impl RectRepr>) -> bool {
+        R::intersects(self, other)
+    }
+    #[inline(always)]
+    pub fn intersection(
+        self,
+        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
+    ) -> Option<Self> {
+        R::intersection(self, other)
     }
 }
