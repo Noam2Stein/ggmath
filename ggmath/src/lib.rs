@@ -24,10 +24,7 @@ pub mod matrix;
 pub mod quaternion;
 
 #[cfg(feature = "rect")]
-pub mod rect;
-
-#[cfg(feature = "bounds")]
-pub mod bounds;
+pub mod rectangle;
 
 #[cfg(feature = "line")]
 pub mod line;

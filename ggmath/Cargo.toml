@@ -5,21 +5,12 @@ version = "0.1.0"
 
 [features]
 default = ["primitive_aliases", "matrix", "quaternion"]
-full = [
-    "primitive_aliases",
-    "matrix",
-    "quaternion",
-    "rect",
-    "bounds",
-    "line",
-    "ray",
-]
+full = ["primitive_aliases", "matrix", "quaternion", "rect", "line", "ray"]
 
 primitive_aliases = []
 matrix = []
 quaternion = []
 rect = []
-bounds = []
 line = []
 ray = []
 

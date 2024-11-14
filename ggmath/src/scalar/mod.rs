@@ -7,3 +7,14 @@ mod primitive_impls;
 pub use crate::vector::interfaces::scalar_traits::*;
 
 pub use ggmath_proc_macros::scalar_aliases;
+
+pub trait ScalarNum:
+    Scalar
+    + From<usize>
+    + ScalarAdd<Self, Output = Self>
+    + ScalarSub<Self, Output = Self>
+    + ScalarMul<Self, Output = Self>
+    + ScalarDiv<Self, Output = Self>
+    + ScalarRem<Self, Output = Self>
+{
+}
