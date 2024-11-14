@@ -1,18 +1,19 @@
 [package]
 edition = "2021"
-name = "ggmath"
+name    = "ggmath"
 version = "0.1.0"
 
 [features]
-default = ["primitive_aliases", "matrix", "quaternion"]
-full = ["primitive_aliases", "matrix", "quaternion", "rect", "line", "ray"]
+default = [ "matrix", "primitive_aliases", "quaternion" ]
+full    = [ "line", "matrix", "primitive_aliases", "quaternion", "ray", "rect" ]
 
-primitive_aliases = []
-matrix = []
-quaternion = []
-rect = []
-line = []
-ray = []
+line              = [  ]
+matrix            = [  ]
+primitive_aliases = [  ]
+quaternion        = [  ]
+ray               = [  ]
+rect              = [  ]
 
 [dependencies]
 ggmath_proc_macros = { path = "../proc_macros" }
+num-traits         = "0.2.19"
