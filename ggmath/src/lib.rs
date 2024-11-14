@@ -29,6 +29,9 @@ pub mod rect;
 #[cfg(feature = "bounds")]
 pub mod bounds;
 
+#[cfg(feature = "line")]
+pub mod line;
+
 #[cfg(feature = "ray")]
 pub mod ray;
 
