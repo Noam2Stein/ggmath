@@ -15,7 +15,7 @@ impl RectRepr for RectCentered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (min + size / T::from(2), size / T::from(2)),
+            inner: (min + size / T::from(2).unwrap(), size / T::from(2).unwrap()),
         }
     }
     #[inline(always)]
@@ -27,7 +27,7 @@ impl RectRepr for RectCentered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (max - size / T::from(2), size / T::from(2)),
+            inner: (max - size / T::from(2).unwrap(), size / T::from(2).unwrap()),
         }
     }
     #[inline(always)]
@@ -39,7 +39,7 @@ impl RectRepr for RectCentered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (center, size / T::from(2)),
+            inner: (center, size / T::from(2).unwrap()),
         }
     }
     #[inline(always)]
@@ -87,7 +87,10 @@ impl RectRepr for RectCentered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: ((min + max) / T::from(2), (max - min) / T::from(2)),
+            inner: (
+                (min + max) / T::from(2).unwrap(),
+                (max - min) / T::from(2).unwrap(),
+            ),
         }
     }
     #[inline(always)]
@@ -149,7 +152,7 @@ impl RectRepr for RectCentered {
     where
         ScalarCount<N>: VecLen<N>,
     {
-        rect.inner.1 * T::from(2)
+        rect.inner.1 * T::from(2).unwrap()
     }
     #[inline(always)]
     fn extents<const N: usize, T: ScalarNum, A: VecAlignment>(

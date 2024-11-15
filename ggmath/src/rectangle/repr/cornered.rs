@@ -36,7 +36,7 @@ impl RectRepr for RectCornered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (center - size / T::from(2), size),
+            inner: (center - size / T::from(2).unwrap(), size),
         }
     }
     #[inline(always)]
@@ -48,7 +48,7 @@ impl RectRepr for RectCornered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (min, extents * T::from(2)),
+            inner: (min, extents * T::from(2).unwrap()),
         }
     }
     #[inline(always)]
@@ -60,7 +60,10 @@ impl RectRepr for RectCornered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (max - extents * T::from(2), extents * T::from(2)),
+            inner: (
+                max - extents * T::from(2).unwrap(),
+                extents * T::from(2).unwrap(),
+            ),
         }
     }
     #[inline(always)]
@@ -96,7 +99,7 @@ impl RectRepr for RectCornered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (min, (center - min) * T::from(2)),
+            inner: (min, (center - min) * T::from(2).unwrap()),
         }
     }
     #[inline(always)]
@@ -108,7 +111,10 @@ impl RectRepr for RectCornered {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (center - (max - center), (max - center) * T::from(2)),
+            inner: (
+                center - (max - center),
+                (max - center) * T::from(2).unwrap(),
+            ),
         }
     }
 
@@ -137,7 +143,7 @@ impl RectRepr for RectCornered {
     where
         ScalarCount<N>: VecLen<N>,
     {
-        rect.inner.0 + rect.inner.1 * T::from(2)
+        rect.inner.0 + rect.inner.1 * T::from(2).unwrap()
     }
     #[inline(always)]
     fn size<const N: usize, T: ScalarNum, A: VecAlignment>(
@@ -155,7 +161,7 @@ impl RectRepr for RectCornered {
     where
         ScalarCount<N>: VecLen<N>,
     {
-        rect.inner.1 / T::from(2)
+        rect.inner.1 / T::from(2).unwrap()
     }
 
     fn intersects<const N: usize, T: ScalarNum, A: VecAlignment>(

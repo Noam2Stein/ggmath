@@ -38,7 +38,10 @@ impl RectRepr for RectMinMaxed {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (center - size / T::from(2), center + size / T::from(2)),
+            inner: (
+                center - size / T::from(2).unwrap(),
+                center + size / T::from(2).unwrap(),
+            ),
         }
     }
     #[inline(always)]
@@ -50,7 +53,7 @@ impl RectRepr for RectMinMaxed {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (min, min + extents * T::from(2)),
+            inner: (min, min + extents * T::from(2).unwrap()),
         }
     }
     #[inline(always)]
@@ -62,7 +65,7 @@ impl RectRepr for RectMinMaxed {
         ScalarCount<N>: VecLen<N>,
     {
         Rectangle {
-            inner: (max - extents * T::from(2), max),
+            inner: (max - extents * T::from(2).unwrap(), max),
         }
     }
     #[inline(always)]
@@ -137,7 +140,7 @@ impl RectRepr for RectMinMaxed {
     where
         ScalarCount<N>: VecLen<N>,
     {
-        (rect.inner.0 + rect.inner.1) / T::from(2)
+        (rect.inner.0 + rect.inner.1) / T::from(2).unwrap()
     }
     #[inline(always)]
     fn size<const N: usize, T: ScalarNum, A: VecAlignment>(
@@ -155,7 +158,7 @@ impl RectRepr for RectMinMaxed {
     where
         ScalarCount<N>: VecLen<N>,
     {
-        (rect.inner.1 - rect.inner.0) / T::from(2)
+        (rect.inner.1 - rect.inner.0) / T::from(2).unwrap()
     }
 
     fn intersects<const N: usize, T: ScalarNum, A: VecAlignment>(
