@@ -1,8 +1,7 @@
 use super::*;
 
 pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
-    let output_fns = interface
-        .fns
+    let output_fns = interface.impls.iter().map(|r#impl| r#impl.fns
         .iter()
         .map(|r#fn| {
             ALIGN_STRS
@@ -26,23 +25,24 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
                         )
                     })
                 })
-        })
+        }))
+        .flatten()
         .flatten()
         .flatten();
 
-    let trait_attrs = &interface.scalar_trait.attrs;
-    let trait_ident = &interface.scalar_trait.ident;
-    let trait_supertraits = &interface.scalar_trait.bounds;
-
-    let interface_generics = &interface.generics;
-    let interface_where_clause = &interface.generics.where_clause;
+    let VecInterface {
+        ident: interface_ident,
+        generics: interface_generics,
+        supertraits: interface_supertraits,
+        where_clause: interface_where_clause,
+        impls: _,
+    } = interface;
 
     let trait_declaration = search_replace_generics(
         quote_spanned! {
-            trait_ident.span() =>
+            interface.ident.span() =>
 
-            #(#trait_attrs)*
-            pub trait #trait_ident #interface_generics: #trait_supertraits #interface_where_clause
+            pub trait #interface_ident #interface_generics #(: #interface_supertraits)? #interface_where_clause
         },
         |span| quote_spanned! { span => N },
         |span| quote_spanned! { span => Self },
@@ -50,7 +50,7 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
     );
 
     quote_spanned! {
-        trait_ident.span() =>
+        interface.ident.span() =>
 
         #trait_declaration {
             #(#output_fns)*

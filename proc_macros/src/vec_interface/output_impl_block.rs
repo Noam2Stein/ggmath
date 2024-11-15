@@ -1,10 +1,10 @@
 use super::*;
 
-pub fn impl_block(interface: &VecInterface) -> TokenStream {
+pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenStream {
     let output_impl_generics = {
-        let scalar_trait_ident = &interface.scalar_trait.ident;
-        let interface_generic_args = generic_args(&interface.generics);
-        let interface_generic_params = interface.generics.params.iter();
+        let scalar_trait_ident = &interface.type_param.ident;
+        let interface_generic_args = generic_args(&r#impl.generics);
+        let interface_generic_params = interface.type_param..params.iter();
 
         quote_spanned! {
             interface.generics.span() =>
@@ -17,20 +17,21 @@ pub fn impl_block(interface: &VecInterface) -> TokenStream {
         }
     };
 
-    let output_impl_types = if let Some(impl_trait) = &interface.impl_trait {
+    let output_impl_types = if let Some(impl_trait) = &r#impl.r#trait {
         quote_spanned! {
-            interface.scalar_trait.span() =>
+            interface.type_param.span() =>
+
             #impl_trait for Vector<N, T, A>
         }
     } else {
         quote_spanned! {
-            interface.scalar_trait.span() =>
+            interface.type_param.span() =>
+
             Vector<N, T, A>
         }
     };
 
-    let output_where_clause = if let Some(interface_where_clause) = &interface.generics.where_clause
-    {
+    let output_where_clause = if let Some(interface_where_clause) = &r#impl.generics.where_clause {
         quote_spanned! {
             interface_where_clause.where_token.span() =>
 
@@ -38,7 +39,7 @@ pub fn impl_block(interface: &VecInterface) -> TokenStream {
         }
     } else {
         quote_spanned! {
-            interface.scalar_trait.span() =>
+            interface.type_param.span() =>
             where ScalarCount<N>: VecLen<N>
         }
     };
@@ -70,7 +71,8 @@ pub fn impl_block(interface: &VecInterface) -> TokenStream {
     let output_assoc_types = &interface.assoc_types;
 
     quote_spanned! {
-        interface.scalar_trait.span() =>
+        interface.ident.span() =>
+
         impl #output_impl_generics #output_impl_types #output_where_clause {
             #(#output_fns)*
             #(#output_assoc_types)*

@@ -2,7 +2,7 @@ use super::*;
 
 use syn::{
     punctuated::Punctuated, token::Brace, Block, ConstParam, FnArg, GenericParam, Generics, Lit,
-    LitInt, Pat, Receiver, Signature, Type, TypeParam, Visibility,
+    LitInt, Pat, Receiver, Signature, Type, Visibility,
 };
 
 mod input;
@@ -35,36 +35,28 @@ fn scalar_fn_ident(ident: &Ident, n: &str, a: &str) -> Ident {
     )
 }
 fn len_trait_ident(input: &VecInterface) -> Ident {
-    Ident::new(
-        &format!("VecLen{}", input.scalar_trait.ident),
-        input.scalar_trait.ident.span(),
-    )
+    Ident::new(&format!("VecLen{}", input.ident), input.ident.span())
 }
 fn alignment_trait_ident(input: &VecInterface) -> Ident {
-    Ident::new(
-        &format!("VecAlignment{}", input.scalar_trait.ident),
-        input.scalar_trait.ident.span(),
-    )
+    Ident::new(&format!("VecAlignment{}", input.ident), input.ident.span())
 }
 
 pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as VecInterface);
 
-    let errors = input.errors.iter().map(|err| err.to_compile_error());
-    let impl_block = impl_block(&input);
+    let impl_blocks = input.impls.iter().map(|r#impl| impl_block(&input, r#impl));
     let scalar = scalar_trait(&input);
     let len = len(&input);
     let storage = alignment(&input);
 
     quote_spanned! {
-        input.scalar_trait.ident.span() =>
+        input.ident.span() =>
+
         #[allow(unused_imports)]
         use crate::vector::{alignment::*, inner::*, length::*, *};
 
-        const _: () = {
-            #(#errors)*
-        };
-        #impl_block
+        #(#impl_blocks)*
+
         #scalar
         #len
         #storage

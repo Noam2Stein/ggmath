@@ -1,17 +1,26 @@
-use syn::{ext::IdentExt, ItemType};
+use syn::{ext::IdentExt, ItemType, TraitBound, WhereClause};
 
 use super::*;
 
 #[derive(Clone)]
 pub struct VecInterface {
-    pub vis: Option<Token![pub]>,
+    pub ident: Ident,
     pub generics: Generics,
-    pub impl_trait: Option<Type>,
-    pub scalar_trait: TypeParam,
+    pub supertraits: Option<Punctuated<TraitBound, Token![+]>>,
+    pub where_clause: Option<WhereClause>,
+    pub impls: Vec<VecInterfaceImpl>,
+}
+
+#[derive(Clone)]
+pub struct VecInterfaceImpl {
+    pub generics: Generics,
+    pub vis: Option<Token![pub]>,
+    pub r#trait: Option<Type>,
     pub fns: Vec<VecInterfaceFn>,
     pub assoc_types: Vec<ItemType>,
     pub errors: Vec<Error>,
 }
+
 #[derive(Clone)]
 pub struct VecInterfaceFn {
     pub sig: Signature,
@@ -19,6 +28,38 @@ pub struct VecInterfaceFn {
 }
 
 impl Parse for VecInterface {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident = Parse::parse(input)
+            .map_err(|err| Error::new(err.span(), &format!("expected the scalar trait's ident")))?;
+
+        let generics = Parse::parse(input)?;
+
+        let supertraits = if input.parse::<Option<Token![:]>>()?.is_some() {
+            Some(Punctuated::parse_separated_nonempty(input)?)
+        } else {
+            None
+        };
+
+        let where_clause = Parse::parse(input)?;
+
+        <Token![;]>::parse(input)?;
+
+        let mut impls = Vec::new();
+        while !input.is_empty() {
+            impls.push(input.parse()?);
+        }
+
+        Ok(Self {
+            ident,
+            generics,
+            supertraits,
+            where_clause,
+            impls,
+        })
+    }
+}
+
+impl Parse for VecInterfaceImpl {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let vis = match Visibility::parse(input)? {
             Visibility::Inherited => None,
@@ -35,25 +76,20 @@ impl Parse for VecInterface {
 
         let mut generics = Generics::parse(input)?;
 
-        let impl_trait = if input.peek(Ident::peek_any) {
+        let r#trait = if input.peek(Ident::peek_any) {
             Some(input.parse()?)
         } else {
             None
         };
 
-        if input.peek(Token![where]) {
-            generics.where_clause = input.parse()?;
-        }
+        generics.where_clause = input.parse()?;
 
         <Token![:]>::parse(input)?;
-
-        let scalar_trait = TypeParam::parse(input)
-            .map_err(|err| Error::new(err.span(), "expected the scalar trait's ident"))?;
-        <Token![,]>::parse(input)?;
 
         let mut fns = Vec::new();
         let mut assoc_types = Vec::<ItemType>::new();
         let mut errors = Vec::new();
+
         while !input.is_empty() {
             if input.peek(Token![fn]) || input.peek(Token![unsafe]) || input.peek(Token![async]) {
                 match input.parse() {
@@ -81,7 +117,7 @@ impl Parse for VecInterface {
             }
         }
 
-        if impl_trait.is_none() {
+        if r#trait.is_none() {
             for assoc_type in &assoc_types {
                 errors.push(Error::new(
                     assoc_type.ident.span(),
@@ -93,14 +129,14 @@ impl Parse for VecInterface {
         Ok(Self {
             vis,
             generics,
-            impl_trait,
-            scalar_trait,
+            r#trait,
             fns,
             assoc_types,
             errors,
         })
     }
 }
+
 impl Parse for VecInterfaceFn {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(Self {

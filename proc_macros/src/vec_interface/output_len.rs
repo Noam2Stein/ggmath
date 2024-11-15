@@ -1,11 +1,11 @@
 use super::*;
 
 pub fn len(interface: &VecInterface) -> TokenStream {
-    let modified_fn_sigs = interface
+    let modified_fn_sigs = interface.impls.iter().map(|r#impl| r#impl
         .fns
         .iter()
         .map(|r#fn| {
-            let scalar_trait_ident = with_span(&interface.scalar_trait.ident, r#fn.sig.ident.span());
+            let scalar_trait_ident = with_span(&interface.type_param.ident, r#fn.sig.ident.span());
             let interface_generic_args = generic_args(&interface.generics).into_iter().map(|arg| with_span(&arg, r#fn.sig.ident.span()));
 
             let mut fn_sig = r#fn.sig.clone();
@@ -34,7 +34,7 @@ pub fn len(interface: &VecInterface) -> TokenStream {
             }
 
             fn_sig
-        })
+        })).flatten()
         .collect::<Box<[Signature]>>();
 
     let output_trait_fns = modified_fn_sigs.iter().map(|modified_fn_sig| {
@@ -76,7 +76,7 @@ pub fn len(interface: &VecInterface) -> TokenStream {
         let n = Lit::Int(LitInt::new(n_str, len_trait_ident.span()));
 
         quote_spanned! {
-            interface.scalar_trait.span() =>
+            interface.type_param.span() =>
             impl #len_trait_ident<#n> for ScalarCount<#n> {
                 #(#fn_impls)*
             }

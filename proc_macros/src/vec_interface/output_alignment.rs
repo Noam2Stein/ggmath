@@ -5,7 +5,7 @@ pub fn alignment(interface: &VecInterface) -> TokenStream {
         .fns
         .iter()
         .map(|r#fn| {
-            let scalar_trait_ident = with_span(&interface.scalar_trait.ident, r#fn.sig.ident.span());
+            let scalar_trait_ident = with_span(&interface.type_param.ident, r#fn.sig.ident.span());
             let interface_generic_args = generic_args(&interface.generics).into_iter().map(|arg| with_span(&arg, r#fn.sig.ident.span()));
 
             let mut fn_sig = r#fn.sig.clone();
@@ -73,7 +73,7 @@ pub fn alignment(interface: &VecInterface) -> TokenStream {
                 let a = Ident::new(a_str, alignment_trait_ident.span());
 
                 quote_spanned! {
-                    interface.scalar_trait.span() =>
+                    interface.type_param.span() =>
                     impl #alignment_trait_ident<#n> for #a {
                         #(#fn_impls)*
                     }
