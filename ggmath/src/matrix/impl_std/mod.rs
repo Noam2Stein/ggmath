@@ -1,9 +1,8 @@
 use super::*;
 
+mod cmp;
 mod copy;
-mod debug;
-mod display;
-mod partial_eq;
+mod fmt;
 
 const _: () = {
     fn ensure_matrix_is_construct<

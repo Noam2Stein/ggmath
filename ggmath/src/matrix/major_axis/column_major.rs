@@ -213,4 +213,15 @@ impl MatrixMajorAxis for ColumnMajor {
             inner: array::from_fn(|row_index| Self::get_row(mat, row_index).unwrap()),
         }
     }
+
+    fn eq<const C: usize, const R: usize, T: ScalarPartialEq<Rhs>, A: VecAlignment, Rhs: Scalar>(
+        mat: &Matrix<C, R, T, A, Self>,
+        other: &Matrix<C, R, Rhs, A, Self>,
+    ) -> bool
+    where
+        ScalarCount<C>: VecLen<C>,
+        ScalarCount<R>: VecLen<R>,
+    {
+        mat.inner.eq(&other.inner)
+    }
 }
