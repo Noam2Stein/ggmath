@@ -88,7 +88,7 @@ pub fn len(interface: &VecInterface) -> TokenStream {
     quote_spanned! {
         len_trait_ident.span() =>
 
-        pub(super) trait #len_trait_ident<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
+        pub(in crate::vector::interfaces) trait #len_trait_ident<const N: usize>: VecLenInnerVec where ScalarCount<N>: VecLen<N> {
             #(#output_trait_fns)*
         }
         #(#output_trait_impls)*

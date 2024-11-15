@@ -88,7 +88,7 @@ pub fn alignment(interface: &VecInterface) -> TokenStream {
     quote_spanned! {
         alignment_trait_ident.span() =>
 
-        pub(super) trait #alignment_trait_ident<const N: usize>: alignment_seal::VecAlignment where ScalarCount<N>: VecLen<N> {
+        pub(in crate::vector::interfaces) trait #alignment_trait_ident<const N: usize>: alignment_seal::VecAlignment where ScalarCount<N>: VecLen<N> {
             #(#output_trait_fn_declarations)*
         }
 
