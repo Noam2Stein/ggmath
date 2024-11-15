@@ -42,6 +42,8 @@ ggmath_proc_macros::interfaces_mod_traits!(
     ScalarShlAssign
     ScalarShrAssign
     ScalarSubAssign
+
+    ScalarNum
 );
 
 impl VecLenInterfaces<2> for ScalarCount<2> {}

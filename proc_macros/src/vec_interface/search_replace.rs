@@ -75,6 +75,31 @@ pub fn search_replace_fn(
     output
 }
 
+pub fn search_replace_generics(
+    generics: TokenStream,
+    n: impl Fn(Span) -> TokenStream + Copy,
+    t: impl Fn(Span) -> TokenStream + Copy,
+    a: impl Fn(Span) -> TokenStream + Copy,
+) -> TokenStream {
+    let mut output = TokenStream::new();
+    search_replace(
+        generics,
+        &mut output,
+        |span| {
+            let n = n(span);
+            let t = t(span);
+            let a = a(span);
+            quote_spanned! { span => Vector<#n, #t, #a> }
+        },
+        |span| quote_spanned! { span => vec },
+        n,
+        t,
+        a,
+    );
+
+    output
+}
+
 fn search_replace(
     input: TokenStream,
     output: &mut TokenStream,

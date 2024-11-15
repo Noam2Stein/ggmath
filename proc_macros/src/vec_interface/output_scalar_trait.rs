@@ -37,11 +37,22 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
     let interface_generics = &interface.generics;
     let interface_where_clause = &interface.generics.where_clause;
 
+    let trait_declaration = search_replace_generics(
+        quote_spanned! {
+            trait_ident.span() =>
+
+            #(#trait_attrs)*
+            pub trait #trait_ident #interface_generics: #trait_supertraits #interface_where_clause
+        },
+        |span| quote_spanned! { span => N },
+        |span| quote_spanned! { span => Self },
+        |span| quote_spanned! { span => A },
+    );
+
     quote_spanned! {
         trait_ident.span() =>
 
-        #(#trait_attrs)*
-        pub trait #trait_ident #interface_generics: #trait_supertraits #interface_where_clause {
+        #trait_declaration {
             #(#output_fns)*
         }
     }
