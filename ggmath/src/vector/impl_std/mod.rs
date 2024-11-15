@@ -1,7 +1,7 @@
 use super::*;
 
 mod copy;
-mod display;
+mod fmt;
 mod index;
 mod iter;
 mod scalar_ops;

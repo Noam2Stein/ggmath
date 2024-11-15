@@ -14,7 +14,6 @@ pub(crate) mod scalar_traits {
 ggmath_proc_macros::interfaces_mod_traits!(
     Scalar
 
-    ScalarDebug
     ScalarDefault
     ScalarOrd
     ScalarPartialEq
