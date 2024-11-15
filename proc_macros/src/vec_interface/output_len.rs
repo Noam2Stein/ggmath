@@ -5,7 +5,7 @@ pub fn len(interface: &VecInterface) -> TokenStream {
         .fns
         .iter()
         .map(|r#fn| {
-            let scalar_trait_ident = with_span(&interface.type_param.ident, r#fn.sig.ident.span());
+            let scalar_trait_ident = with_span(&interface.ident, r#fn.sig.ident.span());
             let interface_generic_args = generic_args(&interface.generics).into_iter().map(|arg| with_span(&arg, r#fn.sig.ident.span()));
 
             let mut fn_sig = r#fn.sig.clone();
@@ -21,6 +21,10 @@ pub fn len(interface: &VecInterface) -> TokenStream {
                 .generics
                 .params
                 .extend(interface.generics.params.iter().map(|param| with_span(param, r#fn.sig.generics.params.span())));
+            fn_sig
+                .generics
+                .params
+                .extend(r#impl.generics.params.iter().map(|param| with_span(param, r#fn.sig.generics.params.span())));
 
             if let Some(interface_where_clause) = &interface.generics.where_clause {
                 if let Some(fn_where_clause) = &mut fn_sig.generics.where_clause {
@@ -30,6 +34,16 @@ pub fn len(interface: &VecInterface) -> TokenStream {
                         .extend(interface_where_clause.predicates.iter().map(|predicate| with_span(predicate, span)));
                 } else {
                     fn_sig.generics.where_clause = Some(with_span(interface_where_clause, fn_sig.ident.span()));
+                }
+            }
+            if let Some(impl_where_clause) = &r#impl.generics.where_clause {
+                if let Some(fn_where_clause) = &mut fn_sig.generics.where_clause {
+                    let span = fn_where_clause.span();
+                    fn_where_clause
+                        .predicates
+                        .extend(impl_where_clause.predicates.iter().map(|predicate| with_span(predicate, span)));
+                } else {
+                    fn_sig.generics.where_clause = Some(with_span(impl_where_clause, fn_sig.ident.span()));
                 }
             }
 
@@ -76,7 +90,7 @@ pub fn len(interface: &VecInterface) -> TokenStream {
         let n = Lit::Int(LitInt::new(n_str, len_trait_ident.span()));
 
         quote_spanned! {
-            interface.type_param.span() =>
+            interface.ident.span() =>
             impl #len_trait_ident<#n> for ScalarCount<#n> {
                 #(#fn_impls)*
             }

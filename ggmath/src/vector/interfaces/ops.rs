@@ -3,9 +3,9 @@ use std::ops::*;
 
 ggmath_proc_macros::self_ops!(
     $(ggmath_proc_macros::vec_interface!(
-        impl $std_trait:
+        $scalar_trait: Scalar + $std_trait<Output: Scalar>;
 
-        $scalar_trait: Scalar + $std_trait<Output: Scalar>,
+        impl $std_trait:
 
         type Output = Vector<N, <T as $std_trait>::Output, A>;
 
@@ -16,9 +16,9 @@ ggmath_proc_macros::self_ops!(
 );
 ggmath_proc_macros::rhs_ops!(
     $(ggmath_proc_macros::vec_interface!(
-        impl<Rhs: Scalar> $std_trait<Vector<N, Rhs, A>>:
+        $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs, Output: Scalar>;
 
-        $scalar_trait: Scalar + $std_trait<Rhs, Output: Scalar>,
+        impl $std_trait<Vector<N, Rhs, A>>:
 
         type Output = Vector<N, <T as $std_trait<Rhs>>::Output, A>;
 
@@ -34,9 +34,9 @@ ggmath_proc_macros::rhs_ops!(
 );
 ggmath_proc_macros::assign_ops!(
     $(ggmath_proc_macros::vec_interface!(
-        impl<Rhs: Scalar> $std_trait<Vector<N, Rhs, A>>:
+        $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs>;
 
-        $scalar_trait: Scalar + $std_trait<Rhs>,
+        impl $std_trait<Vector<N, Rhs, A>>:
 
         fn $std_fn(&mut self, rhs: Vector<N, Rhs, A>) {
             for i in 0..N {

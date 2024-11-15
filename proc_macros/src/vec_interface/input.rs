@@ -1,4 +1,4 @@
-use syn::{ext::IdentExt, ItemType, TraitBound, WhereClause};
+use syn::{ext::IdentExt, ItemType, TraitBound};
 
 use super::*;
 
@@ -6,15 +6,14 @@ use super::*;
 pub struct VecInterface {
     pub ident: Ident,
     pub generics: Generics,
-    pub supertraits: Option<Punctuated<TraitBound, Token![+]>>,
-    pub where_clause: Option<WhereClause>,
+    pub supertraits: Vec<TraitBound>,
     pub impls: Vec<VecInterfaceImpl>,
 }
 
 #[derive(Clone)]
 pub struct VecInterfaceImpl {
-    pub generics: Generics,
     pub vis: Option<Token![pub]>,
+    pub generics: Generics,
     pub r#trait: Option<Type>,
     pub fns: Vec<VecInterfaceFn>,
     pub assoc_types: Vec<ItemType>,
@@ -32,15 +31,17 @@ impl Parse for VecInterface {
         let ident = Parse::parse(input)
             .map_err(|err| Error::new(err.span(), &format!("expected the scalar trait's ident")))?;
 
-        let generics = Parse::parse(input)?;
+        let mut generics = Generics::parse(input)?;
 
         let supertraits = if input.parse::<Option<Token![:]>>()?.is_some() {
-            Some(Punctuated::parse_separated_nonempty(input)?)
+            Punctuated::<TraitBound, Token![+]>::parse_separated_nonempty(input)?
+                .into_iter()
+                .collect()
         } else {
-            None
+            Vec::new()
         };
 
-        let where_clause = Parse::parse(input)?;
+        generics.where_clause = Parse::parse(input)?;
 
         <Token![;]>::parse(input)?;
 
@@ -53,7 +54,6 @@ impl Parse for VecInterface {
             ident,
             generics,
             supertraits,
-            where_clause,
             impls,
         })
     }

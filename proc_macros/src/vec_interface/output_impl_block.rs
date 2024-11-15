@@ -2,53 +2,67 @@ use super::*;
 
 pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenStream {
     let output_impl_generics = {
-        let scalar_trait_ident = &interface.type_param.ident;
-        let interface_generic_args = generic_args(&r#impl.generics);
-        let interface_generic_params = interface.type_param..params.iter();
+        let interface_ident = &interface.ident;
+        let interface_generic_params = interface.generics.params.iter();
+        let interface_generic_args = generic_args(&interface.generics);
+        let impl_generic_params = r#impl.generics.params.iter();
 
         quote_spanned! {
             interface.generics.span() =>
             <
                 const N: usize,
-                T: #scalar_trait_ident<#(#interface_generic_args), *>,
+                T: #interface_ident<#(#interface_generic_args), *>,
                 A: VecAlignment
                 #(, #interface_generic_params)*
+                #(, #impl_generic_params)*
             >
         }
     };
 
     let output_impl_types = if let Some(impl_trait) = &r#impl.r#trait {
         quote_spanned! {
-            interface.type_param.span() =>
+            interface.ident.span() =>
 
             #impl_trait for Vector<N, T, A>
         }
     } else {
         quote_spanned! {
-            interface.type_param.span() =>
+            interface.ident.span() =>
 
             Vector<N, T, A>
         }
     };
 
-    let output_where_clause = if let Some(interface_where_clause) = &r#impl.generics.where_clause {
-        quote_spanned! {
-            interface_where_clause.where_token.span() =>
+    let output_where_clause = if let Some(interface_where_clause) = &interface.generics.where_clause
+    {
+        if let Some(impl_where_clause) = &r#impl.generics.where_clause {
+            let impl_where_clause_predicates = impl_where_clause.predicates.iter();
 
-            #interface_where_clause, ScalarCount<N>: VecLen<N>
+            quote_spanned! {
+                interface_where_clause.where_token.span() =>
+
+                #interface_where_clause, #(#impl_where_clause_predicates), *, ScalarCount<N>: VecLen<N>
+            }
+        } else {
+            quote_spanned! {
+                interface_where_clause.where_token.span() =>
+
+                #interface_where_clause, ScalarCount<N>: VecLen<N>
+            }
         }
     } else {
         quote_spanned! {
-            interface.type_param.span() =>
+            interface.ident.span() =>
+
             where ScalarCount<N>: VecLen<N>
         }
     };
 
-    let output_fns = interface.fns.iter().map(|r#fn| {
+    let output_fns = r#impl.fns.iter().map(|r#fn| {
         let len_trait_ident = with_span(&len_trait_ident(interface), r#fn.sig.ident.span());
         let interface_generic_args = generic_args(&interface.generics);
 
-        let item_vis = &interface.vis.map(|_| quote_spanned! { r#fn.sig.fn_token.span() => pub });
+        let item_vis = &r#impl.vis.map(|_| quote_spanned! { r#fn.sig.fn_token.span() => pub });
         let fn_sig = &r#fn.sig;
 
         let fn_call_ident = &r#fn.sig.ident;
@@ -68,7 +82,9 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
         }
     });
 
-    let output_assoc_types = &interface.assoc_types;
+    let output_assoc_types = &r#impl.assoc_types;
+
+    let output_errors = r#impl.errors.iter().map(|err| err.to_compile_error());
 
     quote_spanned! {
         interface.ident.span() =>
@@ -77,5 +93,7 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
             #(#output_fns)*
             #(#output_assoc_types)*
         }
+
+        #(#output_errors;)*
     }
 }

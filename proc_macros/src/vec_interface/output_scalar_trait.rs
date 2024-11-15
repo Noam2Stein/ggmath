@@ -34,15 +34,25 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
         ident: interface_ident,
         generics: interface_generics,
         supertraits: interface_supertraits,
-        where_clause: interface_where_clause,
         impls: _,
     } = interface;
+    let interface_where_clause = &interface.generics.where_clause;
+
+    let interface_supertraits_with_sep = if interface_supertraits.len() > 0 {
+        quote_spanned! {
+            interface.ident.span() =>
+
+            : #(#interface_supertraits + )*
+        }
+    } else {
+        TokenStream::new()
+    };
 
     let trait_declaration = search_replace_generics(
         quote_spanned! {
             interface.ident.span() =>
 
-            pub trait #interface_ident #interface_generics #(: #interface_supertraits)? #interface_where_clause
+            pub trait #interface_ident #interface_generics #interface_supertraits_with_sep #interface_where_clause
         },
         |span| quote_spanned! { span => N },
         |span| quote_spanned! { span => Self },

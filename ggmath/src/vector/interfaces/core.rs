@@ -1,27 +1,9 @@
 use std::mem::{transmute, transmute_copy};
 
 ggmath_proc_macros::vec_interface!(
-    pub impl:
+    Scalar: Construct + ScalarInnerVecs;
 
-    /// trait for types that can be put inside mathamatical types like [vectors](crate::vec::Vector) and [matricies](crate::mat::Matrix).
-    ///
-    /// useful when using mathamatical types while being generic over the scalar type.
-    /// # Examples
-    /// ```
-    /// fn print_x<T: Scalar>(vec: Vec2<T>) {
-    ///     println!("x is equal to {}", vec.x())
-    /// }
-    /// ```
-    ///
-    /// # Implementing [Scalar]
-    /// To implement [Scalar] you need to implement all [Vector](crate::vec::Vector) fns for the scalar type.
-    /// This is so that each vector fn can be optimized differently for each scalar.
-    /// for example, [f32] uses SIMD to implement fns on most targets.
-    ///
-    /// To make an unoptimized scalar type use [scalar_default_impl](default_impl::scalar_default_impl).
-    ///
-    /// To make a wrapper scaler type for an existing scalar (for example Meters(f32)) use ```todo!()```
-    Scalar: Construct + ScalarInnerVecs,
+    pub impl:
 
     fn from_array(array: [T; N]) -> Self @match A {
         VecAligned => @match N {
