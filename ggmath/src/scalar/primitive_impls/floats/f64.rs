@@ -19,3 +19,5 @@ impl ScalarSubAssign<f64> for f64 {}
 impl ScalarMulAssign<f64> for f64 {}
 impl ScalarDivAssign<f64> for f64 {}
 impl ScalarRemAssign<f64> for f64 {}
+
+impl ScalarNum for f64 {}

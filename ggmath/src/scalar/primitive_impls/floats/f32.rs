@@ -19,3 +19,5 @@ impl ScalarSubAssign<f32> for f32 {}
 impl ScalarMulAssign<f32> for f32 {}
 impl ScalarDivAssign<f32> for f32 {}
 impl ScalarRemAssign<f32> for f32 {}
+
+impl ScalarNum for f32 {}
