@@ -12,7 +12,7 @@ pub(in crate::matrix) mod major_axis_seal {
     use super::*;
 
     pub trait MatrixMajorAxis: Sized {
-        type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment>: InnerConstruct
+        type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment>: Construct
             + PartialEq
         where
             ScalarCount<C>: VecLen<C>,

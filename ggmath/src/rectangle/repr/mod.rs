@@ -1,6 +1,6 @@
 use std::array;
 
-use crate::construct::InnerConstruct;
+use crate::construct::*;
 
 use super::*;
 
@@ -12,7 +12,7 @@ pub use cornered::*;
 pub use min_maxed::*;
 
 pub trait RectRepr: Sized {
-    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment>: InnerConstruct + PartialEq
+    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment>: Construct + PartialEq
     where
         ScalarCount<N>: VecLen<N>;
 

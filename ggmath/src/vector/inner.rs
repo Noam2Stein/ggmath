@@ -14,11 +14,11 @@ pub type InnerVector<const N: usize, T, A> = <A as VecAlignmentInnerVecs>::Inner
 pub unsafe trait ScalarInnerVecs: Construct {
     /// Inner-type for ```VecAligned``` Vec2s.
     /// - Guarenteed: ```size = align = size_of::<T>().next_power_of_two() * 2```
-    type InnerAlignedVec2: InnerConstruct;
+    type InnerAlignedVec2: Construct;
 
     /// Inner-type for ```VecAligned``` Vec4s and Vec3s.
     /// - Guarenteed: ```size = align = size_of::<T>().next_power_of_two() * 4```
-    type InnerAlignedVec4: InnerConstruct;
+    type InnerAlignedVec4: Construct;
 }
 
 pub use ggmath_proc_macros::inner_vecs;
@@ -26,7 +26,7 @@ pub use ggmath_proc_macros::inner_vecs;
 #[doc(hidden)]
 #[allow(private_bounds)]
 pub trait VecLenInnerVec: Seal {
-    type InnerAlignedVec<T: ScalarInnerVecs>: InnerConstruct;
+    type InnerAlignedVec<T: ScalarInnerVecs>: Construct;
 }
 impl Seal for ScalarCount<2> {}
 impl Seal for ScalarCount<4> {}
@@ -44,7 +44,7 @@ impl VecLenInnerVec for ScalarCount<4> {
 #[doc(hidden)]
 #[allow(private_bounds)]
 pub trait VecAlignmentInnerVecs: Seal {
-    type InnerVec<const N: usize, T: ScalarInnerVecs>: InnerConstruct
+    type InnerVec<const N: usize, T: ScalarInnerVecs>: Construct
     where
         ScalarCount<N>: VecLenInnerVec;
 }

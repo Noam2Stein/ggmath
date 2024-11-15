@@ -1,18 +1,9 @@
-//! base traits for mathamatical types.
-
-use std::fmt::{Debug, Display};
+//! base trait for mathamatical types.
 
 /// The base trait for mathamatical types.
 ///
-/// Includes core Rust traits like [Copy] and [Display].
+/// makes sure a type is [Sized], [Send], [Sync], and [Copy].
 /// Is automatically implemented for types that implement its supertraits.
-pub trait Construct: InnerConstruct + PartialEq + Display {}
+pub trait Construct: Sized + Send + Sync + Copy {}
 
-/// The base trait for inner mathamatical types.
-///
-/// Includes core Rust traits needed for inner data like [Copy] and [Debug], but not outer traits like [Display].
-/// - Anything that implements [Construct] also implements [InnerConstruct].
-pub trait InnerConstruct: Sized + Send + Sync + Copy + Debug {}
-
-impl<T: InnerConstruct + PartialEq + Display> Construct for T {}
-impl<T: Sized + Send + Sync + Copy + Debug> InnerConstruct for T {}
+impl<T: Sized + Send + Sync + Copy> Construct for T {}
