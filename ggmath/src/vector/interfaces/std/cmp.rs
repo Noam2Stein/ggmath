@@ -1,5 +1,3 @@
-use std::cmp::Ordering;
-
 ggmath_proc_macros::vec_interface!(
     ScalarPartialEq<Rhs: Scalar>: Scalar + PartialEq<Rhs>;
 
