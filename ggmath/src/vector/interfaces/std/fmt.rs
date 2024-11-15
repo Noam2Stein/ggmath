@@ -1,10 +1,7 @@
 use std::fmt::{Debug, Formatter, Result};
 
 ggmath_proc_macros::vec_interface!(
-    ScalarDebug: Scalar + Debug
-    where
-        T::InnerAlignedVec2: Debug,
-        T::InnerAlignedVec4: Debug;
+    ScalarDebug: Scalar<InnerAlignedVec2: Debug, InnerAlignedVec4: Debug> + Debug;
 
     impl Debug:
 
