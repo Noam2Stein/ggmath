@@ -1,6 +1,6 @@
 use crate::{
     construct::*,
-    scalar::Scalar,
+    scalar::*,
     vector::{alignment::*, length::*, *},
 };
 
@@ -17,7 +17,7 @@ where
     ScalarCount<C>: VecLen<C>,
     ScalarCount<R>: VecLen<R>,
 {
-    inner: <M as major_axis_seal::MatrixMajorAxis>::InnerMatrix<C, R, T, A>,
+    inner: M::InnerMatrix<C, R, T, A>,
 }
 
 pub type Mat2<T, M> = Matrix<2, 2, T, VecAligned, M>;
