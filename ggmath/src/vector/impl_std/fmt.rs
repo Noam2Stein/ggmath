@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{Debug, Display, Formatter, Result};
 
 use super::*;
 
@@ -6,7 +6,7 @@ impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, 
 where
     ScalarCount<N>: VecLen<N>,
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "({})",
@@ -19,7 +19,7 @@ impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N,
 where
     ScalarCount<N>: VecLen<N>,
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "({})",
