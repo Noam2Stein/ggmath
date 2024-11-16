@@ -16,6 +16,7 @@ ggmath_proc_macros::interfaces_mod_traits!(
 
     ScalarDefault
     ScalarPartialEq
+    ScalarPartialOrd
 
     ScalarNeg
     ScalarNot
