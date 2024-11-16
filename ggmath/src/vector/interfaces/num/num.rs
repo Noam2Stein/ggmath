@@ -1,9 +1,18 @@
+use std::fmt::{Debug, Display};
+
 use super::*;
 
 ggmath_proc_macros::vec_interface!(
     ScalarNum:
+
     Scalar +
+
     ScalarDefault +
+    ScalarPartialEq<T> +
+    Debug +
+    Display +
+    PartialOrd +
+
     ScalarAdd<T, Output = T> +
     ScalarSub<T, Output = T> +
     ScalarMul<T, Output = T> +
@@ -14,7 +23,7 @@ ggmath_proc_macros::vec_interface!(
     ScalarMulAssign<T> +
     ScalarDivAssign<T> +
     ScalarRemAssign<T> +
-    PartialOrd +
+
     Num +
     NumCast +
     NumRef +
