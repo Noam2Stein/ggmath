@@ -7,6 +7,7 @@ inner_vecs!(u16(2));
 impl Scalar for u16 {}
 
 impl ScalarDefault for u16 {}
+impl ScalarPartialEq<u16> for u16 {}
 
 impl ScalarAdd<u16> for u16 {}
 impl ScalarSub<u16> for u16 {}

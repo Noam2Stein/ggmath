@@ -7,6 +7,7 @@ inner_vecs!(f64(8));
 impl Scalar for f64 {}
 
 impl ScalarDefault for f64 {}
+impl ScalarPartialEq<f64> for f64 {}
 
 impl ScalarNeg for f64 {}
 impl ScalarAdd<f64> for f64 {}

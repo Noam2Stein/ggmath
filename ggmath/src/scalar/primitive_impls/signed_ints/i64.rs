@@ -7,6 +7,7 @@ inner_vecs!(i64(8));
 impl Scalar for i64 {}
 
 impl ScalarDefault for i64 {}
+impl ScalarPartialEq<i64> for i64 {}
 
 impl ScalarNeg for i64 {}
 impl ScalarAdd<i64> for i64 {}

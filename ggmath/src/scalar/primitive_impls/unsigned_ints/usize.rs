@@ -11,6 +11,7 @@ inner_vecs!(usize(8));
 impl Scalar for usize {}
 
 impl ScalarDefault for usize {}
+impl ScalarPartialEq<usize> for usize {}
 
 impl ScalarAdd<usize> for usize {}
 impl ScalarSub<usize> for usize {}
