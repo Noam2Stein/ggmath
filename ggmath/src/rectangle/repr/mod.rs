@@ -110,6 +110,13 @@ pub trait RectRepr: Sized {
     where
         ScalarCount<N>: VecLen<N>;
 
+    fn debug_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result
+    where
+        ScalarCount<N>: VecLen<N>;
+
     fn display_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
         rect: Rectangle<N, T, A, Self>,
         f: &mut std::fmt::Formatter,

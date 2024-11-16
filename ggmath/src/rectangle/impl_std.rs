@@ -1,8 +1,8 @@
 use std::fmt::{self, Formatter};
 
-use crate::construct::Construct;
-
 use super::*;
+
+// Ensure Rectangle is Construct
 
 const _: () = {
     fn ensure_rectangle_is_construct<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr>()
@@ -14,6 +14,8 @@ const _: () = {
         wreck_it_ralph::<Rectangle<N, T, A, R>>();
     }
 };
+
+// Clone + Copy
 
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Clone for Rectangle<N, T, A, R>
 where
@@ -30,6 +32,25 @@ impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Copy for Rectan
 {
 }
 
+// PartialEq + Eq
+
+impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> PartialEq for Rectangle<N, T, A, R>
+where
+    ScalarCount<N>: VecLen<N>,
+{
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.eq(&other.inner)
+    }
+}
+
+impl<const N: usize, T: ScalarNum + Eq, A: VecAlignment, R: RectRepr> Eq for Rectangle<N, T, A, R> where
+    ScalarCount<N>: VecLen<N>
+{
+}
+
+// Debug + Display
+
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> fmt::Debug
     for Rectangle<N, T, A, R>
 where
@@ -37,7 +58,7 @@ where
 {
     #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        self.inner.fmt(f)
+        R::debug_fmt(*self, f)
     }
 }
 
@@ -48,15 +69,5 @@ where
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         R::display_fmt(*self, f)
-    }
-}
-
-impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> PartialEq for Rectangle<N, T, A, R>
-where
-    ScalarCount<N>: VecLen<N>,
-{
-    #[inline(always)]
-    fn eq(&self, other: &Self) -> bool {
-        self.inner.eq(&other.inner)
     }
 }

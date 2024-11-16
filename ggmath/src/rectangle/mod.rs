@@ -1,4 +1,5 @@
 use crate::{
+    construct::*,
     scalar::*,
     vector::{alignment::*, length::*, *},
 };

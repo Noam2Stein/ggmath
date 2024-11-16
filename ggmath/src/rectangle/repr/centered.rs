@@ -209,6 +209,20 @@ impl RectRepr for RectCentered {
         }
     }
 
+    fn debug_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        write!(
+            f,
+            "{{ center: {:?}, extents: {:?} }}",
+            rect.center(),
+            rect.extents()
+        )
+    }
     fn display_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
         rect: Rectangle<N, T, A, Self>,
         f: &mut std::fmt::Formatter,

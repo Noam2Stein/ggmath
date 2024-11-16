@@ -202,6 +202,15 @@ impl RectRepr for RectCornered {
         }
     }
 
+    fn debug_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
+        rect: Rectangle<N, T, A, Self>,
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        write!(f, "{{ min: {:?}, size: {:?} }}", rect.min(), rect.size())
+    }
     fn display_fmt<const N: usize, T: ScalarNum, A: VecAlignment>(
         rect: Rectangle<N, T, A, Self>,
         f: &mut std::fmt::Formatter,
