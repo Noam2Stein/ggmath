@@ -20,7 +20,7 @@ ggmath_proc_macros::vec_interface!(
 
     pub impl:
 
-    fn min(self, other: Self) -> Self {
+    fn min(self, other: Vector<N, T, impl VecAlignment>) -> Self {
         Vector::from_array(array::from_fn(|i| match self[i].partial_cmp(&other[i]) {
             None => self[i],
             Some(Ordering::Less) => self[i],
@@ -28,7 +28,7 @@ ggmath_proc_macros::vec_interface!(
             Some(Ordering::Greater) => other[i],
         }))
     }
-    fn max(self, other: Self) -> Self {
+    fn max(self, other: Vector<N, T, impl VecAlignment>) -> Self {
         Vector::from_array(array::from_fn(|i| match self[i].partial_cmp(&other[i]) {
             None => self[i],
             Some(Ordering::Less) => other[i],
@@ -36,7 +36,7 @@ ggmath_proc_macros::vec_interface!(
             Some(Ordering::Greater) => self[i],
         }))
     }
-    fn clamp(self, min: Self, max: Self) -> Self {
+    fn clamp(self, min: Vector<N, T, impl VecAlignment>, max: Vector<N, T, impl VecAlignment>) -> Self {
         self.max(min).min(max)
     }
 );
