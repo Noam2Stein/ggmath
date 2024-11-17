@@ -34,6 +34,7 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
         ident: interface_ident,
         generics: interface_generics,
         supertraits: interface_supertraits,
+        scalar_items: interface_scalar_items,
         impls: _,
     } = interface;
     let interface_where_clause = &interface.generics.where_clause;
@@ -64,6 +65,7 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
 
         #trait_declaration {
             #(#output_fns)*
+            #(#interface_scalar_items)*
         }
     }
 }

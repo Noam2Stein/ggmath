@@ -1,4 +1,4 @@
-use syn::{ext::IdentExt, ItemType, TraitBound};
+use syn::{braced, ext::IdentExt, ItemType, TraitBound, TraitItem};
 
 use super::*;
 
@@ -7,6 +7,7 @@ pub struct VecInterface {
     pub ident: Ident,
     pub generics: Generics,
     pub supertraits: Vec<TraitBound>,
+    pub scalar_items: Vec<TraitItem>,
     pub impls: Vec<VecInterfaceImpl>,
 }
 
@@ -43,7 +44,19 @@ impl Parse for VecInterface {
 
         generics.where_clause = Parse::parse(input)?;
 
-        <Token![;]>::parse(input)?;
+        let scalar_items = if <Option<Token![;]>>::parse(input)?.is_some() {
+            Vec::new()
+        } else {
+            let stream;
+            braced!(stream in input);
+
+            let mut scalar_items = Vec::new();
+            while !stream.is_empty() {
+                scalar_items.push(stream.parse()?);
+            }
+
+            scalar_items
+        };
 
         let mut impls = Vec::new();
         while !input.is_empty() {
@@ -54,6 +67,7 @@ impl Parse for VecInterface {
             ident,
             generics,
             supertraits,
+            scalar_items,
             impls,
         })
     }
