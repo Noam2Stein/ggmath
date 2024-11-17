@@ -182,20 +182,8 @@ impl RectRepr for RectCornered {
     {
         if rect.intersects(other) {
             Some(Rectangle::from_min_max(
-                Vector::from_array(array::from_fn(|i| {
-                    if rect.min()[i] > other.min()[i] {
-                        rect.min()[i]
-                    } else {
-                        other.min()[i]
-                    }
-                })),
-                Vector::from_array(array::from_fn(|i| {
-                    if rect.max()[i] < other.min()[i] {
-                        rect.max()[i]
-                    } else {
-                        other.max()[i]
-                    }
-                })),
+                rect.min().max(other.min()),
+                rect.max().min(other.max()),
             ))
         } else {
             None
