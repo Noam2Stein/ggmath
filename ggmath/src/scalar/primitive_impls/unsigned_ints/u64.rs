@@ -8,6 +8,7 @@ impl Scalar for u64 {}
 
 impl ScalarDefault for u64 {}
 impl ScalarPartialEq<u64> for u64 {}
+impl ScalarPartialOrd for u64 {}
 
 impl ScalarAdd<u64> for u64 {}
 impl ScalarSub<u64> for u64 {}

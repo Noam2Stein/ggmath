@@ -12,6 +12,7 @@ impl Scalar for isize {}
 
 impl ScalarDefault for isize {}
 impl ScalarPartialEq<isize> for isize {}
+impl ScalarPartialOrd for isize {}
 
 impl ScalarNeg for isize {}
 impl ScalarAdd<isize> for isize {}

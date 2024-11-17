@@ -8,6 +8,7 @@ impl Scalar for i32 {}
 
 impl ScalarDefault for i32 {}
 impl ScalarPartialEq<i32> for i32 {}
+impl ScalarPartialOrd for i32 {}
 
 impl ScalarNeg for i32 {}
 impl ScalarAdd<i32> for i32 {}

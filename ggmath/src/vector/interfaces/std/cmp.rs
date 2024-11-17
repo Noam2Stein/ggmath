@@ -36,4 +36,7 @@ ggmath_proc_macros::vec_interface!(
             Some(Ordering::Greater) => self[i],
         }))
     }
+    fn clamp(self, min: Self, max: Self) -> Self {
+        self.max(min).min(max)
+    }
 );

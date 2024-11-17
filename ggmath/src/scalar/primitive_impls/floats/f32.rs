@@ -8,6 +8,7 @@ impl Scalar for f32 {}
 
 impl ScalarDefault for f32 {}
 impl ScalarPartialEq<f32> for f32 {}
+impl ScalarPartialOrd for f32 {}
 
 impl ScalarNeg for f32 {}
 impl ScalarAdd<f32> for f32 {}

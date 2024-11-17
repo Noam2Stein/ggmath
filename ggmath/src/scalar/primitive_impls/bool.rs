@@ -8,6 +8,7 @@ impl Scalar for bool {}
 
 impl ScalarDefault for bool {}
 impl ScalarPartialEq<bool> for bool {}
+impl ScalarPartialOrd for bool {}
 
 impl ScalarNot for bool {}
 impl ScalarBitAnd<bool> for bool {}

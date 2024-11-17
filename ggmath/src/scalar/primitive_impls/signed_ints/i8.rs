@@ -8,6 +8,7 @@ impl Scalar for i8 {}
 
 impl ScalarDefault for i8 {}
 impl ScalarPartialEq<i8> for i8 {}
+impl ScalarPartialOrd for i8 {}
 
 impl ScalarNeg for i8 {}
 impl ScalarAdd<i8> for i8 {}

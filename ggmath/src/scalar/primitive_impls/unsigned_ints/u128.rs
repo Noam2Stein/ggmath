@@ -8,6 +8,7 @@ impl Scalar for u128 {}
 
 impl ScalarDefault for u128 {}
 impl ScalarPartialEq<u128> for u128 {}
+impl ScalarPartialOrd for u128 {}
 
 impl ScalarAdd<u128> for u128 {}
 impl ScalarSub<u128> for u128 {}

@@ -9,9 +9,9 @@ ggmath_proc_macros::vec_interface!(
 
     ScalarDefault +
     ScalarPartialEq<T> +
+    ScalarPartialOrd +
     Debug +
     Display +
-    PartialOrd +
 
     ScalarAdd<T, Output = T> +
     ScalarSub<T, Output = T> +
