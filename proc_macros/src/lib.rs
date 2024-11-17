@@ -1,21 +1,4 @@
-//! proc macros for GGMath.
-//!
-//! - Will be replaced by declarative macros once rust supports
-
-//#![warn(missing_docs)]
-
-macro_rules! export {
-    ($(#[$meta:meta])* $ident:ident) => {
-        $(#[$meta])*
-        #[proc_macro]
-        pub fn $ident(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
-            $ident::$ident(tokens)
-        }
-    };
-}
-
-mod utils;
-use utils::*;
+//! GGMath proc macros.
 
 use derive_syn_parse::Parse;
 use proc_macro::TokenStream as TokenStream1;
@@ -28,19 +11,13 @@ use syn::{
     Error, Token,
 };
 
-mod assign_ops;
-mod inner_vecs;
+mod utils;
+use utils::*;
 
-mod interfaces_mod_traits;
+// External Macros
 
-mod rhs_ops;
+mod external;
 
-mod scalar_aliases;
-mod self_ops;
-mod swizzles;
-mod vec_interface;
-
-export!(
 /// expands into type aliases for vector, matricies... for a specific scalar type.
 ///
 /// ```
@@ -56,17 +33,51 @@ export!(
 /// // pub type FVec2 = Vec2<f32>;
 /// // ...
 /// ```
-    scalar_aliases
-);
+#[proc_macro]
+#[inline(always)]
+pub fn scalar_aliases(input: TokenStream1) -> TokenStream1 {
+    external::scalar_aliases(input)
+}
 
-export!(inner_vecs);
+#[proc_macro]
+#[inline(always)]
+pub fn inner_vecs(input: TokenStream1) -> TokenStream1 {
+    external::inner_vecs(input)
+}
 
-export!(vec_interface);
+// Internal Macros
 
-export!(swizzles);
+mod internal;
 
-export!(interfaces_mod_traits);
+#[proc_macro]
+#[inline(always)]
+pub fn vec_interface(input: TokenStream1) -> TokenStream1 {
+    internal::vec_interface(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn interfaces_mod_traits(input: TokenStream1) -> TokenStream1 {
+    internal::interfaces_mod_traits(input)
+}
 
-export!(self_ops);
-export!(rhs_ops);
-export!(assign_ops);
+#[proc_macro]
+#[inline(always)]
+pub fn swizzles(input: TokenStream1) -> TokenStream1 {
+    internal::swizzles(input)
+}
+
+#[proc_macro]
+#[inline(always)]
+pub fn self_ops(input: TokenStream1) -> TokenStream1 {
+    internal::self_ops(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn rhs_ops(input: TokenStream1) -> TokenStream1 {
+    internal::rhs_ops(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn assign_ops(input: TokenStream1) -> TokenStream1 {
+    internal::assign_ops(input)
+}
