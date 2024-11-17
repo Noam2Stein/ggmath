@@ -1,34 +1,5 @@
 use super::*;
 
-pub fn vector<const N: usize, T: Scalar, A: VecAlignment>(
-    value: impl IntoVector<N, T>,
-) -> Vector<N, T, A>
-where
-    ScalarCount<N>: VecLen<N>,
-{
-    value.into_vec()
-}
-
-pub fn vec2<T: Scalar>(value: impl IntoVector<2, T>) -> Vec2<T> {
-    value.into_vec()
-}
-pub fn vec3<T: Scalar>(value: impl IntoVector<3, T>) -> Vec3<T> {
-    value.into_vec()
-}
-pub fn vec4<T: Scalar>(value: impl IntoVector<4, T>) -> Vec4<T> {
-    value.into_vec()
-}
-
-pub fn vec2p<T: Scalar>(value: impl IntoVector<2, T>) -> Vec2P<T> {
-    value.into_vec()
-}
-pub fn vec3p<T: Scalar>(value: impl IntoVector<3, T>) -> Vec3P<T> {
-    value.into_vec()
-}
-pub fn vec4p<T: Scalar>(value: impl IntoVector<4, T>) -> Vec4P<T> {
-    value.into_vec()
-}
-
 pub trait IntoVector<const N: usize, T: Scalar>: Sized
 where
     ScalarCount<N>: VecLen<N>,

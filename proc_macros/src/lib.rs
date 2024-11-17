@@ -45,6 +45,37 @@ pub fn inner_vecs(input: TokenStream1) -> TokenStream1 {
     external::inner_vecs(input)
 }
 
+#[proc_macro]
+#[inline(always)]
+pub fn vec2(input: TokenStream1) -> TokenStream1 {
+    external::vec2(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn vec3(input: TokenStream1) -> TokenStream1 {
+    external::vec3(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn vec4(input: TokenStream1) -> TokenStream1 {
+    external::vec4(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn vec2p(input: TokenStream1) -> TokenStream1 {
+    external::vec2p(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn vec3p(input: TokenStream1) -> TokenStream1 {
+    external::vec3p(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn vec4p(input: TokenStream1) -> TokenStream1 {
+    external::vec4p(input)
+}
+
 // Internal Macros
 
 mod internal;
