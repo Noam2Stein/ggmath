@@ -172,12 +172,7 @@ impl RectRepr for RectCentered {
         ScalarCount<N>: VecLen<N>,
     {
         (0..N).all(|i| {
-            rect.extents()[i] + other.extents()[i]
-                < if rect.center()[i] > other.center()[i] {
-                    rect.center()[i] - other.center()[i]
-                } else {
-                    other.center()[i] - rect.center()[i]
-                }
+            rect.extents()[i] + other.extents()[i] < rect.center()[i].abs_diff(&other.center()[i])
         })
     }
     fn intersection<const N: usize, T: ScalarNum, A: VecAlignment>(
