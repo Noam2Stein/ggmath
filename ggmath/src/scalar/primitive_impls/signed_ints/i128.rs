@@ -1,6 +1,4 @@
-use ggmath_proc_macros::inner_vecs;
-
-use crate::{self as ggmath, scalar::*};
+use super::*;
 
 inner_vecs!(i128(16));
 
@@ -38,5 +36,19 @@ macro_rules! impl_sh {
     };
 }
 impl_sh!(u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize);
+
+impl ScalarAbsDiff<i128> for i128 {}
+impl AbsDiff for i128 {
+    type Output = Self;
+
+    #[inline(always)]
+    fn abs_diff(&self, rhs: &Self) -> Self::Output {
+        if self > rhs {
+            self - rhs
+        } else {
+            rhs - self
+        }
+    }
+}
 
 impl ScalarNum for i128 {}

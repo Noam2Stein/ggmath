@@ -1,6 +1,4 @@
-use ggmath_proc_macros::inner_vecs;
-
-use crate::{self as ggmath, scalar::*};
+use super::*;
 
 inner_vecs!(bool(1));
 

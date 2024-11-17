@@ -1,6 +1,4 @@
-use ggmath_proc_macros::inner_vecs;
-
-use crate::{self as ggmath, scalar::*};
+use super::*;
 
 inner_vecs!(f64(8));
 
@@ -21,5 +19,15 @@ impl ScalarSubAssign<f64> for f64 {}
 impl ScalarMulAssign<f64> for f64 {}
 impl ScalarDivAssign<f64> for f64 {}
 impl ScalarRemAssign<f64> for f64 {}
+
+impl ScalarAbsDiff<f64> for f64 {}
+impl AbsDiff for f64 {
+    type Output = Self;
+
+    #[inline(always)]
+    fn abs_diff(&self, rhs: &Self) -> Self::Output {
+        (self - rhs).abs()
+    }
+}
 
 impl ScalarNum for f64 {}
