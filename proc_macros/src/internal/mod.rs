@@ -1,14 +1,14 @@
 use super::*;
 
-mod assign_ops;
-mod interfaces_mod_traits;
-mod rhs_ops;
-mod self_ops;
-mod swizzles;
+mod collect_vec_interfaces;
+mod for_assign_ops;
+mod for_rhs_ops;
+mod for_self_ops;
+mod for_swizzles;
 mod vec_interface;
-pub use assign_ops::assign_ops;
-pub use interfaces_mod_traits::interfaces_mod_traits;
-pub use rhs_ops::rhs_ops;
-pub use self_ops::self_ops;
-pub use swizzles::swizzles;
+pub use collect_vec_interfaces::collect_vec_interfaces;
+pub use for_assign_ops::for_assign_ops;
+pub use for_rhs_ops::for_rhs_ops;
+pub use for_self_ops::for_self_ops;
+pub use for_swizzles::for_swizzles;
 pub use vec_interface::vec_interface;

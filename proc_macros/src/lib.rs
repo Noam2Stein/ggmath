@@ -56,28 +56,28 @@ pub fn vec_interface(input: TokenStream1) -> TokenStream1 {
 }
 #[proc_macro]
 #[inline(always)]
-pub fn interfaces_mod_traits(input: TokenStream1) -> TokenStream1 {
-    internal::interfaces_mod_traits(input)
+pub fn collect_vec_interfaces(input: TokenStream1) -> TokenStream1 {
+    internal::collect_vec_interfaces(input)
 }
 
 #[proc_macro]
 #[inline(always)]
-pub fn swizzles(input: TokenStream1) -> TokenStream1 {
-    internal::swizzles(input)
+pub fn for_swizzles(input: TokenStream1) -> TokenStream1 {
+    internal::for_swizzles(input)
 }
 
 #[proc_macro]
 #[inline(always)]
-pub fn self_ops(input: TokenStream1) -> TokenStream1 {
-    internal::self_ops(input)
+pub fn for_self_ops(input: TokenStream1) -> TokenStream1 {
+    internal::for_self_ops(input)
 }
 #[proc_macro]
 #[inline(always)]
-pub fn rhs_ops(input: TokenStream1) -> TokenStream1 {
-    internal::rhs_ops(input)
+pub fn for_rhs_ops(input: TokenStream1) -> TokenStream1 {
+    internal::for_rhs_ops(input)
 }
 #[proc_macro]
 #[inline(always)]
-pub fn assign_ops(input: TokenStream1) -> TokenStream1 {
-    internal::assign_ops(input)
+pub fn for_assign_ops(input: TokenStream1) -> TokenStream1 {
+    internal::for_assign_ops(input)
 }

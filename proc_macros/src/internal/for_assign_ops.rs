@@ -2,9 +2,9 @@ use super::*;
 
 use quote::quote;
 
-use super::rhs_ops::RHS_OPS;
+use super::for_rhs_ops::RHS_OPS;
 
-pub fn assign_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn for_assign_ops(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = TokenStream::from(input);
 
     let ops = RHS_OPS.into_iter().map(|op_str| {

@@ -2,7 +2,7 @@ use quote::quote;
 
 use super::*;
 
-pub fn interfaces_mod_traits(input: TokenStream1) -> TokenStream1 {
+pub fn collect_vec_interfaces(input: TokenStream1) -> TokenStream1 {
     let Input { scalar_traits } = parse_macro_input!(input as Input);
 
     let len_traits = scalar_traits

@@ -13,7 +13,7 @@ pub(crate) mod scalar_traits {
     pub use super::*;
 }
 
-ggmath_proc_macros::interfaces_mod_traits!(
+ggmath_proc_macros::collect_vec_interfaces!(
     Scalar
 
     ScalarDefault

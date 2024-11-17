@@ -1,6 +1,6 @@
 use std::mem::transmute;
 
-use ggmath_proc_macros::swizzles;
+use ggmath_proc_macros::for_swizzles;
 
 use super::*;
 
@@ -21,7 +21,7 @@ macro_rules! vecp {
 
 // GET
 
-swizzles!(1(x y) => {
+for_swizzles!(1(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> T {
@@ -30,7 +30,7 @@ swizzles!(1(x y) => {
         )*)*
     }
 });
-swizzles!(1 1(x y) => {
+for_swizzles!(1 1(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<2, T, A> {
@@ -39,7 +39,7 @@ swizzles!(1 1(x y) => {
         )*)*
     }
 });
-swizzles!(1 1 1(x y) => {
+for_swizzles!(1 1 1(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<3, T, A> {
@@ -48,7 +48,7 @@ swizzles!(1 1 1(x y) => {
         )*)*
     }
 });
-swizzles!(1 1 1 1(x y) => {
+for_swizzles!(1 1 1 1(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<4, T, A> {
@@ -58,7 +58,7 @@ swizzles!(1 1 1 1(x y) => {
     }
 });
 
-swizzles!(1(x y z) => {
+for_swizzles!(1(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> T {
@@ -67,7 +67,7 @@ swizzles!(1(x y z) => {
         )*)*
     }
 });
-swizzles!(1 1(x y z) => {
+for_swizzles!(1 1(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<2, T, A> {
@@ -76,7 +76,7 @@ swizzles!(1 1(x y z) => {
         )*)*
     }
 });
-swizzles!(1 1 1(x y z) => {
+for_swizzles!(1 1 1(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<3, T, A> {
@@ -85,7 +85,7 @@ swizzles!(1 1 1(x y z) => {
         )*)*
     }
 });
-swizzles!(1 1 1 1(x y z) => {
+for_swizzles!(1 1 1 1(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<4, T, A> {
@@ -95,7 +95,7 @@ swizzles!(1 1 1 1(x y z) => {
     }
 });
 
-swizzles!(1(x y z w) => {
+for_swizzles!(1(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> T {
@@ -104,7 +104,7 @@ swizzles!(1(x y z w) => {
         )*)*
     }
 });
-swizzles!(1 1(x y z w) => {
+for_swizzles!(1 1(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<2, T, A> {
@@ -113,7 +113,7 @@ swizzles!(1 1(x y z w) => {
         )*)*
     }
 });
-swizzles!(1 1 1(x y z w) => {
+for_swizzles!(1 1 1(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<3, T, A> {
@@ -122,7 +122,7 @@ swizzles!(1 1 1(x y z w) => {
         )*)*
     }
 });
-swizzles!(1 1 1 1(x y z w) => {
+for_swizzles!(1 1 1 1(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<4, T, A> {
@@ -134,7 +134,7 @@ swizzles!(1 1 1 1(x y z w) => {
 
 // GET MUT
 
-swizzles!(
+for_swizzles!(
     sorted unique 1..2(x y: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
             $($(#[inline(always)]
@@ -145,7 +145,7 @@ swizzles!(
         }
     }
 );
-swizzles!(
+for_swizzles!(
     sorted unique 1..2 1..2(x y: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
             $($(#[inline(always)]
@@ -157,7 +157,7 @@ swizzles!(
     }
 );
 
-swizzles!(
+for_swizzles!(
     sorted unique 1..3(x y z: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
             $($(#[inline(always)]
@@ -168,7 +168,7 @@ swizzles!(
         }
     }
 );
-swizzles!(
+for_swizzles!(
     sorted unique 1..3 1..3(x y z: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
             $($(#[inline(always)]
@@ -179,7 +179,7 @@ swizzles!(
         }
     }
 );
-swizzles!(
+for_swizzles!(
     sorted unique 1..3 1..3 1..3(x y z: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
             $($(#[inline(always)]
@@ -191,7 +191,7 @@ swizzles!(
     }
 );
 
-swizzles!(
+for_swizzles!(
     sorted unique 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
@@ -202,7 +202,7 @@ swizzles!(
         }
     }
 );
-swizzles!(
+for_swizzles!(
     sorted unique 1..4 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
@@ -213,7 +213,7 @@ swizzles!(
         }
     }
 );
-swizzles!(
+for_swizzles!(
     sorted unique 1..4 1..4 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
@@ -224,7 +224,7 @@ swizzles!(
         }
     }
 );
-swizzles!(
+for_swizzles!(
     sorted unique 1..4 1..4 1..4 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
@@ -238,7 +238,7 @@ swizzles!(
 
 // WITH
 
-swizzles!(unique 1 with_(x y) => {
+for_swizzles!(unique 1 with_(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, value: T) -> Self {
@@ -247,7 +247,7 @@ swizzles!(unique 1 with_(x y) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 with_(x y) => {
+for_swizzles!(unique 1 1 with_(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<2, T, A>) -> Self {
@@ -257,7 +257,7 @@ swizzles!(unique 1 1 with_(x y) => {
     }
 });
 
-swizzles!(unique 1 with_(x y z) => {
+for_swizzles!(unique 1 with_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, value: T) -> Self {
@@ -266,7 +266,7 @@ swizzles!(unique 1 with_(x y z) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 with_(x y z) => {
+for_swizzles!(unique 1 1 with_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<2, T, A>) -> Self {
@@ -275,7 +275,7 @@ swizzles!(unique 1 1 with_(x y z) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 1 with_(x y z) => {
+for_swizzles!(unique 1 1 1 with_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<3, T, A>) -> Self {
@@ -285,7 +285,7 @@ swizzles!(unique 1 1 1 with_(x y z) => {
     }
 });
 
-swizzles!(unique 1 with_(x y z w) => {
+for_swizzles!(unique 1 with_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, value: T) -> Self {
@@ -294,7 +294,7 @@ swizzles!(unique 1 with_(x y z w) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 with_(x y z w) => {
+for_swizzles!(unique 1 1 with_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<2, T, A>) -> Self {
@@ -303,7 +303,7 @@ swizzles!(unique 1 1 with_(x y z w) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 1 with_(x y z w) => {
+for_swizzles!(unique 1 1 1 with_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<3, T, A>) -> Self {
@@ -312,7 +312,7 @@ swizzles!(unique 1 1 1 with_(x y z w) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 1 1 with_(x y z w) => {
+for_swizzles!(unique 1 1 1 1 with_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<4, T, A>) -> Self {
@@ -324,7 +324,7 @@ swizzles!(unique 1 1 1 1 with_(x y z w) => {
 
 // SET
 
-swizzles!(unique 1 set_(x y) => {
+for_swizzles!(unique 1 set_(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, value: T) {
@@ -333,7 +333,7 @@ swizzles!(unique 1 set_(x y) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 set_(x y) => {
+for_swizzles!(unique 1 1 set_(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<2, T, A>) {
@@ -343,7 +343,7 @@ swizzles!(unique 1 1 set_(x y) => {
     }
 });
 
-swizzles!(unique 1 set_(x y z) => {
+for_swizzles!(unique 1 set_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, value: T) {
@@ -352,7 +352,7 @@ swizzles!(unique 1 set_(x y z) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 set_(x y z) => {
+for_swizzles!(unique 1 1 set_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<2, T, A>) {
@@ -361,7 +361,7 @@ swizzles!(unique 1 1 set_(x y z) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 1 set_(x y z) => {
+for_swizzles!(unique 1 1 1 set_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<3, T, A>) {
@@ -371,7 +371,7 @@ swizzles!(unique 1 1 1 set_(x y z) => {
     }
 });
 
-swizzles!(unique 1 set_(x y z w) => {
+for_swizzles!(unique 1 set_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, value: T) {
@@ -380,7 +380,7 @@ swizzles!(unique 1 set_(x y z w) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 set_(x y z w) => {
+for_swizzles!(unique 1 1 set_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<2, T, A>) {
@@ -389,7 +389,7 @@ swizzles!(unique 1 1 set_(x y z w) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 1 set_(x y z w) => {
+for_swizzles!(unique 1 1 1 set_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<3, T, A>) {
@@ -398,7 +398,7 @@ swizzles!(unique 1 1 1 set_(x y z w) => {
         )*)*
     }
 });
-swizzles!(unique 1 1 1 1 set_(x y z w) => {
+for_swizzles!(unique 1 1 1 1 set_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<4, T, A>) {

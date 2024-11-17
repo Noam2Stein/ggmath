@@ -1,7 +1,9 @@
 use std::mem::MaybeUninit;
 use std::ops::*;
 
-ggmath_proc_macros::self_ops!(
+use ggmath_proc_macros::{for_assign_ops, for_rhs_ops, for_self_ops};
+
+for_self_ops!(
     $(ggmath_proc_macros::vec_interface!(
         $scalar_trait: Scalar + $std_trait<Output: Scalar>;
 
@@ -14,7 +16,7 @@ ggmath_proc_macros::self_ops!(
         }
     );)*
 );
-ggmath_proc_macros::rhs_ops!(
+for_rhs_ops!(
     $(ggmath_proc_macros::vec_interface!(
         $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs, Output: Scalar>;
 
@@ -32,7 +34,7 @@ ggmath_proc_macros::rhs_ops!(
         }
     );)*
 );
-ggmath_proc_macros::assign_ops!(
+for_assign_ops!(
     $(ggmath_proc_macros::vec_interface!(
         $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs>;
 
