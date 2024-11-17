@@ -24,6 +24,8 @@ ggmath_proc_macros::vec_interface!(
     ScalarDivAssign<T> +
     ScalarRemAssign<T> +
 
+    ScalarAbsDiff<T, Output = T> +
+
     Num +
     NumCast +
     NumRef +
