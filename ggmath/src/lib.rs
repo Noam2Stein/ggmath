@@ -11,8 +11,8 @@
 //! - Optional additional types (Rect, Ray...).
 
 mod abs_diff;
-mod builder;
 pub use abs_diff::*;
+pub mod builder;
 
 pub mod construct;
 pub mod scalar;

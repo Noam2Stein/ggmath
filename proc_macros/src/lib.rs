@@ -60,6 +60,7 @@ pub fn vec3(input: TokenStream1) -> TokenStream1 {
 pub fn vec4(input: TokenStream1) -> TokenStream1 {
     external::vec4(input)
 }
+
 #[proc_macro]
 #[inline(always)]
 pub fn vec2p(input: TokenStream1) -> TokenStream1 {
@@ -74,6 +75,98 @@ pub fn vec3p(input: TokenStream1) -> TokenStream1 {
 #[inline(always)]
 pub fn vec4p(input: TokenStream1) -> TokenStream1 {
     external::vec4p(input)
+}
+
+#[proc_macro]
+#[inline(always)]
+pub fn mat2(input: TokenStream1) -> TokenStream1 {
+    external::mat2(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat2x3(input: TokenStream1) -> TokenStream1 {
+    external::mat2x3(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat2x4(input: TokenStream1) -> TokenStream1 {
+    external::mat2x4(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat3x2(input: TokenStream1) -> TokenStream1 {
+    external::mat3x2(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat3(input: TokenStream1) -> TokenStream1 {
+    external::mat3(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat3x4(input: TokenStream1) -> TokenStream1 {
+    external::mat3x4(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat4x2(input: TokenStream1) -> TokenStream1 {
+    external::mat4x2(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat4x3(input: TokenStream1) -> TokenStream1 {
+    external::mat4x3(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat4(input: TokenStream1) -> TokenStream1 {
+    external::mat4(input)
+}
+
+#[proc_macro]
+#[inline(always)]
+pub fn mat2a(input: TokenStream1) -> TokenStream1 {
+    external::mat2a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat2x3a(input: TokenStream1) -> TokenStream1 {
+    external::mat2x3a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat2x4a(input: TokenStream1) -> TokenStream1 {
+    external::mat2x4a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat3x2a(input: TokenStream1) -> TokenStream1 {
+    external::mat3x2a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat3a(input: TokenStream1) -> TokenStream1 {
+    external::mat3a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat3x4a(input: TokenStream1) -> TokenStream1 {
+    external::mat3x4a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat4x2a(input: TokenStream1) -> TokenStream1 {
+    external::mat4x2a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat4x3a(input: TokenStream1) -> TokenStream1 {
+    external::mat4x3a(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn mat4a(input: TokenStream1) -> TokenStream1 {
+    external::mat4a(input)
 }
 
 // Internal Macros

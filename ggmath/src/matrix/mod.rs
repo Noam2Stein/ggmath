@@ -8,7 +8,6 @@ pub mod major_axis;
 use major_axis::*;
 
 mod api;
-pub use api::*;
 
 mod impl_std;
 
