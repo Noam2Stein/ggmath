@@ -108,6 +108,14 @@ impl alignment_seal::VecAlignment for VecAligned {
     {
         Vector::from_array(vec.into_array())
     }
+    fn from_alignment<const N: usize, T: Scalar, AInput: alignment::VecAlignment>(
+        vec: Vector<N, T, AInput>,
+    ) -> Vector<N, T, Self>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        vec.into_aligned()
+    }
 }
 impl VecAlignment for VecAligned {}
 
@@ -150,6 +158,14 @@ impl alignment_seal::VecAlignment for VecPacked {
     {
         vec
     }
+    fn from_alignment<const N: usize, T: Scalar, AInput: VecAlignment>(
+        vec: Vector<N, T, AInput>,
+    ) -> Vector<N, T, Self>
+    where
+        ScalarCount<N>: VecLen<N>,
+    {
+        vec.into_packed()
+    }
 }
 impl VecAlignment for VecPacked {}
 
@@ -167,6 +183,11 @@ pub(super) mod alignment_seal {
         ) -> Vector<N, T, VecPacked>
         where
             ScalarCount<N>: VecLen<N>;
+        fn from_alignment<const N: usize, T: Scalar, AInput: super::VecAlignment>(
+            vec: Vector<N, T, AInput>,
+        ) -> Vector<N, T, Self>
+        where
+            ScalarCount<N>: VecLen<N>;
     }
 }
 
@@ -181,5 +202,9 @@ where
     #[inline(always)]
     pub fn into_packed(self) -> Vector<N, T, VecPacked> {
         A::into_packed(self)
+    }
+    #[inline(always)]
+    pub fn into_alignment<AOutput: VecAlignment>(self) -> Vector<N, T, AOutput> {
+        AOutput::from_alignment(self)
     }
 }
