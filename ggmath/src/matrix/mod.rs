@@ -176,4 +176,35 @@ where
     pub unsafe fn get_row_array_unchecked(self, index: usize) -> [T; C] {
         M::get_row_array_unchecked(self, index)
     }
+
+    #[inline(always)]
+    pub fn into_aligned(self) -> Matrix<C, R, T, VecAligned, M> {
+        self.into_alignment()
+    }
+    #[inline(always)]
+    pub fn into_packed(self) -> Matrix<C, R, T, VecAligned, M> {
+        self.into_alignment()
+    }
+    #[inline(always)]
+    pub fn into_alignment<AOutput: VecAlignment>(self) -> Matrix<C, R, T, AOutput, M> {
+        M::into_alignment(self)
+    }
+    #[inline(always)]
+    pub fn into_column_major(self) -> Matrix<C, R, T, A, ColumnMajor> {
+        M::into_column_major(self)
+    }
+    #[inline(always)]
+    pub fn into_row_major(self) -> Matrix<C, R, T, A, RowMajor> {
+        M::into_row_major(self)
+    }
+    #[inline(always)]
+    pub fn into_major_axis<MOutput: MatrixMajorAxis>(self) -> Matrix<C, R, T, A, MOutput> {
+        MOutput::from_major_axis(self)
+    }
+    #[inline(always)]
+    pub fn into_repr<AOutput: VecAlignment, MOutput: MatrixMajorAxis>(
+        self,
+    ) -> Matrix<C, R, T, AOutput, MOutput> {
+        self.into_alignment().into_major_axis()
+    }
 }

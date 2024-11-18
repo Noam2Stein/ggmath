@@ -193,6 +193,24 @@ impl MatrixMajorAxis for ColumnMajor {
         array::from_fn(|column_index| mat.inner[column_index].get_unchecked(index))
     }
 
+    fn into_alignment<
+        const C: usize,
+        const R: usize,
+        T: Scalar,
+        A: VecAlignment,
+        AOutput: VecAlignment,
+    >(
+        mat: Matrix<C, R, T, A, Self>,
+    ) -> Matrix<C, R, T, AOutput, Self>
+    where
+        ScalarCount<C>: VecLen<C>,
+        ScalarCount<R>: VecLen<R>,
+    {
+        Matrix {
+            inner: mat.inner.map(|column| column.into_alignment()),
+        }
+    }
+
     fn into_column_major<const C: usize, const R: usize, T: Scalar, A: VecAlignment>(
         mat: Matrix<C, R, T, A, Self>,
     ) -> Matrix<C, R, T, A, ColumnMajor>
@@ -212,6 +230,21 @@ impl MatrixMajorAxis for ColumnMajor {
         Matrix {
             inner: array::from_fn(|row_index| Self::get_row(mat, row_index).unwrap()),
         }
+    }
+    fn from_major_axis<
+        const C: usize,
+        const R: usize,
+        T: Scalar,
+        A: VecAlignment,
+        MInput: MatrixMajorAxis,
+    >(
+        mat: Matrix<C, R, T, A, MInput>,
+    ) -> Matrix<C, R, T, A, Self>
+    where
+        ScalarCount<C>: VecLen<C>,
+        ScalarCount<R>: VecLen<R>,
+    {
+        mat.into_column_major()
     }
 
     fn eq<const C: usize, const R: usize, T: ScalarPartialEq<Rhs>, A: VecAlignment, Rhs: Scalar>(
