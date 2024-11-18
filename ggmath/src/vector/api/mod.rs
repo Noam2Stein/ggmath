@@ -1,5 +1,5 @@
 use super::*;
 
 pub mod array;
-pub mod into_vec;
+pub mod builder;
 pub mod swizzle_wrappers;

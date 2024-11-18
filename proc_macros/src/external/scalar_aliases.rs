@@ -80,7 +80,7 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
         #mod_docs
         #vis mod #mod_ident {
             use super::*;
-            use ggmath::vector::{alignment::*, into_vec::*, length::*, *};
+            use ggmath::vector::{alignment::*, length::*, *};
 
             #(#type_aliases)*
         }

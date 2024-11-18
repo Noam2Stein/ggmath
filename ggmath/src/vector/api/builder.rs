@@ -1,16 +1,8 @@
+use crate::builder::Builder;
+
 use super::*;
 
-pub trait IntoVector<const N: usize, T: Scalar>: Sized
-where
-    ScalarCount<N>: VecLen<N>,
-{
-    fn into_vec_array(self) -> [T; N];
-
-    fn into_vec<A: VecAlignment>(self) -> Vector<N, T, A> {
-        Vector::from_array(self.into_vec_array())
-    }
-}
-impl<const N: usize, T: Scalar, A: VecAlignment> IntoVector<N, T> for Vector<N, T, A>
+impl<const N: usize, T: Scalar, A: VecAlignment> Builder for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen<N>,
 {
