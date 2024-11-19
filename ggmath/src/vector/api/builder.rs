@@ -2,6 +2,17 @@ use crate::builder::*;
 
 use super::*;
 
+impl<const N: usize, T: Scalar, AInput: VecAlignment, AOutput: VecAlignment>
+    Builder<Vector<N, T, AOutput>> for Vector<N, T, AInput>
+where
+    ScalarCount<N>: VecLen<N>,
+{
+    #[inline(always)]
+    fn build(self) -> Vector<N, T, AOutput> {
+        self.into_alignment()
+    }
+}
+
 impl<T: Scalar, OutputA: VecAlignment> Builder<Vector<2, T, OutputA>> for (T, T) {
     #[inline(always)]
     fn build(self) -> Vector<2, T, OutputA> {

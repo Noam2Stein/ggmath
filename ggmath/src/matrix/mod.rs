@@ -8,6 +8,7 @@ pub mod major_axis;
 use major_axis::*;
 
 mod api;
+pub use api::builder;
 
 mod impl_std;
 
@@ -38,16 +39,6 @@ pub type Mat3x4P<T, M> = Matrix<3, 4, T, VecPacked, M>;
 pub type Mat4x2P<T, M> = Matrix<4, 2, T, VecPacked, M>;
 pub type Mat4x3P<T, M> = Matrix<4, 3, T, VecPacked, M>;
 pub type Mat4P<T, M> = Matrix<4, 4, T, VecPacked, M>;
-
-pub fn matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>(
-    rows: [Vector<C, T, A>; R],
-) -> Matrix<C, R, T, A, M>
-where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
-{
-    Matrix::from_rows(rows)
-}
 
 pub mod column_major {
     use crate::vector::alignment::*;
