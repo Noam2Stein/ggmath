@@ -1,4 +1,4 @@
-use ggmath::{matrix::*, primitive_aliases::f32::*};
+use ggmath::{matrix::f32_aliases::*, vector::f32_aliases::*};
 
 /// To send vertex buffers to the GPU,
 /// you need to first send the GPU the layout of the buffer's verticies.
@@ -22,5 +22,5 @@ pub struct Vertex {
 /// so we will use that.
 #[repr(C)]
 pub struct UniformCamera {
-    world_to_cam: Mat4C<f32>,
+    world_to_cam: FMat4C,
 }

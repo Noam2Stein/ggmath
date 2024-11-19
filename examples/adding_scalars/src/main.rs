@@ -18,7 +18,7 @@ inner_vecs!(Meters(4));
 
 impl Scalar for Meters {}
 
-scalar_aliases!(mod meters for Meters(M));
+vector_aliases!(mod meter_vector_aliases for Meters(M));
 
 fn main() {
     let a = vec2!(Meters(2.0), Meters(1.0));
