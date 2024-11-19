@@ -97,7 +97,7 @@ impl MatrixMajorAxis for RowMajor {
         ScalarCount<C>: VecLen<C>,
         ScalarCount<R>: VecLen<R>,
     {
-        if index >= R {
+        if index >= C {
             None
         } else {
             Some(Vector::from_array(array::from_fn(|row_index| {
@@ -113,7 +113,7 @@ impl MatrixMajorAxis for RowMajor {
         ScalarCount<C>: VecLen<C>,
         ScalarCount<R>: VecLen<R>,
     {
-        if index >= R {
+        if index >= C {
             None
         } else {
             Some(array::from_fn(|row_index| mat.inner[row_index][index]))
@@ -214,7 +214,7 @@ impl MatrixMajorAxis for RowMajor {
         ScalarCount<R>: VecLen<R>,
     {
         Matrix {
-            inner: array::from_fn(|column_index| Self::get_column(mat, column_index).unwrap()),
+            inner: array::from_fn(|column_index| mat.get_column(column_index).unwrap()),
         }
     }
     fn into_row_major<const C: usize, const R: usize, T: Scalar, A: VecAlignment>(

@@ -1,7 +1,4 @@
-use ggmath::{
-    matrix::{builder::*, *},
-    vector::{builder::*, *},
-};
+use ggmath::matrix::{builder::*, *};
 
 fn main() {
     let t = mat3x2!(
@@ -11,13 +8,10 @@ fn main() {
 
     let m = mat3c!(
         t;
-        t.row0().xy(), 9;
+        t.m21() + 1, 8, 9;
     );
 
-    println!("{m}");
-
-    let funny = vec4!(1, 2, 3, 4);
-    if funny == vec4!(1, 2, 3, 4) {
+    if m == mat3c!(1, 2, 3; 4, 5, 6; 7, 8, 9) {
         println!("Squidward")
     } else {
         println!("Not Squidward")
