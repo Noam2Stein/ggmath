@@ -97,3 +97,141 @@ index_wrappers!(
     row2(self) -> Vector<C, T, A> { self.get_row_unchecked(2) }
     row3(self) -> Vector<C, T, A> { self.get_row_unchecked(3) }
 );
+
+index_wrappers!(
+    for 2, 2:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+);
+index_wrappers!(
+    for 2, 3:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+    m02(self) -> T { self[(0, 2)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+    m12(self) -> T { self[(1, 2)] }
+);
+index_wrappers!(
+    for 2, 4:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+    m02(self) -> T { self[(0, 2)] }
+    m03(self) -> T { self[(0, 3)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+    m12(self) -> T { self[(1, 2)] }
+    m13(self) -> T { self[(1, 3)] }
+);
+
+index_wrappers!(
+    for 3, 2:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+
+    m20(self) -> T { self[(2, 0)] }
+    m21(self) -> T { self[(2, 1)] }
+);
+index_wrappers!(
+    for 3, 3:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+    m02(self) -> T { self[(0, 2)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+    m12(self) -> T { self[(1, 2)] }
+
+    m20(self) -> T { self[(2, 0)] }
+    m21(self) -> T { self[(2, 1)] }
+    m22(self) -> T { self[(2, 2)] }
+);
+index_wrappers!(
+    for 3, 4:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+    m02(self) -> T { self[(0, 2)] }
+    m03(self) -> T { self[(0, 3)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+    m12(self) -> T { self[(1, 2)] }
+    m13(self) -> T { self[(1, 3)] }
+
+    m20(self) -> T { self[(2, 0)] }
+    m21(self) -> T { self[(2, 1)] }
+    m22(self) -> T { self[(2, 2)] }
+    m23(self) -> T { self[(2, 3)] }
+);
+
+index_wrappers!(
+    for 4, 2:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+
+    m20(self) -> T { self[(2, 0)] }
+    m21(self) -> T { self[(2, 1)] }
+
+    m30(self) -> T { self[(3, 0)] }
+    m31(self) -> T { self[(3, 1)] }
+);
+index_wrappers!(
+    for 4, 3:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+    m02(self) -> T { self[(0, 2)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+    m12(self) -> T { self[(1, 2)] }
+
+    m20(self) -> T { self[(2, 0)] }
+    m21(self) -> T { self[(2, 1)] }
+    m22(self) -> T { self[(2, 2)] }
+
+    m30(self) -> T { self[(3, 0)] }
+    m31(self) -> T { self[(3, 1)] }
+    m32(self) -> T { self[(3, 2)] }
+);
+index_wrappers!(
+    for 4, 4:
+
+    m00(self) -> T { self[(0, 0)] }
+    m01(self) -> T { self[(0, 1)] }
+    m02(self) -> T { self[(0, 2)] }
+    m03(self) -> T { self[(0, 3)] }
+
+    m10(self) -> T { self[(1, 0)] }
+    m11(self) -> T { self[(1, 1)] }
+    m12(self) -> T { self[(1, 2)] }
+    m13(self) -> T { self[(1, 3)] }
+
+    m20(self) -> T { self[(2, 0)] }
+    m21(self) -> T { self[(2, 1)] }
+    m22(self) -> T { self[(2, 2)] }
+    m23(self) -> T { self[(2, 3)] }
+
+    m30(self) -> T { self[(3, 0)] }
+    m31(self) -> T { self[(3, 1)] }
+    m32(self) -> T { self[(3, 2)] }
+    m33(self) -> T { self[(3, 3)] }
+);
