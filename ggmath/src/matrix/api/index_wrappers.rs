@@ -8,7 +8,7 @@ macro_rules! index_wrappers {
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {
-                unsafe { $fn_self_expr }
+                #[allow(unused_unsafe)] unsafe { $fn_self_expr }
             }
         )*}
     };
@@ -21,7 +21,7 @@ macro_rules! index_wrappers {
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {
-                unsafe { $fn_self_expr }
+                #[allow(unused_unsafe)] unsafe { $fn_self_expr }
             }
         )*}
     };
@@ -34,7 +34,7 @@ macro_rules! index_wrappers {
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {
-                unsafe { $fn_self_expr }
+                #[allow(unused_unsafe)] unsafe { $fn_self_expr }
             }
         )*}
     };
@@ -48,7 +48,7 @@ macro_rules! index_wrappers {
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {
-                unsafe { $fn_self_expr }
+                #[allow(unused_unsafe)] unsafe { $fn_self_expr }
             }
         )*}
     };
