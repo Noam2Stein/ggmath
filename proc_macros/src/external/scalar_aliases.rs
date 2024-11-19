@@ -1,78 +1,56 @@
 use super::*;
 
 use quote::quote;
-use syn::{token::Paren, AngleBracketedGenericArguments, Generics, Type, Visibility};
+use syn::{token::Paren, Type, Visibility};
 
-pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    #[derive(Parse)]
-    struct Input {
-        vis: Visibility,
-        #[prefix(Token![mod])]
-        mod_ident: Ident,
-        #[prefix(Token![for])]
-        t: Type,
-        #[paren]
-        _t_paren: Paren,
-        #[inside(_t_paren)]
-        prefix: Ident,
-    }
+#[inline(always)]
+pub fn vector_aliases(input: TokenStream1) -> TokenStream1 {
+    scalar_aliases(&["Vec2", "Vec3", "Vec4", "Vec2P", "Vec3P", "Vec4P"], input)
+}
+#[inline(always)]
+pub fn matrix_aliases(input: TokenStream1) -> TokenStream1 {
+    scalar_aliases(
+        &[
+            "Mat2C", "Mat2x3C", "Mat2x4C", "Mat3x2C", "Mat3C", "Mat3x4C", "Mat4x2C", "Mat4x3C",
+            "Mat4C", "Mat2R", "Mat2x3R", "Mat2x4R", "Mat3x2R", "Mat3R", "Mat3x4R", "Mat4x2R",
+            "Mat4x3R", "Mat4R", "Mat2CP", "Mat2x3CP", "Mat2x4CP", "Mat3x2CP", "Mat3CP", "Mat3x4CP",
+            "Mat4x2CP", "Mat4x3CP", "Mat4CP", "Mat2RP", "Mat2x3RP", "Mat2x4RP", "Mat3x2RP",
+            "Mat3RP", "Mat3x4RP", "Mat4x2RP", "Mat4x3RP", "Mat4RP",
+        ],
+        input,
+    )
+}
+#[inline(always)]
+pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
+    scalar_aliases(
+        &[
+            "Rect2", "Rect3", "Rect4", "Rect2C", "Rect3C", "Rect4C", "Rect2M", "Rect3M", "Rect4M",
+            "Rect2P", "Rect3P", "Rect4P", "Rect2CP", "Rect3CP", "Rect4CP", "Rect2MP", "Rect3MP",
+            "Rect4MP",
+        ],
+        input,
+    )
+}
+
+fn scalar_aliases(aliases: &[&str], input: TokenStream1) -> TokenStream1 {
     let Input {
         vis,
         mod_ident,
-        t,
+        scalar_type,
         _t_paren,
         prefix,
     } = parse_macro_input!(input as Input);
 
-    struct TypeAlias {
-        ident: Ident,
-        params: Generics,
-        args: AngleBracketedGenericArguments,
-    }
-    macro_rules! type_aliases {
-        [$($ident:ident $(($($param:tt)*))? => ($($arg:tt)*)), * $(,)?] => {
-            [$(TypeAlias {
-                ident: Ident::new(stringify!($ident), Span::call_site()),
-                params: parse2(quote! { <$($($param)*)?> })
-                    .unwrap_or_else(|err| panic!("failed to parse '{}' generic params: {err}", stringify!($ident))),
-                args: parse2(quote! { <$($arg)*> })
-                    .unwrap_or_else(|err| panic!("failed to parse '{}' generic arguments: {err}", stringify!($ident))),
-            },)*]
-        };
-    }
-    let type_aliases = type_aliases![
-        Vector(const N: usize, A) => (N, #t, A),
-        Vec2 => (#t),
-        Vec3 => (#t),
-        Vec4 => (#t),
-        Vec2P => (#t),
-        Vec3P => (#t),
-        Vec4P => (#t),
-    ]
-    .map(
-        |TypeAlias {
-             ident,
-             params,
-             args,
-         }| {
-            let prefixed_ident = Ident::new(&format!("{prefix}{ident}"), ident.span());
-
-            let docs: TokenStream = parse_str(&format!(
-                "/// type-alias for an [```{}```] [```{ident}```]",
-                t.to_token_stream(),
-            ))
-            .unwrap_or_else(|err| panic!("failed to parse '{ident}' docs: {err}"));
-
-            quote! {
-                #docs
-                pub type #prefixed_ident #params = #ident #args;
-            }
-        },
-    );
+    let aliases_without_prefix = aliases
+        .iter()
+        .map(|alias| Ident::new(&alias, Span::call_site()));
+    let aliases_with_prefix = aliases
+        .iter()
+        .map(|alias| Ident::new(&format!("{prefix}{alias}"), Span::call_site()));
 
     let mod_docs: TokenStream = parse_str(&format!(
         "/// mathamatical type-aliases for [```{}```]",
-        t.to_token_stream()
+        scalar_type.to_token_stream()
     ))
     .unwrap_or_else(|err| panic!("failed to parse mod docs: {err}"));
 
@@ -82,8 +60,23 @@ pub fn scalar_aliases(input: proc_macro::TokenStream) -> proc_macro::TokenStream
             use super::*;
             use ggmath::vector::{alignment::*, length::*, *};
 
-            #(#type_aliases)*
+            #(
+                pub type #aliases_with_prefix = #aliases_without_prefix<#scalar_type>;
+            )*
         }
     }
     .into()
+}
+
+#[derive(Parse)]
+struct Input {
+    vis: Visibility,
+    #[prefix(Token![mod])]
+    mod_ident: Ident,
+    #[prefix(Token![for])]
+    scalar_type: Type,
+    #[paren]
+    _t_paren: Paren,
+    #[inside(_t_paren)]
+    prefix: Ident,
 }

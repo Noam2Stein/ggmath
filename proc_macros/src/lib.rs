@@ -18,25 +18,20 @@ use utils::*;
 
 mod external;
 
-/// expands into type aliases for vector, matricies... for a specific scalar type.
-///
-/// ```
-/// scalar_aliases!($vis $(mod)? $scalar: $prefix);
-/// ```
-/// - if ```mod``` is written, the aliases will be placed inside a sub-module as public.
-///
-/// # Examples
-/// ```
-/// scalar_aliases!(pub f32: F);
-/// // expands into:
-/// // pub type FVector<const N: usize, A> = Vector<N, f32, A>;
-/// // pub type FVec2 = Vec2<f32>;
-/// // ...
-/// ```
 #[proc_macro]
 #[inline(always)]
-pub fn scalar_aliases(input: TokenStream1) -> TokenStream1 {
-    external::scalar_aliases(input)
+pub fn vector_aliases(input: TokenStream1) -> TokenStream1 {
+    external::vector_aliases(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn matrix_aliases(input: TokenStream1) -> TokenStream1 {
+    external::matrix_aliases(input)
+}
+#[proc_macro]
+#[inline(always)]
+pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
+    external::rectangle_aliases(input)
 }
 
 #[proc_macro]

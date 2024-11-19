@@ -13,9 +13,45 @@ pub use api::*;
 #[allow(unused_imports)]
 pub use impl_std::*;
 
-use crate::{construct::*, scalar::*};
+use crate::{construct::*, ggmath, scalar::*};
 use alignment::*;
 use length::*;
+
+pub use ggmath_proc_macros::vector_aliases;
+
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod f32 for f32(F));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod f64 for f64(D));
+
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod u8 for u8(U8));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod u16 for u16(U16));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod u32 for u32(U));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod u64 for u64(U64));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod u128 for u128(U128));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod usize for usize(USize));
+
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod i8 for i8(I8));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod i16 for i16(I16));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod i32 for i32(I));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod i64 for i64(I64));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod i128 for i128(I128));
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod isize for isize(ISize));
+
+#[cfg(feature = "primitive_aliases")]
+vector_aliases!(pub mod bool for bool(B));
 
 /// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
 ///

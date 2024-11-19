@@ -10,4 +10,4 @@ pub use builder::{
     mat4x3c, mat4x3cp, mat4x3p, vec2, vec2p, vec3, vec3p, vec4, vec4p,
 };
 pub use inner_vecs::inner_vecs;
-pub use scalar_aliases::scalar_aliases;
+pub use scalar_aliases::{matrix_aliases, rectangle_aliases, vector_aliases};

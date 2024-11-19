@@ -20,9 +20,6 @@ pub use construct::*;
 pub mod scalar;
 pub mod vector;
 
-#[cfg(feature = "primitive_aliases")]
-pub mod primitive_aliases;
-
 #[cfg(feature = "matrix")]
 pub mod matrix;
 
