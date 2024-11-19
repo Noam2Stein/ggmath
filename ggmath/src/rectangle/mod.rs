@@ -8,6 +8,8 @@ pub mod repr;
 use repr::*;
 
 mod impl_std;
+#[allow(unused_imports)]
+pub use impl_std::*;
 
 pub struct Rectangle<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr>
 where

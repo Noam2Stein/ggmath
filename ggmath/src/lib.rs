@@ -14,7 +14,9 @@ mod abs_diff;
 pub use abs_diff::*;
 pub mod builder;
 
-pub mod construct;
+mod construct;
+pub use construct::*;
+
 pub mod scalar;
 pub mod vector;
 

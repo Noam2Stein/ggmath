@@ -8,9 +8,12 @@ pub mod major_axis;
 use major_axis::*;
 
 mod api;
-pub use api::builder;
-
 mod impl_std;
+// Due to probably a bug, the compiler doesn't pick up 'api::builder' from the 'api::*' import, so it has to be explicitly imported.
+#[allow(unused_imports)]
+pub use api::{builder, *};
+#[allow(unused_imports)]
+pub use impl_std::*;
 
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
 where

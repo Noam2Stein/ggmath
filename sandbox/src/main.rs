@@ -1,6 +1,6 @@
 use ggmath::{
     matrix::{builder::*, column_major::*},
-    vector::*,
+    vector::{builder::*, *},
 };
 
 fn main() {
