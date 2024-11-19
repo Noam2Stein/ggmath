@@ -1,0 +1,102 @@
+use ggmath::vector::{alignment::*, length::*, *};
+
+use crate::testable_scalar::*;
+
+pub fn tests() {
+    tests_for_t::<f32>();
+    tests_for_t::<f64>();
+
+    tests_for_t::<u8>();
+    tests_for_t::<u16>();
+    tests_for_t::<u32>();
+    tests_for_t::<u64>();
+    tests_for_t::<u128>();
+    tests_for_t::<usize>();
+
+    tests_for_t::<i8>();
+    tests_for_t::<i16>();
+    tests_for_t::<i32>();
+    tests_for_t::<i64>();
+    tests_for_t::<i128>();
+    tests_for_t::<isize>();
+
+    tests_for_t::<bool>();
+}
+
+fn tests_for_t<T: TestableScalar>() {
+    tests_for_n_t_a::<2, T, VecAligned>();
+    tests_for_n_t_a::<2, T, VecPacked>();
+    tests_for_n_t_a::<3, T, VecAligned>();
+    tests_for_n_t_a::<3, T, VecPacked>();
+    tests_for_n_t_a::<4, T, VecAligned>();
+    tests_for_n_t_a::<4, T, VecPacked>();
+}
+
+fn tests_for_n_t_a<const N: usize, T: TestableScalar, A: VecAlignment>()
+where
+    ScalarCount<N>: VecLen<N>,
+{
+    let array = T::n_special_values::<N>();
+    let vector = Vector::<N, T, A>::from_array(array);
+
+    let indicies = [0, N / 2, N - 1, N];
+    let valid_indicies = [0, N / 2, N - 1];
+
+    for valid_index in valid_indicies {
+        assert_eq!(vector[valid_index], array[valid_index]);
+    }
+
+    for index in indicies {
+        assert_eq!(vector.get(index), array.get(index).map(|some| *some));
+    }
+
+    for x in valid_indicies {
+        assert_eq!(unsafe { vector.get_unchecked(x) }, array[x]);
+    }
+    for x in valid_indicies {
+        for y in valid_indicies {
+            assert_eq!(
+                vector.get_2([x, y]),
+                Some(Vector::<2, T, A>::from_array([array[x], array[y]]))
+            );
+            assert_eq!(
+                unsafe { vector.get_2_unchecked([x, y]) },
+                Vector::<2, T, A>::from_array([array[x], array[y]])
+            );
+        }
+    }
+    for x in valid_indicies {
+        for y in valid_indicies {
+            for z in valid_indicies {
+                assert_eq!(
+                    vector.get_3([x, y, z]),
+                    Some(Vector::<3, T, A>::from_array([
+                        array[x], array[y], array[z]
+                    ]))
+                );
+                assert_eq!(
+                    unsafe { vector.get_3_unchecked([x, y, z]) },
+                    Vector::<3, T, A>::from_array([array[x], array[y], array[z]])
+                );
+            }
+        }
+    }
+    for x in valid_indicies {
+        for y in valid_indicies {
+            for z in valid_indicies {
+                for w in valid_indicies {
+                    assert_eq!(
+                        vector.get_4([x, y, z, w]),
+                        Some(Vector::<4, T, A>::from_array([
+                            array[x], array[y], array[z], array[w]
+                        ]))
+                    );
+                    assert_eq!(
+                        unsafe { vector.get_4_unchecked([x, y, z, w]) },
+                        Vector::<4, T, A>::from_array([array[x], array[y], array[z], array[w]])
+                    );
+                }
+            }
+        }
+    }
+}

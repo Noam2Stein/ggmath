@@ -5,5 +5,5 @@ members = [
     "examples/gpu_structs",
     "ggmath",
     "proc_macros",
-    "sandbox",
+    "sandbox", "tests",
 ]
