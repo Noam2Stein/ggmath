@@ -43,58 +43,45 @@ pub type Mat4x2P<T, M> = Matrix<4, 2, T, VecPacked, M>;
 pub type Mat4x3P<T, M> = Matrix<4, 3, T, VecPacked, M>;
 pub type Mat4P<T, M> = Matrix<4, 4, T, VecPacked, M>;
 
-pub mod column_major {
-    use crate::vector::alignment::*;
+pub type MatC2<T> = Matrix<2, 2, T, VecAligned, ColumnMajor>;
+pub type MatC2x3<T> = Matrix<2, 3, T, VecAligned, ColumnMajor>;
+pub type MatC2x4<T> = Matrix<2, 4, T, VecAligned, ColumnMajor>;
+pub type MatC3x2<T> = Matrix<3, 2, T, VecAligned, ColumnMajor>;
+pub type MatC3<T> = Matrix<3, 3, T, VecAligned, ColumnMajor>;
+pub type MatC3x4<T> = Matrix<3, 4, T, VecAligned, ColumnMajor>;
+pub type MatC4x2<T> = Matrix<4, 2, T, VecAligned, ColumnMajor>;
+pub type MatC4x3<T> = Matrix<4, 3, T, VecAligned, ColumnMajor>;
+pub type MatC4<T> = Matrix<4, 4, T, VecAligned, ColumnMajor>;
 
-    pub type Matrix<const C: usize, const R: usize, T, A> =
-        super::Matrix<C, R, T, A, super::ColumnMajor>;
+pub type MatC2P<T> = Matrix<2, 2, T, VecPacked, ColumnMajor>;
+pub type MatC2x3P<T> = Matrix<2, 3, T, VecPacked, ColumnMajor>;
+pub type MatC2x4P<T> = Matrix<2, 4, T, VecPacked, ColumnMajor>;
+pub type MatC3x2P<T> = Matrix<3, 2, T, VecPacked, ColumnMajor>;
+pub type MatC3P<T> = Matrix<3, 3, T, VecPacked, ColumnMajor>;
+pub type MatC3x4P<T> = Matrix<3, 4, T, VecPacked, ColumnMajor>;
+pub type MatC4x2P<T> = Matrix<4, 2, T, VecPacked, ColumnMajor>;
+pub type MatC4x3P<T> = Matrix<4, 3, T, VecPacked, ColumnMajor>;
+pub type MatC4P<T> = Matrix<4, 4, T, VecPacked, ColumnMajor>;
 
-    pub type Mat2<T> = Matrix<2, 2, T, VecAligned>;
-    pub type Mat2x3<T> = Matrix<2, 3, T, VecAligned>;
-    pub type Mat2x4<T> = Matrix<2, 4, T, VecAligned>;
-    pub type Mat3x2<T> = Matrix<3, 2, T, VecAligned>;
-    pub type Mat3<T> = Matrix<3, 3, T, VecAligned>;
-    pub type Mat3x4<T> = Matrix<3, 4, T, VecAligned>;
-    pub type Mat4x2<T> = Matrix<4, 2, T, VecAligned>;
-    pub type Mat4x3<T> = Matrix<4, 3, T, VecAligned>;
-    pub type Mat4<T> = Matrix<4, 4, T, VecAligned>;
+pub type MatR2<T> = Matrix<2, 2, T, VecAligned, RowMajor>;
+pub type MatR2x3<T> = Matrix<2, 3, T, VecAligned, RowMajor>;
+pub type MatR2x4<T> = Matrix<2, 4, T, VecAligned, RowMajor>;
+pub type MatR3x2<T> = Matrix<3, 2, T, VecAligned, RowMajor>;
+pub type MatR3<T> = Matrix<3, 3, T, VecAligned, RowMajor>;
+pub type MatR3x4<T> = Matrix<3, 4, T, VecAligned, RowMajor>;
+pub type MatR4x2<T> = Matrix<4, 2, T, VecAligned, RowMajor>;
+pub type MatR4x3<T> = Matrix<4, 3, T, VecAligned, RowMajor>;
+pub type MatR4<T> = Matrix<4, 4, T, VecAligned, RowMajor>;
 
-    pub type Mat2P<T> = Matrix<2, 2, T, VecPacked>;
-    pub type Mat2x3P<T> = Matrix<2, 3, T, VecPacked>;
-    pub type Mat2x4P<T> = Matrix<2, 4, T, VecPacked>;
-    pub type Mat3x2P<T> = Matrix<3, 2, T, VecPacked>;
-    pub type Mat3P<T> = Matrix<3, 3, T, VecPacked>;
-    pub type Mat3x4P<T> = Matrix<3, 4, T, VecPacked>;
-    pub type Mat4x2P<T> = Matrix<4, 2, T, VecPacked>;
-    pub type Mat4x3P<T> = Matrix<4, 3, T, VecPacked>;
-    pub type Mat4P<T> = Matrix<4, 4, T, VecPacked>;
-}
-pub mod row_major {
-    use crate::vector::alignment::*;
-
-    pub type Matrix<const C: usize, const R: usize, T, A> =
-        super::Matrix<C, R, T, A, super::RowMajor>;
-
-    pub type Mat2<T> = Matrix<2, 2, T, VecAligned>;
-    pub type Mat2x3<T> = Matrix<2, 3, T, VecAligned>;
-    pub type Mat2x4<T> = Matrix<2, 4, T, VecAligned>;
-    pub type Mat3x2<T> = Matrix<3, 2, T, VecAligned>;
-    pub type Mat3<T> = Matrix<3, 3, T, VecAligned>;
-    pub type Mat3x4<T> = Matrix<3, 4, T, VecAligned>;
-    pub type Mat4x2<T> = Matrix<4, 2, T, VecAligned>;
-    pub type Mat4x3<T> = Matrix<4, 3, T, VecAligned>;
-    pub type Mat4<T> = Matrix<4, 4, T, VecAligned>;
-
-    pub type Mat2P<T> = Matrix<2, 2, T, VecPacked>;
-    pub type Mat2x3P<T> = Matrix<2, 3, T, VecPacked>;
-    pub type Mat2x4P<T> = Matrix<2, 4, T, VecPacked>;
-    pub type Mat3x2P<T> = Matrix<3, 2, T, VecPacked>;
-    pub type Mat3P<T> = Matrix<3, 3, T, VecPacked>;
-    pub type Mat3x4P<T> = Matrix<3, 4, T, VecPacked>;
-    pub type Mat4x2P<T> = Matrix<4, 2, T, VecPacked>;
-    pub type Mat4x3P<T> = Matrix<4, 3, T, VecPacked>;
-    pub type Mat4P<T> = Matrix<4, 4, T, VecPacked>;
-}
+pub type MatR2P<T> = Matrix<2, 2, T, VecPacked, RowMajor>;
+pub type MatR2x3P<T> = Matrix<2, 3, T, VecPacked, RowMajor>;
+pub type MatR2x4P<T> = Matrix<2, 4, T, VecPacked, RowMajor>;
+pub type MatR3x2P<T> = Matrix<3, 2, T, VecPacked, RowMajor>;
+pub type MatR3P<T> = Matrix<3, 3, T, VecPacked, RowMajor>;
+pub type MatR3x4P<T> = Matrix<3, 4, T, VecPacked, RowMajor>;
+pub type MatR4x2P<T> = Matrix<4, 2, T, VecPacked, RowMajor>;
+pub type MatR4x3P<T> = Matrix<4, 3, T, VecPacked, RowMajor>;
+pub type MatR4P<T> = Matrix<4, 4, T, VecPacked, RowMajor>;
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>

@@ -1,5 +1,5 @@
 use ggmath::{
-    matrix::{builder::*, column_major::*},
+    matrix::{builder::*, *},
     vector::{builder::*, *},
 };
 
