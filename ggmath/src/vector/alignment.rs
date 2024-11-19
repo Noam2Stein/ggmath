@@ -59,7 +59,8 @@ use super::*;
 /// On any other case use ```VecAligned``` (```VecN```, The default).
 #[allow(private_bounds)]
 pub trait VecAlignment:
-    alignment_seal::VecAlignment
+    'static
+    + alignment_seal::VecAlignment
     + interfaces::VecAlignmentInterfaces<2>
     + interfaces::VecAlignmentInterfaces<3>
     + interfaces::VecAlignmentInterfaces<4>

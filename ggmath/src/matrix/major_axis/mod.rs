@@ -8,7 +8,7 @@ pub use column_major::*;
 pub use row_major::*;
 
 #[allow(private_bounds)]
-pub trait MatrixMajorAxis: Sized {
+pub trait MatrixMajorAxis: Sized + 'static {
     type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment>: Construct
     where
         ScalarCount<C>: VecLen<C>,

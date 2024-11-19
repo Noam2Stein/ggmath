@@ -9,7 +9,7 @@ pub use centered::*;
 pub use cornered::*;
 pub use min_maxed::*;
 
-pub trait RectRepr: Sized {
+pub trait RectRepr: Sized + 'static {
     type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment>: Construct + PartialEq
     where
         ScalarCount<N>: VecLen<N>;
