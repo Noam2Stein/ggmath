@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use ggmath::{
     scalar::*,
-    vector::{builder::*, inner::inner_vecs, *},
+    vector::{inner::inner_vecs, *},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]

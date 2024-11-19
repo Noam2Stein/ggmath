@@ -1,4 +1,4 @@
-use ggmath::matrix::{builder::*, *};
+use ggmath::matrix::*;
 
 fn main() {
     let t = mat3x2!(

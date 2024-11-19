@@ -1,5 +1,7 @@
 use super::*;
 
+mod builder;
+pub use builder::*;
+
 pub mod array;
-pub mod builder;
 pub mod swizzle_wrappers;

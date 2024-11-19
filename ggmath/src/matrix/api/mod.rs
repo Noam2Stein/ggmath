@@ -1,4 +1,6 @@
 use super::*;
 
-pub mod builder;
+mod builder;
+pub use builder::*;
+
 pub mod index_wrappers;

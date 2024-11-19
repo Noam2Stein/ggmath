@@ -12,7 +12,7 @@ mod api;
 mod impl_std;
 // Due to probably a bug, the compiler doesn't pick up 'api::builder' from the 'api::*' import, so it has to be explicitly imported.
 #[allow(unused_imports)]
-pub use api::{builder, *};
+pub use api::*;
 #[allow(unused_imports)]
 pub use impl_std::*;
 
