@@ -24,59 +24,115 @@ pub fn vec4p(input: TokenStream1) -> TokenStream1 {
 }
 
 pub fn mat2(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat2").unwrap(), input)
+    builder(parse_str("Mat2R").unwrap(), input)
 }
 pub fn mat2x3(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat2x3").unwrap(), input)
+    builder(parse_str("Mat2x3R").unwrap(), input)
 }
 pub fn mat2x4(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat2x4").unwrap(), input)
+    builder(parse_str("Mat2x4R").unwrap(), input)
 }
 pub fn mat3x2(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat3x2").unwrap(), input)
+    builder(parse_str("Mat3x2R").unwrap(), input)
 }
 pub fn mat3(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat3").unwrap(), input)
+    builder(parse_str("Mat3R").unwrap(), input)
 }
 pub fn mat3x4(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat3x4").unwrap(), input)
+    builder(parse_str("Mat3x4R").unwrap(), input)
 }
 pub fn mat4x2(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat4x2").unwrap(), input)
+    builder(parse_str("Mat4x2R").unwrap(), input)
 }
 pub fn mat4x3(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat4x3").unwrap(), input)
+    builder(parse_str("Mat4x3R").unwrap(), input)
 }
 pub fn mat4(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat4").unwrap(), input)
+    builder(parse_str("Mat4R").unwrap(), input)
 }
 
-pub fn mat2a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat2A").unwrap(), input)
+pub fn mat2p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2RP").unwrap(), input)
 }
-pub fn mat2x3a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat2x3A").unwrap(), input)
+pub fn mat2x3p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2x3RP").unwrap(), input)
 }
-pub fn mat2x4a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat2x4A").unwrap(), input)
+pub fn mat2x4p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2x4RP").unwrap(), input)
 }
-pub fn mat3x2a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat3x2A").unwrap(), input)
+pub fn mat3x2p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3x2RP").unwrap(), input)
 }
-pub fn mat3a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat3A").unwrap(), input)
+pub fn mat3p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3RP").unwrap(), input)
 }
-pub fn mat3x4a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat3x4A").unwrap(), input)
+pub fn mat3x4p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3x4RP").unwrap(), input)
 }
-pub fn mat4x2a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat4x2A").unwrap(), input)
+pub fn mat4x2p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4x2RP").unwrap(), input)
 }
-pub fn mat4x3a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat4x3A").unwrap(), input)
+pub fn mat4x3p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4x3RP").unwrap(), input)
 }
-pub fn mat4a(input: TokenStream1) -> TokenStream1 {
-    builder(parse_str("Mat4A").unwrap(), input)
+pub fn mat4p(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4RP").unwrap(), input)
+}
+
+pub fn mat2c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2C").unwrap(), input)
+}
+pub fn mat2x3c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2x3C").unwrap(), input)
+}
+pub fn mat2x4c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2x4C").unwrap(), input)
+}
+pub fn mat3x2c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3x2C").unwrap(), input)
+}
+pub fn mat3c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3C").unwrap(), input)
+}
+pub fn mat3x4c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3x4C").unwrap(), input)
+}
+pub fn mat4x2c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4x2C").unwrap(), input)
+}
+pub fn mat4x3c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4x3C").unwrap(), input)
+}
+pub fn mat4c(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4C").unwrap(), input)
+}
+
+pub fn mat2cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2CP").unwrap(), input)
+}
+pub fn mat2x3cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2x3CP").unwrap(), input)
+}
+pub fn mat2x4cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat2x4CP").unwrap(), input)
+}
+pub fn mat3x2cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3x2CP").unwrap(), input)
+}
+pub fn mat3cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3CP").unwrap(), input)
+}
+pub fn mat3x4cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat3x4CP").unwrap(), input)
+}
+pub fn mat4x2cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4x2CP").unwrap(), input)
+}
+pub fn mat4x3cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4x3CP").unwrap(), input)
+}
+pub fn mat4cp(input: TokenStream1) -> TokenStream1 {
+    builder(parse_str("Mat4CP").unwrap(), input)
 }
 
 fn builder(ty: Path, input: TokenStream1) -> TokenStream1 {

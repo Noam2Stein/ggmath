@@ -9,7 +9,7 @@ fn main() {
         4, 5, 6;
     );
 
-    let m = mat3!(
+    let m = mat3c!(
         t;
         t.index_row(0).xy(), 9;
     );
