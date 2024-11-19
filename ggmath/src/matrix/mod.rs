@@ -158,23 +158,6 @@ where
     }
 
     #[inline(always)]
-    pub fn index_column(self, index: usize) -> Vector<R, T, A> {
-        self.get_column(index).unwrap()
-    }
-    #[inline(always)]
-    pub fn index_row(self, index: usize) -> Vector<C, T, A> {
-        self.get_row(index).unwrap()
-    }
-    #[inline(always)]
-    pub fn index_column_array(self, index: usize) -> [T; R] {
-        self.get_column_array(index).unwrap()
-    }
-    #[inline(always)]
-    pub fn index_row_array(self, index: usize) -> [T; C] {
-        self.get_row_array(index).unwrap()
-    }
-
-    #[inline(always)]
     pub unsafe fn get_column_unchecked(self, index: usize) -> Vector<R, T, A> {
         M::get_column_unchecked(self, index)
     }

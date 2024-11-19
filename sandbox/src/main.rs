@@ -11,7 +11,7 @@ fn main() {
 
     let m = mat3c!(
         t;
-        t.index_row(0).xy(), 9;
+        t.get_row(0).unwrap().xy(), 9;
     );
 
     println!("{m}");

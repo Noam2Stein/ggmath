@@ -252,4 +252,25 @@ impl MatrixMajorAxis for RowMajor {
     {
         mat.inner.eq(&other.inner)
     }
+
+    fn index<const C: usize, const R: usize, T: Scalar, A: VecAlignment>(
+        mat: &Matrix<C, R, T, A, Self>,
+        index: (usize, usize),
+    ) -> &T
+    where
+        ScalarCount<C>: VecLen<C>,
+        ScalarCount<R>: VecLen<R>,
+    {
+        &mat.inner[index.1][index.0]
+    }
+    fn index_mut<const C: usize, const R: usize, T: Scalar, A: VecAlignment>(
+        mat: &mut Matrix<C, R, T, A, Self>,
+        index: (usize, usize),
+    ) -> &mut T
+    where
+        ScalarCount<C>: VecLen<C>,
+        ScalarCount<R>: VecLen<R>,
+    {
+        &mut mat.inner[index.1][index.0]
+    }
 }

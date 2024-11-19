@@ -60,8 +60,8 @@ where
     fn build(self) -> Matrix<C, 3, T, A, M> {
         Matrix::<C, 3, T, A, M>::from_rows([
             self.0.into_alignment(),
-            self.1.index_row(0).into_alignment(),
-            self.1.index_row(1).into_alignment(),
+            self.1.get_row(0).unwrap().into_alignment(),
+            self.1.get_row(1).unwrap().into_alignment(),
         ])
     }
 }
@@ -72,8 +72,8 @@ where
 {
     fn build(self) -> Matrix<C, 3, T, A, M> {
         Matrix::<C, 3, T, A, M>::from_rows([
-            self.0.index_row(0).into_alignment(),
-            self.0.index_row(1).into_alignment(),
+            self.0.get_row(0).unwrap().into_alignment(),
+            self.0.get_row(1).unwrap().into_alignment(),
             self.1.into_alignment(),
         ])
     }
@@ -108,8 +108,8 @@ where
         Matrix::<C, 4, T, A, M>::from_rows([
             self.0.into_alignment(),
             self.1.into_alignment(),
-            self.2.index_row(0).into_alignment(),
-            self.2.index_row(1).into_alignment(),
+            self.2.get_row(0).unwrap().into_alignment(),
+            self.2.get_row(1).unwrap().into_alignment(),
         ])
     }
 }
@@ -121,8 +121,8 @@ where
     fn build(self) -> Matrix<C, 4, T, A, M> {
         Matrix::<C, 4, T, A, M>::from_rows([
             self.0.into_alignment(),
-            self.1.index_row(0).into_alignment(),
-            self.1.index_row(1).into_alignment(),
+            self.1.get_row(0).unwrap().into_alignment(),
+            self.1.get_row(1).unwrap().into_alignment(),
             self.2.into_alignment(),
         ])
     }
@@ -134,8 +134,8 @@ where
 {
     fn build(self) -> Matrix<C, 4, T, A, M> {
         Matrix::<C, 4, T, A, M>::from_rows([
-            self.0.index_row(0).into_alignment(),
-            self.0.index_row(1).into_alignment(),
+            self.0.get_row(0).unwrap().into_alignment(),
+            self.0.get_row(1).unwrap().into_alignment(),
             self.1.into_alignment(),
             self.2.into_alignment(),
         ])
@@ -150,9 +150,9 @@ where
     fn build(self) -> Matrix<C, 4, T, A, M> {
         Matrix::<C, 4, T, A, M>::from_rows([
             self.0.into_alignment(),
-            self.1.index_row(0).into_alignment(),
-            self.1.index_row(1).into_alignment(),
-            self.1.index_row(2).into_alignment(),
+            self.1.get_row(0).unwrap().into_alignment(),
+            self.1.get_row(1).unwrap().into_alignment(),
+            self.1.get_row(2).unwrap().into_alignment(),
         ])
     }
 }
@@ -163,9 +163,9 @@ where
 {
     fn build(self) -> Matrix<C, 4, T, A, M> {
         Matrix::<C, 4, T, A, M>::from_rows([
-            self.0.index_row(0).into_alignment(),
-            self.0.index_row(1).into_alignment(),
-            self.0.index_row(2).into_alignment(),
+            self.0.get_row(0).unwrap().into_alignment(),
+            self.0.get_row(1).unwrap().into_alignment(),
+            self.0.get_row(2).unwrap().into_alignment(),
             self.1.into_alignment(),
         ])
     }

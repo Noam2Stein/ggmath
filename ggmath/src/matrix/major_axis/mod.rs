@@ -172,4 +172,19 @@ pub trait MatrixMajorAxis: Sized {
     where
         ScalarCount<C>: VecLen<C>,
         ScalarCount<R>: VecLen<R>;
+
+    fn index<const C: usize, const R: usize, T: Scalar, A: VecAlignment>(
+        mat: &Matrix<C, R, T, A, Self>,
+        index: (usize, usize),
+    ) -> &T
+    where
+        ScalarCount<C>: VecLen<C>,
+        ScalarCount<R>: VecLen<R>;
+    fn index_mut<const C: usize, const R: usize, T: Scalar, A: VecAlignment>(
+        mat: &mut Matrix<C, R, T, A, Self>,
+        index: (usize, usize),
+    ) -> &mut T
+    where
+        ScalarCount<C>: VecLen<C>,
+        ScalarCount<R>: VecLen<R>;
 }

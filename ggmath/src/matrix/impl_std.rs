@@ -1,4 +1,7 @@
-use std::fmt::{self, Debug, Display, Formatter};
+use std::{
+    fmt::{self, Debug, Display, Formatter},
+    ops::{Index, IndexMut},
+};
 
 use super::*;
 
@@ -106,5 +109,33 @@ where
             "({})",
             self.into_rows().map(|c| c.to_string()).join(", ")
         )
+    }
+}
+
+// Index
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+    Index<(usize, usize)> for Matrix<C, R, T, A, M>
+where
+    ScalarCount<C>: VecLen<C>,
+    ScalarCount<R>: VecLen<R>,
+{
+    type Output = T;
+
+    #[inline(always)]
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        M::index(self, index)
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+    IndexMut<(usize, usize)> for Matrix<C, R, T, A, M>
+where
+    ScalarCount<C>: VecLen<C>,
+    ScalarCount<R>: VecLen<R>,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        M::index_mut(self, index)
     }
 }
