@@ -1,9 +1,11 @@
 [workspace]
 
 members = [
-    "examples/adding_scalars", "examples/generic_physics_engine",
+    "examples/adding_scalars",
+    "examples/generic_physics_engine",
     "examples/gpu_structs",
     "ggmath",
     "proc_macros",
-    "sandbox", "tests",
+    "sandbox",
+    "testing",
 ]
