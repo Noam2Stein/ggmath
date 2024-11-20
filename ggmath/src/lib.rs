@@ -35,7 +35,4 @@ pub mod line;
 #[cfg(feature = "ray")]
 pub mod ray;
 
-#[cfg(test)]
-mod tests;
-
 use crate as ggmath;

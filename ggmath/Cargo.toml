@@ -17,3 +17,6 @@ rect = []
 [dependencies]
 ggmath_proc_macros = { path = "../proc_macros" }
 num-traits = "0.2.19"
+
+[dev-dependencies]
+ggmath_testing = { path = "../testing" }

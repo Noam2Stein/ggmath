@@ -8,4 +8,5 @@ members = [
     "proc_macros",
     "sandbox",
     "testing",
+    "tests",
 ]

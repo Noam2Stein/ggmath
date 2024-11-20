@@ -2,28 +2,7 @@ use ggmath::vector::{alignment::*, length::*, *};
 
 use crate::testable_scalar::*;
 
-pub fn tests() {
-    tests_for_t::<f32>();
-    tests_for_t::<f64>();
-
-    tests_for_t::<u8>();
-    tests_for_t::<u16>();
-    tests_for_t::<u32>();
-    tests_for_t::<u64>();
-    tests_for_t::<u128>();
-    tests_for_t::<usize>();
-
-    tests_for_t::<i8>();
-    tests_for_t::<i16>();
-    tests_for_t::<i32>();
-    tests_for_t::<i64>();
-    tests_for_t::<i128>();
-    tests_for_t::<isize>();
-
-    tests_for_t::<bool>();
-}
-
-fn tests_for_t<T: TestableScalar>() {
+pub fn test_scalar<T: TestableScalar>() {
     tests_for_n_t_a::<2, T, VecAligned>();
     tests_for_n_t_a::<2, T, VecPacked>();
     tests_for_n_t_a::<3, T, VecAligned>();
