@@ -1,7 +1,7 @@
 use super::*;
 
 mod builder;
-mod inner_vecs;
+mod inner_vectors;
 mod scalar_aliases;
 pub use builder::{
     mat2, mat2c, mat2cp, mat2p, mat2x3, mat2x3c, mat2x3cp, mat2x3p, mat2x4, mat2x4c, mat2x4cp,
@@ -9,5 +9,5 @@ pub use builder::{
     mat3x4cp, mat3x4p, mat4, mat4c, mat4cp, mat4p, mat4x2, mat4x2c, mat4x2cp, mat4x2p, mat4x3,
     mat4x3c, mat4x3cp, mat4x3p, vec2, vec2p, vec3, vec3p, vec4, vec4p,
 };
-pub use inner_vecs::inner_vecs;
+pub use inner_vectors::inner_vectors;
 pub use scalar_aliases::{matrix_aliases, rectangle_aliases, vector_aliases};

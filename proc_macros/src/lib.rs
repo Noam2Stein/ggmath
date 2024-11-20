@@ -6,7 +6,7 @@ use proc_macro2::*;
 use quote::{quote_spanned, ToTokens, TokenStreamExt};
 use syn::{
     parse::{Parse, ParseStream},
-    parse2, parse_macro_input, parse_quote_spanned, parse_str,
+    parse_macro_input, parse_quote_spanned, parse_str,
     spanned::Spanned,
     Error, Token,
 };
@@ -36,8 +36,8 @@ pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
 
 #[proc_macro]
 #[inline(always)]
-pub fn inner_vecs(input: TokenStream1) -> TokenStream1 {
-    external::inner_vecs(input)
+pub fn inner_vectors(input: TokenStream1) -> TokenStream1 {
+    external::inner_vectors(input)
 }
 
 macro_rules! vector_macro {
@@ -118,11 +118,6 @@ mod internal;
 #[inline(always)]
 pub fn vec_interface(input: TokenStream1) -> TokenStream1 {
     internal::vec_interface(input)
-}
-#[proc_macro]
-#[inline(always)]
-pub fn collect_vec_interfaces(input: TokenStream1) -> TokenStream1 {
-    internal::collect_vec_interfaces(input)
 }
 
 #[proc_macro]

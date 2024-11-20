@@ -1,6 +1,6 @@
 use super::*;
 
-inner_vecs!(bool(1));
+inner_vectors!(bool(1));
 
 impl Scalar for bool {}
 

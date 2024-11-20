@@ -5,7 +5,7 @@ use crate::{
 
 pub struct Ray<const N: usize, T: Scalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     pub start: Vector<N, T, A>,
     pub direction: Vector<N, T, A>,

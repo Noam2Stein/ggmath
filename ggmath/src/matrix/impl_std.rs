@@ -16,8 +16,8 @@ const _: () = {
         M: MatrixMajorAxis,
     >()
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         fn megamind<DavidCross: Construct>() {}
 
@@ -30,8 +30,8 @@ const _: () = {
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Clone
     for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     #[inline(always)]
     fn clone(&self) -> Self {
@@ -42,8 +42,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Copy
     for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
 }
 
@@ -58,8 +58,8 @@ impl<
         Rhs: Scalar,
     > PartialEq<Matrix<C, R, Rhs, A, M>> for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     #[inline(always)]
     fn eq(&self, other: &Matrix<C, R, Rhs, A, M>) -> bool {
@@ -75,8 +75,8 @@ impl<
         M: MatrixMajorAxis,
     > Eq for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
 }
 
@@ -85,8 +85,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar + Debug, A: VecAlignment, M: MatrixMajorAxis> Debug
     for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
@@ -100,8 +100,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar + Display, A: VecAlignment, M: MatrixMajorAxis>
     Display for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
@@ -117,8 +117,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Index<(usize, usize)> for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     type Output = T;
 
@@ -131,8 +131,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     IndexMut<(usize, usize)> for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {

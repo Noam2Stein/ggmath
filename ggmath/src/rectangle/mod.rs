@@ -50,7 +50,7 @@ rectangle_aliases!(pub mod bool_aliases for bool(B));
 
 pub struct Rectangle<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     inner: R::InnerRectangle<N, T, A>,
 }
@@ -78,7 +78,7 @@ pub type Rect4MP<T> = Rectangle<4, T, VecPacked, RectMinMaxed>;
 
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     #[inline(always)]
     pub fn from_min_size(min: Vector<N, T, A>, size: Vector<N, T, A>) -> Self {

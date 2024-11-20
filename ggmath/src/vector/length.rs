@@ -4,7 +4,7 @@ use super::*;
 ///
 /// Vectors can only have lengths 2, 3, or 4 because internally vector fns have differently optimized implementations for each length.
 ///
-/// This trait is implemented by ```ScalarCount<2/3/4>``` and is used to validate that a generic vector length is either 2, 3, or 4 with ```where ScalarCount<N>: VecLen<N>```.
+/// This trait is implemented by ```ScalarCount<2/3/4>``` and is used to validate that a generic vector length is either 2, 3, or 4 with ```where ScalarCount<N>: VecLen```.
 ///
 /// # Examples
 /// ```
@@ -13,7 +13,7 @@ use super::*;
 ///
 /// struct Line<const N: usize>
 /// where
-///     ScalarCount<N>: VecLen<N>,
+///     ScalarCount<N>: VecLen,
 /// {
 ///     start: VecN<N, f32>,
 ///     end: VecN<N, f32>,
@@ -29,11 +29,11 @@ use super::*;
 /// }
 /// ```
 #[allow(private_bounds)]
-pub trait VecLen<const N: usize>:
-    Seal + inner::VecLenInnerVec + interfaces::VecLenInterfaces<N>
-where
-    ScalarCount<N>: VecLen<N>,
-{
+pub trait VecLen: Seal + Sized + 'static + Send + Sync {
+    type InnerAlignedVector<T: Scalar>: Construct;
+
+    fn choose_fn<O>(f_2: impl FnOnce() -> O, f_3: impl FnOnce() -> O, f_4: impl FnOnce() -> O)
+        -> O;
 }
 
 /// Count of scalars that may or may not be a [```VecLen```].
@@ -41,14 +41,14 @@ where
 /// Vectors can only have lengths 2, 3, or 4 because internally vector fns have differently optimized implementations for each length.
 ///
 /// Only ```ScalarCount<2/3/4>``` implements ```VecLen```.
-/// this is used to validate that a generic vector length is either 2, 3, or 4 with ```where ScalarCount<N>: VecLen<N>```.
+/// this is used to validate that a generic vector length is either 2, 3, or 4 with ```where ScalarCount<N>: VecLen```.
 ///
 /// # Examples
 /// ```
 /// // Line is generic over dimension count.
 /// struct Line<const N: usize>
 /// where
-///     ScalarCount<N>: VecLen<N>,
+///     ScalarCount<N>: VecLen,
 /// {
 ///     start: FVecN<N>,
 ///     end: FVecN<N>,
@@ -65,11 +65,42 @@ where
 /// ```
 pub struct ScalarCount<const VALUE: usize>;
 
-impl Seal for ScalarCount<2> {}
-impl Seal for ScalarCount<4> {}
-impl Seal for ScalarCount<3> {}
-impl VecLen<2> for ScalarCount<2> {}
-impl VecLen<3> for ScalarCount<3> {}
-impl VecLen<4> for ScalarCount<4> {}
+impl VecLen for ScalarCount<2> {
+    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec2;
+
+    #[inline(always)]
+    fn choose_fn<O>(
+        f_2: impl FnOnce() -> O,
+        _f_3: impl FnOnce() -> O,
+        _f_4: impl FnOnce() -> O,
+    ) -> O {
+        f_2()
+    }
+}
+impl VecLen for ScalarCount<3> {
+    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
+
+    #[inline(always)]
+    fn choose_fn<O>(
+        _f_2: impl FnOnce() -> O,
+        f_3: impl FnOnce() -> O,
+        _f_4: impl FnOnce() -> O,
+    ) -> O {
+        f_3()
+    }
+}
+impl VecLen for ScalarCount<4> {
+    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
+
+    #[inline(always)]
+    fn choose_fn<O>(
+        _f_2: impl FnOnce() -> O,
+        _f_3: impl FnOnce() -> O,
+        f_4: impl FnOnce() -> O,
+    ) -> O {
+        f_4()
+    }
+}
 
 trait Seal {}
+impl<const N: usize> Seal for ScalarCount<N> {}

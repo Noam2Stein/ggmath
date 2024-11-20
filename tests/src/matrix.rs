@@ -21,8 +21,8 @@ pub fn test_matrix<T: TestableScalar>() {
 }
 fn test_c_r_t<const C: usize, const R: usize, T: TestableScalar>()
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     test_c_r_t_a_m::<C, R, T, VecAligned, ColumnMajor>();
     test_c_r_t_a_m::<C, R, T, VecAligned, RowMajor>();
@@ -39,8 +39,8 @@ fn test_c_r_t_a_m<
     M: MatrixMajorAxis,
 >()
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     let rows_array: [[T; C]; R] = array::from_fn(|row_index| {
         array::from_fn(|column_index| T::special_value(row_index * C + column_index))

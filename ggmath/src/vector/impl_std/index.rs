@@ -4,7 +4,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Index<usize> for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
@@ -13,7 +13,7 @@ where
 }
 impl<const N: usize, T: Scalar, A: VecAlignment> IndexMut<usize> for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         self.as_array_mut().index_mut(index)

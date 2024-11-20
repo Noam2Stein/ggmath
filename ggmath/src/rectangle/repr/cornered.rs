@@ -3,7 +3,7 @@ use super::*;
 pub struct RectCornered;
 
 impl RectRepr for RectCornered {
-    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment> = (Vector<N, T, A>, Vector<N, T, A>) where ScalarCount<N>: VecLen<N>;
+    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment> = (Vector<N, T, A>, Vector<N, T, A>) where ScalarCount<N>: VecLen;
 
     #[inline(always)]
     fn from_min_size<const N: usize, T: ScalarNum, A: VecAlignment>(
@@ -11,7 +11,7 @@ impl RectRepr for RectCornered {
         size: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle { inner: (min, size) }
     }
@@ -21,7 +21,7 @@ impl RectRepr for RectCornered {
         size: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (max - size, size),
@@ -33,7 +33,7 @@ impl RectRepr for RectCornered {
         size: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (center - size / T::from(2).unwrap(), size),
@@ -45,7 +45,7 @@ impl RectRepr for RectCornered {
         extents: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (min, extents * T::from(2).unwrap()),
@@ -57,7 +57,7 @@ impl RectRepr for RectCornered {
         extents: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (
@@ -72,7 +72,7 @@ impl RectRepr for RectCornered {
         extents: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (center - extents, extents),
@@ -84,7 +84,7 @@ impl RectRepr for RectCornered {
         max: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (min, max - min),
@@ -96,7 +96,7 @@ impl RectRepr for RectCornered {
         center: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (min, (center - min) * T::from(2).unwrap()),
@@ -108,7 +108,7 @@ impl RectRepr for RectCornered {
         max: Vector<N, T, A>,
     ) -> Rectangle<N, T, A, Self>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         Rectangle {
             inner: (
@@ -123,7 +123,7 @@ impl RectRepr for RectCornered {
         rect: Rectangle<N, T, A, Self>,
     ) -> Vector<N, T, A>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         rect.inner.0
     }
@@ -132,7 +132,7 @@ impl RectRepr for RectCornered {
         rect: Rectangle<N, T, A, Self>,
     ) -> Vector<N, T, A>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         rect.inner.0 + rect.inner.1
     }
@@ -141,7 +141,7 @@ impl RectRepr for RectCornered {
         rect: Rectangle<N, T, A, Self>,
     ) -> Vector<N, T, A>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         rect.inner.0 + rect.inner.1 * T::from(2).unwrap()
     }
@@ -150,7 +150,7 @@ impl RectRepr for RectCornered {
         rect: Rectangle<N, T, A, Self>,
     ) -> Vector<N, T, A>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         rect.inner.1
     }
@@ -159,7 +159,7 @@ impl RectRepr for RectCornered {
         rect: Rectangle<N, T, A, Self>,
     ) -> Vector<N, T, A>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         rect.inner.1 / T::from(2).unwrap()
     }
@@ -169,7 +169,7 @@ impl RectRepr for RectCornered {
         other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
     ) -> bool
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         (0..N).all(|i| rect.min()[i] < other.max()[i] && other.min()[i] < rect.max()[i])
     }
@@ -178,7 +178,7 @@ impl RectRepr for RectCornered {
         other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
     ) -> Option<Rectangle<N, T, A, Self>>
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         if rect.intersects(other) {
             Some(Rectangle::from_min_max(
@@ -195,7 +195,7 @@ impl RectRepr for RectCornered {
         f: &mut std::fmt::Formatter,
     ) -> std::fmt::Result
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         write!(f, "{{ min: {:?}, size: {:?} }}", rect.min(), rect.size())
     }
@@ -204,7 +204,7 @@ impl RectRepr for RectCornered {
         f: &mut std::fmt::Formatter,
     ) -> std::fmt::Result
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         write!(f, "{{ min: {}, size: {} }}", rect.min(), rect.size())
     }

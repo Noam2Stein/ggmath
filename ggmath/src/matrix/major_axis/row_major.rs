@@ -3,14 +3,14 @@ use super::*;
 pub struct RowMajor;
 
 impl MatrixMajorAxis for RowMajor {
-    type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment> = [Vector<C, T, A>; R] where ScalarCount<C>: VecLen<C>, ScalarCount<R>: VecLen<R>;
+    type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment> = [Vector<C, T, A>; R] where ScalarCount<C>: VecLen, ScalarCount<R>: VecLen;
 
     fn from_columns<const C: usize, const R: usize, T: Scalar, A: VecAlignment>(
         columns: [Vector<R, T, A>; C],
     ) -> Matrix<C, R, T, A, Self>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         Matrix {
             inner: array::from_fn(|row_index| {
@@ -22,8 +22,8 @@ impl MatrixMajorAxis for RowMajor {
         columns: [[T; R]; C],
     ) -> Matrix<C, R, T, A, Self>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         Matrix {
             inner: array::from_fn(|row_index| {
@@ -35,8 +35,8 @@ impl MatrixMajorAxis for RowMajor {
         rows: [Vector<C, T, A>; R],
     ) -> Matrix<C, R, T, A, Self>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         Matrix { inner: rows }
     }
@@ -44,8 +44,8 @@ impl MatrixMajorAxis for RowMajor {
         rows: [[T; C]; R],
     ) -> Matrix<C, R, T, A, Self>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         Matrix {
             inner: rows.map(|row| Vector::from_array(row)),
@@ -56,8 +56,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, Self>,
     ) -> [Vector<R, T, A>; C]
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         array::from_fn(|column_index| Self::get_column(mat, column_index).unwrap())
     }
@@ -65,8 +65,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, Self>,
     ) -> [[T; R]; C]
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         array::from_fn(|column_index| Self::get_column_array(mat, column_index).unwrap())
     }
@@ -74,8 +74,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, Self>,
     ) -> [Vector<C, T, A>; R]
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat.inner
     }
@@ -83,8 +83,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, Self>,
     ) -> [[T; C]; R]
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat.inner.map(|row| row.into_array())
     }
@@ -94,8 +94,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> Option<Vector<R, T, A>>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         if index >= C {
             None
@@ -110,8 +110,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> Option<[T; R]>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         if index >= C {
             None
@@ -124,8 +124,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> Option<Vector<C, T, A>>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat.inner.get(index).copied()
     }
@@ -134,8 +134,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> Option<[T; C]>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat.inner.get(index).map(|row| row.into_array())
     }
@@ -145,8 +145,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> Vector<R, T, A>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         Vector::from_array(array::from_fn(|row_index| {
             mat.inner[row_index].get_unchecked(index)
@@ -162,8 +162,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> [T; R]
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         array::from_fn(|row_index| mat.inner[row_index].get_unchecked(index))
     }
@@ -172,8 +172,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> Vector<C, T, A>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         *mat.inner.get_unchecked(index)
     }
@@ -182,8 +182,8 @@ impl MatrixMajorAxis for RowMajor {
         index: usize,
     ) -> [T; C]
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat.inner.get_unchecked(index).into_array()
     }
@@ -198,8 +198,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, Self>,
     ) -> Matrix<C, R, T, AOutput, Self>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         Matrix {
             inner: mat.inner.map(|column| column.into_alignment()),
@@ -210,8 +210,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, Self>,
     ) -> Matrix<C, R, T, A, ColumnMajor>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         Matrix {
             inner: array::from_fn(|column_index| mat.get_column(column_index).unwrap()),
@@ -221,8 +221,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, Self>,
     ) -> Matrix<C, R, T, A, RowMajor>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat
     }
@@ -236,8 +236,8 @@ impl MatrixMajorAxis for RowMajor {
         mat: Matrix<C, R, T, A, MInput>,
     ) -> Matrix<C, R, T, A, Self>
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat.into_row_major()
     }
@@ -247,8 +247,8 @@ impl MatrixMajorAxis for RowMajor {
         other: &Matrix<C, R, Rhs, A, Self>,
     ) -> bool
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         mat.inner.eq(&other.inner)
     }
@@ -258,8 +258,8 @@ impl MatrixMajorAxis for RowMajor {
         index: (usize, usize),
     ) -> &T
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         &mat.inner[index.1][index.0]
     }
@@ -268,8 +268,8 @@ impl MatrixMajorAxis for RowMajor {
         index: (usize, usize),
     ) -> &mut T
     where
-        ScalarCount<C>: VecLen<C>,
-        ScalarCount<R>: VecLen<R>,
+        ScalarCount<C>: VecLen,
+        ScalarCount<R>: VecLen,
     {
         &mut mat.inner[index.1][index.0]
     }

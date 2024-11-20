@@ -10,7 +10,7 @@ macro_rules! scalar_op {
         impl<const N: usize, T: $scalar_trait<Rhs>, A: VecAlignment, Rhs: Scalar> $std_trait<Rhs>
             for Vector<N, T, A>
         where
-            ScalarCount<N>: VecLen<N>,
+            ScalarCount<N>: VecLen,
         {
             type Output = <Self as $std_trait<Vector<N, Rhs, A>>>::Output;
             fn $std_fn(self, rhs: Rhs) -> Self::Output {
@@ -21,7 +21,7 @@ macro_rules! scalar_op {
         impl<const N: usize, T: $assign_scalar_trait<Rhs>, A: VecAlignment, Rhs: Scalar>
             $assign_std_trait<Rhs> for Vector<N, T, A>
         where
-            ScalarCount<N>: VecLen<N>,
+            ScalarCount<N>: VecLen,
         {
             fn $assign_std_fn(&mut self, rhs: Rhs) {
                 self.$assign_std_fn(Vector::splat(rhs))

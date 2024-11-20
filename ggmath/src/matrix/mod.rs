@@ -54,8 +54,8 @@ matrix_aliases!(pub mod bool_aliases for bool(B));
 
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     inner: M::InnerMatrix<C, R, T, A>,
 }
@@ -103,8 +103,8 @@ pub type Mat4RP<T> = Matrix<4, 4, T, VecPacked, RowMajor>;
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen<C>,
-    ScalarCount<R>: VecLen<R>,
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
 {
     #[inline(always)]
     pub fn from_columns(columns: [Vector<R, T, A>; C]) -> Self {

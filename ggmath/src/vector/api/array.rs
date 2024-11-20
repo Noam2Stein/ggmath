@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     pub fn from_fn(cb: impl FnMut(usize) -> T) -> Self {
         Vector::from_array(std::array::from_fn(cb))

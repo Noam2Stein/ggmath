@@ -6,7 +6,7 @@ use ggmath::{
 
 pub struct World<const D: usize, P: ScalarNum>
 where
-    ScalarCount<D>: VecLen<D>,
+    ScalarCount<D>: VecLen,
 {
     pub bodies: Vec<Body<D, P>>,
     pub gravity_dir: Vector<D, P, VecAligned>,
@@ -14,7 +14,7 @@ where
 
 pub struct Body<const D: usize, P: ScalarNum>
 where
-    ScalarCount<D>: VecLen<D>,
+    ScalarCount<D>: VecLen,
 {
     pub rect: Rectangle<D, P, VecAligned, RectCentered>,
     pub velocity: Vector<D, P, VecAligned>,

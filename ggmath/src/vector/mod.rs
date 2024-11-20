@@ -1,7 +1,6 @@
 //! Staticly-lengthed vectors of [scalars](scalar) with lengths between 2 and 4.
 
 pub mod alignment;
-pub mod inner;
 pub mod length;
 
 pub(crate) mod interfaces;
@@ -69,17 +68,17 @@ vector_aliases!(pub mod bool_aliases for bool(B));
 /// ```
 /// fn print_vec<const N: usize, T: Scalar, A: VecStorage>(vec: Vector<N, T, A>)
 /// where
-///     ScalarCount<N>: VecLen<N>, // Required by Vector to ensure that N is either 2, 3, or 4.
+///     ScalarCount<N>: VecLen, // Required by Vector to ensure that N is either 2, 3, or 4.
 /// {
 ///     println!("{vec}")
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: alignment_seal::VecAlignment>
+pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
 where
-    length::ScalarCount<N>: length::VecLen<N>,
+    length::ScalarCount<N>: VecLen,
 {
-    inner: inner::InnerVector<N, T, A>,
+    inner: A::InnerVector<N, T>,
 }
 
 /// type alias to [```Vector```]```<2, T, VecAligned>```

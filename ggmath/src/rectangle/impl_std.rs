@@ -7,7 +7,7 @@ use super::*;
 const _: () = {
     fn ensure_rectangle_is_construct<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr>()
     where
-        ScalarCount<N>: VecLen<N>,
+        ScalarCount<N>: VecLen,
     {
         fn wreck_it_ralph<RogerCraigSmith: Construct>() {}
 
@@ -19,7 +19,7 @@ const _: () = {
 
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Clone for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     #[inline(always)]
     fn clone(&self) -> Self {
@@ -28,7 +28,7 @@ where
 }
 
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Copy for Rectangle<N, T, A, R> where
-    ScalarCount<N>: VecLen<N>
+    ScalarCount<N>: VecLen
 {
 }
 
@@ -36,7 +36,7 @@ impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Copy for Rectan
 
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> PartialEq for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
@@ -45,7 +45,7 @@ where
 }
 
 impl<const N: usize, T: ScalarNum + Eq, A: VecAlignment, R: RectRepr> Eq for Rectangle<N, T, A, R> where
-    ScalarCount<N>: VecLen<N>
+    ScalarCount<N>: VecLen
 {
 }
 
@@ -54,7 +54,7 @@ impl<const N: usize, T: ScalarNum + Eq, A: VecAlignment, R: RectRepr> Eq for Rec
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> fmt::Debug
     for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -65,7 +65,7 @@ where
 impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> fmt::Display
     for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         R::display_fmt(*self, f)

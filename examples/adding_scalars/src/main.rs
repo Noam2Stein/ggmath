@@ -1,9 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
-use ggmath::{
-    scalar::*,
-    vector::{inner::inner_vecs, *},
-};
+use ggmath::{scalar::*, vector::*};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
 struct Meters(f32);
@@ -14,7 +11,7 @@ impl Display for Meters {
     }
 }
 
-inner_vecs!(Meters(4));
+inner_vectors!(Meters(4));
 
 impl Scalar for Meters {}
 

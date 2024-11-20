@@ -17,7 +17,7 @@ macro_rules! index_wrappers {
     )*) => {
         impl<const $r: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<$c, $r, T, A, M>
         where
-            ScalarCount<$r>: VecLen<$r>,
+            ScalarCount<$r>: VecLen,
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {
@@ -30,7 +30,7 @@ macro_rules! index_wrappers {
     )*) => {
         impl<const $c: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<$c, $r, T, A, M>
         where
-            ScalarCount<$c>: VecLen<$c>,
+            ScalarCount<$c>: VecLen,
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {

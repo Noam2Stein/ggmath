@@ -5,7 +5,7 @@ use crate::{
 
 pub struct Quaternion<const N: usize, T: Scalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     _inner: Vector<N, T, A>,
 }

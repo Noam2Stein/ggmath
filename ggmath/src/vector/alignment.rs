@@ -58,13 +58,12 @@ use super::*;
 /// Basically only use ```VecPacked``` (```VecNP```) when storing large arrays of vectors that you don't perform much computation on.
 /// On any other case use ```VecAligned``` (```VecN```, The default).
 #[allow(private_bounds)]
-pub trait VecAlignment:
-    'static
-    + alignment_seal::VecAlignment
-    + interfaces::VecAlignmentInterfaces<2>
-    + interfaces::VecAlignmentInterfaces<3>
-    + interfaces::VecAlignmentInterfaces<4>
-{
+pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
+    type InnerVector<const N: usize, T: Scalar>: Construct
+    where
+        ScalarCount<N>: VecLen;
+
+    fn choose_fn<O>(f_aligned: impl FnOnce() -> O, f_packed: impl FnOnce() -> O) -> O;
 }
 
 /// Vector inner storage that ensures that the vector has the next alignment from ```[T; N]```'s size, and a size equal to the alignment.
@@ -94,31 +93,6 @@ pub trait VecAlignment:
 ///
 /// Always recommended except for when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecAligned;
-impl alignment_seal::VecAlignment for VecAligned {
-    #[inline(always)]
-    fn into_aligned<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecAligned>
-    where
-        ScalarCount<N>: VecLen<N>,
-    {
-        vec
-    }
-    #[inline(always)]
-    fn into_packed<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecPacked>
-    where
-        ScalarCount<N>: VecLen<N>,
-    {
-        Vector::from_array(vec.into_array())
-    }
-    fn from_alignment<const N: usize, T: Scalar, AInput: alignment::VecAlignment>(
-        vec: Vector<N, T, AInput>,
-    ) -> Vector<N, T, Self>
-    where
-        ScalarCount<N>: VecLen<N>,
-    {
-        vec.into_aligned()
-    }
-}
-impl VecAlignment for VecAligned {}
 
 /// Vector inner storage that ensures that the vector has the same type-layout as ```[T; N]```.
 /// ```
@@ -144,68 +118,28 @@ impl VecAlignment for VecAligned {}
 ///
 /// Only recommended when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecPacked;
-impl alignment_seal::VecAlignment for VecPacked {
-    #[inline(always)]
-    fn into_aligned<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecAligned>
-    where
-        ScalarCount<N>: VecLen<N>,
-    {
-        Vector::from_array(vec.into_array())
-    }
-    #[inline(always)]
-    fn into_packed<const N: usize, T: Scalar>(vec: Vector<N, T, Self>) -> Vector<N, T, VecPacked>
-    where
-        ScalarCount<N>: VecLen<N>,
-    {
-        vec
-    }
-    fn from_alignment<const N: usize, T: Scalar, AInput: VecAlignment>(
-        vec: Vector<N, T, AInput>,
-    ) -> Vector<N, T, Self>
-    where
-        ScalarCount<N>: VecLen<N>,
-    {
-        vec.into_packed()
-    }
-}
-impl VecAlignment for VecPacked {}
 
-pub(super) mod alignment_seal {
-    use super::*;
+impl VecAlignment for VecAligned {
+    type InnerVector<const N: usize, T: Scalar>
+    = <ScalarCount<N> as VecLen>::InnerAlignedVector<T> where
+    ScalarCount<N>: VecLen;
 
-    pub trait VecAlignment: inner::VecAlignmentInnerVecs {
-        fn into_aligned<const N: usize, T: Scalar>(
-            vec: Vector<N, T, Self>,
-        ) -> Vector<N, T, VecAligned>
-        where
-            ScalarCount<N>: VecLen<N>;
-        fn into_packed<const N: usize, T: Scalar>(
-            vec: Vector<N, T, Self>,
-        ) -> Vector<N, T, VecPacked>
-        where
-            ScalarCount<N>: VecLen<N>;
-        fn from_alignment<const N: usize, T: Scalar, AInput: super::VecAlignment>(
-            vec: Vector<N, T, AInput>,
-        ) -> Vector<N, T, Self>
-        where
-            ScalarCount<N>: VecLen<N>;
+    #[inline(always)]
+    fn choose_fn<O>(f_aligned: impl FnOnce() -> O, _f_packed: impl FnOnce() -> O) -> O {
+        f_aligned()
     }
 }
 
-impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
-where
-    ScalarCount<N>: VecLen<N>,
-{
+impl VecAlignment for VecPacked {
+    type InnerVector<const N: usize, T: Scalar> = [T; N]where
+    ScalarCount<N>: VecLen;
+
     #[inline(always)]
-    pub fn into_aligned(self) -> Vector<N, T, VecAligned> {
-        A::into_aligned(self)
-    }
-    #[inline(always)]
-    pub fn into_packed(self) -> Vector<N, T, VecPacked> {
-        A::into_packed(self)
-    }
-    #[inline(always)]
-    pub fn into_alignment<AOutput: VecAlignment>(self) -> Vector<N, T, AOutput> {
-        AOutput::from_alignment(self)
+    fn choose_fn<O>(_f_aligned: impl FnOnce() -> O, f_packed: impl FnOnce() -> O) -> O {
+        f_packed()
     }
 }
+
+trait Seal {}
+impl Seal for VecAligned {}
+impl Seal for VecPacked {}

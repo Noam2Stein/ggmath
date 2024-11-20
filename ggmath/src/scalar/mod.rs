@@ -5,3 +5,5 @@
 mod primitive_impls;
 
 pub use crate::vector::interfaces::scalar_traits::*;
+
+pub use ggmath_proc_macros::inner_vectors;

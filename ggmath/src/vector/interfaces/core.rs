@@ -1,7 +1,12 @@
 use std::mem::{transmute, transmute_copy};
 
+pub unsafe trait ScalarInnerVectors {
+    type InnerAlignedVec2: Construct;
+    type InnerAlignedVec4: Construct;
+}
+
 ggmath_proc_macros::vec_interface!(
-    Scalar: Construct + ScalarInnerVecs;
+    Scalar: Construct + ScalarInnerVectors;
 
     pub impl:
 

@@ -21,7 +21,7 @@ fn main() {
 ``` rust
 use ggmath::{primitive_aliases::f32::*, vector::*};
 
-struct MyStruct<const N: usize, T: Scalar, A: VecAlignment> where ScalarCount<N>: VecLen<N> {
+struct MyStruct<const N: usize, T: Scalar, A: VecAlignment> where ScalarCount<N>: VecLen {
   gg: Vector<N, T, A>,
   og: Vector<N, T, VecAligned>,
   go: FVec3,
@@ -52,7 +52,7 @@ the ```Scalar``` trait allows types to be put inside math types (vectors, matric
 ## `Vector`
 
 the ```Vector``` struct is generic over:
-* `<const N: usize> where ScalarCount<N>: VecLen<N>` - only 2, 3, and 4 are vector lengths
+* `<const N: usize> where ScalarCount<N>: VecLen` - only 2, 3, and 4 are vector lengths
 * `<T: Scalar>`
 * `<A: VecAlignment>` - doesn't affect API, VecAligned is faster, VecPacked saves memory
 
@@ -61,8 +61,8 @@ don't want to be generic? use type aliases! `Vec2<f32>`/`FVec2`/`IVec3`/`BVec4`
 ## `Matrix`
 
 the ```Matrix``` struct is generic over:
-* `<const C: usize> where ScalarCount<C>: VecLen<C>` - column count
-* `<const R: usize> where ScalarCount<R>: VecLen<R>` - row count
+* `<const C: usize> where ScalarCount<C>: VecLen` - column count
+* `<const R: usize> where ScalarCount<R>: VecLen` - row count
 * `<M: MatrixMajorAxis>` - internally row-major or column major?
 * `<T: Scalar>`
 * `<A: VecAlignment>` - a matrix is built off of vectors...

@@ -13,7 +13,7 @@ pub fn test_scalar<T: TestableScalar>() {
 
 fn tests_for_n_t_a<const N: usize, T: TestableScalar, A: VecAlignment>()
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     let array = T::n_special_values::<N>();
     let vector = Vector::<N, T, A>::from_array(array);

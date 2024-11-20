@@ -1,6 +1,6 @@
 use super::*;
 
-inner_vecs!(i32(4));
+inner_vectors!(i32(4));
 
 impl Scalar for i32 {}
 

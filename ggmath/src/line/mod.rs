@@ -5,7 +5,7 @@ use crate::{
 
 pub struct Line<const N: usize, T: Scalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     pub start: Vector<N, T, A>,
     pub end: Vector<N, T, A>,

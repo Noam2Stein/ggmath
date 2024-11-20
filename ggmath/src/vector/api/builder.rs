@@ -7,7 +7,7 @@ pub use ggmath_proc_macros::{vec2, vec2p, vec3, vec3p, vec4, vec4p};
 impl<const N: usize, T: Scalar, AInput: VecAlignment, AOutput: VecAlignment>
     Builder<Vector<N, T, AOutput>> for Vector<N, T, AInput>
 where
-    ScalarCount<N>: VecLen<N>,
+    ScalarCount<N>: VecLen,
 {
     #[inline(always)]
     fn build(self) -> Vector<N, T, AOutput> {

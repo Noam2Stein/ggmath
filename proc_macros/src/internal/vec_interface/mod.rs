@@ -1,20 +1,16 @@
 use super::*;
 
 use syn::{
-    punctuated::Punctuated, token::Brace, Block, ConstParam, FnArg, GenericParam, Generics, Lit,
-    LitInt, Pat, Receiver, Signature, Type, Visibility,
+    punctuated::Punctuated, token::Brace, Block, ConstParam, FnArg, GenericParam, Generics, LitInt,
+    Pat, Receiver, Signature, Type, Visibility,
 };
 
 mod input;
-mod output_alignment;
 mod output_impl_block;
-mod output_len;
 mod output_scalar_trait;
 mod search_replace;
 use input::*;
-use output_alignment::*;
 use output_impl_block::*;
-use output_len::*;
 use output_scalar_trait::*;
 use search_replace::*;
 
@@ -34,32 +30,22 @@ fn scalar_fn_ident(ident: &Ident, n: &str, a: &str) -> Ident {
         ident.span(),
     )
 }
-fn len_trait_ident(input: &VecInterface) -> Ident {
-    Ident::new(&format!("VecLen{}", input.ident), input.ident.span())
-}
-fn alignment_trait_ident(input: &VecInterface) -> Ident {
-    Ident::new(&format!("VecAlignment{}", input.ident), input.ident.span())
-}
 
 pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as VecInterface);
 
     let impl_blocks = input.impls.iter().map(|r#impl| impl_block(&input, r#impl));
     let scalar = scalar_trait(&input);
-    let len = len(&input);
-    let storage = alignment(&input);
 
     quote_spanned! {
         input.ident.span() =>
 
         #[allow(unused_imports)]
-        use crate::vector::{alignment::*, inner::*, length::*, *};
+        use crate::vector::{alignment::*, length::*, *};
 
         #(#impl_blocks)*
 
         #scalar
-        #len
-        #storage
     }
     .into()
 }
@@ -92,38 +78,4 @@ fn arg_ident(arg: &FnArg) -> Ident {
             _ => panic!("non-ident arguments are not supported"),
         },
     }
-}
-
-fn with_span<T: ToTokens + Parse>(tokens: &T, span: Span) -> T {
-    parse2(
-        tokens
-            .to_token_stream()
-            .clone()
-            .into_iter()
-            .map(|token| match token {
-                TokenTree::Group(token) => {
-                    let mut token = Group::new(token.delimiter(), with_span(&token.stream(), span));
-                    token.set_span(span);
-
-                    TokenTree::Group(token)
-                }
-                TokenTree::Ident(mut token) => {
-                    token.set_span(span);
-
-                    TokenTree::Ident(token)
-                }
-                TokenTree::Literal(mut token) => {
-                    token.set_span(span);
-
-                    TokenTree::Literal(token)
-                }
-                TokenTree::Punct(mut token) => {
-                    token.set_span(span);
-
-                    TokenTree::Punct(token)
-                }
-            })
-            .collect::<TokenStream>(),
-    )
-    .unwrap()
 }
