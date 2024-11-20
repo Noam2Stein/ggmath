@@ -9,19 +9,23 @@ pub trait TestableScalar: ScalarPartialEq<Self> + Debug {
 
     #[allow(dead_code)]
     fn n_normal_values<const N: usize>() -> [Self; N] {
-        array::from_fn(|index| {
-            *Self::NORMAL_VALUES
-                .get(index)
-                .unwrap_or(&Self::DEFAULT_VALUE)
-        })
+        array::from_fn(Self::normal_value)
     }
     #[allow(dead_code)]
     fn n_special_values<const N: usize>() -> [Self; N] {
-        array::from_fn(|index| {
-            *Self::SPECIAL_VALUES
-                .get(index)
-                .unwrap_or(&Self::DEFAULT_VALUE)
-        })
+        array::from_fn(Self::special_value)
+    }
+
+    fn normal_value(index: usize) -> Self {
+        *Self::NORMAL_VALUES
+            .get(index)
+            .unwrap_or(&Self::DEFAULT_VALUE)
+    }
+    fn special_value(index: usize) -> Self {
+        Self::SPECIAL_VALUES.get(index).map_or_else(
+            || Self::normal_value(index - Self::SPECIAL_VALUES.len()),
+            |value| *value,
+        )
     }
 }
 

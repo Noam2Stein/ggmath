@@ -18,6 +18,8 @@ where
     let array = T::n_special_values::<N>();
     let vector = Vector::<N, T, A>::from_array(array);
 
+    assert_eq!(vector.into_array(), array);
+
     let indicies = [0, N / 2, N - 1, N];
     let valid_indicies = [0, N / 2, N - 1];
 
