@@ -62,8 +62,6 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
     type InnerVector<const N: usize, T: Scalar>: Construct
     where
         ScalarCount<N>: VecLen;
-
-    fn choose_fn<O>(f_aligned: impl FnOnce() -> O, f_packed: impl FnOnce() -> O) -> O;
 }
 
 /// Vector inner storage that ensures that the vector has the next alignment from ```[T; N]```'s size, and a size equal to the alignment.
@@ -123,21 +121,11 @@ impl VecAlignment for VecAligned {
     type InnerVector<const N: usize, T: Scalar>
     = <ScalarCount<N> as VecLen>::InnerAlignedVector<T> where
     ScalarCount<N>: VecLen;
-
-    #[inline(always)]
-    fn choose_fn<O>(f_aligned: impl FnOnce() -> O, _f_packed: impl FnOnce() -> O) -> O {
-        f_aligned()
-    }
 }
 
 impl VecAlignment for VecPacked {
     type InnerVector<const N: usize, T: Scalar> = [T; N]where
     ScalarCount<N>: VecLen;
-
-    #[inline(always)]
-    fn choose_fn<O>(_f_aligned: impl FnOnce() -> O, f_packed: impl FnOnce() -> O) -> O {
-        f_packed()
-    }
 }
 
 trait Seal {}

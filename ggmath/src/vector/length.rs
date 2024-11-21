@@ -31,9 +31,6 @@ use super::*;
 #[allow(private_bounds)]
 pub trait VecLen: Seal + Sized + 'static + Send + Sync {
     type InnerAlignedVector<T: Scalar>: Construct;
-
-    fn choose_fn<O>(f_2: impl FnOnce() -> O, f_3: impl FnOnce() -> O, f_4: impl FnOnce() -> O)
-        -> O;
 }
 
 /// Count of scalars that may or may not be a [```VecLen```].
@@ -67,39 +64,12 @@ pub struct ScalarCount<const VALUE: usize>;
 
 impl VecLen for ScalarCount<2> {
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec2;
-
-    #[inline(always)]
-    fn choose_fn<O>(
-        f_2: impl FnOnce() -> O,
-        _f_3: impl FnOnce() -> O,
-        _f_4: impl FnOnce() -> O,
-    ) -> O {
-        f_2()
-    }
 }
 impl VecLen for ScalarCount<3> {
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
-
-    #[inline(always)]
-    fn choose_fn<O>(
-        _f_2: impl FnOnce() -> O,
-        f_3: impl FnOnce() -> O,
-        _f_4: impl FnOnce() -> O,
-    ) -> O {
-        f_3()
-    }
 }
 impl VecLen for ScalarCount<4> {
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
-
-    #[inline(always)]
-    fn choose_fn<O>(
-        _f_2: impl FnOnce() -> O,
-        _f_3: impl FnOnce() -> O,
-        f_4: impl FnOnce() -> O,
-    ) -> O {
-        f_4()
-    }
 }
 
 trait Seal {}
