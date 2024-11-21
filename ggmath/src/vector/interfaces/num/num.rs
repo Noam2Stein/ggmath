@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display};
 
 use super::*;
 
-ggmath_proc_macros::vec_interface!(
+ggmath_proc_macros::vector_interface!(
     ScalarNum:
 
     Scalar +

@@ -1,6 +1,6 @@
 use crate::AbsDiff;
 
-ggmath_proc_macros::vec_interface!(
+ggmath_proc_macros::vector_interface!(
     ScalarAbsDiff<Rhs: Scalar>: Scalar + AbsDiff<Rhs, Output: Scalar>;
     impl AbsDiff<Vector<N, Rhs, A>>:
 

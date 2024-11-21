@@ -5,7 +5,7 @@ pub unsafe trait ScalarInnerVectors {
     type InnerAlignedVec4: Construct;
 }
 
-ggmath_proc_macros::vec_interface!(
+ggmath_proc_macros::vector_interface!(
     Scalar: Construct + ScalarInnerVectors;
 
     pub impl:

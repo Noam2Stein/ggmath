@@ -31,7 +31,7 @@ fn scalar_fn_ident(ident: &Ident, n: &str, a: &str) -> Ident {
     )
 }
 
-pub fn vec_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn vector_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as VecInterface);
 
     let impl_blocks = input.impls.iter().map(|r#impl| impl_block(&input, r#impl));

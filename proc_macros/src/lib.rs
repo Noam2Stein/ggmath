@@ -116,8 +116,8 @@ mod internal;
 
 #[proc_macro]
 #[inline(always)]
-pub fn vec_interface(input: TokenStream1) -> TokenStream1 {
-    internal::vec_interface(input)
+pub fn vector_interface(input: TokenStream1) -> TokenStream1 {
+    internal::vector_interface(input)
 }
 
 #[proc_macro]

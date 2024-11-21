@@ -1,6 +1,6 @@
 use std::{array, cmp::Ordering};
 
-ggmath_proc_macros::vec_interface!(
+ggmath_proc_macros::vector_interface!(
     ScalarPartialEq<Rhs: Scalar>: Scalar + PartialEq<Rhs>;
 
     impl PartialEq<Vector<N, Rhs, A>>:
@@ -15,7 +15,7 @@ impl<const N: usize, T: ScalarPartialEq<T> + Eq, A: VecAlignment> Eq for Vector<
 {
 }
 
-ggmath_proc_macros::vec_interface!(
+ggmath_proc_macros::vector_interface!(
     ScalarPartialOrd: ScalarPartialEq<T> + PartialOrd<T>;
 
     pub impl:

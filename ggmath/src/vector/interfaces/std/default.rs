@@ -1,4 +1,4 @@
-ggmath_proc_macros::vec_interface!(
+ggmath_proc_macros::vector_interface!(
     ScalarDefault: Scalar + Default;
 
     impl Default:

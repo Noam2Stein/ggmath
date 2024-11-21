@@ -4,7 +4,7 @@ use std::ops::*;
 use ggmath_proc_macros::{for_assign_ops, for_rhs_ops, for_self_ops};
 
 for_self_ops!(
-    $(ggmath_proc_macros::vec_interface!(
+    $(ggmath_proc_macros::vector_interface!(
         $scalar_trait: Scalar + $std_trait<Output: Scalar>;
 
         impl $std_trait:
@@ -17,7 +17,7 @@ for_self_ops!(
     );)*
 );
 for_rhs_ops!(
-    $(ggmath_proc_macros::vec_interface!(
+    $(ggmath_proc_macros::vector_interface!(
         $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs, Output: Scalar>;
 
         impl $std_trait<Vector<N, Rhs, A>>:
@@ -35,7 +35,7 @@ for_rhs_ops!(
     );)*
 );
 for_assign_ops!(
-    $(ggmath_proc_macros::vec_interface!(
+    $(ggmath_proc_macros::vector_interface!(
         $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs>;
 
         impl $std_trait<Vector<N, Rhs, A>>:
