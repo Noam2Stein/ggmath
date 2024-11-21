@@ -23,9 +23,6 @@ pub fn vector_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStre
     quote_spanned! {
         input.ident.span() =>
 
-        #[allow(unused_imports)]
-        use crate::vector::{alignment::*, length::*, *};
-
         #(#impl_blocks)*
 
         #scalar

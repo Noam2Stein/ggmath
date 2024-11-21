@@ -1,9 +1,4 @@
-use crate::{
-    construct::*,
-    ggmath,
-    scalar::*,
-    vector::{alignment::*, length::*, *},
-};
+use crate::{construct::*, ggmath, scalar::*, vector::*};
 
 pub mod repr;
 use repr::*;

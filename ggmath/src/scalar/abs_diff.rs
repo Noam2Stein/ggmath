@@ -1,4 +1,4 @@
-use crate::AbsDiff;
+use super::*;
 
 ggmath_proc_macros::vector_interface!(
     ScalarAbsDiff<Rhs: Scalar>: Scalar + AbsDiff<Rhs, Output: Scalar>;

@@ -12,7 +12,7 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
             <
                 const N: usize,
                 T: #interface_ident<#(#interface_generic_args), *>,
-                A: VecAlignment
+                A: ggmath::vector::VecAlignment
                 #(, #interface_generic_params)*
                 #(, #impl_generic_params)*
             >
@@ -23,13 +23,13 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
         quote_spanned! {
             interface.ident.span() =>
 
-            #impl_trait for Vector<N, T, A>
+            #impl_trait for ggmath::vector::Vector<N, T, A>
         }
     } else {
         quote_spanned! {
             interface.ident.span() =>
 
-            Vector<N, T, A>
+            ggmath::vector::Vector<N, T, A>
         }
     };
 
@@ -41,20 +41,20 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
             quote_spanned! {
                 interface_where_clause.where_token.span() =>
 
-                #interface_where_clause, #(#impl_where_clause_predicates), *, ScalarCount<N>: VecLen
+                #interface_where_clause, #(#impl_where_clause_predicates), *, ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
             }
         } else {
             quote_spanned! {
                 interface_where_clause.where_token.span() =>
 
-                #interface_where_clause, ScalarCount<N>: VecLen
+                #interface_where_clause, ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
             }
         }
     } else {
         quote_spanned! {
             interface.ident.span() =>
 
-            where ScalarCount<N>: VecLen
+            where ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
         }
     };
 

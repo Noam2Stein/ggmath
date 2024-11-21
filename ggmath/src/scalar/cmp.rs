@@ -1,3 +1,5 @@
+use super::*;
+
 use std::{array, cmp::Ordering};
 
 ggmath_proc_macros::vector_interface!(

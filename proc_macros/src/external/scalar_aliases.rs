@@ -5,11 +5,16 @@ use syn::{token::Paren, Type, Visibility};
 
 #[inline(always)]
 pub fn vector_aliases(input: TokenStream1) -> TokenStream1 {
-    scalar_aliases(&["Vec2", "Vec3", "Vec4", "Vec2P", "Vec3P", "Vec4P"], input)
+    scalar_aliases(
+        quote! { ggmath::vector::* },
+        &["Vec2", "Vec3", "Vec4", "Vec2P", "Vec3P", "Vec4P"],
+        input,
+    )
 }
 #[inline(always)]
 pub fn matrix_aliases(input: TokenStream1) -> TokenStream1 {
     scalar_aliases(
+        quote! { ggmath::matrix::* },
         &[
             "Mat2C", "Mat2x3C", "Mat2x4C", "Mat3x2C", "Mat3C", "Mat3x4C", "Mat4x2C", "Mat4x3C",
             "Mat4C", "Mat2R", "Mat2x3R", "Mat2x4R", "Mat3x2R", "Mat3R", "Mat3x4R", "Mat4x2R",
@@ -23,6 +28,7 @@ pub fn matrix_aliases(input: TokenStream1) -> TokenStream1 {
 #[inline(always)]
 pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
     scalar_aliases(
+        quote! { ggmath::rectangle::* },
         &[
             "Rect2", "Rect3", "Rect4", "Rect2C", "Rect3C", "Rect4C", "Rect2M", "Rect3M", "Rect4M",
             "Rect2P", "Rect3P", "Rect4P", "Rect2CP", "Rect3CP", "Rect4CP", "Rect2MP", "Rect3MP",
@@ -32,7 +38,7 @@ pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
     )
 }
 
-fn scalar_aliases(aliases: &[&str], input: TokenStream1) -> TokenStream1 {
+fn scalar_aliases(use_items: TokenStream, aliases: &[&str], input: TokenStream1) -> TokenStream1 {
     let Input {
         vis,
         mod_ident,
@@ -58,7 +64,7 @@ fn scalar_aliases(aliases: &[&str], input: TokenStream1) -> TokenStream1 {
         #mod_docs
         #vis mod #mod_ident {
             use super::*;
-            use ggmath::vector::{alignment::*, length::*, *};
+            use #use_items;
 
             #(
                 pub type #aliases_with_prefix = #aliases_without_prefix<#scalar_type>;

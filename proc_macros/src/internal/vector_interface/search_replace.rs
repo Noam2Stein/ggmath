@@ -21,7 +21,7 @@ pub fn search_replace_fn(
                 if let Some((and_token, lifetime)) = reference {
                     *input = parse_quote_spanned! {
                         self_token.span() =>
-                        #(#[#attrs])* vec: #and_token #lifetime #mutability Vector<N, T, A>
+                        #(#[#attrs])* vec: #and_token #lifetime #mutability ggmath::vector::Vector<N, T, A>
                     }
                 } else {
                     let mutability = mutability.map_or(None, |mutability| {
@@ -33,7 +33,7 @@ pub fn search_replace_fn(
                     });
                     *input = parse_quote_spanned! {
                         self_token.span() =>
-                        #(#[#attrs])* #mutability vec: Vector<N, T, A>
+                        #(#[#attrs])* #mutability vec: ggmath::vector::Vector<N, T, A>
                     }
                 }
             }
@@ -64,7 +64,7 @@ pub fn search_replace_fn(
             let n = n(span);
             let t = t(span);
             let a = a(span);
-            quote_spanned! { span => Vector<#n, #t, #a> }
+            quote_spanned! { span => ggmath::vector::Vector<#n, #t, #a> }
         },
         |span| quote_spanned! { span => vec },
         n,
@@ -89,7 +89,7 @@ pub fn search_replace_generics(
             let n = n(span);
             let t = t(span);
             let a = a(span);
-            quote_spanned! { span => Vector<#n, #t, #a> }
+            quote_spanned! { span => ggmath::vector::Vector<#n, #t, #a> }
         },
         |span| quote_spanned! { span => vec },
         n,

@@ -71,7 +71,7 @@ pub enum LengthResolvedVector<T: Scalar, A: VecAlignment> {
 }
 
 impl VecLen for ScalarCount<2> {
-    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec2;
+    type InnerAlignedVector<T: Scalar> = <T as ScalarInnerVectors>::InnerAlignedVec2;
 }
 impl VecLen for ScalarCount<3> {
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;

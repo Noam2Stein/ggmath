@@ -7,11 +7,11 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
             let mut modified_fn_sig = r#fn.sig.clone();
             modified_fn_sig.ident = scalar_trait_fn_ident(&modified_fn_sig.ident);
             modified_fn_sig.generics.params.insert(0, parse_quote_spanned! { modified_fn_sig.generics.span() => const N: usize });
-            modified_fn_sig.generics.params.insert(1, parse_quote_spanned! { modified_fn_sig.generics.span() => A: VecAlignment });
+            modified_fn_sig.generics.params.insert(1, parse_quote_spanned! { modified_fn_sig.generics.span() => A: ggmath::vector::VecAlignment });
             if let Some(where_clause) = &mut modified_fn_sig.generics.where_clause {
-                where_clause.predicates.insert(0, parse_quote_spanned! { where_clause.span() => ScalarCount<N>: VecLen });
+                where_clause.predicates.insert(0, parse_quote_spanned! { where_clause.span() => ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen });
             } else {
-                modified_fn_sig.generics.where_clause = Some(parse_quote_spanned! { modified_fn_sig.generics.span() => where ScalarCount<N>: VecLen });
+                modified_fn_sig.generics.where_clause = Some(parse_quote_spanned! { modified_fn_sig.generics.span() => where ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen });
             }
 
             search_replace_fn(

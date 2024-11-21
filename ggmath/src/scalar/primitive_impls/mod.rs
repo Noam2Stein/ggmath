@@ -1,4 +1,4 @@
-use crate::{scalar::*, *};
+use super::*;
 
 mod bool;
 mod f32;

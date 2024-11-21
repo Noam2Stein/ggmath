@@ -1,4 +1,4 @@
-use ggmath::vector::{alignment::*, length::*, *};
+use ggmath::vector::*;
 
 use crate::testable_scalar::*;
 

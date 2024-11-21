@@ -1,3 +1,5 @@
+use super::*;
+
 ggmath_proc_macros::vector_interface!(
     ScalarDefault: Scalar + Default;
 

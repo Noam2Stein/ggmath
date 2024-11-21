@@ -1,22 +1,20 @@
 //! Staticly-lengthed vectors of [scalars](scalar) with lengths between 2 and 4.
 
-pub mod alignment;
-pub mod length;
+mod generics;
+pub use generics::*;
 
-pub(crate) mod interfaces;
-
-mod api;
-mod impl_std;
-#[allow(unused_imports)]
-pub use api::*;
-#[allow(unused_imports)]
-pub use impl_std::*;
+mod array;
+mod builder;
+mod copy;
+mod fmt;
+mod index;
+mod iter;
+mod scalar_ops;
+mod swizzle_wrappers;
 
 use crate::{construct::*, ggmath, scalar::*};
-use alignment::*;
-use length::*;
 
-pub use ggmath_proc_macros::vector_aliases;
+pub use ggmath_proc_macros::{vec2, vec2p, vec3, vec3p, vec4, vec4p, vector_aliases};
 
 #[cfg(feature = "primitive_aliases")]
 vector_aliases!(pub mod f32_aliases for f32(F));
@@ -76,7 +74,7 @@ vector_aliases!(pub mod bool_aliases for bool(B));
 #[repr(transparent)]
 pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
 where
-    length::ScalarCount<N>: VecLen,
+    ScalarCount<N>: VecLen,
 {
     inner: A::InnerVector<N, T>,
 }

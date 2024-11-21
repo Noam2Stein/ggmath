@@ -2,7 +2,7 @@ use std::array;
 
 use ggmath::{
     matrix::{major_axis::*, Matrix},
-    vector::{alignment::*, length::*, Vector},
+    vector::*,
 };
 use ggmath_testing::testable_scalar::*;
 

@@ -1,7 +1,4 @@
-use crate::{
-    scalar::*,
-    vector::{alignment::*, length::*, *},
-};
+use crate::{scalar::*, vector::*};
 
 pub struct Line<const N: usize, T: Scalar, A: VecAlignment>
 where

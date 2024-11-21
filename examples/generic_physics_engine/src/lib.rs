@@ -1,7 +1,7 @@
 use ggmath::{
     rectangle::{repr::*, *},
     scalar::*,
-    vector::{alignment::*, length::*, *},
+    vector::*,
 };
 
 pub struct World<const D: usize, P: ScalarNum>
