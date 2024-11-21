@@ -62,6 +62,12 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
     type InnerVector<const N: usize, T: Scalar>: Construct
     where
         ScalarCount<N>: VecLen;
+
+    fn resolve<const N: usize, T: Scalar>(
+        vector: Vector<N, T, Self>,
+    ) -> AlignmentResolvedVector<N, T>
+    where
+        ScalarCount<N>: VecLen;
 }
 
 /// Vector inner storage that ensures that the vector has the next alignment from ```[T; N]```'s size, and a size equal to the alignment.
@@ -117,15 +123,53 @@ pub struct VecAligned;
 /// Only recommended when storing large arrays of vectors that you don't perform much computation on.
 pub struct VecPacked;
 
+pub enum AlignmentResolvedVector<const N: usize, T: Scalar>
+where
+    ScalarCount<N>: VecLen,
+{
+    Aligned(Vector<N, T, VecAligned>),
+    Packed(Vector<N, T, VecPacked>),
+}
+
 impl VecAlignment for VecAligned {
     type InnerVector<const N: usize, T: Scalar>
     = <ScalarCount<N> as VecLen>::InnerAlignedVector<T> where
     ScalarCount<N>: VecLen;
+
+    #[inline(always)]
+    fn resolve<const N: usize, T: Scalar>(
+        vector: Vector<N, T, Self>,
+    ) -> AlignmentResolvedVector<N, T>
+    where
+        ScalarCount<N>: VecLen,
+    {
+        AlignmentResolvedVector::Aligned(vector)
+    }
 }
 
 impl VecAlignment for VecPacked {
     type InnerVector<const N: usize, T: Scalar> = [T; N]where
     ScalarCount<N>: VecLen;
+
+    #[inline(always)]
+    fn resolve<const N: usize, T: Scalar>(
+        vector: Vector<N, T, Self>,
+    ) -> AlignmentResolvedVector<N, T>
+    where
+        ScalarCount<N>: VecLen,
+    {
+        AlignmentResolvedVector::Packed(vector)
+    }
+}
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    ScalarCount<N>: VecLen,
+{
+    #[inline(always)]
+    pub fn resolve_alignment(self) -> AlignmentResolvedVector<N, T> {
+        A::resolve(self)
+    }
 }
 
 trait Seal {}
