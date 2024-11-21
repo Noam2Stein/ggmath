@@ -11,9 +11,6 @@ use syn::{
     Error, Token,
 };
 
-mod utils;
-use utils::*;
-
 // External Macros
 
 mod external;

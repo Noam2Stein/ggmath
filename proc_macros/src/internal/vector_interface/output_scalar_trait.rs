@@ -4,30 +4,25 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
     let output_fns = interface.impls.iter().map(|r#impl| r#impl.fns
         .iter()
         .map(|r#fn| {
-            ALIGN_STRS
-                .zip(r#fn.defaults.clone())
-                .map(|(a_str, defaults)| {
-                    let a = Ident::new(a_str, r#fn.sig.span());
+            let mut modified_fn_sig = r#fn.sig.clone();
+            modified_fn_sig.ident = scalar_trait_fn_ident(&modified_fn_sig.ident);
+            modified_fn_sig.generics.params.insert(0, parse_quote_spanned! { modified_fn_sig.generics.span() => const N: usize });
+            modified_fn_sig.generics.params.insert(1, parse_quote_spanned! { modified_fn_sig.generics.span() => A: VecAlignment });
+            if let Some(where_clause) = &mut modified_fn_sig.generics.where_clause {
+                where_clause.predicates.insert(0, parse_quote_spanned! { where_clause.span() => ScalarCount<N>: VecLen });
+            } else {
+                modified_fn_sig.generics.where_clause = Some(parse_quote_spanned! { modified_fn_sig.generics.span() => where ScalarCount<N>: VecLen });
+            }
 
-                    LEN_STRS.zip(defaults).map(|(n_str, default)| {
-                        let n = LitInt::new(n_str, r#fn.sig.span());
-
-                        let mut fn_sig = r#fn.sig.clone();
-                        fn_sig.ident = scalar_fn_ident(&fn_sig.ident, n_str, a_str);
-
-                        search_replace_fn(
-                            quote_spanned! { fn_sig.fn_token.span => #[allow(unused_mut)] #[allow(missing_docs)] },
-                            fn_sig.clone(),
-                            Some(default.to_token_stream()),
-                            |span| quote_spanned! { span => #n },
-                            |span| quote_spanned! { span => Self },
-                            |span| quote_spanned! { span => #a },
-                        )
-                    })
-                })
+            search_replace_fn(
+                quote_spanned! { modified_fn_sig.fn_token.span => #[allow(unused_mut)] #[allow(missing_docs)] },
+                modified_fn_sig.clone(),
+                Some(r#fn.default.to_token_stream()),
+                |span| quote_spanned! { span => N },
+                |span| quote_spanned! { span => Self },
+                |span| quote_spanned! { span => A },
+            )
         }))
-        .flatten()
-        .flatten()
         .flatten();
 
     let VecInterface {
@@ -68,4 +63,8 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
             #(#interface_scalar_items)*
         }
     }
+}
+
+pub fn scalar_trait_fn_ident(fn_ident: &Ident) -> Ident {
+    Ident::new(&format!("vector_{fn_ident}"), fn_ident.span())
 }

@@ -1,8 +1,8 @@
 use super::*;
 
 use syn::{
-    punctuated::Punctuated, token::Brace, Block, ConstParam, FnArg, GenericParam, Generics, LitInt,
-    Pat, Receiver, Signature, Type, Visibility,
+    punctuated::Punctuated, Block, ConstParam, FnArg, GenericParam, Generics, Pat, Receiver,
+    Signature, Type, Visibility,
 };
 
 mod input;
@@ -13,23 +13,6 @@ use input::*;
 use output_impl_block::*;
 use output_scalar_trait::*;
 use search_replace::*;
-
-const LEN_STRS: [&str; 3] = ["2", "3", "4"];
-const ALIGN_STRS: [&str; 2] = ["VecAligned", "VecPacked"];
-
-fn scalar_fn_ident(ident: &Ident, n: &str, a: &str) -> Ident {
-    Ident::new(
-        &format!(
-            "{}_vec{n}_{ident}",
-            match a {
-                "VecAligned" => "aligned",
-                "VecPacked" => "packed",
-                _ => unreachable!(),
-            }
-        ),
-        ident.span(),
-    )
-}
 
 pub fn vector_interface(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as VecInterface);

@@ -1,3 +1,5 @@
+use std::mem::transmute_copy;
+
 use super::*;
 
 /// Sealed trait for ```ScalarCount```s that are valid as vector lengths.
@@ -62,6 +64,12 @@ pub trait VecLen: Seal + Sized + 'static + Send + Sync {
 /// ```
 pub struct ScalarCount<const VALUE: usize>;
 
+pub enum LengthResolvedVector<T: Scalar, A: VecAlignment> {
+    Vec2(Vector<2, T, A>),
+    Vec3(Vector<3, T, A>),
+    Vec4(Vector<4, T, A>),
+}
+
 impl VecLen for ScalarCount<2> {
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec2;
 }
@@ -70,6 +78,23 @@ impl VecLen for ScalarCount<3> {
 }
 impl VecLen for ScalarCount<4> {
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
+}
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    ScalarCount<N>: VecLen,
+{
+    #[inline(always)]
+    pub fn resolve_length(self) -> LengthResolvedVector<T, A> {
+        unsafe {
+            match N {
+                2 => LengthResolvedVector::Vec2(transmute_copy(&self)),
+                3 => LengthResolvedVector::Vec3(transmute_copy(&self)),
+                4 => LengthResolvedVector::Vec4(transmute_copy(&self)),
+                n => panic!("invalid vector length: '{n}'"),
+            }
+        }
+    }
 }
 
 trait Seal {}

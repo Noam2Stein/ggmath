@@ -64,12 +64,7 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
             .map(|_| quote_spanned! { r#fn.sig.fn_token.span() => pub });
         let fn_sig = &r#fn.sig;
 
-        let fn_call_ident_2_aligned = scalar_fn_ident(&r#fn.sig.ident, "2", "VecAligned");
-        let fn_call_ident_3_aligned = scalar_fn_ident(&r#fn.sig.ident, "3", "VecAligned");
-        let fn_call_ident_4_aligned = scalar_fn_ident(&r#fn.sig.ident, "4", "VecAligned");
-        let fn_call_ident_2_packed = scalar_fn_ident(&r#fn.sig.ident, "2", "VecPacked");
-        let fn_call_ident_3_packed = scalar_fn_ident(&r#fn.sig.ident, "3", "VecPacked");
-        let fn_call_ident_4_packed = scalar_fn_ident(&r#fn.sig.ident, "4", "VecPacked");
+        let fn_call_ident = scalar_trait_fn_ident(&r#fn.sig.ident);
 
         let fn_call_inputs = r#fn
             .sig
@@ -86,38 +81,7 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
             #[inline(always)]
             #[allow(unused_mut)]
             #item_vis #fn_sig {
-                #[inline(always)]
-                unsafe fn transmute<I, O>(input: I) -> O {
-                    std::mem::transmute_copy(&input)
-                }
-
-                use std::any::{TypeId, type_name};
-
-                unsafe {
-                    if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
-                        match N {
-                            2 => transmute(T::#fn_call_ident_2_aligned
-                                ::<#(#fn_call_generic_args), *>(#(transmute(#fn_call_inputs)), *)),
-                            3 => transmute(T::#fn_call_ident_3_aligned
-                                ::<#(#fn_call_generic_args), *>(#(transmute(#fn_call_inputs)), *)),
-                            4 => transmute(T::#fn_call_ident_4_aligned
-                                ::<#(#fn_call_generic_args), *>(#(transmute(#fn_call_inputs)), *)),
-                            n => panic!("unknown VecLen: {n}"),
-                        }
-                    } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
-                        match N {
-                            2 => transmute(T::#fn_call_ident_2_packed
-                                ::<#(#fn_call_generic_args), *>(#(transmute(#fn_call_inputs)), *)),
-                            3 => transmute(T::#fn_call_ident_3_packed
-                                ::<#(#fn_call_generic_args), *>(#(transmute(#fn_call_inputs)), *)),
-                            4 => transmute(T::#fn_call_ident_4_packed
-                                ::<#(#fn_call_generic_args), *>(#(transmute(#fn_call_inputs)), *)),
-                            n => panic!("unknown VecLen: {n}"),
-                        }
-                    } else {
-                        panic!("unknown VecAlignment: {}", type_name::<A>())
-                    }
-                }
+                T::#fn_call_ident::<N, A #(, #fn_call_generic_args)*>(#(#fn_call_inputs), *)
             }
         }
     });

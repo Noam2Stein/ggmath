@@ -1,4 +1,4 @@
-use std::mem::{transmute, transmute_copy};
+use std::mem::{transmute, transmute_copy, MaybeUninit};
 
 pub unsafe trait ScalarInnerVectors {
     type InnerAlignedVec2: Construct;
@@ -10,18 +10,14 @@ ggmath_proc_macros::vector_interface!(
 
     pub impl:
 
-    fn from_array(array: [T; N]) -> Self @match A {
-        VecAligned => @match N {
-            2 | 4 => {
-                unsafe { transmute_copy(&array) }
-            },
-            3 => {
-                unsafe { transmute_copy(&[array[0], array[1], array[2], array[2]]) }
-            },
-        },
-        VecPacked => {
-            Vector { inner: array }
-        },
+    fn from_array(array: [T; N]) -> Self {
+        unsafe {
+            let mut output = MaybeUninit::uninit().assume_init();
+
+            *transmute::<&mut Self, &mut [T; N]>(&mut output) = array;
+
+            output
+        }
     }
     fn into_array(self) -> [T; N] {
         unsafe { transmute_copy(&self) }
