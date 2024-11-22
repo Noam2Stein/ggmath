@@ -1,3 +1,8 @@
+use std::{
+    any::{type_name, TypeId},
+    mem::{transmute, transmute_copy},
+};
+
 use super::*;
 
 /// Sealed trait for the alignment rules of a vector.
@@ -62,12 +67,6 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
     type InnerVector<const N: usize, T: Scalar>: Construct
     where
         ScalarCount<N>: VecLen;
-
-    fn resolve<const N: usize, T: Scalar>(
-        vector: Vector<N, T, Self>,
-    ) -> AlignmentResolvedVector<N, T>
-    where
-        ScalarCount<N>: VecLen;
 }
 
 /// Vector inner storage that ensures that the vector has the next alignment from ```[T; N]```'s size, and a size equal to the alignment.
@@ -130,36 +129,19 @@ where
     Aligned(Vector<N, T, VecAligned>),
     Packed(Vector<N, T, VecPacked>),
 }
-
-impl VecAlignment for VecAligned {
-    type InnerVector<const N: usize, T: Scalar>
-    = <ScalarCount<N> as VecLen>::InnerAlignedVector<T> where
-    ScalarCount<N>: VecLen;
-
-    #[inline(always)]
-    fn resolve<const N: usize, T: Scalar>(
-        vector: Vector<N, T, Self>,
-    ) -> AlignmentResolvedVector<N, T>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        AlignmentResolvedVector::Aligned(vector)
-    }
+pub enum AlignmentResolvedVectorRef<'a, const N: usize, T: Scalar>
+where
+    ScalarCount<N>: VecLen,
+{
+    Aligned(&'a Vector<N, T, VecAligned>),
+    Packed(&'a Vector<N, T, VecPacked>),
 }
-
-impl VecAlignment for VecPacked {
-    type InnerVector<const N: usize, T: Scalar> = [T; N]where
-    ScalarCount<N>: VecLen;
-
-    #[inline(always)]
-    fn resolve<const N: usize, T: Scalar>(
-        vector: Vector<N, T, Self>,
-    ) -> AlignmentResolvedVector<N, T>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        AlignmentResolvedVector::Packed(vector)
-    }
+pub enum AlignmentResolvedVectorMut<'a, const N: usize, T: Scalar>
+where
+    ScalarCount<N>: VecLen,
+{
+    Aligned(&'a mut Vector<N, T, VecAligned>),
+    Packed(&'a mut Vector<N, T, VecPacked>),
 }
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
@@ -181,8 +163,67 @@ where
 
     #[inline(always)]
     pub fn resolve_alignment(self) -> AlignmentResolvedVector<N, T> {
-        A::resolve(self)
+        unsafe {
+            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
+                AlignmentResolvedVector::Aligned(transmute_copy(&self))
+            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
+                AlignmentResolvedVector::Packed(transmute_copy(&self))
+            } else {
+                panic!("invalid VecAlignment: {}", type_name::<A>())
+            }
+        }
     }
+    #[inline(always)]
+    pub fn resolve_alignment_ref(&self) -> AlignmentResolvedVectorRef<N, T> {
+        unsafe {
+            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
+                AlignmentResolvedVectorRef::Aligned(transmute(self))
+            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
+                AlignmentResolvedVectorRef::Packed(transmute(self))
+            } else {
+                panic!("invalid VecAlignment: {}", type_name::<A>())
+            }
+        }
+    }
+    #[inline(always)]
+    pub fn resolve_alignment_mut(&mut self) -> AlignmentResolvedVectorMut<N, T> {
+        unsafe {
+            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
+                AlignmentResolvedVectorMut::Aligned(transmute(self))
+            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
+                AlignmentResolvedVectorMut::Packed(transmute(self))
+            } else {
+                panic!("invalid VecAlignment: {}", type_name::<A>())
+            }
+        }
+    }
+
+    #[inline(always)]
+    pub fn from_resolved_alignment_fns(
+        f_aligned: impl FnOnce() -> Vector<N, T, VecAligned>,
+        f_packed: impl FnOnce() -> Vector<N, T, VecPacked>,
+    ) -> Self {
+        unsafe {
+            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
+                transmute_copy(&f_aligned())
+            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
+                transmute_copy(&f_packed())
+            } else {
+                panic!("invalid VecAlignment: {}", type_name::<A>())
+            }
+        }
+    }
+}
+
+impl VecAlignment for VecAligned {
+    type InnerVector<const N: usize, T: Scalar>
+    = <ScalarCount<N> as VecLen>::InnerAlignedVector<T> where
+    ScalarCount<N>: VecLen;
+}
+
+impl VecAlignment for VecPacked {
+    type InnerVector<const N: usize, T: Scalar> = [T; N]where
+    ScalarCount<N>: VecLen;
 }
 
 trait Seal {}

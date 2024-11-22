@@ -1,9 +1,6 @@
 use std::array;
 
-use ggmath::{
-    matrix::{major_axis::*, Matrix},
-    vector::*,
-};
+use ggmath::{matrix::*, vector::*};
 use ggmath_testing::testable_scalar::*;
 
 pub fn test_matrix<T: TestableScalar>() {
@@ -54,7 +51,7 @@ where
 
     let matrix = Matrix::<C, R, T, A, M>::from_rows(rows);
 
-    assert_eq!(matrix, Matrix::from_columns(columns));
+    assert_eq!(matrix, Matrix::<C, R, T, A, M>::from_columns(columns));
 
     assert_eq!(matrix.into_rows(), rows);
     assert_eq!(matrix.into_columns(), columns);

@@ -1,4 +1,4 @@
-use std::mem::transmute_copy;
+use std::mem::{transmute, transmute_copy};
 
 use super::*;
 
@@ -69,15 +69,15 @@ pub enum LengthResolvedVector<T: Scalar, A: VecAlignment> {
     Vec3(Vector<3, T, A>),
     Vec4(Vector<4, T, A>),
 }
-
-impl VecLen for ScalarCount<2> {
-    type InnerAlignedVector<T: Scalar> = <T as ScalarInnerVectors>::InnerAlignedVec2;
+pub enum LengthResolvedVectorRef<'a, T: Scalar, A: VecAlignment> {
+    Vec2(&'a Vector<2, T, A>),
+    Vec3(&'a Vector<3, T, A>),
+    Vec4(&'a Vector<4, T, A>),
 }
-impl VecLen for ScalarCount<3> {
-    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
-}
-impl VecLen for ScalarCount<4> {
-    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
+pub enum LengthResolvedVectorMut<'a, T: Scalar, A: VecAlignment> {
+    Vec2(&'a mut Vector<2, T, A>),
+    Vec3(&'a mut Vector<3, T, A>),
+    Vec4(&'a mut Vector<4, T, A>),
 }
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
@@ -95,6 +95,54 @@ where
             }
         }
     }
+    #[inline(always)]
+    pub fn resolve_length_ref(&self) -> LengthResolvedVectorRef<T, A> {
+        unsafe {
+            match N {
+                2 => LengthResolvedVectorRef::Vec2(transmute(self)),
+                3 => LengthResolvedVectorRef::Vec3(transmute(self)),
+                4 => LengthResolvedVectorRef::Vec4(transmute(self)),
+                n => panic!("invalid vector length: '{n}'"),
+            }
+        }
+    }
+    #[inline(always)]
+    pub fn resolve_length_mut(&mut self) -> LengthResolvedVectorMut<T, A> {
+        unsafe {
+            match N {
+                2 => LengthResolvedVectorMut::Vec2(transmute(self)),
+                3 => LengthResolvedVectorMut::Vec3(transmute(self)),
+                4 => LengthResolvedVectorMut::Vec4(transmute(self)),
+                n => panic!("invalid vector length: '{n}'"),
+            }
+        }
+    }
+
+    #[inline(always)]
+    pub fn from_resolved_length_fns(
+        f_2: impl FnOnce() -> Vector<2, T, A>,
+        f_3: impl FnOnce() -> Vector<3, T, A>,
+        f_4: impl FnOnce() -> Vector<4, T, A>,
+    ) -> Self {
+        unsafe {
+            match N {
+                2 => transmute_copy(&f_2()),
+                3 => transmute_copy(&f_3()),
+                4 => transmute_copy(&f_4()),
+                n => panic!("invalid vector length: '{n}'"),
+            }
+        }
+    }
+}
+
+impl VecLen for ScalarCount<2> {
+    type InnerAlignedVector<T: Scalar> = <T as ScalarInnerVectors>::InnerAlignedVec2;
+}
+impl VecLen for ScalarCount<3> {
+    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
+}
+impl VecLen for ScalarCount<4> {
+    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
 }
 
 trait Seal {}

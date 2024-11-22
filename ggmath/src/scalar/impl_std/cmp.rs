@@ -5,9 +5,9 @@ use std::{array, cmp::Ordering};
 ggmath_proc_macros::vector_interface!(
     ScalarPartialEq<Rhs: Scalar>: Scalar + PartialEq<Rhs>;
 
-    impl PartialEq<Vector<N, Rhs, A>>:
+    impl<ARhs: VecAlignment> PartialEq<Vector<N, Rhs, ARhs>>:
 
-    fn eq(&self, rhs: &Vector<N, Rhs, A>) -> bool {
+    fn eq(&self, rhs: &Vector<N, Rhs, ARhs>) -> bool {
         (0..N).all(|i| self[i].eq(&rhs[i]))
     }
 );
@@ -22,7 +22,7 @@ ggmath_proc_macros::vector_interface!(
 
     pub impl:
 
-    fn min<MinA: VecAlignment>(self, other: Vector<N, T, MinA>) -> Self {
+    fn min(self, other: Vector<N, T, impl VecAlignment>) -> Self {
         Vector::from_array(array::from_fn(|i| match self[i].partial_cmp(&other[i]) {
             None => self[i],
             Some(Ordering::Less) => self[i],
@@ -30,7 +30,7 @@ ggmath_proc_macros::vector_interface!(
             Some(Ordering::Greater) => other[i],
         }))
     }
-    fn max<MaxA: VecAlignment>(self, other: Vector<N, T, MaxA>) -> Self {
+    fn max(self, other: Vector<N, T, impl VecAlignment>) -> Self {
         Vector::from_array(array::from_fn(|i| match self[i].partial_cmp(&other[i]) {
             None => self[i],
             Some(Ordering::Less) => other[i],
@@ -38,7 +38,7 @@ ggmath_proc_macros::vector_interface!(
             Some(Ordering::Greater) => self[i],
         }))
     }
-    fn clamp<MinA: VecAlignment, MaxA: VecAlignment>(self, min: Vector<N, T, MinA>, max: Vector<N, T, MaxA>) -> Self {
+    fn clamp(self, min: Vector<N, T, impl VecAlignment>, max: Vector<N, T, impl VecAlignment>) -> Self {
         self.max(min).min(max)
     }
 );

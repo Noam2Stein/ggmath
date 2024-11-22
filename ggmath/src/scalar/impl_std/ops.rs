@@ -1,4 +1,3 @@
-use std::mem::MaybeUninit;
 use std::ops::*;
 
 use super::*;
@@ -22,17 +21,12 @@ for_rhs_ops!(
     $(ggmath_proc_macros::vector_interface!(
         $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs, Output: Scalar>;
 
-        impl $std_trait<Vector<N, Rhs, A>>:
+        impl<ARhs: VecAlignment> $std_trait<Vector<N, Rhs, ARhs>>:
 
         type Output = Vector<N, <T as $std_trait<Rhs>>::Output, A>;
 
-        fn $std_fn(self, rhs: Vector<N, Rhs, A>) -> Vector<N, <T as $std_trait<Rhs>>::Output, A> {
-            let mut output_array = unsafe { MaybeUninit::<[<T as $std_trait<Rhs>>::Output; N]>::uninit().assume_init() };
-            for i in 0..N {
-                output_array[i] = self[i].$std_fn(rhs[i])
-            }
-
-            Vector::from_array(output_array)
+        fn $std_fn(self, rhs: Vector<N, Rhs, ARhs>) -> Vector<N, <T as $std_trait<Rhs>>::Output, A> {
+            Vector::from_fn(|i| self[i].$std_fn(rhs[i]))
         }
     );)*
 );
@@ -40,9 +34,9 @@ for_assign_ops!(
     $(ggmath_proc_macros::vector_interface!(
         $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs>;
 
-        impl $std_trait<Vector<N, Rhs, A>>:
+        impl<ARhs: VecAlignment> $std_trait<Vector<N, Rhs, ARhs>>:
 
-        fn $std_fn(&mut self, rhs: Vector<N, Rhs, A>) {
+        fn $std_fn(&mut self, rhs: Vector<N, Rhs, ARhs>) {
             for i in 0..N {
                 self[i].$std_fn(rhs[i])
             }

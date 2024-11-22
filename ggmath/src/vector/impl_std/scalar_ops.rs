@@ -14,7 +14,7 @@ macro_rules! scalar_op {
         {
             type Output = <Self as $std_trait<Vector<N, Rhs, A>>>::Output;
             fn $std_fn(self, rhs: Rhs) -> Self::Output {
-                self.$std_fn(Vector::splat(rhs))
+                self.$std_fn(Vector::<N, Rhs, A>::splat(rhs))
             }
         }
 
@@ -24,7 +24,7 @@ macro_rules! scalar_op {
             ScalarCount<N>: VecLen,
         {
             fn $assign_std_fn(&mut self, rhs: Rhs) {
-                self.$assign_std_fn(Vector::splat(rhs))
+                self.$assign_std_fn(Vector::<N, Rhs, A>::splat(rhs))
             }
         }
     };

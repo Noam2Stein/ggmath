@@ -5,14 +5,35 @@ pub fn scalar_trait(interface: &VecInterface) -> TokenStream {
         .iter()
         .map(|r#fn| {
             let mut modified_fn_sig = r#fn.sig.clone();
+
             modified_fn_sig.ident = scalar_trait_fn_ident(&modified_fn_sig.ident);
-            modified_fn_sig.generics.params.insert(0, parse_quote_spanned! { modified_fn_sig.generics.span() => const N: usize });
-            modified_fn_sig.generics.params.insert(1, parse_quote_spanned! { modified_fn_sig.generics.span() => A: ggmath::vector::VecAlignment });
-            if let Some(where_clause) = &mut modified_fn_sig.generics.where_clause {
-                where_clause.predicates.insert(0, parse_quote_spanned! { where_clause.span() => ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen });
-            } else {
-                modified_fn_sig.generics.where_clause = Some(parse_quote_spanned! { modified_fn_sig.generics.span() => where ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen });
-            }
+
+            modified_fn_sig.generics = {
+                let impl_generic_params = r#impl.generics.params.iter();
+                let fn_generic_params = r#fn.sig.generics.params.iter();
+
+                parse_quote_spanned! {
+                    r#fn.sig.generics.span() =>
+    
+                    <const N: usize,
+                    A: ggmath::vector::VecAlignment
+                    #(, #impl_generic_params)*
+                    #(, #fn_generic_params)*>
+                }
+            };
+            modified_fn_sig.generics.where_clause = {
+                let impl_where_clause = r#impl.generics.where_clause.as_ref().map_or(Vec::new(),|where_clause| where_clause.predicates.iter().collect());
+                let fn_where_clause = r#fn.sig.generics.where_clause.as_ref().map_or(Vec::new(),|where_clause| where_clause.predicates.iter().collect());
+
+                Some(parse_quote_spanned! {
+                    modified_fn_sig.generics.span() =>
+                    
+                    where
+                        ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
+                        #(, #impl_where_clause)*
+                        #(, #fn_where_clause)*
+                })
+            };
 
             search_replace_fn(
                 quote_spanned! { modified_fn_sig.fn_token.span => #[allow(unused_mut)] #[allow(missing_docs)] },

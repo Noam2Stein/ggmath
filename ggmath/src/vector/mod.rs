@@ -1,13 +1,13 @@
 //! Staticly-lengthed vectors of [scalars](scalar) with lengths between 2 and 4.
 
+use crate::{construct::*, ggmath, scalar::*};
+
 mod api;
 mod generics;
 mod impl_std;
 pub use api::*;
 pub use generics::*;
 pub use impl_std::*;
-
-use crate::{construct::*, ggmath, scalar::*};
 
 /// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
 ///

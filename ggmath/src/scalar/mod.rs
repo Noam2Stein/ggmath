@@ -6,16 +6,12 @@ use crate::{vector::*, *};
 
 use std::mem::{transmute, transmute_copy, MaybeUninit};
 
-mod abs_diff;
-mod cmp;
-mod default;
+mod api;
+mod impl_std;
 mod num;
-mod ops;
-pub use abs_diff::*;
-pub use cmp::*;
-pub use default::*;
+pub use api::*;
+pub use impl_std::*;
 pub use num::*;
-pub use ops::*;
 
 pub use ggmath_proc_macros::inner_vectors;
 

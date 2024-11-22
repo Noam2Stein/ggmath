@@ -58,6 +58,8 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
         }
     };
 
+    let impl_generic_args = generic_args(&r#impl.generics);
+
     let output_fns = r#impl.fns.iter().map(|r#fn| {
         let item_vis = &r#impl
             .vis
@@ -66,6 +68,8 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
 
         let fn_call_ident = scalar_trait_fn_ident(&r#fn.sig.ident);
 
+        let fn_generic_args = generic_args(&r#fn.sig.generics);
+
         let fn_call_inputs = r#fn
             .sig
             .inputs
@@ -73,15 +77,17 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
             .map(arg_ident)
             .collect::<Box<[Ident]>>();
 
-        let fn_call_generic_args = generic_args(&r#fn.sig.generics);
-
         quote_spanned! {
             r#fn.sig.ident.span() =>
 
             #[inline(always)]
             #[allow(unused_mut)]
             #item_vis #fn_sig {
-                T::#fn_call_ident::<N, A #(, #fn_call_generic_args)*>(#(#fn_call_inputs), *)
+                T::#fn_call_ident::<
+                    N, A
+                    #(, #impl_generic_args)*
+                    #(, #fn_generic_args)*
+                >(#(#fn_call_inputs), *)
             }
         }
     });
