@@ -7,8 +7,6 @@ mod array;
 mod builder;
 mod copy;
 mod fmt;
-mod index;
-mod iter;
 mod scalar_ops;
 mod swizzle_wrappers;
 
