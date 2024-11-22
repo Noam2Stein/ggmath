@@ -1,8 +1,8 @@
 [package]
-name = "tests"
-version = "0.1.0"
 edition = "2021"
+name    = "tests"
+version = "0.1.0"
 
 [dependencies]
-ggmath = { path = "../ggmath" }
+ggmath         = { path = "../ggmath", features = [ "full" ] }
 ggmath_testing = { path = "../testing" }

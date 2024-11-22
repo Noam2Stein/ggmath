@@ -1,10 +1,11 @@
 use std::time::Instant;
 
-use matrix::test_matrix;
-use scalars::test_scalars;
-
 mod matrix;
+mod rectangle;
 mod scalars;
+use matrix::test_matrix;
+use rectangle::test_rectangle;
+use scalars::test_scalars;
 
 fn main() {
     let start_time = Instant::now();
@@ -22,6 +23,6 @@ fn main() {
 
 fn test() {
     test_scalars();
-
-    test_matrix::<u32>();
+    test_matrix();
+    test_rectangle();
 }

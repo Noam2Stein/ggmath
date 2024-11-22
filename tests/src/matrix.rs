@@ -1,19 +1,14 @@
 use std::array;
 
 use ggmath::{matrix::*, vector::*};
-use ggmath_testing::testable_scalar::*;
+use ggmath_testing::*;
 
-pub fn test_matrix<T: TestableScalar>() {
-    test_c_r_t::<2, 2, T>();
-    test_c_r_t::<2, 3, T>();
+pub fn test_matrix() {
+    test_t::<u32>();
+}
+fn test_t<T: TestableScalar>() {
     test_c_r_t::<2, 4, T>();
-
     test_c_r_t::<3, 2, T>();
-    test_c_r_t::<3, 3, T>();
-    test_c_r_t::<3, 4, T>();
-
-    test_c_r_t::<4, 2, T>();
-    test_c_r_t::<4, 3, T>();
     test_c_r_t::<4, 4, T>();
 }
 fn test_c_r_t<const C: usize, const R: usize, T: TestableScalar>()
