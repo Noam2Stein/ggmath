@@ -1,8 +1,4 @@
-use ggmath::{
-    rectangle::{repr::*, *},
-    scalar::*,
-    vector::*,
-};
+use ggmath::{rectangle::*, scalar::*, vector::*};
 
 pub struct World<const D: usize, P: ScalarNum>
 where
