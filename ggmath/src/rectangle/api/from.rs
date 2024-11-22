@@ -8,117 +8,68 @@ where
     pub fn from_min_size(min: Vector<N, T, A>, size: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
             || Rectangle { inner: [min, size] },
-            || Rectangle {
-                inner: [min + size / T::from(2).unwrap(), size / T::from(2).unwrap()],
-            },
-            || Rectangle {
-                inner: [min, min + size],
-            },
+            || Rectangle::from_min_extents(min, size / T::from(2).unwrap()),
+            || Rectangle::from_min_max(min, min + size),
         )
     }
     #[inline(always)]
     pub fn from_max_size(max: Vector<N, T, A>, size: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
-            || Rectangle {
-                inner: [max - size, size],
-            },
-            || Rectangle {
-                inner: [max - size / T::from(2).unwrap(), size / T::from(2).unwrap()],
-            },
-            || Rectangle {
-                inner: [max - size, max],
-            },
+            || Rectangle::from_min_size(max - size, size),
+            || Rectangle::from_min_size(max - size, size),
+            || Rectangle::from_min_max(max - size, max),
         )
     }
     #[inline(always)]
     pub fn from_center_size(center: Vector<N, T, A>, size: Vector<N, T, A>) -> Self {
-        Self::from_center_extents(center, size / T::from(2).unwrap())
+        Self::from_resolved_repr_fns(
+            || Rectangle::from_max_size(center + size / T::from(2).unwrap(), size),
+            || Rectangle::from_center_extents(center, size / T::from(2).unwrap()),
+            || Rectangle::from_max_size(center + size / T::from(2).unwrap(), size),
+        )
     }
 
     #[inline(always)]
     pub fn from_min_extents(min: Vector<N, T, A>, extents: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
-            || Rectangle {
-                inner: [min, extents + extents],
-            },
-            || Rectangle {
-                inner: [min + extents, extents],
-            },
-            || Rectangle {
-                inner: [min, min + extents + extents],
-            },
+            || Rectangle::from_min_size(min, extents + extents),
+            || Rectangle::from_center_extents(min + extents, extents),
+            || Rectangle::from_min_size(min, extents + extents),
         )
     }
     #[inline(always)]
     pub fn from_max_extents(max: Vector<N, T, A>, extents: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
-            || Rectangle {
-                inner: [max - extents - extents, extents + extents],
-            },
-            || Rectangle {
-                inner: [max - extents, extents],
-            },
-            || Rectangle {
-                inner: [max - extents - extents, max],
-            },
+            || Rectangle::from_max_size(max, extents + extents),
+            || Rectangle::from_center_extents(max - extents, extents),
+            || Rectangle::from_max_size(max, extents + extents),
         )
     }
     #[inline(always)]
     pub fn from_center_extents(center: Vector<N, T, A>, extents: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
-            || Rectangle {
-                inner: [center - extents, extents + extents],
-            },
+            || Rectangle::from_min_size(center - extents, extents + extents),
             || Rectangle {
                 inner: [center, extents],
             },
-            || Rectangle {
-                inner: [center - extents, center + extents],
-            },
+            || Rectangle::from_min_max(center - extents, center + extents),
         )
     }
 
     #[inline(always)]
     pub fn from_min_max(min: Vector<N, T, A>, max: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
-            || Rectangle {
-                inner: [min, max - min],
-            },
-            || Rectangle {
-                inner: [
-                    (min + max) / T::from(2).unwrap(),
-                    (max - min) / T::from(2).unwrap(),
-                ],
-            },
+            || Rectangle::from_min_size(min, max - min),
+            || Rectangle::from_min_size(min, max - min),
             || Rectangle { inner: [min, max] },
         )
     }
     #[inline(always)]
     pub fn from_min_center(min: Vector<N, T, A>, center: Vector<N, T, A>) -> Self {
-        Self::from_resolved_repr_fns(
-            || Rectangle {
-                inner: [min, center - min + center - min],
-            },
-            || Rectangle {
-                inner: [center, center - min],
-            },
-            || Rectangle {
-                inner: [min, center + center - min],
-            },
-        )
+        Rectangle::from_center_extents(center, center - min)
     }
     #[inline(always)]
     pub fn from_center_max(center: Vector<N, T, A>, max: Vector<N, T, A>) -> Self {
-        Self::from_resolved_repr_fns(
-            || Rectangle {
-                inner: [center + center - max, max - center + max - center],
-            },
-            || Rectangle {
-                inner: [center, max - center],
-            },
-            || Rectangle {
-                inner: [center + center - max, center + max - center],
-            },
-        )
+        Rectangle::from_center_extents(center, max - center)
     }
 }
