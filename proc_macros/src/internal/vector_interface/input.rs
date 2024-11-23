@@ -1,4 +1,4 @@
-use syn::{braced, ext::IdentExt, ItemType, TraitBound, TraitItem};
+use syn::{braced, ext::IdentExt, parse_quote, ItemType, LitInt, TraitBound, TraitItem};
 
 use super::*;
 
@@ -15,6 +15,7 @@ pub struct VecInterface {
 pub struct VecInterfaceImpl {
     pub vis: Option<Token![pub]>,
     pub generics: Generics,
+    pub for_n: Option<LitInt>,
     pub r#trait: Option<Type>,
     pub fns: Vec<VecInterfaceFn>,
     pub assoc_types: Vec<ItemType>,
@@ -88,13 +89,36 @@ impl Parse for VecInterfaceImpl {
 
         <Token![impl]>::parse(input)?;
 
-        let mut generics = Generics::parse(input)?;
+        let mut generics = if input.peek(Token![for]) {
+            parse_quote!()
+        } else {
+            Generics::parse(input)?
+        };
 
-        let r#trait = if input.peek(Ident::peek_any) {
+        let mut for_n = None;
+
+        let r#trait = if input.peek(Ident::peek_any)
+            && !input.peek(Token![where])
+            && !input.peek(Token![for])
+        {
             Some(input.parse()?)
         } else {
             None
         };
+
+        if input.parse::<Option<Token![for]>>()?.is_some() {
+            input.parse::<Token![<]>()?;
+
+            let param_ident = Ident::parse(input)?;
+            input.parse::<Token![:]>()?;
+
+            match param_ident.to_string().as_str() {
+                "N" => for_n = Some(input.parse()?),
+                _ => return Err(Error::new(param_ident.span(), "expected N")),
+            }
+
+            input.parse::<Token![>]>()?;
+        }
 
         generics.where_clause = input.parse()?;
 
@@ -143,6 +167,7 @@ impl Parse for VecInterfaceImpl {
         Ok(Self {
             vis,
             generics,
+            for_n,
             r#trait,
             fns,
             assoc_types,
