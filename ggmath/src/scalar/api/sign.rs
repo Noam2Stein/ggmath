@@ -30,3 +30,5 @@ ggmath_proc_macros::vector_interface!(
         self.map(|c| c.abs())
     }
 );
+
+pub trait ScalarUnsigned: Scalar {}
