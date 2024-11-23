@@ -22,6 +22,12 @@ ggmath_proc_macros::vector_interface!(
 
     pub impl:
 
+    fn cmin(self) -> T {
+        self.iter().min_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal)).unwrap_or(self[0])
+    }
+    fn cmax(self) -> T {
+        self.iter().max_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal)).unwrap_or(self[0])
+    }
     fn min(self, other: Vector<N, T, impl VecAlignment>) -> Self {
         Vector::from_array(array::from_fn(|i| match self[i].partial_cmp(&other[i]) {
             None => self[i],
