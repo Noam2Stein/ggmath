@@ -1,6 +1,6 @@
 use ggmath::{rectangle::*, scalar::*, vector::*};
 
-pub struct World<const D: usize, P: ScalarNum>
+pub struct World<const D: usize, P: ScalarNum + ScalarSigned>
 where
     ScalarCount<D>: VecLen,
 {
@@ -8,7 +8,7 @@ where
     pub gravity_dir: Vector<D, P, VecAligned>,
 }
 
-pub struct Body<const D: usize, P: ScalarNum>
+pub struct Body<const D: usize, P: ScalarNum + ScalarSigned>
 where
     ScalarCount<D>: VecLen,
 {

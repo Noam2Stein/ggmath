@@ -34,3 +34,18 @@ impl ScalarCSum for f32 {}
 impl ScalarDot<f32> for f32 {}
 
 impl ScalarNum for f32 {}
+
+impl ScalarSigned for f32 {
+    fn abs(self) -> Self {
+        self.abs()
+    }
+    fn is_negative(self) -> bool {
+        self.is_sign_negative()
+    }
+    fn is_positive(self) -> bool {
+        self.is_sign_positive()
+    }
+    fn signum(self) -> Self {
+        self.signum()
+    }
+}

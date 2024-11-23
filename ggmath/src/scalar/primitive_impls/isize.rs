@@ -59,3 +59,18 @@ impl ScalarCSum for isize {}
 impl ScalarDot<isize> for isize {}
 
 impl ScalarNum for isize {}
+
+impl ScalarSigned for isize {
+    fn abs(self) -> Self {
+        self.abs()
+    }
+    fn is_negative(self) -> bool {
+        self.is_negative()
+    }
+    fn is_positive(self) -> bool {
+        self.is_positive()
+    }
+    fn signum(self) -> Self {
+        self.signum()
+    }
+}

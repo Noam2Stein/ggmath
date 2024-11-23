@@ -55,3 +55,18 @@ impl ScalarCSum for i64 {}
 impl ScalarDot<i64> for i64 {}
 
 impl ScalarNum for i64 {}
+
+impl ScalarSigned for i64 {
+    fn abs(self) -> Self {
+        self.abs()
+    }
+    fn is_negative(self) -> bool {
+        self.is_negative()
+    }
+    fn is_positive(self) -> bool {
+        self.is_positive()
+    }
+    fn signum(self) -> Self {
+        self.signum()
+    }
+}

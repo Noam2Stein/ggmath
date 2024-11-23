@@ -55,3 +55,18 @@ impl ScalarCSum for i128 {}
 impl ScalarDot<i128> for i128 {}
 
 impl ScalarNum for i128 {}
+
+impl ScalarSigned for i128 {
+    fn abs(self) -> Self {
+        self.abs()
+    }
+    fn is_negative(self) -> bool {
+        self.is_negative()
+    }
+    fn is_positive(self) -> bool {
+        self.is_positive()
+    }
+    fn signum(self) -> Self {
+        self.signum()
+    }
+}
