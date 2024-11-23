@@ -54,6 +54,21 @@ impl AbsDiff for i64 {
 impl ScalarCSum for i64 {}
 impl ScalarDot<i64> for i64 {}
 
+impl ScalarRound for i64 {
+    #[inline(always)]
+    fn ceil(self) -> Self {
+        self
+    }
+    #[inline(always)]
+    fn floor(self) -> Self {
+        self
+    }
+    #[inline(always)]
+    fn round(self) -> Self {
+        self
+    }
+}
+
 impl ScalarNum for i64 {}
 
 impl ScalarSigned for i64 {

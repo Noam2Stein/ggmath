@@ -54,6 +54,21 @@ impl AbsDiff for i8 {
 impl ScalarCSum for i8 {}
 impl ScalarDot<i8> for i8 {}
 
+impl ScalarRound for i8 {
+    #[inline(always)]
+    fn ceil(self) -> Self {
+        self
+    }
+    #[inline(always)]
+    fn floor(self) -> Self {
+        self
+    }
+    #[inline(always)]
+    fn round(self) -> Self {
+        self
+    }
+}
+
 impl ScalarNum for i8 {}
 
 impl ScalarSigned for i8 {

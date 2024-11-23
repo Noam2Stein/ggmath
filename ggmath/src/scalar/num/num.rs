@@ -22,6 +22,7 @@ pub trait ScalarNum:
     + ScalarAbsDiff<Self, Output = Self>
     + ScalarCSum
     + ScalarDot<Self, Output = Self>
+    + ScalarRound
     + Num
     + NumCast
     + NumRef

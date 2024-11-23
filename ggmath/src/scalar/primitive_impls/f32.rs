@@ -33,6 +33,21 @@ impl AbsDiff for f32 {
 impl ScalarCSum for f32 {}
 impl ScalarDot<f32> for f32 {}
 
+impl ScalarRound for f32 {
+    #[inline(always)]
+    fn ceil(self) -> Self {
+        self.ceil()
+    }
+    #[inline(always)]
+    fn floor(self) -> Self {
+        self.floor()
+    }
+    #[inline(always)]
+    fn round(self) -> Self {
+        self.round()
+    }
+}
+
 impl ScalarNum for f32 {}
 
 impl ScalarSigned for f32 {
