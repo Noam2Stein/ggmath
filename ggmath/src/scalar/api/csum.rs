@@ -1,9 +1,7 @@
-use std::ops::Add;
-
 use super::*;
 
 ggmath_proc_macros::vector_interface!(
-    ScalarCSum: Scalar + Add<Output = T>;
+    ScalarCSum: ScalarAdd<T, Output = T>;
 
     pub impl:
 
