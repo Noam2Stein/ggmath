@@ -67,6 +67,9 @@ impl ScalarRound for i128 {
     fn round(self) -> Self {
         self
     }
+    fn trunc(self) -> Self {
+        self
+    }
 }
 
 impl ScalarNum for i128 {}

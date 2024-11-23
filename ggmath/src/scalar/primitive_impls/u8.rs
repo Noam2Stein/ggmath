@@ -66,6 +66,9 @@ impl ScalarRound for u8 {
     fn round(self) -> Self {
         self
     }
+    fn trunc(self) -> Self {
+        self
+    }
 }
 
 impl ScalarNum for u8 {}

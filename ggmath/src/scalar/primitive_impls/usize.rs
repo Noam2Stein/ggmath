@@ -70,6 +70,9 @@ impl ScalarRound for usize {
     fn round(self) -> Self {
         self
     }
+    fn trunc(self) -> Self {
+        self
+    }
 }
 
 impl ScalarNum for usize {}

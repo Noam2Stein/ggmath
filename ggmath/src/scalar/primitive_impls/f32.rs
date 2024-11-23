@@ -46,6 +46,9 @@ impl ScalarRound for f32 {
     fn round(self) -> Self {
         self.round()
     }
+    fn trunc(self) -> Self {
+        self.trunc()
+    }
 }
 
 impl ScalarNum for f32 {}

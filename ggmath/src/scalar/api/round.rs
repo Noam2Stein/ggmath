@@ -5,6 +5,7 @@ ggmath_proc_macros::vector_interface!(
         fn floor(self) -> Self;
         fn ceil(self) -> Self;
         fn round(self) -> Self;
+        fn trunc(self) -> Self;
     }
 
     pub impl:
@@ -17,5 +18,8 @@ ggmath_proc_macros::vector_interface!(
     }
     fn round(self) -> Self {
         self.map(|c| c.round())
+    }
+    fn trunc(self) -> Self {
+        self.map(|c| c.trunc())
     }
 );
