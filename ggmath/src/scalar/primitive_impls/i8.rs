@@ -51,4 +51,6 @@ impl AbsDiff for i8 {
     }
 }
 
+impl ScalarCSum for i8 {}
+
 impl ScalarNum for i8 {}

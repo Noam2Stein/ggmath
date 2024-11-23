@@ -50,4 +50,6 @@ impl AbsDiff for u128 {
     }
 }
 
+impl ScalarCSum for u128 {}
+
 impl ScalarNum for u128 {}

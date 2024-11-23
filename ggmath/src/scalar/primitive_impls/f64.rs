@@ -30,4 +30,6 @@ impl AbsDiff for f64 {
     }
 }
 
+impl ScalarCSum for f64 {}
+
 impl ScalarNum for f64 {}

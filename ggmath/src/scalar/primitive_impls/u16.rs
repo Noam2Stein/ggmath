@@ -50,4 +50,6 @@ impl AbsDiff for u16 {
     }
 }
 
+impl ScalarCSum for u16 {}
+
 impl ScalarNum for u16 {}
