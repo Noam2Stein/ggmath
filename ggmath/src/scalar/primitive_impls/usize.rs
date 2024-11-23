@@ -55,5 +55,6 @@ impl AbsDiff for usize {
 }
 
 impl ScalarCSum for usize {}
+impl ScalarDot<usize> for usize {}
 
 impl ScalarNum for usize {}

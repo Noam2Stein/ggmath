@@ -52,5 +52,6 @@ impl AbsDiff for i32 {
 }
 
 impl ScalarCSum for i32 {}
+impl ScalarDot<i32> for i32 {}
 
 impl ScalarNum for i32 {}

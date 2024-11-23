@@ -51,5 +51,6 @@ impl AbsDiff for u128 {
 }
 
 impl ScalarCSum for u128 {}
+impl ScalarDot<u128> for u128 {}
 
 impl ScalarNum for u128 {}

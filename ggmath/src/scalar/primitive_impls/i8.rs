@@ -52,5 +52,6 @@ impl AbsDiff for i8 {
 }
 
 impl ScalarCSum for i8 {}
+impl ScalarDot<i8> for i8 {}
 
 impl ScalarNum for i8 {}

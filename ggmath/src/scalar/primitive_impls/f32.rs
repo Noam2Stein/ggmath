@@ -31,5 +31,6 @@ impl AbsDiff for f32 {
 }
 
 impl ScalarCSum for f32 {}
+impl ScalarDot<f32> for f32 {}
 
 impl ScalarNum for f32 {}
