@@ -1,7 +1,7 @@
 use super::*;
 
 pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenStream {
-    let output_impl_generics = {
+    let output_impl_generics = if r#impl.r#trait.is_some() {
         let interface_ident = &interface.ident;
         let interface_generic_params = interface.generics.params.iter();
         let interface_generic_args = generic_args(&interface.generics);
@@ -15,6 +15,15 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
                 A: ggmath::vector::VecAlignment
                 #(, #interface_generic_params)*
                 #(, #impl_generic_params)*
+            >
+        }
+    } else {
+        quote_spanned! {
+            interface.generics.span() =>
+            <
+                const N: usize,
+                T: ggmath::scalar::Scalar,
+                A: ggmath::vector::VecAlignment
             >
         }
     };
@@ -33,21 +42,28 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
         }
     };
 
-    let output_where_clause = if let Some(interface_where_clause) = &interface.generics.where_clause
-    {
-        if let Some(impl_where_clause) = &r#impl.generics.where_clause {
-            let impl_where_clause_predicates = impl_where_clause.predicates.iter();
+    let output_where_clause = if r#impl.r#trait.is_some() {
+        if let Some(interface_where_clause) = &interface.generics.where_clause {
+            if let Some(impl_where_clause) = &r#impl.generics.where_clause {
+                let impl_where_clause_predicates = impl_where_clause.predicates.iter();
 
-            quote_spanned! {
-                interface_where_clause.where_token.span() =>
+                quote_spanned! {
+                    interface_where_clause.where_token.span() =>
 
-                #interface_where_clause, #(#impl_where_clause_predicates), *, ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
+                    #interface_where_clause, #(#impl_where_clause_predicates), *, ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
+                }
+            } else {
+                quote_spanned! {
+                    interface_where_clause.where_token.span() =>
+
+                    #interface_where_clause, ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
+                }
             }
         } else {
             quote_spanned! {
-                interface_where_clause.where_token.span() =>
+                interface.ident.span() =>
 
-                #interface_where_clause, ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
+                where ggmath::vector::ScalarCount<N>: ggmath::vector::VecLen
             }
         }
     } else {
@@ -64,7 +80,57 @@ pub fn impl_block(interface: &VecInterface, r#impl: &VecInterfaceImpl) -> TokenS
         let item_vis = &r#impl
             .vis
             .map(|_| quote_spanned! { r#fn.sig.fn_token.span() => pub });
-        let fn_sig = &r#fn.sig;
+
+        let mut fn_sig = r#fn.sig.clone();
+        if r#impl.r#trait.is_none() {
+            let interface_generic_params = interface.generics.params.iter();
+            let impl_generic_params = r#impl.generics.params.iter();
+            let fn_generic_params = fn_sig.generics.params.iter();
+
+            fn_sig.generics = parse_quote_spanned! {
+                fn_sig.generics.span() =>
+                <
+                    #(#fn_generic_params, )*
+                    #(#interface_generic_params, )*
+                    #(#impl_generic_params, )*
+                >
+            };
+
+            let interface_ident = &interface.ident;
+            let interface_generic_args = generic_args(&interface.generics);
+            let interface_predicates = interface
+                .generics
+                .where_clause
+                .as_ref()
+                .map(|where_clause| where_clause.predicates.iter())
+                .into_iter()
+                .flatten();
+            let impl_predicates = r#impl
+                .generics
+                .where_clause
+                .as_ref()
+                .map(|where_clause| where_clause.predicates.iter())
+                .into_iter()
+                .flatten();
+            let fn_predicates = r#fn
+                .sig
+                .generics
+                .where_clause
+                .as_ref()
+                .map(|where_clause| where_clause.predicates.iter())
+                .into_iter()
+                .flatten();
+
+            fn_sig.generics.where_clause = Some(parse_quote_spanned! {
+                fn_sig.generics.span() =>
+
+                where
+                    T: #interface_ident<#(#interface_generic_args), *>
+                    #(, #interface_predicates)*
+                    #(, #impl_predicates)*
+                    #(, #fn_predicates)*
+            });
+        }
 
         let fn_call_ident = scalar_trait_fn_ident(&r#fn.sig.ident);
 
