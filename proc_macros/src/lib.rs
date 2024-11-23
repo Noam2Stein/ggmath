@@ -3,12 +3,10 @@
 use derive_syn_parse::Parse;
 use proc_macro::TokenStream as TokenStream1;
 use proc_macro2::*;
-use quote::{quote_spanned, ToTokens, TokenStreamExt};
+use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input, parse_quote_spanned, parse_str,
-    spanned::Spanned,
-    Error, Token,
+    parse_macro_input, parse_str, Error, Token,
 };
 
 // External Macros
@@ -110,12 +108,6 @@ packed_columnmajor_matrix_macro!(
 // Internal Macros
 
 mod internal;
-
-#[proc_macro]
-#[inline(always)]
-pub fn vector_interface(input: TokenStream1) -> TokenStream1 {
-    internal::vector_interface(input)
-}
 
 #[proc_macro]
 #[inline(always)]

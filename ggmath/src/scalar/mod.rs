@@ -4,7 +4,7 @@
 
 use crate::{vector::*, *};
 
-use std::mem::{transmute, transmute_copy, MaybeUninit};
+use std::mem::{transmute, MaybeUninit};
 
 mod api;
 mod impl_std;
@@ -22,29 +22,101 @@ pub unsafe trait ScalarInnerVectors {
     type InnerAlignedVec4: Construct;
 }
 
+pub trait Scalar: Construct + ScalarInnerVectors {}
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    ScalarCount<N>: VecLen,
+{
+    #[inline(always)]
+    pub fn from_array(array: [T; N]) -> Self {
+        Self::from_resolved_alignment_fns(
+            || unsafe {
+                let mut output = MaybeUninit::uninit().assume_init();
+
+                *transmute(&mut output) = array;
+
+                output
+            },
+            || Self(array),
+        )
+    }
+    #[inline(always)]
+    pub fn into_array(self) -> [T; N] {
+        unsafe { *transmute(&self) }
+    }
+    #[inline(always)]
+    pub fn as_array(&self) -> &[T; N] {
+        unsafe { transmute(self) }
+    }
+    #[inline(always)]
+    pub fn as_array_mut(&mut self) -> &mut [T; N] {
+        unsafe { transmute(self) }
+    }
+
+    #[inline(always)]
+    pub fn get(self, index: usize) -> Option<T> {}
+    #[inline(always)]
+    pub fn get_2(self, index: usize) -> Option<Vector<2, T, VecPacked>> {}
+    #[inline(always)]
+    pub fn get_3(self, index: usize) -> Option<Vector<3, T, VecPacked>> {}
+    #[inline(always)]
+    pub fn get_4(self, index: usize) -> Option<Vector<4, T, VecPacked>> {}
+    #[inline(always)]
+    pub fn get_1_1(self, indicies: [usize; 2]) -> Option<Vector<2, T, A>> {}
+    #[inline(always)]
+    pub fn get_1_1_1(self, indicies: [usize; 3]) -> Option<Vector<3, T, A>> {}
+    #[inline(always)]
+    pub fn get_1_1_1_1(self, indicies: [usize; 4]) -> Option<Vector<4, T, A>> {}
+    #[inline(always)]
+    pub unsafe fn get_unchecked(self, index: usize) -> T {}
+    #[inline(always)]
+    pub unsafe fn get_2_unchecked(self, index: usize) -> Vector<2, T, VecPacked> {}
+    #[inline(always)]
+    pub unsafe fn get_3_unchecked(self, index: usize) -> Vector<3, T, VecPacked> {}
+    #[inline(always)]
+    pub unsafe fn get_4_unchecked(self, index: usize) -> Vector<4, T, VecPacked> {}
+    #[inline(always)]
+    pub unsafe fn get_1_1_unchecked(self, indicies: [usize; 2]) -> Vector<2, T, A> {}
+    #[inline(always)]
+    pub unsafe fn get_1_1_1_unchecked(self, indicies: [usize; 3]) -> Vector<3, T, A> {}
+    #[inline(always)]
+    pub unsafe fn get_1_1_1_1_unchecked(self, indicies: [usize; 4]) -> Vector<4, T, A> {}
+
+    #[inline(always)]
+    pub fn get_ref(&self, index: usize) -> Option<&T> {}
+    #[inline(always)]
+    pub fn get_2_ref(&self, index: usize) -> Option<&Vector<2, T, VecPacked>> {}
+    #[inline(always)]
+    pub fn get_3_ref(&self, index: usize) -> Option<&Vector<3, T, VecPacked>> {}
+    #[inline(always)]
+    pub fn get_4_ref(&self, index: usize) -> Option<&Vector<4, T, VecPacked>> {}
+    #[inline(always)]
+    pub fn get_1_1_ref(&self, indicies: [usize; 2]) -> Option<[&T; 2]> {}
+    #[inline(always)]
+    pub fn get_1_1_1_ref(&self, indicies: [usize; 3]) -> Option<[&T; 3]> {}
+    #[inline(always)]
+    pub fn get_1_1_1_1_ref(&self, indicies: [usize; 4]) -> Option<[&T; 4]> {}
+    #[inline(always)]
+    pub unsafe fn get_ref_unchecked(&self, index: usize) -> &T {}
+    #[inline(always)]
+    pub unsafe fn get_2_ref_unchecked(&self, index: usize) -> &Vector<2, T, VecPacked> {}
+    #[inline(always)]
+    pub unsafe fn get_3_ref_unchecked(&self, index: usize) -> &Vector<3, T, VecPacked> {}
+    #[inline(always)]
+    pub unsafe fn get_4_ref_unchecked(&self, index: usize) -> &Vector<4, T, VecPacked> {}
+    #[inline(always)]
+    pub unsafe fn get_1_1_ref_unchecked(&self, indicies: [usize; 2]) -> [&T; 2] {}
+    #[inline(always)]
+    pub unsafe fn get_1_1_1_ref_unchecked(&self, indicies: [usize; 3]) -> [&T; 3] {}
+    #[inline(always)]
+    pub unsafe fn get_1_1_1_1_ref_unchecked(&self, indicies: [usize; 4]) -> [&T; 4] {}
+}
+
 ggmath_proc_macros::vector_interface!(
     Scalar: Construct + ScalarInnerVectors;
 
     pub impl:
-
-    fn from_array(array: [T; N]) -> Self {
-        unsafe {
-            let mut output = MaybeUninit::uninit().assume_init();
-
-            *transmute::<&mut Self, &mut [T; N]>(&mut output) = array;
-
-            output
-        }
-    }
-    fn into_array(self) -> [T; N] {
-        unsafe { transmute_copy(&self) }
-    }
-    fn as_array(&self) -> &[T; N] {
-        unsafe { transmute(self) }
-    }
-    fn as_array_mut(&mut self) -> &mut [T; N] {
-        unsafe { transmute(self) }
-    }
 
     fn get(self, index: usize) -> Option<T> {
         if index >= N {

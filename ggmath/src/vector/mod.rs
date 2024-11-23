@@ -31,12 +31,9 @@ pub use impl_std::*;
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
+pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(pub A::InnerVector<N, T>)
 where
-    ScalarCount<N>: VecLen,
-{
-    inner: A::InnerVector<N, T>,
-}
+    ScalarCount<N>: VecLen;
 
 /// type alias to [```Vector```]```<2, T, VecAligned>```
 pub type Vec2<T> = Vector<2, T, VecAligned>;
