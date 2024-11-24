@@ -4,6 +4,12 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
+    pub fn get_n<const NOutput: usize>(self, index: usize) -> Option<VectorOrScalar<NOutput, T, A>>
+    where
+        ScalarCount<NOutput>: VecLenOr1,
+    {
+    }
+
     #[inline(always)]
     pub fn get(self, index: usize) -> Option<T> {}
     #[inline(always)]
