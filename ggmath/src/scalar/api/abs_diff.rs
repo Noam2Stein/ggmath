@@ -4,7 +4,7 @@ pub trait ScalarAbsDiff<Rhs: Scalar = Self>: Scalar + AbsDiff<Rhs, Output: Scala
     #[inline(always)]
     fn vector_abs_diff<const N: usize, A: VecAlignment>(
         vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, Rhs, A>,
+        rhs: &Vector<N, Rhs, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         ScalarCount<N>: VecLen,
