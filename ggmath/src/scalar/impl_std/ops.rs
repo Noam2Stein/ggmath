@@ -29,7 +29,7 @@ for_self_ops!($(
 )*);
 
 for_rhs_ops!($(
-    pub trait $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs, Output: Scalar> {
+    pub trait $scalar_trait<Rhs: Scalar = Self>: Scalar + $std_trait<Rhs, Output: Scalar> {
         fn $scalar_fn<const N: usize, A: VecAlignment>
             (vec: Vector<N, Self, A>, rhs: Vector<N, Rhs, impl VecAlignment>) -> Vector<N, Self::Output, A>
         where
@@ -53,7 +53,7 @@ for_rhs_ops!($(
 )*);
 
 for_assign_ops!($(
-    pub trait $scalar_trait<Rhs: Scalar>: Scalar + $std_trait<Rhs> {
+    pub trait $scalar_trait<Rhs: Scalar = Self>: Scalar + $std_trait<Rhs> {
         fn $scalar_fn<const N: usize, A: VecAlignment>
             (vec: &mut Vector<N, Self, A>, rhs: Vector<N, Rhs, impl VecAlignment>)
         where

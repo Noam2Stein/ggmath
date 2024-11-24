@@ -1,5 +1,7 @@
 use super::*;
 
+pub trait ScalarCSum: ScalarAdd<Output = Self> {}
+
 ggmath_proc_macros::vector_interface!(
     ScalarCSum: ScalarAdd<T, Output = T>;
 

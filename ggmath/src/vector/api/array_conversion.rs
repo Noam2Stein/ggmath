@@ -1,4 +1,4 @@
-use std::mem::{transmute, MaybeUninit};
+use std::mem::{transmute, transmute_copy, MaybeUninit};
 
 use super::*;
 
@@ -12,17 +12,17 @@ where
             || unsafe {
                 let mut output = MaybeUninit::uninit().assume_init();
 
-                *transmute(&mut output) = array;
+                *transmute::<_, &mut [T; N]>(&mut output) = array;
 
                 output
             },
-            || Self(array),
+            || Vector(array),
         )
     }
 
     #[inline(always)]
     pub fn into_array(self) -> [T; N] {
-        unsafe { *transmute(&self) }
+        unsafe { transmute_copy(&self) }
     }
 
     #[inline(always)]
