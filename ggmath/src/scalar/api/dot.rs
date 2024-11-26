@@ -2,12 +2,12 @@ use std::ops::Mul;
 
 use super::*;
 
-pub trait ScalarDot<TRhs: Scalar>: ScalarMul<TRhs, Output: ScalarCSum> {
+pub trait ScalarDot<Rhs: Scalar = Self>: ScalarMul<Rhs, Output: ScalarCSum> {
     #[inline(always)]
     fn vector_dot<const N: usize>(
         vec: Vector<N, Self, impl VecAlignment>,
-        other: Vector<N, TRhs, impl VecAlignment>,
-    ) -> <Self as Mul<TRhs>>::Output
+        other: Vector<N, Rhs, impl VecAlignment>,
+    ) -> <Self as Mul<Rhs>>::Output
     where
         ScalarCount<N>: VecLen,
     {

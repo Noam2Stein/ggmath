@@ -9,24 +9,24 @@ inner_vectors!(usize(8));
 impl Scalar for usize {}
 
 impl ScalarDefault for usize {}
-impl ScalarPartialEq<usize> for usize {}
+impl ScalarPartialEq for usize {}
 impl ScalarPartialOrd for usize {}
 
-impl ScalarAdd<usize> for usize {}
-impl ScalarSub<usize> for usize {}
-impl ScalarMul<usize> for usize {}
-impl ScalarDiv<usize> for usize {}
-impl ScalarRem<usize> for usize {}
-impl ScalarAddAssign<usize> for usize {}
-impl ScalarSubAssign<usize> for usize {}
-impl ScalarMulAssign<usize> for usize {}
-impl ScalarDivAssign<usize> for usize {}
-impl ScalarRemAssign<usize> for usize {}
+impl ScalarAdd for usize {}
+impl ScalarSub for usize {}
+impl ScalarMul for usize {}
+impl ScalarDiv for usize {}
+impl ScalarRem for usize {}
+impl ScalarAddAssign for usize {}
+impl ScalarSubAssign for usize {}
+impl ScalarMulAssign for usize {}
+impl ScalarDivAssign for usize {}
+impl ScalarRemAssign for usize {}
 
 impl ScalarNot for usize {}
-impl ScalarBitAnd<usize> for usize {}
-impl ScalarBitOr<usize> for usize {}
-impl ScalarBitXor<usize> for usize {}
+impl ScalarBitAnd for usize {}
+impl ScalarBitOr for usize {}
+impl ScalarBitXor for usize {}
 
 macro_rules! impl_sh {
     ($($rhs:ident)*) => {
@@ -40,7 +40,7 @@ macro_rules! impl_sh {
 }
 impl_sh!(u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize);
 
-impl ScalarAbsDiff<usize> for usize {}
+impl ScalarAbsDiff for usize {}
 impl AbsDiff for usize {
     type Output = Self;
 
@@ -55,7 +55,7 @@ impl AbsDiff for usize {
 }
 
 impl ScalarCSum for usize {}
-impl ScalarDot<usize> for usize {}
+impl ScalarDot for usize {}
 
 impl ScalarRound for usize {
     #[inline(always)]

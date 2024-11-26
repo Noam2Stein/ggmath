@@ -5,22 +5,22 @@ inner_vectors!(f32(4));
 impl Scalar for f32 {}
 
 impl ScalarDefault for f32 {}
-impl ScalarPartialEq<f32> for f32 {}
+impl ScalarPartialEq for f32 {}
 impl ScalarPartialOrd for f32 {}
 
 impl ScalarNeg for f32 {}
-impl ScalarAdd<f32> for f32 {}
-impl ScalarSub<f32> for f32 {}
-impl ScalarMul<f32> for f32 {}
-impl ScalarDiv<f32> for f32 {}
-impl ScalarRem<f32> for f32 {}
-impl ScalarAddAssign<f32> for f32 {}
-impl ScalarSubAssign<f32> for f32 {}
-impl ScalarMulAssign<f32> for f32 {}
-impl ScalarDivAssign<f32> for f32 {}
-impl ScalarRemAssign<f32> for f32 {}
+impl ScalarAdd for f32 {}
+impl ScalarSub for f32 {}
+impl ScalarMul for f32 {}
+impl ScalarDiv for f32 {}
+impl ScalarRem for f32 {}
+impl ScalarAddAssign for f32 {}
+impl ScalarSubAssign for f32 {}
+impl ScalarMulAssign for f32 {}
+impl ScalarDivAssign for f32 {}
+impl ScalarRemAssign for f32 {}
 
-impl ScalarAbsDiff<f32> for f32 {}
+impl ScalarAbsDiff for f32 {}
 impl AbsDiff for f32 {
     type Output = Self;
 
@@ -31,7 +31,7 @@ impl AbsDiff for f32 {
 }
 
 impl ScalarCSum for f32 {}
-impl ScalarDot<f32> for f32 {}
+impl ScalarDot for f32 {}
 
 impl ScalarRound for f32 {
     #[inline(always)]
