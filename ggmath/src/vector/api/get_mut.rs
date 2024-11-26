@@ -7,183 +7,191 @@ where
     ScalarCount<N>: VecLen,
 {
     #[inline(always)]
-    pub fn get_n_mut<const NOutput: usize>(
+    pub fn get_n_mut<const N_OUTPUT: usize>(
         &mut self,
         index: usize,
-    ) -> Option<&mut VectorOrScalar<NOutput, T, VecPacked>>
+    ) -> Option<&mut VectorOrScalar<N_OUTPUT, T, VecPacked>>
     where
-        ScalarCount<NOutput>: VecLenOr1,
+        ScalarCount<N_OUTPUT>: VecLenOr1,
     {
-        if index >= N - (NOutput - 1) {
+        if index >= N - (N_OUTPUT - 1) {
             None
         } else {
             Some(unsafe { self.get_n_mut_unchecked(index) })
         }
     }
     #[inline(always)]
-    pub fn get_n_n_mut<const NOutput0: usize, const NOutput1: usize>(
+    pub fn get_n_n_mut<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(
-        &mut VectorOrScalar<NOutput0, T, VecPacked>,
-        &mut VectorOrScalar<NOutput1, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
     )>
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
     {
-        if indicies[0] >= N - (NOutput0 - 1)
-            || indicies[1] >= N - (NOutput1 - 1)
-            || range_intersects(indicies[0], NOutput0, indicies[1], NOutput1)
+        if indicies[0] >= N - (N_OUTPUT_0 - 1)
+            || indicies[1] >= N - (N_OUTPUT_1 - 1)
+            || range_intersects(indicies[0], N_OUTPUT_0, indicies[1], N_OUTPUT_1)
         {
             None
         } else {
-            Some(unsafe { self.get_n_n_mut_unchecked::<NOutput0, NOutput1>(indicies) })
+            Some(unsafe { self.get_n_n_mut_unchecked::<N_OUTPUT_0, N_OUTPUT_1>(indicies) })
         }
     }
     #[inline(always)]
-    pub fn get_n_n_n_mut<const NOutput0: usize, const NOutput1: usize, const NOutput2: usize>(
+    pub fn get_n_n_n_mut<
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
+    >(
         &mut self,
         indicies: [usize; 3],
     ) -> Option<(
-        &mut VectorOrScalar<NOutput0, T, VecPacked>,
-        &mut VectorOrScalar<NOutput1, T, VecPacked>,
-        &mut VectorOrScalar<NOutput2, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
     )>
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
     {
-        if indicies[0] >= N - (NOutput0 - 1)
-            || indicies[1] >= N - (NOutput1 - 1)
-            || indicies[2] >= N - (NOutput2 - 1)
-            || range_intersects(indicies[0], NOutput0, indicies[1], NOutput1)
-            || range_intersects(indicies[0], NOutput0, indicies[2], NOutput2)
-            || range_intersects(indicies[1], NOutput1, indicies[2], NOutput2)
-        {
-            None
-        } else {
-            Some(unsafe { self.get_n_n_n_mut_unchecked::<NOutput0, NOutput1, NOutput2>(indicies) })
-        }
-    }
-    #[inline(always)]
-    pub fn get_n_n_n_n_mut<
-        const NOutput0: usize,
-        const NOutput1: usize,
-        const NOutput2: usize,
-        const NOutput3: usize,
-    >(
-        &mut self,
-        indicies: [usize; 4],
-    ) -> Option<(
-        &mut VectorOrScalar<NOutput0, T, VecPacked>,
-        &mut VectorOrScalar<NOutput1, T, VecPacked>,
-        &mut VectorOrScalar<NOutput2, T, VecPacked>,
-        &mut VectorOrScalar<NOutput3, T, VecPacked>,
-    )>
-    where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
-        ScalarCount<NOutput3>: VecLenOr1,
-    {
-        if indicies[0] >= N - (NOutput0 - 1)
-            || indicies[1] >= N - (NOutput1 - 1)
-            || indicies[2] >= N - (NOutput2 - 1)
-            || indicies[3] >= N - (NOutput3 - 1)
-            || range_intersects(indicies[0], NOutput0, indicies[1], NOutput1)
-            || range_intersects(indicies[0], NOutput0, indicies[2], NOutput2)
-            || range_intersects(indicies[0], NOutput0, indicies[3], NOutput3)
-            || range_intersects(indicies[1], NOutput1, indicies[2], NOutput2)
-            || range_intersects(indicies[1], NOutput1, indicies[3], NOutput3)
-            || range_intersects(indicies[2], NOutput2, indicies[3], NOutput3)
+        if indicies[0] >= N - (N_OUTPUT_0 - 1)
+            || indicies[1] >= N - (N_OUTPUT_1 - 1)
+            || indicies[2] >= N - (N_OUTPUT_2 - 1)
+            || range_intersects(indicies[0], N_OUTPUT_0, indicies[1], N_OUTPUT_1)
+            || range_intersects(indicies[0], N_OUTPUT_0, indicies[2], N_OUTPUT_2)
+            || range_intersects(indicies[1], N_OUTPUT_1, indicies[2], N_OUTPUT_2)
         {
             None
         } else {
             Some(unsafe {
-                self.get_n_n_n_n_mut_unchecked::<NOutput0, NOutput1, NOutput2, NOutput3>(indicies)
+                self.get_n_n_n_mut_unchecked::<N_OUTPUT_0, N_OUTPUT_1, N_OUTPUT_2>(indicies)
+            })
+        }
+    }
+    #[inline(always)]
+    pub fn get_n_n_n_n_mut<
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
+        const N_OUTPUT_3: usize,
+    >(
+        &mut self,
+        indicies: [usize; 4],
+    ) -> Option<(
+        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
+    )>
+    where
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_3>: VecLenOr1,
+    {
+        if indicies[0] >= N - (N_OUTPUT_0 - 1)
+            || indicies[1] >= N - (N_OUTPUT_1 - 1)
+            || indicies[2] >= N - (N_OUTPUT_2 - 1)
+            || indicies[3] >= N - (N_OUTPUT_3 - 1)
+            || range_intersects(indicies[0], N_OUTPUT_0, indicies[1], N_OUTPUT_1)
+            || range_intersects(indicies[0], N_OUTPUT_0, indicies[2], N_OUTPUT_2)
+            || range_intersects(indicies[0], N_OUTPUT_0, indicies[3], N_OUTPUT_3)
+            || range_intersects(indicies[1], N_OUTPUT_1, indicies[2], N_OUTPUT_2)
+            || range_intersects(indicies[1], N_OUTPUT_1, indicies[3], N_OUTPUT_3)
+            || range_intersects(indicies[2], N_OUTPUT_2, indicies[3], N_OUTPUT_3)
+        {
+            None
+        } else {
+            Some(unsafe {
+                self.get_n_n_n_n_mut_unchecked::<N_OUTPUT_0, N_OUTPUT_1, N_OUTPUT_2, N_OUTPUT_3>(
+                    indicies,
+                )
             })
         }
     }
 
     #[inline(always)]
-    pub unsafe fn get_n_mut_unchecked<const NOutput: usize>(
+    pub unsafe fn get_n_mut_unchecked<const N_OUTPUT: usize>(
         &mut self,
         index: usize,
-    ) -> &mut VectorOrScalar<NOutput, T, VecPacked>
+    ) -> &mut VectorOrScalar<N_OUTPUT, T, VecPacked>
     where
-        ScalarCount<NOutput>: VecLenOr1,
+        ScalarCount<N_OUTPUT>: VecLenOr1,
     {
-        transmute(self.as_array().get_unchecked(index))
+        transmute(self.as_array_mut().get_unchecked_mut(index))
     }
     #[inline(always)]
-    pub unsafe fn get_n_n_mut_unchecked<const NOutput0: usize, const NOutput1: usize>(
+    pub unsafe fn get_n_n_mut_unchecked<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
         &mut self,
         indicies: [usize; 2],
     ) -> (
-        &mut VectorOrScalar<NOutput0, T, VecPacked>,
-        &mut VectorOrScalar<NOutput1, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
     )
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
     {
         (
-            transmute(self.get_n_mut_unchecked::<NOutput0>(indicies[0])),
-            transmute(self.get_n_mut_unchecked::<NOutput1>(indicies[1])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
         )
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_mut_unchecked<
-        const NOutput0: usize,
-        const NOutput1: usize,
-        const NOutput2: usize,
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
     >(
         &mut self,
         indicies: [usize; 3],
     ) -> (
-        &mut VectorOrScalar<NOutput0, T, VecPacked>,
-        &mut VectorOrScalar<NOutput1, T, VecPacked>,
-        &mut VectorOrScalar<NOutput2, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
     )
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
     {
         (
-            transmute(self.get_n_mut_unchecked::<NOutput0>(indicies[0])),
-            transmute(self.get_n_mut_unchecked::<NOutput1>(indicies[1])),
-            transmute(self.get_n_mut_unchecked::<NOutput2>(indicies[2])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_2>(indicies[2])),
         )
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_n_mut_unchecked<
-        const NOutput0: usize,
-        const NOutput1: usize,
-        const NOutput2: usize,
-        const NOutput3: usize,
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
+        const N_OUTPUT_3: usize,
     >(
         &mut self,
         indicies: [usize; 4],
     ) -> (
-        &mut VectorOrScalar<NOutput0, T, VecPacked>,
-        &mut VectorOrScalar<NOutput1, T, VecPacked>,
-        &mut VectorOrScalar<NOutput2, T, VecPacked>,
-        &mut VectorOrScalar<NOutput3, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &mut VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
     )
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
-        ScalarCount<NOutput3>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_3>: VecLenOr1,
     {
         (
-            transmute(self.get_n_mut_unchecked::<NOutput0>(indicies[0])),
-            transmute(self.get_n_mut_unchecked::<NOutput1>(indicies[1])),
-            transmute(self.get_n_mut_unchecked::<NOutput2>(indicies[2])),
-            transmute(self.get_n_mut_unchecked::<NOutput3>(indicies[3])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_2>(indicies[2])),
+            transmute(self.get_n_mut_unchecked::<N_OUTPUT_3>(indicies[3])),
         )
     }
 

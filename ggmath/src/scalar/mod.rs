@@ -37,11 +37,7 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     where
         ScalarCount<N>: VecLen,
     {
-        if index >= N {
-            None
-        } else {
-            Some(unsafe { vec.get_unchecked(index) })
-        }
+        vec.get_ref(index).map(|output| *output)
     }
     #[inline(always)]
     fn vector_get_1_1<const N: usize, A: VecAlignment>(
@@ -51,11 +47,8 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     where
         ScalarCount<N>: VecLen,
     {
-        if indicies.into_iter().any(|index| index >= N) {
-            None
-        } else {
-            Some(unsafe { vec.get_2_unchecked(indicies) })
-        }
+        vec.get_1_1_ref(indicies)
+            .map(|(output0, output1)| Vector::<2, Self, A>::from_array([*output0, *output1]))
     }
     #[inline(always)]
     fn vector_get_1_1_1<const N: usize, A: VecAlignment>(
@@ -65,11 +58,10 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     where
         ScalarCount<N>: VecLen,
     {
-        if indicies.into_iter().any(|index| index >= N) {
-            None
-        } else {
-            Some(unsafe { vec.get_3_unchecked(indicies) })
-        }
+        vec.get_1_1_1_ref(indicies)
+            .map(|(output0, output1, output2)| {
+                Vector::<3, Self, A>::from_array([*output0, *output1, *output2])
+            })
     }
     #[inline(always)]
     fn vector_get_1_1_1_1<const N: usize, A: VecAlignment>(
@@ -79,11 +71,10 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     where
         ScalarCount<N>: VecLen,
     {
-        if indicies.into_iter().any(|index| index >= N) {
-            None
-        } else {
-            Some(unsafe { vec.get_4_unchecked(indicies) })
-        }
+        vec.get_1_1_1_1_ref(indicies)
+            .map(|(output0, output1, output2, output3)| {
+                Vector::<4, Self, A>::from_array([*output0, *output1, *output2, *output3])
+            })
     }
 
     #[inline(always)]
@@ -104,7 +95,7 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::from_array([
+        Vector::<2, Self, A>::from_array([
             vec.get_unchecked(indicies[0]),
             vec.get_unchecked(indicies[1]),
         ])
@@ -117,7 +108,7 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::from_array([
+        Vector::<3, Self, A>::from_array([
             vec.get_unchecked(indicies[0]),
             vec.get_unchecked(indicies[1]),
             vec.get_unchecked(indicies[2]),
@@ -131,7 +122,7 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::from_array([
+        Vector::<4, Self, A>::from_array([
             vec.get_unchecked(indicies[0]),
             vec.get_unchecked(indicies[1]),
             vec.get_unchecked(indicies[2]),
@@ -143,7 +134,7 @@ pub trait Scalar: Construct + ScalarInnerVectors {
         vec: Vector<N, Self, A>,
         index: usize,
         value: Self,
-    ) -> Option<Self>
+    ) -> Option<Vector<N, Self, A>>
     where
         ScalarCount<N>: VecLen,
     {
@@ -153,24 +144,30 @@ pub trait Scalar: Construct + ScalarInnerVectors {
             Some(unsafe { vec.with_unchecked(index, value) })
         }
     }
-    fn vector_with_2<const N: usize, A: VecAlignment>(
+    fn vector_with_1_1<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         indicies: [usize; 2],
-        values: Vector<2, Self, A>,
-    ) -> Option<Self> {
+        value: Vector<2, Self, impl VecAlignment>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        ScalarCount<N>: VecLen,
+    {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else if indicies[0] == indicies[1] {
             None
         } else {
-            Some(unsafe { vec.with_2_unchecked(indicies, values) })
+            Some(unsafe { vec.with_1_1_unchecked(indicies, value) })
         }
     }
-    fn vector_with_3<const N: usize, A: VecAlignment>(
+    fn vector_with_1_1_1<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         indicies: [usize; 3],
-        values: Vector<3, Self, A>,
-    ) -> Option<Self> {
+        value: Vector<3, Self, impl VecAlignment>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        ScalarCount<N>: VecLen,
+    {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else if indicies[0] == indicies[1] {
@@ -180,14 +177,17 @@ pub trait Scalar: Construct + ScalarInnerVectors {
         } else if indicies[1] == indicies[2] {
             None
         } else {
-            Some(unsafe { vec.with_3_unchecked(indicies, values) })
+            Some(unsafe { vec.with_1_1_1_unchecked(indicies, value) })
         }
     }
-    fn vector_with_4<const N: usize, A: VecAlignment>(
+    fn vector_with_1_1_1_1<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         indicies: [usize; 4],
-        values: Vector<4, Self, A>,
-    ) -> Option<Self> {
+        value: Vector<4, Self, impl VecAlignment>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        ScalarCount<N>: VecLen,
+    {
         if indicies.into_iter().any(|index| index >= N) {
             None
         } else if indicies[0] == indicies[1] {
@@ -203,50 +203,62 @@ pub trait Scalar: Construct + ScalarInnerVectors {
         } else if indicies[2] == indicies[3] {
             None
         } else {
-            Some(unsafe { vec.with_4_unchecked(indicies, values) })
+            Some(unsafe { vec.with_1_1_1_1_unchecked(indicies, value) })
         }
     }
 
     #[inline(always)]
     unsafe fn vector_with_unchecked<const N: usize, A: VecAlignment>(
-        mut self,
+        mut vec: Vector<N, Self, A>,
         index: usize,
         value: Self,
-    ) -> Self {
-        *self.get_mut_unchecked(index) = value;
-        self
+    ) -> Vector<N, Self, A>
+    where
+        ScalarCount<N>: VecLen,
+    {
+        *vec.get_mut_unchecked(index) = value;
+        vec
     }
     #[inline(always)]
-    unsafe fn vector_with_2_unchecked<const N: usize, A: VecAlignment>(
-        mut self,
+    unsafe fn vector_with_1_1_unchecked<const N: usize, A: VecAlignment>(
+        mut vec: Vector<N, Self, A>,
         indicies: [usize; 2],
-        values: Vector<2, Self, A>,
-    ) -> Vector<2, Self, A> {
-        *self.get_mut_unchecked(indicies[0]) = values.get_unchecked(0);
-        *self.get_mut_unchecked(indicies[1]) = values.get_unchecked(1);
-        self
+        value: Vector<2, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        ScalarCount<N>: VecLen,
+    {
+        *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
+        *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
+        vec
     }
     #[inline(always)]
-    unsafe fn vector_with_3_unchecked<const N: usize, A: VecAlignment>(
-        mut self,
+    unsafe fn vector_with_1_1_1_unchecked<const N: usize, A: VecAlignment>(
+        mut vec: Vector<N, Self, A>,
         indicies: [usize; 3],
-        values: Vector<3, Self, A>,
-    ) -> Vector<3, Self, A> {
-        *self.get_mut_unchecked(indicies[0]) = values.get_unchecked(0);
-        *self.get_mut_unchecked(indicies[1]) = values.get_unchecked(1);
-        *self.get_mut_unchecked(indicies[2]) = values.get_unchecked(2);
-        self
+        value: Vector<3, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        ScalarCount<N>: VecLen,
+    {
+        *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
+        *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
+        *vec.get_mut_unchecked(indicies[2]) = value.get_unchecked(2);
+        vec
     }
     #[inline(always)]
-    unsafe fn vector_with_4_unchecked<const N: usize, A: VecAlignment>(
-        mut self,
+    unsafe fn vector_with_1_1_1_1_unchecked<const N: usize, A: VecAlignment>(
+        mut vec: Vector<N, Self, A>,
         indicies: [usize; 4],
-        values: Vector<4, Self, A>,
-    ) -> Vector<4, Self, A> {
-        *self.get_mut_unchecked(indicies[0]) = values.get_unchecked(0);
-        *self.get_mut_unchecked(indicies[1]) = values.get_unchecked(1);
-        *self.get_mut_unchecked(indicies[2]) = values.get_unchecked(2);
-        *self.get_mut_unchecked(indicies[3]) = values.get_unchecked(3);
-        self
+        value: Vector<4, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        ScalarCount<N>: VecLen,
+    {
+        *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
+        *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
+        *vec.get_mut_unchecked(indicies[2]) = value.get_unchecked(2);
+        *vec.get_mut_unchecked(indicies[3]) = value.get_unchecked(3);
+        vec
     }
 }

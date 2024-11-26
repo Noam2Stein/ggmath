@@ -7,33 +7,33 @@ where
     ScalarCount<N>: VecLen,
 {
     #[inline(always)]
-    pub fn get_n_ref<const NOutput: usize>(
+    pub fn get_n_ref<const N_OUTPUT: usize>(
         &self,
         index: usize,
-    ) -> Option<&VectorOrScalar<NOutput, T, VecPacked>>
+    ) -> Option<&VectorOrScalar<N_OUTPUT, T, VecPacked>>
     where
-        ScalarCount<NOutput>: VecLenOr1,
+        ScalarCount<N_OUTPUT>: VecLenOr1,
     {
-        if index >= N - (NOutput - 1) {
+        if index >= N - (N_OUTPUT - 1) {
             None
         } else {
             Some(unsafe { self.get_n_ref_unchecked(index) })
         }
     }
     #[inline(always)]
-    pub fn get_n_n_ref<const NOutput0: usize, const NOutput1: usize>(
+    pub fn get_n_n_ref<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
         &self,
         indicies: [usize; 2],
     ) -> Option<(
-        &VectorOrScalar<NOutput0, T, VecPacked>,
-        &VectorOrScalar<NOutput1, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
     )>
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
     {
-        if let Some(ref_0) = self.get_n_ref::<NOutput0>(indicies[0]) {
-            if let Some(ref_1) = self.get_n_ref::<NOutput1>(indicies[1]) {
+        if let Some(ref_0) = self.get_n_ref::<N_OUTPUT_0>(indicies[0]) {
+            if let Some(ref_1) = self.get_n_ref::<N_OUTPUT_1>(indicies[1]) {
                 Some((ref_0, ref_1))
             } else {
                 None
@@ -43,22 +43,26 @@ where
         }
     }
     #[inline(always)]
-    pub fn get_n_n_n_ref<const NOutput0: usize, const NOutput1: usize, const NOutput2: usize>(
+    pub fn get_n_n_n_ref<
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
+    >(
         &self,
         indicies: [usize; 3],
     ) -> Option<(
-        &VectorOrScalar<NOutput0, T, VecPacked>,
-        &VectorOrScalar<NOutput1, T, VecPacked>,
-        &VectorOrScalar<NOutput2, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
     )>
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
     {
-        if let Some(ref_0) = self.get_n_ref::<NOutput0>(indicies[0]) {
-            if let Some(ref_1) = self.get_n_ref::<NOutput1>(indicies[1]) {
-                if let Some(ref_2) = self.get_n_ref::<NOutput2>(indicies[2]) {
+        if let Some(ref_0) = self.get_n_ref::<N_OUTPUT_0>(indicies[0]) {
+            if let Some(ref_1) = self.get_n_ref::<N_OUTPUT_1>(indicies[1]) {
+                if let Some(ref_2) = self.get_n_ref::<N_OUTPUT_2>(indicies[2]) {
                     Some((ref_0, ref_1, ref_2))
                 } else {
                     None
@@ -72,29 +76,29 @@ where
     }
     #[inline(always)]
     pub fn get_n_n_n_n_ref<
-        const NOutput0: usize,
-        const NOutput1: usize,
-        const NOutput2: usize,
-        const NOutput3: usize,
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
+        const N_OUTPUT_3: usize,
     >(
         &self,
         indicies: [usize; 4],
     ) -> Option<(
-        &VectorOrScalar<NOutput0, T, VecPacked>,
-        &VectorOrScalar<NOutput1, T, VecPacked>,
-        &VectorOrScalar<NOutput2, T, VecPacked>,
-        &VectorOrScalar<NOutput3, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
     )>
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
-        ScalarCount<NOutput3>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_3>: VecLenOr1,
     {
-        if let Some(ref_0) = self.get_n_ref::<NOutput0>(indicies[0]) {
-            if let Some(ref_1) = self.get_n_ref::<NOutput1>(indicies[1]) {
-                if let Some(ref_2) = self.get_n_ref::<NOutput2>(indicies[2]) {
-                    if let Some(ref_3) = self.get_n_ref::<NOutput3>(indicies[3]) {
+        if let Some(ref_0) = self.get_n_ref::<N_OUTPUT_0>(indicies[0]) {
+            if let Some(ref_1) = self.get_n_ref::<N_OUTPUT_1>(indicies[1]) {
+                if let Some(ref_2) = self.get_n_ref::<N_OUTPUT_2>(indicies[2]) {
+                    if let Some(ref_3) = self.get_n_ref::<N_OUTPUT_3>(indicies[3]) {
                         Some((ref_0, ref_1, ref_2, ref_3))
                     } else {
                         None
@@ -111,82 +115,82 @@ where
     }
 
     #[inline(always)]
-    pub unsafe fn get_n_ref_unchecked<const NOutput: usize>(
+    pub unsafe fn get_n_ref_unchecked<const N_OUTPUT: usize>(
         &self,
         index: usize,
-    ) -> &VectorOrScalar<NOutput, T, VecPacked>
+    ) -> &VectorOrScalar<N_OUTPUT, T, VecPacked>
     where
-        ScalarCount<NOutput>: VecLenOr1,
+        ScalarCount<N_OUTPUT>: VecLenOr1,
     {
         transmute(self.as_array().get_unchecked(index))
     }
     #[inline(always)]
-    pub unsafe fn get_n_n_ref_unchecked<const NOutput0: usize, const NOutput1: usize>(
+    pub unsafe fn get_n_n_ref_unchecked<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
         &self,
         indicies: [usize; 2],
     ) -> (
-        &VectorOrScalar<NOutput0, T, VecPacked>,
-        &VectorOrScalar<NOutput1, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
     )
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
     {
         (
-            self.get_n_ref_unchecked::<NOutput0>(indicies[0]),
-            self.get_n_ref_unchecked::<NOutput1>(indicies[1]),
+            self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
+            self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
         )
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_ref_unchecked<
-        const NOutput0: usize,
-        const NOutput1: usize,
-        const NOutput2: usize,
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
     >(
         &self,
         indicies: [usize; 3],
     ) -> (
-        &VectorOrScalar<NOutput0, T, VecPacked>,
-        &VectorOrScalar<NOutput1, T, VecPacked>,
-        &VectorOrScalar<NOutput2, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
     )
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
     {
         (
-            self.get_n_ref_unchecked::<NOutput0>(indicies[0]),
-            self.get_n_ref_unchecked::<NOutput1>(indicies[1]),
-            self.get_n_ref_unchecked::<NOutput2>(indicies[2]),
+            self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
+            self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
+            self.get_n_ref_unchecked::<N_OUTPUT_2>(indicies[2]),
         )
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_n_ref_unchecked<
-        const NOutput0: usize,
-        const NOutput1: usize,
-        const NOutput2: usize,
-        const NOutput3: usize,
+        const N_OUTPUT_0: usize,
+        const N_OUTPUT_1: usize,
+        const N_OUTPUT_2: usize,
+        const N_OUTPUT_3: usize,
     >(
         &self,
         indicies: [usize; 4],
     ) -> (
-        &VectorOrScalar<NOutput0, T, VecPacked>,
-        &VectorOrScalar<NOutput1, T, VecPacked>,
-        &VectorOrScalar<NOutput2, T, VecPacked>,
-        &VectorOrScalar<NOutput3, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
     )
     where
-        ScalarCount<NOutput0>: VecLenOr1,
-        ScalarCount<NOutput1>: VecLenOr1,
-        ScalarCount<NOutput2>: VecLenOr1,
-        ScalarCount<NOutput3>: VecLenOr1,
+        ScalarCount<N_OUTPUT_0>: VecLenOr1,
+        ScalarCount<N_OUTPUT_1>: VecLenOr1,
+        ScalarCount<N_OUTPUT_2>: VecLenOr1,
+        ScalarCount<N_OUTPUT_3>: VecLenOr1,
     {
         (
-            self.get_n_ref_unchecked::<NOutput0>(indicies[0]),
-            self.get_n_ref_unchecked::<NOutput1>(indicies[1]),
-            self.get_n_ref_unchecked::<NOutput2>(indicies[2]),
-            self.get_n_ref_unchecked::<NOutput3>(indicies[3]),
+            self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
+            self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
+            self.get_n_ref_unchecked::<N_OUTPUT_2>(indicies[2]),
+            self.get_n_ref_unchecked::<N_OUTPUT_3>(indicies[3]),
         )
     }
 

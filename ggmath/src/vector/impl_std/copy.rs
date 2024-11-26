@@ -6,7 +6,7 @@ where
 {
     #[inline(always)]
     fn clone(&self) -> Self {
-        Self { inner: self.inner }
+        Self(self.0)
     }
 }
 

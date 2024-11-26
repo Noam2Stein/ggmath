@@ -37,11 +37,11 @@ where
     for x in valid_indicies {
         for y in valid_indicies {
             assert_eq!(
-                vector.get_2([x, y]),
+                vector.get_1_1([x, y]),
                 Some(Vector::<2, T, A>::from_array([array[x], array[y]]))
             );
             assert_eq!(
-                unsafe { vector.get_2_unchecked([x, y]) },
+                unsafe { vector.get_1_1_unchecked([x, y]) },
                 Vector::<2, T, A>::from_array([array[x], array[y]])
             );
         }
@@ -50,13 +50,13 @@ where
         for y in valid_indicies {
             for z in valid_indicies {
                 assert_eq!(
-                    vector.get_3([x, y, z]),
+                    vector.get_1_1_1([x, y, z]),
                     Some(Vector::<3, T, A>::from_array([
                         array[x], array[y], array[z]
                     ]))
                 );
                 assert_eq!(
-                    unsafe { vector.get_3_unchecked([x, y, z]) },
+                    unsafe { vector.get_1_1_1_unchecked([x, y, z]) },
                     Vector::<3, T, A>::from_array([array[x], array[y], array[z]])
                 );
             }
@@ -67,13 +67,13 @@ where
             for z in valid_indicies {
                 for w in valid_indicies {
                     assert_eq!(
-                        vector.get_4([x, y, z, w]),
+                        vector.get_1_1_1_1([x, y, z, w]),
                         Some(Vector::<4, T, A>::from_array([
                             array[x], array[y], array[z], array[w]
                         ]))
                     );
                     assert_eq!(
-                        unsafe { vector.get_4_unchecked([x, y, z, w]) },
+                        unsafe { vector.get_1_1_1_1_unchecked([x, y, z, w]) },
                         Vector::<4, T, A>::from_array([array[x], array[y], array[z], array[w]])
                     );
                 }

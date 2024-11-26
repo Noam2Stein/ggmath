@@ -34,7 +34,7 @@ for_swizzles!(1 1(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<2, T, A> {
-                unsafe { self.get_2_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -43,7 +43,7 @@ for_swizzles!(1 1 1(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<3, T, A> {
-                unsafe { self.get_3_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -52,7 +52,7 @@ for_swizzles!(1 1 1 1(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<4, T, A> {
-                unsafe { self.get_4_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -71,7 +71,7 @@ for_swizzles!(1 1(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<2, T, A> {
-                unsafe { self.get_2_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -80,7 +80,7 @@ for_swizzles!(1 1 1(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<3, T, A> {
-                unsafe { self.get_3_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -89,7 +89,7 @@ for_swizzles!(1 1 1 1(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<4, T, A> {
-                unsafe { self.get_4_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -108,7 +108,7 @@ for_swizzles!(1 1(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<2, T, A> {
-                unsafe { self.get_2_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -117,7 +117,7 @@ for_swizzles!(1 1 1(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<3, T, A> {
-                unsafe { self.get_3_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -126,7 +126,7 @@ for_swizzles!(1 1 1 1(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self) -> Vector<4, T, A> {
-                unsafe { self.get_4_unchecked([$($pos), *]) }
+                unsafe { self.get_1_1_1_1_unchecked([$($pos), *]) }
             }
         )*)*
     }
@@ -251,7 +251,7 @@ for_swizzles!(unique 1 1 with_(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<2, T, A>) -> Self {
-                unsafe { self.with_2_unchecked([$($pos), *], values) }
+                unsafe { self.with_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -270,7 +270,7 @@ for_swizzles!(unique 1 1 with_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<2, T, A>) -> Self {
-                unsafe { self.with_2_unchecked([$($pos), *], values) }
+                unsafe { self.with_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -279,7 +279,7 @@ for_swizzles!(unique 1 1 1 with_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<3, T, A>) -> Self {
-                unsafe { self.with_3_unchecked([$($pos), *], values) }
+                unsafe { self.with_1_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -298,7 +298,7 @@ for_swizzles!(unique 1 1 with_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<2, T, A>) -> Self {
-                unsafe { self.with_2_unchecked([$($pos), *], values) }
+                unsafe { self.with_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -307,7 +307,7 @@ for_swizzles!(unique 1 1 1 with_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<3, T, A>) -> Self {
-                unsafe { self.with_3_unchecked([$($pos), *], values) }
+                unsafe { self.with_1_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -316,7 +316,7 @@ for_swizzles!(unique 1 1 1 1 with_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(self, values: Vector<4, T, A>) -> Self {
-                unsafe { self.with_4_unchecked([$($pos), *], values) }
+                unsafe { self.with_1_1_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -337,7 +337,7 @@ for_swizzles!(unique 1 1 set_(x y) => {
     impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<2, T, A>) {
-                unsafe { self.set_2_unchecked([$($pos), *], values) }
+                unsafe { self.set_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -356,7 +356,7 @@ for_swizzles!(unique 1 1 set_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<2, T, A>) {
-                unsafe { self.set_2_unchecked([$($pos), *], values) }
+                unsafe { self.set_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -365,7 +365,7 @@ for_swizzles!(unique 1 1 1 set_(x y z) => {
     impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<3, T, A>) {
-                unsafe { self.set_3_unchecked([$($pos), *], values) }
+                unsafe { self.set_1_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -384,7 +384,7 @@ for_swizzles!(unique 1 1 set_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<2, T, A>) {
-                unsafe { self.set_2_unchecked([$($pos), *], values) }
+                unsafe { self.set_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -393,7 +393,7 @@ for_swizzles!(unique 1 1 1 set_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<3, T, A>) {
-                unsafe { self.set_3_unchecked([$($pos), *], values) }
+                unsafe { self.set_1_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
@@ -402,7 +402,7 @@ for_swizzles!(unique 1 1 1 1 set_(x y z w) => {
     impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         $($(#[inline(always)]
             pub fn $ident(&mut self, values: Vector<4, T, A>) {
-                unsafe { self.set_4_unchecked([$($pos), *], values) }
+                unsafe { self.set_1_1_1_1_unchecked([$($pos), *], values) }
             }
         )*)*
     }
