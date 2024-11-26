@@ -3,44 +3,44 @@
 [Trello board](https://trello.com/b/6NH6VXTh/ggmath)
 
 # GGMath - Generic Graphics Math
-Rust generic graphics math... for good games
+A graphics-math Rust crate with powerful generics that are truely zero-cost
 
 * simple API
 ``` rust
-use ggmath::primitive_aliases::f32::*;
+use ggmath::vector::*;
 
 fn main() {
-  let _2_4_ = fvec2((2.0, 4.0));
-  let vec = fvec4((1.0, _2_4_, 3.0)).xywz();
+  let _2_4_ = vec2!(2.0_f32, 4.0);
+  let vec = vec4(1.0, _2_4_, 3.0).xywz();
 
-  assert_eq!(vec, fvec4(1.0, 2.0, 3.0, 4.0));
+  assert_eq!(vec, vec4(1.0, 2.0, 3.0, 4.0));
 }
 ```
 
 * powerful generics
 ``` rust
-use ggmath::{primitive_aliases::f32::*, vector::*};
+use ggmath::vector::{f32_aliases::*, *};
 
 struct MyStruct<const N: usize, T: Scalar, A: VecAlignment> where ScalarCount<N>: VecLen {
   gg: Vector<N, T, A>,
-  og: Vector<N, T, VecAligned>,
-  go: FVec3,
-  //oo: go back to java
+  go: Vector<N, T, VecAligned>,
+  og: FVec3,
+  //oo: go back to Java
 }
 ```
 
-* supports both column-major and row-major matricies
+* both column-major and row-major matricies
 ``` rust
 use ggmath::matrix::*;
 
-fn example(matrix: Mat4<RowMajor>) {}
+fn example(row_major: Mat4R, column_major: Mat2x3C) {}
 ```
 
 * 0-cost abstraction - fully optimized with SIMD on current stable Rust
 
 restrictions:
 * only supports static vectors (2, 3, 4) and matricies (2, 3, 4)x(2, 3, 4)
-* currently doesn't support const-contexts beyond simple consts like `ZERO` and `ONE` on stable rust until const-traits are stablized
+* won't support const-contexts until const-traits are stablized
 
 ## `Scalar`
 
