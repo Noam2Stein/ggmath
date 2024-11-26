@@ -4,24 +4,22 @@ use super::*;
 
 pub trait ScalarNum:
     Scalar
-    + ScalarDefault
+    + Default
     + ScalarPartialEq<Self>
     + ScalarPartialOrd
     + Debug
     + Display
-    + ScalarAdd<Self, Output = Self>
-    + ScalarSub<Self, Output = Self>
-    + ScalarMul<Self, Output = Self>
-    + ScalarDiv<Self, Output = Self>
-    + ScalarRem<Self, Output = Self>
-    + ScalarAddAssign<Self>
-    + ScalarSubAssign<Self>
-    + ScalarMulAssign<Self>
-    + ScalarDivAssign<Self>
-    + ScalarRemAssign<Self>
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + Rem<Output = Self>
+    + AddAssign
+    + SubAssign
+    + MulAssign
+    + DivAssign
+    + RemAssign
     + ScalarAbsDiff<Self, Output = Self>
-    + ScalarCSum
-    + ScalarDot<Self, Output = Self>
     + ScalarRound
     + Num
     + NumCast

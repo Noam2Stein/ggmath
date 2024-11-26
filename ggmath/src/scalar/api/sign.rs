@@ -1,6 +1,6 @@
 use super::*;
 
-pub trait ScalarSigned: ScalarNeg<Output = Self> {
+pub trait ScalarSigned: Scalar + Neg<Output = Self> {
     #[inline(always)]
     fn is_positive(self) -> bool {
         !self.is_negative()

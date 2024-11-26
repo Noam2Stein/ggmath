@@ -4,21 +4,8 @@ inner_vectors!(f32(4));
 
 impl Scalar for f32 {}
 
-impl ScalarDefault for f32 {}
 impl ScalarPartialEq for f32 {}
 impl ScalarPartialOrd for f32 {}
-
-impl ScalarNeg for f32 {}
-impl ScalarAdd for f32 {}
-impl ScalarSub for f32 {}
-impl ScalarMul for f32 {}
-impl ScalarDiv for f32 {}
-impl ScalarRem for f32 {}
-impl ScalarAddAssign for f32 {}
-impl ScalarSubAssign for f32 {}
-impl ScalarMulAssign for f32 {}
-impl ScalarDivAssign for f32 {}
-impl ScalarRemAssign for f32 {}
 
 impl ScalarAbsDiff for f32 {}
 impl AbsDiff for f32 {
@@ -29,9 +16,6 @@ impl AbsDiff for f32 {
         (self - rhs).abs()
     }
 }
-
-impl ScalarCSum for f32 {}
-impl ScalarDot for f32 {}
 
 impl ScalarRound for f32 {
     #[inline(always)]

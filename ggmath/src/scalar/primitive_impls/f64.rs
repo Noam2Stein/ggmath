@@ -4,21 +4,8 @@ inner_vectors!(f64(8));
 
 impl Scalar for f64 {}
 
-impl ScalarDefault for f64 {}
 impl ScalarPartialEq for f64 {}
 impl ScalarPartialOrd for f64 {}
-
-impl ScalarNeg for f64 {}
-impl ScalarAdd for f64 {}
-impl ScalarSub for f64 {}
-impl ScalarMul for f64 {}
-impl ScalarDiv for f64 {}
-impl ScalarRem for f64 {}
-impl ScalarAddAssign for f64 {}
-impl ScalarSubAssign for f64 {}
-impl ScalarMulAssign for f64 {}
-impl ScalarDivAssign for f64 {}
-impl ScalarRemAssign for f64 {}
 
 impl ScalarAbsDiff for f64 {}
 impl AbsDiff for f64 {
@@ -29,9 +16,6 @@ impl AbsDiff for f64 {
         (self - rhs).abs()
     }
 }
-
-impl ScalarCSum for f64 {}
-impl ScalarDot for f64 {}
 
 impl ScalarRound for f64 {
     #[inline(always)]

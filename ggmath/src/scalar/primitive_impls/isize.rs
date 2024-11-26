@@ -8,38 +8,8 @@ inner_vectors!(isize(8));
 
 impl Scalar for isize {}
 
-impl ScalarDefault for isize {}
 impl ScalarPartialEq for isize {}
 impl ScalarPartialOrd for isize {}
-
-impl ScalarNeg for isize {}
-impl ScalarAdd for isize {}
-impl ScalarSub for isize {}
-impl ScalarMul for isize {}
-impl ScalarDiv for isize {}
-impl ScalarRem for isize {}
-impl ScalarAddAssign for isize {}
-impl ScalarSubAssign for isize {}
-impl ScalarMulAssign for isize {}
-impl ScalarDivAssign for isize {}
-impl ScalarRemAssign for isize {}
-
-impl ScalarNot for isize {}
-impl ScalarBitAnd for isize {}
-impl ScalarBitOr for isize {}
-impl ScalarBitXor for isize {}
-
-macro_rules! impl_sh {
-    ($($rhs:ident)*) => {
-        $(
-            impl ScalarShl<$rhs> for isize {}
-            impl ScalarShr<$rhs> for isize {}
-            impl ScalarShlAssign<$rhs> for isize {}
-            impl ScalarShrAssign<$rhs> for isize {}
-        )*
-    };
-}
-impl_sh!(u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize);
 
 impl ScalarAbsDiff for isize {}
 impl AbsDiff for isize {
@@ -54,9 +24,6 @@ impl AbsDiff for isize {
         }
     }
 }
-
-impl ScalarCSum for isize {}
-impl ScalarDot for isize {}
 
 impl ScalarRound for isize {
     #[inline(always)]
