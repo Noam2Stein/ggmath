@@ -4,9 +4,6 @@ inner_vectors!(i8(1));
 
 impl Scalar for i8 {}
 
-impl ScalarPartialEq for i8 {}
-impl ScalarPartialOrd for i8 {}
-
 impl ScalarAbsDiff for i8 {}
 impl AbsDiff for i8 {
     type Output = Self;

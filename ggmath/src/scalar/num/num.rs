@@ -5,8 +5,8 @@ use super::*;
 pub trait ScalarNum:
     Scalar
     + Default
-    + ScalarPartialEq<Self>
-    + ScalarPartialOrd
+    + PartialEq
+    + PartialOrd
     + Debug
     + Display
     + Add<Output = Self>

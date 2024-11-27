@@ -4,9 +4,6 @@ inner_vectors!(i32(4));
 
 impl Scalar for i32 {}
 
-impl ScalarPartialEq for i32 {}
-impl ScalarPartialOrd for i32 {}
-
 impl ScalarAbsDiff for i32 {}
 impl AbsDiff for i32 {
     type Output = Self;

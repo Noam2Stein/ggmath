@@ -3,7 +3,7 @@ use super::*;
 impl<
         const C: usize,
         const R: usize,
-        T: ScalarPartialEq<TRhs>,
+        T: Scalar + PartialEq<TRhs>,
         A: VecAlignment,
         M: MatrixMajorAxis,
         TRhs: Scalar,
@@ -25,13 +25,8 @@ where
     }
 }
 
-impl<
-        const C: usize,
-        const R: usize,
-        T: ScalarPartialEq<T> + Eq,
-        A: VecAlignment,
-        M: MatrixMajorAxis,
-    > Eq for Matrix<C, R, T, A, M>
+impl<const C: usize, const R: usize, T: Scalar + Eq, A: VecAlignment, M: MatrixMajorAxis> Eq
+    for Matrix<C, R, T, A, M>
 where
     ScalarCount<C>: VecLen,
     ScalarCount<R>: VecLen,

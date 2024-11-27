@@ -8,9 +8,6 @@ inner_vectors!(isize(8));
 
 impl Scalar for isize {}
 
-impl ScalarPartialEq for isize {}
-impl ScalarPartialOrd for isize {}
-
 impl ScalarAbsDiff for isize {}
 impl AbsDiff for isize {
     type Output = Self;
