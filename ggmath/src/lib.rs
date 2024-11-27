@@ -1,4 +1,4 @@
-//#![warn(missing_docs)]
+#![warn(missing_docs)]
 
 //! Generic-Graphics-Math with internal optimized SIMD.
 //!
