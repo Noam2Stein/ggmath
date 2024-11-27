@@ -1,3 +1,5 @@
+use std::ops::Add;
+
 use super::*;
 
 impl<const N: usize, T: Scalar + Add<Output = T>, A: VecAlignment> Vector<N, T, A>

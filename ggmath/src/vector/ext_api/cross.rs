@@ -1,3 +1,5 @@
+use std::ops::{Mul, Sub};
+
 use super::*;
 
 impl<T: Scalar + Mul<Output = T> + Sub<Output = T>, A: VecAlignment> Vector<3, T, A> {

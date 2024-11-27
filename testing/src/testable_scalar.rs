@@ -2,7 +2,7 @@ use std::{array, fmt::Debug};
 
 use ggmath::scalar::*;
 
-pub trait TestableScalar: ScalarPartialEq<Self> + Debug {
+pub trait TestableScalar: Scalar + PartialEq + Debug {
     const DEFAULT_VALUE: Self;
     const NORMAL_VALUES: &[Self];
     const SPECIAL_VALUES: &[Self];

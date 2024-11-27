@@ -2,10 +2,12 @@
 
 use crate::{construct::*, ggmath, scalar::*};
 
-mod api;
+mod core_api;
+mod ext_api;
 mod generics;
 mod impl_std;
-pub use api::*;
+pub use core_api::*;
+pub use ext_api::*;
 pub use generics::*;
 pub use impl_std::*;
 
