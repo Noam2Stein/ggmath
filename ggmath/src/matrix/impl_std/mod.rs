@@ -1,6 +1,6 @@
 use super::*;
 
-pub mod copy;
-pub mod eq;
-pub mod fmt;
-pub mod index;
+mod copy;
+mod eq;
+mod fmt;
+mod index;

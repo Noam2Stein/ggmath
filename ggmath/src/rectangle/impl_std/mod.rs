@@ -1,5 +1,5 @@
 use super::*;
 
-pub mod copy;
-pub mod eq;
-pub mod fmt;
+mod copy;
+mod eq;
+mod fmt;

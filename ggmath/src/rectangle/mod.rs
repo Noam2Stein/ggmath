@@ -5,7 +5,6 @@ mod generics;
 mod impl_std;
 pub use api::*;
 pub use generics::*;
-pub use impl_std::*;
 
 pub struct Rectangle<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr>
 where

@@ -1,9 +1,9 @@
 use super::*;
 
-pub mod array;
-pub mod copy;
-pub mod default;
-pub mod eq;
-pub mod fmt;
-pub mod ops;
-pub mod scalar_ops;
+mod array;
+mod copy;
+mod default;
+mod eq;
+mod fmt;
+mod ops;
+mod scalar_ops;

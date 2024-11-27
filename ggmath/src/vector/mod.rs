@@ -9,7 +9,6 @@ mod impl_std;
 pub use core_api::*;
 pub use ext_api::*;
 pub use generics::*;
-pub use impl_std::*;
 
 /// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
 ///

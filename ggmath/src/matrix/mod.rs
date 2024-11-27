@@ -5,7 +5,6 @@ mod generics;
 mod impl_std;
 pub use api::*;
 pub use generics::*;
-pub use impl_std::*;
 
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
 where
