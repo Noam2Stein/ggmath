@@ -34,6 +34,18 @@ pub trait Scalar: Construct + ScalarInnerVectors {
     // ****************************************************************************************************
 
     #[inline(always)]
+    fn abs_diff(self, rhs: Self) -> Self::Output
+    where
+        Self: PartialOrd + Sub,
+    {
+        if self > rhs {
+            self - rhs
+        } else {
+            rhs - self
+        }
+    }
+
+    #[inline(always)]
     fn min(self, other: Self) -> Self
     where
         Self: PartialOrd,
@@ -644,6 +656,18 @@ pub trait Scalar: Construct + ScalarInnerVectors {
             LengthResolvedVector::Vec3(vec) => vec.x() + vec.y() + vec.z(),
             LengthResolvedVector::Vec4(vec) => vec.x() + vec.y() + vec.z() + vec.w(),
         }
+    }
+
+    #[inline(always)]
+    fn vector_abs_diff<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        ScalarCount<N>: VecLen,
+        Self: PartialOrd + Sub<Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i].abs_diff(rhs[i]))
     }
 
     #[inline(always)]

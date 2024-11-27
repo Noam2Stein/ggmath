@@ -10,8 +10,6 @@
 //! - Optimal for GPU structs.
 //! - Optional additional types (Rect, Ray...).
 
-mod abs_diff;
-pub use abs_diff::*;
 pub mod builder;
 
 mod construct;

@@ -19,7 +19,6 @@ pub trait ScalarNum:
     + MulAssign
     + DivAssign
     + RemAssign
-    + ScalarAbsDiff<Self, Output = Self>
     + ScalarRound
     + Num
     + NumCast

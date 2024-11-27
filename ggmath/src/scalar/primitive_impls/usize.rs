@@ -8,20 +8,6 @@ inner_vectors!(usize(8));
 
 impl Scalar for usize {}
 
-impl ScalarAbsDiff for usize {}
-impl AbsDiff for usize {
-    type Output = Self;
-
-    #[inline(always)]
-    fn abs_diff(&self, rhs: &Self) -> Self::Output {
-        if self > rhs {
-            self - rhs
-        } else {
-            rhs - self
-        }
-    }
-}
-
 impl ScalarRound for usize {
     #[inline(always)]
     fn ceil(self) -> Self {

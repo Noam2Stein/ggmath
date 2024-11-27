@@ -4,20 +4,6 @@ inner_vectors!(i128(16));
 
 impl Scalar for i128 {}
 
-impl ScalarAbsDiff for i128 {}
-impl AbsDiff for i128 {
-    type Output = Self;
-
-    #[inline(always)]
-    fn abs_diff(&self, rhs: &Self) -> Self::Output {
-        if self > rhs {
-            self - rhs
-        } else {
-            rhs - self
-        }
-    }
-}
-
 impl ScalarRound for i128 {
     #[inline(always)]
     fn ceil(self) -> Self {

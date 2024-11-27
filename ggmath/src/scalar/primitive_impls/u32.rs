@@ -4,20 +4,6 @@ inner_vectors!(u32(4));
 
 impl Scalar for u32 {}
 
-impl ScalarAbsDiff for u32 {}
-impl AbsDiff for u32 {
-    type Output = Self;
-
-    #[inline(always)]
-    fn abs_diff(&self, rhs: &Self) -> Self::Output {
-        if self > rhs {
-            self - rhs
-        } else {
-            rhs - self
-        }
-    }
-}
-
 impl ScalarRound for u32 {
     #[inline(always)]
     fn ceil(self) -> Self {

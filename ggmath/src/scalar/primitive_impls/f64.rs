@@ -4,16 +4,6 @@ inner_vectors!(f64(8));
 
 impl Scalar for f64 {}
 
-impl ScalarAbsDiff for f64 {}
-impl AbsDiff for f64 {
-    type Output = Self;
-
-    #[inline(always)]
-    fn abs_diff(&self, rhs: &Self) -> Self::Output {
-        (self - rhs).abs()
-    }
-}
-
 impl ScalarRound for f64 {
     #[inline(always)]
     fn ceil(self) -> Self {

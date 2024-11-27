@@ -9,7 +9,7 @@ where
         match self.resolve_repr() {
             ReprResolvedRectangle::Centered(rect) => match self.resolve_repr() {
                 ReprResolvedRectangle::Centered(other) => (0..N).all(|i| {
-                    rect.center()[i].abs_diff(&other.center()[i])
+                    rect.center()[i].abs_diff(other.center()[i])
                         < rect.extents()[i] + other.extents()[i]
                 }),
                 ReprResolvedRectangle::Cornered(other) => other.intersects(rect),
