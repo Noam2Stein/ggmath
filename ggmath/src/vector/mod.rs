@@ -1,6 +1,6 @@
 //! Staticly-lengthed vectors of [scalars](scalar) with lengths between 2 and 4.
 
-use crate::{construct::*, ggmath, scalar::*};
+use crate::{construct::*, scalar::*, *};
 
 mod core_api;
 mod ext_api;
@@ -10,17 +10,35 @@ pub use core_api::*;
 pub use ext_api::*;
 pub use generics::*;
 
-/// Statically-lengthed vector generic over N - length, T - Scalar, and A - Alignment.
+/// The only vector type.
+/// Statically-lengthed vector generic over `N` (length), `T` (scalar type), and `A` (alignment??).
 ///
-/// Storage affects the inner implementation of vector fns.
+/// ### When to reference this type?
 ///
-/// Only use this type when being generic over N, T, and A.
-/// there are simpler type aliases to this type for when being not generic.
+/// If you want to reference a specific vector type, use these type aliases:
+/// [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`], [`Vec2P<T>`], [`Vec3P<T>`], [`Vec4P<T>`].
+/// Or with the `primitive_aliases` feature (enabled by default), use aliases like:
+/// [`FVec2`][f32_aliases::FVec2], [`BVec4`][bool_aliases::BVec4], [`U16Vec3`][u16_aliases::U16Vec3].
 ///
-/// - ```Vector2<T, A>```, ```Vector3<T, A>```, and ```Vector4<T, A>``` fill N.
-/// - ```VecN<N, T>```, ```Vec2<T>```, ```Vec3<T>```, and ```Vec4<T>``` use the default storage [```VecAligned```].
-/// - ```VecNP<N, T>```, ```Vec2P<T>```, ```Vec3P<T>```, and ```Vec4P<T>``` use the non-default storage [```VecPacked```].
-/// - [```scalar::aliases```](crate::scalar::aliases) contains aliases for each primitive.
+/// If you want to be generic over `N` / `A`, use this type.
+///
+/// If you want to impl a trait for all vectors, use this type and write:
+/// ```
+/// use ggmath::vector::*;
+///
+/// trait MyTrait {
+///     fn gg(self) -> bool;
+/// }
+///
+/// impl<const N: usize, T: Scalar, A: VecAlignment> MyTrait for Vector<N, T, A>
+/// where
+///     ScalarCount<N>: VecLen,
+/// {
+///     fn gg(self) -> bool {
+///         true
+///     }
+/// }
+/// ```
 ///
 /// # Examples
 /// ```
@@ -60,35 +78,27 @@ pub type Vec4P<T> = Vector<4, T, VecPacked>;
 pub use ggmath_proc_macros::{vec2, vec2p, vec3, vec3p, vec4, vec4p, vector_aliases};
 
 #[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod f32_aliases for f32(F));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod f64_aliases for f64(D));
+mod primitive_aliases {
+    use super::*;
 
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod u8_aliases for u8(U8));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod u16_aliases for u16(U16));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod u32_aliases for u32(U));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod u64_aliases for u64(U64));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod u128_aliases for u128(U128));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod usize_aliases for usize(USize));
+    vector_aliases!(pub mod f32_aliases for f32(F));
+    vector_aliases!(pub mod f64_aliases for f64(D));
 
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod i8_aliases for i8(I8));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod i16_aliases for i16(I16));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod i32_aliases for i32(I));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod i64_aliases for i64(I64));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod i128_aliases for i128(I128));
-#[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod isize_aliases for isize(ISize));
+    vector_aliases!(pub mod u8_aliases for u8(U8));
+    vector_aliases!(pub mod u16_aliases for u16(U16));
+    vector_aliases!(pub mod u32_aliases for u32(U));
+    vector_aliases!(pub mod u64_aliases for u64(U64));
+    vector_aliases!(pub mod u128_aliases for u128(U128));
+    vector_aliases!(pub mod usize_aliases for usize(USize));
 
+    vector_aliases!(pub mod i8_aliases for i8(I8));
+    vector_aliases!(pub mod i16_aliases for i16(I16));
+    vector_aliases!(pub mod i32_aliases for i32(I));
+    vector_aliases!(pub mod i64_aliases for i64(I64));
+    vector_aliases!(pub mod i128_aliases for i128(I128));
+    vector_aliases!(pub mod isize_aliases for isize(ISize));
+
+    vector_aliases!(pub mod bool_aliases for bool(B));
+}
 #[cfg(feature = "primitive_aliases")]
-vector_aliases!(pub mod bool_aliases for bool(B));
+pub use primitive_aliases::*;
