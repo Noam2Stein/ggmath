@@ -42,7 +42,7 @@ pub use generics::*;
 ///
 /// # Examples
 /// ```
-/// fn print_vec<const N: usize, T: Scalar, A: VecStorage>(vec: Vector<N, T, A>)
+/// fn print_vector<const N: usize>(vec: Vector<N, impl Scalar, impl VecAlignment>)
 /// where
 ///     ScalarCount<N>: VecLen, // Required by Vector to ensure that N is either 2, 3, or 4.
 /// {
@@ -54,25 +54,25 @@ pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(pub A::InnerVector
 where
     ScalarCount<N>: VecLen;
 
-/// type alias to [```Vector```]```<2, T, VecAligned>```
+/// type alias to [```Vector<2, T, VecAligned>```]
 pub type Vec2<T> = Vector<2, T, VecAligned>;
 
-/// type alias to [```Vector```]```<3, T, VecAligned>```
+/// type alias to [```Vector<3, T, VecAligned>```]
 pub type Vec3<T> = Vector<3, T, VecAligned>;
 
-/// type alias to [```Vector```]```<4, T, VecAligned>```
+/// type alias to [```Vector<4, T, VecAligned>```]
 pub type Vec4<T> = Vector<4, T, VecAligned>;
 
-/// - type alias to [```Vector```]```<2, T, VecPacked>```
-/// - If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec2```].
+/// type alias to [```Vector<2, T, VecPacked>```]
+/// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec2```].
 pub type Vec2P<T> = Vector<2, T, VecPacked>;
 
-/// - type alias to [```Vector```]```<3, T, VecPacked>```
-/// - If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec3```].
+/// type alias to [```Vector<3, T, VecPacked>```]
+/// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec3```].
 pub type Vec3P<T> = Vector<3, T, VecPacked>;
 
-/// - type alias to [```Vector```]```<4, T, VecPacked>```
-/// - If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec4```].
+/// type alias to [```Vector<4, T, VecPacked>```]
+/// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec4```].
 pub type Vec4P<T> = Vector<4, T, VecPacked>;
 
 pub use ggmath_proc_macros::{vec2, vec2p, vec3, vec3p, vec4, vec4p, vector_aliases};
