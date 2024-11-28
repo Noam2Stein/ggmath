@@ -4,9 +4,9 @@ use quote::quote;
 use syn::{token::Paren, Type, Visibility};
 
 macro_rules! aliases {
-    ($($ident:literal $(($doc:literal))?), * $(,)?) => {
+    ($($ident:ident $(($doc:literal))?), * $(,)?) => {
         &[$(Alias {
-            ident: $ident,
+            ident: stringify!($ident),
             $(doc: Some($doc),)*
             ..Default::default()
         },)*]
@@ -20,18 +20,18 @@ pub fn vector_aliases(input: TokenStream1) -> TokenStream1 {
         ```***Prefix***Vec2```, ```***Prefix***Vec3P```...",
         quote! { ggmath::vector::* },
         aliases!(
-            "Vec2"("Type alias to [```Vector<2, ***T***, VecAligned>```]"),
-            "Vec3"("Type alias to [```Vector<3, ***T***, VecAligned>```]"),
-            "Vec4"("Type alias to [```Vector<4, ***T***, VecAligned>```]"),
-            "Vec2P"(
+            Vec2("Type alias to [```Vector<2, ***T***, VecAligned>```]"),
+            Vec3("Type alias to [```Vector<3, ***T***, VecAligned>```]"),
+            Vec4("Type alias to [```Vector<4, ***T***, VecAligned>```]"),
+            Vec2P(
                 "Type alias to [```Vector<2, ***T***, VecPacked>```].
                 If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Vec2```]."
             ),
-            "Vec3P"(
+            Vec3P(
                 "Type alias to [```Vector<3, ***T***, VecPacked>```].
                 If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Vec3```]."
             ),
-            "Vec4P"(
+            Vec4P(
                 "Type alias to [```Vector<4, ***T***, VecPacked>```].
                 If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Vec4```]."
             ),
@@ -43,14 +43,100 @@ pub fn vector_aliases(input: TokenStream1) -> TokenStream1 {
 #[inline(always)]
 pub fn matrix_aliases(input: TokenStream1) -> TokenStream1 {
     scalar_aliases(
-        "Matrix",
+        "[```Matrix```] type aliases for [```***T***```].
+        ```***Prefix***Mat4C```, ```***Prefix***Mat3RP```...",
         quote! { ggmath::matrix::* },
         aliases!(
-            "Mat2C", "Mat2x3C", "Mat2x4C", "Mat3x2C", "Mat3C", "Mat3x4C", "Mat4x2C", "Mat4x3C",
-            "Mat4C", "Mat2R", "Mat2x3R", "Mat2x4R", "Mat3x2R", "Mat3R", "Mat3x4R", "Mat4x2R",
-            "Mat4x3R", "Mat4R", "Mat2CP", "Mat2x3CP", "Mat2x4CP", "Mat3x2CP", "Mat3CP", "Mat3x4CP",
-            "Mat4x2CP", "Mat4x3CP", "Mat4CP", "Mat2RP", "Mat2x3RP", "Mat2x4RP", "Mat3x2RP",
-            "Mat3RP", "Mat3x4RP", "Mat4x2RP", "Mat4x3RP", "Mat4RP",
+            Mat2C("Type alias to [```Matrix<2, 2, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat2x3C("Type alias to [```Matrix<2, 3, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat2x4C("Type alias to [```Matrix<2, 4, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat3x2C("Type alias to [```Matrix<3, 2, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat3C("Type alias to [```Matrix<3, 3, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat3x4C("Type alias to [```Matrix<3, 4, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat4x2C("Type alias to [```Matrix<4, 2, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat4x3C("Type alias to [```Matrix<4, 3, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat4C("Type alias to [```Matrix<4, 4, ***T***, VecAligned, ColumnMajor>```]."),
+            Mat2R("Type alias to [```Matrix<2, 2, ***T***, VecAligned, RowMajor>```]."),
+            Mat2x3R("Type alias to [```Matrix<2, 3, ***T***, VecAligned, RowMajor>```]."),
+            Mat2x4R("Type alias to [```Matrix<2, 4, ***T***, VecAligned, RowMajor>```]."),
+            Mat3x2R("Type alias to [```Matrix<3, 2, ***T***, VecAligned, RowMajor>```]."),
+            Mat3R("Type alias to [```Matrix<3, 3, ***T***, VecAligned, RowMajor>```]."),
+            Mat3x4R("Type alias to [```Matrix<3, 4, ***T***, VecAligned, RowMajor>```]."),
+            Mat4x2R("Type alias to [```Matrix<4, 2, ***T***, VecAligned, RowMajor>```]."),
+            Mat4x3R("Type alias to [```Matrix<4, 3, ***T***, VecAligned, RowMajor>```]."),
+            Mat4R("Type alias to [```Matrix<4, 4, ***T***, VecAligned, RowMajor>```]."),
+            Mat2CP(
+                "Type alias to [```Matrix<2, 2, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat2C```]."
+            ),
+            Mat2x3CP(
+                "Type alias to [```Matrix<2, 3, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat2x3C```]."
+            ),
+            Mat2x4CP(
+                "Type alias to [```Matrix<2, 4, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat2x4C```]."
+            ),
+            Mat3x2CP(
+                "Type alias to [```Matrix<3, 2, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat3x2C```]."
+            ),
+            Mat3CP(
+                "Type alias to [```Matrix<3, 3, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat3C```]."
+            ),
+            Mat3x4CP(
+                "Type alias to [```Matrix<3, 4, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat3x4C```]."
+            ),
+            Mat4x2CP(
+                "Type alias to [```Matrix<4, 2, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat4x2C```]."
+            ),
+            Mat4x3CP(
+                "Type alias to [```Matrix<4, 3, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat4x3C```]."
+            ),
+            Mat4CP(
+                "Type alias to [```Matrix<4, 4, T, VecPacked, ColumnMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat4C```]."
+            ),
+            Mat2RP(
+                "Type alias to [```Matrix<2, 2, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat2R```]."
+            ),
+            Mat2x3RP(
+                "Type alias to [```Matrix<2, 3, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat2x3R```]."
+            ),
+            Mat2x4RP(
+                "Type alias to [```Matrix<2, 4, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat2x4R```]."
+            ),
+            Mat3x2RP(
+                "Type alias to [```Matrix<3, 2, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat3x2R```]."
+            ),
+            Mat3RP(
+                "Type alias to [```Matrix<3, 3, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat3R```]."
+            ),
+            Mat3x4RP(
+                "Type alias to [```Matrix<3, 4, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat3x4R```]."
+            ),
+            Mat4x2RP(
+                "Type alias to [```Matrix<4, 2, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat4x2R```]."
+            ),
+            Mat4x3RP(
+                "Type alias to [```Matrix<4, 3, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat4x3R```]."
+            ),
+            Mat4RP(
+                "Type alias to [```Matrix<4, 4, T, VecPacked, RowMajor>```].
+                If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```***Prefix***Mat4R```]."
+            ),
         ),
         input,
     )
@@ -62,9 +148,8 @@ pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
         "Rectangle",
         quote! { ggmath::rectangle::* },
         aliases!(
-            "Rect2", "Rect3", "Rect4", "Rect2C", "Rect3C", "Rect4C", "Rect2M", "Rect3M", "Rect4M",
-            "Rect2P", "Rect3P", "Rect4P", "Rect2CP", "Rect3CP", "Rect4CP", "Rect2MP", "Rect3MP",
-            "Rect4MP",
+            Rect2, Rect3, Rect4, Rect2C, Rect3C, Rect4C, Rect2M, Rect3M, Rect4M, Rect2P, Rect3P,
+            Rect4P, Rect2CP, Rect3CP, Rect4CP, Rect2MP, Rect3MP, Rect4MP,
         ),
         input,
     )
