@@ -24,7 +24,7 @@ pub mod matrix;
 #[cfg(feature = "quaternion")]
 pub mod quaternion;
 
-#[cfg(feature = "rect")]
+#[cfg(feature = "rectangle")]
 pub mod rectangle;
 
 #[cfg(feature = "line")]
