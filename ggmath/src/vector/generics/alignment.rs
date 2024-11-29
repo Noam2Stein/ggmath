@@ -156,14 +156,25 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
+    /// Creates an aligned vector from ```self```.
+    /// - Cost: Nothing if ```self``` is already aligned. If ```self``` is packed, moves the vector to satisfy the alignment.
     #[inline(always)]
     pub fn into_aligned(self) -> Vector<N, T, VecAligned> {
-        Vector::from_array(self.into_array())
+        self.into_alignment()
     }
+    /// Creates a packed vector from ```self```.
+    /// - Cost: Nothing since an aligned vector also satisfies packed alignment.
     #[inline(always)]
     pub fn into_packed(self) -> Vector<N, T, VecPacked> {
-        Vector::from_array(self.into_array())
+        self.into_alignment()
     }
+    /// Creates a vector with the specified alignment from ```self```.
+    ///
+    /// Cost:
+    /// - VecAligned -> VecAligned - Nothing.
+    /// - VecAligned -> VecPacked - Nothing.
+    /// - VecPacked -> VecAligned - Moves the vector to satisfy the alignment.
+    /// - VecPacked -> VecPacked - Nothing.
     #[inline(always)]
     pub fn into_alignment<AOutput: VecAlignment>(self) -> Vector<N, T, AOutput> {
         Vector::from_array(self.into_array())

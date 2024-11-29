@@ -32,6 +32,7 @@ use super::*;
 /// ```
 #[allow(private_bounds)]
 pub trait VecLen: Seal + Sized + 'static + Send + Sync {
+    /// Used by [```Vector```] to determine the inner-type of ```Vector<N, T, VecAligned>```.
     type InnerAlignedVector<T: Scalar>: Construct;
 }
 
