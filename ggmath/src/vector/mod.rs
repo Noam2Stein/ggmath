@@ -18,7 +18,7 @@ pub use generics::*;
 /// If you want to reference a specific vector type, use these type aliases:
 /// [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`], [`Vec2P<T>`], [`Vec3P<T>`], [`Vec4P<T>`].
 /// Or with the `primitive_aliases` feature (enabled by default), use aliases like:
-/// [`FVec2`][f32_aliases::FVec2], [`BVec4`][bool_aliases::BVec4], [`U16Vec3`][u16_aliases::U16Vec3].
+/// [`FVec2`][f32_aliases::FVec2], [`BVec4`][bool_aliases::BVec4], [`U16Vec3`][u16_aliases::U16Vec3]...
 ///
 /// If you want to be generic over `N` / `A`, use this type.
 ///
