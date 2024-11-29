@@ -15,6 +15,11 @@ pub use ggmath_proc_macros::scalar_inner_vectors;
 
 mod primitive_impls;
 
+/// Specifies the inner aligned-vector types for a scalar type,
+/// because Rust doesn't have a type which is generic over alignment.
+///
+/// Required by ```Scalar```,
+/// use the [```scalar_inner_vectors```] macro to implement this correctly.
 pub unsafe trait ScalarInnerAlignedVecs {
     type InnerAlignedVec2: Construct;
     type InnerAlignedVec4: Construct;
