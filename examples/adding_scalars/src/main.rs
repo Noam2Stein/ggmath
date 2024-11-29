@@ -11,7 +11,7 @@ impl Display for Meters {
     }
 }
 
-inner_vectors!(Meters(4));
+scalar_inner_vectors!(Meters(4));
 
 impl Scalar for Meters {}
 

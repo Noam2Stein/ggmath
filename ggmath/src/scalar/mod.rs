@@ -11,7 +11,7 @@ mod num;
 pub use api::*;
 pub use num::*;
 
-pub use ggmath_proc_macros::inner_vectors;
+pub use ggmath_proc_macros::scalar_inner_vectors;
 
 mod primitive_impls;
 

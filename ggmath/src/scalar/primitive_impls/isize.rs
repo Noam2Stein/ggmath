@@ -1,10 +1,10 @@
 use super::*;
 
 #[cfg(target_pointer_width = "32")]
-inner_vectors!(isize(4));
+scalar_inner_vectors!(isize(4));
 
 #[cfg(target_pointer_width = "64")]
-inner_vectors!(isize(8));
+scalar_inner_vectors!(isize(8));
 
 impl Scalar for isize {}
 

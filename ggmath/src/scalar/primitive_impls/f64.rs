@@ -1,6 +1,6 @@
 use super::*;
 
-inner_vectors!(f64(8));
+scalar_inner_vectors!(f64(8));
 
 impl Scalar for f64 {}
 

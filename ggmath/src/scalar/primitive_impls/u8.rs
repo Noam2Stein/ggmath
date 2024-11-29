@@ -1,6 +1,6 @@
 use super::*;
 
-inner_vectors!(u8(1));
+scalar_inner_vectors!(u8(1));
 
 impl Scalar for u8 {}
 

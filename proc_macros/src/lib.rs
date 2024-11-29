@@ -33,8 +33,8 @@ pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
 
 #[proc_macro]
 #[inline(always)]
-pub fn inner_vectors(input: TokenStream1) -> TokenStream1 {
-    external::inner_vectors(input)
+pub fn scalar_inner_vectors(input: TokenStream1) -> TokenStream1 {
+    external::scalar_inner_vectors(input)
 }
 
 macro_rules! vector_macro {

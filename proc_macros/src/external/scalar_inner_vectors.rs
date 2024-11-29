@@ -5,7 +5,7 @@ use super::*;
 use quote::quote;
 use syn::{token::Paren, Type};
 
-pub fn inner_vectors(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn scalar_inner_vectors(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     #[derive(Parse)]
     struct Input {
         ty: Type,
