@@ -10,7 +10,7 @@ where
     pub fn get_n_mut<const N_OUTPUT: usize>(
         &mut self,
         index: usize,
-    ) -> Option<&mut VectorOrScalar<N_OUTPUT, T, VecPacked>>
+    ) -> Option<&mut VectorOrT<N_OUTPUT, T, VecPacked>>
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {
@@ -25,8 +25,8 @@ where
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(
-        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_1, T, VecPacked>,
     )>
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -50,9 +50,9 @@ where
         &mut self,
         indicies: [usize; 3],
     ) -> Option<(
-        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_2, T, VecPacked>,
     )>
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -83,10 +83,10 @@ where
         &mut self,
         indicies: [usize; 4],
     ) -> Option<(
-        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_2, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_3, T, VecPacked>,
     )>
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -119,7 +119,7 @@ where
     pub unsafe fn get_n_mut_unchecked<const N_OUTPUT: usize>(
         &mut self,
         index: usize,
-    ) -> &mut VectorOrScalar<N_OUTPUT, T, VecPacked>
+    ) -> &mut VectorOrT<N_OUTPUT, T, VecPacked>
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {
@@ -130,8 +130,8 @@ where
         &mut self,
         indicies: [usize; 2],
     ) -> (
-        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_1, T, VecPacked>,
     )
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -151,9 +151,9 @@ where
         &mut self,
         indicies: [usize; 3],
     ) -> (
-        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_2, T, VecPacked>,
     )
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -176,10 +176,10 @@ where
         &mut self,
         indicies: [usize; 4],
     ) -> (
-        &mut VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
-        &mut VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_2, T, VecPacked>,
+        &mut VectorOrT<N_OUTPUT_3, T, VecPacked>,
     )
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,

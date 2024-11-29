@@ -8,16 +8,16 @@ where
     pub fn with_n<const N_VALUE: usize>(
         self,
         index: usize,
-        value: VectorOrScalar<N_VALUE, T, impl VecAlignment>,
+        value: VectorOrT<N_VALUE, T, impl VecAlignment>,
     ) -> Option<Self>
     where
         ScalarCount<N_VALUE>: VecLenOr1,
     {
-        match resolve_vector_or_scalar_length(value) {
-            ResolvedVectorOrScalar::Scalar(value) => self.with(index, value),
-            ResolvedVectorOrScalar::Vec2(value) => self.with_2(index, value),
-            ResolvedVectorOrScalar::Vec3(value) => self.with_3(index, value),
-            ResolvedVectorOrScalar::Vec4(value) => self.with_4(index, value),
+        match resolve_vector_or_t_length(value) {
+            ResolvedVectorOrT::T(value) => self.with(index, value),
+            ResolvedVectorOrT::Vec2(value) => self.with_2(index, value),
+            ResolvedVectorOrT::Vec3(value) => self.with_3(index, value),
+            ResolvedVectorOrT::Vec4(value) => self.with_4(index, value),
         }
     }
 
@@ -25,16 +25,16 @@ where
     pub unsafe fn with_n_unchecked<const N_VALUE: usize, AValue: VecAlignment>(
         self,
         index: usize,
-        value: VectorOrScalar<N_VALUE, T, AValue>,
+        value: VectorOrT<N_VALUE, T, AValue>,
     ) -> Self
     where
         ScalarCount<N_VALUE>: VecLenOr1,
     {
-        match resolve_vector_or_scalar_length(value) {
-            ResolvedVectorOrScalar::Scalar(value) => self.with_unchecked(index, value),
-            ResolvedVectorOrScalar::Vec2(value) => self.with_2_unchecked(index, value),
-            ResolvedVectorOrScalar::Vec3(value) => self.with_3_unchecked(index, value),
-            ResolvedVectorOrScalar::Vec4(value) => self.with_4_unchecked(index, value),
+        match resolve_vector_or_t_length(value) {
+            ResolvedVectorOrT::T(value) => self.with_unchecked(index, value),
+            ResolvedVectorOrT::Vec2(value) => self.with_2_unchecked(index, value),
+            ResolvedVectorOrT::Vec3(value) => self.with_3_unchecked(index, value),
+            ResolvedVectorOrT::Vec4(value) => self.with_4_unchecked(index, value),
         }
     }
 

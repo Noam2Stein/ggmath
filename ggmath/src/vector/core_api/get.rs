@@ -6,10 +6,7 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
-    pub fn get_n<const N_OUTPUT: usize>(
-        self,
-        index: usize,
-    ) -> Option<VectorOrScalar<N_OUTPUT, T, A>>
+    pub fn get_n<const N_OUTPUT: usize>(self, index: usize) -> Option<VectorOrT<N_OUTPUT, T, A>>
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {

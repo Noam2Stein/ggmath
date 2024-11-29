@@ -10,5 +10,5 @@ pub mod splat;
 pub mod swizzle_wrappers;
 pub mod with;
 
-mod or_scalar;
-pub use or_scalar::*;
+mod or_t;
+pub use or_t::*;

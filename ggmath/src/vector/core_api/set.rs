@@ -8,7 +8,7 @@ where
     pub fn set_n<const N_VALUE: usize>(
         &mut self,
         index: usize,
-        value: VectorOrScalar<N_VALUE, T, impl VecAlignment>,
+        value: VectorOrT<N_VALUE, T, impl VecAlignment>,
     ) -> Result<(), ()>
     where
         ScalarCount<N_VALUE>: VecLenOr1,
@@ -26,7 +26,7 @@ where
     pub unsafe fn set_n_unchecked<const N_VALUE: usize, AValue: VecAlignment>(
         &mut self,
         index: usize,
-        value: VectorOrScalar<N_VALUE, T, AValue>,
+        value: VectorOrT<N_VALUE, T, AValue>,
     ) where
         ScalarCount<N_VALUE>: VecLenOr1,
     {

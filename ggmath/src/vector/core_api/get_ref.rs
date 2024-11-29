@@ -10,7 +10,7 @@ where
     pub fn get_n_ref<const N_OUTPUT: usize>(
         &self,
         index: usize,
-    ) -> Option<&VectorOrScalar<N_OUTPUT, T, VecPacked>>
+    ) -> Option<&VectorOrT<N_OUTPUT, T, VecPacked>>
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {
@@ -25,8 +25,8 @@ where
         &self,
         indicies: [usize; 2],
     ) -> Option<(
-        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_1, T, VecPacked>,
     )>
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -51,9 +51,9 @@ where
         &self,
         indicies: [usize; 3],
     ) -> Option<(
-        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_2, T, VecPacked>,
     )>
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -84,10 +84,10 @@ where
         &self,
         indicies: [usize; 4],
     ) -> Option<(
-        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_2, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_3, T, VecPacked>,
     )>
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -118,7 +118,7 @@ where
     pub unsafe fn get_n_ref_unchecked<const N_OUTPUT: usize>(
         &self,
         index: usize,
-    ) -> &VectorOrScalar<N_OUTPUT, T, VecPacked>
+    ) -> &VectorOrT<N_OUTPUT, T, VecPacked>
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {
@@ -129,8 +129,8 @@ where
         &self,
         indicies: [usize; 2],
     ) -> (
-        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_1, T, VecPacked>,
     )
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -150,9 +150,9 @@ where
         &self,
         indicies: [usize; 3],
     ) -> (
-        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_2, T, VecPacked>,
     )
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
@@ -175,10 +175,10 @@ where
         &self,
         indicies: [usize; 4],
     ) -> (
-        &VectorOrScalar<N_OUTPUT_0, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_1, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_2, T, VecPacked>,
-        &VectorOrScalar<N_OUTPUT_3, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_0, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_1, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_2, T, VecPacked>,
+        &VectorOrT<N_OUTPUT_3, T, VecPacked>,
     )
     where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
