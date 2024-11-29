@@ -15,12 +15,12 @@ pub use ggmath_proc_macros::scalar_inner_vectors;
 
 mod primitive_impls;
 
-pub unsafe trait ScalarInnerVectors {
+pub unsafe trait ScalarInnerAlignedVectors {
     type InnerAlignedVec2: Construct;
     type InnerAlignedVec4: Construct;
 }
 
-pub trait Scalar: Construct + ScalarInnerVectors {
+pub trait Scalar: Construct + ScalarInnerAlignedVectors {
     // ****************************************************************************************************
     // ****************************************************************************************************
     // ****************************************************************************************************

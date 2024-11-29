@@ -137,7 +137,7 @@ where
 }
 
 impl VecLen for ScalarCount<2> {
-    type InnerAlignedVector<T: Scalar> = <T as ScalarInnerVectors>::InnerAlignedVec2;
+    type InnerAlignedVector<T: Scalar> = <T as ScalarInnerAlignedVectors>::InnerAlignedVec2;
 }
 impl VecLen for ScalarCount<3> {
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;

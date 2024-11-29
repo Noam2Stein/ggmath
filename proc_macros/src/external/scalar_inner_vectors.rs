@@ -51,7 +51,7 @@ pub fn scalar_inner_vectors(input: proc_macro::TokenStream) -> proc_macro::Token
         mod #mod_ident {
             use super::*;
 
-            unsafe impl ggmath::scalar::ScalarInnerVectors for #ty {
+            unsafe impl ggmath::scalar::ScalarInnerAlignedVectors for #ty {
                 type InnerAlignedVec2 = InnerAlignedVec2;
                 type InnerAlignedVec4 = InnerAlignedVec4;
             }
