@@ -76,5 +76,3 @@ where
         T::vector_abs(self)
     }
 }
-
-pub trait ScalarUnsigned: Scalar {}
