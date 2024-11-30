@@ -1,7 +1,8 @@
 [workspace]
 
 members = [
-    "examples/adding_scalars",
+    "examples/custom_scalar_unique",
+    "examples/custom_scalar_wrapper",
     "examples/generic_physics_engine",
     "examples/gpu_structs",
     "ggmath",

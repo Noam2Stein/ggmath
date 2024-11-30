@@ -1,0 +1,7 @@
+[package]
+edition = "2021"
+name    = "custom_scalar_wrapper"
+version = "0.1.0"
+
+[dependencies]
+ggmath = { path = "../../ggmath", features = [ "full" ] }
