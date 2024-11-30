@@ -5,10 +5,14 @@ use std::{cmp::Ordering, ops::*};
 
 use crate::{vector::*, *};
 
-mod api;
 mod num;
-pub use api::*;
+mod round;
+mod sign;
+mod wrapper;
 pub use num::*;
+pub use round::*;
+pub use sign::*;
+pub use wrapper::*;
 
 pub use ggmath_proc_macros::scalar_inner_vectors;
 

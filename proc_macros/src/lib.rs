@@ -8,7 +8,7 @@ use proc_macro2::*;
 use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input, parse_str, Error, Token,
+    parse_macro_input, Error, Token,
 };
 
 // External Macros
@@ -35,6 +35,11 @@ pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
 #[inline(always)]
 pub fn scalar_inner_vectors(input: TokenStream1) -> TokenStream1 {
     external::scalar_inner_vectors(input)
+}
+#[proc_macro_derive(WrapperScalar)]
+#[inline(always)]
+pub fn derive_wrapper_scalar(input: TokenStream1) -> TokenStream1 {
+    external::derive_wrapper_scalar(input)
 }
 
 macro_rules! vector_macro {

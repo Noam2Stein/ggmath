@@ -1,24 +1,21 @@
-use ggmath::{
-    scalar::{scalar_inner_vectors, Scalar},
-    vector::{vec3, vector_aliases},
-};
+use std::fmt::Display;
+
+use derive_more::derive::{Add, Sub};
+use ggmath::{scalar::WrapperScalar, vector::vec3};
 
 fn main() {
     println!(
-        "{:?}",
-        Position(vec3!(Meters(1.0), Meters(2.0), Meters(3.0)))
+        "{}",
+        vec3!(Meters(1.0), Meters(1.0), Meters(3.0)) + vec3!(Meters(0.0), Meters(1.0), Meters(0.0))
     )
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default, WrapperScalar, Add, Sub)]
 struct Meters(f32);
 
-scalar_inner_vectors!(Meters(4));
-
-impl Scalar for Meters {}
-
-vector_aliases!(pub mod aliases for Meters(M));
-use aliases::*;
-
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-struct Position(MVec3);
+impl Display for Meters {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}m", self.0)
+    }
+}

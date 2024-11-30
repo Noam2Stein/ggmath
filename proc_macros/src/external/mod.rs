@@ -1,6 +1,7 @@
 use super::*;
 
 mod builder;
+mod derive_wrapper_scalar;
 mod scalar_aliases;
 mod scalar_inner_vectors;
 pub use builder::{
@@ -9,5 +10,6 @@ pub use builder::{
     mat3x4cp, mat3x4p, mat4, mat4c, mat4cp, mat4p, mat4x2, mat4x2c, mat4x2cp, mat4x2p, mat4x3,
     mat4x3c, mat4x3cp, mat4x3p, vec2, vec2p, vec3, vec3p, vec4, vec4p,
 };
+pub use derive_wrapper_scalar::derive_wrapper_scalar;
 pub use scalar_aliases::{matrix_aliases, rectangle_aliases, vector_aliases};
 pub use scalar_inner_vectors::scalar_inner_vectors;
