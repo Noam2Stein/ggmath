@@ -1,6 +1,5 @@
-//! Scalars are mathamatical types that have magnitude but no direction.
-//! - [f32] and [bool] are scalars.
-//! - [Vec3](crate::vec::Vec3) is not a scalar.
+//! Trait for types that can be put inside math-types like ```Vector``` and ```Matrix```.
+//! For example: [```f32```], [```u8```] and [```bool```] are scalars.
 
 use std::{cmp::Ordering, ops::*};
 
@@ -18,13 +17,33 @@ mod primitive_impls;
 /// Specifies the inner aligned-vector types for a scalar type,
 /// because Rust doesn't have a type which is generic over alignment.
 ///
-/// Required by ```Scalar```,
-/// use the [```scalar_inner_vectors```] macro to implement this correctly.
+/// Required by ```Scalar```.
+/// Use the [```scalar_inner_vectors```] macro to implement this correctly.
 pub unsafe trait ScalarInnerAlignedVecs {
     type InnerAlignedVec2: Construct;
     type InnerAlignedVec4: Construct;
 }
 
+/// Trait for types that can be put inside math-types like ```Vector``` and ```Matrix```.
+/// For example: [```f32```], [```u8```] and [```bool```] are scalars.
+///
+/// - References are NOT scalars.
+///
+/// ### Implementing this trait
+///
+/// To implement this trait for a type that wraps another ```Scalar``` type
+/// (for example ```struct Meters(f32);```),
+/// use the inexistant wrapper system.
+///
+/// To implement this trait for a unique type use this example:
+///
+/// ```
+/// struct u256(u128, u128);
+///
+/// scalar_inner_vectors!(u256(32)); // 32 - size in bytes
+///
+/// impl Scalar for u256 {}
+/// ```
 pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     // ****************************************************************************************************
     // ****************************************************************************************************
