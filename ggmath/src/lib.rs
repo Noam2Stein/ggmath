@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+//#![warn(missing_docs)]
 
 //! Generic-Graphics-Math with internal optimized SIMD.
 //!
@@ -26,11 +26,5 @@ pub mod quaternion;
 
 #[cfg(feature = "rectangle")]
 pub mod rectangle;
-
-#[cfg(feature = "line")]
-pub mod line;
-
-#[cfg(feature = "ray")]
-pub mod ray;
 
 use crate as ggmath;

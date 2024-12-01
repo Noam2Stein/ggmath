@@ -1,6 +1,6 @@
 //! GGMath proc-macros.
 
-#![warn(missing_docs)]
+//#![warn(missing_docs)]
 
 use derive_syn_parse::Parse;
 use proc_macro::TokenStream as TokenStream1;

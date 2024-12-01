@@ -1,11 +1,8 @@
 use crate::{scalar::*, vector::*};
 
-pub struct Quaternion<const N: usize, T: Scalar, A: VecAlignment>
+pub struct Quaternion<const N: usize, T: Scalar, A: VecAlignment>(pub Vector<N, T, A>)
 where
-    ScalarCount<N>: VecLen,
-{
-    _inner: Vector<N, T, A>,
-}
+    ScalarCount<N>: VecLen;
 
 pub type Quat2<T> = Quaternion<2, T, VecAligned>;
 pub type Quat3<T> = Quaternion<3, T, VecAligned>;

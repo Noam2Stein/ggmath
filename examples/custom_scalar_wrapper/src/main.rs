@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use derive_more::derive::{Add, Sub};
 use ggmath::{scalar::WrapperScalar, vector::vec3};
 
@@ -14,7 +12,7 @@ fn main() {
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default, WrapperScalar, Add, Sub)]
 struct Meters(f32);
 
-impl Display for Meters {
+impl std::fmt::Display for Meters {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}m", self.0)
     }

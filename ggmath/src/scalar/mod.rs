@@ -5,10 +5,12 @@ use std::{cmp::Ordering, ops::*};
 
 use crate::{vector::*, *};
 
+mod consts;
 mod num;
 mod round;
 mod sign;
 mod wrapper;
+pub use consts::*;
 pub use num::*;
 pub use round::*;
 pub use sign::*;
