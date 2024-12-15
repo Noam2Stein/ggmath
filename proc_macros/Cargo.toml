@@ -3,7 +3,7 @@ description = "proc-macros for the 'ggmath' crate"
 edition     = "2021"
 license     = "MIT"
 name        = "ggmath_proc_macros"
-version     = "0.1.0"
+version     = "0.1.1"
 
 [lib]
 proc-macro = true
