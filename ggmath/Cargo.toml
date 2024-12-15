@@ -1,7 +1,9 @@
 [package]
-edition = "2021"
-name    = "ggmath"
-version = "0.1.0"
+description = "optimized generic-graphics-math"
+edition     = "2021"
+license     = "MIT"
+name        = "ggmath"
+version     = "0.1.0"
 
 [features]
 default = [ "matrix", "primitive_aliases", "quaternion" ]
