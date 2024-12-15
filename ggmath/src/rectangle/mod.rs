@@ -52,7 +52,7 @@ rectangle_aliases!(pub mod u64_aliases for u64(U64));
 #[cfg(feature = "primitive_aliases")]
 rectangle_aliases!(pub mod u128_aliases for u128(U128));
 #[cfg(feature = "primitive_aliases")]
-rectangle_aliases!(pub mod usize_aliases for usize(USize));
+rectangle_aliases!(pub mod usize_aliases for usize(Usize));
 
 #[cfg(feature = "primitive_aliases")]
 rectangle_aliases!(pub mod i8_aliases for i8(I8));
@@ -65,7 +65,7 @@ rectangle_aliases!(pub mod i64_aliases for i64(I64));
 #[cfg(feature = "primitive_aliases")]
 rectangle_aliases!(pub mod i128_aliases for i128(I128));
 #[cfg(feature = "primitive_aliases")]
-rectangle_aliases!(pub mod isize_aliases for isize(ISize));
+rectangle_aliases!(pub mod isize_aliases for isize(Isize));
 
 #[cfg(feature = "primitive_aliases")]
 rectangle_aliases!(pub mod bool_aliases for bool(B));

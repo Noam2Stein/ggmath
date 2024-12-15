@@ -3,7 +3,6 @@ use crate::{construct::*, ggmath, scalar::*, vector::*};
 mod api;
 mod generics;
 mod impl_std;
-pub use api::*;
 pub use generics::*;
 
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
@@ -126,13 +125,13 @@ mod primitive_aliases {
     matrix_aliases!(pub mod u32_aliases for u32(U));
     matrix_aliases!(pub mod u64_aliases for u64(U64));
     matrix_aliases!(pub mod u128_aliases for u128(U128));
-    matrix_aliases!(pub mod usize_aliases for usize(USize));
+    matrix_aliases!(pub mod usize_aliases for usize(Usize));
     matrix_aliases!(pub mod i8_aliases for i8(I8));
     matrix_aliases!(pub mod i16_aliases for i16(I16));
     matrix_aliases!(pub mod i32_aliases for i32(I));
     matrix_aliases!(pub mod i64_aliases for i64(I64));
     matrix_aliases!(pub mod i128_aliases for i128(I128));
-    matrix_aliases!(pub mod isize_aliases for isize(ISize));
+    matrix_aliases!(pub mod isize_aliases for isize(Isize));
     matrix_aliases!(pub mod bool_aliases for bool(B));
 }
 #[cfg(feature = "primitive_aliases")]

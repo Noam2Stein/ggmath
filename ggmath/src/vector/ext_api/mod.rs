@@ -1,7 +1,7 @@
 use super::*;
 
-pub mod abs_diff;
-pub mod cross;
-pub mod csum;
-pub mod dot;
-pub mod min_max;
+mod abs_diff;
+mod cross;
+mod csum;
+mod dot;
+mod min_max;

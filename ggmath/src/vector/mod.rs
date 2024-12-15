@@ -7,7 +7,6 @@ mod ext_api;
 mod generics;
 mod impl_std;
 pub use core_api::*;
-pub use ext_api::*;
 pub use generics::*;
 
 /// The only vector type.
@@ -89,14 +88,14 @@ mod primitive_aliases {
     vector_aliases!(pub mod u32_aliases for u32(U));
     vector_aliases!(pub mod u64_aliases for u64(U64));
     vector_aliases!(pub mod u128_aliases for u128(U128));
-    vector_aliases!(pub mod usize_aliases for usize(USize));
+    vector_aliases!(pub mod usize_aliases for usize(Usize));
 
     vector_aliases!(pub mod i8_aliases for i8(I8));
     vector_aliases!(pub mod i16_aliases for i16(I16));
     vector_aliases!(pub mod i32_aliases for i32(I));
     vector_aliases!(pub mod i64_aliases for i64(I64));
     vector_aliases!(pub mod i128_aliases for i128(I128));
-    vector_aliases!(pub mod isize_aliases for isize(ISize));
+    vector_aliases!(pub mod isize_aliases for isize(Isize));
 
     vector_aliases!(pub mod bool_aliases for bool(B));
 }
