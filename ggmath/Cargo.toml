@@ -3,7 +3,8 @@ description = "optimized generic-graphics-math"
 edition     = "2021"
 license     = "MIT"
 name        = "ggmath"
-version     = "0.1.1"
+readme      = "../README.md"
+version     = "0.1.2"
 
 [features]
 default = [ "matrix", "primitive_aliases", "quaternion" ]
