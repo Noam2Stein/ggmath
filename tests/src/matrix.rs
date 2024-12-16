@@ -1,11 +1,102 @@
-use std::array;
+use std::{array, fmt::Debug};
 
 use ggmath::{matrix::*, vector::*};
 use ggmath_testing::*;
 
 pub fn test_matrix() {
+    test_builder::<f32>();
+
     test_t::<u32>();
 }
+
+fn test_builder<T: TestableScalar>() {
+    let values = [
+        T::n_normal_values(0),
+        T::n_normal_values(4),
+        T::n_normal_values(8),
+        T::n_normal_values(12),
+    ]
+    .map(Vector::<4, T, VecAligned>::from_array);
+
+    fn assert_eq<T: PartialEq<O> + Debug, O: Debug>(a: T, b: O) {
+        assert_eq!(a, b)
+    }
+
+    macro_rules! test_builder {
+        (
+            $r:literal,
+            $macro2:ident, $macro2p:ident, $macro2c:ident, $macro2cp:ident,
+            $macro3:ident, $macro3p:ident, $macro3c:ident, $macro3cp:ident,
+            $macro4:ident, $macro4p:ident, $macro4c:ident, $macro4cp:ident:
+            $([$($field:tt), *]), *
+        ) => {
+            let rhs2 = Matrix::<2, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xy());
+            let rhs3 = Matrix::<3, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xyz());
+            let rhs4 = Matrix::<4, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xyzw());
+
+            $(
+                assert_eq($macro2!($(builder_field!(2 $field)); *), rhs2);
+                assert_eq($macro2p!($(builder_field!(2 $field)); *), rhs2);
+                assert_eq($macro2c!($(builder_field!(2 $field)); *), rhs2);
+                assert_eq($macro2cp!($(builder_field!(2 $field)); *), rhs2);
+
+                assert_eq($macro3!($(builder_field!(3 $field)); *), rhs3);
+                assert_eq($macro3p!($(builder_field!(3 $field)); *), rhs3);
+                assert_eq($macro3c!($(builder_field!(3 $field)); *), rhs3);
+                assert_eq($macro3cp!($(builder_field!(3 $field)); *), rhs3);
+
+                assert_eq($macro4!($(builder_field!(4 $field)); *), rhs4);
+                assert_eq($macro4p!($(builder_field!(4 $field)); *), rhs4);
+                assert_eq($macro4c!($(builder_field!(4 $field)); *), rhs4);
+                assert_eq($macro4cp!($(builder_field!(4 $field)); *), rhs4);
+            )*
+        };
+    }
+    macro_rules! builder_field {
+        ($c:tt $index:literal) => {
+            first_n_components!($c(values[$index]))
+        };
+        ($c:tt ($($index:literal), *)) => {
+            Matrix::<$c, { tt_count!($($index)*) }, T, VecAligned, RowMajor>::from_rows([$(first_n_components!($c(values[$index]))), *])
+        }
+    }
+    macro_rules! tt_count {
+        ($tt0:tt $tt1:tt) => {
+            2
+        };
+        ($tt0:tt $tt1:tt $tt2:tt) => {
+            3
+        };
+        ($tt0:tt $tt1:tt $tt2:tt $tt3:tt) => {
+            4
+        };
+    }
+    macro_rules! first_n_components {
+        (2($expr:expr)) => {
+            Vector::<4, _, _>::xy($expr)
+        };
+        (3($expr:expr)) => {
+            Vector::<4, _, _>::xyz($expr)
+        };
+        (4($expr:expr)) => {
+            Vector::<4, _, _>::xyzw($expr)
+        };
+    }
+
+    test_builder!(
+        2, mat2, mat2p, mat2c, mat2cp, mat3x2, mat3x2p, mat3x2c, mat3x2cp, mat4x2, mat4x2p, mat4x2c, mat4x2cp:
+        [0, 1], [(0, 1)]
+    );
+    test_builder!(
+        3, mat2x3, mat2x3p, mat2x3c, mat2x3cp, mat3, mat3p, mat3c, mat3cp, mat4x3, mat4x3p, mat4x3c, mat4x3cp:
+        [0, 1, 2], [0, (1, 2)], [(0, 1), 2], [(0, 1, 2)]
+    );
+    test_builder!(
+        4, mat2x4, mat2x4p, mat2x4c, mat2x4cp, mat3x4, mat3x4p, mat3x4c, mat3x4cp, mat4, mat4p, mat4c, mat4cp:
+        [0, 1, 2, 3], [0, 1, (2, 3)], [0, (1, 2), 3], [(0, 1), 2, 3], [(0, 1), (2, 3)], [0, (1, 2, 3)], [(0, 1, 2), 3], [(0, 1, 2, 3)]
+    );
+}
+
 fn test_t<T: TestableScalar>() {
     test_c_r_t::<2, 4, T>();
     test_c_r_t::<3, 2, T>();

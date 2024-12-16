@@ -1,9 +1,9 @@
-*** everything here is unfinished and not ready for production, and anything mentioned in the README may not be implemented yet. ***
+*** UNFINISHED CRATE ***
 
 [Trello board](https://trello.com/b/6NH6VXTh/ggmath)
 
 # GGMath - Generic Graphics Math
-A graphics-math Rust crate with powerful generics that are truely zero-cost
+graphics-math crate with powerful generics that are truely zero-cost
 
 * simple API
 ``` rust
@@ -11,9 +11,9 @@ use ggmath::vector::*;
 
 fn main() {
   let _2_4_ = vec2!(2.0_f32, 4.0);
-  let vec = vec4(1.0, _2_4_, 3.0).xywz();
+  let vec = vec4!(1.0, _2_4_, 3.0).xywz();
 
-  assert_eq!(vec, vec4(1.0, 2.0, 3.0, 4.0));
+  assert_eq!(vec, vec4!(1.0, 2.0, 3.0, 4.0));
 }
 ```
 

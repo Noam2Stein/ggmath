@@ -15,7 +15,7 @@ fn tests_for_n_t_a<const N: usize, T: TestableScalar, A: VecAlignment>()
 where
     ScalarCount<N>: VecLen,
 {
-    let array = T::n_special_values::<N>();
+    let array = T::n_special_values::<N>(0);
     let vector = Vector::<N, T, A>::from_array(array);
 
     assert_eq!(vector.into_array(), array);

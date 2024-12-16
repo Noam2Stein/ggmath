@@ -10,8 +10,6 @@
 //! - Optimal for GPU structs.
 //! - Optional additional types (Rect, Ray...).
 
-pub mod builder;
-
 mod construct;
 pub use construct::*;
 

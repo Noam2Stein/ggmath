@@ -4,7 +4,8 @@ edition     = "2021"
 license     = "MIT"
 name        = "ggmath"
 readme      = "../README.md"
-version     = "0.1.3"
+repository  = "https://github.com/Noam2Stein/ggmath"
+version     = "0.1.4"
 
 [features]
 default = [ "matrix", "primitive_aliases", "quaternion" ]
@@ -27,8 +28,5 @@ ray       = [  ]
 rectangle = [  ]
 
 [dependencies]
-ggmath_proc_macros = "0.1.1"
+ggmath_proc_macros = { path = "../ggmath_proc_macros" }
 num-traits         = "0.2.19"
-
-[dev-dependencies]
-ggmath_testing = { path = "../testing" }

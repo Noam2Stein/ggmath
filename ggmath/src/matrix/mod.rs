@@ -1,8 +1,9 @@
 use crate::{construct::*, ggmath, scalar::*, vector::*};
 
-mod api;
+mod core_api;
 mod generics;
 mod impl_std;
+pub use core_api::*;
 pub use generics::*;
 
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
@@ -107,12 +108,7 @@ pub type Mat4x3RP<T> = Matrix<4, 3, T, VecPacked, RowMajor>;
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat4R```].
 pub type Mat4RP<T> = Matrix<4, 4, T, VecPacked, RowMajor>;
 
-pub use ggmath_proc_macros::{
-    mat2, mat2c, mat2cp, mat2p, mat2x3, mat2x3c, mat2x3cp, mat2x3p, mat2x4, mat2x4c, mat2x4cp,
-    mat2x4p, mat3, mat3c, mat3cp, mat3p, mat3x2, mat3x2c, mat3x2cp, mat3x2p, mat3x4, mat3x4c,
-    mat3x4cp, mat3x4p, mat4, mat4c, mat4cp, mat4p, mat4x2, mat4x2c, mat4x2cp, mat4x2p, mat4x3,
-    mat4x3c, mat4x3cp, mat4x3p, matrix_aliases,
-};
+pub use ggmath_proc_macros::matrix_aliases;
 
 #[cfg(feature = "primitive_aliases")]
 mod primitive_aliases {

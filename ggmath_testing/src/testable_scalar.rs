@@ -8,12 +8,12 @@ pub trait TestableScalar: Scalar + PartialEq + Debug {
     const SPECIAL_VALUES: &[Self];
 
     #[allow(dead_code)]
-    fn n_normal_values<const N: usize>() -> [Self; N] {
-        array::from_fn(Self::normal_value)
+    fn n_normal_values<const N: usize>(offset: usize) -> [Self; N] {
+        array::from_fn(|index| Self::normal_value(index + offset))
     }
     #[allow(dead_code)]
-    fn n_special_values<const N: usize>() -> [Self; N] {
-        array::from_fn(Self::special_value)
+    fn n_special_values<const N: usize>(offset: usize) -> [Self; N] {
+        array::from_fn(|index| Self::special_value(index + offset))
     }
 
     fn normal_value(index: usize) -> Self {

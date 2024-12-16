@@ -6,8 +6,8 @@ members = [
     "examples/generic_physics_engine",
     "examples/gpu_structs",
     "ggmath",
-    "proc_macros",
+    "ggmath_proc_macros",
+    "ggmath_testing",
     "sandbox",
-    "testing",
     "tests",
 ]

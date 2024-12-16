@@ -3,9 +3,11 @@ use std::time::Instant;
 mod matrix;
 mod rectangle;
 mod scalars;
+mod vector;
 use matrix::test_matrix;
 use rectangle::test_rectangle;
 use scalars::test_scalars;
+use vector::test_vector;
 
 fn main() {
     let start_time = Instant::now();
@@ -22,7 +24,8 @@ fn main() {
 }
 
 fn test() {
-    test_scalars();
+    test_vector();
     test_matrix();
     test_rectangle();
+    test_scalars();
 }

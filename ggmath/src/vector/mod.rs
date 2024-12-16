@@ -74,7 +74,7 @@ pub type Vec3P<T> = Vector<3, T, VecPacked>;
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Vec4```].
 pub type Vec4P<T> = Vector<4, T, VecPacked>;
 
-pub use ggmath_proc_macros::{vec2, vec2p, vec3, vec3p, vec4, vec4p, vector_aliases};
+pub use ggmath_proc_macros::vector_aliases;
 
 #[cfg(feature = "primitive_aliases")]
 mod primitive_aliases {
