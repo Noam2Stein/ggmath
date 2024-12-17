@@ -1,7 +1,14 @@
 [package]
-edition = "2021"
-name    = "ggmath_testing"
-version = "0.1.4"
+description = "testing tool for custom ggmath scalars"
+edition     = "2021"
+license     = "MIT"
+name        = "ggmath_testing"
+repository  = "https://github.com/Noam2Stein/ggmath"
+version     = "0.1.4"
+
+[profile]
+dev.panic     = "unwind"
+release.panic = "unwind"
 
 [dependencies]
-ggmath = "0.1.4"
+ggmath = { path = "../ggmath" }
