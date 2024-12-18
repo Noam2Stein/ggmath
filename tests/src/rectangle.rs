@@ -1,10 +1,12 @@
 use ggmath::{rectangle::*, scalar::*, vector::*};
 use ggmath_testing::*;
 
-pub fn test_rectangle() {
+pub fn test_rectangle() -> TestResult {
     test_n_t_a_r::<2, i32, VecAligned, RectCornered>();
     test_n_t_a_r::<3, i64, VecPacked, RectCentered>();
     test_n_t_a_r::<4, i32, VecAligned, RectMinMaxed>();
+
+    Ok(())
 }
 
 fn test_n_t_a_r<const N: usize, T: ScalarNum + TestableScalar, A: VecAlignment, R: RectRepr>()

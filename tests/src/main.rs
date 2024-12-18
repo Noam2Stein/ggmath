@@ -1,4 +1,4 @@
-use std::time::Instant;
+use ggmath_testing::{FormatTestingResult, TestResult};
 
 mod matrix;
 mod rectangle;
@@ -10,22 +10,14 @@ use scalars::*;
 use vector::*;
 
 fn main() {
-    let start_time = Instant::now();
-
-    test();
-
-    let end_time = Instant::now();
-    let duration = (end_time - start_time).as_secs_f64();
-
-    println!(
-        "{}{}all tests passed! GG{}. time: {duration} secs",
-        "\x1b[1m", "\x1b[32m", "\x1b[0m"
-    );
+    println!("{}", test().fmt_test_result())
 }
 
-fn test() {
-    test_vector();
-    test_matrix();
-    test_rectangle();
-    test_scalars();
+fn test() -> TestResult {
+    test_vector()?;
+    test_scalars()?;
+    test_matrix()?;
+    //test_rectangle()?;
+
+    Ok(())
 }

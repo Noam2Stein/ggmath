@@ -5,9 +5,21 @@ use std::{
 
 use ggmath::{scalar::Scalar, vector::VecAlignment};
 
+use crate::FailedFn;
+
+pub type TestResult = Result<(), TestingError>;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TestingError(pub String);
 impl TestingError {
+    pub fn new(failed_fn: &FailedFn, error: &impl Display) -> Self {
+        Self(format!(
+            "{}Failed{} {}{failed_fn}{}\n\n{error}",
+            "\x1b[1;31m", "\x1b[0m", "\x1b[4m", "\x1b[0m"
+        ))
+    }
+
+    #[deprecated = "use new FailedFn system"]
     pub fn vector<const N: usize, T: Scalar, A: VecAlignment>(
         fn_ident: &'static str,
         error: &impl Display,

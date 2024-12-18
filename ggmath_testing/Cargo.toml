@@ -11,7 +11,7 @@ edition = "2021"
 license = "MIT"
 name = "ggmath_testing"
 repository = "https://github.com/Noam2Stein/ggmath"
-version = "0.3.0"
+version = "0.3.1"
 
 [profile]
 dev.panic     = "unwind"

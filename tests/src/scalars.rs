@@ -1,6 +1,6 @@
-use ggmath_testing::*;
+use ggmath_testing::{test_scalar, TestResult};
 
-pub fn test_scalars() -> Result<(), ScalarTestingError> {
+pub fn test_scalars() -> TestResult {
     test_scalar::<f32>()?;
     test_scalar::<f64>()?;
 

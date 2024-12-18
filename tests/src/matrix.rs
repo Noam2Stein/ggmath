@@ -1,15 +1,17 @@
-use std::{array, fmt::Debug};
+use std::array;
 
 use ggmath::{matrix::*, vector::*};
 use ggmath_testing::*;
 
-pub fn test_matrix() {
-    test_builder::<f32>();
+pub fn test_matrix() -> TestResult {
+    test_builder::<f32>()?;
 
-    test_t::<u32>();
+    test_t::<u32>()?;
+
+    Ok(())
 }
 
-fn test_builder<T: TestableScalar>() {
+fn test_builder<T: TestableScalar>() -> TestResult {
     let values = [
         T::n_values(0),
         T::n_values(4),
@@ -17,10 +19,6 @@ fn test_builder<T: TestableScalar>() {
         T::n_values(12),
     ]
     .map(Vector::<4, T, VecAligned>::from_array);
-
-    fn assert_eq<T: PartialEq<O> + Debug, O: Debug>(a: T, b: O) {
-        assert_eq!(a, b)
-    }
 
     macro_rules! test_builder {
         (
@@ -35,20 +33,20 @@ fn test_builder<T: TestableScalar>() {
             let rhs4 = Matrix::<4, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xyzw());
 
             $(
-                assert_eq($macro2!($(builder_field!(2 $field)); *), rhs2);
-                assert_eq($macro2p!($(builder_field!(2 $field)); *), rhs2);
-                assert_eq($macro2c!($(builder_field!(2 $field)); *), rhs2);
-                assert_eq($macro2cp!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(FailedFn(format!(stringify!($macro2))), $macro2!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(FailedFn(format!(stringify!($macro2p))), $macro2p!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(FailedFn(format!(stringify!($macro2c))), $macro2c!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(FailedFn(format!(stringify!($macro2cp))), $macro2cp!($(builder_field!(2 $field)); *), rhs2);
 
-                assert_eq($macro3!($(builder_field!(3 $field)); *), rhs3);
-                assert_eq($macro3p!($(builder_field!(3 $field)); *), rhs3);
-                assert_eq($macro3c!($(builder_field!(3 $field)); *), rhs3);
-                assert_eq($macro3cp!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(FailedFn(format!(stringify!($macro2))), $macro3!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(FailedFn(format!(stringify!($macro2p))), $macro3p!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(FailedFn(format!(stringify!($macroc2))), $macro3c!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(FailedFn(format!(stringify!($macro2cp))), $macro3cp!($(builder_field!(3 $field)); *), rhs3);
 
-                assert_eq($macro4!($(builder_field!(4 $field)); *), rhs4);
-                assert_eq($macro4p!($(builder_field!(4 $field)); *), rhs4);
-                assert_eq($macro4c!($(builder_field!(4 $field)); *), rhs4);
-                assert_eq($macro4cp!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(FailedFn(format!(stringify!($macro2))), $macro4!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(FailedFn(format!(stringify!($macro2p))), $macro4p!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(FailedFn(format!(stringify!($macro2c))), $macro4c!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(FailedFn(format!(stringify!($macro2cp))), $macro4cp!($(builder_field!(4 $field)); *), rhs4);
             )*
         };
     }
@@ -95,23 +93,29 @@ fn test_builder<T: TestableScalar>() {
         4, mat2x4, mat2x4p, mat2x4c, mat2x4cp, mat3x4, mat3x4p, mat3x4c, mat3x4cp, mat4, mat4p, mat4c, mat4cp:
         [0, 1, 2, 3], [0, 1, (2, 3)], [0, (1, 2), 3], [(0, 1), 2, 3], [(0, 1), (2, 3)], [0, (1, 2, 3)], [(0, 1, 2), 3], [(0, 1, 2, 3)]
     );
+
+    Ok(())
 }
 
-fn test_t<T: TestableScalar>() {
-    test_c_r_t::<2, 4, T>();
-    test_c_r_t::<3, 2, T>();
-    test_c_r_t::<4, 4, T>();
+fn test_t<T: TestableScalar>() -> TestResult {
+    test_c_r_t::<2, 4, T>()?;
+    test_c_r_t::<3, 2, T>()?;
+    test_c_r_t::<4, 4, T>()?;
+
+    Ok(())
 }
-fn test_c_r_t<const C: usize, const R: usize, T: TestableScalar>()
+fn test_c_r_t<const C: usize, const R: usize, T: TestableScalar>() -> TestResult
 where
     ScalarCount<C>: VecLen,
     ScalarCount<R>: VecLen,
 {
-    test_c_r_t_a_m::<C, R, T, VecAligned, ColumnMajor>();
-    test_c_r_t_a_m::<C, R, T, VecAligned, RowMajor>();
+    test_c_r_t_a_m::<C, R, T, VecAligned, ColumnMajor>()?;
+    test_c_r_t_a_m::<C, R, T, VecAligned, RowMajor>()?;
 
-    test_c_r_t_a_m::<C, R, T, VecPacked, ColumnMajor>();
-    test_c_r_t_a_m::<C, R, T, VecPacked, RowMajor>();
+    test_c_r_t_a_m::<C, R, T, VecPacked, ColumnMajor>()?;
+    test_c_r_t_a_m::<C, R, T, VecPacked, RowMajor>()?;
+
+    Ok(())
 }
 
 fn test_c_r_t_a_m<
@@ -120,7 +124,7 @@ fn test_c_r_t_a_m<
     T: TestableScalar,
     A: VecAlignment,
     M: MatrixMajorAxis,
->()
+>() -> TestResult
 where
     ScalarCount<C>: VecLen,
     ScalarCount<R>: VecLen,
@@ -137,7 +141,7 @@ where
 
     let matrix = Matrix::<C, R, T, A, M>::from_rows(rows);
 
-    assert_eq!(matrix, Matrix::<C, R, T, A, M>::from_columns(columns));
+    matrix_test_assert!(from_rows: matrix, Matrix::<C, R, T, A, M>::from_columns(columns));
 
     assert_eq!(matrix.into_rows(), rows);
     assert_eq!(matrix.into_columns(), columns);
@@ -147,4 +151,6 @@ where
     assert_eq!(matrix.into_packed().into_rows_array(), rows_array);
     assert_eq!(matrix.into_column_major().into_columns(), columns);
     assert_eq!(matrix.into_row_major().into_rows(), rows);
+
+    Ok(())
 }
