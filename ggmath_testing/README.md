@@ -11,9 +11,16 @@ so this crate helps you test them.
 
 ## Usage
 
-1. Create a custom scalar type
-2. Implement ```TestableScalar``` for your type. Requires you to provide 16 values which will be used for testing.
-3. ```println!("{}", test_scalar::<MyScalar>().scalar_test_fmt())```
+1. Make sure that in your Cargo.toml, you configure:
+```toml
+[profile]
+dev.panic     = "unwind"
+release.panic = "unwind"
+```
+
+2. Create a custom scalar type
+3. Implement ```TestableScalar``` for your type. Requires you to provide 16 values which will be used for testing.
+4. ```println!("{}", test_scalar::<MyScalar>().scalar_test_fmt())```
 
 ```rust
 use ggmath::scalar::{scalar_inner_vectors, Scalar};
