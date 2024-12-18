@@ -3,10 +3,11 @@ GGMath is a generic-graphics-math crate.
 So types like ```Vector``` and ```Matrix``` are generic over ```T: Scalar```.
 
 You can implement ```Scalar``` for your custom types,
-and when you do so you can override the implementations of vector functions for you custom scalar
+and when you do so you can override the implementations of vector functions for your custom scalar
 to make optimizations only possible with your type.
 
-These custom fn implementations can have bugs, so this crate helps you test them.
+These custom function implementations can have bugs,
+so this crate helps you test them.
 
 ## Usage
 

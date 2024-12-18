@@ -1,7 +1,5 @@
 *** UNFINISHED CRATE ***
 
-[Trello board](https://trello.com/b/6NH6VXTh/ggmath)
-
 # GGMath - Generic Graphics Math
 graphics-math crate with powerful generics that are truely zero-cost
 
@@ -44,17 +42,19 @@ restrictions:
 
 ## `Scalar`
 
-the ```Scalar``` trait allows types to be put inside math types (vectors, matricies...) and has sub traits:
+The ```Scalar``` trait allows types to be put inside math types (vectors, matricies...)
 
-* operators: `ScalarAdd`, `ScalarBitOr`...
-* num traits: `ScalarFloat`, `ScalarSigned`...
+The magic of this crate is that when you implement ```Scalar```,
+you can override the implementation of ```Vector``` functions to make optimizations
+
+* All ```Vector``` functions that are possible to optimize can be overriden
 
 ## `Vector`
 
 the ```Vector``` struct is generic over:
-* `<const N: usize> where ScalarCount<N>: VecLen` - only 2, 3, and 4 are vector lengths
-* `<T: Scalar>`
-* `<A: VecAlignment>` - doesn't affect API, VecAligned is faster, VecPacked saves memory
+* `<const N: usize> where ScalarCount<N>: VecLen` - only 2, 3, and 4 are valid vector lengths
+* `<T: Scalar>` - f32? u8? isize? CustomF256?
+* `<A: VecAlignment>` - doesn't affect API, ```VecAligned``` is faster, ```VecPacked``` saves memory
 
 don't want to be generic? use type aliases! `Vec2<f32>`/`FVec2`/`IVec3`/`BVec4`
 
@@ -63,11 +63,11 @@ don't want to be generic? use type aliases! `Vec2<f32>`/`FVec2`/`IVec3`/`BVec4`
 the ```Matrix``` struct is generic over:
 * `<const C: usize> where ScalarCount<C>: VecLen` - column count
 * `<const R: usize> where ScalarCount<R>: VecLen` - row count
+* `<T: Scalar>` - "f32? u8? isize? CustomF256?"
+* `<A: VecAlignment>` - a matrix is built of vectors...
 * `<M: MatrixMajorAxis>` - internally row-major or column major?
-* `<T: Scalar>`
-* `<A: VecAlignment>` - a matrix is built off of vectors...
 
-don't want to be generic? use `column_major::Mat3<f32>`/`row_major::FMat4x2`
+don't want to be generic? use `Mat3C<f32>`/`row_major::FMat4x2RP`
 
 ## GPU integration
 
@@ -75,4 +75,35 @@ GGMath is built with GPU struct integration in mind.
 
 when making Vertex structs, use `VecPacked` to save space
 
-when making Uniform structs, use `VecAligned` which has size & alignment guarentees that uniforms require
+when making Uniform structs, use `VecAligned` which has size & alignment rules that uniforms require
+
+## Type Aliases
+
+ggmath's type aliases have naming rules:
+
+### Vectors:
+
+```Vec'N'<T>``` -> ```Vector<'N', T, VecAligned>```
+For example: ```Vec2<f32>``` -> ```Vector<2, f32, VecAligned>```
+
+```Vec'N'P<T>``` -> ```Vector<'N', T, VecPacked>```
+For example: ```Vec4P<f32>``` -> ```Vector<4, f32, VecPacked>```
+
+```'T'Vec'N'``` -> ```Vector<'N', 'T', VecAligned>```
+For example: ```FVec2``` -> ```Vector<2, f32, VecAligned>```
+
+```'T'Vec'N'P``` -> ```Vector<'N', 'T', VecPacked>```
+For example: ```U8Vec3P``` -> ```Vector<3, u8, VecPacked>```
+
+### Matricies
+
+```Mat'C'x'R'C<T>``` -> ```Matrix<'C', 'R', T, VecAligned, ColumnMajor>```
+For example: ```Mat2x3C<f32>``` -> ```Matrix<2, 3, f32, VecAligned, ColumnMajor>```
+
+```Mat'C'x'R'R<T>``` -> ```Matrix<'C', 'R', T, VecAligned, RowMajor>```
+For example: ```Mat4x3R<bool>``` -> ```Matrix<4, 3, bool, VecAligned, RowMajor>```
+
+```Mat'C'x'R'CP<T>``` -> ```Matrix<'C', 'R', T, VecPacked, ColumnMajor>```
+For example: ```Mat3CP<f64>``` -> ```Matrix<3, 3, f64, VecPacked, ColumnMajor>```
+
+```Mat'C'x'R'RP<T>```, ```'T'Mat'C'x'R'C```...
