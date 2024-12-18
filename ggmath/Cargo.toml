@@ -11,7 +11,7 @@ license = "MIT"
 name = "ggmath"
 readme = "../README.md"
 repository = "https://github.com/Noam2Stein/ggmath"
-version = "0.1.4"
+version = "0.2.0"
 
 [features]
 default = [ "matrix", "primitive_aliases", "quaternion" ]
@@ -34,5 +34,5 @@ ray       = [  ]
 rectangle = [  ]
 
 [dependencies]
-ggmath_proc_macros = "0.1.4"
+ggmath_proc_macros = "0.2.0"
 num-traits         = "0.2.19"
