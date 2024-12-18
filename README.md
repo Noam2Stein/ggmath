@@ -67,7 +67,7 @@ the ```Matrix``` struct is generic over:
 * `<A: VecAlignment>` - a matrix is built of vectors...
 * `<M: MatrixMajorAxis>` - internally row-major or column major?
 
-don't want to be generic? use `Mat3C<f32>`/`row_major::FMat4x2RP`
+don't want to be generic? use `Mat3C<f32>`/`FMat4x2RP`
 
 ## GPU integration
 
