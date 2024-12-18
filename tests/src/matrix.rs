@@ -126,7 +126,7 @@ where
     ScalarCount<R>: VecLen,
 {
     let rows_array: [[T; C]; R] = array::from_fn(|row_index| {
-        array::from_fn(|column_index| T::special_value(row_index * C + column_index))
+        array::from_fn(|column_index| T::value(row_index * C + column_index))
     });
     let columns_array: [[T; R]; C] = array::from_fn(|column_index| {
         array::from_fn(|row_index| rows_array[row_index][column_index])

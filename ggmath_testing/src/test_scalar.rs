@@ -12,9 +12,9 @@ use std::{
 
 use ggmath::{scalar::Scalar, vector::*};
 
-use crate::{ScalarTestingError, TestableScalar};
+use crate::{TestableScalar, TestingError};
 
-pub fn test_scalar<T: TestableScalar>() -> Result<(), ScalarTestingError> {
+pub fn test_scalar<T: TestableScalar>() -> Result<(), TestingError> {
     set_hook(Box::new(|_| {}));
 
     test_scalar_n_a::<2, T, VecAligned>()?;
@@ -75,16 +75,16 @@ fn assert_lhs_fn<
     value: V,
     expected_value: E,
     inputs: &[String],
-) -> Result<(), ScalarTestingError>
+) -> Result<(), TestingError>
 where
     ScalarCount<N>: VecLen,
 {
     if value == expected_value {
         Ok(())
     } else {
-        Err(ScalarTestingError::new::<N, T, A>(
+        Err(TestingError::vector::<N, T, A>(
             vector_fn,
-            format!(
+            &format!(
                 "{}\nexpected `{expected_value:?}`\nfound `{value:?}`\n",
                 inputs.join("")
             ),
@@ -122,8 +122,7 @@ where
     Some(Vector::from_array(output))
 }
 
-fn test_scalar_n_a<const N: usize, T: TestableScalar, A: VecAlignment>(
-) -> Result<(), ScalarTestingError>
+fn test_scalar_n_a<const N: usize, T: TestableScalar, A: VecAlignment>() -> Result<(), TestingError>
 where
     ScalarCount<N>: VecLen,
 {
@@ -132,8 +131,7 @@ where
     Ok(())
 }
 
-fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>(
-) -> Result<(), ScalarTestingError>
+fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>() -> Result<(), TestingError>
 where
     ScalarCount<N>: VecLen,
 {

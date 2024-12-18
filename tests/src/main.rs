@@ -4,10 +4,10 @@ mod matrix;
 mod rectangle;
 mod scalars;
 mod vector;
-use matrix::test_matrix;
-use rectangle::test_rectangle;
-use scalars::test_scalars;
-use vector::test_vector;
+use matrix::*;
+use rectangle::*;
+use scalars::*;
+use vector::*;
 
 fn main() {
     let start_time = Instant::now();

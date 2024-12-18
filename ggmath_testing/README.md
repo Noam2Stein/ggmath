@@ -20,11 +20,11 @@ release.panic = "unwind"
 
 2. Create a custom scalar type
 3. Implement ```TestableScalar``` for your type. Requires you to provide 16 values which will be used for testing.
-4. ```println!("{}", test_scalar::<MyScalar>().scalar_test_fmt())```
+4. ```println!("{}", test_scalar::<MyScalar>().fmt_test_result())```
 
 ```rust
 use ggmath::scalar::{scalar_inner_vectors, Scalar};
-use ggmath_testing::{test_scalar, ScalarTestingResultFmt, TestableScalar};
+use ggmath_testing::{FormatTestingResult, test_scalar, TestableScalar};
 
 // Custom Type
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -57,6 +57,6 @@ impl TestableScalar for MyScalar {
 }
 
 fn main() {
-    println!("{}", test_scalar::<MyScalar>().scalar_test_fmt())
+    println!("{}", test_scalar::<MyScalar>().fmt_test_result())
 }
 ```
