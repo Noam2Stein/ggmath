@@ -1,11 +1,17 @@
 [package]
+categories = [
+    "data-structures",
+    "game-development",
+    "graphics",
+    "mathematics",
+]
 description = "optimized generic-graphics-math"
-edition     = "2021"
-license     = "MIT"
-name        = "ggmath"
-readme      = "../README.md"
-repository  = "https://github.com/Noam2Stein/ggmath"
-version     = "0.1.4"
+edition = "2021"
+license = "MIT"
+name = "ggmath"
+readme = "../README.md"
+repository = "https://github.com/Noam2Stein/ggmath"
+version = "0.1.4"
 
 [features]
 default = [ "matrix", "primitive_aliases", "quaternion" ]

@@ -11,10 +11,10 @@ pub fn test_matrix() {
 
 fn test_builder<T: TestableScalar>() {
     let values = [
-        T::n_normal_values(0),
-        T::n_normal_values(4),
-        T::n_normal_values(8),
-        T::n_normal_values(12),
+        T::n_values(0),
+        T::n_values(4),
+        T::n_values(8),
+        T::n_values(12),
     ]
     .map(Vector::<4, T, VecAligned>::from_array);
 

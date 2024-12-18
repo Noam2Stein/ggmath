@@ -1,20 +1,3 @@
-
-GGMath is a generic-graphics-math crate.
-So types like ```Vector``` and ```Matrix``` are generic over ```T: Scalar```.
-
-You can implement ```Scalar``` for your custom types,
-and when you do so you can override the implementations of vector functions for you custom scalar
-to make optimizations only possible with your type.
-
-These custom fn implementations can have bugs, so this crate helps you test them.
-
-## Usage
-
-1. Create a custom scalar type
-2. Implement ```TestableScalar``` for your type. Requires you to provide 16 values which will be used for testing.
-3. ```println!("{}", test_scalar::<MyScalar>().scalar_test_fmt())```
-
-```rust
 use ggmath::scalar::{scalar_inner_vectors, Scalar};
 use ggmath_testing::{test_scalar, ScalarTestingResultFmt, TestableScalar};
 
@@ -51,4 +34,3 @@ impl TestableScalar for MyScalar {
 fn main() {
     println!("{}", test_scalar::<MyScalar>().scalar_test_fmt())
 }
-```

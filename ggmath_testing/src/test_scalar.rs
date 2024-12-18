@@ -6,10 +6,11 @@ use std::{
 };
 use std::{
     fmt::{self, Formatter},
+    mem::MaybeUninit,
     panic::UnwindSafe,
 };
 
-use ggmath::vector::*;
+use ggmath::{scalar::Scalar, vector::*};
 
 use crate::{ScalarTestingError, TestableScalar};
 
@@ -73,8 +74,6 @@ fn assert_lhs_fn<
     vector_fn: &'static str,
     value: V,
     expected_value: E,
-    value_expr: &'static str,
-    expected_value_expr: &'static str,
     inputs: &[String],
 ) -> Result<(), ScalarTestingError>
 where
@@ -84,24 +83,45 @@ where
         Ok(())
     } else {
         Err(ScalarTestingError::new::<N, T, A>(
-                vector_fn,
-                format!("{value_expr} == {expected_value_expr} was not met\n\nexpected `{expected_value:?}`\nfound `{value:?}`\n\n{}", inputs.join(""))
-            ))
+            vector_fn,
+            format!(
+                "{}\nexpected `{expected_value:?}`\nfound `{value:?}`\n",
+                inputs.join("")
+            ),
+        ))
     }
 }
-
 macro_rules! assert_lhs {
     ($vector_fn:ident: $value:expr, $expected_value:expr $(, $input:ident)* $(,)?) => {
         assert_lhs_fn::<N, T, A, _, _>(
             stringify!($vector_fn),
             MaybePanic::from_fn(|| $value),
             MaybePanic::from_fn(|| $expected_value),
-            stringify!($value),
-            stringify!($expected_value),
             &[$(format!(" * {} = {:?} \n", stringify!($input), $input)), *],
         )?;
     };
 }
+
+fn get_n<const N: usize, const N_OUTPUT: usize, T: Scalar, A: VecAlignment>(
+    vector: Vector<N, T, A>,
+    indicies: [usize; N_OUTPUT],
+) -> Option<Vector<N_OUTPUT, T, A>>
+where
+    ScalarCount<N>: VecLen,
+    ScalarCount<N_OUTPUT>: VecLen,
+{
+    let mut output = unsafe { MaybeUninit::<[T; N_OUTPUT]>::uninit().assume_init() };
+
+    for index in 0..N_OUTPUT {
+        match vector.get(indicies[index]) {
+            Some(item) => output[index] = item,
+            None => return None,
+        }
+    }
+
+    Some(Vector::from_array(output))
+}
+
 fn test_scalar_n_a<const N: usize, T: TestableScalar, A: VecAlignment>(
 ) -> Result<(), ScalarTestingError>
 where
@@ -117,59 +137,35 @@ fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>(
 where
     ScalarCount<N>: VecLen,
 {
-    let vector = Vector::<N, T, A>::from_array(T::n_special_values(0));
+    let vector = Vector::<N, T, A>::from_array(T::n_values(0));
 
     for i in 0..=4 {
-        assert_lhs!(get:
-            vector.get(i),
-            vector.as_array().get(i).map(|some| *some),
-        vector, i);
+        assert_lhs!(get: vector.get(i), vector.as_array().get(i).map(|some| *some), vector, i);
 
         for i_1 in 0..=4 {
-            assert_lhs!(get_1_1:
-                vector.get_1_1([i, i_1]).map_or([None; 2], |some| some.into_array().map(Some)),
-                [vector.get(i), vector.get(i_1)],
-            vector, i, i_1);
+            assert_lhs!(get_1_1: vector.get_1_1([i, i_1]), get_n::<N, 2, _, _>(vector, [i, i_1]), vector, i, i_1);
 
             for i_2 in 0..=4 {
-                assert_lhs!(get_1_1_1:
-                    vector.get_1_1_1([i, i_1, i_2]).map_or([None; 3], |some| some.into_array().map(Some)),
-                    [vector.get(i), vector.get(i_1), vector.get(i_2)],
-                vector, i, i_1, i_2);
+                assert_lhs!(get_1_1_1: vector.get_1_1_1([i, i_1, i_2]), get_n::<N, 3, _, _>(vector, [i, i_1, i_2]), vector, i, i_1, i_2);
 
                 for i_3 in 0..=4 {
-                    assert_lhs!(get_1_1_1_1:
-                        vector.get_1_1_1_1([i, i_1, i_2, i_3]).map_or([None; 4], |some| some.into_array().map(Some)),
-                        [vector.get(i), vector.get(i_1), vector.get(i_2), vector.get(i_3)],
-                    vector, i, i_1, i_2, i_3);
+                    assert_lhs!(get_1_1_1_1: vector.get_1_1_1_1([i, i_1, i_2, i_3]), get_n::<N, 4, _, _>(vector, [i, i_1, i_2, i_3]), vector, i, i_1, i_2, i_3);
                 }
             }
         }
     }
 
     for i in 0..N {
-        assert_lhs!(get_unchecked:
-            unsafe { vector.get_unchecked(i) },
-            vector[i],
-        vector, i);
+        assert_lhs!(get_unchecked: unsafe { vector.get_unchecked(i) }, vector[i], vector, i);
 
         for i_1 in 0..N {
-            assert_lhs!(get_1_1_unchecked:
-                unsafe { vector.get_1_1_unchecked([i, i_1]) },
-                Vec2::from_array([vector[i], vector[i_1]]),
-            vector, i, i_1);
+            assert_lhs!(get_1_1_unchecked: unsafe { vector.get_1_1_unchecked([i, i_1]) }, vector.get_1_1([i, i_1]).unwrap(), vector, i, i_1);
 
             for i_2 in 0..N {
-                assert_lhs!(get_1_1_1_unchecked:
-                    unsafe { vector.get_1_1_1_unchecked([i, i_1, i_2]) },
-                    Vec3::from_array([vector[i], vector[i_1], vector[i_2]]),
-                vector, i, i_1, i_2);
+                assert_lhs!(get_1_1_1_unchecked: unsafe { vector.get_1_1_1_unchecked([i, i_1, i_2]) }, vector.get_1_1_1([i, i_1, i_2]).unwrap(), vector, i, i_1, i_2);
 
                 for i_3 in 0..N {
-                    assert_lhs!(get_1_1_1_1:
-                        vector.get_1_1_1_1([i, i_1, i_2, i_3]).map_or([None; 4], |some| some.into_array().map(Some)),
-                        [vector.get(i), vector.get(i_1), vector.get(i_2), vector.get(i_3)],
-                    vector, i, i_1, i_2, i_3);
+                    assert_lhs!(get_1_1_1_1_unchecked: unsafe { vector.get_1_1_1_1_unchecked([i, i_1, i_2, i_3]) }, vector.get_1_1_1_1([i, i_1, i_2, i_3]).unwrap(), vector, i, i_1, i_2, i_3);
                 }
             }
         }

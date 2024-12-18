@@ -8,7 +8,7 @@ pub fn test_vector() {
 }
 
 fn test_builder<T: TestableScalar>() {
-    let values = T::n_normal_values::<4>(0);
+    let values = T::n_values::<4>(0);
 
     fn assert_eq<T: PartialEq<O> + Debug, O: Debug>(a: T, b: O) {
         assert_eq!(a, b)

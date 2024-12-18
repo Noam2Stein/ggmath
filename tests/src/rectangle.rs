@@ -11,8 +11,8 @@ fn test_n_t_a_r<const N: usize, T: ScalarNum + TestableScalar, A: VecAlignment, 
 where
     ScalarCount<N>: VecLen,
 {
-    let center = Vector::<N, T, A>::from_fn(|i| T::normal_value(i));
-    let extents = Vector::<N, T, A>::from_fn(|i| T::normal_value(i + N));
+    let center = Vector::<N, T, A>::from_fn(|i| T::value(i));
+    let extents = Vector::<N, T, A>::from_fn(|i| T::value(i + N));
 
     let min = center - extents;
     let max = center + extents;
