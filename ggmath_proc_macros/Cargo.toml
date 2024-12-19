@@ -6,6 +6,9 @@ name        = "ggmath_proc_macros"
 readme      = "README.md"
 version     = "0.2.0"
 
+[features]
+ggmath_testing = [  ]
+
 [lib]
 proc-macro = true
 

@@ -1,8 +1,32 @@
-use ggmath::vector::{vec2, vec2p, vec3, vec3p, vec4, vec4p, VecAligned, Vector};
-use ggmath_testing::{test_assert, FailedFn, TestResult, TestableScalar};
+use ggmath::vector::{
+    vec2, vec2p, vec3, vec3p, vec4, vec4p, ScalarCount, VecAligned, VecAlignment, VecLen,
+    VecPacked, Vector,
+};
+use ggmath_testing::{test_assert, vector_test_assert, FailedFn, TestResult, TestableScalar};
 
 pub fn test_vector() -> TestResult {
+    test_array::<2, f64, VecAligned>()?;
+    test_array::<3, f64, VecAligned>()?;
+    test_array::<4, f64, VecAligned>()?;
+    test_array::<2, f64, VecPacked>()?;
+    test_array::<3, f64, VecPacked>()?;
+    test_array::<4, f64, VecPacked>()?;
+
     test_builder::<f32>()?;
+
+    Ok(())
+}
+
+fn test_array<const N: usize, T: TestableScalar, A: VecAlignment>() -> TestResult
+where
+    ScalarCount<N>: VecLen,
+{
+    let array = T::n_values::<N>(0);
+    let vector = Vector::<N, T, A>::from_array(array);
+
+    vector_test_assert!(into_from_array: vector.into_array(), array, array);
+    vector_test_assert!(as_array: vector.as_array(), array, vector);
+    vector_test_assert!(as_array: vector.clone().as_array_mut(), array, vector);
 
     Ok(())
 }
