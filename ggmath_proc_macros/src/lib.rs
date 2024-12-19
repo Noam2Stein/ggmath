@@ -137,3 +137,8 @@ pub fn for_rhs_ops(input: TokenStream1) -> TokenStream1 {
 pub fn for_assign_ops(input: TokenStream1) -> TokenStream1 {
     internal::for_assign_ops(input)
 }
+
+// External ggmath_testing Macros
+
+#[cfg(feature = "ggmath_testing")]
+mod external_ggmath_testing;
