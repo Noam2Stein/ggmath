@@ -107,3 +107,34 @@ For example: ```Mat4x3R<bool>``` -> ```Matrix<4, 3, bool, VecAligned, RowMajor>`
 For example: ```Mat3CP<f64>``` -> ```Matrix<3, 3, f64, VecPacked, ColumnMajor>```
 
 ```Mat'C'x'R'RP<T>```, ```'T'Mat'C'x'R'C```...
+
+# Development Progress
+
+### API
+
+Vector: almost stable and complete.
+
+Matrix: only has layout manipulation so columns rows construction...
+but no matrix multiplication for example.
+
+Quaternion: doesn't exist.
+
+Rectangle: mostly complete.
+
+### Performance
+
+No scalars are optimized yet so right now the performance is probably close to ```nalgebra```'s
+while the final performance will be identical to ```glam```.
+
+### Tests
+
+The crate isn't fully tested yet and the custom-scalar testing system ```ggmath_testing``` isn't as well.
+
+### Left To Do
+
+* finish ggmath_testing (tester for custom scalars)
+* add missing tests
+* add benchmarks
+* finish APIs
+* optimize scalars
+* add missing docs
