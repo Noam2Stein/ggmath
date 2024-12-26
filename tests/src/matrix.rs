@@ -15,13 +15,7 @@ pub fn test_matrix() -> TestResult {
 }
 
 fn test_builder<T: TestableScalar>() -> TestResult {
-    let values = [
-        T::n_values(0),
-        T::n_values(4),
-        T::n_values(8),
-        T::n_values(12),
-    ]
-    .map(Vector::<4, T, VecAligned>::from_array);
+    let vectors = T::VALUES.map(Vector::<4, T, VecAligned>::from_array);
 
     macro_rules! test_builder {
         (
@@ -31,25 +25,25 @@ fn test_builder<T: TestableScalar>() -> TestResult {
             $macro4:ident, $macro4p:ident, $macro4c:ident, $macro4cp:ident:
             $([$($field:tt), *]), *
         ) => {
-            let rhs2 = Matrix::<2, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xy());
-            let rhs3 = Matrix::<3, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xyz());
-            let rhs4 = Matrix::<4, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xyzw());
+            let rhs2 = Matrix::<2, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| vectors[row_index].xy());
+            let rhs3 = Matrix::<3, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| vectors[row_index].xyz());
+            let rhs4 = Matrix::<4, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| vectors[row_index].xyzw());
 
             $(
-                test_assert!(TestFnDesc(format!(stringify!($macro2))), $macro2!($(builder_field!(2 $field)); *), rhs2);
-                test_assert!(TestFnDesc(format!(stringify!($macro2p))), $macro2p!($(builder_field!(2 $field)); *), rhs2);
-                test_assert!(TestFnDesc(format!(stringify!($macro2c))), $macro2c!($(builder_field!(2 $field)); *), rhs2);
-                test_assert!(TestFnDesc(format!(stringify!($macro2cp))), $macro2cp!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2), "!").to_string()), $macro2!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2p), "!").to_string()), $macro2p!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2c), "!").to_string()), $macro2c!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2cp), "!").to_string()), $macro2cp!($(builder_field!(2 $field)); *), rhs2);
 
-                test_assert!(TestFnDesc(format!(stringify!($macro2))), $macro3!($(builder_field!(3 $field)); *), rhs3);
-                test_assert!(TestFnDesc(format!(stringify!($macro2p))), $macro3p!($(builder_field!(3 $field)); *), rhs3);
-                test_assert!(TestFnDesc(format!(stringify!($macroc2))), $macro3c!($(builder_field!(3 $field)); *), rhs3);
-                test_assert!(TestFnDesc(format!(stringify!($macro2cp))), $macro3cp!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2), "!").to_string()), $macro3!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2p), "!").to_string()), $macro3p!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(concat!(stringify!($macroc2), "!").to_string()), $macro3c!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2cp), "!").to_string()), $macro3cp!($(builder_field!(3 $field)); *), rhs3);
 
-                test_assert!(TestFnDesc(format!(stringify!($macro2))), $macro4!($(builder_field!(4 $field)); *), rhs4);
-                test_assert!(TestFnDesc(format!(stringify!($macro2p))), $macro4p!($(builder_field!(4 $field)); *), rhs4);
-                test_assert!(TestFnDesc(format!(stringify!($macro2c))), $macro4c!($(builder_field!(4 $field)); *), rhs4);
-                test_assert!(TestFnDesc(format!(stringify!($macro2cp))), $macro4cp!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2), "!").to_string()), $macro4!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2p), "!").to_string()), $macro4p!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2c), "!").to_string()), $macro4c!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(concat!(stringify!($macro2cp), "!").to_string()), $macro4cp!($(builder_field!(4 $field)); *), rhs4);
             )*
         };
     }
@@ -154,4 +148,17 @@ where
     assert_eq!(matrix.into_row_major().into_rows(), rows);
 
     Ok(())
+}
+
+fn test_conversions<
+    const C: usize,
+    const R: usize,
+    T: TestableScalar,
+    A: VecAlignment,
+    M: MatrixMajorAxis,
+>()
+where
+    ScalarCount<C>: VecLen,
+    ScalarCount<R>: VecLen,
+{
 }

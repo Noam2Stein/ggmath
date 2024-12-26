@@ -7,39 +7,49 @@ use ggmath::{
 };
 
 pub fn test_vector() -> TestResult {
-    test_array::<2, f64, VecAligned>()?;
-    test_array::<3, f64, VecAligned>()?;
-    test_array::<4, f64, VecAligned>()?;
-    test_array::<2, f64, VecPacked>()?;
-    test_array::<3, f64, VecPacked>()?;
-    test_array::<4, f64, VecPacked>()?;
+    test_n_t_a::<2, f64, VecAligned>()?;
+    test_n_t_a::<3, f64, VecAligned>()?;
+    test_n_t_a::<4, f64, VecAligned>()?;
+    test_n_t_a::<2, f64, VecPacked>()?;
+    test_n_t_a::<3, f64, VecPacked>()?;
+    test_n_t_a::<4, f64, VecPacked>()?;
 
     test_builder::<f32>()?;
 
     Ok(())
 }
 
-fn test_array<const N: usize, T: TestableScalar, A: VecAlignment>() -> TestResult
+fn test_n_t_a<const N: usize, T: TestableScalar, A: VecAlignment>() -> TestResult
 where
     ScalarCount<N>: VecLen,
 {
-    let array = T::n_values::<N>(0);
-    let vector = Vector::<N, T, A>::from_array(array);
+    for values in T::get_4_n() {
+        test_array::<N, T, A>(values)?;
+    }
 
-    vec_test_assert!(into_array: vector.into_array(), array; vector);
-    vec_test_assert!(as_array: vector.as_array(), &array; vector);
-    vec_test_assert!(as_array: *vector.clone().as_array_mut(), array; vector);
+    Ok(())
+}
+
+fn test_array<const N: usize, T: TestableScalar, A: VecAlignment>(values: [T; N]) -> TestResult
+where
+    ScalarCount<N>: VecLen,
+{
+    let vector = Vector::<N, T, A>::from_array(values);
+
+    vec_test_assert!(into_array: vector.into_array(), values; vector);
+    vec_test_assert!(as_array: vector.as_array(), &values; vector);
+    vec_test_assert!(as_array_mut: *vector.clone().as_array_mut(), values; vector);
 
     Ok(())
 }
 
 fn test_builder<T: TestableScalar>() -> TestResult {
-    let values = T::n_values::<4>(0);
+    let values = T::VALUES[2];
 
     macro_rules! test_builder {
         ($macro_:ident, $macro_p:ident: $n:tt $([$($field:tt), *]), *) => {$(
-            test_assert!(TestFnDesc(format!(stringify!($macro_))), $macro_!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
-            test_assert!(TestFnDesc(format!(stringify!($macro_p))), $macro_p!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
+            test_assert!(TestFnDesc(concat!(stringify!($macro_), "!").to_string()), $macro_!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
+            test_assert!(TestFnDesc(concat!(stringify!($macro_p), "!").to_string()), $macro_p!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
         )*};
     }
     macro_rules! builder_fields {

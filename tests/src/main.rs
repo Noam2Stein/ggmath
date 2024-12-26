@@ -2,7 +2,7 @@ mod matrix;
 //mod rectangle;
 mod scalars;
 mod vector;
-use ggmath::testing::{FormatTestingResult, TestResult};
+use ggmath::testing::{FormatTestResult, TestResult};
 use matrix::*;
 //use rectangle::*;
 use scalars::*;

@@ -3,7 +3,7 @@ use std::{
     panic::{catch_unwind, set_hook, take_hook, UnwindSafe},
 };
 
-use crate::testing::{TestFnDesc, TestResult, TestingError};
+use crate::testing::{TestError, TestFnDesc, TestResult};
 
 pub use ggmath_proc_macros::{mat_test_assert, rect_test_assert, test_assert, vec_test_assert};
 
@@ -30,7 +30,7 @@ pub fn __test_assert_helper<V: Debug + UnwindSafe + PartialEq<E>, E: Debug + Unw
     }) {
         Ok(())
     } else {
-        Err(TestingError::new(
+        Err(TestError::new(
             &fn_desc(),
             &format!(
                 "{}\nexpected `{expected:?}`\nfound `{value:?}`\n",

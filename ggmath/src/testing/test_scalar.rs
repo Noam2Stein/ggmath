@@ -3,17 +3,17 @@ use std::mem::MaybeUninit;
 use crate::{
     ggmath,
     scalar::Scalar,
-    testing::{vec_test_assert, TestableScalar, TestingError},
+    testing::{vec_test_assert, TestError, TestableScalar},
     vector::*,
 };
 
-pub fn test_scalar<T: TestableScalar>() -> Result<(), TestingError> {
-    test_scalar_n_a::<2, T, VecAligned>()?;
-    test_scalar_n_a::<2, T, VecPacked>()?;
-    test_scalar_n_a::<3, T, VecAligned>()?;
-    test_scalar_n_a::<3, T, VecPacked>()?;
-    test_scalar_n_a::<4, T, VecAligned>()?;
-    test_scalar_n_a::<4, T, VecPacked>()?;
+pub fn test_scalar<T: TestableScalar>() -> Result<(), TestError> {
+    test_scalar_n_t_a::<2, T, VecAligned>()?;
+    test_scalar_n_t_a::<2, T, VecPacked>()?;
+    test_scalar_n_t_a::<3, T, VecAligned>()?;
+    test_scalar_n_t_a::<3, T, VecPacked>()?;
+    test_scalar_n_t_a::<4, T, VecAligned>()?;
+    test_scalar_n_t_a::<4, T, VecPacked>()?;
 
     Ok(())
 }
@@ -38,20 +38,24 @@ where
     Some(Vector::from_array(output))
 }
 
-fn test_scalar_n_a<const N: usize, T: TestableScalar, A: VecAlignment>() -> Result<(), TestingError>
+fn test_scalar_n_t_a<const N: usize, T: TestableScalar, A: VecAlignment>() -> Result<(), TestError>
 where
     ScalarCount<N>: VecLen,
 {
-    test_vector_get::<N, T, A>()?;
+    for values in T::get_4_n() {
+        test_vector_get::<N, T, A>(values)?;
+    }
 
     Ok(())
 }
 
-fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>() -> Result<(), TestingError>
+fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>(
+    values: [T; N],
+) -> Result<(), TestError>
 where
     ScalarCount<N>: VecLen,
 {
-    let vector = Vector::<N, T, A>::from_array(T::n_values(0));
+    let vector = Vector::<N, T, A>::from_array(values);
 
     for i in 0..=4 {
         vec_test_assert!(get: vector.get(i), vector.as_array().get(i).map(|some| *some); vector, i);
