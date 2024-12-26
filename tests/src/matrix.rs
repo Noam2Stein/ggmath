@@ -49,10 +49,10 @@ fn test_builder<T: TestableScalar>() -> TestResult {
     }
     macro_rules! builder_field {
         ($c:tt $index:literal) => {
-            first_n_components!($c(values[$index]))
+            first_n_components!($c(vectors[$index]))
         };
         ($c:tt ($($index:literal), *)) => {
-            Matrix::<$c, { tt_count!($($index)*) }, T, VecAligned, RowMajor>::from_rows([$(first_n_components!($c(values[$index]))), *])
+            Matrix::<$c, { tt_count!($($index)*) }, T, VecAligned, RowMajor>::from_rows([$(first_n_components!($c(vectors[$index]))), *])
         }
     }
     macro_rules! tt_count {
@@ -126,26 +126,13 @@ where
     ScalarCount<C>: VecLen,
     ScalarCount<R>: VecLen,
 {
-    let rows_array: [[T; C]; R] = array::from_fn(|row_index| T::n_values(row_index * C));
-    let columns_array: [[T; R]; C] = array::from_fn(|column_index| {
-        array::from_fn(|row_index| rows_array[row_index][column_index])
-    });
+    for values_r in T::get_4_c_r::<C, R>() {
+        let values_c = array::from_fn::<_, C, _>(|column_index| {
+            array::from_fn::<_, R, _>(|row_index| values_r[row_index][column_index])
+        });
 
-    let rows = rows_array.map(|row_array| Vector::<C, T, A>::from_array(row_array));
-    let columns = columns_array.map(|column_array| Vector::<R, T, A>::from_array(column_array));
-
-    let matrix = Matrix::<C, R, T, A, M>::from_rows(rows);
-
-    mat_test_assert!(from_rows: matrix, Matrix::<C, R, T, A, M>::from_columns(columns));
-
-    assert_eq!(matrix.into_rows(), rows);
-    assert_eq!(matrix.into_columns(), columns);
-    assert_eq!(matrix.into_rows_array(), rows_array);
-    assert_eq!(matrix.into_columns_array(), columns_array);
-    assert_eq!(matrix.into_aligned().into_rows_array(), rows_array);
-    assert_eq!(matrix.into_packed().into_rows_array(), rows_array);
-    assert_eq!(matrix.into_column_major().into_columns(), columns);
-    assert_eq!(matrix.into_row_major().into_rows(), rows);
+        test_conversions::<C, R, T, A, M>(values_r, values_c)?;
+    }
 
     Ok(())
 }
@@ -156,9 +143,30 @@ fn test_conversions<
     T: TestableScalar,
     A: VecAlignment,
     M: MatrixMajorAxis,
->()
+>(
+    values_r: [[T; C]; R],
+    values_c: [[T; R]; C],
+) -> TestResult
 where
     ScalarCount<C>: VecLen,
     ScalarCount<R>: VecLen,
 {
+    let rows = values_r.map(|row_array| Vector::<C, T, A>::from_array(row_array));
+    let columns = values_c.map(|column_array| Vector::<R, T, A>::from_array(column_array));
+
+    let matrix = Matrix::<C, R, T, A, M>::from_rows(rows);
+
+    mat_test_assert!(from_columns: Matrix::<C, R, T, A, M>::from_columns(columns), matrix; matrix);
+
+    mat_test_assert!(into_rows: matrix.into_rows(), rows; matrix);
+    mat_test_assert!(into_columns: matrix.into_columns(), columns; matrix);
+    mat_test_assert!(into_rows_array: matrix.into_rows_array(), values_r; matrix);
+    mat_test_assert!(into_columns_array: matrix.into_columns_array(), values_c; matrix);
+
+    mat_test_assert!(into_aligned: matrix.into_aligned(), matrix; matrix);
+    mat_test_assert!(into_packed: matrix.into_packed(), matrix; matrix);
+    mat_test_assert!(into_column_major: matrix.into_column_major(), matrix; matrix);
+    mat_test_assert!(into_row_major: matrix.into_row_major(), matrix; matrix);
+
+    Ok(())
 }

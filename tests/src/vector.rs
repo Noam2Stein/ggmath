@@ -7,14 +7,14 @@ use ggmath::{
 };
 
 pub fn test_vector() -> TestResult {
-    test_n_t_a::<2, f64, VecAligned>()?;
-    test_n_t_a::<3, f64, VecAligned>()?;
-    test_n_t_a::<4, f64, VecAligned>()?;
-    test_n_t_a::<2, f64, VecPacked>()?;
-    test_n_t_a::<3, f64, VecPacked>()?;
-    test_n_t_a::<4, f64, VecPacked>()?;
+    test_n_t_a::<2, i32, VecAligned>()?;
+    test_n_t_a::<3, i32, VecAligned>()?;
+    test_n_t_a::<4, i32, VecAligned>()?;
+    test_n_t_a::<2, i32, VecPacked>()?;
+    test_n_t_a::<3, i32, VecPacked>()?;
+    test_n_t_a::<4, i32, VecPacked>()?;
 
-    test_builder::<f32>()?;
+    test_builder::<isize>()?;
 
     Ok(())
 }
@@ -24,20 +24,22 @@ where
     ScalarCount<N>: VecLen,
 {
     for values in T::get_4_n() {
-        test_array::<N, T, A>(values)?;
+        test_conversions::<N, T, A>(values)?;
     }
 
     Ok(())
 }
 
-fn test_array<const N: usize, T: TestableScalar, A: VecAlignment>(values: [T; N]) -> TestResult
+fn test_conversions<const N: usize, T: TestableScalar, A: VecAlignment>(
+    values: [T; N],
+) -> TestResult
 where
     ScalarCount<N>: VecLen,
 {
     let vector = Vector::<N, T, A>::from_array(values);
 
     vec_test_assert!(into_array: vector.into_array(), values; vector);
-    vec_test_assert!(as_array: vector.as_array(), &values; vector);
+    vec_test_assert!(as_array: *vector.as_array(), values; vector);
     vec_test_assert!(as_array_mut: *vector.clone().as_array_mut(), values; vector);
 
     Ok(())

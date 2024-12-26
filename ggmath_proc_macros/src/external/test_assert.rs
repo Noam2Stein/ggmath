@@ -14,9 +14,8 @@ pub fn test_assert(input: TokenStream1) -> TokenStream1 {
 
     let inputs_lit = inputs
         .iter()
-        .map(|input| format!(" * {} = {{:?}}", input))
-        .collect::<Box<[String]>>()
-        .join("\n");
+        .map(|input| format!(" * {} = {{:?}}\n", input))
+        .collect::<String>();
 
     let inputs = inputs.into_iter();
 
@@ -42,9 +41,8 @@ pub fn vec_test_assert(input: TokenStream1) -> TokenStream1 {
 
     let inputs_lit = inputs
         .iter()
-        .map(|input| format!(" * {} = {{:?}}", input))
-        .collect::<Box<[String]>>()
-        .join("\n");
+        .map(|input| format!(" * {} = {{:?}}\n", input))
+        .collect::<String>();
 
     let inputs = inputs.into_iter();
 
@@ -70,9 +68,8 @@ pub fn mat_test_assert(input: TokenStream1) -> TokenStream1 {
 
     let inputs_lit = inputs
         .iter()
-        .map(|input| format!(" * {} = {{:?}}", input))
-        .collect::<Box<[String]>>()
-        .join("\n");
+        .map(|input| format!(" * {} = {{:?}}\n", input))
+        .collect::<String>();
 
     let inputs = inputs.into_iter();
 
@@ -98,9 +95,8 @@ pub fn rect_test_assert(input: TokenStream1) -> TokenStream1 {
 
     let inputs_lit = inputs
         .iter()
-        .map(|input| format!(" * {} = {{:?}}", input))
-        .collect::<Box<[String]>>()
-        .join("\n");
+        .map(|input| format!(" * {} = {{:?}}\n", input))
+        .collect::<String>();
 
     let inputs = inputs.into_iter();
 

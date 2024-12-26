@@ -1,4 +1,4 @@
-use std::mem::MaybeUninit;
+use std::{mem::MaybeUninit, slice::from_raw_parts};
 
 use crate::{
     ggmath,
@@ -7,7 +7,9 @@ use crate::{
     vector::*,
 };
 
-pub fn test_scalar<T: TestableScalar>() -> Result<(), TestError> {
+use super::TestResult;
+
+pub fn test_scalar<T: TestableScalar>() -> TestResult {
     test_scalar_n_t_a::<2, T, VecAligned>()?;
     test_scalar_n_t_a::<2, T, VecPacked>()?;
     test_scalar_n_t_a::<3, T, VecAligned>()?;
@@ -18,6 +20,12 @@ pub fn test_scalar<T: TestableScalar>() -> Result<(), TestError> {
     Ok(())
 }
 
+fn byte_eq<T: Sized>(a: T, b: T) -> bool {
+    unsafe {
+        from_raw_parts(&a as *const _ as *const u8, size_of::<T>())
+            == from_raw_parts(&b as *const _ as *const u8, size_of::<T>())
+    }
+}
 fn get_n<const N: usize, const N_OUTPUT: usize, T: Scalar, A: VecAlignment>(
     vector: Vector<N, T, A>,
     indicies: [usize; N_OUTPUT],
@@ -49,9 +57,7 @@ where
     Ok(())
 }
 
-fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>(
-    values: [T; N],
-) -> Result<(), TestError>
+fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>(values: [T; N]) -> TestResult
 where
     ScalarCount<N>: VecLen,
 {
