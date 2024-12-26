@@ -25,4 +25,7 @@ pub mod quaternion;
 #[cfg(feature = "rectangle")]
 pub mod rectangle;
 
+#[cfg(feature = "testing")]
+pub mod testing;
+
 use crate as ggmath;

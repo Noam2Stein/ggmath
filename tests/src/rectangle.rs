@@ -1,5 +1,4 @@
 use ggmath::{rectangle::*, scalar::*, vector::*};
-use ggmath_testing::*;
 
 pub fn test_rectangle() -> TestResult {
     test_n_t_a_r::<2, i32, VecAligned, RectCornered>();

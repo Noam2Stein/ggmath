@@ -4,6 +4,7 @@ mod derive_wrapper_scalar;
 mod matrix_builder;
 mod scalar_aliases;
 mod scalar_inner_vectors;
+mod test_assert;
 mod vector_builder;
 pub use derive_wrapper_scalar::derive_wrapper_scalar;
 pub use matrix_builder::{
@@ -14,4 +15,5 @@ pub use matrix_builder::{
 };
 pub use scalar_aliases::{matrix_aliases, rectangle_aliases, vector_aliases};
 pub use scalar_inner_vectors::scalar_inner_vectors;
+pub use test_assert::{mat_test_assert, rect_test_assert, test_assert, vec_test_assert};
 pub use vector_builder::{vec2, vec2p, vec3, vec3p, vec4, vec4p};

@@ -1,7 +1,10 @@
 use std::array;
 
-use ggmath::{matrix::*, vector::*};
-use ggmath_testing::*;
+use ggmath::{
+    matrix::*,
+    testing::{mat_test_assert, test_assert, TestFnDesc, TestResult, TestableScalar},
+    vector::*,
+};
 
 pub fn test_matrix() -> TestResult {
     test_builder::<f32>()?;
@@ -33,20 +36,20 @@ fn test_builder<T: TestableScalar>() -> TestResult {
             let rhs4 = Matrix::<4, $r, T, VecAligned, RowMajor>::from_rows_fn(|row_index| values[row_index].xyzw());
 
             $(
-                test_assert!(FailedFn(format!(stringify!($macro2))), $macro2!($(builder_field!(2 $field)); *), rhs2);
-                test_assert!(FailedFn(format!(stringify!($macro2p))), $macro2p!($(builder_field!(2 $field)); *), rhs2);
-                test_assert!(FailedFn(format!(stringify!($macro2c))), $macro2c!($(builder_field!(2 $field)); *), rhs2);
-                test_assert!(FailedFn(format!(stringify!($macro2cp))), $macro2cp!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(format!(stringify!($macro2))), $macro2!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(format!(stringify!($macro2p))), $macro2p!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(format!(stringify!($macro2c))), $macro2c!($(builder_field!(2 $field)); *), rhs2);
+                test_assert!(TestFnDesc(format!(stringify!($macro2cp))), $macro2cp!($(builder_field!(2 $field)); *), rhs2);
 
-                test_assert!(FailedFn(format!(stringify!($macro2))), $macro3!($(builder_field!(3 $field)); *), rhs3);
-                test_assert!(FailedFn(format!(stringify!($macro2p))), $macro3p!($(builder_field!(3 $field)); *), rhs3);
-                test_assert!(FailedFn(format!(stringify!($macroc2))), $macro3c!($(builder_field!(3 $field)); *), rhs3);
-                test_assert!(FailedFn(format!(stringify!($macro2cp))), $macro3cp!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(format!(stringify!($macro2))), $macro3!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(format!(stringify!($macro2p))), $macro3p!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(format!(stringify!($macroc2))), $macro3c!($(builder_field!(3 $field)); *), rhs3);
+                test_assert!(TestFnDesc(format!(stringify!($macro2cp))), $macro3cp!($(builder_field!(3 $field)); *), rhs3);
 
-                test_assert!(FailedFn(format!(stringify!($macro2))), $macro4!($(builder_field!(4 $field)); *), rhs4);
-                test_assert!(FailedFn(format!(stringify!($macro2p))), $macro4p!($(builder_field!(4 $field)); *), rhs4);
-                test_assert!(FailedFn(format!(stringify!($macro2c))), $macro4c!($(builder_field!(4 $field)); *), rhs4);
-                test_assert!(FailedFn(format!(stringify!($macro2cp))), $macro4cp!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(format!(stringify!($macro2))), $macro4!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(format!(stringify!($macro2p))), $macro4p!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(format!(stringify!($macro2c))), $macro4c!($(builder_field!(4 $field)); *), rhs4);
+                test_assert!(TestFnDesc(format!(stringify!($macro2cp))), $macro4cp!($(builder_field!(4 $field)); *), rhs4);
             )*
         };
     }
@@ -139,7 +142,7 @@ where
 
     let matrix = Matrix::<C, R, T, A, M>::from_rows(rows);
 
-    matrix_test_assert!(from_rows: matrix, Matrix::<C, R, T, A, M>::from_columns(columns));
+    mat_test_assert!(from_rows: matrix, Matrix::<C, R, T, A, M>::from_columns(columns));
 
     assert_eq!(matrix.into_rows(), rows);
     assert_eq!(matrix.into_columns(), columns);

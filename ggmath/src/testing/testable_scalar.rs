@@ -1,6 +1,6 @@
 use std::{array, fmt::Debug};
 
-use ggmath::scalar::*;
+use crate::scalar::*;
 
 pub trait TestableScalar: Scalar + PartialEq + Debug {
     const VALUES: [Self; 16];

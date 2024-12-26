@@ -1,8 +1,10 @@
-use ggmath::vector::{
-    vec2, vec2p, vec3, vec3p, vec4, vec4p, ScalarCount, VecAligned, VecAlignment, VecLen,
-    VecPacked, Vector,
+use ggmath::{
+    testing::{test_assert, vec_test_assert, TestFnDesc, TestResult, TestableScalar},
+    vector::{
+        vec2, vec2p, vec3, vec3p, vec4, vec4p, ScalarCount, VecAligned, VecAlignment, VecLen,
+        VecPacked, Vector,
+    },
 };
-use ggmath_testing::{test_assert, vector_test_assert, TestFnDesc, TestResult, TestableScalar};
 
 pub fn test_vector() -> TestResult {
     test_array::<2, f64, VecAligned>()?;
@@ -24,9 +26,9 @@ where
     let array = T::n_values::<N>(0);
     let vector = Vector::<N, T, A>::from_array(array);
 
-    vector_test_assert!(into_from_array: vector.into_array(), array, array);
-    vector_test_assert!(as_array: vector.as_array(), array, vector);
-    vector_test_assert!(as_array: vector.clone().as_array_mut(), array, vector);
+    vec_test_assert!(into_array: vector.into_array(), array; vector);
+    vec_test_assert!(as_array: vector.as_array(), &array; vector);
+    vec_test_assert!(as_array: *vector.clone().as_array_mut(), array; vector);
 
     Ok(())
 }
@@ -36,8 +38,8 @@ fn test_builder<T: TestableScalar>() -> TestResult {
 
     macro_rules! test_builder {
         ($macro_:ident, $macro_p:ident: $n:tt $([$($field:tt), *]), *) => {$(
-            test_assert!(FailedFn(format!(stringify!($macro_))), $macro_!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
-            test_assert!(FailedFn(format!(stringify!($macro_p))), $macro_p!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
+            test_assert!(TestFnDesc(format!(stringify!($macro_))), $macro_!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
+            test_assert!(TestFnDesc(format!(stringify!($macro_p))), $macro_p!($(builder_fields!($field)), *), Vector::<$n, T, VecAligned>::from_fn(|index| values[index]));
         )*};
     }
     macro_rules! builder_fields {

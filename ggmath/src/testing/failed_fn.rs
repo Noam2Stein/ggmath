@@ -3,7 +3,7 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use ggmath::{
+use crate::{
     matrix::MatrixMajorAxis,
     scalar::Scalar,
     vector::{ScalarCount, VecAlignment, VecLen},

@@ -1,4 +1,4 @@
-use ggmath_testing::{test_scalar, TestResult};
+use ggmath::testing::{test_scalar, TestResult};
 
 pub fn test_scalars() -> TestResult {
     test_scalar::<f32>()?;

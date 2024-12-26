@@ -8,7 +8,6 @@ members = [
     "examples/gpu_structs",
     "ggmath",
     "ggmath_proc_macros",
-    "ggmath_testing",
     "sandbox",
     "tests",
 ]
