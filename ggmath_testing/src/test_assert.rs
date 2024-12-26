@@ -1,10 +1,13 @@
-use std::fmt::Debug;
+use std::{
+    fmt::Debug,
+    panic::{catch_unwind, set_hook, take_hook, UnwindSafe},
+};
 
-use crate::{FailedFn, TestingError};
+use crate::{TestFnDesc, TestResult, TestingError};
 
 #[doc(hidden)]
 pub fn _test_assert_helper<T: Debug + PartialEq<E>, E: Debug>(
-    failed_fn: impl FnOnce() -> FailedFn,
+    failed_fn: impl FnOnce() -> TestFnDesc,
     value: T,
     expected_value: E,
     inputs: impl FnOnce() -> Box<[String]>,
@@ -22,47 +25,30 @@ pub fn _test_assert_helper<T: Debug + PartialEq<E>, E: Debug>(
     }
 }
 
-#[macro_export]
-macro_rules! test_assert {
-    ($failed_fn:expr, $value:expr, $expected_value:expr $(, $input:ident)* $(,)?) => {
-        $crate::_test_assert_helper(
-            || $failed_fn,
-            $crate::ValueOrPanic::from_fn(|| $value),
-            $crate::ValueOrPanic::from_fn(|| $expected_value),
-            || Box::new([$(format!(" * {} = {:?} \n", stringify!($input), $input)), *]),
-        )?;
-    };
-}
-#[macro_export]
-macro_rules! vector_test_assert {
-    ($failed_fn:ident: $value:expr, $expected_value:expr $(, $input:ident)* $(,)?) => {
-        $crate::_test_assert_helper(
-            || $crate::FailedFn::vector::<N, T, A>(stringify!($failed_fn)),
-            $crate::ValueOrPanic::from_fn(|| $value),
-            $crate::ValueOrPanic::from_fn(|| $expected_value),
-            || Box::new([$(format!(" * {} = {:?} \n", stringify!($input), $input)), *]),
-        )?;
-    };
-}
-#[macro_export]
-macro_rules! matrix_test_assert {
-    ($failed_fn:ident: $value:expr, $expected_value:expr $(, $input:ident)* $(,)?) => {
-        $crate::_test_assert_helper(
-            || $crate::FailedFn::matrix::<C, R, T, A, M>(stringify!($failed_fn)),
-            $crate::ValueOrPanic::from_fn(|| $value),
-            $crate::ValueOrPanic::from_fn(|| $expected_value),
-            || Box::new([$(format!(" * {} = {:?} \n", stringify!($input), $input)), *]),
-        )?;
-    };
-}
-#[macro_export]
-macro_rules! rectangle_test_assert {
-    ($failed_fn:ident: $value:expr, $expected_value:expr $(, $input:ident)* $(,)?) => {
-        $crate::_test_assert_helper(
-            || $crate::FailedFn::rectangle::<N, T, A, R>(stringify!($failed_fn)),
-            $crate::ValueOrPanic::from_fn(|| $value),
-            $crate::ValueOrPanic::from_fn(|| $expected_value),
-            || Box::new([$(format!(" * {} = {:?} \n", stringify!($input), $input)), *]),
-        )?;
-    };
+pub fn test_assert<V: Debug + UnwindSafe + PartialEq<E>, E: Debug + UnwindSafe>(
+    fn_desc: impl FnOnce() -> TestFnDesc,
+    f: impl FnOnce() -> V + UnwindSafe,
+    f_expected: impl FnOnce() -> E + UnwindSafe,
+    input_descs: impl FnOnce() -> String,
+) -> TestResult {
+    set_hook(Box::new(|_| {}));
+    let value = catch_unwind(f).ok();
+    let expected = catch_unwind(f_expected).ok();
+    take_hook();
+
+    if value.as_ref().map_or(expected.is_none(), |value| {
+        expected
+            .as_ref()
+            .map_or(false, |expected| value == expected)
+    }) {
+        Ok(())
+    } else {
+        Err(TestingError::new(
+            &fn_desc(),
+            &format!(
+                "{}\nexpected `{expected:?}`\nfound `{value:?}`\n",
+                input_descs()
+            ),
+        ))
+    }
 }

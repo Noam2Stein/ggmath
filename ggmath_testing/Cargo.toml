@@ -18,7 +18,5 @@ dev.panic     = "unwind"
 release.panic = "unwind"
 
 [dependencies]
-ggmath = "0.2.0"
-ggmath_proc_macros = { path = "../ggmath_proc_macros", features = [
-    "ggmath_testing",
-] }
+ggmath             = "0.2.0"
+ggmath_proc_macros = { path = "../ggmath_proc_macros" }

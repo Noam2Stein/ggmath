@@ -9,9 +9,9 @@ use ggmath::{
     vector::{ScalarCount, VecAlignment, VecLen},
 };
 
-pub struct FailedFn(pub String);
+pub struct TestFnDesc(pub String);
 
-impl FailedFn {
+impl TestFnDesc {
     pub fn vector<const N: usize, T: Scalar, A: VecAlignment>(fn_ident: &'static str) -> Self
     where
         ScalarCount<N>: VecLen,
@@ -51,7 +51,7 @@ impl FailedFn {
     }
 }
 
-impl Display for FailedFn {
+impl Display for TestFnDesc {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }

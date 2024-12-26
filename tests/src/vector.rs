@@ -2,7 +2,7 @@ use ggmath::vector::{
     vec2, vec2p, vec3, vec3p, vec4, vec4p, ScalarCount, VecAligned, VecAlignment, VecLen,
     VecPacked, Vector,
 };
-use ggmath_testing::{test_assert, vector_test_assert, FailedFn, TestResult, TestableScalar};
+use ggmath_testing::{test_assert, vector_test_assert, TestFnDesc, TestResult, TestableScalar};
 
 pub fn test_vector() -> TestResult {
     test_array::<2, f64, VecAligned>()?;

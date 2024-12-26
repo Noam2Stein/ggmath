@@ -2,7 +2,7 @@ use std::mem::MaybeUninit;
 
 use ggmath::{scalar::Scalar, vector::*};
 
-use crate::{vector_test_assert, TestableScalar, TestingError};
+use crate::{test_assert, TestFnDesc, TestableScalar, TestingError};
 
 pub fn test_scalar<T: TestableScalar>() -> Result<(), TestingError> {
     test_scalar_n_a::<2, T, VecAligned>()?;
@@ -51,6 +51,12 @@ where
     let vector = Vector::<N, T, A>::from_array(T::n_values(0));
 
     for i in 0..=4 {
+        test_assert(
+            TestFnDesc::vector::<N, T, A>("get"),
+            f,
+            f_expected,
+            input_descs,
+        );
         vector_test_assert!(get: vector.get(i), vector.as_array().get(i).map(|some| *some), vector, i);
 
         for i_1 in 0..=4 {
