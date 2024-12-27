@@ -1,10 +1,10 @@
 mod matrix;
-//mod rectangle;
+mod rectangle;
 mod scalars;
 mod vector;
 use ggmath::testing::{FormatTestResult, TestResult};
 use matrix::*;
-//use rectangle::*;
+use rectangle::*;
 use scalars::*;
 use vector::*;
 
@@ -16,7 +16,7 @@ fn test() -> TestResult {
     test_vector()?;
     test_scalars()?;
     test_matrix()?;
-    //test_rectangle()?;
+    test_rectangle()?;
 
     Ok(())
 }

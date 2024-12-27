@@ -1,4 +1,4 @@
-use std::{mem::MaybeUninit, slice::from_raw_parts};
+use std::mem::MaybeUninit;
 
 use crate::{
     ggmath,
@@ -20,12 +20,6 @@ pub fn test_scalar<T: TestableScalar>() -> TestResult {
     Ok(())
 }
 
-fn byte_eq<T: Sized>(a: T, b: T) -> bool {
-    unsafe {
-        from_raw_parts(&a as *const _ as *const u8, size_of::<T>())
-            == from_raw_parts(&b as *const _ as *const u8, size_of::<T>())
-    }
-}
 fn get_n<const N: usize, const N_OUTPUT: usize, T: Scalar, A: VecAlignment>(
     vector: Vector<N, T, A>,
     indicies: [usize; N_OUTPUT],

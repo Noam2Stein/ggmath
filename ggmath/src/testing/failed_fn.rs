@@ -4,7 +4,6 @@ use std::{
 };
 
 use crate::{
-    matrix::MatrixMajorAxis,
     scalar::Scalar,
     vector::{ScalarCount, VecAlignment, VecLen},
 };
@@ -20,33 +19,6 @@ impl TestFnDesc {
             "Vector::<{N}, {}, {}>::{fn_ident}",
             type_name::<T>().split("::").last().unwrap_or(""),
             type_name::<A>().split("::").last().unwrap_or(""),
-        ))
-    }
-
-    pub fn matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>(
-        fn_ident: &'static str,
-    ) -> Self
-    where
-        ScalarCount<C>: VecLen,
-        ScalarCount<R>: VecLen,
-    {
-        Self(format!(
-            "Matrix::<{C} {R}, {}, {}, {}>::{fn_ident}",
-            type_name::<T>().split("::").last().unwrap_or(""),
-            type_name::<A>().split("::").last().unwrap_or(""),
-            type_name::<M>().split("::").last().unwrap_or(""),
-        ))
-    }
-
-    pub fn rectangle<const N: usize, T: Scalar, A: VecAlignment, R>(fn_ident: &'static str) -> Self
-    where
-        ScalarCount<N>: VecLen,
-    {
-        Self(format!(
-            "Rectangle::<{N}, {}, {}, {}>::{fn_ident}",
-            type_name::<T>().split("::").last().unwrap_or(""),
-            type_name::<A>().split("::").last().unwrap_or(""),
-            type_name::<R>().split("::").last().unwrap_or(""),
         ))
     }
 }

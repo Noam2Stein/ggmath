@@ -1,11 +1,20 @@
-use std::fmt::Debug;
+use std::{array::from_fn, fmt::Debug};
 
 use crate::{
     scalar::*,
     vector::{ScalarCount, VecLen},
 };
 
-pub trait TestableScalar: Scalar + PartialEq + Debug {
+use super::TestEq;
+
+pub trait TestableScalar: Scalar + Debug + TestEq {
+    /// 4 sets of 4 scalar values provided to test the scalar.
+    ///
+    /// These 4 sets should try to follow these rules:
+    /// * 1st. Normal cases
+    /// * 2nd. Normal cases
+    /// * 3rd. Some edge case values
+    /// * 4th. All edge case values (0, MIN, MAX, NAN, INFINITY...)
     const VALUES: [[Self; 4]; 4];
 
     fn get_4_n<const N: usize>() -> [[Self; N]; 4]
@@ -27,10 +36,10 @@ pub trait TestableScalar: Scalar + PartialEq + Debug {
     {
         let rows = Self::VALUES.map(|row| <[Self; C]>::try_from(&row[0..C]).unwrap());
         [
-            rows[0..R].try_into().unwrap(),
-            rows[1..R + 1].try_into().unwrap(),
-            rows[2..R + 2].try_into().unwrap(),
-            rows[3..R + 3].try_into().unwrap(),
+            from_fn(|i| rows[i % 4]),
+            from_fn(|i| rows[(i + 1) % 4]),
+            from_fn(|i| rows[(i + 2) % 4]),
+            from_fn(|i| rows[(i + 3) % 4]),
         ]
     }
 }
@@ -43,6 +52,7 @@ impl TestableScalar for f32 {
         [Self::INFINITY, Self::NEG_INFINITY, Self::MIN, Self::MAX],
     ];
 }
+
 impl TestableScalar for f64 {
     const VALUES: [[Self; 4]; 4] = [
         [3.0, 5.81, 1000.1, 6941.4],

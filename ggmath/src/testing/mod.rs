@@ -63,11 +63,23 @@
 
 mod failed_fn;
 mod test_assert;
+mod test_eq;
 mod test_error;
 mod test_scalar;
 mod testable_scalar;
 pub use failed_fn::*;
 pub use test_assert::*;
+pub use test_eq::*;
 pub use test_error::*;
 pub use test_scalar::*;
 pub use testable_scalar::*;
+
+#[cfg(feature = "matrix")]
+mod matrix;
+#[cfg(feature = "matrix")]
+pub use matrix::*;
+
+#[cfg(feature = "rectangle")]
+mod rectangle;
+#[cfg(feature = "rectangle")]
+pub use rectangle::*;
