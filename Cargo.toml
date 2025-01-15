@@ -3,7 +3,6 @@
 members = [
     "examples/custom_scalar_testing",
     "examples/custom_scalar_unique",
-    "examples/custom_scalar_wrapper",
     "examples/generic_physics_engine",
     "examples/gpu_structs",
     "ggmath",
