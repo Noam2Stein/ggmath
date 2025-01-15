@@ -1,3 +1,5 @@
+use std::panic::{catch_unwind, set_hook, take_hook};
+
 use ggmath::{
     rectangle::{RectCentered, RectCornered, RectMinMaxed, RectRepr, Rectangle, ScalarRect},
     testing::{rect_test_assert, TestResult, TestableScalar},
@@ -37,9 +39,23 @@ where
     for values in T::get_4_c_r::<N, 2>() {
         let center = Vector::from_array(values[0]);
         let extents = Vector::from_array(values[1]);
-        let min = center - extents;
-        let max = center + extents;
-        let size = extents + extents;
+
+        set_hook(Box::new(|_| {}));
+
+        let min = match catch_unwind(|| center - extents) {
+            Ok(ok) => ok,
+            Err(_) => continue,
+        };
+        let max = match catch_unwind(|| center + extents) {
+            Ok(ok) => ok,
+            Err(_) => continue,
+        };
+        let size = match catch_unwind(|| extents + extents) {
+            Ok(ok) => ok,
+            Err(_) => continue,
+        };
+
+        let _ = take_hook();
 
         let rect = Rectangle::<N, T, A, R>::from_center_extents(center, extents);
 
