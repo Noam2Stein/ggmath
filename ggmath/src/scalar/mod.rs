@@ -671,6 +671,50 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // ********************************************************************************
     // ********************************************************************************
+    // ********** CRATE TRAITS (that should probably be in std to be honest) **********
+    // ********************************************************************************
+    // ********************************************************************************
+
+    // Vector: Round
+
+    #[inline(always)]
+    fn vector_round<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Round,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Round::round)
+    }
+
+    #[inline(always)]
+    fn vector_floor<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Round,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Round::floor)
+    }
+
+    #[inline(always)]
+    fn vector_ceil<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Round,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Round::ceil)
+    }
+
+    #[inline(always)]
+    fn vector_trunc<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Round,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Round::trunc)
+    }
+
+    // ********************************************************************************
+    // ********************************************************************************
     // ************************************* API **************************************
     // ********************************************************************************
     // ********************************************************************************

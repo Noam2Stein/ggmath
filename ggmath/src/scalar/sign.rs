@@ -1,22 +1,10 @@
 use super::*;
 
-pub trait ScalarSigned: Scalar + Neg<Output = Self> {
-    #[inline(always)]
-    fn is_positive(self) -> bool {
-        !self.is_negative()
-    }
+pub trait ScalarSigned: Scalar {
+    fn is_positive(self) -> bool;
     fn is_negative(self) -> bool;
-
     fn signum(self) -> Self;
-
-    #[inline(always)]
-    fn abs(self) -> Self {
-        if self.is_negative() {
-            -self
-        } else {
-            self
-        }
-    }
+    fn abs(self) -> Self;
 
     #[inline(always)]
     fn vector_c_are_positive<const N: usize, A: VecAlignment>(
@@ -35,6 +23,21 @@ pub trait ScalarSigned: Scalar + Neg<Output = Self> {
         ScalarCount<N>: VecLen,
     {
         vec.map(|c| c.is_negative())
+    }
+
+    #[inline(always)]
+    fn vector_is_positive<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> bool
+    where
+        ScalarCount<N>: VecLen,
+    {
+        vec.iter().all(|c| c.is_positive())
+    }
+    #[inline(always)]
+    fn vector_is_negative<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> bool
+    where
+        ScalarCount<N>: VecLen,
+    {
+        vec.iter().all(|c| c.is_negative())
     }
 
     #[inline(always)]
@@ -65,6 +68,15 @@ where
     #[inline(always)]
     pub fn c_are_negative(self) -> Vector<N, bool, A> {
         T::vector_c_are_negative(self)
+    }
+
+    #[inline(always)]
+    pub fn is_positive(self) -> bool {
+        T::vector_is_positive(self)
+    }
+    #[inline(always)]
+    pub fn is_negative(self) -> bool {
+        T::vector_is_negative(self)
     }
 
     #[inline(always)]

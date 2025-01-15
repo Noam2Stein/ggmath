@@ -11,7 +11,11 @@
 //! - Optional additional types (Rect, Ray...).
 
 mod construct;
+mod round;
+mod signed;
 pub use construct::*;
+pub use round::*;
+pub use signed::*;
 
 pub mod scalar;
 pub mod vector;
