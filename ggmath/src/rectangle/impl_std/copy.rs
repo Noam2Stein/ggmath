@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Clone for Rectangle<N, T, A, R>
+impl<const N: usize, T: ScalarRect, A: VecAlignment, R: RectRepr> Clone for Rectangle<N, T, A, R>
 where
     ScalarCount<N>: VecLen,
 {
@@ -10,7 +10,7 @@ where
     }
 }
 
-impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Copy for Rectangle<N, T, A, R> where
+impl<const N: usize, T: ScalarRect, A: VecAlignment, R: RectRepr> Copy for Rectangle<N, T, A, R> where
     ScalarCount<N>: VecLen
 {
 }

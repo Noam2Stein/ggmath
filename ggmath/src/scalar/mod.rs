@@ -6,13 +6,10 @@ use std::{cmp::Ordering, ops::*};
 use crate::{vector::*, *};
 
 mod consts;
-mod num;
-mod round;
 mod sign;
 mod wrapper;
 pub use consts::*;
-pub use num::*;
-pub use round::*;
+use newnum::{AbsDiff, Round};
 pub use sign::*;
 pub use wrapper::*;
 
@@ -62,18 +59,6 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     // ****************************************************************************************************
     // ****************************************************************************************************
     // ****************************************************************************************************
-
-    #[inline(always)]
-    fn abs_diff(self, rhs: Self) -> Self::Output
-    where
-        Self: PartialOrd + Sub,
-    {
-        if self > rhs {
-            self - rhs
-        } else {
-            rhs - self
-        }
-    }
 
     #[inline(always)]
     fn min(self, other: Self) -> Self
@@ -713,6 +698,15 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(Round::trunc)
     }
 
+    #[inline(always)]
+    fn vector_atrunc<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Round,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Round::atrunc)
+    }
+
     // ********************************************************************************
     // ********************************************************************************
     // ************************************* API **************************************
@@ -739,7 +733,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     ) -> Vector<N, Self::Output, A>
     where
         ScalarCount<N>: VecLen,
-        Self: PartialOrd + Sub<Output: Scalar>,
+        Self: AbsDiff<Output: Scalar>,
     {
         Vector::from_fn(|i| vec[i].abs_diff(rhs[i]))
     }

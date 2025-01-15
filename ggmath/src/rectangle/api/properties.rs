@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: ScalarRect, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
     ScalarCount<N>: VecLen,
 {
@@ -24,12 +24,8 @@ where
     pub fn center(self) -> Vector<N, T, A> {
         match self.resolve_repr() {
             ReprResolvedRectangle::Centered(rect) => rect.inner[0],
-            ReprResolvedRectangle::Cornered(rect) => {
-                rect.inner[0] + rect.inner[1] / T::from(2).unwrap()
-            }
-            ReprResolvedRectangle::MinMaxed(rect) => {
-                (rect.inner[0] + rect.inner[1]) / T::from(2).unwrap()
-            }
+            ReprResolvedRectangle::Cornered(rect) => rect.inner[0] + rect.inner[1] / T::u7(2),
+            ReprResolvedRectangle::MinMaxed(rect) => (rect.inner[0] + rect.inner[1]) / T::u7(2),
         }
     }
     #[inline(always)]
@@ -44,10 +40,8 @@ where
     pub fn extents(self) -> Vector<N, T, A> {
         match self.resolve_repr() {
             ReprResolvedRectangle::Centered(rect) => rect.inner[1],
-            ReprResolvedRectangle::Cornered(rect) => rect.inner[1] / T::from(2).unwrap(),
-            ReprResolvedRectangle::MinMaxed(rect) => {
-                (rect.inner[1] - rect.inner[0]) / T::from(2).unwrap()
-            }
+            ReprResolvedRectangle::Cornered(rect) => rect.inner[1] / T::u7(2),
+            ReprResolvedRectangle::MinMaxed(rect) => (rect.inner[1] - rect.inner[0]) / T::u7(2),
         }
     }
 }

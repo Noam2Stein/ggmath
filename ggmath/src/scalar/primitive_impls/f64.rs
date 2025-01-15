@@ -4,26 +4,6 @@ scalar_inner_vectors!(f64(8));
 
 impl Scalar for f64 {}
 
-impl ScalarRound for f64 {
-    #[inline(always)]
-    fn ceil(self) -> Self {
-        self.ceil()
-    }
-    #[inline(always)]
-    fn floor(self) -> Self {
-        self.floor()
-    }
-    #[inline(always)]
-    fn round(self) -> Self {
-        self.round()
-    }
-    fn trunc(self) -> Self {
-        self.trunc()
-    }
-}
-
-impl ScalarNum for f64 {}
-
 impl ScalarSigned for f64 {
     fn abs(self) -> Self {
         self.abs()

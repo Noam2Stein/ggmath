@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: ScalarRect, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
     ScalarCount<N>: VecLen,
 {
@@ -8,7 +8,7 @@ where
     pub fn from_min_size(min: Vector<N, T, A>, size: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
             || Rectangle { inner: [min, size] },
-            || Rectangle::from_min_extents(min, size / T::from(2).unwrap()),
+            || Rectangle::from_min_extents(min, size / T::u7(2)),
             || Rectangle::from_min_max(min, min + size),
         )
     }
@@ -23,9 +23,9 @@ where
     #[inline(always)]
     pub fn from_center_size(center: Vector<N, T, A>, size: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(
-            || Rectangle::from_max_size(center + size / T::from(2).unwrap(), size),
-            || Rectangle::from_center_extents(center, size / T::from(2).unwrap()),
-            || Rectangle::from_max_size(center + size / T::from(2).unwrap(), size),
+            || Rectangle::from_max_size(center + size / T::u7(2), size),
+            || Rectangle::from_center_extents(center, size / T::u7(2)),
+            || Rectangle::from_max_size(center + size / T::u7(2), size),
         )
     }
 

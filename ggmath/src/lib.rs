@@ -10,12 +10,10 @@
 //! - Optimal for GPU structs.
 //! - Optional additional types (Rect, Ray...).
 
+pub use newnum as num;
+
 mod construct;
-mod round;
-mod signed;
 pub use construct::*;
-pub use round::*;
-pub use signed::*;
 
 pub mod scalar;
 pub mod vector;

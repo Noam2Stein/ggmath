@@ -1,8 +1,0 @@
-[package]
-edition = "2021"
-name    = "custom_scalar_wrapper"
-version = "0.1.0"
-
-[dependencies]
-derive_more = { version = "1.0.0", features = [ "full" ] }
-ggmath      = { path = "../../ggmath", features = [ "full" ] }

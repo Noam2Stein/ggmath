@@ -2,7 +2,7 @@ use super::*;
 
 impl<
         const N: usize,
-        T: ScalarNum,
+        T: ScalarRect,
         A: VecAlignment,
         R: RectRepr,
         ARhs: VecAlignment,
@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<const N: usize, T: ScalarNum + Eq, A: VecAlignment, R: RectRepr> Eq for Rectangle<N, T, A, R> where
+impl<const N: usize, T: ScalarRect + Eq, A: VecAlignment, R: RectRepr> Eq for Rectangle<N, T, A, R> where
     ScalarCount<N>: VecLen
 {
 }

@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: ScalarRect, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
     ScalarCount<N>: VecLen,
 {

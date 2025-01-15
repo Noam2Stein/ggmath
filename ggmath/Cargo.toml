@@ -40,4 +40,4 @@ testing = [  ]
 
 [dependencies]
 ggmath_proc_macros = { path = "../ggmath_proc_macros" }
-num-traits         = "0.2.19"
+newnum             = "0.0.4"

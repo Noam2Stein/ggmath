@@ -7,7 +7,7 @@ use super::*;
 
 #[allow(private_bounds)]
 pub trait RectRepr: Seal + Sized + 'static {
-    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment>: Construct
+    type InnerRectangle<const N: usize, T: ScalarRect, A: VecAlignment>: Construct
     where
         ScalarCount<N>: VecLen;
 }
@@ -16,7 +16,7 @@ pub struct RectCornered;
 pub struct RectCentered;
 pub struct RectMinMaxed;
 
-pub enum ReprResolvedRectangle<const N: usize, T: ScalarNum, A: VecAlignment>
+pub enum ReprResolvedRectangle<const N: usize, T: ScalarRect, A: VecAlignment>
 where
     ScalarCount<N>: VecLen,
 {
@@ -24,7 +24,7 @@ where
     Centered(Rectangle<N, T, A, RectCentered>),
     MinMaxed(Rectangle<N, T, A, RectMinMaxed>),
 }
-pub enum ReprResolvedRectangleRef<'a, const N: usize, T: ScalarNum, A: VecAlignment>
+pub enum ReprResolvedRectangleRef<'a, const N: usize, T: ScalarRect, A: VecAlignment>
 where
     ScalarCount<N>: VecLen,
 {
@@ -32,7 +32,7 @@ where
     Centered(&'a Rectangle<N, T, A, RectCentered>),
     MinMaxed(&'a Rectangle<N, T, A, RectMinMaxed>),
 }
-pub enum ReprResolvedRectangleMut<'a, const N: usize, T: ScalarNum, A: VecAlignment>
+pub enum ReprResolvedRectangleMut<'a, const N: usize, T: ScalarRect, A: VecAlignment>
 where
     ScalarCount<N>: VecLen,
 {
@@ -41,7 +41,7 @@ where
     MinMaxed(&'a mut Rectangle<N, T, A, RectMinMaxed>),
 }
 
-impl<const N: usize, T: ScalarNum, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: ScalarRect, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
     ScalarCount<N>: VecLen,
 {
@@ -136,19 +136,19 @@ where
 }
 
 impl RectRepr for RectCornered {
-    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment> =
+    type InnerRectangle<const N: usize, T: ScalarRect, A: VecAlignment> =
     [Vector<N, T, A>; 2] where
         ScalarCount<N>: VecLen;
 }
 
 impl RectRepr for RectCentered {
-    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment> =
+    type InnerRectangle<const N: usize, T: ScalarRect, A: VecAlignment> =
     [Vector<N, T, A>; 2] where
         ScalarCount<N>: VecLen;
 }
 
 impl RectRepr for RectMinMaxed {
-    type InnerRectangle<const N: usize, T: ScalarNum, A: VecAlignment> =
+    type InnerRectangle<const N: usize, T: ScalarRect, A: VecAlignment> =
         [Vector<N, T, A>; 2] where
         ScalarCount<N>: VecLen;
 }

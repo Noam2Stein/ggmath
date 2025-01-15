@@ -1,14 +1,14 @@
-use ggmath::{rectangle::*, scalar::*, vector::*};
+use ggmath::{num::*, rectangle::*, scalar::*, vector::*};
 
-pub struct World<const D: usize, P: ScalarNum + ScalarSigned>
+pub struct World<const D: usize, F: Scalar + Float>
 where
     ScalarCount<D>: VecLen,
 {
-    pub bodies: Vec<Body<D, P>>,
-    pub gravity_dir: Vector<D, P, VecAligned>,
+    pub bodies: Vec<Body<D, F>>,
+    pub gravity_dir: Vector<D, F, VecAligned>,
 }
 
-pub struct Body<const D: usize, P: ScalarNum + ScalarSigned>
+pub struct Body<const D: usize, P: Scalar + Float>
 where
     ScalarCount<D>: VecLen,
 {

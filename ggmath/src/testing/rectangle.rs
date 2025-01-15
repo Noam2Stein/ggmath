@@ -1,8 +1,8 @@
 use std::any::type_name;
 
 use crate::{
-    rectangle::{RectRepr, Rectangle},
-    scalar::{Scalar, ScalarNum},
+    rectangle::{RectRepr, Rectangle, ScalarRect},
+    scalar::Scalar,
     vector::{ScalarCount, VecAlignment, VecLen},
 };
 
@@ -26,10 +26,10 @@ impl TestFnDesc {
 
 impl<
         const N: usize,
-        T: ScalarNum + TestEq<TRhs>,
+        T: ScalarRect + TestEq<TRhs>,
         A: VecAlignment,
         R: RectRepr,
-        TRhs: ScalarNum,
+        TRhs: ScalarRect,
         ARhs: VecAlignment,
         RRhs: RectRepr,
     > TestEq<Rectangle<N, TRhs, ARhs, RRhs>> for Rectangle<N, T, A, R>

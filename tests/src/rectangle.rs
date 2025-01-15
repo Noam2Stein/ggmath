@@ -1,6 +1,5 @@
 use ggmath::{
-    rectangle::{RectCentered, RectCornered, RectMinMaxed, RectRepr, Rectangle},
-    scalar::ScalarNum,
+    rectangle::{RectCentered, RectCornered, RectMinMaxed, RectRepr, Rectangle, ScalarRect},
     testing::{rect_test_assert, TestResult, TestableScalar},
     vector::{ScalarCount, VecAligned, VecAlignment, VecLen, VecPacked, Vector},
 };
@@ -30,7 +29,7 @@ pub fn test_rectangle() -> TestResult {
     Ok(())
 }
 
-fn test_n_t_a_r<const N: usize, T: ScalarNum + TestableScalar, A: VecAlignment, R: RectRepr>(
+fn test_n_t_a_r<const N: usize, T: ScalarRect + TestableScalar, A: VecAlignment, R: RectRepr>(
 ) -> TestResult
 where
     ScalarCount<N>: VecLen,
