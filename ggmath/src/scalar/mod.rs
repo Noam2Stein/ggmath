@@ -9,7 +9,7 @@ mod consts;
 mod sign;
 mod wrapper;
 pub use consts::*;
-use newnum::{AbsDiff, Round};
+use newnum::{ATrig, ATrigH, AbsDiff, Cbrt, Round, Sqrt, Trig, TrigH};
 pub use sign::*;
 pub use wrapper::*;
 
@@ -707,6 +707,230 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(Round::atrunc)
     }
 
+    // Vector: Trig
+
+    #[inline(always)]
+    fn vector_sin<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: Trig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Trig::sin)
+    }
+
+    #[inline(always)]
+    fn vector_cos<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: Trig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Trig::cos)
+    }
+
+    #[inline(always)]
+    fn vector_tan<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: Trig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Trig::tan)
+    }
+
+    #[inline(always)]
+    fn vector_cot<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: Trig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(Trig::cot)
+    }
+
+    // Vector: ATrig
+
+    #[inline(always)]
+    fn vector_asin<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrig::asin)
+    }
+
+    #[inline(always)]
+    fn vector_acos<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrig::acos)
+    }
+
+    #[inline(always)]
+    fn vector_atan<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrig::atan)
+    }
+
+    #[inline(always)]
+    fn vector_acot<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrig<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrig::acot)
+    }
+
+    // Vector: TrigH
+
+    #[inline(always)]
+    fn vector_sinh<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: TrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(TrigH::sinh)
+    }
+
+    #[inline(always)]
+    fn vector_cosh<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: TrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(TrigH::cosh)
+    }
+
+    #[inline(always)]
+    fn vector_tanh<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: TrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(TrigH::tanh)
+    }
+
+    #[inline(always)]
+    fn vector_coth<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: TrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(TrigH::coth)
+    }
+
+    // Vector: ATrigH
+
+    #[inline(always)]
+    fn vector_asinh<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrigH::asinh)
+    }
+
+    #[inline(always)]
+    fn vector_acosh<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrigH::acosh)
+    }
+
+    #[inline(always)]
+    fn vector_atanh<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrigH::atanh)
+    }
+
+    #[inline(always)]
+    fn vector_acoth<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Self: ATrigH<Output: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map(ATrigH::acoth)
+    }
+
+    // Vector: AbsDiff
+
+    #[inline(always)]
+    fn vector_abs_diff<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        ScalarCount<N>: VecLen,
+        Self: AbsDiff<Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i].abs_diff(rhs[i]))
+    }
+
+    // Vector: Sqrt
+
+    #[inline(always)]
+    fn vector_sqrt<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        ScalarCount<N>: VecLen,
+        Self: Sqrt<Output: Scalar>,
+    {
+        vec.map(Sqrt::sqrt)
+    }
+
+    // Vector: Cbrt
+
+    #[inline(always)]
+    fn vector_cbrt<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        ScalarCount<N>: VecLen,
+        Self: Cbrt<Output: Scalar>,
+    {
+        vec.map(Cbrt::cbrt)
+    }
+
     // ********************************************************************************
     // ********************************************************************************
     // ************************************* API **************************************
@@ -724,18 +948,6 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
             LengthResolvedVector::Vec3(vec) => vec.x() + vec.y() + vec.z(),
             LengthResolvedVector::Vec4(vec) => vec.x() + vec.y() + vec.z() + vec.w(),
         }
-    }
-
-    #[inline(always)]
-    fn vector_abs_diff<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, Self, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        ScalarCount<N>: VecLen,
-        Self: AbsDiff<Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].abs_diff(rhs[i]))
     }
 
     #[inline(always)]
