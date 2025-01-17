@@ -18,6 +18,12 @@ where
         Vector::from_array(self.into_array().map(f))
     }
 
+    /// Returns a vector of the same size and alignment as self, with function f applied to each element reference in order.
+    #[inline(always)]
+    pub fn map_ref<TOutput: Scalar>(&self, f: impl FnMut(&T) -> TOutput) -> Vector<N, TOutput, A> {
+        Vector::from_array(self.as_array().each_ref().map(f))
+    }
+
     /// Creates an iterator from the vector by copying its values. Shortcut to ```into_iter```.
     #[inline(always)]
     pub fn iter(self) -> <Self as IntoIterator>::IntoIter {

@@ -1,5 +1,31 @@
 use super::*;
 
+#[inline(always)]
+pub fn splat2<T: Scalar>(value: T) -> Vec2<T> {
+    Vector::splat(value)
+}
+#[inline(always)]
+pub fn splat3<T: Scalar>(value: T) -> Vec3<T> {
+    Vector::splat(value)
+}
+#[inline(always)]
+pub fn splat4<T: Scalar>(value: T) -> Vec4<T> {
+    Vector::splat(value)
+}
+
+#[inline(always)]
+pub fn splat2p<T: Scalar>(value: T) -> Vec2P<T> {
+    Vector::splat(value)
+}
+#[inline(always)]
+pub fn splat3p<T: Scalar>(value: T) -> Vec3P<T> {
+    Vector::splat(value)
+}
+#[inline(always)]
+pub fn splat4p<T: Scalar>(value: T) -> Vec4P<T> {
+    Vector::splat(value)
+}
+
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,

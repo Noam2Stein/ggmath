@@ -1,31 +1,33 @@
 use newnum::{
-    ATrig, ATrigH, AbsDiff, Cbrt, MaybeSigned, Negative, Positive, Round, Sqrt, Trig, TrigH, Zero,
+    ATrig, ATrigH, AbsDiff, Cbrt, Negative, Positive, Round, Sign, Sqrt, Trig, TrigH, Zero,
 };
 
 use super::{Scalar, ScalarCount, VecAlignment, VecLen, Vector};
 
-impl<const N: usize, T: Scalar + Round, A: VecAlignment> Round for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Round<Output: Scalar>, A: VecAlignment> Round for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
+    type Output = Vector<N, T::Output, A>;
+
     #[inline(always)]
-    fn floor(self) -> Self {
+    fn floor(self) -> Self::Output {
         T::vector_floor(self)
     }
     #[inline(always)]
-    fn ceil(self) -> Self {
+    fn ceil(self) -> Self::Output {
         T::vector_ceil(self)
     }
     #[inline(always)]
-    fn round(self) -> Self {
+    fn round(self) -> Self::Output {
         T::vector_round(self)
     }
     #[inline(always)]
-    fn trunc(self) -> Self {
+    fn trunc(self) -> Self::Output {
         T::vector_trunc(self)
     }
     #[inline(always)]
-    fn atrunc(self) -> Self {
+    fn atrunc(self) -> Self::Output {
         T::vector_atrunc(self)
     }
 }
@@ -155,24 +157,32 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + MaybeSigned, A: VecAlignment> MaybeSigned for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sign<Bool = bool>, A: VecAlignment> Sign for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
+    type Bool = Vector<N, bool, A>;
+
     #[inline(always)]
-    fn is_negative(&self) -> bool {
-        self.iter_ref().all(MaybeSigned::is_negative)
+    fn is_negative(&self) -> Self::Bool {
+        self.map_ref(Sign::is_negative)
     }
     #[inline(always)]
-    fn is_positive(&self) -> bool {
-        self.iter_ref().all(MaybeSigned::is_positive)
+    fn is_positive(&self) -> Self::Bool {
+        self.map_ref(Sign::is_positive)
     }
+    #[inline(always)]
+    fn is_zero(&self) -> Self::Bool {
+        self.map_ref(Sign::is_zero)
+    }
+
     #[inline(always)]
     fn signum(self) -> Self {
-        self.map(MaybeSigned::signum)
+        self.map(Sign::signum)
     }
 }
-impl<const N: usize, T: Scalar + Positive, A: VecAlignment> Positive for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Positive<Bool = bool>, A: VecAlignment> Positive
+    for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
@@ -181,7 +191,8 @@ where
         self.map(Positive::abs)
     }
 }
-impl<const N: usize, T: Scalar + Negative, A: VecAlignment> Negative for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Negative<Bool = bool>, A: VecAlignment> Negative
+    for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
@@ -190,12 +201,11 @@ where
         self.map(Negative::neg_abs)
     }
 }
-impl<const N: usize, T: Scalar + Zero, A: VecAlignment> Zero for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Zero<Bool = bool>, A: VecAlignment> Zero for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
-    #[inline(always)]
-    fn neg_abs(self) -> Self {
-        self.map(Negative::neg_abs)
+    fn zero() -> Self {
+        Vector::splat(T::zero())
     }
 }

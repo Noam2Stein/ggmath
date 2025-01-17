@@ -40,4 +40,4 @@ testing = [  ]
 
 [dependencies]
 ggmath_proc_macros = "0.4.0"
-newnum             = "0.0.4"
+newnum             = "0.0.5"

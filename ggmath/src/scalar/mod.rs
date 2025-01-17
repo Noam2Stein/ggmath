@@ -663,45 +663,55 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     // Vector: Round
 
     #[inline(always)]
-    fn vector_round<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_round<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
     where
-        Self: Round,
+        Self: Round<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
         vec.map(Round::round)
     }
 
     #[inline(always)]
-    fn vector_floor<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_floor<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
     where
-        Self: Round,
+        Self: Round<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
         vec.map(Round::floor)
     }
 
     #[inline(always)]
-    fn vector_ceil<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_ceil<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
     where
-        Self: Round,
+        Self: Round<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
         vec.map(Round::ceil)
     }
 
     #[inline(always)]
-    fn vector_trunc<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_trunc<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
     where
-        Self: Round,
+        Self: Round<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
         vec.map(Round::trunc)
     }
 
     #[inline(always)]
-    fn vector_atrunc<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_atrunc<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
     where
-        Self: Round,
+        Self: Round<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
         vec.map(Round::atrunc)

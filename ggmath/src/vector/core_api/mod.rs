@@ -6,9 +6,11 @@ mod get;
 mod get_mut;
 mod get_ref;
 mod set;
-mod splat;
 mod swizzle_wrappers;
 mod with;
+
+mod splat;
+pub use splat::*;
 
 mod builder;
 pub use builder::*;
