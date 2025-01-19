@@ -20,3 +20,19 @@ impl<const N: usize, T: Scalar + Eq, A: VecAlignment> Eq for Vector<N, T, A> whe
     ScalarCount<N>: VecLen
 {
 }
+
+scalar_defaults_macro! {
+    scalar_defaults_vector_eq:
+
+    #[inline(always)]
+    fn vector_eq<const N: usize, TRhs: Scalar>(
+        vec: &Vector<N, Self, impl VecAlignment>,
+        other: &Vector<N, TRhs, impl VecAlignment>,
+    ) -> bool
+    where
+        ScalarCount<N>: VecLen,
+        Self: PartialEq<TRhs>,
+    {
+        (0..N).all(|i| vec[i].eq(&other[i]))
+    }
+}

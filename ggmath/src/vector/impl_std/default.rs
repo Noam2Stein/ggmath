@@ -9,3 +9,16 @@ where
         T::vector_default()
     }
 }
+
+scalar_defaults_macro! {
+    scalar_defaults_vector_default:
+
+    #[inline(always)]
+    fn vector_default<const N: usize, A: VecAlignment>() -> Vector<N, Self, A>
+    where
+        ScalarCount<N>: VecLen,
+        Self: Default,
+    {
+        Vector::splat(Self::default())
+    }
+}

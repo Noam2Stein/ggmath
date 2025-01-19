@@ -9,7 +9,7 @@ pub use core_api::*;
 pub use generics::*;
 
 #[cfg(feature = "num")]
-mod ext_api;
+mod num;
 
 /// The only vector type.
 /// Statically-lengthed vector generic over `N` (length), `T` (scalar type), and `A` (alignment??).
