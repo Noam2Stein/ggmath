@@ -3,11 +3,13 @@
 use crate::{construct::*, scalar::*, *};
 
 mod core_api;
-mod ext_api;
 mod generics;
 mod impl_std;
 pub use core_api::*;
 pub use generics::*;
+
+#[cfg(feature = "num")]
+mod ext_api;
 
 /// The only vector type.
 /// Statically-lengthed vector generic over `N` (length), `T` (scalar type), and `A` (alignment??).

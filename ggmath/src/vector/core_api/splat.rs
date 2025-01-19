@@ -36,3 +36,16 @@ where
         T::vector_splat(value)
     }
 }
+
+#[macro_export(local_inner_macros)]
+macro_rules! scalar_defaults_vector_splat {
+    () => {
+        #[inline(always)]
+        fn vector_splat<const N: usize, A: VecAlignment>(value: Self) -> Vector<N, Self, A>
+        where
+            ScalarCount<N>: VecLen,
+        {
+            Vector::from_array([value; N])
+        }
+    };
+}

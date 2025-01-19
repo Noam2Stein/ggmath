@@ -145,3 +145,111 @@ where
         T::vector_get_1_1_1_1_unchecked(self, indicies)
     }
 }
+
+#[macro_export(local_inner_macros)]
+macro_rules! scalar_defaults_vector_get {
+    () => {
+        splat_attribs::splat_attribs! {
+            #[inline(always)]:
+
+            fn vector_get<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                index: usize,
+            ) -> Option<Self>
+            where
+                ScalarCount<N>: VecLen,
+            {
+                vec.get_ref(index).map(|output| *output)
+            }
+
+            fn vector_get_1_1<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                indicies: [usize; 2],
+            ) -> Option<Vector<2, Self, A>>
+            where
+                ScalarCount<N>: VecLen,
+            {
+                vec.get_1_1_ref(indicies)
+                    .map(|(output0, output1)| Vector::<2, Self, A>::from_array([*output0, *output1]))
+            }
+
+            fn vector_get_1_1_1<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                indicies: [usize; 3],
+            ) -> Option<Vector<3, Self, A>>
+            where
+                ScalarCount<N>: VecLen,
+            {
+                vec.get_1_1_1_ref(indicies)
+                    .map(|(output0, output1, output2)| {
+                        Vector::<3, Self, A>::from_array([*output0, *output1, *output2])
+                    })
+            }
+
+            fn vector_get_1_1_1_1<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                indicies: [usize; 4],
+            ) -> Option<Vector<4, Self, A>>
+            where
+                ScalarCount<N>: VecLen,
+            {
+                vec.get_1_1_1_1_ref(indicies)
+                    .map(|(output0, output1, output2, output3)| {
+                        Vector::<4, Self, A>::from_array([*output0, *output1, *output2, *output3])
+                    })
+            }
+
+            unsafe fn vector_get_unchecked<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                index: usize,
+            ) -> Self
+            where
+                ScalarCount<N>: VecLen,
+            {
+                *vec.as_array().get_unchecked(index)
+            }
+
+            unsafe fn vector_get_1_1_unchecked<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                indicies: [usize; 2],
+            ) -> Vector<2, Self, A>
+            where
+                ScalarCount<N>: VecLen,
+            {
+                Vector::<2, Self, A>::from_array([
+                    vec.get_unchecked(indicies[0]),
+                    vec.get_unchecked(indicies[1]),
+                ])
+            }
+
+            unsafe fn vector_get_1_1_1_unchecked<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                indicies: [usize; 3],
+            ) -> Vector<3, Self, A>
+            where
+                ScalarCount<N>: VecLen,
+            {
+                Vector::<3, Self, A>::from_array([
+                    vec.get_unchecked(indicies[0]),
+                    vec.get_unchecked(indicies[1]),
+                    vec.get_unchecked(indicies[2]),
+                ])
+            }
+
+            unsafe fn vector_get_1_1_1_1_unchecked<const N: usize, A: VecAlignment>(
+                vec: Vector<N, Self, A>,
+                indicies: [usize; 4],
+            ) -> Vector<4, Self, A>
+            where
+                ScalarCount<N>: VecLen,
+            {
+                Vector::<4, Self, A>::from_array([
+                    vec.get_unchecked(indicies[0]),
+                    vec.get_unchecked(indicies[1]),
+                    vec.get_unchecked(indicies[2]),
+                    vec.get_unchecked(indicies[3]),
+                ])
+            }
+        }
+    };
+}

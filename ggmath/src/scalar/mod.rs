@@ -1,16 +1,23 @@
 //! Trait for types that can be put inside math-types like ```Vector``` and ```Matrix```.
 //! For example: [```f32```], [```u8```] and [```bool```] are scalars.
 
-use std::{cmp::Ordering, ops::*};
+use std::ops::{
+    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
+    Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
+};
+
+use splat_attribs::splat_attribs;
 
 use crate::{vector::*, *};
 
-mod consts;
-mod sign;
+splat_attribs! {
+    #[cfg(feature = "num")]:
+
+    use newnum::{ATrig, ATrigH, AbsDiff, Cbrt, Round, Sqrt, Trig, TrigH};
+    use std::cmp::Ordering;
+}
+
 mod wrapper;
-pub use consts::*;
-use newnum::{ATrig, ATrigH, AbsDiff, Cbrt, Round, Sqrt, Trig, TrigH};
-pub use sign::*;
 pub use wrapper::*;
 
 pub use ggmath_proc_macros::scalar_inner_vectors;
@@ -60,316 +67,55 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     // ****************************************************************************************************
     // ****************************************************************************************************
 
-    #[inline(always)]
-    fn min(self, other: Self) -> Self
-    where
-        Self: PartialOrd,
-    {
-        if self > other {
-            other
-        } else {
-            self
+    splat_attribs! {
+        #[inline(always)]:
+
+        // Min Max Clamp
+
+        fn min(self, other: Self) -> Self
+        where
+            Self: PartialOrd,
+        {
+            if self > other {
+                other
+            } else {
+                self
+            }
         }
-    }
-    #[inline(always)]
-    fn max(self, other: Self) -> Self
-    where
-        Self: PartialOrd,
-    {
-        if self > other {
-            self
-        } else {
-            other
+
+        fn max(self, other: Self) -> Self
+        where
+            Self: PartialOrd,
+        {
+            if self > other {
+                self
+            } else {
+                other
+            }
         }
-    }
-    #[inline(always)]
-    fn clamp(self, min: Self, max: Self) -> Self
-    where
-        Self: PartialOrd,
-    {
-        if self > max {
-            max
-        } else if self < min {
-            min
-        } else {
-            self
-        }
-    }
 
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ********************************************** Vector **********************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-
-    // ********************************************************************************
-    // ********************************************************************************
-    // ************************************* Core *************************************
-    // ********************************************************************************
-    // ********************************************************************************
-
-    #[inline(always)]
-    fn vector_splat<const N: usize, A: VecAlignment>(value: Self) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        Vector::from_array([value; N])
-    }
-
-    // Vector: Get
-
-    #[inline(always)]
-    fn vector_get<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        index: usize,
-    ) -> Option<Self>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        vec.get_ref(index).map(|output| *output)
-    }
-
-    #[inline(always)]
-    fn vector_get_1_1<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 2],
-    ) -> Option<Vector<2, Self, A>>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        vec.get_1_1_ref(indicies)
-            .map(|(output0, output1)| Vector::<2, Self, A>::from_array([*output0, *output1]))
-    }
-
-    #[inline(always)]
-    fn vector_get_1_1_1<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 3],
-    ) -> Option<Vector<3, Self, A>>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        vec.get_1_1_1_ref(indicies)
-            .map(|(output0, output1, output2)| {
-                Vector::<3, Self, A>::from_array([*output0, *output1, *output2])
-            })
-    }
-
-    #[inline(always)]
-    fn vector_get_1_1_1_1<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 4],
-    ) -> Option<Vector<4, Self, A>>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        vec.get_1_1_1_1_ref(indicies)
-            .map(|(output0, output1, output2, output3)| {
-                Vector::<4, Self, A>::from_array([*output0, *output1, *output2, *output3])
-            })
-    }
-
-    #[inline(always)]
-    unsafe fn vector_get_unchecked<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        index: usize,
-    ) -> Self
-    where
-        ScalarCount<N>: VecLen,
-    {
-        *vec.as_array().get_unchecked(index)
-    }
-
-    #[inline(always)]
-    unsafe fn vector_get_1_1_unchecked<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 2],
-    ) -> Vector<2, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        Vector::<2, Self, A>::from_array([
-            vec.get_unchecked(indicies[0]),
-            vec.get_unchecked(indicies[1]),
-        ])
-    }
-
-    #[inline(always)]
-    unsafe fn vector_get_1_1_1_unchecked<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 3],
-    ) -> Vector<3, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        Vector::<3, Self, A>::from_array([
-            vec.get_unchecked(indicies[0]),
-            vec.get_unchecked(indicies[1]),
-            vec.get_unchecked(indicies[2]),
-        ])
-    }
-
-    #[inline(always)]
-    unsafe fn vector_get_1_1_1_1_unchecked<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 4],
-    ) -> Vector<4, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        Vector::<4, Self, A>::from_array([
-            vec.get_unchecked(indicies[0]),
-            vec.get_unchecked(indicies[1]),
-            vec.get_unchecked(indicies[2]),
-            vec.get_unchecked(indicies[3]),
-        ])
-    }
-
-    // Vector: With
-
-    fn vector_with<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        index: usize,
-        value: Self,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        if index >= N {
-            None
-        } else {
-            Some(unsafe { vec.with_unchecked(index, value) })
+        fn clamp(self, min: Self, max: Self) -> Self
+        where
+            Self: PartialOrd,
+        {
+            if self > max {
+                max
+            } else if self < min {
+                min
+            } else {
+                self
+            }
         }
     }
 
-    fn vector_with_1_1<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 2],
-        value: Vector<2, Self, impl VecAlignment>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        if indicies.into_iter().any(|index| index >= N) {
-            None
-        } else if indicies[0] == indicies[1] {
-            None
-        } else {
-            Some(unsafe { vec.with_1_1_unchecked(indicies, value) })
-        }
-    }
+    // **************************************************
+    // ********************* Vector *********************
+    // **************************************************
 
-    fn vector_with_1_1_1<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 3],
-        value: Vector<3, Self, impl VecAlignment>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        if indicies.into_iter().any(|index| index >= N) {
-            None
-        } else if indicies[0] == indicies[1] {
-            None
-        } else if indicies[0] == indicies[2] {
-            None
-        } else if indicies[1] == indicies[2] {
-            None
-        } else {
-            Some(unsafe { vec.with_1_1_1_unchecked(indicies, value) })
-        }
-    }
-
-    fn vector_with_1_1_1_1<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        indicies: [usize; 4],
-        value: Vector<4, Self, impl VecAlignment>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        if indicies.into_iter().any(|index| index >= N) {
-            None
-        } else if indicies[0] == indicies[1] {
-            None
-        } else if indicies[0] == indicies[2] {
-            None
-        } else if indicies[0] == indicies[3] {
-            None
-        } else if indicies[1] == indicies[2] {
-            None
-        } else if indicies[1] == indicies[3] {
-            None
-        } else if indicies[2] == indicies[3] {
-            None
-        } else {
-            Some(unsafe { vec.with_1_1_1_1_unchecked(indicies, value) })
-        }
-    }
-
-    #[inline(always)]
-    unsafe fn vector_with_unchecked<const N: usize, A: VecAlignment>(
-        mut vec: Vector<N, Self, A>,
-        index: usize,
-        value: Self,
-    ) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        *vec.get_mut_unchecked(index) = value;
-        vec
-    }
-
-    #[inline(always)]
-    unsafe fn vector_with_1_1_unchecked<const N: usize, A: VecAlignment>(
-        mut vec: Vector<N, Self, A>,
-        indicies: [usize; 2],
-        value: Vector<2, Self, impl VecAlignment>,
-    ) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
-        *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
-        vec
-    }
-
-    #[inline(always)]
-    unsafe fn vector_with_1_1_1_unchecked<const N: usize, A: VecAlignment>(
-        mut vec: Vector<N, Self, A>,
-        indicies: [usize; 3],
-        value: Vector<3, Self, impl VecAlignment>,
-    ) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
-        *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
-        *vec.get_mut_unchecked(indicies[2]) = value.get_unchecked(2);
-        vec
-    }
-
-    #[inline(always)]
-    unsafe fn vector_with_1_1_1_1_unchecked<const N: usize, A: VecAlignment>(
-        mut vec: Vector<N, Self, A>,
-        indicies: [usize; 4],
-        value: Vector<4, Self, impl VecAlignment>,
-    ) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-    {
-        *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
-        *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
-        *vec.get_mut_unchecked(indicies[2]) = value.get_unchecked(2);
-        *vec.get_mut_unchecked(indicies[3]) = value.get_unchecked(3);
-        vec
-    }
+    // Core
+    crate::scalar_defaults_vector_splat! {}
+    crate::scalar_defaults_vector_get! {}
+    crate::scalar_defaults_vector_with! {}
 
     // ********************************************************************************
     // ********************************************************************************
@@ -660,65 +406,70 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     // ********************************************************************************
     // ********************************************************************************
 
-    // Vector: Round
+    splat_attribs! {
+        #[cfg(feature = "num")]:
 
-    #[inline(always)]
-    fn vector_round<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Self: Round<Output: Scalar>,
-        ScalarCount<N>: VecLen,
-    {
-        vec.map(Round::round)
-    }
+        // Vector: Round
 
-    #[inline(always)]
-    fn vector_floor<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Self: Round<Output: Scalar>,
-        ScalarCount<N>: VecLen,
-    {
-        vec.map(Round::floor)
-    }
+        #[inline(always)]
+        fn vector_round<const N: usize, A: VecAlignment>(
+            vec: Vector<N, Self, A>,
+        ) -> Vector<N, Self::Output, A>
+        where
+            Self: Round<Output: Scalar>,
+            ScalarCount<N>: VecLen,
+        {
+            vec.map(Round::round)
+        }
 
-    #[inline(always)]
-    fn vector_ceil<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Self: Round<Output: Scalar>,
-        ScalarCount<N>: VecLen,
-    {
-        vec.map(Round::ceil)
-    }
+        #[inline(always)]
+        fn vector_floor<const N: usize, A: VecAlignment>(
+            vec: Vector<N, Self, A>,
+        ) -> Vector<N, Self::Output, A>
+        where
+            Self: Round<Output: Scalar>,
+            ScalarCount<N>: VecLen,
+        {
+            vec.map(Round::floor)
+        }
 
-    #[inline(always)]
-    fn vector_trunc<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Self: Round<Output: Scalar>,
-        ScalarCount<N>: VecLen,
-    {
-        vec.map(Round::trunc)
-    }
+        #[inline(always)]
+        fn vector_ceil<const N: usize, A: VecAlignment>(
+            vec: Vector<N, Self, A>,
+        ) -> Vector<N, Self::Output, A>
+        where
+            Self: Round<Output: Scalar>,
+            ScalarCount<N>: VecLen,
+        {
+            vec.map(Round::ceil)
+        }
 
-    #[inline(always)]
-    fn vector_atrunc<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Self: Round<Output: Scalar>,
-        ScalarCount<N>: VecLen,
-    {
-        vec.map(Round::atrunc)
+        #[inline(always)]
+        fn vector_trunc<const N: usize, A: VecAlignment>(
+            vec: Vector<N, Self, A>,
+        ) -> Vector<N, Self::Output, A>
+        where
+            Self: Round<Output: Scalar>,
+            ScalarCount<N>: VecLen,
+        {
+            vec.map(Round::trunc)
+        }
+
+        #[inline(always)]
+        fn vector_atrunc<const N: usize, A: VecAlignment>(
+            vec: Vector<N, Self, A>,
+        ) -> Vector<N, Self::Output, A>
+        where
+            Self: Round<Output: Scalar>,
+            ScalarCount<N>: VecLen,
+        {
+            vec.map(Round::atrunc)
+        }
     }
 
     // Vector: Trig
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_sin<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -730,6 +481,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(Trig::sin)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_cos<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -741,6 +493,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(Trig::cos)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_tan<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -752,6 +505,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(Trig::tan)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_cot<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -765,6 +519,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // Vector: ATrig
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_asin<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -776,6 +531,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(ATrig::asin)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_acos<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -787,6 +543,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(ATrig::acos)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_atan<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -798,6 +555,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(ATrig::atan)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_acot<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -811,6 +569,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // Vector: TrigH
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_sinh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -822,6 +581,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(TrigH::sinh)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_cosh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -833,6 +593,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(TrigH::cosh)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_tanh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -844,6 +605,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(TrigH::tanh)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_coth<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -857,6 +619,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // Vector: ATrigH
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_asinh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -868,6 +631,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(ATrigH::asinh)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_acosh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -879,6 +643,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(ATrigH::acosh)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_atanh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -890,6 +655,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         vec.map(ATrigH::atanh)
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_acoth<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -903,6 +669,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // Vector: AbsDiff
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_abs_diff<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -917,6 +684,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // Vector: Sqrt
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_sqrt<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -930,6 +698,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // Vector: Cbrt
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_cbrt<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -947,6 +716,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     // ********************************************************************************
     // ********************************************************************************
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_csum<const N: usize>(vec: Vector<N, Self, impl VecAlignment>) -> Self
     where
@@ -960,6 +730,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         }
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_dot<const N: usize>(
         vec: Vector<N, Self, impl VecAlignment>,
@@ -972,6 +743,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         (vec * other).csum()
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_cross<A: VecAlignment>(
         vec: Vector<3, Self, A>,
@@ -985,6 +757,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
 
     // Vector: Min Max
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_cmin<const N: usize>(vec: Vector<N, Self, impl VecAlignment>) -> Self
     where
@@ -996,6 +769,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
             .unwrap_or(vec[0])
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_cmax<const N: usize>(vec: Vector<N, Self, impl VecAlignment>) -> Self
     where
@@ -1007,6 +781,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
             .unwrap_or(vec[0])
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_min<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -1024,6 +799,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         })
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_max<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -1041,6 +817,7 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         })
     }
 
+    #[cfg(feature = "num")]
     #[inline(always)]
     fn vector_clamp<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,

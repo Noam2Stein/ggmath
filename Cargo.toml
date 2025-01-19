@@ -5,6 +5,7 @@ members = [
     "examples/custom_scalar_unique",
     "examples/generic_physics_engine",
     "examples/gpu_structs",
+    "examples/no_features",
     "ggmath",
     "ggmath_proc_macros",
     "sandbox",
