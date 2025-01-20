@@ -28,5 +28,5 @@ testing   = [  ]
 
 [dependencies]
 ggmath_proc_macros = "0.4.0"
-newnum             = { version = "0.0.5", optional = true }
+newnum             = { version = "0.0.6", optional = true }
 splat_attribs      = "1.0.0"

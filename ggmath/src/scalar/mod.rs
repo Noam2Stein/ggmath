@@ -13,7 +13,7 @@ use crate::{vector::*, *};
 splat_attribs! {
     #[cfg(feature = "num")]:
 
-    use newnum::{ATrig, ATrigH, AbsDiff, Cbrt, Round, Sqrt, Trig, TrigH};
+    use newnum::*;
     use std::cmp::Ordering;
 }
 
@@ -130,40 +130,6 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
         scalar_defaults_vector_sign! {}
         scalar_defaults_vector_trig! {}
         scalar_defaults_vector_abs_diff! {}
-    }
-
-    // ********************************************************************************
-    // ********************************************************************************
-    // ********** CRATE TRAITS (that should probably be in std to be honest) **********
-    // ********************************************************************************
-    // ********************************************************************************
-
-    // Vector: Sqrt
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_sqrt<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        ScalarCount<N>: VecLen,
-        Self: Sqrt<Output: Scalar>,
-    {
-        vec.map(Sqrt::sqrt)
-    }
-
-    // Vector: Cbrt
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_cbrt<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        ScalarCount<N>: VecLen,
-        Self: Cbrt<Output: Scalar>,
-    {
-        vec.map(Cbrt::cbrt)
     }
 
     // ********************************************************************************
