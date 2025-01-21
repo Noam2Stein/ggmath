@@ -2,22 +2,24 @@ use newnum::{Negative, Positive, Sign, Zero};
 
 use super::{scalar_defaults_macro, Scalar, ScalarCount, VecAlignment, VecLen, Vector};
 
-impl<const N: usize, T: Scalar + Sign<Bool = bool>, A: VecAlignment> Sign for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sign<BoolMapped: Scalar>, A: VecAlignment> Sign for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
-    type Bool = Vector<N, bool, A>;
+    type BoolMapped = Vector<N, T::BoolMapped, A>;
 
     #[inline(always)]
-    fn is_negative(&self) -> Self::Bool {
+    fn is_negative(&self) -> Self::BoolMapped {
         self.map_ref(Sign::is_negative)
     }
+
     #[inline(always)]
-    fn is_positive(&self) -> Self::Bool {
+    fn is_positive(&self) -> Self::BoolMapped {
         self.map_ref(Sign::is_positive)
     }
+
     #[inline(always)]
-    fn is_zero(&self) -> Self::Bool {
+    fn is_zero(&self) -> Self::BoolMapped {
         self.map_ref(Sign::is_zero)
     }
 
@@ -27,7 +29,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Positive<Bool = bool>, A: VecAlignment> Positive
+impl<const N: usize, T: Scalar + Positive<BoolMapped: Scalar>, A: VecAlignment> Positive
     for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
@@ -38,7 +40,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Negative<Bool = bool>, A: VecAlignment> Negative
+impl<const N: usize, T: Scalar + Negative<BoolMapped = bool>, A: VecAlignment> Negative
     for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
@@ -49,7 +51,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Zero<Bool = bool>, A: VecAlignment> Zero for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Zero<BoolMapped = bool>, A: VecAlignment> Zero for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
@@ -62,5 +64,14 @@ where
 scalar_defaults_macro! {
     scalar_defaults_vector_sign:
 
-
+    #[inline(always)]
+    fn vector_is_negative<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::BoolMapped, A>
+    where
+        Self: Sign<BoolMapped: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map_ref(Sign::is_negative)
+    }
 }

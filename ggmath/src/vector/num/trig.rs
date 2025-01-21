@@ -1,4 +1,4 @@
-use newnum::{ATrig, ATrigH, Trig, TrigH};
+use newnum::{AHyper, ATrig, Hyper, Trig};
 
 use super::{scalar_defaults_macro, Scalar, ScalarCount, VecAlignment, VecLen, Vector};
 
@@ -10,19 +10,22 @@ where
 
     #[inline(always)]
     fn sin(self) -> Self::Output {
-        self.map(Trig::sin)
+        T::vector_sin(self)
     }
+
     #[inline(always)]
     fn cos(self) -> Self::Output {
-        self.map(Trig::cos)
+        T::vector_cos(self)
     }
+
     #[inline(always)]
     fn tan(self) -> Self::Output {
-        self.map(Trig::tan)
+        T::vector_tan(self)
     }
+
     #[inline(always)]
     fn cot(self) -> Self::Output {
-        self.map(Trig::cot)
+        T::vector_cot(self)
     }
 }
 
@@ -34,23 +37,26 @@ where
 
     #[inline(always)]
     fn asin(self) -> Self::Output {
-        self.map(ATrig::asin)
+        T::vector_asin(self)
     }
+
     #[inline(always)]
     fn acos(self) -> Self::Output {
-        self.map(ATrig::acos)
+        T::vector_acos(self)
     }
+
     #[inline(always)]
     fn atan(self) -> Self::Output {
-        self.map(ATrig::atan)
+        T::vector_atan(self)
     }
+
     #[inline(always)]
     fn acot(self) -> Self::Output {
-        self.map(ATrig::acot)
+        T::vector_acot(self)
     }
 }
 
-impl<const N: usize, T: Scalar + TrigH<Output: Scalar>, A: VecAlignment> TrigH for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Hyper<Output: Scalar>, A: VecAlignment> Hyper for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
@@ -58,23 +64,26 @@ where
 
     #[inline(always)]
     fn sinh(self) -> Self::Output {
-        self.map(TrigH::sinh)
+        T::vector_sinh(self)
     }
+
     #[inline(always)]
     fn cosh(self) -> Self::Output {
-        self.map(TrigH::cosh)
+        T::vector_cosh(self)
     }
+
     #[inline(always)]
     fn tanh(self) -> Self::Output {
-        self.map(TrigH::tanh)
+        T::vector_tanh(self)
     }
+
     #[inline(always)]
     fn coth(self) -> Self::Output {
-        self.map(TrigH::coth)
+        T::vector_coth(self)
     }
 }
 
-impl<const N: usize, T: Scalar + ATrigH<Output: Scalar>, A: VecAlignment> ATrigH for Vector<N, T, A>
+impl<const N: usize, T: Scalar + AHyper<Output: Scalar>, A: VecAlignment> AHyper for Vector<N, T, A>
 where
     ScalarCount<N>: VecLen,
 {
@@ -82,19 +91,22 @@ where
 
     #[inline(always)]
     fn asinh(self) -> Self::Output {
-        self.map(ATrigH::asinh)
+        T::vector_asinh(self)
     }
+
     #[inline(always)]
     fn acosh(self) -> Self::Output {
-        self.map(ATrigH::acosh)
+        T::vector_acosh(self)
     }
+
     #[inline(always)]
     fn atanh(self) -> Self::Output {
-        self.map(ATrigH::atanh)
+        T::vector_atanh(self)
     }
+
     #[inline(always)]
     fn acoth(self) -> Self::Output {
-        self.map(ATrigH::acoth)
+        T::vector_acoth(self)
     }
 }
 
@@ -191,17 +203,17 @@ scalar_defaults_macro! {
         vec.map(ATrig::acot)
     }
 
-    // Vector: TrigH
+    // Vector: Hyper
 
     #[inline(always)]
     fn vector_sinh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: TrigH<Output: Scalar>,
+        Self: Hyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(TrigH::sinh)
+        vec.map(Hyper::sinh)
     }
 
     #[inline(always)]
@@ -209,10 +221,10 @@ scalar_defaults_macro! {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: TrigH<Output: Scalar>,
+        Self: Hyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(TrigH::cosh)
+        vec.map(Hyper::cosh)
     }
 
     #[inline(always)]
@@ -220,10 +232,10 @@ scalar_defaults_macro! {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: TrigH<Output: Scalar>,
+        Self: Hyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(TrigH::tanh)
+        vec.map(Hyper::tanh)
     }
 
     #[inline(always)]
@@ -231,23 +243,23 @@ scalar_defaults_macro! {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: TrigH<Output: Scalar>,
+        Self: Hyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(TrigH::coth)
+        vec.map(Hyper::coth)
     }
 
-    // Vector: ATrigH
+    // Vector: AHyper
 
     #[inline(always)]
     fn vector_asinh<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: ATrigH<Output: Scalar>,
+        Self: AHyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(ATrigH::asinh)
+        vec.map(AHyper::asinh)
     }
 
     #[inline(always)]
@@ -255,10 +267,10 @@ scalar_defaults_macro! {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: ATrigH<Output: Scalar>,
+        Self: AHyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(ATrigH::acosh)
+        vec.map(AHyper::acosh)
     }
 
     #[inline(always)]
@@ -266,10 +278,10 @@ scalar_defaults_macro! {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: ATrigH<Output: Scalar>,
+        Self: AHyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(ATrigH::atanh)
+        vec.map(AHyper::atanh)
     }
 
     #[inline(always)]
@@ -277,9 +289,9 @@ scalar_defaults_macro! {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self::Output, A>
     where
-        Self: ATrigH<Output: Scalar>,
+        Self: AHyper<Output: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(ATrigH::acoth)
+        vec.map(AHyper::acoth)
     }
 }
