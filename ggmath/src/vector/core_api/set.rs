@@ -30,7 +30,7 @@ where
     ) where
         ScalarCount<N_VALUE>: VecLenOr1,
     {
-        *self = self.with_n_unchecked(index, value)
+        *self = unsafe { self.with_n_unchecked(index, value) }
     }
 
     #[inline(always)]
@@ -245,19 +245,19 @@ where
 
     #[inline(always)]
     pub unsafe fn set_unchecked(&mut self, index: usize, value: T) {
-        *self = self.with_unchecked(index, value)
+        *self = unsafe { self.with_unchecked(index, value) }
     }
     #[inline(always)]
     pub unsafe fn set_2_unchecked(&mut self, index: usize, value: Vector<2, T, impl VecAlignment>) {
-        *self = self.with_2_unchecked(index, value)
+        *self = unsafe { self.with_2_unchecked(index, value) }
     }
     #[inline(always)]
     pub unsafe fn set_3_unchecked(&mut self, index: usize, value: Vector<3, T, impl VecAlignment>) {
-        *self = self.with_3_unchecked(index, value)
+        *self = unsafe { self.with_3_unchecked(index, value) }
     }
     #[inline(always)]
     pub unsafe fn set_4_unchecked(&mut self, index: usize, value: Vector<4, T, impl VecAlignment>) {
-        *self = self.with_4_unchecked(index, value)
+        *self = unsafe { self.with_4_unchecked(index, value) }
     }
 
     #[inline(always)]
@@ -266,7 +266,7 @@ where
         indicies: [usize; 2],
         value: Vector<2, T, impl VecAlignment>,
     ) {
-        *self = self.with_1_1_unchecked(indicies, value)
+        *self = unsafe { self.with_1_1_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_1_2_unchecked(
@@ -274,7 +274,7 @@ where
         indicies: [usize; 2],
         value: Vector<3, T, impl VecAlignment>,
     ) {
-        *self = self.with_1_2_unchecked(indicies, value)
+        *self = unsafe { self.with_1_2_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_1_3_unchecked(
@@ -282,7 +282,7 @@ where
         indicies: [usize; 2],
         value: Vector<4, T, impl VecAlignment>,
     ) {
-        *self = self.with_1_3_unchecked(indicies, value)
+        *self = unsafe { self.with_1_3_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_2_1_unchecked(
@@ -290,7 +290,7 @@ where
         indicies: [usize; 2],
         value: Vector<3, T, impl VecAlignment>,
     ) {
-        *self = self.with_2_1_unchecked(indicies, value)
+        *self = unsafe { self.with_2_1_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_2_2_unchecked(
@@ -298,7 +298,7 @@ where
         indicies: [usize; 2],
         value: Vector<4, T, impl VecAlignment>,
     ) {
-        *self = self.with_2_2_unchecked(indicies, value)
+        *self = unsafe { self.with_2_2_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_3_1_unchecked(
@@ -306,7 +306,7 @@ where
         indicies: [usize; 2],
         value: Vector<4, T, impl VecAlignment>,
     ) {
-        *self = self.with_3_1_unchecked(indicies, value)
+        *self = unsafe { self.with_3_1_unchecked(indicies, value) }
     }
 
     #[inline(always)]
@@ -315,7 +315,7 @@ where
         indicies: [usize; 3],
         value: Vector<3, T, impl VecAlignment>,
     ) {
-        *self = self.with_1_1_1_unchecked(indicies, value)
+        *self = unsafe { self.with_1_1_1_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_1_1_2_unchecked(
@@ -323,7 +323,7 @@ where
         indicies: [usize; 3],
         value: Vector<4, T, impl VecAlignment>,
     ) {
-        *self = self.with_1_1_2_unchecked(indicies, value)
+        *self = unsafe { self.with_1_1_2_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_1_2_1_unchecked(
@@ -331,7 +331,7 @@ where
         indicies: [usize; 3],
         value: Vector<4, T, impl VecAlignment>,
     ) {
-        *self = self.with_1_2_1_unchecked(indicies, value)
+        *self = unsafe { self.with_1_2_1_unchecked(indicies, value) }
     }
     #[inline(always)]
     pub unsafe fn set_2_1_1_unchecked(
@@ -339,7 +339,7 @@ where
         indicies: [usize; 3],
         value: Vector<4, T, impl VecAlignment>,
     ) {
-        *self = self.with_2_1_1_unchecked(indicies, value)
+        *self = unsafe { self.with_2_1_1_unchecked(indicies, value) }
     }
 
     #[inline(always)]
@@ -348,6 +348,6 @@ where
         indicies: [usize; 4],
         value: Vector<4, T, impl VecAlignment>,
     ) {
-        *self = self.with_1_1_1_1_unchecked(indicies, value)
+        *self = unsafe { self.with_1_1_1_1_unchecked(indicies, value) }
     }
 }

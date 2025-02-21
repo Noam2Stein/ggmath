@@ -122,7 +122,7 @@ where
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {
-        transmute(self.as_array().get_unchecked(index))
+        unsafe { transmute(self.as_array().get_unchecked(index)) }
     }
     #[inline(always)]
     pub unsafe fn get_n_n_ref_unchecked<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
@@ -136,10 +136,12 @@ where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
         ScalarCount<N_OUTPUT_1>: VecLenOr1,
     {
-        (
-            self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
-            self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
-        )
+        unsafe {
+            (
+                self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
+                self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
+            )
+        }
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_ref_unchecked<
@@ -159,11 +161,13 @@ where
         ScalarCount<N_OUTPUT_1>: VecLenOr1,
         ScalarCount<N_OUTPUT_2>: VecLenOr1,
     {
-        (
-            self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
-            self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
-            self.get_n_ref_unchecked::<N_OUTPUT_2>(indicies[2]),
-        )
+        unsafe {
+            (
+                self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
+                self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
+                self.get_n_ref_unchecked::<N_OUTPUT_2>(indicies[2]),
+            )
+        }
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_n_ref_unchecked<
@@ -186,12 +190,14 @@ where
         ScalarCount<N_OUTPUT_2>: VecLenOr1,
         ScalarCount<N_OUTPUT_3>: VecLenOr1,
     {
-        (
-            self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
-            self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
-            self.get_n_ref_unchecked::<N_OUTPUT_2>(indicies[2]),
-            self.get_n_ref_unchecked::<N_OUTPUT_3>(indicies[3]),
-        )
+        unsafe {
+            (
+                self.get_n_ref_unchecked::<N_OUTPUT_0>(indicies[0]),
+                self.get_n_ref_unchecked::<N_OUTPUT_1>(indicies[1]),
+                self.get_n_ref_unchecked::<N_OUTPUT_2>(indicies[2]),
+                self.get_n_ref_unchecked::<N_OUTPUT_3>(indicies[3]),
+            )
+        }
     }
 
     #[inline(always)]
@@ -272,82 +278,82 @@ where
 
     #[inline(always)]
     pub unsafe fn get_ref_unchecked(&self, index: usize) -> &T {
-        self.get_n_ref_unchecked::<1>(index)
+        unsafe { self.get_n_ref_unchecked::<1>(index) }
     }
     #[inline(always)]
     pub unsafe fn get_2_ref_unchecked(&self, index: usize) -> &Vector<2, T, VecPacked> {
-        self.get_n_ref_unchecked::<2>(index)
+        unsafe { self.get_n_ref_unchecked::<2>(index) }
     }
     #[inline(always)]
     pub unsafe fn get_3_ref_unchecked(&self, index: usize) -> &Vector<3, T, VecPacked> {
-        self.get_n_ref_unchecked::<3>(index)
+        unsafe { self.get_n_ref_unchecked::<3>(index) }
     }
     #[inline(always)]
     pub unsafe fn get_4_ref_unchecked(&self, index: usize) -> &Vector<4, T, VecPacked> {
-        self.get_n_ref_unchecked::<4>(index)
+        unsafe { self.get_n_ref_unchecked::<4>(index) }
     }
 
     #[inline(always)]
     pub unsafe fn get_1_1_ref_unchecked(&self, indicies: [usize; 2]) -> (&T, &T) {
-        self.get_n_n_ref_unchecked::<1, 1>(indicies)
+        unsafe { self.get_n_n_ref_unchecked::<1, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_2_ref_unchecked(
         &self,
         indicies: [usize; 2],
     ) -> (&T, &Vector<2, T, VecPacked>) {
-        self.get_n_n_ref_unchecked::<1, 2>(indicies)
+        unsafe { self.get_n_n_ref_unchecked::<1, 2>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_3_ref_unchecked(
         &self,
         indicies: [usize; 2],
     ) -> (&T, &Vector<3, T, VecPacked>) {
-        self.get_n_n_ref_unchecked::<1, 3>(indicies)
+        unsafe { self.get_n_n_ref_unchecked::<1, 3>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_2_1_ref_unchecked(
         &self,
         indicies: [usize; 2],
     ) -> (&Vector<2, T, VecPacked>, &T) {
-        self.get_n_n_ref_unchecked::<2, 1>(indicies)
+        unsafe { self.get_n_n_ref_unchecked::<2, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_2_2_ref_unchecked(
         &self,
         indicies: [usize; 2],
     ) -> (&Vector<2, T, VecPacked>, &Vector<2, T, VecPacked>) {
-        self.get_n_n_ref_unchecked::<2, 2>(indicies)
+        unsafe { self.get_n_n_ref_unchecked::<2, 2>(indicies) }
     }
 
     #[inline(always)]
     pub unsafe fn get_1_1_1_ref_unchecked(&self, indicies: [usize; 3]) -> (&T, &T, &T) {
-        self.get_n_n_n_ref_unchecked::<1, 1, 1>(indicies)
+        unsafe { self.get_n_n_n_ref_unchecked::<1, 1, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_1_2_ref_unchecked(
         &self,
         indicies: [usize; 3],
     ) -> (&T, &T, &Vector<2, T, VecPacked>) {
-        self.get_n_n_n_ref_unchecked::<1, 1, 2>(indicies)
+        unsafe { self.get_n_n_n_ref_unchecked::<1, 1, 2>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_2_1_ref_unchecked(
         &self,
         indicies: [usize; 3],
     ) -> (&T, &Vector<2, T, VecPacked>, &T) {
-        self.get_n_n_n_ref_unchecked::<1, 2, 1>(indicies)
+        unsafe { self.get_n_n_n_ref_unchecked::<1, 2, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_2_1_1_ref_unchecked(
         &self,
         indicies: [usize; 3],
     ) -> (&Vector<2, T, VecPacked>, &T, &T) {
-        self.get_n_n_n_ref_unchecked::<2, 1, 1>(indicies)
+        unsafe { self.get_n_n_n_ref_unchecked::<2, 1, 1>(indicies) }
     }
 
     #[inline(always)]
     pub unsafe fn get_1_1_1_1_ref_unchecked(&self, indicies: [usize; 4]) -> (&T, &T, &T, &T) {
-        self.get_n_n_n_n_ref_unchecked::<1, 1, 1, 1>(indicies)
+        unsafe { self.get_n_n_n_n_ref_unchecked::<1, 1, 1, 1>(indicies) }
     }
 }

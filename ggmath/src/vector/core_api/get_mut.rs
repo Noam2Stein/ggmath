@@ -123,7 +123,7 @@ where
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {
-        transmute(self.as_array_mut().get_unchecked_mut(index))
+        unsafe { transmute(self.as_array_mut().get_unchecked_mut(index)) }
     }
     #[inline(always)]
     pub unsafe fn get_n_n_mut_unchecked<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
@@ -137,10 +137,12 @@ where
         ScalarCount<N_OUTPUT_0>: VecLenOr1,
         ScalarCount<N_OUTPUT_1>: VecLenOr1,
     {
-        (
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
-        )
+        unsafe {
+            (
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
+            )
+        }
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_mut_unchecked<
@@ -160,11 +162,13 @@ where
         ScalarCount<N_OUTPUT_1>: VecLenOr1,
         ScalarCount<N_OUTPUT_2>: VecLenOr1,
     {
-        (
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_2>(indicies[2])),
-        )
+        unsafe {
+            (
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_2>(indicies[2])),
+            )
+        }
     }
     #[inline(always)]
     pub unsafe fn get_n_n_n_n_mut_unchecked<
@@ -187,12 +191,14 @@ where
         ScalarCount<N_OUTPUT_2>: VecLenOr1,
         ScalarCount<N_OUTPUT_3>: VecLenOr1,
     {
-        (
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_2>(indicies[2])),
-            transmute(self.get_n_mut_unchecked::<N_OUTPUT_3>(indicies[3])),
-        )
+        unsafe {
+            (
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_0>(indicies[0])),
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_1>(indicies[1])),
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_2>(indicies[2])),
+                transmute(self.get_n_mut_unchecked::<N_OUTPUT_3>(indicies[3])),
+            )
+        }
     }
 
     #[inline(always)]
@@ -288,52 +294,52 @@ where
 
     #[inline(always)]
     pub unsafe fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
-        self.get_n_mut_unchecked::<1>(index)
+        unsafe { self.get_n_mut_unchecked::<1>(index) }
     }
     #[inline(always)]
     pub unsafe fn get_2_mut_unchecked(&mut self, index: usize) -> &mut Vector<2, T, VecPacked> {
-        self.get_n_mut_unchecked::<2>(index)
+        unsafe { self.get_n_mut_unchecked::<2>(index) }
     }
     #[inline(always)]
     pub unsafe fn get_3_mut_unchecked(&mut self, index: usize) -> &mut Vector<3, T, VecPacked> {
-        self.get_n_mut_unchecked::<3>(index)
+        unsafe { self.get_n_mut_unchecked::<3>(index) }
     }
     #[inline(always)]
     pub unsafe fn get_4_mut_unchecked(&mut self, index: usize) -> &mut Vector<4, T, VecPacked> {
-        self.get_n_mut_unchecked::<4>(index)
+        unsafe { self.get_n_mut_unchecked::<4>(index) }
     }
 
     #[inline(always)]
     pub unsafe fn get_1_1_mut_unchecked(&mut self, indicies: [usize; 2]) -> (&mut T, &mut T) {
-        self.get_n_n_mut_unchecked::<1, 1>(indicies)
+        unsafe { self.get_n_n_mut_unchecked::<1, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_2_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut T, &mut Vector<2, T, VecPacked>) {
-        self.get_n_n_mut_unchecked::<1, 2>(indicies)
+        unsafe { self.get_n_n_mut_unchecked::<1, 2>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_3_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut T, &mut Vector<3, T, VecPacked>) {
-        self.get_n_n_mut_unchecked::<1, 3>(indicies)
+        unsafe { self.get_n_n_mut_unchecked::<1, 3>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_2_1_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut Vector<2, T, VecPacked>, &mut T) {
-        self.get_n_n_mut_unchecked::<2, 1>(indicies)
+        unsafe { self.get_n_n_mut_unchecked::<2, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_2_2_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut Vector<2, T, VecPacked>, &mut Vector<2, T, VecPacked>) {
-        self.get_n_n_mut_unchecked::<2, 2>(indicies)
+        unsafe { self.get_n_n_mut_unchecked::<2, 2>(indicies) }
     }
 
     #[inline(always)]
@@ -341,28 +347,28 @@ where
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut T, &mut T, &mut T) {
-        self.get_n_n_n_mut_unchecked::<1, 1, 1>(indicies)
+        unsafe { self.get_n_n_n_mut_unchecked::<1, 1, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_1_2_mut_unchecked(
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut T, &mut T, &mut Vector<2, T, VecPacked>) {
-        self.get_n_n_n_mut_unchecked::<1, 1, 2>(indicies)
+        unsafe { self.get_n_n_n_mut_unchecked::<1, 1, 2>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_2_1_mut_unchecked(
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut T, &mut Vector<2, T, VecPacked>, &mut T) {
-        self.get_n_n_n_mut_unchecked::<1, 2, 1>(indicies)
+        unsafe { self.get_n_n_n_mut_unchecked::<1, 2, 1>(indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_2_1_1_mut_unchecked(
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut Vector<2, T, VecPacked>, &mut T, &mut T) {
-        self.get_n_n_n_mut_unchecked::<2, 1, 1>(indicies)
+        unsafe { self.get_n_n_n_mut_unchecked::<2, 1, 1>(indicies) }
     }
 
     #[inline(always)]
@@ -370,7 +376,7 @@ where
         &mut self,
         indicies: [usize; 4],
     ) -> (&mut T, &mut T, &mut T, &mut T) {
-        self.get_n_n_n_n_mut_unchecked::<1, 1, 1, 1>(indicies)
+        unsafe { self.get_n_n_n_n_mut_unchecked::<1, 1, 1, 1>(indicies) }
     }
 }
 

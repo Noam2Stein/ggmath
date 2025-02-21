@@ -33,11 +33,13 @@ where
         where
             ScalarCount<N_VALUE>: VecLenOr1,
         {
-            match resolve_vector_or_t_length(value) {
-                ResolvedVectorOrT::T(value) => self.with_unchecked(index, value),
-                ResolvedVectorOrT::Vec2(value) => self.with_2_unchecked(index, value),
-                ResolvedVectorOrT::Vec3(value) => self.with_3_unchecked(index, value),
-                ResolvedVectorOrT::Vec4(value) => self.with_4_unchecked(index, value),
+            unsafe {
+                match resolve_vector_or_t_length(value) {
+                    ResolvedVectorOrT::T(value) => self.with_unchecked(index, value),
+                    ResolvedVectorOrT::Vec2(value) => self.with_2_unchecked(index, value),
+                    ResolvedVectorOrT::Vec3(value) => self.with_3_unchecked(index, value),
+                    ResolvedVectorOrT::Vec4(value) => self.with_4_unchecked(index, value),
+                }
             }
         }
 
@@ -153,28 +155,28 @@ where
         }
 
         pub unsafe fn with_unchecked(self, index: usize, value: T) -> Self {
-            T::vector_with_unchecked(self, index, value)
+            unsafe { T::vector_with_unchecked(self, index, value) }
         }
         pub unsafe fn with_2_unchecked(
             self,
             index: usize,
             value: Vector<2, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_unchecked([index, index + 1], value)
+            unsafe { self.with_1_1_unchecked([index, index + 1], value) }
         }
         pub unsafe fn with_3_unchecked(
             self,
             index: usize,
             value: Vector<3, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_unchecked([index, index + 1, index + 2], value)
+            unsafe { self.with_1_1_1_unchecked([index, index + 1, index + 2], value) }
         }
         pub unsafe fn with_4_unchecked(
             self,
             index: usize,
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_1_unchecked([index, index + 1, index + 2, index + 3], value)
+            unsafe { self.with_1_1_1_1_unchecked([index, index + 1, index + 2, index + 3], value) }
         }
 
         pub unsafe fn with_1_1_unchecked(
@@ -182,51 +184,51 @@ where
             indicies: [usize; 2],
             value: Vector<2, T, impl VecAlignment>,
         ) -> Self {
-            T::vector_with_1_1_unchecked(self, indicies, value)
+            unsafe { T::vector_with_1_1_unchecked(self, indicies, value) }
         }
         pub unsafe fn with_1_2_unchecked(
             self,
             indicies: [usize; 2],
             value: Vector<3, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1], value)
+            unsafe { self.with_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1], value) }
         }
         pub unsafe fn with_1_3_unchecked(
             self,
             indicies: [usize; 2],
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_1_unchecked(
+            unsafe { self.with_1_1_1_1_unchecked(
                 [indicies[0], indicies[1], indicies[1] + 1, indicies[1] + 2],
                 value,
-            )
+            ) }
         }
         pub unsafe fn with_2_1_unchecked(
             self,
             indicies: [usize; 2],
             value: Vector<3, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1]], value)
+            unsafe { self.with_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1]], value) }
         }
         pub unsafe fn with_2_2_unchecked(
             self,
             indicies: [usize; 2],
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_1_unchecked(
+            unsafe { self.with_1_1_1_1_unchecked(
                 [indicies[0], indicies[0] + 1, indicies[1], indicies[1] + 1],
                 value,
-            )
+            ) }
         }
         pub unsafe fn with_3_1_unchecked(
             self,
             indicies: [usize; 2],
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_1_unchecked(
+            unsafe { self.with_1_1_1_1_unchecked(
                 [indicies[0], indicies[0] + 1, indicies[0] + 2, indicies[1]],
                 value,
-            )
+            ) }
         }
 
         pub unsafe fn with_1_1_1_unchecked(
@@ -234,37 +236,37 @@ where
             indicies: [usize; 3],
             value: Vector<3, T, impl VecAlignment>,
         ) -> Self {
-            T::vector_with_1_1_1_unchecked(self, indicies, value)
+            unsafe { T::vector_with_1_1_1_unchecked(self, indicies, value) }
         }
         pub unsafe fn with_1_1_2_unchecked(
             self,
             indicies: [usize; 3],
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_1_unchecked(
+            unsafe { self.with_1_1_1_1_unchecked(
                 [indicies[0], indicies[1], indicies[2], indicies[2] + 1],
                 value,
-            )
+            ) }
         }
         pub unsafe fn with_1_2_1_unchecked(
             self,
             indicies: [usize; 3],
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_1_unchecked(
+            unsafe { self.with_1_1_1_1_unchecked(
                 [indicies[0], indicies[1], indicies[1] + 1, indicies[2]],
                 value,
-            )
+            ) }
         }
         pub unsafe fn with_2_1_1_unchecked(
             self,
             indicies: [usize; 3],
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            self.with_1_1_1_1_unchecked(
+            unsafe { self.with_1_1_1_1_unchecked(
                 [indicies[0], indicies[0] + 1, indicies[1], indicies[2]],
                 value,
-            )
+            ) }
         }
 
         pub unsafe fn with_1_1_1_1_unchecked(
@@ -272,7 +274,7 @@ where
             indicies: [usize; 4],
             value: Vector<4, T, impl VecAlignment>,
         ) -> Self {
-            T::vector_with_1_1_1_1_unchecked(self, indicies, value)
+            unsafe { T::vector_with_1_1_1_1_unchecked(self, indicies, value) }
         }
     }
 }
@@ -371,7 +373,9 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            *vec.get_mut_unchecked(index) = value;
+            unsafe {
+                *vec.get_mut_unchecked(index) = value;
+            }
             vec
         }
 
@@ -383,8 +387,10 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
+            unsafe {
+                *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
             *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
+            }
             vec
         }
 
@@ -396,9 +402,11 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
+            unsafe {
+                *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
             *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
             *vec.get_mut_unchecked(indicies[2]) = value.get_unchecked(2);
+            }
             vec
         }
 
@@ -410,10 +418,12 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
+            unsafe {
+                *vec.get_mut_unchecked(indicies[0]) = value.get_unchecked(0);
             *vec.get_mut_unchecked(indicies[1]) = value.get_unchecked(1);
             *vec.get_mut_unchecked(indicies[2]) = value.get_unchecked(2);
             *vec.get_mut_unchecked(indicies[3]) = value.get_unchecked(3);
+            }
             vec
         }
     }

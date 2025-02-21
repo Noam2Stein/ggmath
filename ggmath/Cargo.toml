@@ -6,7 +6,7 @@ categories = [
     "mathematics",
 ]
 description = "optimized generic-graphics-math"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 name = "ggmath"
 readme = "../README.md"

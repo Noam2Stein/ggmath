@@ -78,7 +78,7 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Self::wrap(vec.unwrap().get_unchecked(index))
+        Self::wrap(unsafe { vec.unwrap().get_unchecked(index) })
     }
     unsafe fn vector_get_1_1_unchecked<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -87,7 +87,7 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::<2, Self, A>::wrap(vec.unwrap().get_1_1_unchecked(indicies))
+        Vector::<2, Self, A>::wrap(unsafe { vec.unwrap().get_1_1_unchecked(indicies) })
     }
     unsafe fn vector_get_1_1_1_unchecked<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -96,7 +96,7 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::<3, Self, A>::wrap(vec.unwrap().get_1_1_1_unchecked(indicies))
+        Vector::<3, Self, A>::wrap(unsafe { vec.unwrap().get_1_1_1_unchecked(indicies) })
     }
     unsafe fn vector_get_1_1_1_1_unchecked<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -105,7 +105,7 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::<4, Self, A>::wrap(vec.unwrap().get_1_1_1_1_unchecked(indicies))
+        Vector::<4, Self, A>::wrap(unsafe { vec.unwrap().get_1_1_1_1_unchecked(indicies) })
     }
 
     fn vector_with<const N: usize, A: VecAlignment>(
@@ -165,7 +165,7 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::wrap(vec.unwrap().with_unchecked(index, value.unwrap()))
+        Vector::wrap(unsafe { vec.unwrap().with_unchecked(index, value.unwrap()) })
     }
     unsafe fn vector_with_1_1_unchecked<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -175,7 +175,7 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::wrap(vec.unwrap().with_1_1_unchecked(indicies, value.unwrap()))
+        Vector::wrap(unsafe { vec.unwrap().with_1_1_unchecked(indicies, value.unwrap()) })
     }
     unsafe fn vector_with_1_1_1_unchecked<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -185,7 +185,7 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::wrap(vec.unwrap().with_1_1_1_unchecked(indicies, value.unwrap()))
+        Vector::wrap(unsafe { vec.unwrap().with_1_1_1_unchecked(indicies, value.unwrap()) })
     }
     unsafe fn vector_with_1_1_1_1_unchecked<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -195,10 +195,10 @@ impl<T: WrapperScalar> Scalar for T {
     where
         ScalarCount<N>: VecLen,
     {
-        Vector::wrap(
+        Vector::wrap(unsafe {
             vec.unwrap()
-                .with_1_1_1_1_unchecked(indicies, value.unwrap()),
-        )
+                .with_1_1_1_1_unchecked(indicies, value.unwrap())
+        })
     }
 }
 

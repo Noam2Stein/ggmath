@@ -84,53 +84,65 @@ where
 
     #[inline(always)]
     pub unsafe fn get_cell_unchecked(self, index: (usize, usize)) -> T {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                mat.inner.get_unchecked(index.0).get_unchecked(index.1)
-            }
-            MajorAxisResolvedMatrix::RowMajor(mat) => {
-                mat.inner.get_unchecked(index.1).get_unchecked(index.0)
+        unsafe {
+            match self.resolve_major_axis() {
+                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
+                    mat.inner.get_unchecked(index.0).get_unchecked(index.1)
+                }
+                MajorAxisResolvedMatrix::RowMajor(mat) => {
+                    mat.inner.get_unchecked(index.1).get_unchecked(index.0)
+                }
             }
         }
     }
 
     #[inline(always)]
     pub unsafe fn get_column_unchecked(self, index: usize) -> Vector<R, T, A> {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => *mat.inner.get_unchecked(index),
-            MajorAxisResolvedMatrix::RowMajor(mat) => {
-                Vector::from_fn(|row_index| mat.inner[row_index].get_unchecked(index))
+        unsafe {
+            match self.resolve_major_axis() {
+                MajorAxisResolvedMatrix::ColumnMajor(mat) => *mat.inner.get_unchecked(index),
+                MajorAxisResolvedMatrix::RowMajor(mat) => {
+                    Vector::from_fn(|row_index| mat.inner[row_index].get_unchecked(index))
+                }
             }
         }
     }
     #[inline(always)]
     pub unsafe fn get_column_array_unchecked(self, index: usize) -> [T; R] {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                mat.inner.get_unchecked(index).into_array()
-            }
-            MajorAxisResolvedMatrix::RowMajor(mat) => {
-                array::from_fn(|row_index| mat.inner[row_index].get_unchecked(index))
+        unsafe {
+            match self.resolve_major_axis() {
+                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
+                    mat.inner.get_unchecked(index).into_array()
+                }
+                MajorAxisResolvedMatrix::RowMajor(mat) => {
+                    array::from_fn(|row_index| mat.inner[row_index].get_unchecked(index))
+                }
             }
         }
     }
 
     #[inline(always)]
     pub unsafe fn get_row_unchecked(self, index: usize) -> Vector<C, T, A> {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                Vector::from_fn(|column_index| mat.inner[column_index].get_unchecked(index))
+        unsafe {
+            match self.resolve_major_axis() {
+                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
+                    Vector::from_fn(|column_index| mat.inner[column_index].get_unchecked(index))
+                }
+                MajorAxisResolvedMatrix::RowMajor(mat) => *mat.inner.get_unchecked(index),
             }
-            MajorAxisResolvedMatrix::RowMajor(mat) => *mat.inner.get_unchecked(index),
         }
     }
     #[inline(always)]
     pub unsafe fn get_row_array_unchecked(self, index: usize) -> [T; C] {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                array::from_fn(|column_index| mat.inner[column_index].get_unchecked(index))
+        unsafe {
+            match self.resolve_major_axis() {
+                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
+                    array::from_fn(|column_index| mat.inner[column_index].get_unchecked(index))
+                }
+                MajorAxisResolvedMatrix::RowMajor(mat) => {
+                    mat.inner.get_unchecked(index).into_array()
+                }
             }
-            MajorAxisResolvedMatrix::RowMajor(mat) => mat.inner.get_unchecked(index).into_array(),
         }
     }
 }

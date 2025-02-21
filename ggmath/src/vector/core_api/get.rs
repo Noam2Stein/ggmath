@@ -87,62 +87,72 @@ where
 
     #[inline(always)]
     pub unsafe fn get_unchecked(self, index: usize) -> T {
-        T::vector_get_unchecked(self, index)
+        unsafe { T::vector_get_unchecked(self, index) }
     }
     #[inline(always)]
     pub unsafe fn get_2_unchecked(self, index: usize) -> Vector<2, T, A> {
-        self.get_1_1_unchecked([index, index + 1])
+        unsafe { self.get_1_1_unchecked([index, index + 1]) }
     }
     #[inline(always)]
     pub unsafe fn get_3_unchecked(self, index: usize) -> Vector<3, T, A> {
-        self.get_1_1_1_unchecked([index, index + 1, index + 2])
+        unsafe { self.get_1_1_1_unchecked([index, index + 1, index + 2]) }
     }
     #[inline(always)]
     pub unsafe fn get_4_unchecked(self, index: usize) -> Vector<4, T, A> {
-        self.get_1_1_1_1_unchecked([index, index + 1, index + 2, index + 3])
+        unsafe { self.get_1_1_1_1_unchecked([index, index + 1, index + 2, index + 3]) }
     }
 
     #[inline(always)]
     pub unsafe fn get_1_1_unchecked(self, indicies: [usize; 2]) -> Vector<2, T, A> {
-        T::vector_get_1_1_unchecked(self, indicies)
+        unsafe { T::vector_get_1_1_unchecked(self, indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_2_unchecked(self, indicies: [usize; 2]) -> Vector<3, T, A> {
-        self.get_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1])
+        unsafe { self.get_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1]) }
     }
     #[inline(always)]
     pub unsafe fn get_1_3_unchecked(self, indicies: [usize; 2]) -> Vector<4, T, A> {
-        self.get_1_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1, indicies[1] + 2])
+        unsafe {
+            self.get_1_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1, indicies[1] + 2])
+        }
     }
     #[inline(always)]
     pub unsafe fn get_2_1_unchecked(self, indicies: [usize; 2]) -> Vector<3, T, A> {
-        self.get_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1]])
+        unsafe { self.get_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1]]) }
     }
     #[inline(always)]
     pub unsafe fn get_2_2_unchecked(self, indicies: [usize; 2]) -> Vector<4, T, A> {
-        self.get_1_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1], indicies[1] + 1])
+        unsafe {
+            self.get_1_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1], indicies[1] + 1])
+        }
     }
 
     #[inline(always)]
     pub unsafe fn get_1_1_1_unchecked(self, indicies: [usize; 3]) -> Vector<3, T, A> {
-        T::vector_get_1_1_1_unchecked(self, indicies)
+        unsafe { T::vector_get_1_1_1_unchecked(self, indicies) }
     }
     #[inline(always)]
     pub unsafe fn get_1_1_2_unchecked(self, indicies: [usize; 3]) -> Vector<4, T, A> {
-        self.get_1_1_1_1_unchecked([indicies[0], indicies[1], indicies[2], indicies[2] + 1])
+        unsafe {
+            self.get_1_1_1_1_unchecked([indicies[0], indicies[1], indicies[2], indicies[2] + 1])
+        }
     }
     #[inline(always)]
     pub unsafe fn get_1_2_1_unchecked(self, indicies: [usize; 3]) -> Vector<4, T, A> {
-        self.get_1_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1, indicies[2]])
+        unsafe {
+            self.get_1_1_1_1_unchecked([indicies[0], indicies[1], indicies[1] + 1, indicies[2]])
+        }
     }
     #[inline(always)]
     pub unsafe fn get_2_1_1_unchecked(self, indicies: [usize; 3]) -> Vector<4, T, A> {
-        self.get_1_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1], indicies[2]])
+        unsafe {
+            self.get_1_1_1_1_unchecked([indicies[0], indicies[0] + 1, indicies[1], indicies[2]])
+        }
     }
 
     #[inline(always)]
     pub unsafe fn get_1_1_1_1_unchecked(self, indicies: [usize; 4]) -> Vector<4, T, A> {
-        T::vector_get_1_1_1_1_unchecked(self, indicies)
+        unsafe { T::vector_get_1_1_1_1_unchecked(self, indicies) }
     }
 }
 
@@ -206,7 +216,9 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            *vec.as_array().get_unchecked(index)
+            unsafe {
+                *vec.as_array().get_unchecked(index)
+            }
         }
 
         unsafe fn vector_get_1_1_unchecked<const N: usize, A: VecAlignment>(
@@ -216,10 +228,10 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            Vector::<2, Self, A>::from_array([
+            Vector::<2, Self, A>::from_array(unsafe{[
                 vec.get_unchecked(indicies[0]),
                 vec.get_unchecked(indicies[1]),
-            ])
+            ]})
         }
 
         unsafe fn vector_get_1_1_1_unchecked<const N: usize, A: VecAlignment>(
@@ -229,11 +241,13 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            Vector::<3, Self, A>::from_array([
+            Vector::<3, Self, A>::from_array(unsafe {
+                [
                 vec.get_unchecked(indicies[0]),
                 vec.get_unchecked(indicies[1]),
                 vec.get_unchecked(indicies[2]),
-            ])
+            ]
+            })
         }
 
         unsafe fn vector_get_1_1_1_1_unchecked<const N: usize, A: VecAlignment>(
@@ -243,12 +257,12 @@ scalar_defaults_macro! {
         where
             ScalarCount<N>: VecLen,
         {
-            Vector::<4, Self, A>::from_array([
+            Vector::<4, Self, A>::from_array(unsafe { [
                 vec.get_unchecked(indicies[0]),
                 vec.get_unchecked(indicies[1]),
                 vec.get_unchecked(indicies[2]),
                 vec.get_unchecked(indicies[3]),
-            ])
+            ]})
         }
     }
 }

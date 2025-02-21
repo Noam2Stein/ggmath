@@ -19,7 +19,7 @@ where
     ///
     /// SAFETY: Getting the reference is completely safe but mutating ```T``` as bytes can cause undefined behaviour.
     pub unsafe fn as_bytes_mut(&mut self) -> &mut [u8] {
-        from_raw_parts_mut(self as *mut Self as *mut _, size_of::<T>() * N)
+        unsafe { from_raw_parts_mut(self as *mut Self as *mut _, size_of::<T>() * N) }
     }
 
     /// referecnes ```self``` as a byte array with the padding.
@@ -35,6 +35,6 @@ where
     ///
     /// SAFETY: Getting the reference is completely safe but mutating ```T``` as bytes can cause undefined behaviour.
     pub unsafe fn as_bytes_padded_mut(&mut self) -> &mut [u8] {
-        from_raw_parts_mut(self as *mut Self as *mut _, size_of::<T>() * N)
+        unsafe { from_raw_parts_mut(self as *mut Self as *mut _, size_of::<T>() * N) }
     }
 }

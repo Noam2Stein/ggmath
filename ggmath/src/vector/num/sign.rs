@@ -74,4 +74,15 @@ scalar_defaults_macro! {
     {
         vec.map_ref(Sign::is_negative)
     }
+
+    #[inline(always)]
+    fn vector_is_positive<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::BoolMapped, A>
+    where
+        Self: Sign<BoolMapped: Scalar>,
+        ScalarCount<N>: VecLen,
+    {
+        vec.map_ref(Sign::is_negative)
+    }
 }
