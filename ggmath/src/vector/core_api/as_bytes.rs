@@ -18,7 +18,7 @@ where
     /// * Can still contain garbage because ```T``` might have its own padding.
     ///
     /// SAFETY: Getting the reference is completely safe but mutating ```T``` as bytes can cause undefined behaviour.
-    pub unsafe fn as_bytes_mut(&mut self) -> &mut [u8] {
+    pub const unsafe fn as_bytes_mut(&mut self) -> &mut [u8] {
         unsafe { from_raw_parts_mut(self as *mut Self as *mut _, size_of::<T>() * N) }
     }
 
@@ -34,7 +34,7 @@ where
     /// * May contain garbage if ```A == VecAligned``` or if ```T``` has its own padding.
     ///
     /// SAFETY: Getting the reference is completely safe but mutating ```T``` as bytes can cause undefined behaviour.
-    pub unsafe fn as_bytes_padded_mut(&mut self) -> &mut [u8] {
+    pub const unsafe fn as_bytes_padded_mut(&mut self) -> &mut [u8] {
         unsafe { from_raw_parts_mut(self as *mut Self as *mut _, size_of::<T>() * N) }
     }
 }

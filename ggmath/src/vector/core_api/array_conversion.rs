@@ -1,4 +1,4 @@
-use std::mem::{transmute, transmute_copy, MaybeUninit};
+use std::mem::{MaybeUninit, transmute, transmute_copy};
 
 use super::*;
 
@@ -8,36 +8,33 @@ where
 {
     /// Creates a ```Vector<N, T, A>``` from a ```[T; N]``` by copying it.
     #[inline(always)]
-    pub fn from_array(array: [T; N]) -> Self {
-        Self::from_resolved_alignment_fns(
-            || unsafe {
-                let mut output = MaybeUninit::uninit().assume_init();
+    pub const fn from_array(array: [T; N]) -> Self {
+        unsafe {
+            let mut output = MaybeUninit::uninit().assume_init();
 
-                *transmute::<_, &mut [T; N]>(&mut output) = array;
+            *transmute::<_, &mut [T; N]>(&mut output) = array;
 
-                output
-            },
-            || Vector(array),
-        )
+            output
+        }
     }
 
     /// Creates a ```[T; N]``` from a ```Vector<N, T, A>``` by copying it.
     #[inline(always)]
-    pub fn into_array(self) -> [T; N] {
+    pub const fn into_array(self) -> [T; N] {
         unsafe { transmute_copy(&self) }
     }
 
     /// referecnes ```self``` as an array.
     /// - Cost: Nothing.
     #[inline(always)]
-    pub fn as_array(&self) -> &[T; N] {
+    pub const fn as_array(&self) -> &[T; N] {
         unsafe { transmute(self) }
     }
 
     /// mutably referecnes ```self``` as an array.
     /// - Cost: Nothing.
     #[inline(always)]
-    pub fn as_array_mut(&mut self) -> &mut [T; N] {
+    pub const fn as_array_mut(&mut self) -> &mut [T; N] {
         unsafe { transmute(self) }
     }
 }
@@ -52,7 +49,7 @@ where
     /// because it guarentees the same type-layout as an array,
     /// where as a ```VecAligned``` vector might have a larger size than an array.
     #[inline(always)]
-    pub fn from_array_ref(array: &[T; N]) -> &Self {
+    pub const fn from_array_ref(array: &[T; N]) -> &Self {
         unsafe { transmute(array) }
     }
 
@@ -62,7 +59,7 @@ where
     /// because it guarentees the same type-layout as an array,
     /// where as a ```VecAligned``` vector might have a larger size than an array.
     #[inline(always)]
-    pub fn from_array_mut(array: &mut [T; N]) -> &mut Self {
+    pub const fn from_array_mut(array: &mut [T; N]) -> &mut Self {
         unsafe { transmute(array) }
     }
 }

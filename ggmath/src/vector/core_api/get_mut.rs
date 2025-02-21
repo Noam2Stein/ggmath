@@ -7,7 +7,7 @@ where
     ScalarCount<N>: VecLen,
 {
     #[inline(always)]
-    pub fn get_n_mut<const N_OUTPUT: usize>(
+    pub const fn get_n_mut<const N_OUTPUT: usize>(
         &mut self,
         index: usize,
     ) -> Option<&mut VectorOrT<N_OUTPUT, T, VecPacked>>
@@ -21,7 +21,7 @@ where
         }
     }
     #[inline(always)]
-    pub fn get_n_n_mut<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
+    pub const fn get_n_n_mut<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(
@@ -42,7 +42,7 @@ where
         }
     }
     #[inline(always)]
-    pub fn get_n_n_n_mut<
+    pub const fn get_n_n_n_mut<
         const N_OUTPUT_0: usize,
         const N_OUTPUT_1: usize,
         const N_OUTPUT_2: usize,
@@ -74,7 +74,7 @@ where
         }
     }
     #[inline(always)]
-    pub fn get_n_n_n_n_mut<
+    pub const fn get_n_n_n_n_mut<
         const N_OUTPUT_0: usize,
         const N_OUTPUT_1: usize,
         const N_OUTPUT_2: usize,
@@ -116,17 +116,17 @@ where
     }
 
     #[inline(always)]
-    pub unsafe fn get_n_mut_unchecked<const N_OUTPUT: usize>(
+    pub const unsafe fn get_n_mut_unchecked<const N_OUTPUT: usize>(
         &mut self,
         index: usize,
     ) -> &mut VectorOrT<N_OUTPUT, T, VecPacked>
     where
         ScalarCount<N_OUTPUT>: VecLenOr1,
     {
-        unsafe { transmute(self.as_array_mut().get_unchecked_mut(index)) }
+        unsafe { transmute(self.as_array_mut().as_mut_ptr().add(index).as_mut()) }
     }
     #[inline(always)]
-    pub unsafe fn get_n_n_mut_unchecked<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
+    pub const unsafe fn get_n_n_mut_unchecked<const N_OUTPUT_0: usize, const N_OUTPUT_1: usize>(
         &mut self,
         indicies: [usize; 2],
     ) -> (
@@ -145,7 +145,7 @@ where
         }
     }
     #[inline(always)]
-    pub unsafe fn get_n_n_n_mut_unchecked<
+    pub const unsafe fn get_n_n_n_mut_unchecked<
         const N_OUTPUT_0: usize,
         const N_OUTPUT_1: usize,
         const N_OUTPUT_2: usize,
@@ -171,7 +171,7 @@ where
         }
     }
     #[inline(always)]
-    pub unsafe fn get_n_n_n_n_mut_unchecked<
+    pub const unsafe fn get_n_n_n_n_mut_unchecked<
         const N_OUTPUT_0: usize,
         const N_OUTPUT_1: usize,
         const N_OUTPUT_2: usize,
@@ -202,56 +202,56 @@ where
     }
 
     #[inline(always)]
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+    pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
         self.get_n_mut::<1>(index)
     }
     #[inline(always)]
-    pub fn get_2_mut(&mut self, index: usize) -> Option<&mut Vector<2, T, VecPacked>> {
+    pub const fn get_2_mut(&mut self, index: usize) -> Option<&mut Vector<2, T, VecPacked>> {
         self.get_n_mut::<2>(index)
     }
     #[inline(always)]
-    pub fn get_3_mut(&mut self, index: usize) -> Option<&mut Vector<3, T, VecPacked>> {
+    pub const fn get_3_mut(&mut self, index: usize) -> Option<&mut Vector<3, T, VecPacked>> {
         self.get_n_mut::<3>(index)
     }
     #[inline(always)]
-    pub fn get_4_mut(&mut self, index: usize) -> Option<&mut Vector<4, T, VecPacked>> {
+    pub const fn get_4_mut(&mut self, index: usize) -> Option<&mut Vector<4, T, VecPacked>> {
         self.get_n_mut::<4>(index)
     }
 
     #[inline(always)]
-    pub fn get_1_1_mut(&mut self, indicies: [usize; 2]) -> Option<(&mut T, &mut T)> {
+    pub const fn get_1_1_mut(&mut self, indicies: [usize; 2]) -> Option<(&mut T, &mut T)> {
         self.get_n_n_mut::<1, 1>(indicies)
     }
     #[inline(always)]
-    pub fn get_1_2_mut(
+    pub const fn get_1_2_mut(
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(&mut T, &mut Vector<2, T, VecPacked>)> {
         self.get_n_n_mut::<1, 2>(indicies)
     }
     #[inline(always)]
-    pub fn get_1_3_mut(
+    pub const fn get_1_3_mut(
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(&mut T, &mut Vector<3, T, VecPacked>)> {
         self.get_n_n_mut::<1, 3>(indicies)
     }
     #[inline(always)]
-    pub fn get_2_1_mut(
+    pub const fn get_2_1_mut(
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(&mut Vector<2, T, VecPacked>, &mut T)> {
         self.get_n_n_mut::<2, 1>(indicies)
     }
     #[inline(always)]
-    pub fn get_2_2_mut(
+    pub const fn get_2_2_mut(
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(&mut Vector<2, T, VecPacked>, &mut Vector<2, T, VecPacked>)> {
         self.get_n_n_mut::<2, 2>(indicies)
     }
     #[inline(always)]
-    pub fn get_3_1_mut(
+    pub const fn get_3_1_mut(
         &mut self,
         indicies: [usize; 2],
     ) -> Option<(&mut Vector<3, T, VecPacked>, &mut T)> {
@@ -259,25 +259,28 @@ where
     }
 
     #[inline(always)]
-    pub fn get_1_1_1_mut(&mut self, indicies: [usize; 3]) -> Option<(&mut T, &mut T, &mut T)> {
+    pub const fn get_1_1_1_mut(
+        &mut self,
+        indicies: [usize; 3],
+    ) -> Option<(&mut T, &mut T, &mut T)> {
         self.get_n_n_n_mut::<1, 1, 1>(indicies)
     }
     #[inline(always)]
-    pub fn get_1_1_2_mut(
+    pub const fn get_1_1_2_mut(
         &mut self,
         indicies: [usize; 3],
     ) -> Option<(&mut T, &mut T, &mut Vector<2, T, VecPacked>)> {
         self.get_n_n_n_mut::<1, 1, 2>(indicies)
     }
     #[inline(always)]
-    pub fn get_1_2_1_mut(
+    pub const fn get_1_2_1_mut(
         &mut self,
         indicies: [usize; 3],
     ) -> Option<(&mut T, &mut Vector<2, T, VecPacked>, &mut T)> {
         self.get_n_n_n_mut::<1, 2, 1>(indicies)
     }
     #[inline(always)]
-    pub fn get_2_1_1_mut(
+    pub const fn get_2_1_1_mut(
         &mut self,
         indicies: [usize; 3],
     ) -> Option<(&mut Vector<2, T, VecPacked>, &mut T, &mut T)> {
@@ -285,7 +288,7 @@ where
     }
 
     #[inline(always)]
-    pub fn get_1_1_1_1_mut(
+    pub const fn get_1_1_1_1_mut(
         &mut self,
         indicies: [usize; 4],
     ) -> Option<(&mut T, &mut T, &mut T, &mut T)> {
@@ -293,49 +296,58 @@ where
     }
 
     #[inline(always)]
-    pub unsafe fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
+    pub const unsafe fn get_mut_unchecked(&mut self, index: usize) -> &mut T {
         unsafe { self.get_n_mut_unchecked::<1>(index) }
     }
     #[inline(always)]
-    pub unsafe fn get_2_mut_unchecked(&mut self, index: usize) -> &mut Vector<2, T, VecPacked> {
+    pub const unsafe fn get_2_mut_unchecked(
+        &mut self,
+        index: usize,
+    ) -> &mut Vector<2, T, VecPacked> {
         unsafe { self.get_n_mut_unchecked::<2>(index) }
     }
     #[inline(always)]
-    pub unsafe fn get_3_mut_unchecked(&mut self, index: usize) -> &mut Vector<3, T, VecPacked> {
+    pub const unsafe fn get_3_mut_unchecked(
+        &mut self,
+        index: usize,
+    ) -> &mut Vector<3, T, VecPacked> {
         unsafe { self.get_n_mut_unchecked::<3>(index) }
     }
     #[inline(always)]
-    pub unsafe fn get_4_mut_unchecked(&mut self, index: usize) -> &mut Vector<4, T, VecPacked> {
+    pub const unsafe fn get_4_mut_unchecked(
+        &mut self,
+        index: usize,
+    ) -> &mut Vector<4, T, VecPacked> {
         unsafe { self.get_n_mut_unchecked::<4>(index) }
     }
 
     #[inline(always)]
-    pub unsafe fn get_1_1_mut_unchecked(&mut self, indicies: [usize; 2]) -> (&mut T, &mut T) {
+    pub const unsafe fn get_1_1_mut_unchecked(&mut self, indicies: [usize; 2]) -> (&mut T, &mut T) {
         unsafe { self.get_n_n_mut_unchecked::<1, 1>(indicies) }
     }
     #[inline(always)]
-    pub unsafe fn get_1_2_mut_unchecked(
+    pub const unsafe fn get_1_2_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut T, &mut Vector<2, T, VecPacked>) {
         unsafe { self.get_n_n_mut_unchecked::<1, 2>(indicies) }
     }
     #[inline(always)]
-    pub unsafe fn get_1_3_mut_unchecked(
+    pub const unsafe fn get_1_3_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut T, &mut Vector<3, T, VecPacked>) {
         unsafe { self.get_n_n_mut_unchecked::<1, 3>(indicies) }
     }
     #[inline(always)]
-    pub unsafe fn get_2_1_mut_unchecked(
+    pub const unsafe fn get_2_1_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut Vector<2, T, VecPacked>, &mut T) {
         unsafe { self.get_n_n_mut_unchecked::<2, 1>(indicies) }
     }
     #[inline(always)]
-    pub unsafe fn get_2_2_mut_unchecked(
+    pub const unsafe fn get_2_2_mut_unchecked(
         &mut self,
         indicies: [usize; 2],
     ) -> (&mut Vector<2, T, VecPacked>, &mut Vector<2, T, VecPacked>) {
@@ -343,28 +355,28 @@ where
     }
 
     #[inline(always)]
-    pub unsafe fn get_1_1_1_mut_unchecked(
+    pub const unsafe fn get_1_1_1_mut_unchecked(
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut T, &mut T, &mut T) {
         unsafe { self.get_n_n_n_mut_unchecked::<1, 1, 1>(indicies) }
     }
     #[inline(always)]
-    pub unsafe fn get_1_1_2_mut_unchecked(
+    pub const unsafe fn get_1_1_2_mut_unchecked(
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut T, &mut T, &mut Vector<2, T, VecPacked>) {
         unsafe { self.get_n_n_n_mut_unchecked::<1, 1, 2>(indicies) }
     }
     #[inline(always)]
-    pub unsafe fn get_1_2_1_mut_unchecked(
+    pub const unsafe fn get_1_2_1_mut_unchecked(
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut T, &mut Vector<2, T, VecPacked>, &mut T) {
         unsafe { self.get_n_n_n_mut_unchecked::<1, 2, 1>(indicies) }
     }
     #[inline(always)]
-    pub unsafe fn get_2_1_1_mut_unchecked(
+    pub const unsafe fn get_2_1_1_mut_unchecked(
         &mut self,
         indicies: [usize; 3],
     ) -> (&mut Vector<2, T, VecPacked>, &mut T, &mut T) {
@@ -372,7 +384,7 @@ where
     }
 
     #[inline(always)]
-    pub unsafe fn get_1_1_1_1_mut_unchecked(
+    pub const unsafe fn get_1_1_1_1_mut_unchecked(
         &mut self,
         indicies: [usize; 4],
     ) -> (&mut T, &mut T, &mut T, &mut T) {
@@ -381,6 +393,6 @@ where
 }
 
 #[inline(always)]
-fn range_intersects(a_start: usize, a_len: usize, b_start: usize, b_len: usize) -> bool {
+const fn range_intersects(a_start: usize, a_len: usize, b_start: usize, b_len: usize) -> bool {
     a_start < b_start + b_len && b_start < a_start + a_len
 }
