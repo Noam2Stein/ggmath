@@ -37,6 +37,16 @@ where
     pub const fn as_array_mut(&mut self) -> &mut [T; N] {
         unsafe { transmute(self) }
     }
+
+    /// Returns a raw pointer to the vector's buffer.
+    pub const fn as_ptr(&self) -> *const T {
+        self.as_array().as_ptr()
+    }
+
+    /// Returns an unsafe mutable pointer to the vector's buffer.
+    pub const fn as_mut_ptr(&mut self) -> *mut T {
+        self.as_array_mut().as_mut_ptr()
+    }
 }
 
 impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
