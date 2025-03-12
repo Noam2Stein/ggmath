@@ -21,7 +21,7 @@ vector_builder_macro!(vec4p(4, VecPacked));
 fn vector_builder(n: LitInt, a: Ident, input: TokenStream1) -> TokenStream1 {
     let Input { fields } = parse_macro_input!(input);
     quote! {
-        ggmath::vector::VectorBuilder::<#n>::build::<ggmath::vector::#a>((#fields))
+        ggmath::vector::build_vector::<#n, _, ggmath::vector::#a>((#fields))
     }
     .into()
 }

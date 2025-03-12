@@ -1,5 +1,5 @@
-use ggmath::{num::Positive, vector::vec2};
+use ggmath::vector::vec2;
 
 fn main() {
-    println!("{}", vec2!(1, -2).abs())
+    println!("{}", vec2!(1, -2))
 }
