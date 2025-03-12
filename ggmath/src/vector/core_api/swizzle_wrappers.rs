@@ -138,7 +138,7 @@ for_swizzles!(
     sorted unique 1..2(x y: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> &mut vecp!($($len_ident)*) {
+                pub const fn $ident(&mut self) -> &mut vecp!($($len_ident)*) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -149,7 +149,7 @@ for_swizzles!(
     sorted unique 1..2 1..2(x y: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
+                pub const fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -161,7 +161,7 @@ for_swizzles!(
     sorted unique 1..3(x y z: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> &mut vecp!($($len_ident)*) {
+                pub const fn $ident(&mut self) -> &mut vecp!($($len_ident)*) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -172,7 +172,7 @@ for_swizzles!(
     sorted unique 1..3 1..3(x y z: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
+                pub const fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -183,7 +183,7 @@ for_swizzles!(
     sorted unique 1..3 1..3 1..3(x y z: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
+                pub const fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -195,7 +195,7 @@ for_swizzles!(
     sorted unique 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> &mut vecp!($($len_ident)*) {
+                pub const fn $ident(&mut self) -> &mut vecp!($($len_ident)*) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -206,7 +206,7 @@ for_swizzles!(
     sorted unique 1..4 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
+                pub const fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -217,7 +217,7 @@ for_swizzles!(
     sorted unique 1..4 1..4 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
+                pub const fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
@@ -228,7 +228,7 @@ for_swizzles!(
     sorted unique 1..4 1..4 1..4 1..4(x y z w: _)_mut => {
         impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
             $($(#[inline(always)]
-                pub fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
+                pub const fn $ident(&mut self) -> ($(&mut vecp!($len_ident)), *) {
                     ($(unsafe { transmute(self.get_mut_unchecked($pos)) }), *)
                 }
             )*)*
