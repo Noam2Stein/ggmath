@@ -1,6 +1,6 @@
 use newnum::{Negative, Positive, Sign, Zero};
 
-use super::{scalar_defaults_macro, Scalar, ScalarCount, VecAlignment, VecLen, Vector};
+use super::{Scalar, ScalarCount, VecAlignment, VecLen, Vector, scalar_defaults_macro};
 
 impl<const N: usize, T: Scalar + Sign<BoolMapped: Scalar>, A: VecAlignment> Sign for Vector<N, T, A>
 where
@@ -24,8 +24,13 @@ where
     }
 
     #[inline(always)]
-    fn signum(self) -> Self {
-        self.map(Sign::signum)
+    fn is_sign_negative(&self) -> Self::BoolMapped {
+        self.map_ref(Sign::is_sign_negative)
+    }
+
+    #[inline(always)]
+    fn is_sign_positive(&self) -> Self::BoolMapped {
+        self.map_ref(Sign::is_sign_positive)
     }
 }
 

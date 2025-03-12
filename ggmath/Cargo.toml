@@ -21,12 +21,19 @@ num               = [ "dep:newnum" ]
 primitive_aliases = [  ]
 quaternion        = [  ]
 
-full = [ "matrix", "primitive_aliases", "quaternion", "rectangle", "testing" ]
+full = [
+    "matrix",
+    "num",
+    "primitive_aliases",
+    "quaternion",
+    "rectangle",
+    "testing",
+]
 
 rectangle = [ "num" ]
 testing   = [  ]
 
 [dependencies]
-ggmath_proc_macros = { path = "../ggmath_proc_macros" }
-newnum             = { version = "0.0.7", optional = true }
+ggmath_proc_macros = "0.5.0"
+newnum             = { version = "0.0.8", optional = true }
 splat_attribs      = "1.0.0"
