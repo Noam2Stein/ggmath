@@ -3,9 +3,11 @@
 use crate::{construct::*, scalar::*, *};
 
 mod core_api;
+mod ext_api;
 mod generics;
 mod impl_std;
 pub use core_api::*;
+pub use ext_api::*;
 pub use generics::*;
 
 #[cfg(feature = "num")]
