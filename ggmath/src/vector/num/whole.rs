@@ -8,8 +8,4 @@ where
     ScalarCount<N>: VecLen,
 {
     type Whole = Vector<N, T::Whole, A>;
-
-    fn whole(self) -> Self::Whole {
-        self.map(WholeEquivalent::whole)
-    }
 }

@@ -8,6 +8,5 @@ mod floating;
 mod min_max;
 mod round;
 mod sign;
-mod normalizable;
 mod trig;
 mod whole;

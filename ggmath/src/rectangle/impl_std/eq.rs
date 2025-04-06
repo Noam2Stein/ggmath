@@ -1,13 +1,13 @@
 use super::*;
 
 impl<
-        const N: usize,
-        T: ScalarRect,
-        A: VecAlignment,
-        R: RectRepr,
-        ARhs: VecAlignment,
-        RRhs: RectRepr,
-    > PartialEq<Rectangle<N, T, ARhs, RRhs>> for Rectangle<N, T, A, R>
+    const N: usize,
+    T: Scalar + Num,
+    A: VecAlignment,
+    R: RectRepr,
+    ARhs: VecAlignment,
+    RRhs: RectRepr,
+> PartialEq<Rectangle<N, T, ARhs, RRhs>> for Rectangle<N, T, A, R>
 where
     ScalarCount<N>: VecLen,
 {
@@ -25,7 +25,9 @@ where
     }
 }
 
-impl<const N: usize, T: ScalarRect + Eq, A: VecAlignment, R: RectRepr> Eq for Rectangle<N, T, A, R> where
-    ScalarCount<N>: VecLen
+impl<const N: usize, T: Scalar + Num + Eq, A: VecAlignment, R: RectRepr> Eq
+    for Rectangle<N, T, A, R>
+where
+    ScalarCount<N>: VecLen,
 {
 }

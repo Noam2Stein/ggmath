@@ -1,7 +1,9 @@
 use std::panic::{catch_unwind, set_hook, take_hook};
 
 use ggmath::{
-    rectangle::{RectCentered, RectCornered, RectMinMaxed, RectRepr, Rectangle, ScalarRect},
+    num::Num,
+    rectangle::{RectCentered, RectCornered, RectMinMaxed, RectRepr, Rectangle},
+    scalar::Scalar,
     testing::{rect_test_assert, TestResult, TestableScalar},
     vector::{ScalarCount, VecAligned, VecAlignment, VecLen, VecPacked, Vector},
 };
@@ -31,7 +33,7 @@ pub fn test_rectangle() -> TestResult {
     Ok(())
 }
 
-fn test_n_t_a_r<const N: usize, T: ScalarRect + TestableScalar, A: VecAlignment, R: RectRepr>(
+fn test_n_t_a_r<const N: usize, T: Scalar + Num + TestableScalar, A: VecAlignment, R: RectRepr>(
 ) -> TestResult
 where
     ScalarCount<N>: VecLen,

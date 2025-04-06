@@ -4,4 +4,5 @@ name    = "sandbox"
 version = "0.1.0"
 
 [dependencies]
-ggmath = { path = "../ggmath", features = [ "full" ] }
+derive_more = { version = "2.0.1", features = [ "full" ] }
+ggmath      = { path = "../ggmath", features = [ "full" ] }

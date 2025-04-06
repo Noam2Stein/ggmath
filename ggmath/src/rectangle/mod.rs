@@ -1,4 +1,4 @@
-use newnum::{FromU7, Num};
+use newnum::Num;
 
 use crate::{construct::*, ggmath, scalar::*, vector::*};
 
@@ -8,10 +8,7 @@ mod impl_std;
 pub use api::*;
 pub use generics::*;
 
-pub trait ScalarRect: Scalar + Num + FromU7 {}
-impl<T: Scalar + Num + FromU7> ScalarRect for T {}
-
-pub struct Rectangle<const N: usize, T: ScalarRect, A: VecAlignment, R: RectRepr>
+pub struct Rectangle<const N: usize, T: Scalar + Num, A: VecAlignment, R: RectRepr>
 where
     ScalarCount<N>: VecLen,
 {
