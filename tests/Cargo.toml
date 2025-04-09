@@ -5,3 +5,4 @@ version = "0.1.0"
 
 [dependencies]
 ggmath = { path = "../ggmath", features = [ "full" ] }
+newnum = "0.0.9"

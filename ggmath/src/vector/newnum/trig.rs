@@ -1,6 +1,4 @@
-use newnum::{AHyper, ATrig, Hyper, Trig};
-
-use super::{Scalar, ScalarCount, VecAlignment, VecLen, Vector, scalar_defaults_macro};
+use super::*;
 
 impl<const N: usize, T: Scalar + Trig<Output: Scalar>, A: VecAlignment> Trig for Vector<N, T, A>
 where

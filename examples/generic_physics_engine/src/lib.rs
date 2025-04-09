@@ -1,4 +1,5 @@
-use ggmath::{num::*, rectangle::*, scalar::*, vector::*};
+use ggmath::{rectangle::*, scalar::*, vector::*};
+use newnum::Float;
 
 pub struct World<const D: usize, F: Scalar + Float>
 where

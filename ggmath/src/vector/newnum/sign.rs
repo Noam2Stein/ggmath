@@ -1,6 +1,4 @@
-use newnum::*;
-
-use super::{Scalar, ScalarCount, VecAlignment, VecLen, Vector, scalar_defaults_macro};
+use super::*;
 
 impl<const N: usize, T: Scalar + Sign<BoolMapped = bool>, A: VecAlignment> Sign for Vector<N, T, A>
 where

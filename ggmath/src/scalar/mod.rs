@@ -10,12 +10,8 @@ use splat_attribs::splat_attribs;
 
 use crate::{vector::*, *};
 
-splat_attribs! {
-    #[cfg(feature = "num")]:
-
-    use newnum::*;
-    use std::cmp::Ordering;
-}
+#[cfg(feature = "newnum")]
+use ::newnum::*;
 
 mod wrapper;
 pub use wrapper::*;
@@ -55,81 +51,34 @@ pub unsafe trait ScalarInnerAlignedVecs {
 /// impl Scalar for u256 {}
 /// ```
 pub trait Scalar: Construct + ScalarInnerAlignedVecs {
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ********************************************** Scalar **********************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-    // ****************************************************************************************************
-
-    splat_attribs! {
-        #[inline(always)]:
-
-        // Min Max Clamp
-
-        fn min(self, other: Self) -> Self
-        where
-            Self: PartialOrd,
-        {
-            if self > other {
-                other
-            } else {
-                self
-            }
-        }
-
-        fn max(self, other: Self) -> Self
-        where
-            Self: PartialOrd,
-        {
-            if self > other {
-                self
-            } else {
-                other
-            }
-        }
-
-        fn clamp(self, min: Self, max: Self) -> Self
-        where
-            Self: PartialOrd,
-        {
-            if self > max {
-                max
-            } else if self < min {
-                min
-            } else {
-                self
-            }
-        }
-    }
-
     // **************************************************
     // ********************* Vector *********************
     // **************************************************
-
-    // Core
-    scalar_defaults_vector_splat! {}
-    scalar_defaults_vector_get! {}
-    scalar_defaults_vector_with! {}
 
     // STD
     scalar_defaults_vector_eq! {}
     scalar_defaults_vector_default! {}
     scalar_defaults_vector_ops! {}
 
-    // Num
-    splat_attribs! {
-        #[cfg(feature = "num")]:
+    // Core
+    scalar_defaults_vector_splat! {}
+    scalar_defaults_vector_get! {}
+    scalar_defaults_vector_with! {}
 
+    // Ext
+
+    scalar_defaults_vector_ext_cmp! {}
+    scalar_defaults_vector_ext_ops! {}
+
+    // Newnum
+    splat_attribs! {
+        #[cfg(feature = "newnum")]:
+
+        scalar_defaults_vector_abs_diff! {}
         scalar_defaults_vector_round! {}
         scalar_defaults_vector_sign! {}
         scalar_defaults_vector_trig! {}
-        scalar_defaults_vector_abs_diff! {}
+        scalar_defaults_vector_whole_equivalent! {}
     }
 
     // ********************************************************************************
@@ -137,121 +86,6 @@ pub trait Scalar: Construct + ScalarInnerAlignedVecs {
     // ************************************* API **************************************
     // ********************************************************************************
     // ********************************************************************************
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_csum<const N: usize>(vec: Vector<N, Self, impl VecAlignment>) -> Self
-    where
-        Self: Add<Output = Self>,
-        ScalarCount<N>: VecLen,
-    {
-        match vec.resolve_length() {
-            LengthResolvedVector::Vec2(vec) => vec.x() + vec.y(),
-            LengthResolvedVector::Vec3(vec) => vec.x() + vec.y() + vec.z(),
-            LengthResolvedVector::Vec4(vec) => vec.x() + vec.y() + vec.z() + vec.w(),
-        }
-    }
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_dot<const N: usize>(
-        vec: Vector<N, Self, impl VecAlignment>,
-        other: Vector<N, Self, impl VecAlignment>,
-    ) -> Self
-    where
-        Self: Mul<Output = Self> + Add<Output = Self>,
-        ScalarCount<N>: VecLen,
-    {
-        (vec * other).csum()
-    }
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_cross<A: VecAlignment>(
-        vec: Vector<3, Self, A>,
-        other: Vector<3, Self, impl VecAlignment>,
-    ) -> Vector<3, Self, A>
-    where
-        Self: Mul<Output = Self> + Sub<Output = Self>,
-    {
-        (vec.zxy() * other - vec * other.zxy()).zxy()
-    }
-
-    // Vector: Min Max
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_cmin<const N: usize>(vec: Vector<N, Self, impl VecAlignment>) -> Self
-    where
-        ScalarCount<N>: VecLen,
-        Self: PartialOrd,
-    {
-        vec.iter()
-            .min_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
-            .unwrap_or(vec[0])
-    }
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_cmax<const N: usize>(vec: Vector<N, Self, impl VecAlignment>) -> Self
-    where
-        ScalarCount<N>: VecLen,
-        Self: PartialOrd,
-    {
-        vec.iter()
-            .max_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal))
-            .unwrap_or(vec[0])
-    }
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_min<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        other: Vector<N, Self, impl VecAlignment>,
-    ) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-        Self: PartialOrd,
-    {
-        Vector::from_fn(|i| match vec[i].partial_cmp(&other[i]) {
-            None => vec[i],
-            Some(Ordering::Less) => vec[i],
-            Some(Ordering::Equal) => vec[i],
-            Some(Ordering::Greater) => other[i],
-        })
-    }
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_max<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        other: Vector<N, Self, impl VecAlignment>,
-    ) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-        Self: PartialOrd,
-    {
-        Vector::from_fn(|i| match vec[i].partial_cmp(&other[i]) {
-            None => vec[i],
-            Some(Ordering::Less) => other[i],
-            Some(Ordering::Equal) => vec[i],
-            Some(Ordering::Greater) => vec[i],
-        })
-    }
-
-    #[cfg(feature = "num")]
-    #[inline(always)]
-    fn vector_clamp<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        min: Vector<N, Self, impl VecAlignment>,
-        max: Vector<N, Self, impl VecAlignment>,
-    ) -> Vector<N, Self, A>
-    where
-        ScalarCount<N>: VecLen,
-        Self: PartialOrd,
-    {
-        vec.max(min).min(max)
-    }
 }
 
 #[macro_export(local_inner_macros)]
@@ -265,3 +99,7 @@ macro_rules! scalar_defaults_macro {
         }
     };
 }
+
+scalar_inner_vectors!(std::cmp::Ordering(1));
+
+impl Scalar for std::cmp::Ordering {}

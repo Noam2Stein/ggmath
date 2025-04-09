@@ -1,6 +1,4 @@
-use newnum::AbsDiff;
-
-use super::{scalar_defaults_macro, Scalar, ScalarCount, VecAlignment, VecLen, Vector};
+use super::*;
 
 impl<const N: usize, T: Scalar + AbsDiff<Output: Scalar>, A: VecAlignment> AbsDiff
     for Vector<N, T, A>
@@ -9,7 +7,7 @@ where
 {
     #[inline(always)]
     fn abs_diff(self, rhs: Self) -> Vector<N, T::Output, A> {
-        T::vector_abs_diff(self, rhs)
+        T::vector_newnum_abs_diff(self, rhs)
     }
 }
 
@@ -17,7 +15,7 @@ scalar_defaults_macro! {
     scalar_defaults_vector_abs_diff:
 
     #[inline(always)]
-    fn vector_abs_diff<const N: usize, A: VecAlignment>(
+    fn vector_newnum_abs_diff<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         rhs: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>

@@ -10,9 +10,6 @@
 //! - Optimal for GPU structs.
 //! - Optional additional types (Rect, Ray...).
 
-#[cfg(feature = "num")]
-pub use newnum as num;
-
 mod construct;
 pub use construct::*;
 

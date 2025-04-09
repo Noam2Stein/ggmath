@@ -14,26 +14,25 @@ repository = "https://github.com/Noam2Stein/ggmath"
 version = "0.5.0"
 
 [features]
-default = [ "matrix", "num", "primitive_aliases", "quaternion" ]
+default = [ "matrix", "newnum", "primitive_aliases", "quaternion" ]
 
 matrix            = [  ]
-num               = [ "dep:newnum" ]
 primitive_aliases = [  ]
 quaternion        = [  ]
 
 full = [
     "matrix",
-    "num",
+    "newnum",
     "primitive_aliases",
     "quaternion",
     "rectangle",
     "testing",
 ]
 
-rectangle = [ "num" ]
+rectangle = [  ]
 testing   = [  ]
 
 [dependencies]
 ggmath_proc_macros = "0.5.0"
-newnum             = { path = "../../newnum/newnum", optional = true }
+newnum             = { version = "0.0.9", optional = true, public = true }
 splat_attribs      = "1.0.0"

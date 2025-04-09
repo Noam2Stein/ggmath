@@ -1,12 +1,7 @@
 use std::panic::{catch_unwind, set_hook, take_hook};
 
-use ggmath::{
-    num::Num,
-    rectangle::{RectCentered, RectCornered, RectMinMaxed, RectRepr, Rectangle},
-    scalar::Scalar,
-    testing::{rect_test_assert, TestResult, TestableScalar},
-    vector::{ScalarCount, VecAligned, VecAlignment, VecLen, VecPacked, Vector},
-};
+use ggmath::{rectangle::*, scalar::*, testing::*, vector::*};
+use newnum::*;
 
 pub fn test_rectangle() -> TestResult {
     test_n_t_a_r::<2, i32, VecAligned, RectCornered>()?;

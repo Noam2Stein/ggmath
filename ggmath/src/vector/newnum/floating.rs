@@ -1,6 +1,4 @@
-use newnum::FloatingEquivalent;
-
-use super::{Scalar, ScalarCount, VecAlignment, VecLen, Vector};
+use super::*;
 
 impl<const N: usize, T: Scalar + FloatingEquivalent<Floating: Scalar>, A: VecAlignment>
     FloatingEquivalent for Vector<N, T, A>
@@ -9,7 +7,7 @@ where
 {
     type Floating = Vector<N, T::Floating, A>;
 
-    fn floating(self) -> Self::Floating {
-        self.map(FloatingEquivalent::floating)
+    fn float(self) -> Self::Floating {
+        self.map(FloatingEquivalent::float)
     }
 }
