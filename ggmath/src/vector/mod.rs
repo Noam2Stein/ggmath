@@ -4,6 +4,7 @@ use crate::{construct::*, scalar::*, *};
 
 mod api_core;
 mod api_ext;
+mod api_primitives;
 mod generics;
 mod impl_std;
 pub use api_core::*;
