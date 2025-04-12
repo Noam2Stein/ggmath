@@ -6,28 +6,21 @@ where
 {
     type BoolMapped = Vector<N, T::BoolMapped, A>;
 
-    #[inline(always)]
     fn is_positive(&self) -> Self::BoolMapped {
         T::vector_is_positive(self)
     }
-
-    #[inline(always)]
     fn is_negative(&self) -> Self::BoolMapped {
         T::vector_is_negative(self)
     }
 
-    #[inline(always)]
     fn is_zero(&self) -> Self::BoolMapped {
         T::vector_is_zero(self)
     }
 
-    #[inline(always)]
-    fn is_sign_positive(&self) -> Self::BoolMapped {
+    fn is_bin_positive(&self) -> Self::BoolMapped {
         T::vector_is_sign_positive(self)
     }
-
-    #[inline(always)]
-    fn is_sign_negative(&self) -> Self::BoolMapped {
+    fn is_bin_negative(&self) -> Self::BoolMapped {
         T::vector_is_sign_negative(self)
     }
 }
@@ -37,7 +30,6 @@ impl<const N: usize, T: Scalar + Positive<BoolMapped = bool>, A: VecAlignment> P
 where
     ScalarCount<N>: VecLen,
 {
-    #[inline(always)]
     fn abs(self) -> Self {
         T::vector_abs(self)
     }
@@ -48,7 +40,6 @@ impl<const N: usize, T: Scalar + Negative<BoolMapped = bool>, A: VecAlignment> N
 where
     ScalarCount<N>: VecLen,
 {
-    #[inline(always)]
     fn neg_abs(self) -> Self {
         T::vector_neg_abs(self)
     }
@@ -64,15 +55,15 @@ impl<const N: usize, T: Scalar + Signum<BoolMapped = bool> + Zero, A: VecAlignme
 where
     ScalarCount<N>: VecLen,
 {
-    fn signum(self) -> Self
+    fn signumt(self) -> Self
     where
         Self: Zero,
     {
-        T::vector_signum(self)
+        T::vector_signumt(self)
     }
 
-    fn signumf(self) -> Self {
-        T::vector_signumf(self)
+    fn bin_signum(self) -> Self {
+        T::vector_bin_signum(self)
     }
 }
 
@@ -120,7 +111,7 @@ scalar_defaults_macro! {
         Self: Sign<BoolMapped: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map_ref(Sign::is_sign_positive)
+        vec.map_ref(Sign::is_bin_positive)
     }
 
     #[inline(always)]
@@ -131,7 +122,7 @@ scalar_defaults_macro! {
         Self: Sign<BoolMapped: Scalar>,
         ScalarCount<N>: VecLen,
     {
-        vec.map_ref(Sign::is_sign_negative)
+        vec.map_ref(Sign::is_bin_negative)
     }
 
     #[inline(always)]
@@ -157,24 +148,24 @@ scalar_defaults_macro! {
     }
 
     #[inline(always)]
-    fn vector_signum<const N: usize, A: VecAlignment>(
+    fn vector_signumt<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
         Self: Signum<BoolMapped = bool> + Zero,
         ScalarCount<N>: VecLen,
     {
-        vec.map(Signum::signum)
+        vec.map(Signum::signumt)
     }
 
     #[inline(always)]
-    fn vector_signumf<const N: usize, A: VecAlignment>(
+    fn vector_bin_signum<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
         Self: Signum<BoolMapped = bool>,
         ScalarCount<N>: VecLen,
     {
-        vec.map(Signum::signumf)
+        vec.map(Signum::bin_signum)
     }
 }

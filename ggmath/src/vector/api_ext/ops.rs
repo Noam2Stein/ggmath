@@ -14,17 +14,6 @@ where
         T::vector_sum(self)
     }
 
-    pub fn abs_diff<TRhs: Scalar>(
-        self,
-        other: Vector<N, TRhs, impl VecAlignment>,
-    ) -> Vector<N, T::Output, A>
-    where
-        T: Sub<TRhs, Output: Scalar> + PartialOrd<TRhs>,
-        TRhs: Sub<T, Output = T::Output>,
-    {
-        T::vector_abs_diff(self, other)
-    }
-
     #[inline(always)]
     pub fn dot(self, other: Vector<N, T, impl VecAlignment>) -> T
     where
@@ -70,18 +59,7 @@ scalar_defaults_macro!(
         vec.map_rhs(other, |a, b| a * b).sum()
     }
 
-    #[inline(always)]
-    fn vector_abs_diff<const N: usize, A: VecAlignment, TRhs: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, TRhs, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        ScalarCount<N>: VecLen,
-        Self: Sub<TRhs, Output: Scalar> + PartialOrd<TRhs>,
-        TRhs: Sub<Self, Output = Self::Output>,
-    {
-        vec.map_rhs(rhs, |a, b| if a > b { a - b } else { b - a })
-    }
+
 
     #[inline(always)]
     fn vector_cross<A: VecAlignment>(
