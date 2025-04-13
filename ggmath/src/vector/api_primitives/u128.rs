@@ -11,15 +11,15 @@ where
         self.map(|x| x == 0)
     }
 
-    pub fn signum(self) -> Self {
+    pub fn signumt(self) -> Self {
         self.map(|x| if x > 0 { 1 } else { 0 })
     }
 
     pub fn min(self, other: Vector<N, u128, impl VecAlignment>) -> Self {
-        self.map_rhs(other, |a, b| a.min(b))
+        self.map_rhs(other, u128::min)
     }
     pub fn max(self, other: Vector<N, u128, impl VecAlignment>) -> Self {
-        self.map_rhs(other, |a, b| a.max(b))
+        self.map_rhs(other, u128::max)
     }
     pub fn clamp(
         self,
@@ -36,5 +36,9 @@ where
     #[cfg(not(feature = "newnum"))]
     pub fn cmax(self) -> u128 {
         self.fold(u128::max)
+    }
+
+    pub fn abs_diff(self, rhs: Vector<N, u128, impl VecAlignment>) -> Self {
+        self.map_rhs(rhs, |a, b| if a > b { a - b } else { b - a })
     }
 }
