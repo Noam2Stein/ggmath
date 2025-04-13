@@ -59,8 +59,6 @@ scalar_defaults_macro!(
         vec.map_rhs(other, |a, b| a * b).sum()
     }
 
-
-
     #[inline(always)]
     fn vector_cross<A: VecAlignment>(
         vec: Vector<3, Self, A>,
