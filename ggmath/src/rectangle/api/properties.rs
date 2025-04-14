@@ -168,6 +168,17 @@ where
     pub fn set_extents_maximized(&mut self, value: Vector<N, T, A>) {
         *self = Self::from_min_extents(self.min(), value);
     }
+
+    pub fn moved(self, value: Vector<N, T, impl VecAlignment>) -> Self {
+        match self.resolve_repr() {
+            ReprResolvedRectangle::Cornered(_) => self.with_min(self.min() + value),
+            ReprResolvedRectangle::Centered(_) => self.with_center(self.center() + value),
+            ReprResolvedRectangle::MinMaxed(_) => self.with_min(self.min() + value),
+        }
+    }
+    pub fn move_(&mut self, value: Vector<N, T, impl VecAlignment>) {
+        *self = self.moved(value);
+    }
 }
 
 macro_rules! x_fns {
@@ -231,6 +242,23 @@ macro_rules! x_fns {
         /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
         pub fn set_extents_x_maximized(&mut self, value: T) {
             self.set_extents_maximized(self.extents().with_x(value));
+        }
+
+        pub fn moved_x(self, value: T) -> Self {
+            match self.resolve_repr() {
+                ReprResolvedRectangle::Cornered(_) => {
+                    self.with_min(self.min().with_x(self.min().x() + value))
+                }
+                ReprResolvedRectangle::Centered(_) => {
+                    self.with_center(self.center().with_x(self.center().x() + value))
+                }
+                ReprResolvedRectangle::MinMaxed(_) => {
+                    self.with_min(self.min().with_x(self.min().x() + value))
+                }
+            }
+        }
+        pub fn move_x(&mut self, value: T) {
+            *self = self.moved_x(value);
         }
     };
 }
@@ -296,6 +324,23 @@ macro_rules! y_fns {
         pub fn set_extents_y_maximized(&mut self, value: T) {
             self.set_extents_maximized(self.extents().with_y(value));
         }
+
+        pub fn moved_y(self, value: T) -> Self {
+            match self.resolve_repr() {
+                ReprResolvedRectangle::Cornered(_) => {
+                    self.with_min(self.min().with_y(self.min().y() + value))
+                }
+                ReprResolvedRectangle::Centered(_) => {
+                    self.with_center(self.center().with_y(self.center().y() + value))
+                }
+                ReprResolvedRectangle::MinMaxed(_) => {
+                    self.with_min(self.min().with_y(self.min().y() + value))
+                }
+            }
+        }
+        pub fn move_y(&mut self, value: T) {
+            *self = self.moved_y(value);
+        }
     };
 }
 macro_rules! z_fns {
@@ -360,6 +405,23 @@ macro_rules! z_fns {
         pub fn set_extents_z_maximized(&mut self, value: T) {
             self.set_extents_maximized(self.extents().with_z(value));
         }
+
+        pub fn moved_z(self, value: T) -> Self {
+            match self.resolve_repr() {
+                ReprResolvedRectangle::Cornered(_) => {
+                    self.with_min(self.min().with_z(self.min().z() + value))
+                }
+                ReprResolvedRectangle::Centered(_) => {
+                    self.with_center(self.center().with_z(self.center().z() + value))
+                }
+                ReprResolvedRectangle::MinMaxed(_) => {
+                    self.with_min(self.min().with_z(self.min().z() + value))
+                }
+            }
+        }
+        pub fn move_z(&mut self, value: T) {
+            *self = self.moved_z(value);
+        }
     };
 }
 macro_rules! w_fns {
@@ -423,6 +485,23 @@ macro_rules! w_fns {
         /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
         pub fn set_extents_w_maximized(&mut self, value: T) {
             self.set_extents_maximized(self.extents().with_w(value));
+        }
+
+        pub fn moved_w(self, value: T) -> Self {
+            match self.resolve_repr() {
+                ReprResolvedRectangle::Cornered(_) => {
+                    self.with_min(self.min().with_w(self.min().w() + value))
+                }
+                ReprResolvedRectangle::Centered(_) => {
+                    self.with_center(self.center().with_w(self.center().w() + value))
+                }
+                ReprResolvedRectangle::MinMaxed(_) => {
+                    self.with_min(self.min().with_w(self.min().w() + value))
+                }
+            }
+        }
+        pub fn move_w(&mut self, value: T) {
+            *self = self.moved_w(value);
         }
     };
 }
