@@ -34,6 +34,6 @@ testing   = [  ]
 
 [dependencies]
 derive-where       = "1.2.7"
-ggmath_proc_macros = "0.5.0"
+ggmath_proc_macros = "0.6.0"
 newnum             = { version = "0.0.12", optional = true, public = true }
 splat_attribs      = "1.0.0"
