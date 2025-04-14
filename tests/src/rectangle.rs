@@ -1,7 +1,6 @@
 use std::panic::{catch_unwind, set_hook, take_hook};
 
-use ggmath::{rectangle::*, scalar::*, testing::*, vector::*};
-use newnum::*;
+use ggmath::{rectangle::*, testing::*, vector::*};
 
 pub fn test_rectangle() -> TestResult {
     test_n_t_a_r::<2, i32, VecAligned, RectCornered>()?;
@@ -28,7 +27,7 @@ pub fn test_rectangle() -> TestResult {
     Ok(())
 }
 
-fn test_n_t_a_r<const N: usize, T: Scalar + Num + TestableScalar, A: VecAlignment, R: RectRepr>(
+fn test_n_t_a_r<const N: usize, T: RectScalar + TestableScalar, A: VecAlignment, R: RectRepr>(
 ) -> TestResult
 where
     ScalarCount<N>: VecLen,

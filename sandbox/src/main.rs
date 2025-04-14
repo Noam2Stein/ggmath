@@ -3,5 +3,5 @@
 use ggmath::{matrix::*, rectangle::*, scalar::*, vector::*, *};
 
 fn main() {
-    println!("{}", vec3!(3.0_f32, -2.0, -0.0).signum());
+    println!("{}", Rect2C::from_min_max(vec2!(1, 1), vec2!(3, 3)));
 }

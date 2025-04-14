@@ -1,15 +1,10 @@
 use std::any::type_name;
 
-use crate::{
-    rectangle::{RectRepr, Rectangle},
-    scalar::Scalar,
-    vector::{ScalarCount, VecAlignment, VecLen},
-};
+use crate::{rectangle::*, scalar::*, vector::*};
 
 use super::{TestEq, TestFnDesc};
 
 pub use ggmath_proc_macros::rect_test_assert;
-use newnum::Num;
 
 impl TestFnDesc {
     pub fn rectangle<const N: usize, T: Scalar, A: VecAlignment, R>(fn_ident: &'static str) -> Self
@@ -27,10 +22,10 @@ impl TestFnDesc {
 
 impl<
     const N: usize,
-    T: Scalar + Num + TestEq<TRhs>,
+    T: RectScalar + TestEq<TRhs>,
     A: VecAlignment,
     R: RectRepr,
-    TRhs: Scalar + Num,
+    TRhs: RectScalar,
     ARhs: VecAlignment,
     RRhs: RectRepr,
 > TestEq<Rectangle<N, TRhs, ARhs, RRhs>> for Rectangle<N, T, A, R>

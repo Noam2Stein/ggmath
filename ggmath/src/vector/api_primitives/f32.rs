@@ -43,6 +43,24 @@ where
         self.map(f32::signum)
     }
 
+    pub fn abs_diff(self, rhs: Vector<N, f32, impl VecAlignment>) -> Self {
+        self.map_rhs(rhs, |a, b| if a > b { a - b } else { b - a })
+    }
+
+    pub fn min(self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        self.map_rhs(other, |a, b| if a < b { a } else { b })
+    }
+    pub fn max(self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        self.map_rhs(other, |a, b| if a > b { a } else { b })
+    }
+    pub fn clamp(
+        self,
+        min: Vector<N, f32, impl VecAlignment>,
+        max: Vector<N, f32, impl VecAlignment>,
+    ) -> Self {
+        self.min(max).max(min)
+    }
+
     pub fn round(self) -> Self {
         self.map(f32::round)
     }

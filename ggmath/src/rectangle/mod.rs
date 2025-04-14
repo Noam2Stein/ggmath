@@ -1,6 +1,4 @@
-use newnum::Num;
-
-use crate::{construct::*, ggmath, scalar::*, vector::*};
+use crate::{construct::*, ggmath, vector::*};
 
 mod api;
 mod generics;
@@ -8,7 +6,7 @@ mod impl_std;
 pub use api::*;
 pub use generics::*;
 
-pub struct Rectangle<const N: usize, T: Scalar + Num, A: VecAlignment, R: RectRepr>
+pub struct Rectangle<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr>
 where
     ScalarCount<N>: VecLen,
 {

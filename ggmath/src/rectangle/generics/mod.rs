@@ -1,9 +1,11 @@
 use super::*;
 
 mod repr;
+mod scalar;
 pub use repr::*;
+pub use scalar::*;
 
-impl<const N: usize, T: Scalar + Num, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
     ScalarCount<N>: VecLen,
 {
