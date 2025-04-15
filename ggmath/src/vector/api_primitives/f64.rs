@@ -4,6 +4,19 @@ impl<const N: usize, A: VecAlignment> Vector<N, f64, A>
 where
     ScalarCount<N>: VecLen,
 {
+    #[cfg(not(feature = "newnum"))]
+    pub fn zero() -> Self {
+        Self::splat(0.0)
+    }
+    #[cfg(not(feature = "newnum"))]
+    pub fn one() -> Self {
+        Self::splat(1.0)
+    }
+    #[cfg(not(feature = "newnum"))]
+    pub fn neg_one() -> Self {
+        Self::splat(-1.0)
+    }
+
     pub fn is_positive(&self) -> Vector<N, bool, A> {
         self.map(|x| x > 0.0)
     }
