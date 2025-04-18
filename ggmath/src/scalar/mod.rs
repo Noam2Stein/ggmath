@@ -13,7 +13,9 @@ use crate::{vector::*, *};
 #[cfg(feature = "newnum")]
 use ::newnum::*;
 
+mod positive_dir;
 mod wrapper;
+pub use positive_dir::*;
 pub use wrapper::*;
 
 pub use ggmath_proc_macros::scalar_inner_vectors;

@@ -1,6 +1,6 @@
 use std::{
-    any::{type_name, TypeId},
-    mem::{transmute, transmute_copy},
+    any::{TypeId, type_name},
+    mem::transmute_copy,
 };
 
 use super::*;
@@ -125,31 +125,10 @@ impl VecAlignment for VecAligned {
 pub struct VecPacked;
 
 impl VecAlignment for VecPacked {
-    type InnerVector<const N: usize, T: Scalar> = [T; N]
+    type InnerVector<const N: usize, T: Scalar>
+        = [T; N]
     where
         ScalarCount<N>: VecLen;
-}
-
-pub enum AlignmentResolvedVector<const N: usize, T: Scalar>
-where
-    ScalarCount<N>: VecLen,
-{
-    Aligned(Vector<N, T, VecAligned>),
-    Packed(Vector<N, T, VecPacked>),
-}
-pub enum AlignmentResolvedVectorRef<'a, const N: usize, T: Scalar>
-where
-    ScalarCount<N>: VecLen,
-{
-    Aligned(&'a Vector<N, T, VecAligned>),
-    Packed(&'a Vector<N, T, VecPacked>),
-}
-pub enum AlignmentResolvedVectorMut<'a, const N: usize, T: Scalar>
-where
-    ScalarCount<N>: VecLen,
-{
-    Aligned(&'a mut Vector<N, T, VecAligned>),
-    Packed(&'a mut Vector<N, T, VecPacked>),
 }
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
@@ -178,43 +157,6 @@ where
     #[inline(always)]
     pub fn into_alignment<AOutput: VecAlignment>(self) -> Vector<N, T, AOutput> {
         Vector::from_array(self.into_array())
-    }
-
-    #[inline(always)]
-    pub fn resolve_alignment(self) -> AlignmentResolvedVector<N, T> {
-        unsafe {
-            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
-                AlignmentResolvedVector::Aligned(transmute_copy(&self))
-            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
-                AlignmentResolvedVector::Packed(transmute_copy(&self))
-            } else {
-                panic!("invalid VecAlignment: {}", type_name::<A>())
-            }
-        }
-    }
-    #[inline(always)]
-    pub fn resolve_alignment_ref(&self) -> AlignmentResolvedVectorRef<N, T> {
-        unsafe {
-            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
-                AlignmentResolvedVectorRef::Aligned(transmute(self))
-            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
-                AlignmentResolvedVectorRef::Packed(transmute(self))
-            } else {
-                panic!("invalid VecAlignment: {}", type_name::<A>())
-            }
-        }
-    }
-    #[inline(always)]
-    pub fn resolve_alignment_mut(&mut self) -> AlignmentResolvedVectorMut<N, T> {
-        unsafe {
-            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
-                AlignmentResolvedVectorMut::Aligned(transmute(self))
-            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
-                AlignmentResolvedVectorMut::Packed(transmute(self))
-            } else {
-                panic!("invalid VecAlignment: {}", type_name::<A>())
-            }
-        }
     }
 
     #[inline(always)]

@@ -32,6 +32,13 @@ full = [
 rectangle = [  ]
 testing   = [  ]
 
+positive_backward = [  ]
+positive_down     = [  ]
+positive_forward  = [  ]
+positive_left     = [  ]
+positive_right    = [  ]
+positive_up       = [  ]
+
 [dependencies]
 derive-where       = "1.2.7"
 ggmath_proc_macros = "0.6.0"
