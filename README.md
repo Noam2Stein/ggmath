@@ -19,7 +19,7 @@ fn main() {
 ``` rust
 use ggmath::vector::{f32_aliases::*, *};
 
-struct MyStruct<const N: usize, T: Scalar, A: VecAlignment> where ScalarCount<N>: VecLen {
+struct MyStruct<const N: usize, T: Scalar, A: VecAlignment> where MaybeVecLen<N>: VecLen {
   gg: Vector<N, T, A>,
   go: Vector<N, T, VecAligned>,
   og: FVec3,
@@ -52,7 +52,7 @@ you can override the implementation of ```Vector``` functions to make optimizati
 ## `Vector`
 
 the ```Vector``` struct is generic over:
-* `<const N: usize> where ScalarCount<N>: VecLen` - only 2, 3, and 4 are valid vector lengths
+* `<const N: usize> where MaybeVecLen<N>: VecLen` - only 2, 3, and 4 are valid vector lengths
 * `<T: Scalar>` - f32? u8? isize? CustomF256?
 * `<A: VecAlignment>` - doesn't affect API, ```VecAligned``` is faster, ```VecPacked``` saves memory
 
@@ -61,8 +61,8 @@ don't want to be generic? use type aliases! `Vec2<f32>`/`FVec2`/`IVec3`/`BVec4`
 ## `Matrix`
 
 the ```Matrix``` struct is generic over:
-* `<const C: usize> where ScalarCount<C>: VecLen` - column count
-* `<const R: usize> where ScalarCount<R>: VecLen` - row count
+* `<const C: usize> where MaybeVecLen<C>: VecLen` - column count
+* `<const R: usize> where MaybeVecLen<R>: VecLen` - row count
 * `<T: Scalar>` - "f32? u8? isize? CustomF256?"
 * `<A: VecAlignment>` - a matrix is built of vectors...
 * `<M: MatrixMajorAxis>` - internally row-major or column major?

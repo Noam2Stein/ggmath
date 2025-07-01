@@ -9,7 +9,7 @@ pub use ggmath_proc_macros::rect_test_assert;
 impl TestFnDesc {
     pub fn rectangle<const N: usize, T: Scalar, A: VecAlignment, R>(fn_ident: &'static str) -> Self
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         Self(format!(
             "Rectangle::<{N}, {}, {}, {}>::{fn_ident}",
@@ -30,7 +30,7 @@ impl<
     RRhs: RectRepr,
 > TestEq<Rectangle<N, TRhs, ARhs, RRhs>> for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     fn test_eq(&self, other: &Rectangle<N, TRhs, ARhs, RRhs>) -> bool {

@@ -4,6 +4,72 @@ use ggmath_proc_macros::for_swizzles;
 
 use super::*;
 
+// Get
+
+macro_rules! swizzle_get_fns {
+    { [$($x:ident)*][$($y:ident)*] } => {
+        $($(paste::paste! {
+            #[inline(always)]
+            pub const fn [<$x $y>](self) -> Vector<2, T, A> {
+                Vector::from_array([self.$x(), self.$y()])
+            }
+        })*)*
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    #[inline(always)]
+    pub const fn x(self) -> T {
+        self.array[0]
+    }
+
+    #[inline(always)]
+    pub const fn y(self) -> T {
+        self.array[1]
+    }
+
+    swizzle_get_fns! { [x y] [x y] }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    #[inline(always)]
+    pub const fn x(self) -> T {
+        self.array[0]
+    }
+
+    #[inline(always)]
+    pub const fn y(self) -> T {
+        self.array[1]
+    }
+
+    #[inline(always)]
+    pub const fn z(self) -> T {
+        self.array[2]
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    #[inline(always)]
+    pub const fn x(self) -> T {
+        self.array[0]
+    }
+
+    #[inline(always)]
+    pub const fn y(self) -> T {
+        self.array[1]
+    }
+
+    #[inline(always)]
+    pub const fn z(self) -> T {
+        self.array[2]
+    }
+
+    #[inline(always)]
+    pub const fn w(self) -> T {
+        self.array[3]
+    }
+}
+
 macro_rules! vecp {
     (_1) => {
         T
@@ -18,119 +84,6 @@ macro_rules! vecp {
         Vec4P<T>
     };
 }
-
-// GET
-
-for_swizzles!(1(x y) => {
-    impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> T {
-                unsafe { self.get_unchecked($($pos), *) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1(x y) => {
-    impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<2, T, A> {
-                unsafe { self.get_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1 1(x y) => {
-    impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<3, T, A> {
-                unsafe { self.get_1_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1 1 1(x y) => {
-    impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<4, T, A> {
-                unsafe { self.get_1_1_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-
-for_swizzles!(1(x y z) => {
-    impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> T {
-                unsafe { self.get_unchecked($($pos), *) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1(x y z) => {
-    impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<2, T, A> {
-                unsafe { self.get_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1 1(x y z) => {
-    impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<3, T, A> {
-                unsafe { self.get_1_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1 1 1(x y z) => {
-    impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<4, T, A> {
-                unsafe { self.get_1_1_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-
-for_swizzles!(1(x y z w) => {
-    impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> T {
-                unsafe { self.get_unchecked($($pos), *) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1(x y z w) => {
-    impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<2, T, A> {
-                unsafe { self.get_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1 1(x y z w) => {
-    impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<3, T, A> {
-                unsafe { self.get_1_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
-for_swizzles!(1 1 1 1(x y z w) => {
-    impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
-        $($(#[inline(always)]
-            pub fn $ident(self) -> Vector<4, T, A> {
-                unsafe { self.get_1_1_1_1_unchecked([$($pos), *]) }
-            }
-        )*)*
-    }
-});
 
 // GET MUT
 

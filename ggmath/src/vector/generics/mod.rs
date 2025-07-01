@@ -40,7 +40,7 @@ pub enum ResolvedVectorMut<'a, T: Scalar> {
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     /// Converts the math-type into the specified storage generics.
     /// In the case of a vector only ```A: VecAlignment```.

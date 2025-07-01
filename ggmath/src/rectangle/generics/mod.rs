@@ -7,7 +7,7 @@ pub use scalar::*;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     pub fn into_aligned(self) -> Rectangle<N, T, VecAligned, R> {

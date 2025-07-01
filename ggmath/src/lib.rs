@@ -10,22 +10,32 @@
 //! - Optimal for GPU structs.
 //! - Optional additional types (Rect, Ray...).
 
+mod alias_macros;
 mod construct;
+mod primitives;
 pub use construct::*;
+pub use primitives::*;
 
 pub mod scalar;
 pub mod vector;
+pub use scalar::*;
+pub use vector::*;
 
-#[cfg(feature = "matrix")]
-pub mod matrix;
+macro_rules! feature_mod {
+    ($feature:ident) => {
+        paste::paste! {
+            #[cfg(feature = "" $feature "")]
+            pub mod $feature;
 
-#[cfg(feature = "quaternion")]
-pub mod quaternion;
+            #[cfg(feature = "" $feature "")]
+            pub use $feature::*;
+        }
+    };
+}
+feature_mod! { matrix }
+feature_mod! { quaternion }
+feature_mod! { rectangle }
+feature_mod! { testing }
 
-#[cfg(feature = "rectangle")]
-pub mod rectangle;
-
-#[cfg(feature = "testing")]
-pub mod testing;
-
-use crate as ggmath;
+#[doc(hidden)]
+pub use paste::paste;

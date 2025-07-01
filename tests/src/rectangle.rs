@@ -30,7 +30,7 @@ pub fn test_rectangle() -> TestResult {
 fn test_n_t_a_r<const N: usize, T: RectScalar + TestableScalar, A: VecAlignment, R: RectRepr>(
 ) -> TestResult
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     for values in T::get_4_c_r::<N, 2>() {
         let center = Vector::from_array(values[0]);

@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     pub fn min(self) -> Vector<N, T, A> {
         match self.resolve_repr() {
@@ -508,7 +508,7 @@ macro_rules! w_fns {
 
 impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<2, T, A, R>
 where
-    ScalarCount<2>: VecLen,
+    MaybeVecLen<2>: VecLen,
 {
     x_fns!();
     y_fns!();
@@ -516,7 +516,7 @@ where
 
 impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<3, T, A, R>
 where
-    ScalarCount<3>: VecLen,
+    MaybeVecLen<3>: VecLen,
 {
     x_fns!();
     y_fns!();
@@ -525,7 +525,7 @@ where
 
 impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<4, T, A, R>
 where
-    ScalarCount<4>: VecLen,
+    MaybeVecLen<4>: VecLen,
 {
     x_fns!();
     y_fns!();

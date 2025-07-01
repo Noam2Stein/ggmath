@@ -2,7 +2,7 @@ use std::{array::from_fn, fmt::Debug};
 
 use crate::{
     scalar::*,
-    vector::{ScalarCount, VecLen},
+    vector::{MaybeVecLen, VecLen},
 };
 
 use super::TestEq;
@@ -19,7 +19,7 @@ pub trait TestableScalar: Scalar + Debug + TestEq {
 
     fn get_4_n<const N: usize>() -> [[Self; N]; 4]
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         [
             Self::VALUES[0][0..N].try_into().unwrap(),
@@ -31,8 +31,8 @@ pub trait TestableScalar: Scalar + Debug + TestEq {
 
     fn get_4_c_r<const C: usize, const R: usize>() -> [[[Self; C]; R]; 4]
     where
-        ScalarCount<C>: VecLen,
-        ScalarCount<R>: VecLen,
+        MaybeVecLen<C>: VecLen,
+        MaybeVecLen<R>: VecLen,
     {
         let rows = Self::VALUES.map(|row| <[Self; C]>::try_from(&row[0..C]).unwrap());
         [

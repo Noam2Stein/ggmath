@@ -5,6 +5,8 @@ use std::{
 
 use super::*;
 
+pub use elain::Align;
+
 /// Sealed trait for the alignment rules of a vector.
 /// - Doesn't affect the outer vector API, just the inner implementation.
 /// - Use the [```Vec2```], [```Vec3```], [```Vec4```] type aliases for the default alignment.
@@ -67,7 +69,7 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
     /// In ```VecPacked```: ```InnerVector = [T; N]```.
     /// for a packed vector, the compiler knows that ```packed_vector.0``` (the inner value) is always a ```[T; N]```.
     ///
-    /// in ```VecAligned```: ```InnerVector = <ScalarCount<N> as VecLen>::InnerAlignedVector<T>```.
+    /// in ```VecAligned```: ```InnerVector = <MaybeVecLen<N> as VecLen>::InnerAlignedVector<T>```.
     /// for an aligned vector, the compiler doesn't know the inner type unless ```N``` is known.
     /// This is because Rust doesn't have a single generic type capable of representing different sizes and alignments.
     ///
@@ -76,9 +78,9 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
     /// Why is the order ```Vector``` => ```VecAlignment``` => ```VecLen```?
     /// Why not ```Vector``` => ```VecLen``` => ```VecAlignment```?
     /// So that the compiler knows a packed vector is always an array.
-    type InnerVector<const N: usize, T: Scalar>: Construct
+    type Alignment<const N: usize, T: Scalar>: Construct
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 
 /// See [```VecAlignment```].
@@ -102,10 +104,10 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
 pub struct VecAligned;
 
 impl VecAlignment for VecAligned {
-    type InnerVector<const N: usize, T: Scalar>
-        = <ScalarCount<N> as VecLen>::InnerAlignedVector<T>
+    type Alignment<const N: usize, T: Scalar>
+        = <MaybeVecLen<N> as VecLen>::Alignment<T>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 
 /// See [```VecAlignment```].
@@ -125,15 +127,15 @@ impl VecAlignment for VecAligned {
 pub struct VecPacked;
 
 impl VecAlignment for VecPacked {
-    type InnerVector<const N: usize, T: Scalar>
-        = [T; N]
+    type Alignment<const N: usize, T: Scalar>
+        = ()
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     /// Creates an aligned vector from ```self```.
     /// - Cost: Nothing if ```self``` is already aligned. If ```self``` is packed, moves the vector to satisfy the alignment.

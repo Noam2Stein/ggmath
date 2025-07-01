@@ -10,7 +10,7 @@ pub trait RectScalar: Scalar + Add<Output = Self> + Sub<Output = Self> + Partial
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 
     /// Returns `self / 2`.
     /// Used by `Rectangle` functions.
@@ -20,28 +20,28 @@ pub trait RectScalar: Scalar + Add<Output = Self> + Sub<Output = Self> + Partial
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 
     fn rect_vector_abs_diff<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         rhs: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 
     fn rect_vector_min<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 
     fn rect_vector_max<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 
 #[cfg(feature = "newnum")]
@@ -56,7 +56,7 @@ mod newnum_features {
             vec: Vector<N, Self, A>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec * num!(2: Self)
         }
@@ -65,7 +65,7 @@ mod newnum_features {
             vec: Vector<N, Self, A>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec / num!(2: Self)
         }
@@ -75,7 +75,7 @@ mod newnum_features {
             rhs: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.abs_diff(rhs.into_alignment())
         }
@@ -85,7 +85,7 @@ mod newnum_features {
             other: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.min(other.into_alignment())
         }
@@ -95,7 +95,7 @@ mod newnum_features {
             other: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.max(other.into_alignment())
         }
@@ -113,7 +113,7 @@ mod no_newnum_features {
                     vec: Vector<N, Self, A>,
                 ) -> Vector<N, Self, A>
                 where
-                    ScalarCount<N>: VecLen,
+                    MaybeVecLen<N>: VecLen,
                 {
                     vec * 2
                 }
@@ -122,7 +122,7 @@ mod no_newnum_features {
                     vec: Vector<N, Self, A>,
                 ) -> Vector<N, Self, A>
                 where
-                    ScalarCount<N>: VecLen,
+                    MaybeVecLen<N>: VecLen,
                 {
                     vec / 2
                 }
@@ -132,7 +132,7 @@ mod no_newnum_features {
                     rhs: Vector<N, Self, impl VecAlignment>,
                 ) -> Vector<N, Self, A>
                 where
-                    ScalarCount<N>: VecLen,
+                    MaybeVecLen<N>: VecLen,
                 {
                     vec.abs_diff(rhs)
                 }
@@ -142,7 +142,7 @@ mod no_newnum_features {
                     other: Vector<N, Self, impl VecAlignment>,
                 ) -> Vector<N, Self, A>
                 where
-                    ScalarCount<N>: VecLen,
+                    MaybeVecLen<N>: VecLen,
                 {
                     vec.min(other)
                 }
@@ -152,7 +152,7 @@ mod no_newnum_features {
                     other: Vector<N, Self, impl VecAlignment>,
                 ) -> Vector<N, Self, A>
                 where
-                    ScalarCount<N>: VecLen,
+                    MaybeVecLen<N>: VecLen,
                 {
                     vec.max(other)
                 }
@@ -177,7 +177,7 @@ mod no_newnum_features {
             vec: Vector<N, Self, A>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec * 2.0
         }
@@ -186,7 +186,7 @@ mod no_newnum_features {
             vec: Vector<N, Self, A>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec / 2.0
         }
@@ -196,7 +196,7 @@ mod no_newnum_features {
             rhs: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.abs_diff(rhs)
         }
@@ -206,7 +206,7 @@ mod no_newnum_features {
             other: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.min(other)
         }
@@ -216,7 +216,7 @@ mod no_newnum_features {
             other: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.max(other)
         }
@@ -226,7 +226,7 @@ mod no_newnum_features {
             vec: Vector<N, Self, A>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec * 2.0
         }
@@ -235,7 +235,7 @@ mod no_newnum_features {
             vec: Vector<N, Self, A>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec / 2.0
         }
@@ -245,7 +245,7 @@ mod no_newnum_features {
             rhs: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.abs_diff(rhs)
         }
@@ -255,7 +255,7 @@ mod no_newnum_features {
             other: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.min(other)
         }
@@ -265,7 +265,7 @@ mod no_newnum_features {
             other: Vector<N, Self, impl VecAlignment>,
         ) -> Vector<N, Self, A>
         where
-            ScalarCount<N>: VecLen,
+            MaybeVecLen<N>: VecLen,
         {
             vec.max(other)
         }

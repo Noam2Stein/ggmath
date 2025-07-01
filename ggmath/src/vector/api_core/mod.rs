@@ -1,19 +1,10 @@
 use super::*;
 
-mod array_conversion;
-mod as_bytes;
+mod convert;
 mod get;
-mod get_mut;
-mod get_ref;
-mod set;
-mod swizzle_wrappers;
-mod with;
-
+mod iter;
+mod new;
 mod splat;
+mod swizzle_wrappers;
+pub use new::*;
 pub use splat::*;
-
-mod builder;
-pub use builder::*;
-
-mod or_t;
-pub use or_t::*;

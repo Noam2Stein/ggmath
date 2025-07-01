@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar + PartialOrd, A: VecAlignment> MinMax for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     fn min(self, other: Self) -> Self {
         T::vector_min(self, other)
@@ -17,7 +17,7 @@ where
 
 impl<const N: usize, T: Scalar + PartialOrd, A: VecAlignment> Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     pub fn cmin(self) -> T {
         T::vector_cmin(self)
@@ -36,7 +36,7 @@ scalar_defaults_macro!(
     ) -> Self
     where
         Self: PartialOrd,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.fold(|a, b| if a < b { a } else { b })
     }
@@ -46,7 +46,7 @@ scalar_defaults_macro!(
     ) -> Self
     where
         Self: PartialOrd,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.fold(|a, b| if a > b { a } else { b })
     }
@@ -56,7 +56,7 @@ scalar_defaults_macro!(
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
         Self: PartialOrd,
     {
         vec.map_rhs(other, |a, b| if a < b { a } else { b })
@@ -66,7 +66,7 @@ scalar_defaults_macro!(
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
         Self: PartialOrd,
     {
         vec.map_rhs(other, |a, b| if a > b { a } else { b })
@@ -78,7 +78,7 @@ scalar_defaults_macro!(
         max: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
         Self: PartialOrd,
     {
         Self::vector_max(Self::vector_min(vec, max), min)

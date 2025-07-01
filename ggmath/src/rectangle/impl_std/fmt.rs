@@ -5,7 +5,7 @@ use super::*;
 impl<const N: usize, T: RectScalar + Debug, A: VecAlignment, R: RectRepr> Debug
     for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
@@ -29,7 +29,7 @@ where
 impl<const N: usize, T: RectScalar + Display, A: VecAlignment, R: RectRepr> Display
     for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.resolve_repr_ref() {

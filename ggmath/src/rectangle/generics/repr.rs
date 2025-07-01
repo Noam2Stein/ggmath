@@ -16,7 +16,7 @@ pub struct RectMinMaxed;
 
 pub enum ReprResolvedRectangle<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     Cornered(Rectangle<N, T, A, RectCornered>),
     Centered(Rectangle<N, T, A, RectCentered>),
@@ -24,7 +24,7 @@ where
 }
 pub enum ReprResolvedRectangleRef<'a, const N: usize, T: RectScalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     Cornered(&'a Rectangle<N, T, A, RectCornered>),
     Centered(&'a Rectangle<N, T, A, RectCentered>),
@@ -32,7 +32,7 @@ where
 }
 pub enum ReprResolvedRectangleMut<'a, const N: usize, T: RectScalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     Cornered(&'a mut Rectangle<N, T, A, RectCornered>),
     Centered(&'a mut Rectangle<N, T, A, RectCentered>),
@@ -41,7 +41,7 @@ where
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     pub fn into_cornered(self) -> Rectangle<N, T, A, RectCornered> {
@@ -136,7 +136,7 @@ where
 pub(in crate::rectangle) trait InnerRectRepr {
     type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>: Construct
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 
 impl RectRepr for RectCornered {}
@@ -147,26 +147,26 @@ impl InnerRectRepr for RectCornered {
     type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>
         = InnerCorneredRect<N, T, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 impl InnerRectRepr for RectCentered {
     type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>
         = InnerCenteredRect<N, T, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 impl InnerRectRepr for RectMinMaxed {
     type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>
         = InnerMinMaxedRect<N, T, A>
     where
-        ScalarCount<N>: VecLen;
+        MaybeVecLen<N>: VecLen;
 }
 
 #[derive_where(Clone, Copy)]
 #[derive_where(PartialEq, Eq; T)]
 pub(in crate::rectangle) struct InnerCorneredRect<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     pub min: Vector<N, T, A>,
     pub size: Vector<N, T, A>,
@@ -176,7 +176,7 @@ where
 #[derive_where(PartialEq, Eq; T)]
 pub(in crate::rectangle) struct InnerMinMaxedRect<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     pub min: Vector<N, T, A>,
     pub max: Vector<N, T, A>,
@@ -186,7 +186,7 @@ where
 #[derive_where(PartialEq, Eq; T)]
 pub(in crate::rectangle) struct InnerCenteredRect<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     pub center: Vector<N, T, A>,
     pub extents: Vector<N, T, A>,

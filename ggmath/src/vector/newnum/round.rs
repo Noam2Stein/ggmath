@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar + Round, A: VecAlignment> Round for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     fn floor(self) -> Self {
@@ -41,7 +41,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Round,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Round::round)
     }
@@ -52,7 +52,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Round,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Round::floor)
     }
@@ -63,7 +63,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Round,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Round::ceil)
     }
@@ -74,7 +74,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Round,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Round::trunc)
     }
@@ -85,7 +85,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Round,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Round::atrunc)
     }

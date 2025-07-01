@@ -25,8 +25,8 @@ fn get_n<const N: usize, const N_OUTPUT: usize, T: Scalar, A: VecAlignment>(
     indicies: [usize; N_OUTPUT],
 ) -> Option<Vector<N_OUTPUT, T, A>>
 where
-    ScalarCount<N>: VecLen,
-    ScalarCount<N_OUTPUT>: VecLen,
+    MaybeVecLen<N>: VecLen,
+    MaybeVecLen<N_OUTPUT>: VecLen,
 {
     let mut output = unsafe { MaybeUninit::<[T; N_OUTPUT]>::uninit().assume_init() };
 
@@ -42,7 +42,7 @@ where
 
 fn test_scalar_n_t_a<const N: usize, T: TestableScalar, A: VecAlignment>() -> Result<(), TestError>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     for values in T::get_4_n() {
         test_vector_get::<N, T, A>(values)?;
@@ -53,7 +53,7 @@ where
 
 fn test_vector_get<const N: usize, T: TestableScalar, A: VecAlignment>(values: [T; N]) -> TestResult
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     let vector = Vector::<N, T, A>::from_array(values);
 

@@ -9,8 +9,8 @@ use super::*;
 pub trait MatrixMajorAxis: Seal + Sized + 'static {
     type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment>: Construct
     where
-        ScalarCount<C>: VecLen,
-        ScalarCount<R>: VecLen;
+        MaybeVecLen<C>: VecLen,
+        MaybeVecLen<R>: VecLen;
 }
 
 pub struct ColumnMajor;
@@ -18,24 +18,24 @@ pub struct RowMajor;
 
 pub enum MajorAxisResolvedMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     ColumnMajor(Matrix<C, R, T, A, ColumnMajor>),
     RowMajor(Matrix<C, R, T, A, RowMajor>),
 }
 pub enum MajorAxisResolvedMatrixRef<'a, const C: usize, const R: usize, T: Scalar, A: VecAlignment>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     ColumnMajor(&'a Matrix<C, R, T, A, ColumnMajor>),
     RowMajor(&'a Matrix<C, R, T, A, RowMajor>),
 }
 pub enum MajorAxisResolvedMatrixMut<'a, const C: usize, const R: usize, T: Scalar, A: VecAlignment>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     ColumnMajor(&'a mut Matrix<C, R, T, A, ColumnMajor>),
     RowMajor(&'a mut Matrix<C, R, T, A, RowMajor>),
@@ -44,8 +44,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     #[inline(always)]
     pub fn into_column_major(self) -> Matrix<C, R, T, A, ColumnMajor> {
@@ -118,16 +118,16 @@ impl MatrixMajorAxis for ColumnMajor {
     type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment> =
         [Vector<R, T, A>; C]
     where
-        ScalarCount<C>: VecLen,
-        ScalarCount<R>: VecLen;
+        MaybeVecLen<C>: VecLen,
+        MaybeVecLen<R>: VecLen;
 }
 
 impl MatrixMajorAxis for RowMajor {
     type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment> =
         [Vector<C, T, A>; R]
     where
-        ScalarCount<C>: VecLen,
-        ScalarCount<R>: VecLen;
+        MaybeVecLen<C>: VecLen,
+        MaybeVecLen<R>: VecLen;
 }
 
 trait Seal {}

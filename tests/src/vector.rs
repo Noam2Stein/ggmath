@@ -1,7 +1,7 @@
 use ggmath::{
     testing::{test_assert, vec_test_assert, TestFnDesc, TestResult, TestableScalar},
     vector::{
-        vec2, vec2p, vec3, vec3p, vec4, vec4p, ScalarCount, VecAligned, VecAlignment, VecLen,
+        vec2, vec2p, vec3, vec3p, vec4, vec4p, MaybeVecLen, VecAligned, VecAlignment, VecLen,
         VecPacked, Vector,
     },
 };
@@ -21,7 +21,7 @@ pub fn test_vector() -> TestResult {
 
 fn test_n_t_a<const N: usize, T: TestableScalar, A: VecAlignment>() -> TestResult
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     for values in T::get_4_n() {
         test_conversions::<N, T, A>(values)?;
@@ -34,7 +34,7 @@ fn test_conversions<const N: usize, T: TestableScalar, A: VecAlignment>(
     values: [T; N],
 ) -> TestResult
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     let vector = Vector::<N, T, A>::from_array(values);
 

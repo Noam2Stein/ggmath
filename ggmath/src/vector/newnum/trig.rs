@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar + Trig<Output: Scalar>, A: VecAlignment> Trig for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
@@ -24,7 +24,7 @@ where
 
 impl<const N: usize, T: Scalar + ATrig<Output: Scalar>, A: VecAlignment> ATrig for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
@@ -46,7 +46,7 @@ where
 
 impl<const N: usize, T: Scalar + Hyper<Output: Scalar>, A: VecAlignment> Hyper for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
@@ -68,7 +68,7 @@ where
 
 impl<const N: usize, T: Scalar + AHyper<Output: Scalar>, A: VecAlignment> AHyper for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
@@ -97,7 +97,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: Trig<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Trig::sin)
     }
@@ -108,7 +108,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: Trig<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Trig::cos)
     }
@@ -119,7 +119,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: Trig<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Trig::tan)
     }
@@ -132,7 +132,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: ATrig<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(ATrig::asin)
     }
@@ -143,7 +143,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: ATrig<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(ATrig::acos)
     }
@@ -154,7 +154,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: ATrig<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(ATrig::atan)
     }
@@ -167,7 +167,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: Hyper<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Hyper::sinh)
     }
@@ -178,7 +178,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: Hyper<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Hyper::cosh)
     }
@@ -189,7 +189,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: Hyper<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Hyper::tanh)
     }
@@ -202,7 +202,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: AHyper<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(AHyper::asinh)
     }
@@ -213,7 +213,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: AHyper<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(AHyper::acosh)
     }
@@ -224,7 +224,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Output, A>
     where
         Self: AHyper<Output: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(AHyper::atanh)
     }

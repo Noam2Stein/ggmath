@@ -11,8 +11,8 @@ impl<
         MRhs: MatrixMajorAxis,
     > PartialEq<Matrix<C, R, TRhs, ARhs, MRhs>> for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     #[inline(always)]
     fn eq(&self, other: &Matrix<C, R, TRhs, ARhs, MRhs>) -> bool {
@@ -28,7 +28,7 @@ where
 impl<const C: usize, const R: usize, T: Scalar + Eq, A: VecAlignment, M: MatrixMajorAxis> Eq
     for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
 }

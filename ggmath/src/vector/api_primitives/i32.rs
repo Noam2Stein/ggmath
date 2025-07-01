@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, A: VecAlignment> Vector<N, i32, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[cfg(not(feature = "newnum"))]
     pub fn zero() -> Self {

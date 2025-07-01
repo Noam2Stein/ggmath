@@ -4,7 +4,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     pub fn sum(self) -> T
@@ -41,7 +41,7 @@ scalar_defaults_macro!(
         vec: Vector<N, Self, A>,
     ) -> Self
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
         Self: Add<Output = Self>,
     {
         vec.fold(|a, b| a + b)
@@ -53,7 +53,7 @@ scalar_defaults_macro!(
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Self
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
         Self: Add<Output = Self> + Mul<Output = Self>,
     {
         vec.map_rhs(other, |a, b| a * b).sum()

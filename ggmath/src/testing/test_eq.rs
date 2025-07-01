@@ -1,6 +1,6 @@
 use crate::{
     scalar::Scalar,
-    vector::{ScalarCount, VecAlignment, VecLen, Vector},
+    vector::{MaybeVecLen, VecAlignment, VecLen, Vector},
 };
 
 pub trait TestEq<Rhs = Self> {
@@ -56,7 +56,7 @@ impl<
         ARhs: VecAlignment,
     > TestEq<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     fn test_eq(&self, other: &Vector<N, TRhs, ARhs>) -> bool {

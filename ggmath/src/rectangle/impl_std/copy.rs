@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Clone for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     fn clone(&self) -> Self {
@@ -11,6 +11,6 @@ where
 }
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Copy for Rectangle<N, T, A, R> where
-    ScalarCount<N>: VecLen
+    MaybeVecLen<N>: VecLen
 {
 }

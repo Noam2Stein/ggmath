@@ -3,7 +3,7 @@ use std::any::type_name;
 use crate::{
     matrix::{Matrix, MatrixMajorAxis},
     scalar::Scalar,
-    vector::{ScalarCount, VecAlignment, VecLen},
+    vector::{MaybeVecLen, VecAlignment, VecLen},
 };
 
 use super::{TestEq, TestFnDesc};
@@ -15,8 +15,8 @@ impl TestFnDesc {
         fn_ident: &'static str,
     ) -> Self
     where
-        ScalarCount<C>: VecLen,
-        ScalarCount<R>: VecLen,
+        MaybeVecLen<C>: VecLen,
+        MaybeVecLen<R>: VecLen,
     {
         Self(format!(
             "Matrix::<{C} {R}, {}, {}, {}>::{fn_ident}",
@@ -38,8 +38,8 @@ impl<
         MRhs: MatrixMajorAxis,
     > TestEq<Matrix<C, R, TRhs, ARhs, MRhs>> for Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     #[inline(always)]
     fn test_eq(&self, other: &Matrix<C, R, TRhs, ARhs, MRhs>) -> bool {

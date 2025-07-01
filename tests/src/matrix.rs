@@ -103,8 +103,8 @@ fn test_t<T: TestableScalar>() -> TestResult {
 }
 fn test_c_r_t<const C: usize, const R: usize, T: TestableScalar>() -> TestResult
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     test_c_r_t_a_m::<C, R, T, VecAligned, ColumnMajor>()?;
     test_c_r_t_a_m::<C, R, T, VecAligned, RowMajor>()?;
@@ -123,8 +123,8 @@ fn test_c_r_t_a_m<
     M: MatrixMajorAxis,
 >() -> TestResult
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     for values_r in T::get_4_c_r::<C, R>() {
         let values_c = array::from_fn::<_, C, _>(|column_index| {
@@ -148,8 +148,8 @@ fn test_conversions<
     values_c: [[T; R]; C],
 ) -> TestResult
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     let rows = values_r.map(|row_array| Vector::<C, T, A>::from_array(row_array));
     let columns = values_c.map(|column_array| Vector::<R, T, A>::from_array(column_array));

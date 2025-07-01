@@ -5,8 +5,8 @@ use super::*;
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     #[inline(always)]
     pub fn from_columns(columns: [Vector<R, T, A>; C]) -> Self {

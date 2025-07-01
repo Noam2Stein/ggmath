@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar + Sign<BoolMapped = bool>, A: VecAlignment> Sign for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     type BoolMapped = Vector<N, T::BoolMapped, A>;
 
@@ -28,7 +28,7 @@ where
 impl<const N: usize, T: Scalar + Positive<BoolMapped = bool>, A: VecAlignment> Positive
     for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     fn abs(self) -> Self {
         T::vector_abs(self)
@@ -38,7 +38,7 @@ where
 impl<const N: usize, T: Scalar + Negative<BoolMapped = bool>, A: VecAlignment> Negative
     for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     fn neg_abs(self) -> Self {
         T::vector_neg_abs(self)
@@ -46,14 +46,14 @@ where
 }
 
 impl<const N: usize, T: Scalar + Zero<BoolMapped = bool>, A: VecAlignment> Zero for Vector<N, T, A> where
-    ScalarCount<N>: VecLen
+    MaybeVecLen<N>: VecLen
 {
 }
 
 impl<const N: usize, T: Scalar + Signum<BoolMapped = bool> + Zero, A: VecAlignment> Signum
     for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     fn signumt(self) -> Self
     where
@@ -76,7 +76,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::BoolMapped, A>
     where
         Self: Sign<BoolMapped: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map_ref(Sign::is_negative)
     }
@@ -87,7 +87,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::BoolMapped, A>
     where
         Self: Sign<BoolMapped: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map_ref(Sign::is_negative)
     }
@@ -98,7 +98,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::BoolMapped, A>
     where
         Self: Sign<BoolMapped: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map_ref(Sign::is_zero)
     }
@@ -109,7 +109,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::BoolMapped, A>
     where
         Self: Sign<BoolMapped: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map_ref(Sign::is_bin_positive)
     }
@@ -120,7 +120,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::BoolMapped, A>
     where
         Self: Sign<BoolMapped: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map_ref(Sign::is_bin_negative)
     }
@@ -131,7 +131,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Positive<BoolMapped: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Positive::abs)
     }
@@ -142,7 +142,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Negative<BoolMapped: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Negative::neg_abs)
     }
@@ -153,7 +153,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Signum<BoolMapped = bool> + Zero,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Signum::signumt)
     }
@@ -164,7 +164,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self, A>
     where
         Self: Signum<BoolMapped = bool>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(Signum::bin_signum)
     }

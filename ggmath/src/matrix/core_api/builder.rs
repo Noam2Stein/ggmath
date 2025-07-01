@@ -9,8 +9,8 @@ pub use ggmath_proc_macros::{
 
 pub trait MatrixBuilder<const C: usize, const R: usize>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     type T: Scalar;
 
@@ -19,8 +19,8 @@ where
 
 pub trait ColumnsMatrixBuilder<const C: usize, const R: usize>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     type T: Scalar;
 
@@ -36,8 +36,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, AInput: VecAlignment, MInput: MatrixMajorAxis>
     MatrixBuilder<C, R> for Matrix<C, R, T, AInput, MInput>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     type T = T;
     #[inline(always)]
@@ -51,7 +51,7 @@ where
 impl<const C: usize, T: Scalar, AInput0: VecAlignment, AInput1: VecAlignment> MatrixBuilder<C, 2>
     for (Vector<C, T, AInput0>, Vector<C, T, AInput1>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     #[inline(always)]
@@ -75,7 +75,7 @@ impl<
         Vector<C, T, AInput2>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     #[inline(always)]
@@ -96,7 +96,7 @@ impl<
         MInput: MatrixMajorAxis,
     > MatrixBuilder<C, 3> for (Vector<C, T, AInput0>, Matrix<C, 2, T, AInput1, MInput>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 3, Self::T, A, M> {
@@ -116,7 +116,7 @@ impl<
         MInput: MatrixMajorAxis,
     > MatrixBuilder<C, 3> for (Matrix<C, 2, T, AInput0, MInput>, Vector<C, T, AInput1>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 3, Self::T, A, M> {
@@ -145,7 +145,7 @@ impl<
         Vector<C, T, AInput3>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 4, Self::T, A, M> {
@@ -172,7 +172,7 @@ impl<
         Matrix<C, 2, T, AInput2, MInput>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 4, Self::T, A, M> {
@@ -199,7 +199,7 @@ impl<
         Vector<C, T, AInput2>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 4, Self::T, A, M> {
@@ -226,7 +226,7 @@ impl<
         Vector<C, T, AInput2>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 4, Self::T, A, M> {
@@ -252,7 +252,7 @@ impl<
         Matrix<C, 2, T, AInput1, MInput1>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 4, Self::T, A, M> {
@@ -273,7 +273,7 @@ impl<
         MInput: MatrixMajorAxis,
     > MatrixBuilder<C, 4> for (Vector<C, T, AInput0>, Matrix<C, 3, T, AInput1, MInput>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 4, Self::T, A, M> {
@@ -294,7 +294,7 @@ impl<
         MInput: MatrixMajorAxis,
     > MatrixBuilder<C, 4> for (Matrix<C, 3, T, AInput0, MInput>, Vector<C, T, AInput1>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<C, 4, Self::T, A, M> {
@@ -316,8 +316,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, AInput: VecAlignment, MInput: MatrixMajorAxis>
     ColumnsMatrixBuilder<C, R> for Matrix<C, R, T, AInput, MInput>
 where
-    ScalarCount<C>: VecLen,
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     type T = T;
     #[inline(always)]
@@ -331,7 +331,7 @@ where
 impl<const R: usize, T: Scalar, AInput0: VecAlignment, AInput1: VecAlignment>
     ColumnsMatrixBuilder<2, R> for (Vector<R, T, AInput0>, Vector<R, T, AInput1>)
 where
-    ScalarCount<R>: VecLen,
+    MaybeVecLen<R>: VecLen,
 {
     type T = T;
     #[inline(always)]
@@ -355,7 +355,7 @@ impl<
         Vector<C, T, AInput2>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     #[inline(always)]
@@ -376,7 +376,7 @@ impl<
         MInput: MatrixMajorAxis,
     > ColumnsMatrixBuilder<3, C> for (Vector<C, T, AInput0>, Matrix<2, C, T, AInput1, MInput>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<3, C, Self::T, A, M> {
@@ -396,7 +396,7 @@ impl<
         MInput: MatrixMajorAxis,
     > ColumnsMatrixBuilder<3, C> for (Matrix<2, C, T, AInput0, MInput>, Vector<C, T, AInput1>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<3, C, Self::T, A, M> {
@@ -425,7 +425,7 @@ impl<
         Vector<C, T, AInput3>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<4, C, Self::T, A, M> {
@@ -452,7 +452,7 @@ impl<
         Matrix<2, C, T, AInput2, MInput>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<4, C, Self::T, A, M> {
@@ -479,7 +479,7 @@ impl<
         Vector<C, T, AInput2>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<4, C, Self::T, A, M> {
@@ -506,7 +506,7 @@ impl<
         Vector<C, T, AInput2>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<4, C, Self::T, A, M> {
@@ -532,7 +532,7 @@ impl<
         Matrix<2, C, T, AInput1, MInput1>,
     )
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<4, C, Self::T, A, M> {
@@ -553,7 +553,7 @@ impl<
         MInput: MatrixMajorAxis,
     > ColumnsMatrixBuilder<4, C> for (Vector<C, T, AInput0>, Matrix<3, C, T, AInput1, MInput>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<4, C, Self::T, A, M> {
@@ -574,7 +574,7 @@ impl<
         MInput: MatrixMajorAxis,
     > ColumnsMatrixBuilder<4, C> for (Matrix<3, C, T, AInput0, MInput>, Vector<C, T, AInput1>)
 where
-    ScalarCount<C>: VecLen,
+    MaybeVecLen<C>: VecLen,
 {
     type T = T;
     fn build<A: VecAlignment, M: MatrixMajorAxis>(self) -> Matrix<4, C, Self::T, A, M> {

@@ -3,7 +3,7 @@ use super::*;
 impl<const N: usize, T: Scalar + WholeEquivalent<Whole: Scalar>, A: VecAlignment> WholeEquivalent
     for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     type Whole = Vector<N, T::Whole, A>;
 
@@ -33,7 +33,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Whole, A>
     where
         Self: WholeEquivalent<Whole: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(WholeEquivalent::iround)
     }
@@ -44,7 +44,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Whole, A>
     where
         Self: WholeEquivalent<Whole: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(WholeEquivalent::ifloor)
     }
@@ -55,7 +55,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Whole, A>
     where
         Self: WholeEquivalent<Whole: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(WholeEquivalent::iceil)
     }
@@ -66,7 +66,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Whole, A>
     where
         Self: WholeEquivalent<Whole: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(WholeEquivalent::itrunc)
     }
@@ -77,7 +77,7 @@ scalar_defaults_macro! {
     ) -> Vector<N, Self::Whole, A>
     where
         Self: WholeEquivalent<Whole: Scalar>,
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
     {
         vec.map(WholeEquivalent::iatrunc)
     }

@@ -15,55 +15,6 @@ use syn::{
 
 mod external;
 
-#[proc_macro]
-#[inline(always)]
-pub fn vector_aliases(input: TokenStream1) -> TokenStream1 {
-    external::vector_aliases(input)
-}
-#[proc_macro]
-#[inline(always)]
-pub fn matrix_aliases(input: TokenStream1) -> TokenStream1 {
-    external::matrix_aliases(input)
-}
-#[proc_macro]
-#[inline(always)]
-pub fn rectangle_aliases(input: TokenStream1) -> TokenStream1 {
-    external::rectangle_aliases(input)
-}
-
-#[proc_macro]
-#[inline(always)]
-pub fn scalar_inner_vectors(input: TokenStream1) -> TokenStream1 {
-    external::scalar_inner_vectors(input)
-}
-#[proc_macro_derive(WrapperScalar)]
-#[inline(always)]
-pub fn derive_wrapper_scalar(input: TokenStream1) -> TokenStream1 {
-    external::derive_wrapper_scalar(input)
-}
-
-macro_rules! vector_macro {
-    ($($fn_ident:ident), *) => {$(
-        #[proc_macro]
-        #[inline(always)]
-        pub fn $fn_ident(input: TokenStream1) -> TokenStream1 {
-            external::$fn_ident(input)
-        }
-    )*};
-}
-vector_macro!(vec2, vec3, vec4);
-
-macro_rules! packed_vector_macro {
-    ($($fn_ident:ident), *) => {$(
-        #[proc_macro]
-        #[inline(always)]
-        pub fn $fn_ident(input: TokenStream1) -> TokenStream1 {
-            external::$fn_ident(input)
-        }
-    )*};
-}
-packed_vector_macro!(vec2p, vec3p, vec4p);
-
 macro_rules! matrix_macro {
     ($($fn_ident:ident), *) => {$(
         #[proc_macro]
@@ -144,20 +95,4 @@ mod internal;
 #[inline(always)]
 pub fn for_swizzles(input: TokenStream1) -> TokenStream1 {
     internal::for_swizzles(input)
-}
-
-#[proc_macro]
-#[inline(always)]
-pub fn for_self_ops(input: TokenStream1) -> TokenStream1 {
-    internal::for_self_ops(input)
-}
-#[proc_macro]
-#[inline(always)]
-pub fn for_rhs_ops(input: TokenStream1) -> TokenStream1 {
-    internal::for_rhs_ops(input)
-}
-#[proc_macro]
-#[inline(always)]
-pub fn for_assign_ops(input: TokenStream1) -> TokenStream1 {
-    internal::for_assign_ops(input)
 }

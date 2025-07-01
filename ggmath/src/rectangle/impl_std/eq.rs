@@ -9,7 +9,7 @@ impl<
     RRhs: RectRepr,
 > PartialEq<Rectangle<N, T, ARhs, RRhs>> for Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     fn eq(&self, other: &Rectangle<N, T, ARhs, RRhs>) -> bool {
@@ -33,6 +33,6 @@ where
 }
 
 impl<const N: usize, T: RectScalar + Eq, A: VecAlignment, R: RectRepr> Eq for Rectangle<N, T, A, R> where
-    ScalarCount<N>: VecLen
+    MaybeVecLen<N>: VecLen
 {
 }

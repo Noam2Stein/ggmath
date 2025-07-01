@@ -9,7 +9,7 @@ impl<
     TRhs: Scalar + Sub<T, Output = T::Output>,
 > AbsDiff<Vector<N, TRhs, A>> for Vector<N, T, A>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
     fn abs_diff(self, rhs: Vector<N, TRhs, A>) -> Vector<N, T::Output, A> {
@@ -26,7 +26,7 @@ scalar_defaults_macro! {
         rhs: Vector<N, TRhs, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
-        ScalarCount<N>: VecLen,
+        MaybeVecLen<N>: VecLen,
         Self: AbsDiff<TRhs, Output: Scalar>,
         TRhs: Sub<Self, Output = Self::Output>,
     {

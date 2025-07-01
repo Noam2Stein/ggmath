@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    ScalarCount<N>: VecLen,
+    MaybeVecLen<N>: VecLen,
 {
     pub fn from_min_size(min: Vector<N, T, A>, size: Vector<N, T, A>) -> Self {
         Self::from_resolved_repr_fns(

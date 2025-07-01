@@ -17,7 +17,7 @@ macro_rules! index_wrappers {
     )*) => {
         impl<const $r: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<$c, $r, T, A, M>
         where
-            ScalarCount<$r>: VecLen,
+            MaybeVecLen<$r>: VecLen,
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {
@@ -30,7 +30,7 @@ macro_rules! index_wrappers {
     )*) => {
         impl<const $c: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<$c, $r, T, A, M>
         where
-            ScalarCount<$c>: VecLen,
+            MaybeVecLen<$c>: VecLen,
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {
@@ -43,8 +43,8 @@ macro_rules! index_wrappers {
     )*) => {
         impl<const $c: usize, const $r: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<$c, $r, T, A, M>
         where
-            ScalarCount<$c>: VecLen<$c>,
-            ScalarCount<$r>: VecLen<$r>,
+            MaybeVecLen<$c>: VecLen<$c>,
+            MaybeVecLen<$r>: VecLen<$r>,
         {$(
             #[inline(always)]
             pub fn $fn_ident($self) -> $fn_output {

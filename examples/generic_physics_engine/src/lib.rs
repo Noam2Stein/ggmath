@@ -3,7 +3,7 @@ use newnum::Float;
 
 pub struct World<const D: usize, F: Scalar + Float>
 where
-    ScalarCount<D>: VecLen,
+    MaybeVecLen<D>: VecLen,
 {
     pub bodies: Vec<Body<D, F>>,
     pub gravity_dir: Vector<D, F, VecAligned>,
@@ -11,7 +11,7 @@ where
 
 pub struct Body<const D: usize, P: Scalar + Float>
 where
-    ScalarCount<D>: VecLen,
+    MaybeVecLen<D>: VecLen,
 {
     pub rect: Rectangle<D, P, VecAligned, RectCentered>,
     pub velocity: Vector<D, P, VecAligned>,
