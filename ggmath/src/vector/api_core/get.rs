@@ -16,6 +16,11 @@ where
             None
         }
     }
+
+    #[inline(always)]
+    pub const fn index(self, idx: usize) -> T {
+        self.get(idx).unwrap()
+    }
 }
 
 // Get Unchecked
@@ -43,6 +48,11 @@ where
         } else {
             None
         }
+    }
+
+    #[inline(always)]
+    pub const fn index_ref(&self, idx: usize) -> &T {
+        self.get_ref(idx).unwrap()
     }
 
     #[inline(always)]
@@ -121,27 +131,36 @@ where
     MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
-    pub fn get_mut(&mut self, idx: usize) -> Option<&mut T> {
-        self.array.get_mut(idx)
+    pub const fn get_mut(&mut self, idx: usize) -> Option<&mut T> {
+        if idx < N {
+            Some(unsafe { self.get_mut_unchecked(idx) })
+        } else {
+            None
+        }
     }
 
     #[inline(always)]
-    pub fn get_2_mut(&mut self, idx: usize) -> Option<&mut Vec2P<T>> {
+    pub const fn index_mut(&mut self, idx: usize) -> &mut T {
+        self.get_mut(idx).unwrap()
+    }
+
+    #[inline(always)]
+    pub const fn get_2_mut(&mut self, idx: usize) -> Option<&mut Vec2P<T>> {
         self.get_vec_mut::<2>(idx)
     }
 
     #[inline(always)]
-    pub fn get_3_mut(&mut self, idx: usize) -> Option<&mut Vec3P<T>> {
+    pub const fn get_3_mut(&mut self, idx: usize) -> Option<&mut Vec3P<T>> {
         self.get_vec_mut::<3>(idx)
     }
 
     #[inline(always)]
-    pub fn get_4_mut(&mut self, idx: usize) -> Option<&mut Vec4P<T>> {
+    pub const fn get_4_mut(&mut self, idx: usize) -> Option<&mut Vec4P<T>> {
         self.get_vec_mut::<4>(idx)
     }
 
     #[inline(always)]
-    pub fn get_vec_mut<const N_OUT: usize>(
+    pub const fn get_vec_mut<const N_OUT: usize>(
         &mut self,
         idx: usize,
     ) -> Option<&mut Vector<N_OUT, T, VecPacked>>
@@ -163,27 +182,27 @@ where
     MaybeVecLen<N>: VecLen,
 {
     #[inline(always)]
-    pub unsafe fn get_mut_unchecked(&mut self, idx: usize) -> &mut T {
-        unsafe { self.array.get_unchecked_mut(idx) }
+    pub const unsafe fn get_mut_unchecked(&mut self, idx: usize) -> &mut T {
+        unsafe { self.as_mut_ptr().add(idx).as_mut().unwrap_unchecked() }
     }
 
     #[inline(always)]
-    pub unsafe fn get_2_mut_unchecked(&mut self, idx: usize) -> &mut Vec2P<T> {
+    pub const unsafe fn get_2_mut_unchecked(&mut self, idx: usize) -> &mut Vec2P<T> {
         unsafe { self.get_vec_mut_unchecked::<2>(idx) }
     }
 
     #[inline(always)]
-    pub unsafe fn get_3_mut_unchecked(&mut self, idx: usize) -> &mut Vec3P<T> {
+    pub const unsafe fn get_3_mut_unchecked(&mut self, idx: usize) -> &mut Vec3P<T> {
         unsafe { self.get_vec_mut_unchecked::<3>(idx) }
     }
 
     #[inline(always)]
-    pub unsafe fn get_4_mut_unchecked(&mut self, idx: usize) -> &mut Vec4P<T> {
+    pub const unsafe fn get_4_mut_unchecked(&mut self, idx: usize) -> &mut Vec4P<T> {
         unsafe { self.get_vec_mut_unchecked::<4>(idx) }
     }
 
     #[inline(always)]
-    pub unsafe fn get_vec_mut_unchecked<const N_OUT: usize>(
+    pub const unsafe fn get_vec_mut_unchecked<const N_OUT: usize>(
         &mut self,
         idx: usize,
     ) -> &mut Vector<N_OUT, T, VecPacked>

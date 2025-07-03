@@ -1,5 +1,9 @@
 use super::*;
 
+mod resolve;
+pub use resolve::*;
+
+mod alignment;
 mod major_axis;
 pub use major_axis::*;
 
@@ -10,29 +14,12 @@ where
     MaybeVecLen<R>: VecLen,
 {
     #[inline(always)]
-    pub fn into_aligned(self) -> Matrix<C, R, T, VecAligned, M> {
-        self.into_alignment()
-    }
-    #[inline(always)]
-    pub fn into_packed(self) -> Matrix<C, R, T, VecAligned, M> {
-        self.into_alignment()
-    }
-    #[inline(always)]
-    pub fn into_alignment<AOutput: VecAlignment>(self) -> Matrix<C, R, T, AOutput, M> {
-        Matrix::from_resolved_major_axis_fns(
-            || {
-                Matrix::from_columns_fn(|column_index| {
-                    self.get_column(column_index).unwrap().into_alignment()
-                })
-            },
-            || Matrix::from_rows_fn(|row_index| self.get_row(row_index).unwrap().into_alignment()),
-        )
-    }
-
-    #[inline(always)]
-    pub fn into_storage<AOutput: VecAlignment, MOutput: MatrixMajorAxis>(
+    pub const fn to_storage<AOutput: VecAlignment, MOutput: MatrixMajorAxis>(
         self,
     ) -> Matrix<C, R, T, AOutput, MOutput> {
-        self.into_alignment().into_major_axis()
+        match self.resolve() {
+            ResolvedMatrix::ColumnMajor(self_) => Matrix::from_columns(self_.inner),
+            ResolvedMatrix::RowMajor(self_) => Matrix::from_rows(self_.inner),
+        }
     }
 }

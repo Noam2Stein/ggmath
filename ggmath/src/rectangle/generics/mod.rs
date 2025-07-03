@@ -21,14 +21,14 @@ where
     pub fn into_alignment<AOutput: VecAlignment>(self) -> Rectangle<N, T, AOutput, R> {
         match self.resolve_repr() {
             ReprResolvedRectangle::Centered(rect) => Rectangle::from_center_extents(
-                rect.center().into_alignment(),
-                rect.extents().into_alignment(),
+                rect.center().to_storage(),
+                rect.extents().to_storage(),
             ),
             ReprResolvedRectangle::Cornered(rect) => {
-                Rectangle::from_min_size(rect.min().into_alignment(), rect.size().into_alignment())
+                Rectangle::from_min_size(rect.min().to_storage(), rect.size().to_storage())
             }
             ReprResolvedRectangle::MinMaxed(rect) => {
-                Rectangle::from_min_max(rect.min().into_alignment(), rect.max().into_alignment())
+                Rectangle::from_min_max(rect.min().to_storage(), rect.max().to_storage())
             }
         }
     }

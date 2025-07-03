@@ -5,6 +5,6 @@ mod get;
 mod iter;
 mod new;
 mod splat;
-mod swizzle_wrappers;
+mod swizzle;
 pub use new::*;
 pub use splat::*;

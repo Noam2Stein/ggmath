@@ -1,7 +1,0 @@
-[package]
-edition = "2021"
-name    = "no_features"
-version = "0.1.0"
-
-[dependencies]
-ggmath = { path = "../../ggmath", default-features = false }

@@ -1,7 +1,0 @@
-[package]
-edition = "2021"
-name    = "gpu_structs"
-version = "0.1.0"
-
-[dependencies]
-ggmath = { path = "../../ggmath" }

@@ -11,7 +11,7 @@ where
     where
         T: Add<Output = T>,
     {
-        T::vector_sum(self)
+        self.fold(|a, b| a + b)
     }
 
     #[inline(always)]
@@ -19,7 +19,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        T::vector_dot(self, other)
+        self.map_rhs(other, |a, b| a * b).sum()
     }
 }
 
@@ -29,44 +29,6 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     where
         T: Mul<Output = T> + Sub<Output = T>,
     {
-        T::vector_cross(self, other)
+        (self.zxy() * other - self * other.zxy()).zxy()
     }
 }
-
-scalar_defaults_macro!(
-    scalar_defaults_vector_ext_ops:
-
-    #[inline(always)]
-    fn vector_sum<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Self
-    where
-        MaybeVecLen<N>: VecLen,
-        Self: Add<Output = Self>,
-    {
-        vec.fold(|a, b| a + b)
-    }
-
-    #[inline(always)]
-    fn vector_dot<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        other: Vector<N, Self, impl VecAlignment>,
-    ) -> Self
-    where
-        MaybeVecLen<N>: VecLen,
-        Self: Add<Output = Self> + Mul<Output = Self>,
-    {
-        vec.map_rhs(other, |a, b| a * b).sum()
-    }
-
-    #[inline(always)]
-    fn vector_cross<A: VecAlignment>(
-        vec: Vector<3, Self, A>,
-        other: Vector<3, Self, impl VecAlignment>,
-    ) -> Vector<3, Self, A>
-    where
-        Self: Mul<Output = Self> + Sub<Output = Self>,
-    {
-        (vec.zxy() * other - vec * other.zxy()).zxy()
-    }
-);

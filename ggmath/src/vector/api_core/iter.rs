@@ -13,12 +13,12 @@ where
     /// Returns a vector of the same size and alignment as self, with function f applied to each element in order.
     #[inline(always)]
     pub fn map<TOutput: Scalar>(self, f: impl FnMut(T) -> TOutput) -> Vector<N, TOutput, A> {
-        Vector::from_array(self.into_array().map(f))
+        Vector::from_array(self.to_array().map(f))
     }
     /// Returns a vector of the same size and alignment as self, with function f applied to each element reference in order.
     #[inline(always)]
     pub fn map_ref<TOutput: Scalar>(&self, f: impl FnMut(&T) -> TOutput) -> Vector<N, TOutput, A> {
-        Vector::from_array(self.as_array().each_ref().map(f))
+        Vector::from_array(self.as_array_ref().each_ref().map(f))
     }
 
     /// Returns a vector of the same size and alignment as self, with function f applied to each element of `self` and `rhs` in order.

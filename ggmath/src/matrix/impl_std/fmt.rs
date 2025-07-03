@@ -9,11 +9,7 @@ where
     MaybeVecLen<R>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "({})",
-            self.into_rows().map(|c| format!("{c:?}")).join(", ")
-        )
+        write!(f, "({})", self.rows().map(|c| format!("{c:?}")).join(", "))
     }
 }
 
@@ -24,10 +20,6 @@ where
     MaybeVecLen<R>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "({})",
-            self.into_rows().map(|c| c.to_string()).join(", ")
-        )
+        write!(f, "({})", self.rows().map(|c| c.to_string()).join(", "))
     }
 }

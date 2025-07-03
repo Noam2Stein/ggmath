@@ -1,8 +1,0 @@
-[package]
-edition = "2024"
-name    = "custom_scalar_testing"
-version = "0.1.0"
-
-[dependencies]
-ggmath         = "0.2.0"
-ggmath_testing = "0.2.0"

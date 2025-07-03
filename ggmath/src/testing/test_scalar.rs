@@ -1,9 +1,8 @@
 use std::mem::MaybeUninit;
 
 use crate::{
-    ggmath,
     scalar::Scalar,
-    testing::{vec_test_assert, TestError, TestableScalar},
+    testing::{TestError, TestableScalar, vec_test_assert},
     vector::*,
 };
 

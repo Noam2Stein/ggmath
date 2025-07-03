@@ -9,7 +9,7 @@ where
 
     #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
-        self.into_array().into_iter()
+        self.to_array().into_iter()
     }
 }
 
@@ -22,7 +22,7 @@ where
 
     #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
-        self.as_array().iter()
+        self.as_array_ref().iter()
     }
 }
 

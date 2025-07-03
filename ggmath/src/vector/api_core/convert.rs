@@ -22,14 +22,14 @@ where
 
     /// Creates a ```[T; N]``` from a ```Vector<N, T, A>``` by copying it.
     #[inline(always)]
-    pub const fn into_array(self) -> [T; N] {
+    pub const fn to_array(self) -> [T; N] {
         self.array
     }
 
     /// referecnes ```self``` as an array.
     /// - Cost: Nothing.
     #[inline(always)]
-    pub const fn as_array(&self) -> &[T; N] {
+    pub const fn as_array_ref(&self) -> &[T; N] {
         &self.array
     }
 
@@ -42,7 +42,7 @@ where
 
     /// Returns a raw pointer to the vector's buffer.
     pub const fn as_ptr(&self) -> *const T {
-        self.as_array().as_ptr()
+        self.as_array_ref().as_ptr()
     }
 
     /// Returns an unsafe mutable pointer to the vector's buffer.
@@ -85,7 +85,7 @@ where
     /// referecnes ```self``` as a byte array without the padding.
     ///
     /// * Can still contain garbage because ```T``` might have its own padding.
-    pub const fn as_bytes(&self) -> &[u8] {
+    pub const fn as_bytes_ref(&self) -> &[u8] {
         let ptr = self.as_ptr() as *const u8;
 
         unsafe { from_raw_parts(ptr, size_of::<T>() * N) }
@@ -105,7 +105,7 @@ where
     /// referecnes ```self``` as a byte array with the padding.
     ///
     /// * May contain garbage if ```A == VecAligned``` or if ```T``` has its own padding.
-    pub const fn as_bytes_padded(&self) -> &[u8] {
+    pub const fn as_bytes_ref_padded(&self) -> &[u8] {
         let ptr = self.as_ptr() as *const u8;
 
         unsafe { from_raw_parts(ptr, size_of::<Self>()) }
@@ -116,7 +116,7 @@ where
     /// * May contain garbage if ```A == VecAligned``` or if ```T``` has its own padding.
     ///
     /// SAFETY: Getting the reference is completely safe but mutating ```T``` as bytes can cause undefined behaviour.
-    pub const unsafe fn as_bytes_padded_mut(&mut self) -> &mut [u8] {
+    pub const unsafe fn as_bytes_mut_padded(&mut self) -> &mut [u8] {
         let ptr = self.as_mut_ptr() as *mut u8;
 
         unsafe { from_raw_parts_mut(ptr, size_of::<Self>()) }
@@ -129,7 +129,7 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     MaybeVecLen<N>: VecLen,
 {
-    pub fn as_t<TOut: Scalar + From<T>>(self) -> Vector<N, TOut, A> {
+    pub fn to_t<TOut: Scalar + From<T>>(self) -> Vector<N, TOut, A> {
         self.map(TOut::from)
     }
 }

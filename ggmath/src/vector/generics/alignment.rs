@@ -1,8 +1,3 @@
-use std::{
-    any::{TypeId, type_name},
-    mem::transmute_copy,
-};
-
 use super::*;
 
 pub use elain::Align;
@@ -64,6 +59,8 @@ pub use elain::Align;
 /// On any other case use ```VecAligned```.
 #[allow(private_bounds)]
 pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
+    const IS_ALIGNED: bool;
+
     /// Used by [```Vector```] to know its inner type.
     ///
     /// In ```VecPacked```: ```InnerVector = [T; N]```.
@@ -104,6 +101,8 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
 pub struct VecAligned;
 
 impl VecAlignment for VecAligned {
+    const IS_ALIGNED: bool = true;
+
     type Alignment<const N: usize, T: Scalar>
         = <MaybeVecLen<N> as VecLen>::Alignment<T>
     where
@@ -127,6 +126,8 @@ impl VecAlignment for VecAligned {
 pub struct VecPacked;
 
 impl VecAlignment for VecPacked {
+    const IS_ALIGNED: bool = false;
+
     type Alignment<const N: usize, T: Scalar>
         = ()
     where
@@ -140,41 +141,15 @@ where
     /// Creates an aligned vector from ```self```.
     /// - Cost: Nothing if ```self``` is already aligned. If ```self``` is packed, moves the vector to satisfy the alignment.
     #[inline(always)]
-    pub fn into_aligned(self) -> Vector<N, T, VecAligned> {
-        self.into_alignment()
+    pub const fn align(self) -> Vector<N, T, VecAligned> {
+        self.to_storage()
     }
+
     /// Creates a packed vector from ```self```.
     /// - Cost: Nothing since an aligned vector also satisfies packed alignment.
     #[inline(always)]
-    pub fn into_packed(self) -> Vector<N, T, VecPacked> {
-        self.into_alignment()
-    }
-    /// Creates a vector with the specified alignment from ```self```.
-    ///
-    /// Cost:
-    /// - VecAligned -> VecAligned - Nothing.
-    /// - VecAligned -> VecPacked - Nothing.
-    /// - VecPacked -> VecAligned - Moves the vector to satisfy the alignment.
-    /// - VecPacked -> VecPacked - Nothing.
-    #[inline(always)]
-    pub fn into_alignment<AOutput: VecAlignment>(self) -> Vector<N, T, AOutput> {
-        Vector::from_array(self.into_array())
-    }
-
-    #[inline(always)]
-    pub fn from_resolved_alignment_fns(
-        f_aligned: impl FnOnce() -> Vector<N, T, VecAligned>,
-        f_packed: impl FnOnce() -> Vector<N, T, VecPacked>,
-    ) -> Self {
-        unsafe {
-            if TypeId::of::<A>() == TypeId::of::<VecAligned>() {
-                transmute_copy(&f_aligned())
-            } else if TypeId::of::<A>() == TypeId::of::<VecPacked>() {
-                transmute_copy(&f_packed())
-            } else {
-                panic!("invalid VecAlignment: {}", type_name::<A>())
-            }
-        }
+    pub const fn unalign(self) -> Vector<N, T, VecPacked> {
+        self.to_storage()
     }
 }
 

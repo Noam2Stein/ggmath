@@ -6,14 +6,10 @@ use crate::{construct::*, scalar::*, *};
 
 mod api_core;
 mod api_ext;
-mod api_primitives;
 mod generics;
 mod impl_std;
 pub use api_core::*;
 pub use generics::*;
-
-#[cfg(feature = "newnum")]
-mod newnum;
 
 /// The only vector type.
 /// Statically-lengthed vector generic over `N` (length), `T` (scalar type), and `A` (alignment??).

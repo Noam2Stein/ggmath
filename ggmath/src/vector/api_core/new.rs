@@ -2,68 +2,27 @@ use std::{mem::offset_of, ptr::copy_nonoverlapping};
 
 use super::*;
 
-#[macro_export]
-macro_rules! vector {
-    ($($item:expr), * $(,)?) => {
-        $crate::new_vector(($($item,)*))
-    };
-}
-
-#[macro_export]
-macro_rules! vec2 {
-    ($($item:expr), * $(,)?) => {
-        {
-            let output: $crate::Vec2<_> = $crate::new_vector::<$crate::VecAligned>(($($item,)*));
-            output
-        }
-    };
-}
-#[macro_export]
-macro_rules! vec3 {
-    ($($item:expr), * $(,)?) => {
-        {
-            let output: $crate::Vec3<_> = $crate::new_vector::<$crate::VecAligned>(($($item,)*));
-            output
-        }
-    };
-}
-#[macro_export]
-macro_rules! vec4 {
-    ($($item:expr), * $(,)?) => {
-        {
-            let output: $crate::Vec4<_> = $crate::new_vector::<$crate::VecAligned>(($($item,)*));
-            output
+macro_rules! new_vector_macro {
+    ($macro_ident:ident $dollar:tt => $($output_type:tt)*) => {
+        #[macro_export]
+        macro_rules! $macro_ident {
+            ($dollar($dollar item:expr), * $dollar(,)?) => {
+                {
+                    let output: $($output_type)* = $crate::new_vector(($dollar($dollar item,)*));
+                    output
+                }
+            };
         }
     };
 }
 
-#[macro_export]
-macro_rules! vec2p {
-    ($($item:expr), * $(,)?) => {
-        {
-            let output: $crate::Vec2P<_> = $crate::new_vector::<$crate::VecPacked>(($($item,)*));
-            output
-        }
-    };
-}
-#[macro_export]
-macro_rules! vec3p {
-    ($($item:expr), * $(,)?) => {
-        {
-            let output: $crate::Vec3P<_> = $crate::new_vector::<$crate::VecPacked>(($($item,)*));
-            output
-        }
-    };
-}
-#[macro_export]
-macro_rules! vec4p {
-    ($($item:expr), * $(,)?) => {
-        {
-            let output: $crate::Vec4P<_> = $crate::new_vector::<$crate::VecPacked>(($($item,)*));
-            output
-        }
-    };
-}
+new_vector_macro! { vector $=> _ }
+new_vector_macro! { vec2 $=> $crate::Vec2<_> }
+new_vector_macro! { vec3 $=> $crate::Vec3<_> }
+new_vector_macro! { vec4 $=> $crate::Vec4<_> }
+new_vector_macro! { vec2p $=> $crate::Vec2P<_> }
+new_vector_macro! { vec3p $=> $crate::Vec3P<_> }
+new_vector_macro! { vec4p $=> $crate::Vec4P<_> }
 
 #[doc(hidden)]
 #[inline(always)]
@@ -91,7 +50,8 @@ pub const fn new_vector<B: IntoVector, A: VecAlignment>(value: B) -> B::Output<A
     output
 }
 
-unsafe trait IntoVector: Construct {
+#[doc(hidden)]
+pub unsafe trait IntoVector: Construct {
     type T: Scalar;
     type Output<A: VecAlignment>: Construct;
 

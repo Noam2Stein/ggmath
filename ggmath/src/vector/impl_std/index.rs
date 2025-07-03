@@ -8,7 +8,7 @@ where
 {
     type Output = T;
     fn index(&self, index: usize) -> &Self::Output {
-        self.as_array().index(index)
+        self.as_array_ref().index(index)
     }
 }
 

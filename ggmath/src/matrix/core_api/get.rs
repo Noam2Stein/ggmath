@@ -1,6 +1,6 @@
-use std::array;
-
 use super::*;
+
+// Get
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
@@ -9,140 +9,298 @@ where
     MaybeVecLen<R>: VecLen,
 {
     #[inline(always)]
-    pub fn get_cell(self, index: (usize, usize)) -> Option<T> {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => mat
-                .get_column(index.0)
-                .map_or(None, |column| column.get(index.1)),
-            MajorAxisResolvedMatrix::RowMajor(mat) => {
-                mat.get_row(index.1).map_or(None, |row| row.get(index.0))
+    pub const fn get_cell(self, column_idx: usize, row_idx: usize) -> Option<T> {
+        if column_idx < C && row_idx < R {
+            Some(unsafe { self.get_cell_unchecked(column_idx, row_idx) })
+        } else {
+            None
+        }
+    }
+
+    #[inline(always)]
+    pub const fn get_column(self, column_idx: usize) -> Option<Vector<R, T, A>> {
+        if column_idx < C {
+            Some(unsafe { self.get_column_unchecked(column_idx) })
+        } else {
+            None
+        }
+    }
+
+    #[inline(always)]
+    pub const fn get_row(self, row_idx: usize) -> Option<Vector<C, T, A>> {
+        if row_idx < R {
+            Some(unsafe { self.get_row_unchecked(row_idx) })
+        } else {
+            None
+        }
+    }
+}
+
+// Get Unchecked
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+    Matrix<C, R, T, A, M>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const unsafe fn get_cell_unchecked(self, column_idx: usize, row_idx: usize) -> T {
+        unsafe { *self.get_cell_ref_unchecked(column_idx, row_idx) }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_column_unchecked(self, column_idx: usize) -> Vector<R, T, A> {
+        match self.resolve() {
+            ResolvedMatrix::ColumnMajor(mat) => unsafe {
+                *mat.get_column_ref_unchecked(column_idx)
+            },
+
+            ResolvedMatrix::RowMajor(mat) => {
+                let mut column_array = [mat.inner[0].index(0); R];
+
+                let mut r = 0;
+                while r < 0 {
+                    column_array[r] = unsafe { mat.inner[r].get_unchecked(column_idx) };
+
+                    r += 1;
+                }
+
+                Vector::from_array(column_array)
             }
         }
     }
 
     #[inline(always)]
-    pub fn get_column(self, index: usize) -> Option<Vector<R, T, A>> {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => mat.inner.get(index).map(|column| *column),
-            MajorAxisResolvedMatrix::RowMajor(mat) => {
-                if index >= C {
-                    None
-                } else {
-                    Some(Vector::from_fn(|row_index| mat.inner[row_index][index]))
-                }
-            }
-        }
-    }
-    #[inline(always)]
-    pub fn get_column_array(self, index: usize) -> Option<[T; R]> {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                mat.inner.get(index).map(|column| column.into_array())
-            }
-            MajorAxisResolvedMatrix::RowMajor(mat) => {
-                if index >= C {
-                    None
-                } else {
-                    Some(array::from_fn(|row_index| mat.inner[row_index][index]))
-                }
-            }
-        }
-    }
+    pub const unsafe fn get_row_unchecked(self, row_idx: usize) -> Vector<C, T, A> {
+        match self.resolve() {
+            ResolvedMatrix::RowMajor(mat) => unsafe { *mat.get_row_ref_unchecked(row_idx) },
 
-    #[inline(always)]
-    pub fn get_row(self, index: usize) -> Option<Vector<C, T, A>> {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                if index >= R {
-                    None
-                } else {
-                    Some(Vector::from_fn(|column_index| {
-                        mat.inner[column_index][index]
-                    }))
-                }
-            }
-            MajorAxisResolvedMatrix::RowMajor(mat) => mat.inner.get(index).map(|row| *row),
-        }
-    }
-    #[inline(always)]
-    pub fn get_row_array(self, index: usize) -> Option<[T; C]> {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                if index >= R {
-                    None
-                } else {
-                    Some(array::from_fn(|column_index| {
-                        mat.inner[column_index][index]
-                    }))
-                }
-            }
-            MajorAxisResolvedMatrix::RowMajor(mat) => {
-                mat.inner.get(index).map(|row| row.into_array())
-            }
-        }
-    }
+            ResolvedMatrix::ColumnMajor(mat) => {
+                let mut row_array = [mat.inner[0].index(0); C];
 
-    #[inline(always)]
-    pub unsafe fn get_cell_unchecked(self, index: (usize, usize)) -> T {
-        unsafe {
-            match self.resolve_major_axis() {
-                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                    mat.inner.get_unchecked(index.0).get_unchecked(index.1)
-                }
-                MajorAxisResolvedMatrix::RowMajor(mat) => {
-                    mat.inner.get_unchecked(index.1).get_unchecked(index.0)
-                }
-            }
-        }
-    }
+                let mut c = 0;
+                while c < 0 {
+                    row_array[c] = unsafe { mat.inner[c].get_unchecked(row_idx) };
 
-    #[inline(always)]
-    pub unsafe fn get_column_unchecked(self, index: usize) -> Vector<R, T, A> {
-        unsafe {
-            match self.resolve_major_axis() {
-                MajorAxisResolvedMatrix::ColumnMajor(mat) => *mat.inner.get_unchecked(index),
-                MajorAxisResolvedMatrix::RowMajor(mat) => {
-                    Vector::from_fn(|row_index| mat.inner[row_index].get_unchecked(index))
+                    c += 1;
                 }
-            }
-        }
-    }
-    #[inline(always)]
-    pub unsafe fn get_column_array_unchecked(self, index: usize) -> [T; R] {
-        unsafe {
-            match self.resolve_major_axis() {
-                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                    mat.inner.get_unchecked(index).into_array()
-                }
-                MajorAxisResolvedMatrix::RowMajor(mat) => {
-                    array::from_fn(|row_index| mat.inner[row_index].get_unchecked(index))
-                }
-            }
-        }
-    }
 
-    #[inline(always)]
-    pub unsafe fn get_row_unchecked(self, index: usize) -> Vector<C, T, A> {
-        unsafe {
-            match self.resolve_major_axis() {
-                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                    Vector::from_fn(|column_index| mat.inner[column_index].get_unchecked(index))
-                }
-                MajorAxisResolvedMatrix::RowMajor(mat) => *mat.inner.get_unchecked(index),
+                Vector::from_array(row_array)
             }
         }
     }
+}
+
+// Get Ref
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+    Matrix<C, R, T, A, M>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
     #[inline(always)]
-    pub unsafe fn get_row_array_unchecked(self, index: usize) -> [T; C] {
+    pub const fn get_cell_ref(&self, column_idx: usize, row_idx: usize) -> Option<&T> {
+        if column_idx < C && row_idx < R {
+            Some(unsafe { self.get_cell_ref_unchecked(column_idx, row_idx) })
+        } else {
+            None
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const fn get_column_ref(&self, column_idx: usize) -> Option<&Vector<R, T, A>> {
+        if column_idx < C {
+            Some(unsafe { self.get_column_ref_unchecked(column_idx) })
+        } else {
+            None
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const fn get_row_ref(&self, row_idx: usize) -> Option<&Vector<C, T, A>> {
+        if row_idx < R {
+            Some(unsafe { self.get_row_ref_unchecked(row_idx) })
+        } else {
+            None
+        }
+    }
+}
+
+// Get Ref Unchecked
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+    Matrix<C, R, T, A, M>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const unsafe fn get_cell_ref_unchecked(&self, column_idx: usize, row_idx: usize) -> &T {
         unsafe {
-            match self.resolve_major_axis() {
-                MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                    array::from_fn(|column_index| mat.inner[column_index].get_unchecked(index))
-                }
-                MajorAxisResolvedMatrix::RowMajor(mat) => {
-                    mat.inner.get_unchecked(index).into_array()
-                }
+            match self.resolve_ref() {
+                ResolvedMatrixRef::ColumnMajor(mat) => mat
+                    .get_column_ref_unchecked(column_idx)
+                    .get_ref_unchecked(row_idx),
+
+                ResolvedMatrixRef::RowMajor(mat) => mat
+                    .get_row_ref_unchecked(row_idx)
+                    .get_ref_unchecked(column_idx),
             }
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const unsafe fn get_column_ref_unchecked(&self, column_idx: usize) -> &Vector<R, T, A> {
+        unsafe {
+            self.inner
+                .as_ptr()
+                .add(column_idx)
+                .as_ref()
+                .unwrap_unchecked()
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const unsafe fn get_row_ref_unchecked(&self, row_idx: usize) -> &Vector<C, T, A> {
+        unsafe { self.inner.as_ptr().add(row_idx).as_ref().unwrap_unchecked() }
+    }
+}
+
+// Get Mut
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+    Matrix<C, R, T, A, M>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const fn get_cell_mut(&mut self, column_idx: usize, row_idx: usize) -> Option<&mut T> {
+        if column_idx < C && row_idx < R {
+            Some(unsafe { self.get_cell_mut_unchecked(column_idx, row_idx) })
+        } else {
+            None
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const fn get_column_mut(&mut self, column_idx: usize) -> Option<&mut Vector<R, T, A>> {
+        if column_idx < C {
+            Some(unsafe { self.get_column_mut_unchecked(column_idx) })
+        } else {
+            None
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const fn get_row_mut(&mut self, row_idx: usize) -> Option<&mut Vector<C, T, A>> {
+        if row_idx < R {
+            Some(unsafe { self.get_row_mut_unchecked(row_idx) })
+        } else {
+            None
+        }
+    }
+}
+
+// Get Mut Unchecked
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+    Matrix<C, R, T, A, M>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const unsafe fn get_cell_mut_unchecked(
+        &mut self,
+        column_idx: usize,
+        row_idx: usize,
+    ) -> &mut T {
+        unsafe {
+            match self.resolve_mut() {
+                ResolvedMatrixMut::ColumnMajor(mat) => mat
+                    .get_column_mut_unchecked(column_idx)
+                    .get_mut_unchecked(row_idx),
+
+                ResolvedMatrixMut::RowMajor(mat) => mat
+                    .get_row_mut_unchecked(row_idx)
+                    .get_mut_unchecked(column_idx),
+            }
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const unsafe fn get_column_mut_unchecked(
+        &mut self,
+        column_idx: usize,
+    ) -> &mut Vector<R, T, A> {
+        unsafe {
+            self.inner
+                .as_mut_ptr()
+                .add(column_idx)
+                .as_mut()
+                .unwrap_unchecked()
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
+where
+    MaybeVecLen<C>: VecLen,
+    MaybeVecLen<R>: VecLen,
+{
+    #[inline(always)]
+    pub const unsafe fn get_row_mut_unchecked(&mut self, row_idx: usize) -> &mut Vector<C, T, A> {
+        unsafe {
+            self.inner
+                .as_mut_ptr()
+                .add(row_idx)
+                .as_mut()
+                .unwrap_unchecked()
         }
     }
 }

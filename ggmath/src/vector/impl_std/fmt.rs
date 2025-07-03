@@ -10,7 +10,7 @@ where
         write!(
             f,
             "({})",
-            self.into_array().map(|c| format!("{c:?}")).join(", ")
+            self.to_array().map(|c| format!("{c:?}")).join(", ")
         )
     }
 }
@@ -20,10 +20,6 @@ where
     MaybeVecLen<N>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "({})",
-            self.into_array().map(|c| c.to_string()).join(", ")
-        )
+        write!(f, "({})", self.to_array().map(|c| c.to_string()).join(", "))
     }
 }

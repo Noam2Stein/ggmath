@@ -14,7 +14,7 @@ repository = "https://github.com/Noam2Stein/ggmath"
 version = "0.6.0"
 
 [features]
-default = [ "matrix", "newnum", "primitive_aliases", "quaternion" ]
+default = [ "matrix", "primitive_aliases", "quaternion" ]
 
 matrix            = [  ]
 primitive_aliases = [  ]
@@ -22,14 +22,7 @@ quaternion        = [  ]
 rectangle         = [  ]
 testing           = [  ]
 
-full = [
-    "matrix",
-    "newnum",
-    "primitive_aliases",
-    "quaternion",
-    "rectangle",
-    "testing",
-]
+full = [ "matrix", "primitive_aliases", "quaternion", "rectangle", "testing" ]
 
 positive_backward = [  ]
 positive_down     = [  ]
@@ -39,10 +32,8 @@ positive_right    = [  ]
 positive_up       = [  ]
 
 [dependencies]
-derive-where       = "1.2.7"
-elain              = "0.3.1"
-ggmath_proc_macros = { path = "../ggmath_proc_macros" }
-newnum             = { version = "0.0.12", optional = true, public = true }
-paste              = "1.0.15"
-splat_attribs      = "1.0.0"
-tt-call            = "1.0.9"
+derive-where  = "1.2.7"
+elain         = "0.3.1"
+paste         = "1.0.15"
+splat_attribs = "1.0.0"
+tt-call       = "1.0.9"

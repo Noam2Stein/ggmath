@@ -1,26 +1,24 @@
 use super::*;
 
 impl<
-        const C: usize,
-        const R: usize,
-        T: Scalar + PartialEq<TRhs>,
-        A: VecAlignment,
-        M: MatrixMajorAxis,
-        TRhs: Scalar,
-        ARhs: VecAlignment,
-        MRhs: MatrixMajorAxis,
-    > PartialEq<Matrix<C, R, TRhs, ARhs, MRhs>> for Matrix<C, R, T, A, M>
+    const C: usize,
+    const R: usize,
+    T: Scalar + PartialEq<TRhs>,
+    A: VecAlignment,
+    M: MatrixMajorAxis,
+    TRhs: Scalar,
+    ARhs: VecAlignment,
+    MRhs: MatrixMajorAxis,
+> PartialEq<Matrix<C, R, TRhs, ARhs, MRhs>> for Matrix<C, R, T, A, M>
 where
     MaybeVecLen<C>: VecLen,
     MaybeVecLen<R>: VecLen,
 {
     #[inline(always)]
     fn eq(&self, other: &Matrix<C, R, TRhs, ARhs, MRhs>) -> bool {
-        match self.resolve_major_axis() {
-            MajorAxisResolvedMatrix::ColumnMajor(mat) => {
-                mat.inner.eq(&other.into_column_major().inner)
-            }
-            MajorAxisResolvedMatrix::RowMajor(mat) => mat.inner.eq(&other.into_row_major().inner),
+        match self.resolve() {
+            ResolvedMatrix::ColumnMajor(mat) => mat.inner.eq(&other.to_c_major().inner),
+            ResolvedMatrix::RowMajor(mat) => mat.inner.eq(&other.to_r_major().inner),
         }
     }
 }

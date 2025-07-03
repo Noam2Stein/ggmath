@@ -12,9 +12,9 @@ where
 
     #[inline(always)]
     fn index(&self, index: (usize, usize)) -> &Self::Output {
-        match self.resolve_major_axis_ref() {
-            MajorAxisResolvedMatrixRef::ColumnMajor(mat) => &mat.inner[index.0][index.1],
-            MajorAxisResolvedMatrixRef::RowMajor(mat) => &mat.inner[index.1][index.0],
+        match self.resolve_ref() {
+            ResolvedMatrixRef::ColumnMajor(mat) => &mat.inner[index.0][index.1],
+            ResolvedMatrixRef::RowMajor(mat) => &mat.inner[index.1][index.0],
         }
     }
 }
@@ -27,9 +27,9 @@ where
 {
     #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-        match self.resolve_major_axis_mut() {
-            MajorAxisResolvedMatrixMut::ColumnMajor(mat) => &mut mat.inner[index.0][index.1],
-            MajorAxisResolvedMatrixMut::RowMajor(mat) => &mut mat.inner[index.1][index.0],
+        match self.resolve_mut() {
+            ResolvedMatrixMut::ColumnMajor(mat) => &mut mat.inner[index.0][index.1],
+            ResolvedMatrixMut::RowMajor(mat) => &mut mat.inner[index.1][index.0],
         }
     }
 }

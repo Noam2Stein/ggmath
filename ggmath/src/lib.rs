@@ -35,7 +35,7 @@ macro_rules! feature_mod {
 feature_mod! { matrix }
 feature_mod! { quaternion }
 feature_mod! { rectangle }
-feature_mod! { testing }
+//feature_mod! { testing }
 
 #[doc(hidden)]
 pub use paste::paste;
