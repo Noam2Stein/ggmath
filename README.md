@@ -88,13 +88,13 @@ Rectangle support is an optional feature. Enable the `rectangle` feature in your
 use ggmath::*;
 
 // Cornered: min coords and size (corner, size)
-type RectF32 = Rectangle<f32, VecAligned, RectCornered>;
+type RectF32 = Rectangle<2, f32, VecAligned, RectCornered>;
 
 // MinMaxed: min and max (min, max)
-type RectI32Packed = Rectangle<i32, VecPacked, RectMinMaxed>;
+type BoxI32Packed = Rectangle<3, i32, VecPacked, RectMinMaxed>;
 
 // Centered: center and extents (center, extents)
-type RectF64Packed = Rectangle<f64, VecPacked, RectCentered>;
+type HyperBoxF64Packed = Rectangle<4, f64, VecPacked, RectCentered>;
 ```
 
 #### Rectangle Type Aliases
@@ -102,7 +102,7 @@ type RectF64Packed = Rectangle<f64, VecPacked, RectCentered>;
 ```rust
 use ggmath::*;
 
-let r: FRect = FRect::new(0.0, 0.0, 1.0, 1.0); // FRect = Rectangle<f32, VecAligned, RectXYWH>
+let r: FRect2 = FRect2::new(0.0, 0.0, 1.0, 1.0); // FRect2 = Rectangle<2, f32, VecAligned, RectCornered>
 ```
 
 ### SIMD Usage
