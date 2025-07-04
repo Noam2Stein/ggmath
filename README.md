@@ -102,7 +102,7 @@ type HyperBoxF64Packed = Rectangle<4, f64, VecPacked, RectCentered>;
 ```rust
 use ggmath::*;
 
-let r: FRect2 = FRect2::new(0.0, 0.0, 1.0, 1.0); // FRect2 = Rectangle<2, f32, VecAligned, RectCornered>
+let r: IRect2 = IRect2::from_min_max(vec2!(1, 1), vec2!(3, 3)); // FRect2 = Rectangle<2, f32, VecAligned, RectCornered>
 ```
 
 ### SIMD Usage
