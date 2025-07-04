@@ -133,3 +133,23 @@ where
         self.map(TOut::from)
     }
 }
+
+// Convert A
+
+impl<const N: usize, T: Scalar> From<Vector<N, T, VecAligned>> for Vector<N, T, VecPacked>
+where
+    MaybeVecLen<N>: VecLen,
+{
+    fn from(value: Vector<N, T, VecAligned>) -> Self {
+        value.unalign()
+    }
+}
+
+impl<const N: usize, T: Scalar> From<Vector<N, T, VecPacked>> for Vector<N, T, VecAligned>
+where
+    MaybeVecLen<N>: VecLen,
+{
+    fn from(value: Vector<N, T, VecPacked>) -> Self {
+        value.align()
+    }
+}
