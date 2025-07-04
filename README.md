@@ -1,140 +1,115 @@
-*** UNFINISHED CRATE ***
+*** UNTESTED CRATE ***
 
-# GGMath - Generic Graphics Math
-graphics-math crate with powerful generics that are truely zero-cost
+# GGMath
 
-* simple API
-``` rust
-use ggmath::vector::*;
+*GGMath* is a **generic graphics math** crate with optimized, flexible math types for Rust.
 
-fn main() {
-  let _2_4_ = vec2!(2.0_f32, 4.0);
-  let vec = vec4!(1.0, _2_4_, 3.0).xywz();
+GGMath types are generic over:
+- **Alignment**: Choose between SIMD-optimized (`VecAligned`) or compact (`VecPacked`) memory layouts for vectors and matrices.
+- **Memory Representation**: Types are generic over row-major/column-major for matrices, and (optionally, via the `rectangle` feature) over rectangle representations for rectangles.
 
-  assert_eq!(vec, vec4!(1.0, 2.0, 3.0, 4.0));
-}
+This allows you to control performance and memory layout with a simple, ergonomic API.
+
+### Vectors
+
+Vectors are generic over:
+- **Length** (`N`): 2, 3, or 4 (vector dimension)
+- **Type** (`T`): e.g., `f32`, `i32`, `bool`, etc. (element type)
+- **Alignment** (`A`): `VecAligned` (SIMD-optimized) or `VecPacked` (compact)
+
+```rust
+use ggmath::*;
+
+// This type is aligned for optimal SIMD usage.
+// add here and in the packed one exactly the old type layout thing
+type SimdVec3 = Vector<3, f32, VecAligned>;
+
+// This type is not specially aligned and is identical to [f32; 3].
+type PackedVec3 = Vector<3, f32, VecPacked>;
 ```
 
-* powerful generics
-``` rust
-use ggmath::vector::{f32_aliases::*, *};
+#### Vector Type Aliases
 
-struct MyStruct<const N: usize, T: Scalar, A: VecAlignment> where MaybeVecLen<N>: VecLen {
-  gg: Vector<N, T, A>,
-  go: Vector<N, T, VecAligned>,
-  og: FVec3,
-  //oo: go back to Java
-}
+```rust
+use ggmath::*;
+
+let v2: Vec2<f32> = vec2!(1.0, 2.0); // Vec2<T> = Vector<2, T, VecAligned>
+
+let v4: Vec4P<f32> = vec4p!(1.0, v2, 4.0); // Vec4P<T> = Vector<2, T, VecPacked>
+
+let v: FVec3P = vec3p!(v4.yz(), 0.0); // FVec3P = Vector<3, f32, VecPacked>
 ```
 
-* both column-major and row-major matricies
-``` rust
-use ggmath::matrix::*;
+### Matrices
 
-fn example(row_major: Mat4R, column_major: Mat2x3C) {}
+Matrices are generic over:
+- **Columns** (`C`): 2, 3, or 4 (number of columns)
+- **Rows** (`R`): 2, 3, or 4 (number of rows)
+- **Type** (`T`): e.g., `f32`, `i32`, `bool`, etc. (element type)
+- **Alignment** (`A`): `VecAligned` or `VecPacked`
+- **Major Axis** (`M`): `ColumnMajor` or `RowMajor` (memory layout)
+
+```rust
+use ggmath::*;
+
+// Column-major, aligned matrix
+type Mat4x3F32Col = Matrix<4, 3, f32, VecAligned, ColumnMajor>;
+
+// Row-major, packed matrix
+type Mat2x2I32RowPacked = Matrix<2, 2, i32, VecPacked, RowMajor>;
 ```
 
-* 0-cost abstraction - fully optimized with SIMD on current stable Rust
+#### Matrix Type Aliases
 
-restrictions:
-* only supports static vectors (2, 3, 4) and matricies (2, 3, 4)x(2, 3, 4)
-* won't support const-contexts until const-traits are stablized
+```rust
+use ggmath::*;
 
-## `Scalar`
+let short: FMat4C = FMat4C::default(); // FMat4C = Matrix<4, 4, f32, VecAligned, ColumnMajor>
 
-The ```Scalar``` trait allows types to be put inside math types (vectors, matricies...)
+let loong: UsizeMat4x3RP = UsizeMat4x3RP::default(); // UsizeMat4x3RP = Matrix<4, 3, f32, VecPacked, RowMajor>
+```
 
-The magic of this crate is that when you implement ```Scalar```,
-you can override the implementation of ```Vector``` functions to make optimizations
+### Rectangles (optional feature)
 
-* All ```Vector``` functions that are possible to optimize can be overriden
+Rectangles are generic over:
+- **Length** (`N`): number of dimensions (e.g., 2 for rectangles, 3 for boxes, etc.)
+- **Type** (`T`): e.g., `f32`, `i32`, etc. (element type)
+- **Alignment** (`A`): `VecAligned` or `VecPacked`
+- **Representation** (`R`): e.g., `RectCornered`, `RectMinMaxed`, `RectCentered`, etc. (internal layout)
 
-## `Vector`
+Rectangle support is an optional feature. Enable the `rectangle` feature in your Cargo.toml to use generic rectangles and boxes.
 
-the ```Vector``` struct is generic over:
-* `<const N: usize> where MaybeVecLen<N>: VecLen` - only 2, 3, and 4 are valid vector lengths
-* `<T: Scalar>` - f32? u8? isize? CustomF256?
-* `<A: VecAlignment>` - doesn't affect API, ```VecAligned``` is faster, ```VecPacked``` saves memory
+```rust
+use ggmath::*;
 
-don't want to be generic? use type aliases! `Vec2<f32>`/`FVec2`/`IVec3`/`BVec4`
+// is represented internally by the min coords and size.
+type RectF32 = Rectangle<f32, VecAligned, RectCornered>;
 
-## `Matrix`
+// is repr internally as min + max.
+type RectI32Packed = Rectangle<i32, VecPacked, RectMinMaxed>;
 
-the ```Matrix``` struct is generic over:
-* `<const C: usize> where MaybeVecLen<C>: VecLen` - column count
-* `<const R: usize> where MaybeVecLen<R>: VecLen` - row count
-* `<T: Scalar>` - "f32? u8? isize? CustomF256?"
-* `<A: VecAlignment>` - a matrix is built of vectors...
-* `<M: MatrixMajorAxis>` - internally row-major or column major?
+// is repr by center + extents.
+type RectF64Packed = Rectangle<f64, VecPacked, RectCentered>;
+```
 
-don't want to be generic? use `Mat3C<f32>`/`FMat4x2RP`
+#### Rectangle Type Aliases
 
-## GPU integration
+```rust
+use ggmath::*;
 
-GGMath is built with GPU struct integration in mind.
+let r: FRect = FRect::new(0.0, 0.0, 1.0, 1.0); // FRect = Rectangle<f32, VecAligned, RectXYWH>
+```
 
-when making Vertex structs, use `VecPacked` to save space
+### SIMD Usage
 
-when making Uniform structs, use `VecAligned` which has size & alignment rules that uniforms require
+All GGMath types are designed to be zero-cost abstractions in release mode: the compiler will optimize generic math code to use SIMD instructions. In debug mode, generic abstractions may result in slower code due to lack of optimizations, but in release mode, you get full SIMD performance with no overhead.
 
-## Type Aliases
+---
 
-ggmath's type aliases have naming rules:
+## Stability & Development Status
 
-### Vectors:
+**GGMath is unstable and under active development.**
 
-```Vec'N'<T>``` -> ```Vector<'N', T, VecAligned>```
-For example: ```Vec2<f32>``` -> ```Vector<2, f32, VecAligned>```
-
-```Vec'N'P<T>``` -> ```Vector<'N', T, VecPacked>```
-For example: ```Vec4P<f32>``` -> ```Vector<4, f32, VecPacked>```
-
-```'T'Vec'N'``` -> ```Vector<'N', 'T', VecAligned>```
-For example: ```FVec2``` -> ```Vector<2, f32, VecAligned>```
-
-```'T'Vec'N'P``` -> ```Vector<'N', 'T', VecPacked>```
-For example: ```U8Vec3P``` -> ```Vector<3, u8, VecPacked>```
-
-### Matricies
-
-```Mat'C'x'R'C<T>``` -> ```Matrix<'C', 'R', T, VecAligned, ColumnMajor>```
-For example: ```Mat2x3C<f32>``` -> ```Matrix<2, 3, f32, VecAligned, ColumnMajor>```
-
-```Mat'C'x'R'R<T>``` -> ```Matrix<'C', 'R', T, VecAligned, RowMajor>```
-For example: ```Mat4x3R<bool>``` -> ```Matrix<4, 3, bool, VecAligned, RowMajor>```
-
-```Mat'C'x'R'CP<T>``` -> ```Matrix<'C', 'R', T, VecPacked, ColumnMajor>```
-For example: ```Mat3CP<f64>``` -> ```Matrix<3, 3, f64, VecPacked, ColumnMajor>```
-
-```Mat'C'x'R'RP<T>```, ```'T'Mat'C'x'R'C```...
-
-# Development Progress
-
-### API
-
-Vector: almost stable and complete.
-
-Matrix: only has layout manipulation so columns rows construction...
-but no matrix multiplication for example.
-
-Quaternion: doesn't exist.
-
-Rectangle: mostly complete.
-
-### Performance
-
-No scalars are optimized yet so right now the performance is probably close to ```nalgebra```'s
-while the final performance will be identical to ```glam```.
-
-### Tests
-
-The crate isn't fully tested yet and the custom-scalar testing system ```ggmath_testing``` isn't as well.
-
-### Left To Do
-
-* finish ggmath_testing (tester for custom scalars)
-* add missing tests
-* add benchmarks
-* finish APIs
-* optimize scalars
-* add missing docs
+- The API is not finalized and may change at any time.
+- Every version may introduce breaking changes.
+- There may be bugs, incomplete features, or missing documentation.
