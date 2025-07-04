@@ -79,4 +79,16 @@ where
             }
         }
     }
+
+    #[inline(always)]
+    pub const fn resolved(
+        aligned: Vector<N, T, VecAligned>,
+        packed: Vector<N, T, VecPacked>,
+    ) -> Self {
+        if A::IS_ALIGNED {
+            unsafe { transmute_copy::<Vector<N, T, VecAligned>, Vector<N, T, A>>(&aligned) }
+        } else {
+            unsafe { transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&packed) }
+        }
+    }
 }

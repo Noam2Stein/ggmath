@@ -88,4 +88,20 @@ where
             }
         }
     }
+
+    #[inline(always)]
+    pub const fn resolved(
+        c_major: Matrix<C, R, T, A, ColumnMajor>,
+        r_major: Matrix<C, R, T, A, RowMajor>,
+    ) -> Self {
+        if M::IS_COLUMN_MAJOR {
+            unsafe {
+                transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(&c_major)
+            }
+        } else {
+            unsafe {
+                transmute_copy::<Matrix<C, R, T, A, RowMajor>, Matrix<C, R, T, A, M>>(&r_major)
+            }
+        }
+    }
 }

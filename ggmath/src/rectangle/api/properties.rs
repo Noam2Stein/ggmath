@@ -5,48 +5,56 @@ where
     MaybeVecLen<N>: VecLen,
 {
     pub fn min(self) -> Vector<N, T, A> {
-        match self.resolve_repr() {
-            ReprResolvedRectangle::Centered(rect) => rect.inner.center - rect.inner.extents,
-            ReprResolvedRectangle::Cornered(rect) => rect.inner.min,
-            ReprResolvedRectangle::MinMaxed(rect) => rect.inner.min,
+        match self.resolve() {
+            ResolvedRectangle::Centered(rect) => rect.inner.center - rect.inner.extents,
+            ResolvedRectangle::Cornered(rect) => rect.inner.min,
+            ResolvedRectangle::MinMaxed(rect) => rect.inner.min,
         }
     }
+
     pub fn max(self) -> Vector<N, T, A> {
-        match self.resolve_repr() {
-            ReprResolvedRectangle::Centered(rect) => rect.inner.center + rect.inner.extents,
-            ReprResolvedRectangle::Cornered(rect) => rect.inner.min + rect.inner.size,
-            ReprResolvedRectangle::MinMaxed(rect) => rect.inner.max,
+        match self.resolve() {
+            ResolvedRectangle::Centered(rect) => rect.inner.center + rect.inner.extents,
+            ResolvedRectangle::Cornered(rect) => rect.inner.min + rect.inner.size,
+            ResolvedRectangle::MinMaxed(rect) => rect.inner.max,
         }
     }
+
     pub fn center(self) -> Vector<N, T, A> {
-        match self.resolve_repr() {
-            ReprResolvedRectangle::Centered(rect) => rect.inner.center,
-            ReprResolvedRectangle::Cornered(rect) => {
+        match self.resolve() {
+            ResolvedRectangle::Centered(rect) => rect.inner.center,
+            ResolvedRectangle::Cornered(rect) => {
                 rect.inner.min + T::rect_div_vector_by_two(rect.inner.size)
             }
-            ReprResolvedRectangle::MinMaxed(rect) => {
+            ResolvedRectangle::MinMaxed(rect) => {
                 T::rect_div_vector_by_two(rect.inner.min + rect.inner.max)
             }
         }
     }
 
     pub fn size(self) -> Vector<N, T, A> {
-        match self.resolve_repr() {
-            ReprResolvedRectangle::Centered(rect) => T::rect_mul_vector_by_two(rect.inner.extents),
-            ReprResolvedRectangle::Cornered(rect) => rect.inner.size,
-            ReprResolvedRectangle::MinMaxed(rect) => rect.inner.max - rect.inner.min,
+        match self.resolve() {
+            ResolvedRectangle::Centered(rect) => T::rect_mul_vector_by_two(rect.inner.extents),
+            ResolvedRectangle::Cornered(rect) => rect.inner.size,
+            ResolvedRectangle::MinMaxed(rect) => rect.inner.max - rect.inner.min,
         }
     }
+
     pub fn extents(self) -> Vector<N, T, A> {
-        match self.resolve_repr() {
-            ReprResolvedRectangle::Centered(rect) => rect.inner.extents,
-            ReprResolvedRectangle::Cornered(rect) => T::rect_div_vector_by_two(rect.inner.size),
-            ReprResolvedRectangle::MinMaxed(rect) => {
+        match self.resolve() {
+            ResolvedRectangle::Centered(rect) => rect.inner.extents,
+            ResolvedRectangle::Cornered(rect) => T::rect_div_vector_by_two(rect.inner.size),
+            ResolvedRectangle::MinMaxed(rect) => {
                 T::rect_div_vector_by_two(rect.inner.max - rect.inner.min)
             }
         }
     }
+}
 
+impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+where
+    MaybeVecLen<N>: VecLen,
+{
     /// returns `self` but moved so that the minimum corner is at the given position,
     /// keeping the size unchanged.
     pub fn with_min(self, value: Vector<N, T, A>) -> Self {
@@ -170,10 +178,10 @@ where
     }
 
     pub fn moved(self, value: Vector<N, T, impl VecAlignment>) -> Self {
-        match self.resolve_repr() {
-            ReprResolvedRectangle::Cornered(_) => self.with_min(self.min() + value),
-            ReprResolvedRectangle::Centered(_) => self.with_center(self.center() + value),
-            ReprResolvedRectangle::MinMaxed(_) => self.with_min(self.min() + value),
+        match self.resolve() {
+            ResolvedRectangle::Cornered(_) => self.with_min(self.min() + value),
+            ResolvedRectangle::Centered(_) => self.with_center(self.center() + value),
+            ResolvedRectangle::MinMaxed(_) => self.with_min(self.min() + value),
         }
     }
     pub fn move_(&mut self, value: Vector<N, T, impl VecAlignment>) {
@@ -181,354 +189,122 @@ where
     }
 }
 
-macro_rules! x_fns {
-    () => {
-        /// Moves the rectangle so that the minimum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_min_x(&mut self, value: T) {
-            self.set_min(self.min().with_x(value));
-        }
-        /// Moves the rectangle so that the maximum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_max_x(&mut self, value: T) {
-            self.set_max(self.max().with_x(value));
-        }
-        /// Moves the rectangle so that the center is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_center_x(&mut self, value: T) {
-            self.set_center(self.center().with_x(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the maximum corner unchanged.
-        pub fn set_min_x_resize(&mut self, value: T) {
-            self.set_min_resize(self.min().with_x(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the minimum corner unchanged.
-        pub fn set_max_x_resize(&mut self, value: T) {
-            self.set_max_resize(self.max().with_x(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_min_x_centered(&mut self, value: T) {
-            self.set_min_centered(self.min().with_x(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_max_x_centered(&mut self, value: T) {
-            self.set_max_centered(self.max().with_x(value));
-        }
-
-        /// Resizes the rectangle to the given size, keeping the center unchanged.
-        pub fn set_size_x_centered(&mut self, value: T) {
-            self.set_size_centered(self.size().with_x(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the center unchanged.
-        pub fn set_extents_x_centered(&mut self, value: T) {
-            self.set_extents_centered(self.extents().with_x(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the maximum corner unchanged.
-        pub fn set_size_x_minimized(&mut self, value: T) {
-            self.set_size_minimized(self.size().with_x(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the maximum corner unchanged.
-        pub fn set_extents_x_minimized(&mut self, value: T) {
-            self.set_extents_minimized(self.extents().with_x(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the minimum corner unchanged.
-        pub fn set_size_x_maximized(&mut self, value: T) {
-            self.set_size_maximized(self.size().with_x(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
-        pub fn set_extents_x_maximized(&mut self, value: T) {
-            self.set_extents_maximized(self.extents().with_x(value));
-        }
-
-        pub fn moved_x(self, value: T) -> Self {
-            match self.resolve_repr() {
-                ReprResolvedRectangle::Cornered(_) => {
-                    self.with_min(self.min().with_x(self.min().x() + value))
+macro_rules! impl_component_fns {
+    ($c:ident for $type:ty) => {
+        paste::paste! {
+            impl<T: RectScalar, A: VecAlignment, R: RectRepr> $type {
+                /// Moves the rectangle so that the minimum corner is at the given position,
+                /// keeping the size unchanged.
+                pub fn [<set_min_ $c>](&mut self, value: T) {
+                    self.set_min(self.min().[<with_ $c>](value));
                 }
-                ReprResolvedRectangle::Centered(_) => {
-                    self.with_center(self.center().with_x(self.center().x() + value))
+
+                /// Resizes the rectangle so that the minimum corner is at the given position,
+                /// keeping the maximum corner unchanged.
+                pub fn [<set_min_ $c _resize>](&mut self, value: T) {
+                    self.set_min_resize(self.min().[<with_ $c>](value));
                 }
-                ReprResolvedRectangle::MinMaxed(_) => {
-                    self.with_min(self.min().with_x(self.min().x() + value))
+
+                /// Resizes the rectangle so that the minimum corner is at the given position,
+                /// keeping the center unchanged.
+                pub fn [<set_min_ $c _centered>](&mut self, value: T) {
+                    self.set_min_centered(self.min().[<with_ $c>](value));
                 }
             }
-        }
-        pub fn move_x(&mut self, value: T) {
-            *self = self.moved_x(value);
-        }
-    };
-}
-macro_rules! y_fns {
-    () => {
-        /// Moves the rectangle so that the minimum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_min_y(&mut self, value: T) {
-            self.set_min(self.min().with_y(value));
-        }
-        /// Moves the rectangle so that the maximum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_max_y(&mut self, value: T) {
-            self.set_max(self.max().with_y(value));
-        }
-        /// Moves the rectangle so that the center is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_center_y(&mut self, value: T) {
-            self.set_center(self.center().with_y(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the maximum corner unchanged.
-        pub fn set_min_y_resize(&mut self, value: T) {
-            self.set_min_resize(self.min().with_y(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the minimum corner unchanged.
-        pub fn set_max_y_resize(&mut self, value: T) {
-            self.set_max_resize(self.max().with_y(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_min_y_centered(&mut self, value: T) {
-            self.set_min_centered(self.min().with_y(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_max_y_centered(&mut self, value: T) {
-            self.set_max_centered(self.max().with_y(value));
-        }
 
-        /// Resizes the rectangle to the given size, keeping the center unchanged.
-        pub fn set_size_y_centered(&mut self, value: T) {
-            self.set_size_centered(self.size().with_y(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the center unchanged.
-        pub fn set_extents_y_centered(&mut self, value: T) {
-            self.set_extents_centered(self.extents().with_y(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the maximum corner unchanged.
-        pub fn set_size_y_minimized(&mut self, value: T) {
-            self.set_size_minimized(self.size().with_y(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the maximum corner unchanged.
-        pub fn set_extents_y_minimized(&mut self, value: T) {
-            self.set_extents_minimized(self.extents().with_y(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the minimum corner unchanged.
-        pub fn set_size_y_maximized(&mut self, value: T) {
-            self.set_size_maximized(self.size().with_y(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
-        pub fn set_extents_y_maximized(&mut self, value: T) {
-            self.set_extents_maximized(self.extents().with_y(value));
-        }
+            impl<T: RectScalar, A: VecAlignment, R: RectRepr> $type {
+                /// Moves the rectangle so that the maximum corner is at the given position,
+                /// keeping the size unchanged.
+                pub fn [<set_max_ $c>](&mut self, value: T) {
+                    self.set_max(self.max().[<with_ $c>](value));
+                }
 
-        pub fn moved_y(self, value: T) -> Self {
-            match self.resolve_repr() {
-                ReprResolvedRectangle::Cornered(_) => {
-                    self.with_min(self.min().with_y(self.min().y() + value))
+                /// Resizes the rectangle so that the maximum corner is at the given position,
+                /// keeping the minimum corner unchanged.
+                pub fn [<set_max_ $c _resize>](&mut self, value: T) {
+                    self.set_max_resize(self.max().[<with_ $c>](value));
                 }
-                ReprResolvedRectangle::Centered(_) => {
-                    self.with_center(self.center().with_y(self.center().y() + value))
-                }
-                ReprResolvedRectangle::MinMaxed(_) => {
-                    self.with_min(self.min().with_y(self.min().y() + value))
+
+                /// Resizes the rectangle so that the maximum corner is at the given position,
+                /// keeping the center unchanged.
+                pub fn [<set_max_ $c _centered>](&mut self, value: T) {
+                    self.set_max_centered(self.max().[<with_ $c>](value));
                 }
             }
-        }
-        pub fn move_y(&mut self, value: T) {
-            *self = self.moved_y(value);
-        }
-    };
-}
-macro_rules! z_fns {
-    () => {
-        /// Moves the rectangle so that the minimum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_min_z(&mut self, value: T) {
-            self.set_min(self.min().with_z(value));
-        }
-        /// Moves the rectangle so that the maximum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_max_z(&mut self, value: T) {
-            self.set_max(self.max().with_z(value));
-        }
-        /// Moves the rectangle so that the center is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_center_z(&mut self, value: T) {
-            self.set_center(self.center().with_z(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the maximum corner unchanged.
-        pub fn set_min_z_resize(&mut self, value: T) {
-            self.set_min_resize(self.min().with_z(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the minimum corner unchanged.
-        pub fn set_max_z_resize(&mut self, value: T) {
-            self.set_max_resize(self.max().with_z(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_min_z_centered(&mut self, value: T) {
-            self.set_min_centered(self.min().with_z(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_max_z_centered(&mut self, value: T) {
-            self.set_max_centered(self.max().with_z(value));
-        }
 
-        /// Resizes the rectangle to the given size, keeping the center unchanged.
-        pub fn set_size_z_centered(&mut self, value: T) {
-            self.set_size_centered(self.size().with_z(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the center unchanged.
-        pub fn set_extents_z_centered(&mut self, value: T) {
-            self.set_extents_centered(self.extents().with_z(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the maximum corner unchanged.
-        pub fn set_size_z_minimized(&mut self, value: T) {
-            self.set_size_minimized(self.size().with_z(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the maximum corner unchanged.
-        pub fn set_extents_z_minimized(&mut self, value: T) {
-            self.set_extents_minimized(self.extents().with_z(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the minimum corner unchanged.
-        pub fn set_size_z_maximized(&mut self, value: T) {
-            self.set_size_maximized(self.size().with_z(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
-        pub fn set_extents_z_maximized(&mut self, value: T) {
-            self.set_extents_maximized(self.extents().with_z(value));
-        }
-
-        pub fn moved_z(self, value: T) -> Self {
-            match self.resolve_repr() {
-                ReprResolvedRectangle::Cornered(_) => {
-                    self.with_min(self.min().with_z(self.min().z() + value))
-                }
-                ReprResolvedRectangle::Centered(_) => {
-                    self.with_center(self.center().with_z(self.center().z() + value))
-                }
-                ReprResolvedRectangle::MinMaxed(_) => {
-                    self.with_min(self.min().with_z(self.min().z() + value))
+            impl<T: RectScalar, A: VecAlignment, R: RectRepr> $type {
+                /// Moves the rectangle so that the center is at the given position,
+                /// keeping the size unchanged.
+                pub fn [<set_center_ $c>](&mut self, value: T) {
+                    self.set_center(self.center().[<with_ $c>](value));
                 }
             }
-        }
-        pub fn move_z(&mut self, value: T) {
-            *self = self.moved_z(value);
-        }
-    };
-}
-macro_rules! w_fns {
-    () => {
-        /// Moves the rectangle so that the minimum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_min_w(&mut self, value: T) {
-            self.set_min(self.min().with_w(value));
-        }
-        /// Moves the rectangle so that the maximum corner is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_max_w(&mut self, value: T) {
-            self.set_max(self.max().with_w(value));
-        }
-        /// Moves the rectangle so that the center is at the given position,
-        /// keeping the size unchanged.
-        pub fn set_center_w(&mut self, value: T) {
-            self.set_center(self.center().with_w(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the maximum corner unchanged.
-        pub fn set_min_w_resize(&mut self, value: T) {
-            self.set_min_resize(self.min().with_w(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the minimum corner unchanged.
-        pub fn set_max_w_resize(&mut self, value: T) {
-            self.set_max_resize(self.max().with_w(value));
-        }
-        /// Resizes the rectangle so that the minimum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_min_w_centered(&mut self, value: T) {
-            self.set_min_centered(self.min().with_w(value));
-        }
-        /// Resizes the rectangle so that the maximum corner is at the given position,
-        /// keeping the center unchanged.
-        pub fn set_max_w_centered(&mut self, value: T) {
-            self.set_max_centered(self.max().with_w(value));
-        }
 
-        /// Resizes the rectangle to the given size, keeping the center unchanged.
-        pub fn set_size_w_centered(&mut self, value: T) {
-            self.set_size_centered(self.size().with_w(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the center unchanged.
-        pub fn set_extents_w_centered(&mut self, value: T) {
-            self.set_extents_centered(self.extents().with_w(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the maximum corner unchanged.
-        pub fn set_size_w_minimized(&mut self, value: T) {
-            self.set_size_minimized(self.size().with_w(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the maximum corner unchanged.
-        pub fn set_extents_w_minimized(&mut self, value: T) {
-            self.set_extents_minimized(self.extents().with_w(value));
-        }
-        /// Resizes the rectangle to the given size, keeping the minimum corner unchanged.
-        pub fn set_size_w_maximized(&mut self, value: T) {
-            self.set_size_maximized(self.size().with_w(value));
-        }
-        /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
-        pub fn set_extents_w_maximized(&mut self, value: T) {
-            self.set_extents_maximized(self.extents().with_w(value));
-        }
+            impl<T: RectScalar, A: VecAlignment, R: RectRepr> $type {
+                /// Resizes the rectangle to the given size, keeping the center unchanged.
+                pub fn [<set_size_ $c _centered>](&mut self, value: T) {
+                    self.set_size_centered(self.size().[<with_ $c>](value));
+                }
 
-        pub fn moved_w(self, value: T) -> Self {
-            match self.resolve_repr() {
-                ReprResolvedRectangle::Cornered(_) => {
-                    self.with_min(self.min().with_w(self.min().w() + value))
+                /// Resizes the rectangle to the given size, keeping the maximum corner unchanged.
+                pub fn [<set_size_ $c _minimized>](&mut self, value: T) {
+                    self.set_size_minimized(self.size().[<with_ $c>](value));
                 }
-                ReprResolvedRectangle::Centered(_) => {
-                    self.with_center(self.center().with_w(self.center().w() + value))
-                }
-                ReprResolvedRectangle::MinMaxed(_) => {
-                    self.with_min(self.min().with_w(self.min().w() + value))
+
+                /// Resizes the rectangle to the given size, keeping the minimum corner unchanged.
+                pub fn [<set_size_ $c _maximized>](&mut self, value: T) {
+                    self.set_size_maximized(self.size().[<with_ $c>](value));
                 }
             }
-        }
-        pub fn move_w(&mut self, value: T) {
-            *self = self.moved_w(value);
+
+            impl<T: RectScalar, A: VecAlignment, R: RectRepr> $type {
+                /// Resizes the rectangle to the given extents, keeping the center unchanged.
+                pub fn [<set_extents_ $c _centered>](&mut self, value: T) {
+                    self.set_extents_centered(self.extents().[<with_ $c>](value));
+                }
+
+                /// Resizes the rectangle to the given extents, keeping the maximum corner unchanged.
+                pub fn [<set_extents_ $c _minimized>](&mut self, value: T) {
+                    self.set_extents_minimized(self.extents().[<with_ $c>](value));
+                }
+
+                /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
+                pub fn [<set_extents_ $c _maximized>](&mut self, value: T) {
+                    self.set_extents_maximized(self.extents().[<with_ $c>](value));
+                }
+            }
+
+            impl<T: RectScalar, A: VecAlignment, R: RectRepr> $type {
+                pub fn [<moved_ $c>](self, value: T) -> Self {
+                    match self.resolve() {
+                        ResolvedRectangle::Cornered(_) => {
+                            self.with_min(self.min().with_x(self.min().x() + value))
+                        }
+                        ResolvedRectangle::Centered(_) => {
+                            self.with_center(self.center().with_x(self.center().x() + value))
+                        }
+                        ResolvedRectangle::MinMaxed(_) => {
+                            self.with_min(self.min().with_x(self.min().x() + value))
+                        }
+                    }
+                }
+
+                pub fn [<move_ $c>](&mut self, value: T) {
+                    *self = self.[<moved_ $c>](value);
+                }
+            }
         }
     };
 }
 
-impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<2, T, A, R>
-where
-    MaybeVecLen<2>: VecLen,
-{
-    x_fns!();
-    y_fns!();
-}
+impl_component_fns!(x for Rectangle<2, T, A, R>);
+impl_component_fns!(y for Rectangle<2, T, A, R>);
 
-impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<3, T, A, R>
-where
-    MaybeVecLen<3>: VecLen,
-{
-    x_fns!();
-    y_fns!();
-    z_fns!();
-}
+impl_component_fns!(x for Rectangle<3, T, A, R>);
+impl_component_fns!(y for Rectangle<3, T, A, R>);
+impl_component_fns!(z for Rectangle<3, T, A, R>);
 
-impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<4, T, A, R>
-where
-    MaybeVecLen<4>: VecLen,
-{
-    x_fns!();
-    y_fns!();
-    z_fns!();
-    w_fns!();
-}
+impl_component_fns!(x for Rectangle<4, T, A, R>);
+impl_component_fns!(y for Rectangle<4, T, A, R>);
+impl_component_fns!(z for Rectangle<4, T, A, R>);
+impl_component_fns!(w for Rectangle<4, T, A, R>);

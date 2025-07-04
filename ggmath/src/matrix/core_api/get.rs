@@ -60,7 +60,7 @@ where
                 let mut column_array = [mat.inner[0].index(0); R];
 
                 let mut r = 0;
-                while r < 0 {
+                while r < R {
                     column_array[r] = unsafe { mat.inner[r].get_unchecked(column_idx) };
 
                     r += 1;
@@ -80,7 +80,7 @@ where
                 let mut row_array = [mat.inner[0].index(0); C];
 
                 let mut c = 0;
-                while c < 0 {
+                while c < C {
                     row_array[c] = unsafe { mat.inner[c].get_unchecked(row_idx) };
 
                     c += 1;

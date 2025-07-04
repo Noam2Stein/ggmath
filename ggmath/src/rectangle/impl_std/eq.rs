@@ -13,19 +13,19 @@ where
 {
     #[inline(always)]
     fn eq(&self, other: &Rectangle<N, T, ARhs, RRhs>) -> bool {
-        match self.resolve_repr() {
-            ReprResolvedRectangle::Centered(rect) => match other.resolve_repr() {
-                ReprResolvedRectangle::Centered(other) => {
+        match self.resolve() {
+            ResolvedRectangle::Centered(rect) => match other.resolve() {
+                ResolvedRectangle::Centered(other) => {
                     rect.inner.center == other.inner.center
                         && rect.inner.extents == other.inner.extents
                 }
-                ReprResolvedRectangle::Cornered(other) => other.eq(&rect),
-                ReprResolvedRectangle::MinMaxed(other) => other.eq(&rect),
+                ResolvedRectangle::Cornered(other) => other.eq(&rect),
+                ResolvedRectangle::MinMaxed(other) => other.eq(&rect),
             },
-            ReprResolvedRectangle::Cornered(rect) => {
+            ResolvedRectangle::Cornered(rect) => {
                 rect.inner.min == other.min() && rect.inner.size == other.size()
             }
-            ReprResolvedRectangle::MinMaxed(rect) => {
+            ResolvedRectangle::MinMaxed(rect) => {
                 rect.inner.min == other.min() && rect.inner.max == other.max()
             }
         }

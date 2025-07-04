@@ -9,17 +9,17 @@ where
 {
     #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self.resolve_repr_ref() {
-            ReprResolvedRectangleRef::Centered(rect) => write!(
+        match self.resolve_ref() {
+            ResolvedRectangleRef::Centered(rect) => write!(
                 f,
                 "{{ center: {:?}, extents: {:?} }}",
                 rect.center(),
                 rect.extents()
             ),
-            ReprResolvedRectangleRef::Cornered(rect) => {
+            ResolvedRectangleRef::Cornered(rect) => {
                 write!(f, "{{ min: {:?}, size: {:?} }}", rect.min(), rect.size())
             }
-            ReprResolvedRectangleRef::MinMaxed(rect) => {
+            ResolvedRectangleRef::MinMaxed(rect) => {
                 write!(f, "{{ min: {:?}, max: {:?} }}", rect.min(), rect.max())
             }
         }
@@ -32,17 +32,17 @@ where
     MaybeVecLen<N>: VecLen,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self.resolve_repr_ref() {
-            ReprResolvedRectangleRef::Centered(rect) => write!(
+        match self.resolve_ref() {
+            ResolvedRectangleRef::Centered(rect) => write!(
                 f,
                 "{{ center: {}, extents: {} }}",
                 rect.center(),
                 rect.extents()
             ),
-            ReprResolvedRectangleRef::Cornered(rect) => {
+            ResolvedRectangleRef::Cornered(rect) => {
                 write!(f, "{{ min: {}, size: {} }}", rect.min(), rect.size())
             }
-            ReprResolvedRectangleRef::MinMaxed(rect) => {
+            ResolvedRectangleRef::MinMaxed(rect) => {
                 write!(f, "{{ min: {}, max: {} }}", rect.min(), rect.max())
             }
         }

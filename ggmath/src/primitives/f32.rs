@@ -16,6 +16,13 @@ where
     pub const ONE: Self = Self::splat(1.0);
     pub const NEG_ONE: Self = Self::splat(-1.0);
 
+    pub const NAN: Self = Self::splat(f32::NAN);
+    pub const INFINITY: Self = Self::splat(f32::INFINITY);
+    pub const NEG_INFINITY: Self = Self::splat(f32::NEG_INFINITY);
+
+    pub const MIN: Self = Self::splat(f32::MIN);
+    pub const MAX: Self = Self::splat(f32::MAX);
+
     pub fn is_positive(&self) -> Vector<N, bool, A> {
         self.map(|x| x > 0.0)
     }

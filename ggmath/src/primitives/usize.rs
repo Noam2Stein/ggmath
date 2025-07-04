@@ -15,6 +15,9 @@ where
     pub const ZERO: Self = Self::splat(0);
     pub const ONE: Self = Self::splat(1);
 
+    pub const MIN: Self = Self::splat(usize::MIN);
+    pub const MAX: Self = Self::splat(usize::MAX);
+
     pub fn is_positive(&self) -> Vector<N, bool, A> {
         self.map(|x| x > 0)
     }

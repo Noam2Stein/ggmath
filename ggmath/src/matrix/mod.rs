@@ -3,6 +3,7 @@ use crate::{construct::*, scalar::*, vector::*};
 mod core_api;
 mod generics;
 mod impl_std;
+#[allow(unused_imports)]
 pub use core_api::*;
 pub use generics::*;
 
