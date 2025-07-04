@@ -308,3 +308,49 @@ impl_component_fns!(x for Rectangle<4, T, A, R>);
 impl_component_fns!(y for Rectangle<4, T, A, R>);
 impl_component_fns!(z for Rectangle<4, T, A, R>);
 impl_component_fns!(w for Rectangle<4, T, A, R>);
+
+impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<2, T, A, R> {
+    #[inline(always)]
+    pub fn width(&self) -> T {
+        self.size().x()
+    }
+
+    #[inline(always)]
+    pub fn height(&self) -> T {
+        self.size().y()
+    }
+}
+
+impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<3, T, A, R> {
+    #[inline(always)]
+    pub fn width(&self) -> T {
+        self.size().x()
+    }
+
+    #[inline(always)]
+    pub fn height(&self) -> T {
+        self.size().y()
+    }
+
+    #[inline(always)]
+    pub fn depth(&self) -> T {
+        self.size().z()
+    }
+}
+
+impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<4, T, A, R> {
+    #[inline(always)]
+    pub fn width(&self) -> T {
+        self.size().x()
+    }
+
+    #[inline(always)]
+    pub fn height(&self) -> T {
+        self.size().y()
+    }
+
+    #[inline(always)]
+    pub fn depth(&self) -> T {
+        self.size().z()
+    }
+}
