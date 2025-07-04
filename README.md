@@ -21,10 +21,15 @@ Vectors are generic over:
 use ggmath::*;
 
 // This type is aligned for optimal SIMD usage.
-// add here and in the packed one exactly the old type layout thing
+// On most platforms:
+//   SIZE      -> 128 bits
+//   ALIGNMENT -> 128 bits
 type SimdVec3 = Vector<3, f32, VecAligned>;
 
 // This type is not specially aligned and is identical to [f32; 3].
+// On most platforms:
+//   SIZE      -> 96 bits
+//   ALIGNMENT -> 32 bits (f32's alignment)
 type PackedVec3 = Vector<3, f32, VecPacked>;
 ```
 
@@ -82,13 +87,13 @@ Rectangle support is an optional feature. Enable the `rectangle` feature in your
 ```rust
 use ggmath::*;
 
-// is represented internally by the min coords and size.
+// Cornered: min coords and size (corner, size)
 type RectF32 = Rectangle<f32, VecAligned, RectCornered>;
 
-// is repr internally as min + max.
+// MinMaxed: min and max (min, max)
 type RectI32Packed = Rectangle<i32, VecPacked, RectMinMaxed>;
 
-// is repr by center + extents.
+// Centered: center and extents (center, extents)
 type RectF64Packed = Rectangle<f64, VecPacked, RectCentered>;
 ```
 
