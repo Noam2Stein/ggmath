@@ -23,11 +23,11 @@ pub use vector::*;
 
 macro_rules! feature_mod {
     ($feature:ident) => {
-        paste::paste! {
-            #[cfg(feature = "" $feature "")]
+        macro_loop! {
+            #[cfg(feature = @[$feature => str])]
             pub mod $feature;
 
-            #[cfg(feature = "" $feature "")]
+            #[cfg(feature = @[$feature => str])]
             pub use $feature::*;
         }
     };
@@ -35,7 +35,6 @@ macro_rules! feature_mod {
 feature_mod! { matrix }
 feature_mod! { quaternion }
 feature_mod! { rectangle }
-//feature_mod! { testing }
 
 #[doc(hidden)]
-pub use paste::paste;
+pub use macro_loop::macro_loop;

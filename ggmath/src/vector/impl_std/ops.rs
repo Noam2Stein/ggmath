@@ -2,101 +2,111 @@ use std::ops::*;
 
 use super::*;
 
-macro_rules! impl_self_op {
-    ($trait:ident $fn:ident) => {
-        impl<const N: usize, T: Scalar + $trait<Output: Scalar>, A: VecAlignment> $trait
+macro_loop! {
+    // Un Ops
+
+    @for [op_trait, op_fn] in [
+        [Neg, neg],
+        [Not, not],
+    ] {
+        impl<const N: usize, T: Scalar + @op_trait<Output: Scalar>, A: VecAlignment> @op_trait
             for Vector<N, T, A>
         where
             MaybeVecLen<N>: VecLen,
         {
             type Output = Vector<N, T::Output, A>;
 
-            fn $fn(self) -> Vector<N, <T as $trait>::Output, A> {
-                self.map(T::$fn)
+            fn @op_fn(self) -> Vector<N, <T as @op_trait>::Output, A> {
+                self.map(T::@op_fn)
             }
         }
-    };
-}
-impl_self_op! { Not not }
-impl_self_op! { Neg neg }
+    }
 
-macro_rules! impl_rhs_ops {
-    ($trait:ident $fn:ident) => {
+    // Bin Ops, Assign Ops
+
+    @for [op_trait, op_fn] in [
+        [Add, add],
+        [Sub, sub],
+        [Mul, mul],
+        [Div, div],
+        [Rem, rem],
+        [BitAnd, bitand],
+        [BitOr, bitor],
+        [BitXor, bitxor],
+        [Shl, shl],
+        [Shr, shr],
+    ] {
+        // Bin Ops
+
         impl<
             const N: usize,
-            T: Scalar + $trait<TRhs, Output: Scalar>,
+            T: Scalar + @op_trait<TRhs, Output: Scalar>,
             A: VecAlignment,
             TRhs: Scalar,
             ARhs: VecAlignment,
-        > $trait<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
+        > @op_trait<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
         where
             MaybeVecLen<N>: VecLen,
         {
             type Output = Vector<N, T::Output, A>;
 
-            fn $fn(self, rhs: Vector<N, TRhs, ARhs>) -> Vector<N, T::Output, A> {
-                Vector::from_fn(|i| self[i].$fn(rhs[i]))
+            fn @op_fn(self, rhs: Vector<N, TRhs, ARhs>) -> Vector<N, <T as @op_trait<TRhs>>::Output, A> {
+                self.map_rhs(rhs, |self_, rhs|T::@op_fn(self_, rhs))
             }
         }
 
-        paste! {
-            impl<const N: usize, T: Scalar + [<$trait Assign>]<TRhs>, A: VecAlignment, TRhs: Scalar, ARhs: VecAlignment>
-                [<$trait Assign>]<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
-            where
-                MaybeVecLen<N>: VecLen,
-            {
-                fn [<$fn _assign>](&mut self, rhs: Vector<N, TRhs, ARhs>) {
-                    for i in 0..N {
-                        self[i].[<$fn _assign>](rhs[i]);
-                    }
+        // Assign Ops
+
+        @let op_assign_trait = @op_trait + Assign;
+        @let op_assign_fn = @op_fn + _assign;
+
+        impl<const N: usize, T: Scalar + @op_assign_trait<TRhs>, A: VecAlignment, TRhs: Scalar, ARhs: VecAlignment>
+        @op_assign_trait<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
+        where
+            MaybeVecLen<N>: VecLen,
+        {
+            fn @op_assign_fn(&mut self, rhs: Vector<N, TRhs, ARhs>) {
+                for i in 0..N {
+                    self[i].@op_assign_fn(rhs[i]);
                 }
             }
         }
-    };
-}
-impl_rhs_ops! { Add add }
-impl_rhs_ops! { Sub sub }
-impl_rhs_ops! { Mul mul }
-impl_rhs_ops! { Div div }
-impl_rhs_ops! { Rem rem }
-impl_rhs_ops! { Shl shl }
-impl_rhs_ops! { Shr shr }
-impl_rhs_ops! { BitAnd bitand }
-impl_rhs_ops! { BitOr bitor }
-impl_rhs_ops! { BitXor bitxor }
+    }
 
-macro_rules! impl_scalar_ops {
-    (
-        $std_trait:ident $std_fn:ident,
-        $assign_std_trait:ident $assign_std_fn:ident
-    ) => {
+    // Scalar Ops
+
+    @for [op_trait, op_fn] in [
+        [Mul, mul],
+        [Div, div],
+        [Rem, rem],
+    ] {
         impl<
             const N: usize,
-            T: Scalar + $std_trait<Rhs, Output: Scalar>,
+            T: Scalar + @op_trait<Rhs, Output: Scalar>,
             A: VecAlignment,
             Rhs: Scalar,
-        > $std_trait<Rhs> for Vector<N, T, A>
+        > @op_trait<Rhs> for Vector<N, T, A>
         where
             MaybeVecLen<N>: VecLen,
         {
-            type Output = <Self as $std_trait<Vector<N, Rhs, A>>>::Output;
+            type Output = <Self as @op_trait<Vector<N, Rhs, A>>>::Output;
 
-            fn $std_fn(self, rhs: Rhs) -> Self::Output {
-                self.$std_fn(Vector::<N, Rhs, A>::splat(rhs))
+            fn @op_fn(self, rhs: Rhs) -> Self::Output {
+                self.@op_fn(Vector::<N, Rhs, A>::splat(rhs))
             }
         }
 
-        impl<const N: usize, T: Scalar + $assign_std_trait<Rhs>, A: VecAlignment, Rhs: Scalar>
-            $assign_std_trait<Rhs> for Vector<N, T, A>
+        @let op_assign_trait = @op_trait + Assign;
+        @let op_assign_fn = @op_fn + _assign;
+
+        impl<const N: usize, T: Scalar + @op_assign_trait<Rhs>, A: VecAlignment, Rhs: Scalar>
+            @op_assign_trait<Rhs> for Vector<N, T, A>
         where
             MaybeVecLen<N>: VecLen,
         {
-            fn $assign_std_fn(&mut self, rhs: Rhs) {
-                self.$assign_std_fn(Vector::<N, Rhs, A>::splat(rhs))
+            fn @op_assign_fn(&mut self, rhs: Rhs) {
+                self.@op_assign_fn(Vector::<N, Rhs, A>::splat(rhs))
             }
         }
-    };
+    }
 }
-impl_scalar_ops!(Mul mul, MulAssign mul_assign);
-impl_scalar_ops!(Div div, DivAssign div_assign);
-impl_scalar_ops!(Rem rem, RemAssign rem_assign);

@@ -1,10 +1,10 @@
 use crate::{construct::*, scalar::*, vector::*};
 
-mod core_api;
+mod api_core;
 mod generics;
 mod impl_std;
 #[allow(unused_imports)]
-pub use core_api::*;
+pub use api_core::*;
 pub use generics::*;
 
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>

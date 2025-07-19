@@ -123,6 +123,45 @@ where
             None
         }
     }
+
+    #[inline(always)]
+    pub const fn get_2_columns_ref(
+        &self,
+        column_idx: usize,
+    ) -> Option<&Matrix<2, R, T, A, ColumnMajor>> {
+        self.get_matc_ref(column_idx)
+    }
+
+    #[inline(always)]
+    pub const fn get_3_columns_ref(
+        &self,
+        column_idx: usize,
+    ) -> Option<&Matrix<3, R, T, A, ColumnMajor>> {
+        self.get_matc_ref(column_idx)
+    }
+
+    #[inline(always)]
+    pub const fn get_4_columns_ref(
+        &self,
+        column_idx: usize,
+    ) -> Option<&Matrix<4, R, T, A, ColumnMajor>> {
+        self.get_matc_ref(column_idx)
+    }
+
+    #[inline(always)]
+    pub const fn get_matc_ref<const C_OUT: usize>(
+        &self,
+        column_idx: usize,
+    ) -> Option<&Matrix<C_OUT, R, T, A, ColumnMajor>>
+    where
+        MaybeVecLen<C_OUT>: VecLen,
+    {
+        if column_idx + C_OUT <= C {
+            Some(unsafe { self.get_matc_ref_unchecked(column_idx) })
+        } else {
+            None
+        }
+    }
 }
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
@@ -134,6 +173,36 @@ where
     pub const fn get_row_ref(&self, row_idx: usize) -> Option<&Vector<C, T, A>> {
         if row_idx < R {
             Some(unsafe { self.get_row_ref_unchecked(row_idx) })
+        } else {
+            None
+        }
+    }
+
+    #[inline(always)]
+    pub const fn get_2_rows_ref(&self, row_idx: usize) -> Option<&Matrix<C, 2, T, A, RowMajor>> {
+        self.get_matr_ref(row_idx)
+    }
+
+    #[inline(always)]
+    pub const fn get_3_rows_ref(&self, row_idx: usize) -> Option<&Matrix<C, 3, T, A, RowMajor>> {
+        self.get_matr_ref(row_idx)
+    }
+
+    #[inline(always)]
+    pub const fn get_4_rows_ref(&self, row_idx: usize) -> Option<&Matrix<C, 4, T, A, RowMajor>> {
+        self.get_matr_ref(row_idx)
+    }
+
+    #[inline(always)]
+    pub const fn get_matr_ref<const R_OUT: usize>(
+        &self,
+        row_idx: usize,
+    ) -> Option<&Matrix<C, R_OUT, T, A, RowMajor>>
+    where
+        MaybeVecLen<R_OUT>: VecLen,
+    {
+        if row_idx + R_OUT <= R {
+            Some(unsafe { self.get_matr_ref_unchecked(row_idx) })
         } else {
             None
         }
@@ -179,6 +248,46 @@ where
                 .unwrap_unchecked()
         }
     }
+
+    #[inline(always)]
+    pub const unsafe fn get_2_columns_ref_unchecked(
+        &self,
+        column_idx: usize,
+    ) -> &Matrix<2, R, T, A, ColumnMajor> {
+        unsafe { self.get_matc_ref_unchecked(column_idx) }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_3_columns_ref_unchecked(
+        &self,
+        column_idx: usize,
+    ) -> &Matrix<3, R, T, A, ColumnMajor> {
+        unsafe { self.get_matc_ref_unchecked(column_idx) }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_4_columns_ref_unchecked(
+        &self,
+        column_idx: usize,
+    ) -> &Matrix<4, R, T, A, ColumnMajor> {
+        unsafe { self.get_matc_ref_unchecked(column_idx) }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_matc_ref_unchecked<const C_OUT: usize>(
+        &self,
+        column_idx: usize,
+    ) -> &Matrix<C_OUT, R, T, A, ColumnMajor>
+    where
+        MaybeVecLen<C_OUT>: VecLen,
+    {
+        unsafe {
+            (self.inner.as_ptr() as *const Matrix<C_OUT, R, T, A, ColumnMajor>)
+                .add(column_idx)
+                .as_ref()
+                .unwrap_unchecked()
+        }
+    }
 }
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
@@ -189,6 +298,46 @@ where
     #[inline(always)]
     pub const unsafe fn get_row_ref_unchecked(&self, row_idx: usize) -> &Vector<C, T, A> {
         unsafe { self.inner.as_ptr().add(row_idx).as_ref().unwrap_unchecked() }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_2_rows_ref_unchecked(
+        &self,
+        row_idx: usize,
+    ) -> &Matrix<C, 2, T, A, RowMajor> {
+        unsafe { self.get_matr_ref_unchecked(row_idx) }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_3_rows_ref_unchecked(
+        &self,
+        row_idx: usize,
+    ) -> &Matrix<C, 3, T, A, RowMajor> {
+        unsafe { self.get_matr_ref_unchecked(row_idx) }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_4_rows_ref_unchecked(
+        &self,
+        row_idx: usize,
+    ) -> &Matrix<C, 4, T, A, RowMajor> {
+        unsafe { self.get_matr_ref_unchecked(row_idx) }
+    }
+
+    #[inline(always)]
+    pub const unsafe fn get_matr_ref_unchecked<const R_OUT: usize>(
+        &self,
+        row_idx: usize,
+    ) -> &Matrix<C, R_OUT, T, A, RowMajor>
+    where
+        MaybeVecLen<R_OUT>: VecLen,
+    {
+        unsafe {
+            (self.inner.as_ptr() as *const Matrix<C, R_OUT, T, A, RowMajor>)
+                .add(row_idx)
+                .as_ref()
+                .unwrap_unchecked()
+        }
     }
 }
 
