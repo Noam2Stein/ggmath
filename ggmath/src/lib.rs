@@ -21,6 +21,8 @@ pub mod vector;
 pub use scalar::*;
 pub use vector::*;
 
+mod intergration;
+
 macro_rules! feature_mod {
     ($feature:ident) => {
         macro_loop! {
