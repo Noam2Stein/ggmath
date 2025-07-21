@@ -6,21 +6,21 @@ where
 {
     #[inline(always)]
     pub fn intersects(self, other: Rectangle<N, T, impl VecAlignment, impl RectRepr>) -> bool {
-        match self.resolve() {
-            ResolvedRectangle::Centered(rect) => match self.resolve() {
-                ResolvedRectangle::Centered(other) => {
-                    let abs_diff = T::rect_vector_abs_diff(rect.center(), other.center());
-                    let extents_sum = rect.extents() + other.extents();
+        match (self.resolve(), other.resolve()) {
+            (ResolvedRectangle::Centered(rect), ResolvedRectangle::Centered(other)) => {
+                let abs_diff = T::rect_vector_abs_diff(rect.center(), other.center());
+                let extents_sum = rect.extents() + other.extents();
 
-                    (0..N).all(|i| abs_diff[i] < extents_sum[i])
-                }
-                ResolvedRectangle::Cornered(other) => other.intersects(rect),
-                ResolvedRectangle::MinMaxed(other) => other.intersects(rect),
-            },
-            ResolvedRectangle::Cornered(rect) => {
+                (0..N).all(|i| abs_diff[i] < extents_sum[i])
+            }
+
+            (ResolvedRectangle::Centered(rect), _) => other.intersects(rect),
+
+            (ResolvedRectangle::Cornered(rect), _) => {
                 (0..N).all(|i| rect.min()[i] < other.max()[i] && other.min()[i] < rect.max()[i])
             }
-            ResolvedRectangle::MinMaxed(rect) => {
+
+            (ResolvedRectangle::MinMaxed(rect), _) => {
                 (0..N).all(|i| rect.min()[i] < other.max()[i] && other.min()[i] < rect.max()[i])
             }
         }
