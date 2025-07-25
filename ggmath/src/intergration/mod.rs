@@ -2,4 +2,4 @@
 use super::*;
 
 #[cfg(feature = "crevice")]
-mod crevice_;
+pub mod crevice_;

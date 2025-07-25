@@ -1,5 +1,9 @@
 use super::*;
 
+mod vector;
+pub use vector::*;
+
 #[cfg(feature = "matrix")]
 mod matrix;
-mod vector;
+#[cfg(feature = "matrix")]
+pub use matrix::*;
