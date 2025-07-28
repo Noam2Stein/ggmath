@@ -8,134 +8,177 @@ impl Scalar for f32 {
     type Vec4Alignment = Align<16>;
 }
 
-impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
-where
-    Usize<N>: VecLen,
-{
-    pub const ZERO: Self = Self::splat(0.0);
-    pub const ONE: Self = Self::splat(1.0);
-    pub const NEG_ONE: Self = Self::splat(-1.0);
+// impl for all float types
+macro_loop! {
+    @for float in [f32, f64] {
+        impl<const N: usize, A: VecAlignment> Vector<N, @float, A>
+        where
+            Usize<N>: VecLen,
+        {
+            /// Vector of all `0.0` values.
+            pub const ZERO: Self = Self::splat(0.0);
+            /// Vector of all `1.0` values.
+            pub const ONE: Self = Self::splat(1.0);
+            /// Vector of all `-1.0` values.
+            pub const NEG_ONE: Self = Self::splat(-1.0);
 
-    pub const NAN: Self = Self::splat(f32::NAN);
-    pub const INFINITY: Self = Self::splat(f32::INFINITY);
-    pub const NEG_INFINITY: Self = Self::splat(f32::NEG_INFINITY);
+            /// Vector of all `NaN` values.
+            pub const NAN: Self = Self::splat(@float::NAN);
+            /// Vector of all `Infinity` values.
+            pub const INFINITY: Self = Self::splat(@float::INFINITY);
+            /// Vector of all `-Infinity` values.
+            pub const NEG_INFINITY: Self = Self::splat(@float::NEG_INFINITY);
 
-    pub const MIN: Self = Self::splat(f32::MIN);
-    pub const MAX: Self = Self::splat(f32::MAX);
-
-    pub fn is_positive(&self) -> Vector<N, bool, A> {
-        self.map(|x| x > 0.0)
-    }
-    pub fn is_negative(&self) -> Vector<N, bool, A> {
-        self.map(|x| x < 0.0)
-    }
-    pub fn is_zero(&self) -> Vector<N, bool, A> {
-        self.map(|x| x == 0.0)
-    }
-
-    pub fn is_bin_positive(&self) -> Vector<N, bool, A> {
-        self.map(f32::is_sign_positive)
-    }
-    pub fn is_bin_negative(&self) -> Vector<N, bool, A> {
-        self.map(f32::is_sign_negative)
-    }
-
-    pub fn abs(self) -> Self {
-        self.map(f32::abs)
-    }
-    pub fn neg_abs(self) -> Self {
-        self.map(|x| -x.abs())
-    }
-
-    pub fn signumt(self) -> Self {
-        self.map(|x| {
-            if x > 0.0 {
-                1.0
-            } else if x < 0.0 {
-                -1.0
-            } else {
-                0.0
+            /// Maps the vector to a vector of booleans, where each element is `true` if the element is positive, and `false` otherwise.
+            /// This returns FALSE if the element is zero.
+            /// To check the binary sign, use `is_bin_positive`.
+            pub fn is_positive(&self) -> Vector<N, bool, A> {
+                self.map(|x| x > 0.0)
             }
-        })
-    }
-    pub fn bin_signum(self) -> Self {
-        self.map(f32::signum)
-    }
-
-    pub fn abs_diff(self, rhs: Vector<N, f32, impl VecAlignment>) -> Self {
-        self.map_rhs(rhs, |a, b| if a > b { a - b } else { b - a })
-    }
-
-    pub fn min(self, other: Vector<N, f32, impl VecAlignment>) -> Self {
-        self.map_rhs(other, |a, b| if a < b { a } else { b })
-    }
-    pub fn max(self, other: Vector<N, f32, impl VecAlignment>) -> Self {
-        self.map_rhs(other, |a, b| if a > b { a } else { b })
-    }
-    pub fn clamp(
-        self,
-        min: Vector<N, f32, impl VecAlignment>,
-        max: Vector<N, f32, impl VecAlignment>,
-    ) -> Self {
-        self.min(max).max(min)
-    }
-
-    pub fn round(self) -> Self {
-        self.map(f32::round)
-    }
-    pub fn floor(self) -> Self {
-        self.map(f32::floor)
-    }
-    pub fn ceil(self) -> Self {
-        self.map(f32::ceil)
-    }
-    pub fn trunc(self) -> Self {
-        self.map(f32::trunc)
-    }
-    pub fn atrunc(self) -> Self {
-        self.map(|x| {
-            if x.is_sign_positive() {
-                x.ceil()
-            } else {
-                x.floor()
+            /// Maps the vector to a vector of booleans, where each element is `true` if the element is negative, and `false` otherwise.
+            /// This returns FALSE if the element is zero.
+            /// To check the binary sign, use `is_bin_negative`.
+            pub fn is_negative(&self) -> Vector<N, bool, A> {
+                self.map(|x| x < 0.0)
             }
-        })
-    }
+            /// Maps the vector to a vector of booleans, where each element is `true` if the element is zero, and `false` otherwise.
+            pub fn is_zero(&self) -> Vector<N, bool, A> {
+                self.map(|x| x == 0.0)
+            }
+            /// Maps the vector to a vector of booleans,
+            /// where each element is `true` if the element's binary sign is positive, and `false` otherwise.
+            ///
+            /// This returns true if the element is `+0.0`.
+            /// To check if the element is more than zero, use `is_positive`.
+            pub fn is_bin_positive(&self) -> Vector<N, bool, A> {
+                self.map(@float::is_sign_positive)
+            }
+            /// Maps the vector to a vector of booleans,
+            /// where each element is `true` if the element's binary sign is negative, and `false` otherwise.
+            ///
+            /// This returns true if the element is `-0.0`.
+            /// To check if the element is less than zero, use `is_negative`.
+            pub fn is_bin_negative(&self) -> Vector<N, bool, A> {
+                self.map(@float::is_sign_negative)
+            }
 
-    pub fn sin(self) -> Self {
-        self.map(f32::sin)
-    }
-    pub fn cos(self) -> Self {
-        self.map(f32::cos)
-    }
-    pub fn tan(self) -> Self {
-        self.map(f32::tan)
-    }
-    pub fn asin(self) -> Self {
-        self.map(f32::asin)
-    }
-    pub fn acos(self) -> Self {
-        self.map(f32::acos)
-    }
-    pub fn atan(self) -> Self {
-        self.map(f32::atan)
-    }
-    pub fn sinh(self) -> Self {
-        self.map(f32::sinh)
-    }
-    pub fn cosh(self) -> Self {
-        self.map(f32::cosh)
-    }
-    pub fn tanh(self) -> Self {
-        self.map(f32::tanh)
-    }
-    pub fn asinh(self) -> Self {
-        self.map(f32::asinh)
-    }
-    pub fn acosh(self) -> Self {
-        self.map(f32::acosh)
-    }
-    pub fn atanh(self) -> Self {
-        self.map(f32::atanh)
+            /// Maps the vector to a vector of the absolute values of the elements.
+            pub fn abs(self) -> Self {
+                self.map(@float::abs)
+            }
+            /// Maps the vector to a vector of the negative absolute values of the elements.
+            pub fn neg_abs(self) -> Self {
+                self.map(|x| -x.abs())
+            }
+
+            /// Maps the vector to a vector of the signum values of the elements.
+            /// This returns `0.0` if the element is zero.
+            ///
+            /// For binary sign signum, use `bin_signum`.
+            pub fn signumt(self) -> Self {
+                self.map(|x| {
+                    if x > 0.0 {
+                        1.0
+                    } else if x < 0.0 {
+                        -1.0
+                    } else {
+                        0.0
+                    }
+                })
+            }
+            /// Maps the vector to a vector of the signum values of the elements.
+            /// This returns `1.0` for `+0.0` and `-1.0` for `-0.0`.
+            ///
+            /// For signum that returns `0.0` for zero, use `signumt`.
+            pub fn bin_signum(self) -> Self {
+                self.map(@float::signum)
+            }
+
+            /// Maps the vector to a vector of the minimum of the elements and the corresponding elements of the other vector.
+            pub fn min(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
+                self.map_rhs(other, |a, b| if a < b { a } else { b })
+            }
+            /// Maps the vector to a vector of the maximum of the elements and the corresponding elements of the other vector.
+            pub fn max(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
+                self.map_rhs(other, |a, b| if a > b { a } else { b })
+            }
+
+            /// Maps the vector to a vector of the rounded values of the elements.
+            pub fn round(self) -> Self {
+                self.map(@float::round)
+            }
+            /// Maps the vector to a vector of the floor values of the elements.
+            pub fn floor(self) -> Self {
+                self.map(@float::floor)
+            }
+            /// Maps the vector to a vector of the ceiling values of the elements.
+            pub fn ceil(self) -> Self {
+                self.map(@float::ceil)
+            }
+            /// Maps the vector to a vector of the truncated values of the elements.
+            pub fn trunc(self) -> Self {
+                self.map(@float::trunc)
+            }
+            /// Maps the vector to a vector of the "anti truncated" values of the elements.
+            /// This ceils positive values and floors negative values, opposite to `trunc`.
+            pub fn atrunc(self) -> Self {
+                self.map(|x| {
+                    if x.is_sign_positive() {
+                        x.ceil()
+                    } else {
+                        x.floor()
+                    }
+                })
+            }
+
+            /// Maps the vector to a vector of the sine values of the elements.
+            pub fn sin(self) -> Self {
+                self.map(@float::sin)
+            }
+            /// Maps the vector to a vector of the cosine values of the elements.
+            pub fn cos(self) -> Self {
+                self.map(@float::cos)
+            }
+            /// Maps the vector to a vector of the tangent values of the elements.
+            pub fn tan(self) -> Self {
+                self.map(@float::tan)
+            }
+            /// Maps the vector to a vector of the arcsine values of the elements.
+            pub fn asin(self) -> Self {
+                self.map(@float::asin)
+            }
+            /// Maps the vector to a vector of the arccosine values of the elements.
+            pub fn acos(self) -> Self {
+                self.map(@float::acos)
+            }
+            /// Maps the vector to a vector of the arctangent values of the elements.
+            pub fn atan(self) -> Self {
+                self.map(@float::atan)
+            }
+            /// Maps the vector to a vector of the hyperbolic sine values of the elements.
+            pub fn sinh(self) -> Self {
+                self.map(@float::sinh)
+            }
+            /// Maps the vector to a vector of the hyperbolic cosine values of the elements.
+            pub fn cosh(self) -> Self {
+                self.map(@float::cosh)
+            }
+            /// Maps the vector to a vector of the hyperbolic tangent values of the elements.
+            pub fn tanh(self) -> Self {
+                self.map(@float::tanh)
+            }
+            /// Maps the vector to a vector of the hyperbolic arcsine values of the elements.
+            pub fn asinh(self) -> Self {
+                self.map(@float::asinh)
+            }
+            /// Maps the vector to a vector of the hyperbolic arccosine values of the elements.
+            pub fn acosh(self) -> Self {
+                self.map(@float::acosh)
+            }
+            /// Maps the vector to a vector of the hyperbolic arctangent values of the elements.
+            pub fn atanh(self) -> Self {
+                self.map(@float::atanh)
+            }
+        }
     }
 }

@@ -1,32 +1,18 @@
+#![deny(missing_docs)]
+
 use super::*;
 
-macro_rules! primitive_mod {
-    ($ident:ident) => {
-        pub mod $ident;
+macro_loop! {
+    @for prim_mod in [u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f32, f64, bool, ordering] {
+        #[doc = @("Module with " + @prim_mod + " type aliases")]
+        pub mod @prim_mod;
 
         #[allow(unused_imports)]
-        pub use $ident::*;
-    };
+        pub use @prim_mod::*;
+    }
 }
 
-primitive_mod! { u8 }
-primitive_mod! { u16 }
-primitive_mod! { u32 }
-primitive_mod! { u64 }
-primitive_mod! { u128 }
-primitive_mod! { usize }
-primitive_mod! { i8 }
-primitive_mod! { i16 }
-primitive_mod! { i32 }
-primitive_mod! { i64 }
-primitive_mod! { i128 }
-primitive_mod! { isize }
-primitive_mod! { f32 }
-primitive_mod! { f64 }
-primitive_mod! { bool }
-
-primitive_mod! { ordering }
-
+/// Internal macro to define primitive aliases for vector and matrix types.
 #[macro_export(local_inner_macros)]
 macro_rules! primitive_aliases {
     { $vis:vis $prefix:ident => $type:ty } => {

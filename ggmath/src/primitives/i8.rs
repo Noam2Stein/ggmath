@@ -8,70 +8,47 @@ impl Scalar for i8 {
     type Vec4Alignment = Align<4>;
 }
 
-impl<const N: usize, A: VecAlignment> Vector<N, i8, A>
-where
-    Usize<N>: VecLen,
-{
-    pub const ZERO: Self = Self::splat(0);
-    pub const ONE: Self = Self::splat(1);
-    pub const NEG_ONE: Self = Self::splat(-1);
+// impl for all sint types
+macro_loop! {
+    @for int in [i8, i16, i32, i64, i128, isize] {
+        impl<const N: usize, A: VecAlignment> Vector<N, @int, A>
+        where
+            Usize<N>: VecLen,
+        {
+            /// Vector of all `-1` values.
+            pub const NEG_ONE: Self = Self::splat(-1);
 
-    pub const MIN: Self = Self::splat(i8::MIN);
-    pub const MAX: Self = Self::splat(i8::MAX);
+            /// Returns a vector of boolean values, where each element is `true` if the corresponding element in the input vector is negative, and `false` otherwise.
+            /// This is equivalent to `self < 0`.
+            pub fn is_negative(&self) -> Vector<N, bool, A> {
+                self.map(|x| x < 0)
+            }
 
-    pub fn is_positive(&self) -> Vector<N, bool, A> {
-        self.map(|x| x > 0)
-    }
-    pub fn is_negative(&self) -> Vector<N, bool, A> {
-        self.map(|x| x < 0)
-    }
-    pub fn is_zero(&self) -> Vector<N, bool, A> {
-        self.map(|x| x == 0)
-    }
+            /// Returns a vector of boolean values, where each element is `true` if the corresponding element in the input vector is non-negative, and `false` otherwise.
+            /// This is equivalent to `self >= 0`.
+            pub fn is_bin_positive(&self) -> Vector<N, bool, A> {
+                self.map(|x| x >= 0)
+            }
 
-    pub fn is_bin_positive(&self) -> Vector<N, bool, A> {
-        self.map(|x| x >= 0)
-    }
-    pub fn is_bin_negative(&self) -> Vector<N, bool, A> {
-        self.map(|x| x < 0)
-    }
+            /// Returns a vector of absolute values of the input vector.
+            pub fn abs(self) -> Self {
+                self.map(|x| x.abs())
+            }
+            /// Returns a vector of negative absolute values of the input vector.
+            pub fn neg_abs(self) -> Self {
+                self.map(|x| -x.abs())
+            }
 
-    pub fn abs(self) -> Self {
-        self.map(|x| x.abs())
-    }
-    pub fn neg_abs(self) -> Self {
-        self.map(|x| -x.abs())
-    }
-
-    pub fn signumt(self) -> Self {
-        self.map(|x| x.signum())
-    }
-    pub fn bin_signum(self) -> Self {
-        self.map(|x| if x >= 0 { 1 } else { -1 })
-    }
-
-    pub fn min(self, other: Vector<N, i8, impl VecAlignment>) -> Self {
-        self.map_rhs(other, i8::min)
-    }
-    pub fn max(self, other: Vector<N, i8, impl VecAlignment>) -> Self {
-        self.map_rhs(other, i8::max)
-    }
-    pub fn clamp(
-        self,
-        min: Vector<N, i8, impl VecAlignment>,
-        max: Vector<N, i8, impl VecAlignment>,
-    ) -> Self {
-        self.min(max).max(min)
-    }
-
-    pub fn cmin(self) -> i8 {
-        self.fold(i8::min)
-    }
-    pub fn cmax(self) -> i8 {
-        self.fold(i8::max)
-    }
-
-    pub fn abs_diff(self, rhs: Vector<N, i8, impl VecAlignment>) -> Self {
-        self.map_rhs(rhs, |a, b| if a > b { a - b } else { b - a })
+            /// Returns a vector mapping the signum of the elements.
+            pub fn signumt(self) -> Self {
+                self.map(|x| x.signum())
+            }
+            /// Returns a vector mapping the signum of the elements.
+            /// This acts like float signum, returning `1` for `+0` and `-1` for `-0`.
+            /// Of course ints don't have `+0` and `-0`, so `0` is treated as `+0`.
+            pub fn bin_signum(self) -> Self {
+                self.map(|x| if x >= 0 { 1 } else { -1 })
+            }
+        }
     }
 }
