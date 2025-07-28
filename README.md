@@ -1,21 +1,37 @@
-*** UNTESTED CRATE ***
+*** THIS CRATE HAS NO UNIT TESTS YET AND MAY STILL HAVE BUGS ***
 
 # GGMath
 
-*GGMath* is a **generic graphics math** crate with optimized, flexible math types for Rust.
+A *generic graphics math* Rust crate with precise generic math types specialized for graphics.
 
-GGMath types are generic over:
-- **Alignment**: Choose between SIMD-optimized (`VecAligned`) or compact (`VecPacked`) memory layouts for vectors and matrices.
-- **Memory Representation**: Types are generic over row-major/column-major for matrices, and (optionally, via the `rectangle` feature) over rectangle representations for rectangles.
+```rust
+use ggmath::*;
 
-This allows you to control performance and memory layout with a simple, ergonomic API.
+fn main() {
+    let mut vec4 = vec4!(1, 2, 3, 4);
+    vec4.set_xz(vec2!(5, 6));
+
+    println!("{}", vec4.xyw());
+}
+```
+
+`ggmath` types are fully generic over absolutely everything.
+There is only one type for `Vector` and `Matrix`, and they are both generic over length, type and *alignment*.
+
+`ggmath` types are generic over their memory-layout,
+which includes *alignment* (see <https://doc.rust-lang.org/reference/type-layout.html>).
+The minimum alignment of a vector is the alignment of its `T`,
+but you may want higher alignment so that operators on the vector are faster due to SIMD.
+because of this, all `ggmath` types are generic over `A: VecAlignment` which can be either `VecAligned` (aligned for SIMD) or `VecPacked` (not additionally aligned, like `[T; _]`).
+
+`ggmath` matricies are also generic over whether they are column-major or row-major.
 
 ### Vectors
 
 Vectors are generic over:
 - **Length** (`N`): 2, 3, or 4 (vector dimension)
 - **Type** (`T`): e.g., `f32`, `i32`, `bool`, etc. (element type)
-- **Alignment** (`A`): `VecAligned` (SIMD-optimized) or `VecPacked` (compact)
+- **Alignment** (`A`): `VecAligned` (aligned for SIMD) or `VecPacked` (not additionally aligned, like `[T; _]`)
 
 ```rust
 use ggmath::*;
@@ -24,26 +40,19 @@ use ggmath::*;
 // On most platforms:
 //   SIZE      -> 128 bits
 //   ALIGNMENT -> 128 bits
-type SimdVec3 = Vector<3, f32, VecAligned>;
+type SimdVec3 = Vector<3, f32, VecAligned>; // Could also just write `FVec3`
 
-// This type is not specially aligned and is identical to [f32; 3].
+// This type is not specially aligned and is identical in memory to [f32; 3].
 // On most platforms:
 //   SIZE      -> 96 bits
 //   ALIGNMENT -> 32 bits (f32's alignment)
-type PackedVec3 = Vector<3, f32, VecPacked>;
+type PackedVec3 = Vector<3, f32, VecPacked>; // Could also just write `FVec3P`
 ```
 
-#### Vector Type Aliases
-
-```rust
-use ggmath::*;
-
-let v2: Vec2<f32> = vec2!(1.0, 2.0); // Vec2<T> = Vector<2, T, VecAligned>
-
-let v4: Vec4P<f32> = vec4p!(1.0, v2, 4.0); // Vec4P<T> = Vector<2, T, VecPacked>
-
-let v: FVec3P = vec3p!(v4.yz(), 0.0); // FVec3P = Vector<3, f32, VecPacked>
-```
+Vectors have the type aliases:
+- `Vec{2/3/4}<T>` => `Vector<{2/3/4}, T, VecAligned>`
+- `Vec{2/3/4}P<T>` => `Vector<{2/3/4}, T, VecPacked>`
+- T specifc aliases through the default `primitive_aliases` feature.
 
 ### Matrices
 
@@ -52,27 +61,23 @@ Matrices are generic over:
 - **Rows** (`R`): 2, 3, or 4 (number of rows)
 - **Type** (`T`): e.g., `f32`, `i32`, `bool`, etc. (element type)
 - **Alignment** (`A`): `VecAligned` or `VecPacked`
-- **Major Axis** (`M`): `ColumnMajor` or `RowMajor` (memory layout)
+- **Major Axis** (`M`): `ColumnMajor` or `RowMajor`
 
 ```rust
 use ggmath::*;
 
 // Column-major, aligned matrix
-type Mat4x3F32Col = Matrix<4, 3, f32, VecAligned, ColumnMajor>;
+type Mat4x3F32Col = Matrix<4, 3, f32, VecAligned, ColumnMajor>; // Could just write `FMat4x3C`
 
 // Row-major, packed matrix
-type Mat2x2I32RowPacked = Matrix<2, 2, i32, VecPacked, RowMajor>;
+type Mat2x2I32RowPacked = Matrix<2, 2, i32, VecPacked, RowMajor>; // Could just write `IMat2RP`
 ```
 
-#### Matrix Type Aliases
-
-```rust
-use ggmath::*;
-
-let short: FMat4C = FMat4C::default(); // FMat4C = Matrix<4, 4, f32, VecAligned, ColumnMajor>
-
-let loong: UsizeMat4x3RP = UsizeMat4x3RP::default(); // UsizeMat4x3RP = Matrix<4, 3, f32, VecPacked, RowMajor>
-```
+Matricies have the type aliases:
+- `Mat{2/3/4}C<T>` => `Matrix<{2/3/4}, {2/3/4}, T, VecAligned, ColumnMajor>`
+- `Mat{2/3/4}R<T>` => `Matrix<{2/3/4}, {2/3/4}, T, VecAligned, RowMajor>`
+- `VecPacked` versions
+- type specific versions via the default `primitive_aliases` feature.
 
 ### Rectangles (optional feature)
 
@@ -105,16 +110,12 @@ use ggmath::*;
 let r: IRect2 = IRect2::from_min_max(vec2!(1, 1), vec2!(3, 3)); // FRect2 = Rectangle<2, f32, VecAligned, RectCornered>
 ```
 
-### SIMD Usage
-
-All GGMath types are designed to be zero-cost abstractions in release mode: the compiler will optimize generic math code to use SIMD instructions. In debug mode, generic abstractions may result in slower code due to lack of optimizations, but in release mode, you get full SIMD performance with no overhead.
-
 ---
 
 ## Stability & Development Status
 
-**GGMath is unstable and under active development.**
-
-- The API is not finalized and may change at any time.
-- Every version may introduce breaking changes.
-- There may be bugs, incomplete features, or missing documentation.
+- actively updated.
+- non final API.
+- there are incomplete features (like quaternions).
+- there is missing documentation.
+- there may be bugs because there are no tests yet.
