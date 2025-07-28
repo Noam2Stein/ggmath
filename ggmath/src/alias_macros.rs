@@ -6,15 +6,19 @@ macro_rules! vector_aliases {
         $crate::macro_loop! {
             #[doc = concat!("Type alias for `Vector<2, ", stringify!($type), ", VecAligned>`")]
             $vis type @[$prefix Vec2] = $crate::Vec2<$type>;
+
             #[doc = concat!("Type alias for `Vector<3, ", stringify!($type), ", VecAligned>`")]
             $vis type @[$prefix Vec3] = $crate::Vec3<$type>;
+
             #[doc = concat!("Type alias for `Vector<4, ", stringify!($type), ", VecAligned>`")]
             $vis type @[$prefix Vec4] = $crate::Vec4<$type>;
 
             #[doc = concat!("Type alias for `Vector<2, ", stringify!($type), ", VecPacked>`")]
             $vis type @[$prefix Vec2P] = $crate::Vec2P<$type>;
+
             #[doc = concat!("Type alias for `Vector<3, ", stringify!($type), ", VecPacked>`")]
             $vis type @[$prefix Vec3P] = $crate::Vec3P<$type>;
+
             #[doc = concat!("Type alias for `Vector<4, ", stringify!($type), ", VecPacked>`")]
             $vis type @[$prefix Vec4P] = $crate::Vec4P<$type>;
         }
@@ -124,7 +128,7 @@ macro_rules! matrix_aliases {
     };
 }
 
-#[cfg(feature = "rectangle")]
+#[cfg(feature = "aabb")]
 #[macro_export]
 macro_rules! rectangle_aliases {
     (
@@ -132,59 +136,65 @@ macro_rules! rectangle_aliases {
         $vis:vis $prefix:ident => $type:ty
     ) => {
         $crate::macro_loop! {
-            // Cornered, Aligned
+            // 2D
 
-            #[doc = concat!("Type alias for `Rectangle<2, ", stringify!($type), ", VecAligned, RectCornered>`")]
-            $vis type @[$prefix Rect2] = $crate::Rect2<$type>;
-            #[doc = concat!("Type alias for `Rectangle<3, ", stringify!($type), ", VecAligned, RectCornered>`")]
-            $vis type @[$prefix Rect3] = $crate::Rect3<$type>;
-            #[doc = concat!("Type alias for `Rectangle<4, ", stringify!($type), ", VecAligned, RectCornered>`")]
-            $vis type @[$prefix Rect4] = $crate::Rect4<$type>;
+            #[doc = concat!("Type alias for `Rect<", stringify!($type), ">` / `Aabb<2, ", stringify!($type), ", VecAligned, RectCornered>`")]
+            $vis type @[$prefix Rect] = $crate::Rect<$type>;
 
-            // Centered, Aligned
+            #[doc = concat!("Type alias for `RectP<", stringify!($type), ">` / `Aabb<2, ", stringify!($type), ", VecPacked, RectCornered>`")]
+            $vis type @[$prefix RectP] = $crate::RectP<$type>;
 
-            #[doc = concat!("Type alias for `Rectangle<2, ", stringify!($type), ", VecAligned, RectCentered>`")]
-            $vis type @[$prefix Rect2C] = $crate::Rect2C<$type>;
-            #[doc = concat!("Type alias for `Rectangle<3, ", stringify!($type), ", VecAligned, RectCentered>`")]
-            $vis type @[$prefix Rect3C] = $crate::Rect3C<$type>;
-            #[doc = concat!("Type alias for `Rectangle<4, ", stringify!($type), ", VecAligned, RectCentered>`")]
-            $vis type @[$prefix Rect4C] = $crate::Rect4C<$type>;
+            #[doc = concat!("Type alias for `RectC<", stringify!($type), ">` / `Aabb<2, ", stringify!($type), ", VecAligned, RectCentered>`")]
+            $vis type @[$prefix RectC] = $crate::RectC<$type>;
 
-            // MinMaxed, Aligned
+            #[doc = concat!("Type alias for `RectCP<", stringify!($type), ">` / `Aabb<2, ", stringify!($type), ", VecPacked, RectCentered>`")]
+            $vis type @[$prefix RectCP] = $crate::RectCP<$type>;
 
-            #[doc = concat!("Type alias for `Rectangle<2, ", stringify!($type), ", VecAligned, RectMinMaxed>`")]
-            $vis type @[$prefix Rect2M] = $crate::Rect2M<$type>;
-            #[doc = concat!("Type alias for `Rectangle<3, ", stringify!($type), ", VecAligned, RectMinMaxed>`")]
-            $vis type @[$prefix Rect3M] = $crate::Rect3M<$type>;
-            #[doc = concat!("Type alias for `Rectangle<4, ", stringify!($type), ", VecAligned, RectMinMaxed>`")]
-            $vis type @[$prefix Rect4M] = $crate::Rect4M<$type>;
+            #[doc = concat!("Type alias for `RectM<", stringify!($type), ">` / `Aabb<2, ", stringify!($type), ", VecAligned, RectMinMaxed>`")]
+            $vis type @[$prefix RectM] = $crate::RectM<$type>;
 
-            // Cornered, Packed
+            #[doc = concat!("Type alias for `RectMP<", stringify!($type), ">` / `Aabb<2, ", stringify!($type), ", VecPacked, RectMinMaxed>`")]
+            $vis type @[$prefix RectMP] = $crate::RectMP<$type>;
 
-            #[doc = concat!("Type alias for `Rectangle<2, ", stringify!($type), ", VecPacked, RectCornered>`")]
-            $vis type @[$prefix Rect2P] = $crate::Rect2P<$type>;
-            #[doc = concat!("Type alias for `Rectangle<3, ", stringify!($type), ", VecPacked, RectCornered>`")]
-            $vis type @[$prefix Rect3P] = $crate::Rect3P<$type>;
-            #[doc = concat!("Type alias for `Rectangle<4, ", stringify!($type), ", VecPacked, RectCornered>`")]
-            $vis type @[$prefix Rect4P] = $crate::Rect4P<$type>;
+            // 3D
 
-            // Centered, Packed
+            #[doc = concat!("Type alias for `Box<", stringify!($type), ">` / `Aabb<3, ", stringify!($type), ", VecAligned, RectCornered>`")]
+            $vis type @[$prefix Box] = $crate::Box<$type>;
 
-            #[doc = concat!("Type alias for `Rectangle<2, ", stringify!($type), ", VecPacked, RectCentered>`")]
-            $vis type @[$prefix Rect2CP] = $crate::Rect2CP<$type>;
-            #[doc = concat!("Type alias for `Rectangle<3, ", stringify!($type), ", VecPacked, RectCentered>`")]
-            $vis type @[$prefix Rect3CP] = $crate::Rect3CP<$type>;
-            #[doc = concat!("Type alias for `Rectangle<4, ", stringify!($type), ", VecPacked, RectCentered>`")]
-            $vis type @[$prefix Rect4CP] = $crate::Rect4CP<$type>;
+            #[doc = concat!("Type alias for `BoxP<", stringify!($type), ">` / `Aabb<3, ", stringify!($type), ", VecPacked, RectCornered>`")]
+            $vis type @[$prefix BoxP] = $crate::BoxP<$type>;
 
-            // MinMaxed, Packed
+            #[doc = concat!("Type alias for `BoxC<", stringify!($type), ">` / `Aabb<3, ", stringify!($type), ", VecAligned, RectCentered>`")]
+            $vis type @[$prefix BoxC] = $crate::BoxC<$type>;
 
-            #[doc = concat!("Type alias for `Rectangle<2, ", stringify!($type), ", VecPacked, RectMinMaxed>`")]
-            $vis type @[$prefix Rect2MP] = $crate::Rect2MP<$type>;
-            #[doc = concat!("Type alias for `Rectangle<3, ", stringify!($type), ", VecPacked, RectMinMaxed>`")]
-            $vis type @[$prefix Rect3MP] = $crate::Rect3MP<$type>;
-            #[doc = concat!("Type alias for `Rectangle<4, ", stringify!($type), ", VecPacked, RectMinMaxed>`")]
-            $vis type @[$prefix Rect4MP] = $crate::Rect4MP<$type>;
+            #[doc = concat!("Type alias for `BoxCP<", stringify!($type), ">` / `Aabb<3, ", stringify!($type), ", VecPacked, RectCentered>`")]
+            $vis type @[$prefix BoxCP] = $crate::BoxCP<$type>;
+
+            #[doc = concat!("Type alias for `BoxM<", stringify!($type), ">` / `Aabb<3, ", stringify!($type), ", VecAligned, RectMinMaxed>`")]
+            $vis type @[$prefix BoxM] = $crate::BoxM<$type>;
+
+            #[doc = concat!("Type alias for `BoxMP<", stringify!($type), ">` / `Aabb<3, ", stringify!($type), ", VecPacked, RectMinMaxed>`")]
+            $vis type @[$prefix BoxMP] = $crate::BoxMP<$type>;
+
+            // 4D
+
+            #[doc = concat!("Type alias for `Aabb4<", stringify!($type), ">` / `Aabb<4, ", stringify!($type), ", VecAligned, RectCornered>`")]
+            $vis type @[$prefix Aabb4] = $crate::Aabb4<$type>;
+
+            #[doc = concat!("Type alias for `Aabb4P<", stringify!($type), ">` / `Aabb<4, ", stringify!($type), ", VecPacked, RectCornered>`")]
+            $vis type @[$prefix Aabb4P] = $crate::Aabb4P<$type>;
+
+            #[doc = concat!("Type alias for `Aabb4C<", stringify!($type), ">` / `Aabb<4, ", stringify!($type), ", VecAligned, RectCentered>`")]
+            $vis type @[$prefix Aabb4C] = $crate::Aabb4C<$type>;
+
+            #[doc = concat!("Type alias for `Aabb4CP<", stringify!($type), ">` / `Aabb<4, ", stringify!($type), ", VecPacked, RectCentered>`")]
+            $vis type @[$prefix Aabb4CP] = $crate::Aabb4CP<$type>;
+
+            #[doc = concat!("Type alias for `Aabb4M<", stringify!($type), ">` / `Aabb<4, ", stringify!($type), ", VecAligned, RectMinMaxed>`")]
+            $vis type @[$prefix Aabb4M] = $crate::Aabb4M<$type>;
+
+            #[doc = concat!("Type alias for `Aabb4MP<", stringify!($type), ">` / `Aabb<4, ", stringify!($type), ", VecPacked, RectMinMaxed>`")]
+            $vis type @[$prefix Aabb4MP] = $crate::Aabb4MP<$type>;
         }
     };
 }

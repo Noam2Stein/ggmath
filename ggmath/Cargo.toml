@@ -14,15 +14,15 @@ repository = "https://github.com/Noam2Stein/ggmath"
 version = "0.9.1"
 
 [features]
-default = [ "matrix", "primitive_aliases", "quaternion" ]
-
 matrix            = [  ]
 primitive_aliases = [  ]
 quaternion        = [  ]
-rectangle         = [  ]
-testing           = [  ]
 
-full = [ "matrix", "primitive_aliases", "quaternion", "rectangle", "testing" ]
+default = [ "matrix", "primitive_aliases", "quaternion" ]
+
+aabb = [  ]
+
+full = [ "aabb", "matrix", "primitive_aliases", "quaternion" ]
 
 positive_backward = [  ]
 positive_down     = [  ]

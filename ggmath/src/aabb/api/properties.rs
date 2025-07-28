@@ -4,7 +4,7 @@ use super::*;
 
 // Get
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -31,10 +31,10 @@ where
         match self.resolve() {
             ResolvedRectangle::Centered(rect) => rect.inner.center,
             ResolvedRectangle::Cornered(rect) => {
-                rect.inner.min + T::rect_div_vector_by_two(rect.inner.size)
+                rect.inner.min + T::aabb_div_vector_by_two(rect.inner.size)
             }
             ResolvedRectangle::MinMaxed(rect) => {
-                T::rect_div_vector_by_two(rect.inner.min + rect.inner.max)
+                T::aabb_div_vector_by_two(rect.inner.min + rect.inner.max)
             }
         }
     }
@@ -42,7 +42,7 @@ where
     #[inline(always)]
     pub fn size(self) -> Vector<N, T, A> {
         match self.resolve() {
-            ResolvedRectangle::Centered(rect) => T::rect_mul_vector_by_two(rect.inner.extents),
+            ResolvedRectangle::Centered(rect) => T::aabb_mul_vector_by_two(rect.inner.extents),
             ResolvedRectangle::Cornered(rect) => rect.inner.size,
             ResolvedRectangle::MinMaxed(rect) => rect.inner.max - rect.inner.min,
         }
@@ -52,9 +52,9 @@ where
     pub fn extents(self) -> Vector<N, T, A> {
         match self.resolve() {
             ResolvedRectangle::Centered(rect) => rect.inner.extents,
-            ResolvedRectangle::Cornered(rect) => T::rect_div_vector_by_two(rect.inner.size),
+            ResolvedRectangle::Cornered(rect) => T::aabb_div_vector_by_two(rect.inner.size),
             ResolvedRectangle::MinMaxed(rect) => {
-                T::rect_div_vector_by_two(rect.inner.max - rect.inner.min)
+                T::aabb_div_vector_by_two(rect.inner.max - rect.inner.min)
             }
         }
     }
@@ -62,7 +62,7 @@ where
 
 // With
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -90,7 +90,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but moved so that the minimum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
@@ -115,7 +115,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -143,7 +143,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but moved so that the maximum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
@@ -168,7 +168,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -206,7 +206,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but moved so that the center is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
@@ -240,7 +240,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -265,7 +265,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but resized to the given size, keeping the center unchanged.
             #[inline(always)]
             pub fn @[resized_ @x _centered](self, value: T) -> Self {
@@ -287,7 +287,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -312,7 +312,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but resized to the given extents, keeping the center unchanged.
             #[inline(always)]
             pub fn @[with_extents_ @x _centered](self, value: T) -> Self {
@@ -336,7 +336,7 @@ macro_loop! {
 
 // Set
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -364,7 +364,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Moves the rectangle so that the minimum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
@@ -389,7 +389,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -417,7 +417,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Moves the rectangle so that the maximum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
@@ -442,7 +442,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -475,7 +475,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Moves the rectangle so that the center is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
@@ -505,7 +505,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -530,7 +530,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Resizes the rectangle to the given size, keeping the center unchanged.
             #[inline(always)]
             pub fn @[resize_ @x _centered](&mut self, value: T) {
@@ -552,7 +552,7 @@ macro_loop! {
     }
 }
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -577,7 +577,7 @@ where
 
 macro_loop! {
     @for N in 2..=4, x in [x, y, z, w][0..@N] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Resizes the rectangle to the given extents, keeping the center unchanged.
             #[inline(always)]
             pub fn @[set_extents_ @x _centered](&mut self, value: T) {
@@ -603,7 +603,7 @@ macro_loop! {
 
 macro_loop! {
     @for N in 2..=4, [x, x_word] in [[x, width], [y, height], [z, depth]][0..@N.min(3)] {
-        impl<T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<@N, T, A, R> {
+        impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             // Get
 
             #[inline(always)]

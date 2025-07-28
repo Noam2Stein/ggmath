@@ -2,8 +2,7 @@ use std::hash::Hash;
 
 use super::*;
 
-impl<const N: usize, T: RectScalar + Hash, A: VecAlignment, R: RectRepr> Hash
-    for Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar + Hash, A: VecAlignment, R: AabbRepr> Hash for Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {

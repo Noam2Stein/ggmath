@@ -24,7 +24,7 @@ macro_rules! primitive_aliases {
         matrix_aliases! { $vis $prefix => $type }
 
         #[cfg(feature = "primitive_aliases")]
-        #[cfg(feature = "rectangle")]
+        #[cfg(feature = "aabb")]
         rectangle_aliases! { $vis $prefix => $type }
     };
 }

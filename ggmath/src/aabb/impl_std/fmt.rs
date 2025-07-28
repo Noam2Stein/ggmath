@@ -2,8 +2,7 @@ use std::fmt::{Debug, Display, Formatter, Result};
 
 use super::*;
 
-impl<const N: usize, T: RectScalar + Debug, A: VecAlignment, R: RectRepr> Debug
-    for Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar + Debug, A: VecAlignment, R: AabbRepr> Debug for Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -26,8 +25,8 @@ where
     }
 }
 
-impl<const N: usize, T: RectScalar + Display, A: VecAlignment, R: RectRepr> Display
-    for Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar + Display, A: VecAlignment, R: AabbRepr> Display
+    for Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {

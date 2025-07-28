@@ -1,14 +1,14 @@
 use super::*;
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    pub fn intersects(self, other: Rectangle<N, T, impl VecAlignment, impl RectRepr>) -> bool {
+    pub fn intersects(self, other: Aabb<N, T, impl VecAlignment, impl AabbRepr>) -> bool {
         match (self.resolve(), other.resolve()) {
             (ResolvedRectangle::Centered(rect), ResolvedRectangle::Centered(other)) => {
-                let abs_diff = T::rect_vector_abs_diff(rect.center(), other.center());
+                let abs_diff = T::aabb_vector_abs_diff(rect.center(), other.center());
                 let extents_sum = rect.extents() + other.extents();
 
                 (0..N).all(|i| abs_diff[i] < extents_sum[i])
@@ -26,14 +26,11 @@ where
         }
     }
 
-    pub fn intersection(
-        self,
-        other: Rectangle<N, T, impl VecAlignment, impl RectRepr>,
-    ) -> Option<Self> {
+    pub fn intersection(self, other: Aabb<N, T, impl VecAlignment, impl AabbRepr>) -> Option<Self> {
         if self.intersects(other) {
-            Some(Rectangle::from_min_max(
-                T::rect_vector_max(self.min(), other.min()),
-                T::rect_vector_min(self.max(), other.max()),
+            Some(Aabb::from_min_max(
+                T::aabb_vector_max(self.min(), other.min()),
+                T::aabb_vector_min(self.max(), other.max()),
             ))
         } else {
             None

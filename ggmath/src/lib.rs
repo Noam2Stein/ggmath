@@ -27,20 +27,15 @@ pub use vector::*;
 
 pub mod intergration;
 
-macro_rules! feature_mod {
-    ($feature:ident) => {
-        macro_loop! {
-            #[cfg(feature = @[$feature => str])]
-            pub mod $feature;
+macro_loop! {
+    @for feature_mod in [matrix, quaternion, aabb] {
+        #[cfg(feature = @[@feature_mod => str])]
+        pub mod @feature_mod;
 
-            #[cfg(feature = @[$feature => str])]
-            pub use $feature::*;
-        }
-    };
+        #[cfg(feature = @[@feature_mod => str])]
+        pub use @feature_mod::*;
+    }
 }
-feature_mod! { matrix }
-feature_mod! { quaternion }
-feature_mod! { rectangle }
 
 #[doc(hidden)]
 pub use macro_loop::macro_loop;

@@ -1,6 +1,6 @@
 use super::*;
 
-impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
+impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
 where
     Usize<N>: VecLen,
 {
@@ -9,20 +9,20 @@ where
         size: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
+            Aabb {
+                inner: InnerCorneredAabb {
                     min: min.to_layout(),
                     size: size.to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
-                    center: (min + T::rect_div_vector_by_two(size)).to_layout(),
-                    extents: T::rect_div_vector_by_two(size).to_layout(),
+            Aabb {
+                inner: InnerCenteredAabb {
+                    center: (min + T::aabb_div_vector_by_two(size)).to_layout(),
+                    extents: T::aabb_div_vector_by_two(size).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
+            Aabb {
+                inner: InnerMinMaxedAabb {
                     min: min.to_layout(),
                     max: (min + size).to_layout(),
                 },
@@ -35,20 +35,20 @@ where
         size: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
+            Aabb {
+                inner: InnerCorneredAabb {
                     min: (max - size).to_layout(),
                     size: size.to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
-                    center: ((max - size) + T::rect_div_vector_by_two(size)).to_layout(),
-                    extents: T::rect_div_vector_by_two(size).to_layout(),
+            Aabb {
+                inner: InnerCenteredAabb {
+                    center: ((max - size) + T::aabb_div_vector_by_two(size)).to_layout(),
+                    extents: T::aabb_div_vector_by_two(size).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
+            Aabb {
+                inner: InnerMinMaxedAabb {
                     min: (max - size).to_layout(),
                     max: max.to_layout(),
                 },
@@ -61,22 +61,22 @@ where
         size: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
-                    min: (center - T::rect_div_vector_by_two(size)).to_layout(),
+            Aabb {
+                inner: InnerCorneredAabb {
+                    min: (center - T::aabb_div_vector_by_two(size)).to_layout(),
                     size: size.to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
+            Aabb {
+                inner: InnerCenteredAabb {
                     center: center.to_layout(),
-                    extents: T::rect_div_vector_by_two(size).to_layout(),
+                    extents: T::aabb_div_vector_by_two(size).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
-                    min: (center - T::rect_div_vector_by_two(size)).to_layout(),
-                    max: (center - T::rect_div_vector_by_two(size) + size).to_layout(),
+            Aabb {
+                inner: InnerMinMaxedAabb {
+                    min: (center - T::aabb_div_vector_by_two(size)).to_layout(),
+                    max: (center - T::aabb_div_vector_by_two(size) + size).to_layout(),
                 },
             },
         )
@@ -87,22 +87,22 @@ where
         extents: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
+            Aabb {
+                inner: InnerCorneredAabb {
                     min: min.to_layout(),
-                    size: T::rect_mul_vector_by_two(extents.to_layout()),
+                    size: T::aabb_mul_vector_by_two(extents.to_layout()),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
+            Aabb {
+                inner: InnerCenteredAabb {
                     center: (min + extents).to_layout(),
                     extents: extents.to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
+            Aabb {
+                inner: InnerMinMaxedAabb {
                     min: min.to_layout(),
-                    max: (min + T::rect_mul_vector_by_two(extents)).to_layout(),
+                    max: (min + T::aabb_mul_vector_by_two(extents)).to_layout(),
                 },
             },
         )
@@ -113,21 +113,21 @@ where
         extents: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
-                    min: (max - T::rect_mul_vector_by_two(extents)).to_layout(),
-                    size: (T::rect_mul_vector_by_two(extents)).to_layout(),
+            Aabb {
+                inner: InnerCorneredAabb {
+                    min: (max - T::aabb_mul_vector_by_two(extents)).to_layout(),
+                    size: (T::aabb_mul_vector_by_two(extents)).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
+            Aabb {
+                inner: InnerCenteredAabb {
                     center: (max - extents).to_layout(),
                     extents: extents.to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
-                    min: (max - T::rect_mul_vector_by_two(extents)).to_layout(),
+            Aabb {
+                inner: InnerMinMaxedAabb {
+                    min: (max - T::aabb_mul_vector_by_two(extents)).to_layout(),
                     max: max.to_layout(),
                 },
             },
@@ -139,20 +139,20 @@ where
         extents: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
+            Aabb {
+                inner: InnerCorneredAabb {
                     min: (center - extents).to_layout(),
-                    size: T::rect_mul_vector_by_two(extents).to_layout(),
+                    size: T::aabb_mul_vector_by_two(extents).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
+            Aabb {
+                inner: InnerCenteredAabb {
                     center: center.to_layout(),
                     extents: extents.to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
+            Aabb {
+                inner: InnerMinMaxedAabb {
                     min: (center - extents).to_layout(),
                     max: (center + extents).to_layout(),
                 },
@@ -165,20 +165,20 @@ where
         max: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
+            Aabb {
+                inner: InnerCorneredAabb {
                     min: min.to_layout(),
                     size: (max - min).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
-                    center: (min + T::rect_div_vector_by_two(max - min)).to_layout(),
-                    extents: T::rect_div_vector_by_two(max - min).to_layout(),
+            Aabb {
+                inner: InnerCenteredAabb {
+                    center: (min + T::aabb_div_vector_by_two(max - min)).to_layout(),
+                    extents: T::aabb_div_vector_by_two(max - min).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
+            Aabb {
+                inner: InnerMinMaxedAabb {
                     min: min.to_layout(),
                     max: max.to_layout(),
                 },
@@ -191,20 +191,20 @@ where
         center: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
+            Aabb {
+                inner: InnerCorneredAabb {
                     min: min.to_layout(),
-                    size: T::rect_mul_vector_by_two(center - min).to_layout(),
+                    size: T::aabb_mul_vector_by_two(center - min).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
+            Aabb {
+                inner: InnerCenteredAabb {
                     center: center.to_layout(),
                     extents: (center - min).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
+            Aabb {
+                inner: InnerMinMaxedAabb {
                     min: min.to_layout(),
                     max: (center + (center - min)).to_layout(),
                 },
@@ -217,20 +217,20 @@ where
         max: Vector<N, T, impl VecAlignment>,
     ) -> Self {
         Self::resolved(
-            Rectangle {
-                inner: InnerCorneredRect {
+            Aabb {
+                inner: InnerCorneredAabb {
                     min: (center - (max - center)).to_layout(),
-                    size: T::rect_mul_vector_by_two(max - center).to_layout(),
+                    size: T::aabb_mul_vector_by_two(max - center).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerCenteredRect {
+            Aabb {
+                inner: InnerCenteredAabb {
                     center: center.to_layout(),
                     extents: (max - center).to_layout(),
                 },
             },
-            Rectangle {
-                inner: InnerMinMaxedRect {
+            Aabb {
+                inner: InnerMinMaxedAabb {
                     min: (center - (max - center)).to_layout(),
                     max: max.to_layout(),
                 },
