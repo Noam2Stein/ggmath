@@ -8,6 +8,9 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// Returns the component at the given index.
+    ///
+    /// This copies the component, not references it.
     #[inline(always)]
     pub const fn get(self, idx: usize) -> Option<T> {
         if idx < N {
@@ -17,6 +20,8 @@ where
         }
     }
 
+    /// Returns the component at the given index, panicking if the index is out of bounds.
+    /// This is a shortcut for `self.get(idx).unwrap()`.
     #[inline(always)]
     pub const fn index(self, idx: usize) -> T {
         self.get(idx).unwrap()
@@ -29,6 +34,7 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// Returns the component at the given index, without bounds checking.
     #[inline(always)]
     pub const unsafe fn get_unchecked(self, idx: usize) -> T {
         unsafe { *self.get_ref_unchecked(idx) }
@@ -41,6 +47,7 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// Returns a reference to the component at the given index.
     #[inline(always)]
     pub const fn get_ref(&self, idx: usize) -> Option<&T> {
         if idx < N {
@@ -50,26 +57,40 @@ where
         }
     }
 
+    /// Returns a reference to the component at the given index, panicking if the index is out of bounds.
+    /// This is a shortcut for `self.get_ref(idx).unwrap()`.
     #[inline(always)]
     pub const fn index_ref(&self, idx: usize) -> &T {
         self.get_ref(idx).unwrap()
     }
 
+    /// Returns a reference to the 2 components starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_2_ref(&self, idx: usize) -> Option<&Vec2P<T>> {
         self.get_vec_ref::<2>(idx)
     }
 
+    /// Returns a reference to the 3 components starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_3_ref(&self, idx: usize) -> Option<&Vec3P<T>> {
         self.get_vec_ref::<3>(idx)
     }
 
+    /// Returns a reference to the 4 components starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_4_ref(&self, idx: usize) -> Option<&Vec4P<T>> {
         self.get_vec_ref::<4>(idx)
     }
 
+    /// Returns a reference to the sub-vector starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_vec_ref<const N_OUT: usize>(
         &self,
@@ -92,26 +113,39 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// Returns a reference to the component at the given index, without bounds checking.
     #[inline(always)]
     pub const unsafe fn get_ref_unchecked(&self, idx: usize) -> &T {
         unsafe { self.as_ptr().add(idx).as_ref().unwrap_unchecked() }
     }
 
+    /// Returns a reference to the 2 components starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_2_ref_unchecked(&self, idx: usize) -> &Vec2P<T> {
         unsafe { self.get_vec_ref_unchecked::<2>(idx) }
     }
 
+    /// Returns a reference to the 3 components starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_3_ref_unchecked(&self, idx: usize) -> &Vec3P<T> {
         unsafe { self.get_vec_ref_unchecked::<3>(idx) }
     }
 
+    /// Returns a reference to the 4 components starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_4_ref_unchecked(&self, idx: usize) -> &Vec4P<T> {
         unsafe { self.get_vec_ref_unchecked::<4>(idx) }
     }
 
+    /// Returns a reference to the sub-vector starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_vec_ref_unchecked<const N_OUT: usize>(
         &self,
@@ -130,6 +164,7 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// Returns a mutable reference to the component at the given index.
     #[inline(always)]
     pub const fn get_mut(&mut self, idx: usize) -> Option<&mut T> {
         if idx < N {
@@ -139,26 +174,40 @@ where
         }
     }
 
+    /// Returns a mutable reference to the component at the given index, panicking if the index is out of bounds.
+    /// This is a shortcut for `self.get_mut(idx).unwrap()`.
     #[inline(always)]
     pub const fn index_mut(&mut self, idx: usize) -> &mut T {
         self.get_mut(idx).unwrap()
     }
 
+    /// Returns a mutable reference to the 2 components starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_2_mut(&mut self, idx: usize) -> Option<&mut Vec2P<T>> {
         self.get_vec_mut::<2>(idx)
     }
 
+    /// Returns a mutable reference to the 3 components starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_3_mut(&mut self, idx: usize) -> Option<&mut Vec3P<T>> {
         self.get_vec_mut::<3>(idx)
     }
 
+    /// Returns a mutable reference to the 4 components starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_4_mut(&mut self, idx: usize) -> Option<&mut Vec4P<T>> {
         self.get_vec_mut::<4>(idx)
     }
 
+    /// Returns a mutable reference to the sub-vector starting at the given index.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const fn get_vec_mut<const N_OUT: usize>(
         &mut self,
@@ -181,26 +230,39 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// Returns a mutable reference to the component at the given index, without bounds checking.
     #[inline(always)]
     pub const unsafe fn get_mut_unchecked(&mut self, idx: usize) -> &mut T {
         unsafe { self.as_mut_ptr().add(idx).as_mut().unwrap_unchecked() }
     }
 
+    /// Returns a mutable reference to the 2 components starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_2_mut_unchecked(&mut self, idx: usize) -> &mut Vec2P<T> {
         unsafe { self.get_vec_mut_unchecked::<2>(idx) }
     }
 
+    /// Returns a mutable reference to the 3 components starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_3_mut_unchecked(&mut self, idx: usize) -> &mut Vec3P<T> {
         unsafe { self.get_vec_mut_unchecked::<3>(idx) }
     }
 
+    /// Returns a mutable reference to the 4 components starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_4_mut_unchecked(&mut self, idx: usize) -> &mut Vec4P<T> {
         unsafe { self.get_vec_mut_unchecked::<4>(idx) }
     }
 
+    /// Returns a mutable reference to the sub-vector starting at the given index, without bounds checking.
+    ///
+    /// This returns a packed vector because an aligned vector has padding, which will be wrong here.
     #[inline(always)]
     pub const unsafe fn get_vec_mut_unchecked<const N_OUT: usize>(
         &mut self,

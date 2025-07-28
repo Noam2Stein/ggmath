@@ -1,4 +1,6 @@
-//! Staticly-lengthed vectors of [scalars](scalar) with lengths between 2 and 4.
+#![deny(missing_docs)]
+
+//! Vectors.
 
 use std::mem::MaybeUninit;
 
@@ -15,40 +17,34 @@ pub use generics::*;
 /// The only vector type.
 /// Statically-lengthed vector generic over `N` (length), `T` (scalar type), and `A` (alignment??).
 ///
-/// ### When to reference this type?
+/// This type, like all `ggmath` types, is generic over `A: VecAlignment`.
+/// The value of `A` decides whether or not the vector is aligned for SIMD.
 ///
-/// If you want to reference a specific vector type, use these type aliases:
-/// [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`], [`Vec2P<T>`], [`Vec3P<T>`], [`Vec4P<T>`].
-/// Or with the `primitive_aliases` feature (enabled by default), use aliases like:
-/// [`FVec2`][f32_aliases::FVec2], [`BVec4`][bool_aliases::BVec4], [`U16Vec3`][u16_aliases::U16Vec3]...
+/// `VecAligned` => aligned.
 ///
-/// If you want to be generic over `N` / `A`, use this type.
+/// `VecPacked` => not aligned, identical in memory to `[T; N]`.
 ///
-/// If you want to impl a trait for all vectors, use this type and write:
+/// There are short type aliases for this type.
+///
+/// `Vec2<T>` => `Vector<2, T, VecAligned>`
+/// `Vec3<T>` => `Vector<3, T, VecAligned>`
+/// `Vec4<T>` => `Vector<4, T, VecAligned>`
+///
+/// `Vec2P<T>` => `Vector<2, T, VecPacked>`
+/// `Vec3P<T>` => `Vector<3, T, VecPacked>`
+/// `Vec4P<T>` => `Vector<4, T, VecPacked>`
+///
+/// There are also type aliases for specific types through the `primitive_aliases` feature which is enabled by default.
+///
+/// ### Impl Pattern
+///
+/// Because of the complex generics, this is how you make an impl block that applies to all vectors:
+///
 /// ```
-/// use ggmath::vector::*;
-///
-/// trait MyTrait {
-///     fn gg(self) -> bool;
-/// }
-///
-/// impl<const N: usize, T: Scalar, A: VecAlignment> MyTrait for Vector<N, T, A>
+/// impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 /// where
 ///     Usize<N>: VecLen,
 /// {
-///     fn gg(self) -> bool {
-///         true
-///     }
-/// }
-/// ```
-///
-/// # Examples
-/// ```
-/// fn print_vector<const N: usize>(vec: Vector<N, impl Scalar, impl VecAlignment>)
-/// where
-///     Usize<N>: VecLen, // Required by Vector to ensure that N is either 2, 3, or 4.
-/// {
-///     println!("{vec}")
 /// }
 /// ```
 #[derive_where(Clone, Copy)]

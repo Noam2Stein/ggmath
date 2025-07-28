@@ -1,104 +1,49 @@
 use super::*;
 
-/// Sealed trait for the alignment rules of a vector.
-/// - Doesn't affect the outer vector API, just the inner implementation.
-/// - Use the [```Vec2```], [```Vec3```], [```Vec4```] type aliases for the default alignment.
+/// All `ggmath` types are generic over the *marker* type `A: VecAlignment`.
 ///
-/// Implemented by ```VecAligned``` and ```VecPacked```, each have different uses and advantages.
-/// To understand them first understand the [Rust type-layout](<https://doc.rust-lang.org/reference/type-layout.html>).
+/// The value of `A` decides whether or not the vector is aligned for SIMD (see <https://doc.rust-lang.org/reference/type-layout.html>).
 ///
-/// ### [VecPacked]
+/// This marker trait is implemented by `VecAligned` and `VecPacked`.
 ///
-/// ensures that the vector has the same type-layout as ```[T; N]```.
-/// ```
-/// assert_eq!(
-///     size_of::<Vector<N, T, VecPacked>>(),
-///     size_of::<T>() * N
-/// );
-/// assert_eq!(
-///     align_of::<Vector<N, T, VecPacked>>(),
-///     align_of::<T>()
-/// );
-/// ```
+/// `VecAligned` means that the vector is aligned for SIMD.
+/// This does not promise a specific alignment.
+/// The alignment is selected by the `Scalar` implementation,
+/// to be whatever is most efficient for the target platform's SIMD.
 ///
-/// - [```Vec2P```], [```Vec3P```], and [```Vec4P```] are type aliases for packed vectors.
-///
-/// ### [VecAligned]
-///
-/// ensures that the vector is aligned to ```[T; N]```'s size.
-/// ```
-/// assert_eq!(
-///     size_of::<Vector<N, T, VecAligned>>(),
-///     (size_of::<T>() * N).next_power_of_two()
-/// );
-/// assert_eq!(
-///     align_of::<Vector<N, T, VecAligned>>(),
-///     (size_of::<T>() * N).next_power_of_two()
-/// );
-/// ```
-///
-/// - This means that the size and alignment of ```Vec3<T>``` is the same as ```Vec4<T>```'s.
-/// - This means that ```size/align_of<Vec2> = size_of<T> * 2```, and ```size/align_of<Vec3> = size/align_of<Vec4> = size_of<T> * 4```.
-///
-/// - [```Vec2```], [```Vec3```], and [```Vec4```] are type aliases for aligned vectors.
-///
-/// ## How to pick
-///
-/// Sometimes a specific type-layout is required.
-/// For example GPU uniform-structs have strict type-layout requirements, which include vectors following the ```VecAligned``` type-layout.
-/// When neither alignment is required, choose based on their performance advantages/disadvantages:
-///
-/// - ```VecAligned``` results in faster computations because of SIMD registers which require the extra alignment.
-/// - ```VecAligned``` may take more space because of the larger alignment, like where ```Vec3``` always takes the space of a ```Vec4```.
-/// - ```VecPacked``` takes less space because of the minimal alignment and the lack of padding.
-/// - ```VecPacked``` may result in slower computations because of the SIMD register's requirements.
-///
-/// Basically only use ```VecPacked``` for vectors that you don't perform much computation on.
-/// On any other case use ```VecAligned```.
+/// `VecPacked` means that the vector is not aligned for SIMD, and is identical in memory to `[T; N]`.
 #[allow(private_bounds)]
-pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
+pub unsafe trait VecAlignment: Sized + 'static + Send + Sync {
+    /// Is used internally by [`Vector`] to know if the vector is aligned in a generic function.
     const IS_ALIGNED: bool;
 
-    /// Used by [```Vector```] to know its inner type.
+    /// Is used to "redirect" the vector to its alignment marker-type through this pattern:
     ///
-    /// In ```VecPacked```: ```InnerVector = [T; N]```.
-    /// for a packed vector, the compiler knows that ```packed_vector.0``` (the inner value) is always a ```[T; N]```.
+    /// trait VecAlignment {
+    ///     type Alignment<const N: usize, T: Scalar>: AlignTrait;
+    /// }
     ///
-    /// in ```VecAligned```: ```InnerVector = <Usize<N> as VecLen>::InnerAlignedVector<T>```.
-    /// for an aligned vector, the compiler doesn't know the inner type unless ```N``` is known.
-    /// This is because Rust doesn't have a single generic type capable of representing different sizes and alignments.
+    /// trait VecLen {
+    ///     type Alignment<T: Scalar>: AlignTrait;
+    /// }
     ///
-    /// Basically ```Vector``` calls ```VecAlignment``` for its inner type,
-    /// which calls ```VecLen``` for the final result.
-    /// Why is the order ```Vector``` => ```VecAlignment``` => ```VecLen```?
-    /// Why not ```Vector``` => ```VecLen``` => ```VecAlignment```?
-    /// So that the compiler knows a packed vector is always an array.
+    /// trait Scalar {
+    ///     type Vec2Alignment: AlignTrait;
+    ///     type Vec3Alignment: AlignTrait;
+    ///     type Vec4Alignment: AlignTrait;
+    /// }
     type Alignment<const N: usize, T: Scalar>: AlignTrait
     where
         Usize<N>: VecLen;
 }
 
-/// See [```VecAlignment```].
-/// ensures that the vector is aligned to ```[T; N]```'s size.
-/// ```
-/// assert_eq!(
-///     size_of::<Vector<N, T, VecAligned>>(),
-///     (size_of::<T>() * N).next_power_of_two()
-/// );
-/// assert_eq!(
-///     align_of::<Vector<N, T, VecAligned>>(),
-///     (size_of::<T>() * N).next_power_of_two()
-/// );
-/// ```
-///
-/// - This means that the size and alignment of ```Vec3<T>``` is the same as ```Vec4<T>```'s.
-/// - This means that ```size/align_of<Vec2> = size_of<T> * 2```, and ```size/align_of<Vec3> = size/align_of<Vec4> = size_of<T> * 4```.
-///
-/// - [```Vec2```], [```Vec3```], and [```Vec4```] are type aliases for aligned vectors.
-///
+/// See [`VecAlignment`].
 pub struct VecAligned;
 
-impl VecAlignment for VecAligned {
+/// See [`VecAlignment`].
+pub struct VecPacked;
+
+unsafe impl VecAlignment for VecAligned {
     const IS_ALIGNED: bool = true;
 
     type Alignment<const N: usize, T: Scalar>
@@ -107,23 +52,7 @@ impl VecAlignment for VecAligned {
         Usize<N>: VecLen;
 }
 
-/// See [```VecAlignment```].
-/// ensures that the vector has the same type-layout as ```[T; N]```.
-/// ```
-/// assert_eq!(
-///     size_of::<Vector<N, T, VecPacked>>(),
-///     size_of::<T>() * N
-/// );
-/// assert_eq!(
-///     align_of::<Vector<N, T, VecPacked>>(),
-///     align_of::<T>()
-/// );
-/// ```
-///
-/// - [```Vec2P```], [```Vec3P```], and [```Vec4P```] are type aliases for packed vectors.
-pub struct VecPacked;
-
-impl VecAlignment for VecPacked {
+unsafe impl VecAlignment for VecPacked {
     const IS_ALIGNED: bool = false;
 
     type Alignment<const N: usize, T: Scalar>
@@ -136,21 +65,19 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    /// Creates an aligned vector from ```self```.
-    /// - Cost: Nothing if ```self``` is already aligned. If ```self``` is packed, moves the vector to satisfy the alignment.
+    /// Aligns the vector.
+    /// - Cost: Nothing if `self` is already aligned. If `self` is packed, moves the vector to satisfy the alignment.
     #[inline(always)]
     pub const fn align(self) -> Vector<N, T, VecAligned> {
-        self.to_storage()
+        self.to_layout()
     }
 
-    /// Creates a packed vector from ```self```.
-    /// - Cost: Nothing since an aligned vector also satisfies packed alignment.
+    /// "Unaligns" the vector.
+    /// This just means casting the vector from `VecAligned` to `VecPacked`.
+    ///
+    /// This has no cost since an aligned vector always satisfies packed alignment.
     #[inline(always)]
     pub const fn unalign(self) -> Vector<N, T, VecPacked> {
-        self.to_storage()
+        self.to_layout()
     }
 }
-
-trait Seal {}
-impl Seal for VecAligned {}
-impl Seal for VecPacked {}

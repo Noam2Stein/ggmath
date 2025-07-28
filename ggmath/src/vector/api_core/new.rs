@@ -2,27 +2,47 @@ use std::{mem::offset_of, ptr::copy_nonoverlapping};
 
 use super::*;
 
-macro_rules! new_vector_macro {
-    ($macro_ident:ident $dollar:tt => $($output_type:tt)*) => {
+macro_loop! {
+    @for N in 2..=4 {
+        /// Constructs a new vector from flexible arguments like shaders.
+        ///
+        /// ```
+        /// const EXAMPLE_2: Vec2<f32> = vec2!(1.0, 2.0);
+        /// const EXAMPLE_3: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
+        /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
+        ///
+        /// const EXAMPLE_2_P: Vec2P<f32> = vec2p!(1.0, 2.0);
+        /// const EXAMPLE_3_P: Vec3P<f32> = vec3p!(1.0, 2.0, 3.0);
+        /// const EXAMPLE_4_P: Vec4P<f32> = vec4p!(1.0, EXAMPLE_2, 4.0);
+        /// ```
         #[macro_export]
-        macro_rules! $macro_ident {
-            ($dollar($dollar item:expr), * $dollar(,)?) => {
-                {
-                    let output: $($output_type)* = $crate::new_vector(($dollar($dollar item,)*));
-                    output
-                }
-            };
+        macro_rules! @[vec @N] {
+            ($($item:expr), * $(,)?) => {{
+                let output: $crate::@[Vec @N]<_> = $crate::new_vector(($($item,)*));
+                output
+            }};
         }
-    };
-}
 
-new_vector_macro! { vector $=> _ }
-new_vector_macro! { vec2 $=> $crate::Vec2<_> }
-new_vector_macro! { vec3 $=> $crate::Vec3<_> }
-new_vector_macro! { vec4 $=> $crate::Vec4<_> }
-new_vector_macro! { vec2p $=> $crate::Vec2P<_> }
-new_vector_macro! { vec3p $=> $crate::Vec3P<_> }
-new_vector_macro! { vec4p $=> $crate::Vec4P<_> }
+        /// Constructs a new vector from flexible arguments like shaders.
+        ///
+        /// ```
+        /// const EXAMPLE_2: Vec2<f32> = vec2!(1.0, 2.0);
+        /// const EXAMPLE_3: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
+        /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
+        ///
+        /// const EXAMPLE_2_P: Vec2P<f32> = vec2p!(1.0, 2.0);
+        /// const EXAMPLE_3_P: Vec3P<f32> = vec3p!(1.0, 2.0, 3.0);
+        /// const EXAMPLE_4_P: Vec4P<f32> = vec4p!(1.0, EXAMPLE_2, 4.0);
+        /// ```
+        #[macro_export]
+        macro_rules! @[vec @N p] {
+            ($($item:expr), * $(,)?) => {{
+                let output: $crate::@[Vec @N P]<_> = $crate::new_vector(($($item,)*));
+                output
+            }};
+        }
+    }
+}
 
 #[doc(hidden)]
 #[inline(always)]

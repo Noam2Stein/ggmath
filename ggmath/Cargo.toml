@@ -33,7 +33,7 @@ positive_up       = [  ]
 
 [dependencies]
 derive-where  = "1.2.7"
-macro_loop    = "0.4.1"
+macro_loop    = "0.4.2"
 splat_attribs = "1.0.0"
 
 crevice = { version = "0.18.0", optional = true }

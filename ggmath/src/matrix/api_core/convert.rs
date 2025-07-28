@@ -16,7 +16,7 @@ where
 
                 let mut c = 0;
                 while c < C {
-                    aligned_columns[c] = columns[c].to_storage();
+                    aligned_columns[c] = columns[c].to_layout();
 
                     c += 1;
                 }
@@ -122,7 +122,7 @@ where
 
                 let mut r = 0;
                 while r < R {
-                    aligned_rows[r] = rows[r].to_storage();
+                    aligned_rows[r] = rows[r].to_layout();
 
                     r += 1;
                 }

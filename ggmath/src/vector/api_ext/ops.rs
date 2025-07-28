@@ -6,6 +6,9 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// Returns the sum of all components.
+    ///
+    /// This uses the `Add` trait to add up the components.
     #[inline(always)]
     pub fn sum(self) -> T
     where
@@ -14,6 +17,9 @@ where
         self.fold(|a, b| a + b)
     }
 
+    /// Returns the dot product of two vectors.
+    ///
+    /// This uses the precise trait bounds of `Add` and `Mul` traits to calculate the dot product.
     #[inline(always)]
     pub fn dot(self, other: Vector<N, T, impl VecAlignment>) -> T
     where
@@ -24,6 +30,9 @@ where
 }
 
 impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns the cross product of two vectors.
+    ///
+    /// This uses the precise trait bounds of `Mul` and `Sub` traits to calculate the cross product.
     #[inline(always)]
     pub fn cross(self, other: Self) -> Self
     where
