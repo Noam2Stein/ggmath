@@ -20,9 +20,10 @@ There is only one type for `Vector` and `Matrix`, and they are both generic over
 
 `ggmath` types are generic over their memory-layout,
 which includes *alignment* (see <https://doc.rust-lang.org/reference/type-layout.html>).
+
 The minimum alignment of a vector is the alignment of its `T`,
 but you may want higher alignment so that operators on the vector are faster due to SIMD.
-because of this, all `ggmath` types are generic over `A: VecAlignment` which can be either `VecAligned` (aligned for SIMD) or `VecPacked` (not additionally aligned, like `[T; _]`).
+Because of this, all `ggmath` types are generic over `A: VecAlignment` which can be either `VecAligned` (aligned for SIMD) or `VecPacked` (not additionally aligned, like `[T; _]`).
 
 `ggmath` matricies are also generic over whether they are column-major or row-major.
 
