@@ -4,16 +4,12 @@ use super::*;
 
 macro_loop! {
     @for N in 2..=4 {
-        /// Constructs a new vector from flexible arguments like shaders.
+        /// Constructs a new aligned vector from flexible arguments like shaders.
         ///
         /// ```
         /// const EXAMPLE_2: Vec2<f32> = vec2!(1.0, 2.0);
         /// const EXAMPLE_3: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
-        ///
-        /// const EXAMPLE_2_P: Vec2P<f32> = vec2p!(1.0, 2.0);
-        /// const EXAMPLE_3_P: Vec3P<f32> = vec3p!(1.0, 2.0, 3.0);
-        /// const EXAMPLE_4_P: Vec4P<f32> = vec4p!(1.0, EXAMPLE_2, 4.0);
         /// ```
         #[macro_export]
         macro_rules! @[vec @N] {
@@ -23,21 +19,33 @@ macro_loop! {
             }};
         }
 
-        /// Constructs a new vector from flexible arguments like shaders.
+        /// Constructs a new packed vector from flexible arguments like shaders.
         ///
         /// ```
         /// const EXAMPLE_2: Vec2<f32> = vec2!(1.0, 2.0);
         /// const EXAMPLE_3: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
-        ///
-        /// const EXAMPLE_2_P: Vec2P<f32> = vec2p!(1.0, 2.0);
-        /// const EXAMPLE_3_P: Vec3P<f32> = vec3p!(1.0, 2.0, 3.0);
-        /// const EXAMPLE_4_P: Vec4P<f32> = vec4p!(1.0, EXAMPLE_2, 4.0);
         /// ```
         #[macro_export]
         macro_rules! @[vec @N p] {
             ($($item:expr), * $(,)?) => {{
                 let output: $crate::@[Vec @N P]<_> = $crate::new_vector(($($item,)*));
+                output
+            }};
+        }
+
+        /// Constructs a new vector from flexible arguments like shaders, generic over alignment.
+        /// This means that without an inference hint, there will be a compile error.
+        ///
+        /// ```
+        /// const EXAMPLE_2: Vec2<f32> = vec2g!(1.0, 2.0);
+        /// const EXAMPLE_3: Vec3P<f32> = vec3g!(1.0, 2.0, 3.0);
+        /// const EXAMPLE_4: Vec4P<f32> = vec4g!(1.0, EXAMPLE_2, 4.0);
+        /// ```
+        #[macro_export]
+        macro_rules! @[vec @N g] {
+            ($($item:expr), * $(,)?) => {{
+                let output: $crate::@[Vector]<N, _, _> = $crate::new_vector(($($item,)*));
                 output
             }};
         }

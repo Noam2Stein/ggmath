@@ -30,13 +30,13 @@ where
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(in crate::aabb) enum AabbReprEnum {
+pub(crate) enum AabbReprEnum {
     Cornered,
     Centered,
     MinMaxed,
 }
 
-pub(in crate::aabb) trait AabbReprPriv {
+pub(crate) trait AabbReprPriv {
     const ENUM: AabbReprEnum;
 
     type InnerAabb<const N: usize, T: AabbScalar, A: VecAlignment>: Construct + PartialEq
@@ -75,7 +75,7 @@ impl AabbReprPriv for AabbMinMaxed {
 
 #[derive_where(Clone, Copy, PartialEq)]
 #[derive_where(Eq; T)]
-pub(in crate::aabb) struct InnerCorneredAabb<const N: usize, T: AabbScalar, A: VecAlignment>
+pub(crate) struct InnerCorneredAabb<const N: usize, T: AabbScalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
 {
@@ -85,7 +85,7 @@ where
 
 #[derive_where(Clone, Copy, PartialEq)]
 #[derive_where(Eq; T)]
-pub(in crate::aabb) struct InnerMinMaxedAabb<const N: usize, T: AabbScalar, A: VecAlignment>
+pub(crate) struct InnerMinMaxedAabb<const N: usize, T: AabbScalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
 {
@@ -95,7 +95,7 @@ where
 
 #[derive_where(Clone, Copy, PartialEq)]
 #[derive_where(Eq; T)]
-pub(in crate::aabb) struct InnerCenteredAabb<const N: usize, T: AabbScalar, A: VecAlignment>
+pub(crate) struct InnerCenteredAabb<const N: usize, T: AabbScalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
 {

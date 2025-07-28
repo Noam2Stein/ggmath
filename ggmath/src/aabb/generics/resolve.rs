@@ -2,7 +2,7 @@ use std::mem::{transmute, transmute_copy};
 
 use super::*;
 
-pub enum ResolvedRectangle<const N: usize, T: AabbScalar, A: VecAlignment>
+pub enum ResolvedAabb<const N: usize, T: AabbScalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
 {
@@ -11,7 +11,7 @@ where
     MinMaxed(Aabb<N, T, A, AabbMinMaxed>),
 }
 
-pub enum ResolvedRectangleRef<'a, const N: usize, T: AabbScalar, A: VecAlignment>
+pub enum ResolvedAabbRef<'a, const N: usize, T: AabbScalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
 {
@@ -20,7 +20,7 @@ where
     MinMaxed(&'a Aabb<N, T, A, AabbMinMaxed>),
 }
 
-pub enum ResolvedRectangleMut<'a, const N: usize, T: AabbScalar, A: VecAlignment>
+pub enum ResolvedAabbMut<'a, const N: usize, T: AabbScalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
 {
@@ -34,20 +34,20 @@ where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    pub const fn resolve(self) -> ResolvedRectangle<N, T, A> {
+    pub const fn resolve(self) -> ResolvedAabb<N, T, A> {
         unsafe {
             match R::ENUM {
-                AabbReprEnum::Cornered => ResolvedRectangle::Cornered(transmute_copy::<
+                AabbReprEnum::Cornered => ResolvedAabb::Cornered(transmute_copy::<
                     Aabb<N, T, A, R>,
                     Aabb<N, T, A, AabbCornered>,
                 >(&self)),
 
-                AabbReprEnum::Centered => ResolvedRectangle::Centered(transmute_copy::<
+                AabbReprEnum::Centered => ResolvedAabb::Centered(transmute_copy::<
                     Aabb<N, T, A, R>,
                     Aabb<N, T, A, AabbCentered>,
                 >(&self)),
 
-                AabbReprEnum::MinMaxed => ResolvedRectangle::MinMaxed(transmute_copy::<
+                AabbReprEnum::MinMaxed => ResolvedAabb::MinMaxed(transmute_copy::<
                     Aabb<N, T, A, R>,
                     Aabb<N, T, A, AabbMinMaxed>,
                 >(&self)),
@@ -56,20 +56,20 @@ where
     }
 
     #[inline(always)]
-    pub const fn resolve_ref(&self) -> ResolvedRectangleRef<N, T, A> {
+    pub const fn resolve_ref(&self) -> ResolvedAabbRef<N, T, A> {
         unsafe {
             match R::ENUM {
-                AabbReprEnum::Cornered => ResolvedRectangleRef::Cornered(transmute::<
+                AabbReprEnum::Cornered => ResolvedAabbRef::Cornered(transmute::<
                     &Aabb<N, T, A, R>,
                     &Aabb<N, T, A, AabbCornered>,
                 >(self)),
 
-                AabbReprEnum::Centered => ResolvedRectangleRef::Centered(transmute::<
+                AabbReprEnum::Centered => ResolvedAabbRef::Centered(transmute::<
                     &Aabb<N, T, A, R>,
                     &Aabb<N, T, A, AabbCentered>,
                 >(self)),
 
-                AabbReprEnum::MinMaxed => ResolvedRectangleRef::MinMaxed(transmute::<
+                AabbReprEnum::MinMaxed => ResolvedAabbRef::MinMaxed(transmute::<
                     &Aabb<N, T, A, R>,
                     &Aabb<N, T, A, AabbMinMaxed>,
                 >(self)),
@@ -78,20 +78,20 @@ where
     }
 
     #[inline(always)]
-    pub const fn resolve_repr_mut(&mut self) -> ResolvedRectangleMut<N, T, A> {
+    pub const fn resolve_repr_mut(&mut self) -> ResolvedAabbMut<N, T, A> {
         unsafe {
             match R::ENUM {
-                AabbReprEnum::Cornered => ResolvedRectangleMut::Cornered(transmute::<
+                AabbReprEnum::Cornered => ResolvedAabbMut::Cornered(transmute::<
                     &mut Aabb<N, T, A, R>,
                     &mut Aabb<N, T, A, AabbCornered>,
                 >(self)),
 
-                AabbReprEnum::Centered => ResolvedRectangleMut::Centered(transmute::<
+                AabbReprEnum::Centered => ResolvedAabbMut::Centered(transmute::<
                     &mut Aabb<N, T, A, R>,
                     &mut Aabb<N, T, A, AabbCentered>,
                 >(self)),
 
-                AabbReprEnum::MinMaxed => ResolvedRectangleMut::MinMaxed(transmute::<
+                AabbReprEnum::MinMaxed => ResolvedAabbMut::MinMaxed(transmute::<
                     &mut Aabb<N, T, A, R>,
                     &mut Aabb<N, T, A, AabbMinMaxed>,
                 >(self)),

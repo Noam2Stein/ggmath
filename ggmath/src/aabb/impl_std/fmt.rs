@@ -9,16 +9,16 @@ where
     #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.resolve_ref() {
-            ResolvedRectangleRef::Centered(rect) => write!(
+            ResolvedAabbRef::Centered(rect) => write!(
                 f,
                 "{{ center: {:?}, extents: {:?} }}",
                 rect.center(),
                 rect.extents()
             ),
-            ResolvedRectangleRef::Cornered(rect) => {
+            ResolvedAabbRef::Cornered(rect) => {
                 write!(f, "{{ min: {:?}, size: {:?} }}", rect.min(), rect.size())
             }
-            ResolvedRectangleRef::MinMaxed(rect) => {
+            ResolvedAabbRef::MinMaxed(rect) => {
                 write!(f, "{{ min: {:?}, max: {:?} }}", rect.min(), rect.max())
             }
         }
@@ -32,16 +32,16 @@ where
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.resolve_ref() {
-            ResolvedRectangleRef::Centered(rect) => write!(
+            ResolvedAabbRef::Centered(rect) => write!(
                 f,
                 "{{ center: {}, extents: {} }}",
                 rect.center(),
                 rect.extents()
             ),
-            ResolvedRectangleRef::Cornered(rect) => {
+            ResolvedAabbRef::Cornered(rect) => {
                 write!(f, "{{ min: {}, size: {} }}", rect.min(), rect.size())
             }
-            ResolvedRectangleRef::MinMaxed(rect) => {
+            ResolvedAabbRef::MinMaxed(rect) => {
                 write!(f, "{{ min: {}, max: {} }}", rect.min(), rect.max())
             }
         }

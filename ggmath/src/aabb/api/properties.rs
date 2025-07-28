@@ -11,29 +11,29 @@ where
     #[inline(always)]
     pub fn min(self) -> Vector<N, T, A> {
         match self.resolve() {
-            ResolvedRectangle::Centered(rect) => rect.inner.center - rect.inner.extents,
-            ResolvedRectangle::Cornered(rect) => rect.inner.min,
-            ResolvedRectangle::MinMaxed(rect) => rect.inner.min,
+            ResolvedAabb::Centered(rect) => rect.inner.center - rect.inner.extents,
+            ResolvedAabb::Cornered(rect) => rect.inner.min,
+            ResolvedAabb::MinMaxed(rect) => rect.inner.min,
         }
     }
 
     #[inline(always)]
     pub fn max(self) -> Vector<N, T, A> {
         match self.resolve() {
-            ResolvedRectangle::Centered(rect) => rect.inner.center + rect.inner.extents,
-            ResolvedRectangle::Cornered(rect) => rect.inner.min + rect.inner.size,
-            ResolvedRectangle::MinMaxed(rect) => rect.inner.max,
+            ResolvedAabb::Centered(rect) => rect.inner.center + rect.inner.extents,
+            ResolvedAabb::Cornered(rect) => rect.inner.min + rect.inner.size,
+            ResolvedAabb::MinMaxed(rect) => rect.inner.max,
         }
     }
 
     #[inline(always)]
     pub fn center(self) -> Vector<N, T, A> {
         match self.resolve() {
-            ResolvedRectangle::Centered(rect) => rect.inner.center,
-            ResolvedRectangle::Cornered(rect) => {
+            ResolvedAabb::Centered(rect) => rect.inner.center,
+            ResolvedAabb::Cornered(rect) => {
                 rect.inner.min + T::aabb_div_vector_by_two(rect.inner.size)
             }
-            ResolvedRectangle::MinMaxed(rect) => {
+            ResolvedAabb::MinMaxed(rect) => {
                 T::aabb_div_vector_by_two(rect.inner.min + rect.inner.max)
             }
         }
@@ -42,18 +42,18 @@ where
     #[inline(always)]
     pub fn size(self) -> Vector<N, T, A> {
         match self.resolve() {
-            ResolvedRectangle::Centered(rect) => T::aabb_mul_vector_by_two(rect.inner.extents),
-            ResolvedRectangle::Cornered(rect) => rect.inner.size,
-            ResolvedRectangle::MinMaxed(rect) => rect.inner.max - rect.inner.min,
+            ResolvedAabb::Centered(rect) => T::aabb_mul_vector_by_two(rect.inner.extents),
+            ResolvedAabb::Cornered(rect) => rect.inner.size,
+            ResolvedAabb::MinMaxed(rect) => rect.inner.max - rect.inner.min,
         }
     }
 
     #[inline(always)]
     pub fn extents(self) -> Vector<N, T, A> {
         match self.resolve() {
-            ResolvedRectangle::Centered(rect) => rect.inner.extents,
-            ResolvedRectangle::Cornered(rect) => T::aabb_div_vector_by_two(rect.inner.size),
-            ResolvedRectangle::MinMaxed(rect) => {
+            ResolvedAabb::Centered(rect) => rect.inner.extents,
+            ResolvedAabb::Cornered(rect) => T::aabb_div_vector_by_two(rect.inner.size),
+            ResolvedAabb::MinMaxed(rect) => {
                 T::aabb_div_vector_by_two(rect.inner.max - rect.inner.min)
             }
         }
@@ -197,9 +197,9 @@ where
     #[inline(always)]
     pub fn moved(self, value: Vector<N, T, impl VecAlignment>) -> Self {
         match self.resolve() {
-            ResolvedRectangle::Cornered(_) => self.with_min(self.min() + value),
-            ResolvedRectangle::Centered(_) => self.with_center(self.center() + value),
-            ResolvedRectangle::MinMaxed(_) => self.with_min(self.min() + value),
+            ResolvedAabb::Cornered(_) => self.with_min(self.min() + value),
+            ResolvedAabb::Centered(_) => self.with_center(self.center() + value),
+            ResolvedAabb::MinMaxed(_) => self.with_min(self.min() + value),
         }
     }
 }
@@ -231,9 +231,9 @@ macro_loop! {
             #[inline(always)]
             pub fn @[moved_ @x](self, value: T) -> Self {
                 match self.resolve() {
-                    ResolvedRectangle::Cornered(_) => self.@[with_min_ @x](self.min().@x() + value),
-                    ResolvedRectangle::Centered(_) => self.@[with_center_ @x](self.center().@x() + value),
-                    ResolvedRectangle::MinMaxed(_) => self.@[with_min_ @x](self.min().@x() + value),
+                    ResolvedAabb::Cornered(_) => self.@[with_min_ @x](self.min().@x() + value),
+                    ResolvedAabb::Centered(_) => self.@[with_center_ @x](self.center().@x() + value),
+                    ResolvedAabb::MinMaxed(_) => self.@[with_min_ @x](self.min().@x() + value),
                 }
             }
         }

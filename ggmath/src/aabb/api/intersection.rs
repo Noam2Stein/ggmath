@@ -7,20 +7,20 @@ where
     #[inline(always)]
     pub fn intersects(self, other: Aabb<N, T, impl VecAlignment, impl AabbRepr>) -> bool {
         match (self.resolve(), other.resolve()) {
-            (ResolvedRectangle::Centered(rect), ResolvedRectangle::Centered(other)) => {
+            (ResolvedAabb::Centered(rect), ResolvedAabb::Centered(other)) => {
                 let abs_diff = T::aabb_vector_abs_diff(rect.center(), other.center());
                 let extents_sum = rect.extents() + other.extents();
 
                 (0..N).all(|i| abs_diff[i] < extents_sum[i])
             }
 
-            (ResolvedRectangle::Centered(rect), _) => other.intersects(rect),
+            (ResolvedAabb::Centered(rect), _) => other.intersects(rect),
 
-            (ResolvedRectangle::Cornered(rect), _) => {
+            (ResolvedAabb::Cornered(rect), _) => {
                 (0..N).all(|i| rect.min()[i] < other.max()[i] && other.min()[i] < rect.max()[i])
             }
 
-            (ResolvedRectangle::MinMaxed(rect), _) => {
+            (ResolvedAabb::MinMaxed(rect), _) => {
                 (0..N).all(|i| rect.min()[i] < other.max()[i] && other.min()[i] < rect.max()[i])
             }
         }

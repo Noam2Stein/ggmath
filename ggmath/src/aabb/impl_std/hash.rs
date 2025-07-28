@@ -8,9 +8,9 @@ where
 {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self.resolve() {
-            ResolvedRectangle::Cornered(rect) => rect.hash(state),
-            ResolvedRectangle::Centered(rect) => rect.hash(state),
-            ResolvedRectangle::MinMaxed(rect) => rect.hash(state),
+            ResolvedAabb::Cornered(rect) => rect.hash(state),
+            ResolvedAabb::Centered(rect) => rect.hash(state),
+            ResolvedAabb::MinMaxed(rect) => rect.hash(state),
         }
     }
 }

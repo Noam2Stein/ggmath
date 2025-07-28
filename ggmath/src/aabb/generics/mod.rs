@@ -18,13 +18,11 @@ where
         self,
     ) -> Aabb<N, T, AOutput, ROutput> {
         match self.resolve() {
-            ResolvedRectangle::Centered(rect) => {
+            ResolvedAabb::Centered(rect) => {
                 Aabb::from_center_extents(rect.inner.center, rect.inner.extents)
             }
-            ResolvedRectangle::Cornered(rect) => {
-                Aabb::from_min_size(rect.inner.min, rect.inner.size)
-            }
-            ResolvedRectangle::MinMaxed(rect) => Aabb::from_min_max(rect.inner.min, rect.inner.max),
+            ResolvedAabb::Cornered(rect) => Aabb::from_min_size(rect.inner.min, rect.inner.size),
+            ResolvedAabb::MinMaxed(rect) => Aabb::from_min_max(rect.inner.min, rect.inner.max),
         }
     }
 }
