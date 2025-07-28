@@ -62,20 +62,20 @@ Matrices are generic over:
 - **Rows** (`R`): 2, 3, or 4 (number of rows)
 - **Type** (`T`): e.g., `f32`, `i32`, `bool`, etc. (element type)
 - **Alignment** (`A`): `VecAligned` or `VecPacked`
-- **Major Axis** (`M`): `ColumnMajor` or `RowMajor`
+- **Major Axis** (`M`): `ColMajor` or `RowMajor`
 
 ```rust
 use ggmath::*;
 
 // Column-major, aligned matrix
-type Mat4x3F32Col = Matrix<4, 3, f32, VecAligned, ColumnMajor>; // Could just write `FMat4x3C`
+type Mat4x3F32Col = Matrix<4, 3, f32, VecAligned, ColMajor>; // Could just write `FMat4x3C`
 
 // Row-major, packed matrix
 type Mat2x2I32RowPacked = Matrix<2, 2, i32, VecPacked, RowMajor>; // Could just write `IMat2RP`
 ```
 
 Matricies have the type aliases:
-- `Mat{2/3/4}C<T>` => `Matrix<{2/3/4}, {2/3/4}, T, VecAligned, ColumnMajor>`
+- `Mat{2/3/4}C<T>` => `Matrix<{2/3/4}, {2/3/4}, T, VecAligned, ColMajor>`
 - `Mat{2/3/4}R<T>` => `Matrix<{2/3/4}, {2/3/4}, T, VecAligned, RowMajor>`
 - `VecPacked` versions
 - type specific versions via the default `primitive_aliases` feature.

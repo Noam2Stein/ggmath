@@ -19,25 +19,25 @@ where
 }
 
 /// Type alias to [```Matrix<2, 2, T, VecAligned, ColumnMajor>```].
-pub type Mat2C<T> = Matrix<2, 2, T, VecAligned, ColumnMajor>;
+pub type Mat2C<T> = Matrix<2, 2, T, VecAligned, ColMajor>;
 /// Type alias to [```Matrix<2, 3, T, VecAligned, ColumnMajor>```].
-pub type Mat2x3C<T> = Matrix<2, 3, T, VecAligned, ColumnMajor>;
+pub type Mat2x3C<T> = Matrix<2, 3, T, VecAligned, ColMajor>;
 /// Type alias to [```Matrix<2, 4, T, VecAligned, ColumnMajor>```].
-pub type Mat2x4C<T> = Matrix<2, 4, T, VecAligned, ColumnMajor>;
+pub type Mat2x4C<T> = Matrix<2, 4, T, VecAligned, ColMajor>;
 
 /// Type alias to [```Matrix<3, 2, T, VecAligned, ColumnMajor>```].
-pub type Mat3x2C<T> = Matrix<3, 2, T, VecAligned, ColumnMajor>;
+pub type Mat3x2C<T> = Matrix<3, 2, T, VecAligned, ColMajor>;
 /// Type alias to [```Matrix<3, 3, T, VecAligned, ColumnMajor>```].
-pub type Mat3C<T> = Matrix<3, 3, T, VecAligned, ColumnMajor>;
+pub type Mat3C<T> = Matrix<3, 3, T, VecAligned, ColMajor>;
 /// Type alias to [```Matrix<3, 4, T, VecAligned, ColumnMajor>```].
-pub type Mat3x4C<T> = Matrix<3, 4, T, VecAligned, ColumnMajor>;
+pub type Mat3x4C<T> = Matrix<3, 4, T, VecAligned, ColMajor>;
 
 /// Type alias to [```Matrix<4, 2, T, VecAligned, ColumnMajor>```].
-pub type Mat4x2C<T> = Matrix<4, 2, T, VecAligned, ColumnMajor>;
+pub type Mat4x2C<T> = Matrix<4, 2, T, VecAligned, ColMajor>;
 /// Type alias to [```Matrix<4, 3, T, VecAligned, ColumnMajor>```].
-pub type Mat4x3C<T> = Matrix<4, 3, T, VecAligned, ColumnMajor>;
+pub type Mat4x3C<T> = Matrix<4, 3, T, VecAligned, ColMajor>;
 /// Type alias to [```Matrix<4, 4, T, VecAligned, ColumnMajor>```].
-pub type Mat4C<T> = Matrix<4, 4, T, VecAligned, ColumnMajor>;
+pub type Mat4C<T> = Matrix<4, 4, T, VecAligned, ColMajor>;
 
 /// Type alias to [```Matrix<2, 2, T, VecAligned, RowMajor>```].
 pub type Mat2R<T> = Matrix<2, 2, T, VecAligned, RowMajor>;
@@ -62,33 +62,33 @@ pub type Mat4R<T> = Matrix<4, 4, T, VecAligned, RowMajor>;
 
 /// Type alias to [```Matrix<2, 2, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat2C```].
-pub type Mat2CP<T> = Matrix<2, 2, T, VecPacked, ColumnMajor>;
+pub type Mat2CP<T> = Matrix<2, 2, T, VecPacked, ColMajor>;
 /// Type alias to [```Matrix<2, 3, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat2x3C```].
-pub type Mat2x3CP<T> = Matrix<2, 3, T, VecPacked, ColumnMajor>;
+pub type Mat2x3CP<T> = Matrix<2, 3, T, VecPacked, ColMajor>;
 /// Type alias to [```Matrix<2, 4, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat2x4C```].
-pub type Mat2x4CP<T> = Matrix<2, 4, T, VecPacked, ColumnMajor>;
+pub type Mat2x4CP<T> = Matrix<2, 4, T, VecPacked, ColMajor>;
 
 /// Type alias to [```Matrix<3, 2, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat3x2C```].
-pub type Mat3x2CP<T> = Matrix<3, 2, T, VecPacked, ColumnMajor>;
+pub type Mat3x2CP<T> = Matrix<3, 2, T, VecPacked, ColMajor>;
 /// Type alias to [```Matrix<3, 3, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat3C```].
-pub type Mat3CP<T> = Matrix<3, 3, T, VecPacked, ColumnMajor>;
+pub type Mat3CP<T> = Matrix<3, 3, T, VecPacked, ColMajor>;
 /// Type alias to [```Matrix<3, 4, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat3x4C```].
-pub type Mat3x4CP<T> = Matrix<3, 4, T, VecPacked, ColumnMajor>;
+pub type Mat3x4CP<T> = Matrix<3, 4, T, VecPacked, ColMajor>;
 
 /// Type alias to [```Matrix<4, 2, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat4x2C```].
-pub type Mat4x2CP<T> = Matrix<4, 2, T, VecPacked, ColumnMajor>;
+pub type Mat4x2CP<T> = Matrix<4, 2, T, VecPacked, ColMajor>;
 /// Type alias to [```Matrix<4, 3, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat4x3C```].
-pub type Mat4x3CP<T> = Matrix<4, 3, T, VecPacked, ColumnMajor>;
+pub type Mat4x3CP<T> = Matrix<4, 3, T, VecPacked, ColMajor>;
 /// Type alias to [```Matrix<4, 4, T, VecPacked, ColumnMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat4C```].
-pub type Mat4CP<T> = Matrix<4, 4, T, VecPacked, ColumnMajor>;
+pub type Mat4CP<T> = Matrix<4, 4, T, VecPacked, ColMajor>;
 
 /// Type alias to [```Matrix<2, 2, T, VecPacked, RowMajor>```].
 /// If you don't know the difference between ```VecAligned``` and ```VecPacked```, use [```Mat2R```].

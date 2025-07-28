@@ -22,11 +22,9 @@ where
                 }
 
                 unsafe {
-                    transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(
-                        &Matrix {
-                            inner: aligned_columns,
-                        },
-                    )
+                    transmute_copy::<Matrix<C, R, T, A, ColMajor>, Matrix<C, R, T, A, M>>(&Matrix {
+                        inner: aligned_columns,
+                    })
                 }
             }
 
@@ -73,14 +71,14 @@ where
 
     #[inline(always)]
     pub const fn columns(self) -> [Vector<R, T, A>; C] {
-        self.to_storage::<A, ColumnMajor>().inner
+        self.to_storage::<A, ColMajor>().inner
     }
 
     #[inline(always)]
     pub const fn column_arrays(self) -> [[T; R]; C] {
         unsafe {
             transmute_copy::<[Vector<R, T, VecPacked>; C], [[T; R]; C]>(
-                &self.to_storage::<VecPacked, ColumnMajor>().inner,
+                &self.to_storage::<VecPacked, ColMajor>().inner,
             )
         }
     }
@@ -111,9 +109,9 @@ where
                 }
 
                 unsafe {
-                    transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(
-                        &Matrix { inner: columns },
-                    )
+                    transmute_copy::<Matrix<C, R, T, A, ColMajor>, Matrix<C, R, T, A, M>>(&Matrix {
+                        inner: columns,
+                    })
                 }
             }
 

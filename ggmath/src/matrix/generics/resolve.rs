@@ -8,7 +8,7 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
-    ColumnMajor(Matrix<C, R, T, A, ColumnMajor>),
+    ColumnMajor(Matrix<C, R, T, A, ColMajor>),
     RowMajor(Matrix<C, R, T, A, RowMajor>),
 }
 
@@ -18,7 +18,7 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
-    ColumnMajor(&'a Matrix<C, R, T, A, ColumnMajor>),
+    ColumnMajor(&'a Matrix<C, R, T, A, ColMajor>),
     RowMajor(&'a Matrix<C, R, T, A, RowMajor>),
 }
 
@@ -28,7 +28,7 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
-    ColumnMajor(&'a mut Matrix<C, R, T, A, ColumnMajor>),
+    ColumnMajor(&'a mut Matrix<C, R, T, A, ColMajor>),
     RowMajor(&'a mut Matrix<C, R, T, A, RowMajor>),
 }
 
@@ -45,7 +45,7 @@ where
                 MatrixMajorAxisEnum::ColumnMajor => {
                     ResolvedMatrix::ColumnMajor(transmute_copy::<
                         Matrix<C, R, T, A, M>,
-                        Matrix<C, R, T, A, ColumnMajor>,
+                        Matrix<C, R, T, A, ColMajor>,
                     >(&self))
                 }
 
@@ -64,7 +64,7 @@ where
                 MatrixMajorAxisEnum::ColumnMajor => {
                     ResolvedMatrixRef::ColumnMajor(transmute::<
                         &Matrix<C, R, T, A, M>,
-                        &Matrix<C, R, T, A, ColumnMajor>,
+                        &Matrix<C, R, T, A, ColMajor>,
                     >(self))
                 }
 
@@ -85,7 +85,7 @@ where
                 MatrixMajorAxisEnum::ColumnMajor => {
                     ResolvedMatrixMut::ColumnMajor(transmute::<
                         &mut Matrix<C, R, T, A, M>,
-                        &mut Matrix<C, R, T, A, ColumnMajor>,
+                        &mut Matrix<C, R, T, A, ColMajor>,
                     >(self))
                 }
 
@@ -101,12 +101,12 @@ where
 
     #[inline(always)]
     pub const fn resolved(
-        c_major: Matrix<C, R, T, A, ColumnMajor>,
+        c_major: Matrix<C, R, T, A, ColMajor>,
         r_major: Matrix<C, R, T, A, RowMajor>,
     ) -> Self {
         match M::ENUM {
             MatrixMajorAxisEnum::ColumnMajor => unsafe {
-                transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(&c_major)
+                transmute_copy::<Matrix<C, R, T, A, ColMajor>, Matrix<C, R, T, A, M>>(&c_major)
             },
 
             MatrixMajorAxisEnum::RowMajor => unsafe {

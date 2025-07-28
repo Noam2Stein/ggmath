@@ -141,7 +141,7 @@ macro_loop! {
     // Get Column Ref
 
     @for C in 2..=4, c in 0..@C {
-        impl<const R: usize, T: Scalar, A: VecAlignment> Matrix<@C, R, T, A, ColumnMajor>
+        impl<const R: usize, T: Scalar, A: VecAlignment> Matrix<@C, R, T, A, ColMajor>
         where
             Usize<R>: VecLen,
         {
@@ -153,12 +153,12 @@ macro_loop! {
     }
 
     @for C in 2..=4, len in 2..=@C, c in 0..=@C - @len {
-        impl<const R: usize, T: Scalar, A: VecAlignment> Matrix<@C, R, T, A, ColumnMajor>
+        impl<const R: usize, T: Scalar, A: VecAlignment> Matrix<@C, R, T, A, ColMajor>
         where
             Usize<R>: VecLen,
         {
             #[inline(always)]
-            pub const fn @[c @(@c..@c + @len) _ref](&self) -> &Matrix<@len, R, T, A, ColumnMajor> {
+            pub const fn @[c @(@c..@c + @len) _ref](&self) -> &Matrix<@len, R, T, A, ColMajor> {
                 self.get_matc_ref::<@len>(@c).unwrap()
             }
         }

@@ -110,7 +110,7 @@ where
     }
 }
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColMajor>
 where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
@@ -128,7 +128,7 @@ where
     pub const fn get_2_columns_ref(
         &self,
         column_idx: usize,
-    ) -> Option<&Matrix<2, R, T, A, ColumnMajor>> {
+    ) -> Option<&Matrix<2, R, T, A, ColMajor>> {
         self.get_matc_ref(column_idx)
     }
 
@@ -136,7 +136,7 @@ where
     pub const fn get_3_columns_ref(
         &self,
         column_idx: usize,
-    ) -> Option<&Matrix<3, R, T, A, ColumnMajor>> {
+    ) -> Option<&Matrix<3, R, T, A, ColMajor>> {
         self.get_matc_ref(column_idx)
     }
 
@@ -144,7 +144,7 @@ where
     pub const fn get_4_columns_ref(
         &self,
         column_idx: usize,
-    ) -> Option<&Matrix<4, R, T, A, ColumnMajor>> {
+    ) -> Option<&Matrix<4, R, T, A, ColMajor>> {
         self.get_matc_ref(column_idx)
     }
 
@@ -152,7 +152,7 @@ where
     pub const fn get_matc_ref<const C_OUT: usize>(
         &self,
         column_idx: usize,
-    ) -> Option<&Matrix<C_OUT, R, T, A, ColumnMajor>>
+    ) -> Option<&Matrix<C_OUT, R, T, A, ColMajor>>
     where
         Usize<C_OUT>: VecLen,
     {
@@ -233,7 +233,7 @@ where
     }
 }
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColMajor>
 where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
@@ -253,7 +253,7 @@ where
     pub const unsafe fn get_2_columns_ref_unchecked(
         &self,
         column_idx: usize,
-    ) -> &Matrix<2, R, T, A, ColumnMajor> {
+    ) -> &Matrix<2, R, T, A, ColMajor> {
         unsafe { self.get_matc_ref_unchecked(column_idx) }
     }
 
@@ -261,7 +261,7 @@ where
     pub const unsafe fn get_3_columns_ref_unchecked(
         &self,
         column_idx: usize,
-    ) -> &Matrix<3, R, T, A, ColumnMajor> {
+    ) -> &Matrix<3, R, T, A, ColMajor> {
         unsafe { self.get_matc_ref_unchecked(column_idx) }
     }
 
@@ -269,7 +269,7 @@ where
     pub const unsafe fn get_4_columns_ref_unchecked(
         &self,
         column_idx: usize,
-    ) -> &Matrix<4, R, T, A, ColumnMajor> {
+    ) -> &Matrix<4, R, T, A, ColMajor> {
         unsafe { self.get_matc_ref_unchecked(column_idx) }
     }
 
@@ -277,12 +277,12 @@ where
     pub const unsafe fn get_matc_ref_unchecked<const C_OUT: usize>(
         &self,
         column_idx: usize,
-    ) -> &Matrix<C_OUT, R, T, A, ColumnMajor>
+    ) -> &Matrix<C_OUT, R, T, A, ColMajor>
     where
         Usize<C_OUT>: VecLen,
     {
         unsafe {
-            (self.inner.as_ptr() as *const Matrix<C_OUT, R, T, A, ColumnMajor>)
+            (self.inner.as_ptr() as *const Matrix<C_OUT, R, T, A, ColMajor>)
                 .add(column_idx)
                 .as_ref()
                 .unwrap_unchecked()
@@ -359,7 +359,7 @@ where
     }
 }
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColMajor>
 where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
@@ -417,7 +417,7 @@ where
     }
 }
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColMajor>
 where
     Usize<C>: VecLen,
     Usize<R>: VecLen,

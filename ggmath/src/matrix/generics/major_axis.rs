@@ -11,7 +11,7 @@ pub unsafe trait MatrixMajorAxis {
         Usize<R>: VecLen;
 }
 
-pub struct ColumnMajor;
+pub struct ColMajor;
 pub struct RowMajor;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -27,7 +27,7 @@ where
     Usize<R>: VecLen,
 {
     #[inline(always)]
-    pub const fn to_c_major(self) -> Matrix<C, R, T, A, ColumnMajor> {
+    pub const fn to_c_major(self) -> Matrix<C, R, T, A, ColMajor> {
         Matrix::from_columns(self.columns())
     }
 
@@ -38,7 +38,7 @@ where
 }
 
 #[allow(private_interfaces)]
-unsafe impl MatrixMajorAxis for ColumnMajor {
+unsafe impl MatrixMajorAxis for ColMajor {
     const ENUM: MatrixMajorAxisEnum = MatrixMajorAxisEnum::ColumnMajor;
 
     type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment>
