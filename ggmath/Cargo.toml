@@ -11,7 +11,7 @@ license = "MIT"
 name = "ggmath"
 readme = "../README.md"
 repository = "https://github.com/Noam2Stein/ggmath"
-version = "0.11.0"
+version = "0.11.1"
 
 [features]
 matrix            = [  ]
