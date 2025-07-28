@@ -29,14 +29,14 @@ pub type RectMP<T> = Aabb<2, T, VecPacked, AabbMinMaxed>;
 
 // 3D
 
-pub type Box<T> = Aabb<3, T, VecAligned, AabbCornered>;
-pub type BoxP<T> = Aabb<3, T, VecPacked, AabbCornered>;
+pub type Aabb3<T> = Aabb<3, T, VecAligned, AabbCornered>;
+pub type Aabb3P<T> = Aabb<3, T, VecPacked, AabbCornered>;
 
-pub type BoxC<T> = Aabb<3, T, VecAligned, AabbCentered>;
-pub type BoxCP<T> = Aabb<3, T, VecPacked, AabbCentered>;
+pub type Aabb3C<T> = Aabb<3, T, VecAligned, AabbCentered>;
+pub type Aabb3CP<T> = Aabb<3, T, VecPacked, AabbCentered>;
 
-pub type BoxM<T> = Aabb<3, T, VecAligned, AabbMinMaxed>;
-pub type BoxMP<T> = Aabb<3, T, VecPacked, AabbMinMaxed>;
+pub type Aabb3M<T> = Aabb<3, T, VecAligned, AabbMinMaxed>;
+pub type Aabb3MP<T> = Aabb<3, T, VecPacked, AabbMinMaxed>;
 
 // 4D
 
