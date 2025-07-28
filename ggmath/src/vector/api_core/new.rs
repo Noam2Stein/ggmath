@@ -45,7 +45,7 @@ macro_loop! {
         #[macro_export]
         macro_rules! @[vec @N g] {
             ($($item:expr), * $(,)?) => {{
-                let output: $crate::@[Vector]<N, _, _> = $crate::new_vector(($($item,)*));
+                let output: $crate::@[Vector]<@N, _, _> = $crate::new_vector(($($item,)*));
                 output
             }};
         }
