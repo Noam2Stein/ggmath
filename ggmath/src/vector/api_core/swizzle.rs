@@ -284,7 +284,7 @@ macro_loop! {
                         + ") components of the vector."
                     )]
                     #[inline(always)]
-                    pub fn @[set_ @x @y](&mut self, value: Vector<2, T, A>) {
+                    pub fn @[set_ @x @y](&mut self, value: Vector<2, T, impl VecAlignment>) {
                         self.@[set_ @x](value.x());
                         self.@[set_ @y](value.y());
                     }
@@ -313,7 +313,7 @@ macro_loop! {
                         + ") components of the vector."
                     )]
                     #[inline(always)]
-                    pub fn @[set_ @x @y @z](&mut self, value: Vector<3, T, A>) {
+                    pub fn @[set_ @x @y @z](&mut self, value: Vector<3, T, impl VecAlignment>) {
                         self.@[set_ @x](value.x());
                         self.@[set_ @y](value.y());
                         self.@[set_ @z](value.z());
@@ -348,7 +348,7 @@ macro_loop! {
                         + ") components of the vector."
                     )]
                     #[inline(always)]
-                    pub fn @[set_ @x @y @z @w](&mut self, value: Vector<4, T, A>) {
+                    pub fn @[set_ @x @y @z @w](&mut self, value: Vector<4, T, impl VecAlignment>) {
                         self.@[set_ @x](value.x());
                         self.@[set_ @y](value.y());
                         self.@[set_ @z](value.z());
@@ -383,7 +383,7 @@ macro_loop! {
                         + ") components set to the given value."
                     )]
                     #[inline(always)]
-                    pub fn @[with_ @x @y](mut self, value: Vector<2, T, A>) -> Self {
+                    pub fn @[with_ @x @y](mut self, value: Vector<2, T, impl VecAlignment>) -> Self {
                         self.@[set_ @x](value.x());
                         self.@[set_ @y](value.y());
 
@@ -414,7 +414,7 @@ macro_loop! {
                         + ") components set to the given value."
                     )]
                     #[inline(always)]
-                    pub fn @[with_ @x @y @z](mut self, value: Vector<3, T, A>) -> Self {
+                    pub fn @[with_ @x @y @z](mut self, value: Vector<3, T, impl VecAlignment>) -> Self {
                         self.@[set_ @x](value.x());
                         self.@[set_ @y](value.y());
                         self.@[set_ @z](value.z());
@@ -451,7 +451,7 @@ macro_loop! {
                         + ") components set to the given value."
                     )]
                     #[inline(always)]
-                    pub fn @[with_ @x @y @z @w](mut self, value: Vector<4, T, A>) -> Self {
+                    pub fn @[with_ @x @y @z @w](mut self, value: Vector<4, T, impl VecAlignment>) -> Self {
                         self.@[set_ @x](value.x());
                         self.@[set_ @y](value.y());
                         self.@[set_ @z](value.z());
