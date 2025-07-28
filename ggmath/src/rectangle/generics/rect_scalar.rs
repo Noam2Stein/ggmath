@@ -1,16 +1,18 @@
 use std::ops::*;
 
-use crate::{scalar::*, vector::*};
+use super::*;
 
 /// Trait required to put a type inside a `Rectangle`.
-pub trait RectScalar: Scalar + Add<Output = Self> + Sub<Output = Self> + PartialOrd {
+pub trait RectScalar:
+    Scalar + Add<Output = Self> + Sub<Output = Self> + PartialEq + PartialOrd
+{
     /// Returns `self * 2`.
     /// Used by `Rectangle` functions.
     fn rect_mul_vector_by_two<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 
     /// Returns `self / 2`.
     /// Used by `Rectangle` functions.
@@ -20,28 +22,28 @@ pub trait RectScalar: Scalar + Add<Output = Self> + Sub<Output = Self> + Partial
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 
     fn rect_vector_abs_diff<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         rhs: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 
     fn rect_vector_min<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 
     fn rect_vector_max<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
 
 macro_rules! int_impl {
@@ -51,7 +53,7 @@ macro_rules! int_impl {
                 vec: Vector<N, Self, A>,
             ) -> Vector<N, Self, A>
             where
-                MaybeVecLen<N>: VecLen,
+                Usize<N>: VecLen,
             {
                 vec * 2
             }
@@ -60,7 +62,7 @@ macro_rules! int_impl {
                 vec: Vector<N, Self, A>,
             ) -> Vector<N, Self, A>
             where
-                MaybeVecLen<N>: VecLen,
+                Usize<N>: VecLen,
             {
                 vec / 2
             }
@@ -70,7 +72,7 @@ macro_rules! int_impl {
                 rhs: Vector<N, Self, impl VecAlignment>,
             ) -> Vector<N, Self, A>
             where
-                MaybeVecLen<N>: VecLen,
+                Usize<N>: VecLen,
             {
                 vec.abs_diff(rhs)
             }
@@ -80,7 +82,7 @@ macro_rules! int_impl {
                 other: Vector<N, Self, impl VecAlignment>,
             ) -> Vector<N, Self, A>
             where
-                MaybeVecLen<N>: VecLen,
+                Usize<N>: VecLen,
             {
                 vec.min(other)
             }
@@ -90,7 +92,7 @@ macro_rules! int_impl {
                 other: Vector<N, Self, impl VecAlignment>,
             ) -> Vector<N, Self, A>
             where
-                MaybeVecLen<N>: VecLen,
+                Usize<N>: VecLen,
             {
                 vec.max(other)
             }
@@ -115,7 +117,7 @@ impl RectScalar for f32 {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec * 2.0
     }
@@ -124,7 +126,7 @@ impl RectScalar for f32 {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec / 2.0
     }
@@ -134,7 +136,7 @@ impl RectScalar for f32 {
         rhs: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec.abs_diff(rhs)
     }
@@ -144,7 +146,7 @@ impl RectScalar for f32 {
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec.min(other)
     }
@@ -154,7 +156,7 @@ impl RectScalar for f32 {
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec.max(other)
     }
@@ -164,7 +166,7 @@ impl RectScalar for f64 {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec * 2.0
     }
@@ -173,7 +175,7 @@ impl RectScalar for f64 {
         vec: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec / 2.0
     }
@@ -183,7 +185,7 @@ impl RectScalar for f64 {
         rhs: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec.abs_diff(rhs)
     }
@@ -193,7 +195,7 @@ impl RectScalar for f64 {
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec.min(other)
     }
@@ -203,7 +205,7 @@ impl RectScalar for f64 {
         other: Vector<N, Self, impl VecAlignment>,
     ) -> Vector<N, Self, A>
     where
-        MaybeVecLen<N>: VecLen,
+        Usize<N>: VecLen,
     {
         vec.max(other)
     }

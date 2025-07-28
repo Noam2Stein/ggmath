@@ -6,7 +6,7 @@ use super::*;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub fn min(self) -> Vector<N, T, A> {
@@ -64,7 +64,7 @@ where
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// returns `self` but moved so that the minimum corner is at the given position,
     /// keeping the size unchanged.
@@ -117,7 +117,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// returns `self` but moved so that the maximum corner is at the given position,
     /// keeping the size unchanged.
@@ -170,7 +170,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// returns `self` but moved so that the center is at the given position,
     /// keeping the size unchanged.
@@ -242,7 +242,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// returns `self` but resized to the given size, keeping the center unchanged.
     #[inline(always)]
@@ -289,7 +289,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// returns `self` but resized to the given extents, keeping the center unchanged.
     #[inline(always)]
@@ -338,7 +338,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Moves the rectangle so that the minimum corner is at the given position,
     /// keeping the size unchanged.
@@ -391,7 +391,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Moves the rectangle so that the maximum corner is at the given position,
     /// keeping the size unchanged.
@@ -444,7 +444,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Moves the rectangle so that the center is at the given position,
     /// keeping the size unchanged.
@@ -507,7 +507,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Resizes the rectangle to the given size, keeping the center unchanged.
     #[inline(always)]
@@ -554,7 +554,7 @@ macro_loop! {
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Resizes the rectangle to the given extents, keeping the center unchanged.
     #[inline(always)]

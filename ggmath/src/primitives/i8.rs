@@ -10,7 +10,7 @@ impl Scalar for i8 {
 
 impl<const N: usize, A: VecAlignment> Vector<N, i8, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub const ZERO: Self = Self::splat(0);
     pub const ONE: Self = Self::splat(1);

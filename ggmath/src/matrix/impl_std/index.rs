@@ -5,8 +5,8 @@ use super::*;
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Index<(usize, usize)> for Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     type Output = T;
 
@@ -22,8 +22,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     IndexMut<(usize, usize)> for Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {

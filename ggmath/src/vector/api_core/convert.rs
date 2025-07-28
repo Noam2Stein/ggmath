@@ -9,14 +9,14 @@ use super::*;
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Creates a ```Vector<N, T, A>``` from a ```[T; N]``` by copying it.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
         Self {
             array,
-            alignent: MaybeUninit::uninit(),
+            _align: <<A as VecAlignment>::Alignment<N, T> as AlignTrait>::VALUE,
         }
     }
 
@@ -53,7 +53,7 @@ where
 
 impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Converts an array reference to a vector reference.
     ///
@@ -80,7 +80,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// referecnes ```self``` as a byte array without the padding.
     ///
@@ -127,7 +127,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub fn to_t<TOut: Scalar + From<T>>(self) -> Vector<N, TOut, A> {
         self.map(TOut::from)
@@ -138,7 +138,7 @@ where
 
 impl<const N: usize, T: Scalar> From<Vector<N, T, VecAligned>> for Vector<N, T, VecPacked>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     fn from(value: Vector<N, T, VecAligned>) -> Self {
         value.unalign()
@@ -147,7 +147,7 @@ where
 
 impl<const N: usize, T: Scalar> From<Vector<N, T, VecPacked>> for Vector<N, T, VecAligned>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     fn from(value: Vector<N, T, VecPacked>) -> Self {
         value.align()

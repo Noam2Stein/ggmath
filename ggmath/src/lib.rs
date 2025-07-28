@@ -11,10 +11,14 @@
 //! - Optional additional types (Rect, Ray...).
 
 mod alias_macros;
+mod align;
 mod construct;
 mod primitives;
+mod usize_;
+pub use align::*;
 pub use construct::*;
 pub use primitives::*;
+pub use usize_::*;
 
 pub mod scalar;
 pub mod vector;

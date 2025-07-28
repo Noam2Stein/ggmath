@@ -10,7 +10,7 @@ impl Scalar for f32 {
 
 impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub const ZERO: Self = Self::splat(0.0);
     pub const ONE: Self = Self::splat(1.0);

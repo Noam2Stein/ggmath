@@ -5,45 +5,51 @@ use super::*;
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn from_columns(columns: [Vector<R, T, impl VecAlignment>; C]) -> Self {
-        if M::IS_COLUMN_MAJOR {
-            let mut aligned_columns = [Vector::from_array([columns[0].index(0); R]); C];
+        match M::ENUM {
+            MatrixMajorAxisEnum::ColumnMajor => {
+                let mut aligned_columns = [Vector::from_array([columns[0].index(0); R]); C];
 
-            let mut c = 0;
-            while c < C {
-                aligned_columns[c] = columns[c].to_storage();
-
-                c += 1;
-            }
-
-            unsafe {
-                transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(&Matrix {
-                    inner: aligned_columns,
-                })
-            }
-        } else {
-            let mut rows = [Vector::from_array([columns[0].index(0); C]); R];
-
-            let mut r = 0;
-            while r < R {
                 let mut c = 0;
                 while c < C {
-                    *rows[r].index_mut(c) = columns[c].index(r);
+                    aligned_columns[c] = columns[c].to_storage();
 
                     c += 1;
                 }
 
-                r += 1;
+                unsafe {
+                    transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(
+                        &Matrix {
+                            inner: aligned_columns,
+                        },
+                    )
+                }
             }
 
-            unsafe {
-                transmute_copy::<Matrix<C, R, T, A, RowMajor>, Matrix<C, R, T, A, M>>(&Matrix {
-                    inner: rows,
-                })
+            MatrixMajorAxisEnum::RowMajor => {
+                let mut rows = [Vector::from_array([columns[0].index(0); C]); R];
+
+                let mut r = 0;
+                while r < R {
+                    let mut c = 0;
+                    while c < C {
+                        *rows[r].index_mut(c) = columns[c].index(r);
+
+                        c += 1;
+                    }
+
+                    r += 1;
+                }
+
+                unsafe {
+                    transmute_copy::<Matrix<C, R, T, A, RowMajor>, Matrix<C, R, T, A, M>>(&Matrix {
+                        inner: rows,
+                    })
+                }
             }
         }
     }
@@ -83,45 +89,49 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn from_rows(rows: [Vector<C, T, impl VecAlignment>; R]) -> Self {
-        if M::IS_COLUMN_MAJOR {
-            let mut columns = [Vector::from_array([rows[0].index(0); R]); C];
+        match M::ENUM {
+            MatrixMajorAxisEnum::ColumnMajor => {
+                let mut columns = [Vector::from_array([rows[0].index(0); R]); C];
 
-            let mut c = 0;
-            while c < C {
+                let mut c = 0;
+                while c < C {
+                    let mut r = 0;
+                    while r < R {
+                        *columns[c].index_mut(r) = rows[r].index(c);
+
+                        r += 1;
+                    }
+
+                    c += 1;
+                }
+
+                unsafe {
+                    transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(
+                        &Matrix { inner: columns },
+                    )
+                }
+            }
+
+            MatrixMajorAxisEnum::RowMajor => {
+                let mut aligned_rows = [Vector::from_array([rows[0].index(0); C]); R];
+
                 let mut r = 0;
                 while r < R {
-                    *columns[c].index_mut(r) = rows[r].index(c);
+                    aligned_rows[r] = rows[r].to_storage();
 
                     r += 1;
                 }
 
-                c += 1;
-            }
-
-            unsafe {
-                transmute_copy::<Matrix<C, R, T, A, ColumnMajor>, Matrix<C, R, T, A, M>>(&Matrix {
-                    inner: columns,
-                })
-            }
-        } else {
-            let mut aligned_rows = [Vector::from_array([rows[0].index(0); C]); R];
-
-            let mut r = 0;
-            while r < R {
-                aligned_rows[r] = rows[r].to_storage();
-
-                r += 1;
-            }
-
-            unsafe {
-                transmute_copy::<Matrix<C, R, T, A, RowMajor>, Matrix<C, R, T, A, M>>(&Matrix {
-                    inner: aligned_rows,
-                })
+                unsafe {
+                    transmute_copy::<Matrix<C, R, T, A, RowMajor>, Matrix<C, R, T, A, M>>(&Matrix {
+                        inner: aligned_rows,
+                    })
+                }
             }
         }
     }

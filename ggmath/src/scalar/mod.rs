@@ -27,7 +27,7 @@ pub use positive_dir::*;
 /// impl Scalar for u256 {}
 /// ```
 pub trait Scalar: Construct {
-    type Vec2Alignment: Construct;
-    type Vec3Alignment: Construct;
-    type Vec4Alignment: Construct;
+    type Vec2Alignment: AlignTrait;
+    type Vec3Alignment: AlignTrait;
+    type Vec4Alignment: AlignTrait;
 }

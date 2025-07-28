@@ -30,7 +30,7 @@ pub const fn new_vector<const N: usize, T: Scalar, A: VecAlignment, I: IntoVecto
     value: I,
 ) -> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     let mut output = unsafe { MaybeUninit::uninit().assume_init() };
 

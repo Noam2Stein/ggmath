@@ -6,7 +6,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const fn get(self, idx: usize) -> Option<T> {
@@ -27,7 +27,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_unchecked(self, idx: usize) -> T {
@@ -39,7 +39,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const fn get_ref(&self, idx: usize) -> Option<&T> {
@@ -76,7 +76,7 @@ where
         idx: usize,
     ) -> Option<&Vector<N_OUT, T, VecPacked>>
     where
-        MaybeVecLen<N_OUT>: VecLen,
+        Usize<N_OUT>: VecLen,
     {
         if idx + N_OUT <= N {
             Some(unsafe { self.get_vec_ref_unchecked(idx) })
@@ -90,7 +90,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_ref_unchecked(&self, idx: usize) -> &T {
@@ -118,7 +118,7 @@ where
         idx: usize,
     ) -> &Vector<N_OUT, T, VecPacked>
     where
-        MaybeVecLen<N_OUT>: VecLen,
+        Usize<N_OUT>: VecLen,
     {
         unsafe { transmute(self.get_ref_unchecked(idx)) }
     }
@@ -128,7 +128,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const fn get_mut(&mut self, idx: usize) -> Option<&mut T> {
@@ -165,7 +165,7 @@ where
         idx: usize,
     ) -> Option<&mut Vector<N_OUT, T, VecPacked>>
     where
-        MaybeVecLen<N_OUT>: VecLen,
+        Usize<N_OUT>: VecLen,
     {
         if idx + N_OUT <= N {
             Some(unsafe { self.get_vec_mut_unchecked(idx) })
@@ -179,7 +179,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_mut_unchecked(&mut self, idx: usize) -> &mut T {
@@ -207,7 +207,7 @@ where
         idx: usize,
     ) -> &mut Vector<N_OUT, T, VecPacked>
     where
-        MaybeVecLen<N_OUT>: VecLen,
+        Usize<N_OUT>: VecLen,
     {
         unsafe { transmute(self.get_mut_unchecked(idx)) }
     }

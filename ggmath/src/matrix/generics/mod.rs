@@ -10,8 +10,8 @@ pub use major_axis::*;
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn to_storage<AOutput: VecAlignment, MOutput: MatrixMajorAxis>(

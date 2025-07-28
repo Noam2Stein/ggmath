@@ -4,14 +4,14 @@ mod resolve;
 pub use resolve::*;
 
 mod alignment;
+mod rect_scalar;
 mod repr;
-mod scalar;
+pub use rect_scalar::*;
 pub use repr::*;
-pub use scalar::*;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub fn into_alignment<AOutput: VecAlignment>(self) -> Rectangle<N, T, AOutput, R> {

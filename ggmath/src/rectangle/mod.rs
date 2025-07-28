@@ -1,4 +1,6 @@
-use super::{construct::*, vector::*};
+use derive_where::derive_where;
+
+use super::{construct::*, scalar::*, vector::*, *};
 
 mod api;
 mod generics;
@@ -6,9 +8,10 @@ mod impl_std;
 pub use api::*;
 pub use generics::*;
 
+#[derive_where(Clone, Copy, PartialEq)]
 pub struct Rectangle<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     inner: R::InnerRectangle<N, T, A>,
 }

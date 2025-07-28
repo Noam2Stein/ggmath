@@ -1,6 +1,5 @@
 use super::*;
 
-mod copy;
 mod default;
 mod eq;
 mod fmt;

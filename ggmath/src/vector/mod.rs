@@ -9,6 +9,7 @@ mod api_ext;
 mod generics;
 mod impl_std;
 pub use api_core::*;
+use derive_where::derive_where;
 pub use generics::*;
 
 /// The only vector type.
@@ -33,7 +34,7 @@ pub use generics::*;
 ///
 /// impl<const N: usize, T: Scalar, A: VecAlignment> MyTrait for Vector<N, T, A>
 /// where
-///     MaybeVecLen<N>: VecLen,
+///     Usize<N>: VecLen,
 /// {
 ///     fn gg(self) -> bool {
 ///         true
@@ -45,17 +46,20 @@ pub use generics::*;
 /// ```
 /// fn print_vector<const N: usize>(vec: Vector<N, impl Scalar, impl VecAlignment>)
 /// where
-///     MaybeVecLen<N>: VecLen, // Required by Vector to ensure that N is either 2, 3, or 4.
+///     Usize<N>: VecLen, // Required by Vector to ensure that N is either 2, 3, or 4.
 /// {
 ///     println!("{vec}")
 /// }
 /// ```
+#[derive_where(Clone, Copy)]
+#[derive_where(Eq, Hash; T)]
 pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     array: [T; N],
-    alignent: MaybeUninit<A::Alignment<N, T>>,
+    #[derive_where(skip)]
+    _align: A::Alignment<N, T>,
 }
 
 /// type alias to [```Vector<2, T, VecAligned>```]

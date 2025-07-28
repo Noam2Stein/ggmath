@@ -12,7 +12,7 @@ macro_loop! {
         impl<const N: usize, T: Scalar + @op_trait<Output: Scalar>, A: VecAlignment> @op_trait
             for Vector<N, T, A>
         where
-            MaybeVecLen<N>: VecLen,
+            Usize<N>: VecLen,
         {
             type Output = Vector<N, T::Output, A>;
 
@@ -46,7 +46,7 @@ macro_loop! {
             ARhs: VecAlignment,
         > @op_trait<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
         where
-            MaybeVecLen<N>: VecLen,
+            Usize<N>: VecLen,
         {
             type Output = Vector<N, T::Output, A>;
 
@@ -63,7 +63,7 @@ macro_loop! {
         impl<const N: usize, T: Scalar + @op_assign_trait<TRhs>, A: VecAlignment, TRhs: Scalar, ARhs: VecAlignment>
         @op_assign_trait<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
         where
-            MaybeVecLen<N>: VecLen,
+            Usize<N>: VecLen,
         {
             fn @op_assign_fn(&mut self, rhs: Vector<N, TRhs, ARhs>) {
                 for i in 0..N {
@@ -87,7 +87,7 @@ macro_loop! {
             Rhs: Scalar,
         > @op_trait<Rhs> for Vector<N, T, A>
         where
-            MaybeVecLen<N>: VecLen,
+            Usize<N>: VecLen,
         {
             type Output = <Self as @op_trait<Vector<N, Rhs, A>>>::Output;
 
@@ -102,7 +102,7 @@ macro_loop! {
         impl<const N: usize, T: Scalar + @op_assign_trait<Rhs>, A: VecAlignment, Rhs: Scalar>
             @op_assign_trait<Rhs> for Vector<N, T, A>
         where
-            MaybeVecLen<N>: VecLen,
+            Usize<N>: VecLen,
         {
             fn @op_assign_fn(&mut self, rhs: Rhs) {
                 self.@op_assign_fn(Vector::<N, Rhs, A>::splat(rhs))

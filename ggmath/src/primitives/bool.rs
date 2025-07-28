@@ -10,7 +10,7 @@ impl Scalar for bool {
 
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub const FALSE: Self = Self::from_array([false; N]);
     pub const TRUE: Self = Self::from_array([true; N]);

@@ -10,7 +10,7 @@ impl Scalar for Ordering {
 
 impl<const N: usize, A: VecAlignment> Vector<N, Ordering, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub const LESS: Self = Self::from_array([Ordering::Less; N]);
     pub const EQUAL: Self = Self::from_array([Ordering::Equal; N]);

@@ -1,7 +1,5 @@
 use super::*;
 
-pub use elain::Align;
-
 /// Sealed trait for the alignment rules of a vector.
 /// - Doesn't affect the outer vector API, just the inner implementation.
 /// - Use the [```Vec2```], [```Vec3```], [```Vec4```] type aliases for the default alignment.
@@ -66,7 +64,7 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
     /// In ```VecPacked```: ```InnerVector = [T; N]```.
     /// for a packed vector, the compiler knows that ```packed_vector.0``` (the inner value) is always a ```[T; N]```.
     ///
-    /// in ```VecAligned```: ```InnerVector = <MaybeVecLen<N> as VecLen>::InnerAlignedVector<T>```.
+    /// in ```VecAligned```: ```InnerVector = <Usize<N> as VecLen>::InnerAlignedVector<T>```.
     /// for an aligned vector, the compiler doesn't know the inner type unless ```N``` is known.
     /// This is because Rust doesn't have a single generic type capable of representing different sizes and alignments.
     ///
@@ -75,9 +73,9 @@ pub trait VecAlignment: Seal + Sized + 'static + Send + Sync {
     /// Why is the order ```Vector``` => ```VecAlignment``` => ```VecLen```?
     /// Why not ```Vector``` => ```VecLen``` => ```VecAlignment```?
     /// So that the compiler knows a packed vector is always an array.
-    type Alignment<const N: usize, T: Scalar>: Construct
+    type Alignment<const N: usize, T: Scalar>: AlignTrait
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
 
 /// See [```VecAlignment```].
@@ -104,9 +102,9 @@ impl VecAlignment for VecAligned {
     const IS_ALIGNED: bool = true;
 
     type Alignment<const N: usize, T: Scalar>
-        = <MaybeVecLen<N> as VecLen>::Alignment<T>
+        = <Usize<N> as VecLen>::Alignment<T>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
 
 /// See [```VecAlignment```].
@@ -129,14 +127,14 @@ impl VecAlignment for VecPacked {
     const IS_ALIGNED: bool = false;
 
     type Alignment<const N: usize, T: Scalar>
-        = ()
+        = Align<1>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Creates an aligned vector from ```self```.
     /// - Cost: Nothing if ```self``` is already aligned. If ```self``` is packed, moves the vector to satisfy the alignment.

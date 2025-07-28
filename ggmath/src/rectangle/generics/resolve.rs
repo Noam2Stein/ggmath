@@ -4,7 +4,7 @@ use super::*;
 
 pub enum ResolvedRectangle<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     Cornered(Rectangle<N, T, A, RectCornered>),
     Centered(Rectangle<N, T, A, RectCentered>),
@@ -13,7 +13,7 @@ where
 
 pub enum ResolvedRectangleRef<'a, const N: usize, T: RectScalar, A: VecAlignment>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     Cornered(&'a Rectangle<N, T, A, RectCornered>),
     Centered(&'a Rectangle<N, T, A, RectCentered>),
@@ -22,7 +22,7 @@ where
 
 pub enum ResolvedRectangleMut<'a, const N: usize, T: RectScalar, A: VecAlignment>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     Cornered(&'a mut Rectangle<N, T, A, RectCornered>),
     Centered(&'a mut Rectangle<N, T, A, RectCentered>),
@@ -31,26 +31,26 @@ where
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const fn resolve(self) -> ResolvedRectangle<N, T, A> {
         unsafe {
-            if R::IS_CORNERED {
-                ResolvedRectangle::Cornered(transmute_copy::<
+            match R::ENUM {
+                RectReprEnum::Cornered => ResolvedRectangle::Cornered(transmute_copy::<
                     Rectangle<N, T, A, R>,
                     Rectangle<N, T, A, RectCornered>,
-                >(&self))
-            } else if R::IS_CENTERED {
-                ResolvedRectangle::Centered(transmute_copy::<
+                >(&self)),
+
+                RectReprEnum::Centered => ResolvedRectangle::Centered(transmute_copy::<
                     Rectangle<N, T, A, R>,
                     Rectangle<N, T, A, RectCentered>,
-                >(&self))
-            } else {
-                ResolvedRectangle::MinMaxed(transmute_copy::<
+                >(&self)),
+
+                RectReprEnum::MinMaxed => ResolvedRectangle::MinMaxed(transmute_copy::<
                     Rectangle<N, T, A, R>,
                     Rectangle<N, T, A, RectMinMaxed>,
-                >(&self))
+                >(&self)),
             }
         }
     }
@@ -58,21 +58,21 @@ where
     #[inline(always)]
     pub const fn resolve_ref(&self) -> ResolvedRectangleRef<N, T, A> {
         unsafe {
-            if R::IS_CORNERED {
-                ResolvedRectangleRef::Cornered(transmute::<
+            match R::ENUM {
+                RectReprEnum::Cornered => ResolvedRectangleRef::Cornered(transmute::<
                     &Rectangle<N, T, A, R>,
                     &Rectangle<N, T, A, RectCornered>,
-                >(self))
-            } else if R::IS_CENTERED {
-                ResolvedRectangleRef::Centered(transmute::<
+                >(self)),
+
+                RectReprEnum::Centered => ResolvedRectangleRef::Centered(transmute::<
                     &Rectangle<N, T, A, R>,
                     &Rectangle<N, T, A, RectCentered>,
-                >(self))
-            } else {
-                ResolvedRectangleRef::MinMaxed(transmute::<
+                >(self)),
+
+                RectReprEnum::MinMaxed => ResolvedRectangleRef::MinMaxed(transmute::<
                     &Rectangle<N, T, A, R>,
                     &Rectangle<N, T, A, RectMinMaxed>,
-                >(self))
+                >(self)),
             }
         }
     }
@@ -80,21 +80,21 @@ where
     #[inline(always)]
     pub const fn resolve_repr_mut(&mut self) -> ResolvedRectangleMut<N, T, A> {
         unsafe {
-            if R::IS_CORNERED {
-                ResolvedRectangleMut::Cornered(transmute::<
+            match R::ENUM {
+                RectReprEnum::Cornered => ResolvedRectangleMut::Cornered(transmute::<
                     &mut Rectangle<N, T, A, R>,
                     &mut Rectangle<N, T, A, RectCornered>,
-                >(self))
-            } else if R::IS_CENTERED {
-                ResolvedRectangleMut::Centered(transmute::<
+                >(self)),
+
+                RectReprEnum::Centered => ResolvedRectangleMut::Centered(transmute::<
                     &mut Rectangle<N, T, A, R>,
                     &mut Rectangle<N, T, A, RectCentered>,
-                >(self))
-            } else {
-                ResolvedRectangleMut::MinMaxed(transmute::<
+                >(self)),
+
+                RectReprEnum::MinMaxed => ResolvedRectangleMut::MinMaxed(transmute::<
                     &mut Rectangle<N, T, A, R>,
                     &mut Rectangle<N, T, A, RectMinMaxed>,
-                >(self))
+                >(self)),
             }
         }
     }
@@ -105,20 +105,20 @@ where
         centered: Rectangle<N, T, A, RectCentered>,
         min_maxed: Rectangle<N, T, A, RectMinMaxed>,
     ) -> Self {
-        if R::IS_CORNERED {
-            unsafe {
+        match R::ENUM {
+            RectReprEnum::Cornered => unsafe {
                 transmute_copy::<Rectangle<N, T, A, RectCornered>, Rectangle<N, T, A, R>>(&cornered)
-            }
-        } else if R::IS_CENTERED {
-            unsafe {
+            },
+
+            RectReprEnum::Centered => unsafe {
                 transmute_copy::<Rectangle<N, T, A, RectCentered>, Rectangle<N, T, A, R>>(&centered)
-            }
-        } else {
-            unsafe {
+            },
+
+            RectReprEnum::MinMaxed => unsafe {
                 transmute_copy::<Rectangle<N, T, A, RectMinMaxed>, Rectangle<N, T, A, R>>(
                     &min_maxed,
                 )
-            }
+            },
         }
     }
 }

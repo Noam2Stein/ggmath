@@ -1,4 +1,6 @@
-use crate::{construct::*, scalar::*, vector::*};
+use derive_where::derive_where;
+
+use super::{construct::*, scalar::*, vector::*, *};
 
 mod api_core;
 mod generics;
@@ -7,10 +9,11 @@ mod impl_std;
 pub use api_core::*;
 pub use generics::*;
 
+#[derive_where(Clone, Copy)]
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     inner: M::InnerMatrix<C, R, T, A>,
 }

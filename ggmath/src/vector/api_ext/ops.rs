@@ -4,7 +4,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub fn sum(self) -> T

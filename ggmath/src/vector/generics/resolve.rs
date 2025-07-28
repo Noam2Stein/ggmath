@@ -5,7 +5,7 @@ use super::*;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResolvedVector<const N: usize, T: Scalar>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     Aligned(Vector<N, T, VecAligned>),
     Packed(Vector<N, T, VecPacked>),
@@ -14,7 +14,7 @@ where
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResolvedVectorRef<'a, const N: usize, T: Scalar>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     Aligned(&'a Vector<N, T, VecAligned>),
     Packed(&'a Vector<N, T, VecPacked>),
@@ -23,7 +23,7 @@ where
 #[derive(Debug, PartialEq, Eq)]
 pub enum ResolvedVectorMut<'a, const N: usize, T: Scalar>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     Aligned(&'a mut Vector<N, T, VecAligned>),
     Packed(&'a mut Vector<N, T, VecPacked>),
@@ -31,7 +31,7 @@ where
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub const fn resolve(self) -> ResolvedVector<N, T> {

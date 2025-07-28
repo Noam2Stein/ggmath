@@ -5,8 +5,8 @@ use super::*;
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn get_cell(self, column_idx: usize, row_idx: usize) -> Option<T> {
@@ -41,8 +41,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_cell_unchecked(self, column_idx: usize, row_idx: usize) -> T {
@@ -97,8 +97,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn get_cell_ref(&self, column_idx: usize, row_idx: usize) -> Option<&T> {
@@ -112,8 +112,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn get_column_ref(&self, column_idx: usize) -> Option<&Vector<R, T, A>> {
@@ -154,7 +154,7 @@ where
         column_idx: usize,
     ) -> Option<&Matrix<C_OUT, R, T, A, ColumnMajor>>
     where
-        MaybeVecLen<C_OUT>: VecLen,
+        Usize<C_OUT>: VecLen,
     {
         if column_idx + C_OUT <= C {
             Some(unsafe { self.get_matc_ref_unchecked(column_idx) })
@@ -166,8 +166,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn get_row_ref(&self, row_idx: usize) -> Option<&Vector<C, T, A>> {
@@ -199,7 +199,7 @@ where
         row_idx: usize,
     ) -> Option<&Matrix<C, R_OUT, T, A, RowMajor>>
     where
-        MaybeVecLen<R_OUT>: VecLen,
+        Usize<R_OUT>: VecLen,
     {
         if row_idx + R_OUT <= R {
             Some(unsafe { self.get_matr_ref_unchecked(row_idx) })
@@ -214,8 +214,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_cell_ref_unchecked(&self, column_idx: usize, row_idx: usize) -> &T {
@@ -235,8 +235,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_column_ref_unchecked(&self, column_idx: usize) -> &Vector<R, T, A> {
@@ -279,7 +279,7 @@ where
         column_idx: usize,
     ) -> &Matrix<C_OUT, R, T, A, ColumnMajor>
     where
-        MaybeVecLen<C_OUT>: VecLen,
+        Usize<C_OUT>: VecLen,
     {
         unsafe {
             (self.inner.as_ptr() as *const Matrix<C_OUT, R, T, A, ColumnMajor>)
@@ -292,8 +292,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_row_ref_unchecked(&self, row_idx: usize) -> &Vector<C, T, A> {
@@ -330,7 +330,7 @@ where
         row_idx: usize,
     ) -> &Matrix<C, R_OUT, T, A, RowMajor>
     where
-        MaybeVecLen<R_OUT>: VecLen,
+        Usize<R_OUT>: VecLen,
     {
         unsafe {
             (self.inner.as_ptr() as *const Matrix<C, R_OUT, T, A, RowMajor>)
@@ -346,8 +346,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn get_cell_mut(&mut self, column_idx: usize, row_idx: usize) -> Option<&mut T> {
@@ -361,8 +361,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn get_column_mut(&mut self, column_idx: usize) -> Option<&mut Vector<R, T, A>> {
@@ -376,8 +376,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const fn get_row_mut(&mut self, row_idx: usize) -> Option<&mut Vector<C, T, A>> {
@@ -394,8 +394,8 @@ where
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
     Matrix<C, R, T, A, M>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_cell_mut_unchecked(
@@ -419,8 +419,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, ColumnMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_column_mut_unchecked(
@@ -439,8 +439,8 @@ where
 
 impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment> Matrix<C, R, T, A, RowMajor>
 where
-    MaybeVecLen<C>: VecLen,
-    MaybeVecLen<R>: VecLen,
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 {
     #[inline(always)]
     pub const unsafe fn get_row_mut_unchecked(&mut self, row_idx: usize) -> &mut Vector<C, T, A> {

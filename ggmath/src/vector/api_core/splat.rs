@@ -38,7 +38,7 @@ pub const fn splat4p<T: Scalar>(value: T) -> Vec4P<T> {
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     /// Creates a vector where all components are given the same value.

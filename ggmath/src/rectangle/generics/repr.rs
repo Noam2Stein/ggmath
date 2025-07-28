@@ -3,10 +3,7 @@ use derive_where::derive_where;
 use super::*;
 
 #[allow(private_bounds)]
-pub unsafe trait RectRepr: InnerRectRepr + Sized + 'static {
-    const IS_CORNERED: bool;
-    const IS_CENTERED: bool;
-}
+pub unsafe trait RectRepr: RectReprPriv + Sized + 'static {}
 
 pub struct RectCornered;
 pub struct RectCentered;
@@ -14,20 +11,23 @@ pub struct RectMinMaxed;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub fn into_cornered(self) -> Rectangle<N, T, A, RectCornered> {
         self.into_repr()
     }
+
     #[inline(always)]
     pub fn into_centered(self) -> Rectangle<N, T, A, RectCentered> {
         self.into_repr()
     }
+
     #[inline(always)]
     pub fn into_min_maxed(self) -> Rectangle<N, T, A, RectMinMaxed> {
         self.into_repr()
     }
+
     #[inline(always)]
     pub fn into_repr<ROutput: RectRepr>(self) -> Rectangle<N, T, A, ROutput> {
         match self.resolve() {
@@ -44,69 +44,75 @@ where
     }
 }
 
-pub(in crate::rectangle) trait InnerRectRepr {
-    type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>: Construct
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(in crate::rectangle) enum RectReprEnum {
+    Cornered,
+    Centered,
+    MinMaxed,
+}
+
+pub(in crate::rectangle) trait RectReprPriv {
+    const ENUM: RectReprEnum;
+
+    type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>: Construct + PartialEq
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
 
-unsafe impl RectRepr for RectCornered {
-    const IS_CORNERED: bool = true;
-    const IS_CENTERED: bool = false;
-}
-unsafe impl RectRepr for RectCentered {
-    const IS_CORNERED: bool = false;
-    const IS_CENTERED: bool = true;
-}
-unsafe impl RectRepr for RectMinMaxed {
-    const IS_CORNERED: bool = false;
-    const IS_CENTERED: bool = false;
-}
+unsafe impl RectRepr for RectCornered {}
+unsafe impl RectRepr for RectCentered {}
+unsafe impl RectRepr for RectMinMaxed {}
 
-impl InnerRectRepr for RectCornered {
+impl RectReprPriv for RectCornered {
+    const ENUM: RectReprEnum = RectReprEnum::Cornered;
+
     type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>
         = InnerCorneredRect<N, T, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
-impl InnerRectRepr for RectCentered {
+impl RectReprPriv for RectCentered {
+    const ENUM: RectReprEnum = RectReprEnum::Centered;
+
     type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>
         = InnerCenteredRect<N, T, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
-impl InnerRectRepr for RectMinMaxed {
+impl RectReprPriv for RectMinMaxed {
+    const ENUM: RectReprEnum = RectReprEnum::MinMaxed;
+
     type InnerRectangle<const N: usize, T: RectScalar, A: VecAlignment>
         = InnerMinMaxedRect<N, T, A>
     where
-        MaybeVecLen<N>: VecLen;
+        Usize<N>: VecLen;
 }
 
-#[derive_where(Clone, Copy)]
-#[derive_where(PartialEq, Eq; T)]
+#[derive_where(Clone, Copy, PartialEq)]
+#[derive_where(Eq; T)]
 pub(in crate::rectangle) struct InnerCorneredRect<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub min: Vector<N, T, A>,
     pub size: Vector<N, T, A>,
 }
 
-#[derive_where(Clone, Copy)]
-#[derive_where(PartialEq, Eq; T)]
+#[derive_where(Clone, Copy, PartialEq)]
+#[derive_where(Eq; T)]
 pub(in crate::rectangle) struct InnerMinMaxedRect<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub min: Vector<N, T, A>,
     pub max: Vector<N, T, A>,
 }
 
-#[derive_where(Clone, Copy)]
-#[derive_where(PartialEq, Eq; T)]
+#[derive_where(Clone, Copy, PartialEq)]
+#[derive_where(Eq; T)]
 pub(in crate::rectangle) struct InnerCenteredRect<const N: usize, T: RectScalar, A: VecAlignment>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     pub center: Vector<N, T, A>,
     pub extents: Vector<N, T, A>,

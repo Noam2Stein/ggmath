@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     /// Creates a vector, where each element T is the returned value from cb using that element’s index.
     #[inline(always)]

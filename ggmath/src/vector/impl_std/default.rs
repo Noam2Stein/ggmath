@@ -2,10 +2,12 @@ use super::*;
 
 impl<const N: usize, T: Scalar + Default, A: VecAlignment> Default for Vector<N, T, A>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
-    #[inline(always)]
     fn default() -> Self {
-        Vector::splat(T::default())
+        Self {
+            array: [T::default(); N],
+            _align: Default::default(),
+        }
     }
 }

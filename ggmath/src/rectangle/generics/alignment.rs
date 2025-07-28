@@ -2,7 +2,7 @@ use super::*;
 
 impl<const N: usize, T: RectScalar, A: VecAlignment, R: RectRepr> Rectangle<N, T, A, R>
 where
-    MaybeVecLen<N>: VecLen,
+    Usize<N>: VecLen,
 {
     #[inline(always)]
     pub fn align(self) -> Rectangle<N, T, VecAligned, R> {

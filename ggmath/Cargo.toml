@@ -33,7 +33,6 @@ positive_up       = [  ]
 
 [dependencies]
 derive-where  = "1.2.7"
-elain         = "0.3.1"
 macro_loop    = "0.4.1"
 splat_attribs = "1.0.0"
 
