@@ -1,8 +1,14 @@
-*** THIS CRATE HAS NO UNIT TESTS YET AND MAY STILL HAVE BUGS ***
+### Development Status
+
+Vectors are mostly stable, but other types are missing some functionality and some are missing documentation.
+
+Unit tests don't cover all functionality yet, and there are no benchmarks.
 
 # GGMath
 
 A *generic graphics math* Rust crate with precise generic math types specialized for graphics.
+
+`ggmath` has vectors, and optionally matrices, quaternions, and aabbs.
 
 ```rust
 use ggmath::*;
@@ -50,10 +56,9 @@ type SimdVec3 = Vector<3, f32, VecAligned>; // Could also just write `FVec3`
 type PackedVec3 = Vector<3, f32, VecPacked>; // Could also just write `FVec3P`
 ```
 
-Vectors have the type aliases:
-- `Vec{2/3/4}<T>` => `Vector<{2/3/4}, T, VecAligned>`
-- `Vec{2/3/4}P<T>` => `Vector<{2/3/4}, T, VecPacked>`
-- T specifc aliases through the default `primitive_aliases` feature.
+Vectors have type aliases `Vec{2/3/4}` style where `VecAligned` is the default alignment, and `VecPacked` is `Vec{2/3/4}P`.
+
+The `primitive_aliases` feature adds type aliases for Rust primitives (e.g., `FVec3`).
 
 ### Matrices
 
@@ -74,49 +79,32 @@ type Mat4x3F32Col = Matrix<4, 3, f32, VecAligned, ColMajor>; // Could just write
 type Mat2x2I32RowPacked = Matrix<2, 2, i32, VecPacked, RowMajor>; // Could just write `IMat2RP`
 ```
 
-Matricies have the type aliases:
-- `Mat{2/3/4}C<T>` => `Matrix<{2/3/4}, {2/3/4}, T, VecAligned, ColMajor>`
-- `Mat{2/3/4}R<T>` => `Matrix<{2/3/4}, {2/3/4}, T, VecAligned, RowMajor>`
-- `VecPacked` versions
-- type specific versions via the default `primitive_aliases` feature.
+Matricies have type aliases `Mat{2/3/4}{C/R}` style which end with their major axis.
 
-### Rectangles (optional feature)
+### Bounding Boxes (optional feature)
 
-Rectangles are generic over:
+The `aabb` feature adds support for axis-aligned bounding boxes.
+Aabbs can be represented in multiple ways, like by their minimum and maximum corners, or their center and size, etc.
+Because of this, `ggmath`'s aabbs are generic over their internal representation.
+
+Aabbs are generic over:
 - **Length** (`N`): number of dimensions (e.g., 2 for rectangles, 3 for boxes, etc.)
 - **Type** (`T`): e.g., `f32`, `i32`, etc. (element type)
 - **Alignment** (`A`): `VecAligned` or `VecPacked`
-- **Representation** (`R`): e.g., `RectCornered`, `RectMinMaxed`, `RectCentered`, etc. (internal layout)
-
-Rectangle support is an optional feature. Enable the `rectangle` feature in your Cargo.toml to use generic rectangles and boxes.
+- **Representation** (`R`): e.g., `AabbCornered`, `AabbMinMaxed`, `AabbCentered`
 
 ```rust
 use ggmath::*;
 
-// Cornered: min coords and size (corner, size)
-type RectF32 = Rectangle<2, f32, VecAligned, RectCornered>;
+// Cornered: minimum corner and size
+type RectF32 = Aabb<2, f32, VecAligned, AabbCornered>;
 
-// MinMaxed: min and max (min, max)
-type BoxI32Packed = Rectangle<3, i32, VecPacked, RectMinMaxed>;
+// MinMaxed: minimum and maximum corners
+type BoxI32Packed = Aabb<3, i32, VecPacked, AabbMinMaxed>;
 
 // Centered: center and extents (center, extents)
-type HyperBoxF64Packed = Rectangle<4, f64, VecPacked, RectCentered>;
+type HyperBoxF64Packed = Aabb<4, f64, VecPacked, AabbCentered>;
 ```
 
-#### Rectangle Type Aliases
-
-```rust
-use ggmath::*;
-
-let r: IRect2 = IRect2::from_min_max(vec2!(1, 1), vec2!(3, 3)); // FRect2 = Rectangle<2, f32, VecAligned, RectCornered>
-```
-
----
-
-## Stability & Development Status
-
-- actively updated.
-- non final API.
-- there are incomplete features (like quaternions).
-- there is missing documentation.
-- there may be bugs because there are no tests yet.
+Aabbs have type aliases where `Aabb<2, ..>` is named `Rect` unlike `Aabb{3/4}`.
+`AabbCornered` is the default representation and `Rect{C/M}` stand for `AabbCentered` / `AabbMinMaxed`.
