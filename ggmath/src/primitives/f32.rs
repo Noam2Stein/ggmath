@@ -179,6 +179,109 @@ macro_loop! {
             pub fn atanh(self) -> Self {
                 self.map(@float::atanh)
             }
+
+            /// Returns the magnitude of the vector.
+            #[inline(always)]
+            pub fn mag(self) -> @float {
+                self.map(|x| x * x).sum().sqrt()
+            }
+            /// Returns the square of the magnitude of the vector.
+            ///
+            /// This is faster than `mag` because it doesn't require performing a square root.
+            /// So when doing things like comparing magnitudes, use this instead of `mag`.
+            #[inline(always)]
+            pub fn square_mag(self) -> @float {
+                self.map(|x| x * x).sum()
+            }
+
+            /// Returns a vector with the same direction as the original, but with a magnitude of 1.
+            ///
+            /// Calling this on a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn normalize(self) -> Self {
+                self / self.mag()
+            }
+
+            /// Returns a vector with the same direction as the original, but with the given magnitude.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn with_mag(self, mag: @float) -> Self {
+                self / self.mag() * mag
+            }
+            /// Returns a vector with the same direction as the original, but with the given square magnitude.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn with_square_mag(self, square_mag: @float) -> Self {
+                self.with_mag(square_mag.sqrt())
+            }
+
+            /// Returns a vector with the same direction as the original, but with the magnitude at least the given value.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn with_min_mag(self, min_mag: @float) -> Self {
+                if self.square_mag() < min_mag * min_mag {
+                    self.with_mag(min_mag)
+                } else {
+                    self
+                }
+            }
+            /// Returns a vector with the same direction as the original, but with the magnitude at most the given value.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn with_max_mag(self, max_mag: @float) -> Self {
+                if self.square_mag() > max_mag * max_mag {
+                    self.with_mag(max_mag)
+                } else {
+                    self
+                }
+            }
+            /// Returns a vector with the same direction as the original, but with the magnitude clamped between the given values.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn clamp_mag(self, min_mag: @float, max_mag: @float) -> Self {
+                if self.square_mag() < min_mag * min_mag {
+                    self.with_mag(min_mag)
+                } else if self.square_mag() > max_mag * max_mag {
+                    self.with_mag(max_mag)
+                } else {
+                    self
+                }
+            }
+
+            /// Returns a vector with the same direction as the original, but with the square magnitude at least the given value.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn with_min_square_mag(self, min_square_mag: @float) -> Self {
+                if self.square_mag() < min_square_mag {
+                    self.with_square_mag(min_square_mag)
+                } else {
+                    self
+                }
+            }
+            /// Returns a vector with the same direction as the original, but with the square magnitude at most the given value.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn with_max_square_mag(self, max_square_mag: @float) -> Self {
+                if self.square_mag() > max_square_mag {
+                    self.with_square_mag(max_square_mag)
+                } else {
+                    self
+                }
+            }
+            /// Returns a vector with the same direction as the original, but with the square magnitude clamped between the given values.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            pub fn clamp_square_mag(self, min_square_mag: @float, max_square_mag: @float) -> Self {
+                self.with_min_square_mag(min_square_mag).with_max_square_mag(max_square_mag)
+            }
         }
     }
 }

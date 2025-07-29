@@ -56,6 +56,13 @@ macro_loop! {
                 self.map_rhs(other, @int::max)
             }
 
+            /// Returns the square of the magnitude of the vector.
+            ///
+            /// The `mag` method does not exist for ints because it requires a square root.
+            #[inline(always)]
+            pub fn square_mag(self) -> @int {
+                self.map(|x| x * x).sum()
+            }
         }
     }
 }
