@@ -15,7 +15,7 @@ pub struct ColMajor;
 pub struct RowMajor;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(in crate::matrix) enum MatrixMajorAxisEnum {
+pub(crate) enum MatrixMajorAxisEnum {
     ColumnMajor,
     RowMajor,
 }
