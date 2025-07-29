@@ -1,8 +1,11 @@
 ### Development Status
 
-Vectors are mostly stable, but other types are missing some functionality and some are missing documentation.
-
-Unit tests don't cover all functionality yet, and there are no benchmarks.
+| Type        | Declaration | Functionality  | Documentation | Tests          | Benchmarks |
+|-------------|-------------|----------------|---------------|----------------|------------|
+| Vectors     | 🏁 Stable  | ✅ Mostly done | 🏁 100%      | ✅ Mostly Done | ❌ Nothing |
+| Matrices    | 🏁 Stable  | ❌ Only layout | ❌ Not much  | ❌ Nothing     | ❌ Nothing |
+| Quaternions | 🏁 Stable  | ❌ Nothing     | ❌ Nothing   | ❌ Nothing     | ❌ Nothing |
+| Aabbs       | 🏁 Stable  | ✅ Mostly done | ❌ Not much  | ❌ Nothing     | ❌ Nothing |
 
 # GGMath
 
@@ -108,3 +111,7 @@ type HyperBoxF64Packed = Aabb<4, f64, VecPacked, AabbCentered>;
 
 Aabbs have type aliases where `Aabb<2, ..>` is named `Rect` unlike `Aabb{3/4}`.
 `AabbCornered` is the default representation and `Rect{C/M}` stand for `AabbCentered` / `AabbMinMaxed`.
+
+### Crate Integration
+
+`ggmath` currently integrates with `serde` and `crevice`.
