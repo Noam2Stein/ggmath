@@ -15,6 +15,22 @@ impl<T: Scalar, A: VecAlignment> Quaternion<T, A> {
 
 // A
 
+impl<T: Scalar, A: VecAlignment> Quaternion<T, A> {
+    #[inline(always)]
+    pub const fn align(self) -> Quaternion<T, VecAligned> {
+        Quaternion {
+            inner: self.inner.align(),
+        }
+    }
+
+    #[inline(always)]
+    pub const fn unalign(self) -> Quaternion<T, VecPacked> {
+        Quaternion {
+            inner: self.inner.unalign(),
+        }
+    }
+}
+
 impl<T: Scalar> From<Quaternion<T, VecAligned>> for Quaternion<T, VecPacked> {
     #[inline(always)]
     fn from(value: Quaternion<T, VecAligned>) -> Self {
@@ -29,6 +45,17 @@ impl<T: Scalar> From<Quaternion<T, VecPacked>> for Quaternion<T, VecAligned> {
     fn from(value: Quaternion<T, VecPacked>) -> Self {
         Quaternion {
             inner: value.inner.into(),
+        }
+    }
+}
+
+// Layout
+
+impl<T: Scalar, A: VecAlignment> Quaternion<T, A> {
+    #[inline(always)]
+    pub const fn to_layout<A2: VecAlignment>(self) -> Quaternion<T, A2> {
+        Quaternion {
+            inner: self.inner.to_layout(),
         }
     }
 }

@@ -2,6 +2,111 @@ use std::mem::{transmute, transmute_copy};
 
 use super::*;
 
+// Length
+
+/// Trait that marks a [`Usize`] value as a valid length for a vector.
+///
+/// This trait is implemented for `2`, `3` and `4`.
+/// If this trait were to be implemented for an additional value, it would be a fully supported vector/matrix length/dimension.
+///
+/// In the future if rust has more powerful const-generics,
+/// this trait could be deleted and all `usize` values will be valid vector lengths.
+pub unsafe trait VecLen {
+    /// Is used to "redirect" the vector to its alignment marker-type through this pattern:
+    ///
+    /// trait VecAlignment {
+    ///     type Alignment<const N: usize, T: Scalar>: AlignTrait;
+    /// }
+    ///
+    /// trait VecLen {
+    ///     type Alignment<T: Scalar>: AlignTrait;
+    /// }
+    ///
+    /// trait Scalar {
+    ///     type Vec2Alignment: AlignTrait;
+    ///     type Vec3Alignment: AlignTrait;
+    ///     type Vec4Alignment: AlignTrait;
+    /// }
+    type Alignment<T: Scalar>: AlignTrait;
+}
+
+unsafe impl VecLen for Usize<2> {
+    type Alignment<T: Scalar> = T::Vec2Alignment;
+}
+
+unsafe impl VecLen for Usize<3> {
+    type Alignment<T: Scalar> = T::Vec3Alignment;
+}
+
+unsafe impl VecLen for Usize<4> {
+    type Alignment<T: Scalar> = T::Vec4Alignment;
+}
+
+// Alignment
+
+/// All `ggmath` types are generic over the *marker* type `A: VecAlignment`.
+///
+/// The value of `A` decides whether or not the vector is aligned for SIMD (see <https://doc.rust-lang.org/reference/type-layout.html>).
+///
+/// This marker trait is implemented by `VecAligned` and `VecPacked`.
+///
+/// `VecAligned` means that the vector is aligned for SIMD.
+/// This does not promise a specific alignment.
+/// The alignment is selected by the `Scalar` implementation,
+/// to be whatever is most efficient for the target platform's SIMD.
+///
+/// `VecPacked` means that the vector is not aligned for SIMD, and is identical in memory to `[T; N]`.
+#[allow(private_bounds)]
+pub unsafe trait VecAlignment: Sized + 'static + Send + Sync {
+    /// Is used internally by [`Vector`] to know if the vector is aligned in a generic function.
+    const IS_ALIGNED: bool;
+
+    /// Is used to "redirect" the vector to its alignment marker-type through this pattern:
+    ///
+    /// trait VecAlignment {
+    ///     type Alignment<const N: usize, T: Scalar>: AlignTrait;
+    /// }
+    ///
+    /// trait VecLen {
+    ///     type Alignment<T: Scalar>: AlignTrait;
+    /// }
+    ///
+    /// trait Scalar {
+    ///     type Vec2Alignment: AlignTrait;
+    ///     type Vec3Alignment: AlignTrait;
+    ///     type Vec4Alignment: AlignTrait;
+    /// }
+    type Alignment<const N: usize, T: Scalar>: AlignTrait
+    where
+        Usize<N>: VecLen;
+}
+
+/// See [`VecAlignment`].
+pub struct VecAligned;
+
+/// See [`VecAlignment`].
+pub struct VecPacked;
+
+unsafe impl VecAlignment for VecAligned {
+    const IS_ALIGNED: bool = true;
+
+    type Alignment<const N: usize, T: Scalar>
+        = <Usize<N> as VecLen>::Alignment<T>
+    where
+        Usize<N>: VecLen;
+}
+
+unsafe impl VecAlignment for VecPacked {
+    const IS_ALIGNED: bool = false;
+
+    type Alignment<const N: usize, T: Scalar>
+        = Align<1>
+    where
+        Usize<N>: VecLen;
+}
+
+// Resolve
+
 /// A vector enum that is split based on memory-layout generics.
 ///
 /// This is used to implement memory-layout generic functions by "matching" the generic arguments:

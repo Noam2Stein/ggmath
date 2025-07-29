@@ -2,8 +2,7 @@ use derive_where::derive_where;
 
 use super::{scalar::*, vector::*};
 
-mod from_into;
-mod generics;
+mod conversion;
 mod new;
 mod ops;
 
