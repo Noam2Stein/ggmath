@@ -1,5 +1,19 @@
 use ggmath::*;
 
+const _: () = assert!(size_of::<FVec2>() == 2 * size_of::<f32>());
+const _: () = assert!(size_of::<FVec3>() == 4 * size_of::<f32>());
+const _: () = assert!(size_of::<FVec4>() == 4 * size_of::<f32>());
+const _: () = assert!(size_of::<FVec2P>() == 2 * size_of::<f32>());
+const _: () = assert!(size_of::<FVec3P>() == 3 * size_of::<f32>());
+const _: () = assert!(size_of::<FVec4P>() == 4 * size_of::<f32>());
+
+const _: () = assert!(size_of::<IVec2>() == 2 * size_of::<i32>());
+const _: () = assert!(size_of::<IVec3>() == 4 * size_of::<i32>());
+const _: () = assert!(size_of::<IVec4>() == 4 * size_of::<i32>());
+const _: () = assert!(size_of::<IVec2P>() == 2 * size_of::<i32>());
+const _: () = assert!(size_of::<IVec3P>() == 3 * size_of::<i32>());
+const _: () = assert!(size_of::<IVec4P>() == 4 * size_of::<i32>());
+
 // Construction and conversion tests
 #[test]
 fn test_vector_construction() {

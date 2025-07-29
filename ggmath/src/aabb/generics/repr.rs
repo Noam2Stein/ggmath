@@ -73,6 +73,7 @@ impl AabbReprPriv for AabbMinMaxed {
         Usize<N>: VecLen;
 }
 
+#[repr(C)]
 #[derive_where(Clone, Copy, PartialEq)]
 #[derive_where(Eq; T)]
 pub(crate) struct InnerCorneredAabb<const N: usize, T: AabbScalar, A: VecAlignment>
@@ -83,6 +84,7 @@ where
     pub size: Vector<N, T, A>,
 }
 
+#[repr(C)]
 #[derive_where(Clone, Copy, PartialEq)]
 #[derive_where(Eq; T)]
 pub(crate) struct InnerMinMaxedAabb<const N: usize, T: AabbScalar, A: VecAlignment>
@@ -93,6 +95,7 @@ where
     pub max: Vector<N, T, A>,
 }
 
+#[repr(C)]
 #[derive_where(Clone, Copy, PartialEq)]
 #[derive_where(Eq; T)]
 pub(crate) struct InnerCenteredAabb<const N: usize, T: AabbScalar, A: VecAlignment>
