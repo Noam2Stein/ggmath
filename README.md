@@ -1,13 +1,13 @@
-### Development Status
+# GGMath
+
+## Development Status
 
 | Type        | Declaration | Functionality    | Documentation | Tests          | Benchmarks |
 |-------------|-------------|------------------|---------------|----------------|------------|
-| Vectors     | 🏁 Stable  | ✅ Mostly stable | 🏁 100%      | 🏁             | ❌ None    |
+| Vectors     | 🏁 Stable  | ✅ Mostly stable | 🏁 100%      | ✅ Mostly Done | ❌ None    |
 | Matrices    | 🏁 Stable  | ❌ Only layout   | ❌ Not much  | ❌ None        | ❌ None    |
 | Quaternions | 🏁 Stable  | ❌ Only layout   | ❌ Not much  | ❌ None        | ❌ None    |
 | Aabbs       | 🏁 Stable  | ✅ Mostly done   | ❌ Not much  | ❌ None        | ❌ None    |
-
-# GGMath
 
 A *generic graphics math* Rust crate with precise generic math types specialized for graphics.
 
