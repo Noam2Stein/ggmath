@@ -14,6 +14,8 @@ const _: () = assert!(size_of::<IVec2P>() == 2 * size_of::<i32>());
 const _: () = assert!(size_of::<IVec3P>() == 3 * size_of::<i32>());
 const _: () = assert!(size_of::<IVec4P>() == 4 * size_of::<i32>());
 
+// Thanks ChatGPT for the tests!
+
 // Construction and conversion tests
 #[test]
 fn test_vector_construction() {
@@ -693,4 +695,356 @@ fn test_vector_div_assign() {
     let tested = vec;
     let manual = vec3!(5, 6, 7);
     assert_eq!(tested, manual);
+}
+
+// Magnitude and normalization tests
+#[test]
+fn test_vector_mag() {
+    // Test simple 3-4-5 right triangle
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.mag();
+    let expected = 5.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Test unit vector
+    let vec = vec3!(1.0f32, 0.0, 0.0);
+    let tested = vec.mag();
+    let expected = 1.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Test zero vector
+    let vec = vec3!(0.0f32, 0.0, 0.0);
+    let tested = vec.mag();
+    let expected = 0.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Test negative components
+    let vec = vec2!(-3.0f32, -4.0);
+    let tested = vec.mag();
+    let expected = 5.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Test f64 precision
+    let vec = vec3!(1.0f64, 1.0, 1.0);
+    let tested = vec.mag();
+    let expected = (3.0f64).sqrt();
+    assert!((tested - expected).abs() < f64::EPSILON);
+}
+
+#[test]
+fn test_vector_square_mag() {
+    // Test simple 3-4-5 right triangle
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.square_mag();
+    let expected = 25.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Test unit vector
+    let vec = vec3!(1.0f32, 0.0, 0.0);
+    let tested = vec.square_mag();
+    let expected = 1.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Test zero vector
+    let vec = vec3!(0.0f32, 0.0, 0.0);
+    let tested = vec.square_mag();
+    let expected = 0.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Test negative components (should be same as positive)
+    let vec = vec2!(-3.0f32, -4.0);
+    let tested = vec.square_mag();
+    let expected = 25.0;
+    assert!((tested - expected).abs() < f32::EPSILON);
+
+    // Verify square_mag is faster than mag squared (same result)
+    let vec = vec4!(2.0f32, 3.0, 6.0, 1.0);
+    let mag_squared = vec.mag() * vec.mag();
+    let square_mag = vec.square_mag();
+    assert!((mag_squared - square_mag).abs() < f32::EPSILON);
+}
+
+#[test]
+fn test_vector_normalize() {
+    // Test normalization of simple vector
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.normalize();
+    let expected = vec2!(0.6, 0.8); // 3/5, 4/5
+    assert!((tested.x() - expected.x()).abs() < 0.0001);
+    assert!((tested.y() - expected.y()).abs() < 0.0001);
+
+    // Verify normalized vector has magnitude 1
+    let magnitude = tested.mag();
+    assert!((magnitude - 1.0).abs() < 0.0001);
+
+    // Test normalizing unit vector (should remain unchanged)
+    let vec = vec3!(1.0f32, 0.0, 0.0);
+    let tested = vec.normalize();
+    let expected = vec3!(1.0, 0.0, 0.0);
+    assert!((tested.x() - expected.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - expected.y()).abs() < f32::EPSILON);
+    assert!((tested.z() - expected.z()).abs() < f32::EPSILON);
+
+    // Test with negative components
+    let vec = vec2!(-6.0f32, -8.0);
+    let tested = vec.normalize();
+    let expected = vec2!(-0.6, -0.8);
+    assert!((tested.x() - expected.x()).abs() < 0.0001);
+    assert!((tested.y() - expected.y()).abs() < 0.0001);
+
+    // Verify normalized magnitude is 1
+    let magnitude = tested.mag();
+    assert!((magnitude - 1.0).abs() < 0.0001);
+}
+
+#[test]
+fn test_vector_with_mag() {
+    // Test scaling to specific magnitude
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.with_mag(10.0);
+    let expected_mag = 10.0;
+    let actual_mag = tested.mag();
+    assert!((actual_mag - expected_mag).abs() < 0.0001);
+
+    // Verify direction is preserved (should be 6, 8 for mag 10)
+    let expected = vec2!(6.0, 8.0);
+    assert!((tested.x() - expected.x()).abs() < 0.0001);
+    assert!((tested.y() - expected.y()).abs() < 0.0001);
+
+    // Test with unit vector
+    let vec = vec3!(1.0f32, 0.0, 0.0);
+    let tested = vec.with_mag(5.0);
+    let expected = vec3!(5.0, 0.0, 0.0);
+    assert!((tested.x() - expected.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - expected.y()).abs() < f32::EPSILON);
+    assert!((tested.z() - expected.z()).abs() < f32::EPSILON);
+
+    // Test magnitude 0
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.with_mag(0.0);
+    let expected = vec2!(0.0, 0.0);
+    assert!((tested.x() - expected.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - expected.y()).abs() < f32::EPSILON);
+}
+
+#[test]
+fn test_vector_with_square_mag() {
+    // Test scaling to specific square magnitude
+    let vec = vec2!(3.0f32, 4.0); // original square_mag = 25
+    let tested = vec.with_square_mag(100.0); // target square_mag = 100
+    let expected_square_mag = 100.0;
+    let actual_square_mag = tested.square_mag();
+    assert!((actual_square_mag - expected_square_mag).abs() < 0.001);
+
+    // Verify magnitude is sqrt(100) = 10
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 10.0).abs() < 0.001);
+
+    // Test with unit vector
+    let vec = vec3!(1.0f32, 0.0, 0.0);
+    let tested = vec.with_square_mag(25.0);
+    let expected = vec3!(5.0, 0.0, 0.0);
+    assert!((tested.x() - expected.x()).abs() < 0.001);
+    assert!((tested.y() - expected.y()).abs() < f32::EPSILON);
+    assert!((tested.z() - expected.z()).abs() < f32::EPSILON);
+}
+
+#[test]
+fn test_vector_with_min_mag() {
+    // Test vector already above minimum
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.with_min_mag(3.0);
+    assert!((tested.x() - vec.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - vec.y()).abs() < f32::EPSILON);
+
+    // Test vector below minimum
+    let vec = vec2!(1.0f32, 0.0);
+    let tested = vec.with_min_mag(5.0);
+    let expected = vec2!(5.0, 0.0);
+    assert!((tested.x() - expected.x()).abs() < 0.0001);
+    assert!((tested.y() - expected.y()).abs() < f32::EPSILON);
+
+    // Verify new magnitude
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 5.0).abs() < 0.0001);
+
+    // Test with very small vector
+    let vec = vec3!(0.1f32, 0.1, 0.1);
+    let tested = vec.with_min_mag(2.0);
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 2.0).abs() < 0.001);
+}
+
+#[test]
+fn test_vector_with_max_mag() {
+    // Test vector already below maximum
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.with_max_mag(10.0);
+    assert!((tested.x() - vec.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - vec.y()).abs() < f32::EPSILON);
+
+    // Test vector above maximum
+    let vec = vec2!(6.0f32, 8.0);
+    let tested = vec.with_max_mag(5.0);
+    let expected = vec2!(3.0, 4.0);
+    assert!((tested.x() - expected.x()).abs() < 0.0001);
+    assert!((tested.y() - expected.y()).abs() < 0.0001);
+
+    // Verify new magnitude
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 5.0).abs() < 0.0001);
+
+    // Test with very large vector
+    let vec = vec3!(100.0f32, 100.0, 100.0);
+    let tested = vec.with_max_mag(1.0);
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 1.0).abs() < 0.001);
+}
+
+#[test]
+fn test_vector_clamp_mag() {
+    // Test vector within range
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.clamp_mag(2.0, 10.0);
+    assert!((tested.x() - vec.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - vec.y()).abs() < f32::EPSILON);
+
+    // Test vector below minimum
+    let vec = vec2!(0.6f32, 0.8);
+    let tested = vec.clamp_mag(3.0, 10.0);
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 3.0).abs() < 0.001);
+
+    // Test vector above maximum
+    let vec = vec2!(12.0f32, 16.0);
+    let tested = vec.clamp_mag(3.0, 10.0);
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 10.0).abs() < 0.001);
+
+    // Test edge case where min and max are the same
+    let vec = vec3!(1.0f32, 1.0, 1.0);
+    let tested = vec.clamp_mag(5.0, 5.0);
+    let actual_mag = tested.mag();
+    assert!((actual_mag - 5.0).abs() < 0.001);
+}
+
+#[test]
+fn test_vector_with_min_square_mag() {
+    // Test vector already above minimum
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.with_min_square_mag(9.0);
+    assert!((tested.x() - vec.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - vec.y()).abs() < f32::EPSILON);
+
+    // Test vector below minimum
+    let vec = vec2!(1.0f32, 0.0);
+    let tested = vec.with_min_square_mag(25.0);
+    let expected_square_mag = 25.0;
+    let actual_square_mag = tested.square_mag();
+    assert!((actual_square_mag - expected_square_mag).abs() < 0.001);
+
+    // Verify direction is preserved
+    let expected = vec2!(5.0, 0.0);
+    assert!((tested.x() - expected.x()).abs() < 0.001);
+    assert!((tested.y() - expected.y()).abs() < f32::EPSILON);
+}
+
+#[test]
+fn test_vector_with_max_square_mag() {
+    // Test vector already below maximum
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.with_max_square_mag(100.0);
+    assert!((tested.x() - vec.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - vec.y()).abs() < f32::EPSILON);
+
+    // Test vector above maximum
+    let vec = vec2!(6.0f32, 8.0);
+    let tested = vec.with_max_square_mag(25.0);
+    let expected_square_mag = 25.0;
+    let actual_square_mag = tested.square_mag();
+    assert!((actual_square_mag - expected_square_mag).abs() < 0.001);
+
+    // Verify direction is preserved
+    let expected = vec2!(3.0, 4.0);
+    assert!((tested.x() - expected.x()).abs() < 0.001);
+    assert!((tested.y() - expected.y()).abs() < 0.001);
+}
+
+#[test]
+fn test_vector_clamp_square_mag() {
+    // Test vector within range
+    let vec = vec2!(3.0f32, 4.0);
+    let tested = vec.clamp_square_mag(4.0, 100.0);
+    assert!((tested.x() - vec.x()).abs() < f32::EPSILON);
+    assert!((tested.y() - vec.y()).abs() < f32::EPSILON);
+
+    // Test vector below minimum (should be scaled up)
+    let vec = vec2!(1.0f32, 0.0); // square_mag = 1
+    let tested = vec.clamp_square_mag(9.0, 100.0);
+    let actual_square_mag = tested.square_mag();
+    assert!((actual_square_mag - 9.0).abs() < 0.001);
+
+    // Test vector above maximum (should be scaled down)
+    let vec = vec2!(10.0f32, 0.0); // square_mag = 100
+    let tested = vec.clamp_square_mag(4.0, 25.0);
+    let actual_square_mag = tested.square_mag();
+    assert!((actual_square_mag - 25.0).abs() < 0.001);
+
+    // Test edge case where min and max are the same
+    let vec = vec3!(1.0f32, 1.0, 1.0);
+    let tested = vec.clamp_square_mag(25.0, 25.0);
+    let actual_square_mag = tested.square_mag();
+    assert!((actual_square_mag - 25.0).abs() < 0.001);
+}
+
+#[test]
+fn test_magnitude_functions_with_f64() {
+    // Test f64 precision for magnitude functions
+    let vec = vec2!(3.0f64, 4.0);
+
+    // Test mag
+    let mag = vec.mag();
+    assert!((mag - 5.0).abs() < f64::EPSILON);
+
+    // Test square_mag
+    let square_mag = vec.square_mag();
+    assert!((square_mag - 25.0).abs() < f64::EPSILON);
+
+    // Test normalize
+    let normalized = vec.normalize();
+    let normalized_mag = normalized.mag();
+    assert!((normalized_mag - 1.0).abs() < 1e-15);
+
+    // Test with_mag
+    let scaled = vec.with_mag(10.0);
+    let scaled_mag = scaled.mag();
+    assert!((scaled_mag - 10.0).abs() < 1e-14);
+}
+
+#[test]
+fn test_magnitude_edge_cases() {
+    // Test with very small numbers near floating point precision limits
+    let tiny_vec = vec2!(f32::EPSILON, f32::EPSILON);
+    let mag = tiny_vec.mag();
+    assert!(mag > 0.0);
+    assert!(mag.is_finite());
+
+    // Test normalize of very small vector
+    let normalized = tiny_vec.normalize();
+    let normalized_mag = normalized.mag();
+    assert!((normalized_mag - 1.0).abs() < 0.001);
+
+    // Test with large numbers (but not so large they overflow when squared)
+    let large_vec = vec2!(1e15f32, 1e15f32);
+    let mag = large_vec.mag();
+    assert!(mag.is_finite());
+    assert!(mag > 0.0);
+
+    // Test magnitude consistency across vector dimensions
+    let vec2 = vec2!(3.0f32, 4.0);
+    let vec3 = vec3!(3.0f32, 4.0, 0.0);
+    let vec4 = vec4!(3.0f32, 4.0, 0.0, 0.0);
+
+    assert!((vec2.mag() - vec3.mag()).abs() < f32::EPSILON);
+    assert!((vec2.mag() - vec4.mag()).abs() < f32::EPSILON);
 }
