@@ -1,11 +1,11 @@
 ### Development Status
 
-| Type        | Declaration | Functionality  | Documentation | Tests          | Benchmarks |
-|-------------|-------------|----------------|---------------|----------------|------------|
-| Vectors     | 🏁 Stable  | ✅ Mostly done | 🏁 100%      | ✅ Mostly Done | ❌ Nothing |
-| Matrices    | 🏁 Stable  | ❌ Only layout | ❌ Not much  | ❌ Nothing     | ❌ Nothing |
-| Quaternions | 🏁 Stable  | ❌ Nothing     | ❌ Nothing   | ❌ Nothing     | ❌ Nothing |
-| Aabbs       | 🏁 Stable  | ✅ Mostly done | ❌ Not much  | ❌ Nothing     | ❌ Nothing |
+| Type        | Declaration | Functionality    | Documentation | Tests          | Benchmarks |
+|-------------|-------------|------------------|---------------|----------------|------------|
+| Vectors     | 🏁 Stable  | ✅ Mostly stable | 🏁 100%      | 🏁             | ❌ None    |
+| Matrices    | 🏁 Stable  | ❌ Only layout   | ❌ Not much  | ❌ None        | ❌ None    |
+| Quaternions | 🏁 Stable  | ❌ Only layout   | ❌ Not much  | ❌ None        | ❌ None    |
+| Aabbs       | 🏁 Stable  | ✅ Mostly done   | ❌ Not much  | ❌ None        | ❌ None    |
 
 # GGMath
 
@@ -111,6 +111,13 @@ type HyperBoxF64Packed = Aabb<4, f64, VecPacked, AabbCentered>;
 
 Aabbs have type aliases where `Aabb<2, ..>` is named `Rect` unlike `Aabb{3/4}`.
 `AabbCornered` is the default representation and `Rect{C/M}` stand for `AabbCentered` / `AabbMinMaxed`.
+
+### Performance
+
+`ggmath` heavily relies on rustc's heavy optimizations.
+
+This means that in release mode `ggmath` is optimal,
+but it will be slower than other math crates in debug mode.
 
 ### Crate Integration
 
