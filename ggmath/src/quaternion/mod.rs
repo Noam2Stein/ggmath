@@ -3,6 +3,7 @@ use derive_where::derive_where;
 use super::{scalar::*, vector::*};
 
 mod from_into;
+mod generics;
 mod new;
 mod ops;
 
