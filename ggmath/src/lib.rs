@@ -25,7 +25,7 @@ pub mod vector;
 pub use scalar::*;
 pub use vector::*;
 
-pub mod intergration;
+pub mod integration;
 
 macro_loop! {
     @for feature_mod in [matrix, quaternion, aabb] {
