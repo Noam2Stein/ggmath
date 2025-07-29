@@ -616,6 +616,42 @@ fn test_vector_index_mut() {
     assert_eq!(tested, manual);
 }
 
+#[test]
+#[should_panic]
+fn test_vector_index_out_of_bounds() {
+    let vec = vec3!(1, 2, 3);
+    let _ = vec.index(3); // Should panic - only indices 0, 1, 2 are valid
+}
+
+#[test]
+#[should_panic]
+fn test_vector_index_operator_out_of_bounds() {
+    let vec = vec4!(1, 2, 3, 4);
+    let _ = vec[4]; // Should panic - only indices 0, 1, 2, 3 are valid
+}
+
+#[test]
+#[should_panic]
+fn test_vector_index_mut_out_of_bounds() {
+    let mut vec = vec2!(1, 2);
+    vec[2] = 5; // Should panic - only indices 0, 1 are valid
+}
+
+#[test]
+fn test_vector_get_bounds_checking() {
+    let vec = vec3!(1, 2, 3);
+
+    // Valid indices should return Some
+    assert_eq!(vec.get(0), Some(1));
+    assert_eq!(vec.get(1), Some(2));
+    assert_eq!(vec.get(2), Some(3));
+
+    // Invalid indices should return None
+    assert_eq!(vec.get(3), None);
+    assert_eq!(vec.get(10), None);
+    assert_eq!(vec.get(usize::MAX), None);
+}
+
 // Operator tests (testing a few key operators)
 #[test]
 fn test_vector_add() {
@@ -1047,4 +1083,261 @@ fn test_magnitude_edge_cases() {
 
     assert!((vec2.mag() - vec3.mag()).abs() < f32::EPSILON);
     assert!((vec2.mag() - vec4.mag()).abs() < f32::EPSILON);
+}
+
+// Alignment tests - VecAligned vs VecPacked behavior
+#[test]
+fn test_vector_alignment_differences() {
+    let aligned = vec3!(1.0f32, 2.0, 3.0);
+    let packed = vec3p!(1.0f32, 2.0, 3.0);
+
+    // Values should be equal
+    assert_eq!(aligned, packed);
+
+    // But memory layout should be different
+    assert_ne!(size_of_val(&aligned), size_of_val(&packed));
+
+    // Aligned should be larger due to padding
+    assert!(size_of_val(&aligned) >= size_of_val(&packed));
+
+    // Can convert between alignments
+    let aligned_to_packed = aligned.unalign();
+    let packed_to_aligned = packed.align();
+    assert_eq!(aligned_to_packed, packed);
+    assert_eq!(packed_to_aligned, aligned);
+}
+
+// Type conversion tests
+#[test]
+fn test_vector_to_t_conversions() {
+    // Test supported type conversions
+    let vec_u8 = vec3!(1u8, 2, 3);
+    let vec_u16: Vec3<u16> = vec_u8.to_t();
+    assert_eq!(vec_u16, vec3!(1u16, 2, 3));
+
+    let vec_i8 = vec2!(100i8, 50);
+    let vec_f32: Vec2<f32> = vec_i8.to_t();
+    assert_eq!(vec_f32, vec2!(100.0f32, 50.0));
+
+    let vec_bool = vec4!(true, false, true, false);
+    let vec_u8: Vec4<u8> = vec_bool.to_t();
+    assert_eq!(vec_u8, vec4!(1u8, 0, 1, 0));
+}
+
+// Cross product edge cases
+#[test]
+fn test_vector_cross_product_edge_cases() {
+    // Parallel vectors should give zero cross product
+    let vec1 = vec3!(1.0f32, 2.0, 3.0);
+    let vec2 = vec3!(2.0f32, 4.0, 6.0); // Parallel to vec1
+    let cross = vec1.cross(vec2);
+    assert!((cross.x()).abs() < 0.0001);
+    assert!((cross.y()).abs() < 0.0001);
+    assert!((cross.z()).abs() < 0.0001);
+
+    // Zero vector cross product
+    let zero = vec3!(0.0f32, 0.0, 0.0);
+    let any = vec3!(1.0f32, 2.0, 3.0);
+    let cross_zero = zero.cross(any);
+    assert_eq!(cross_zero, vec3!(0.0, 0.0, 0.0));
+
+    // Anti-commutativity: a × b = -(b × a)
+    let a = vec3!(1.0f32, 0.0, 0.0);
+    let b = vec3!(0.0f32, 1.0, 0.0);
+    let cross_ab = a.cross(b);
+    let cross_ba = b.cross(a);
+    assert_eq!(cross_ab, -cross_ba);
+
+    // Magnitude of cross product for unit vectors
+    let unit_x = vec3!(1.0f32, 0.0, 0.0);
+    let unit_y = vec3!(0.0f32, 1.0, 0.0);
+    let cross_units = unit_x.cross(unit_y);
+    assert!((cross_units.mag() - 1.0).abs() < f32::EPSILON);
+}
+
+// Comprehensive swizzle testing
+#[test]
+fn test_vector_swizzle_comprehensive() {
+    let vec4 = vec4!(1, 2, 3, 4);
+
+    // Test all 2-component swizzles for vec4
+    assert_eq!(vec4.xx(), vec2!(1, 1));
+    assert_eq!(vec4.xy(), vec2!(1, 2));
+    assert_eq!(vec4.xz(), vec2!(1, 3));
+    assert_eq!(vec4.xw(), vec2!(1, 4));
+    assert_eq!(vec4.yx(), vec2!(2, 1));
+    assert_eq!(vec4.yy(), vec2!(2, 2));
+    assert_eq!(vec4.yz(), vec2!(2, 3));
+    assert_eq!(vec4.yw(), vec2!(2, 4));
+    assert_eq!(vec4.zx(), vec2!(3, 1));
+    assert_eq!(vec4.zy(), vec2!(3, 2));
+    assert_eq!(vec4.zz(), vec2!(3, 3));
+    assert_eq!(vec4.zw(), vec2!(3, 4));
+    assert_eq!(vec4.wx(), vec2!(4, 1));
+    assert_eq!(vec4.wy(), vec2!(4, 2));
+    assert_eq!(vec4.wz(), vec2!(4, 3));
+    assert_eq!(vec4.ww(), vec2!(4, 4));
+
+    // Test 3-component swizzles
+    assert_eq!(vec4.xyz(), vec3!(1, 2, 3));
+    assert_eq!(vec4.zyx(), vec3!(3, 2, 1));
+    assert_eq!(vec4.www(), vec3!(4, 4, 4));
+
+    // Test 4-component swizzles
+    assert_eq!(vec4.xyzw(), vec4!(1, 2, 3, 4));
+    assert_eq!(vec4.wzyx(), vec4!(4, 3, 2, 1));
+}
+
+#[test]
+fn test_vector_swizzle_set_operations() {
+    let mut vec4 = vec4!(1, 2, 3, 4);
+
+    // Test swizzle set operations
+    vec4.set_xy(vec2!(10, 20));
+    assert_eq!(vec4, vec4!(10, 20, 3, 4));
+
+    vec4.set_zw(vec2!(30, 40));
+    assert_eq!(vec4, vec4!(10, 20, 30, 40));
+
+    vec4.set_xyz(vec3!(100, 200, 300));
+    assert_eq!(vec4, vec4!(100, 200, 300, 40));
+}
+
+#[test]
+fn test_vector_swizzle_with_operations() {
+    let vec4 = vec4!(1, 2, 3, 4);
+
+    // Test with operations (non-mutating)
+    let result = vec4.with_xy(vec2!(10, 20));
+    assert_eq!(result, vec4!(10, 20, 3, 4));
+    assert_eq!(vec4, vec4!(1, 2, 3, 4)); // Original unchanged
+
+    let result = vec4.with_zw(vec2!(30, 40));
+    assert_eq!(result, vec4!(1, 2, 30, 40));
+}
+
+#[test]
+fn test_vector_division_by_zero() {
+    let vec = vec2!(1.0f32, 2.0);
+    let zero_vec = vec2!(0.0f32, 0.0);
+
+    let result = vec / zero_vec;
+    assert!(result.x().is_infinite());
+    assert!(result.y().is_infinite());
+}
+
+// Test different scalar types
+#[test]
+fn test_vector_different_scalar_types() {
+    // Boolean vectors
+    let bool_vec = vec3!(true, false, true);
+    assert_eq!(bool_vec.x(), true);
+    assert_eq!(bool_vec.y(), false);
+    assert_eq!(bool_vec.z(), true);
+
+    // u8 vectors (test byte-sized operations)
+    let u8_vec = vec4!(1u8, 2, 3, 4);
+    assert_eq!(u8_vec.sum(), 10);
+
+    // Large integer types
+    let u64_vec = vec2!(u64::MAX, u64::MAX / 2);
+    assert!(u64_vec.x() > u64_vec.y());
+}
+
+// Memory layout and size assertions
+#[test]
+fn test_vector_memory_layout() {
+    // Ensure packed vectors have expected sizes
+    assert_eq!(size_of::<Vec2P<f32>>(), 2 * size_of::<f32>());
+    assert_eq!(size_of::<Vec3P<f32>>(), 3 * size_of::<f32>());
+    assert_eq!(size_of::<Vec4P<f32>>(), 4 * size_of::<f32>());
+
+    // Aligned vectors should be at least as large as packed
+    assert!(size_of::<Vec2<f32>>() >= size_of::<Vec2P<f32>>());
+    assert!(size_of::<Vec3<f32>>() >= size_of::<Vec3P<f32>>());
+    assert!(size_of::<Vec4<f32>>() >= size_of::<Vec4P<f32>>());
+
+    // Test specific sizes mentioned in the README
+    // Vec3 aligned should typically be 16 bytes (4 * f32), not 12
+    assert_eq!(size_of::<Vec3<f32>>(), 16);
+    assert_eq!(size_of::<Vec3P<f32>>(), 12);
+}
+
+// Test iterator functionality
+#[test]
+fn test_vector_iterator() {
+    let vec = vec3!(1, 2, 3);
+    let mut iter = vec.into_iter();
+
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(iter.next(), Some(2));
+    assert_eq!(iter.next(), Some(3));
+    assert_eq!(iter.next(), None);
+
+    // Test collect back to vector
+    let collected: Vec<i32> = vec4!(10, 20, 30, 40).into_iter().collect();
+    assert_eq!(collected, vec![10, 20, 30, 40]);
+}
+
+// Test splat functions
+#[test]
+fn test_splat_functions() {
+    // Test module-level splat functions
+    assert_eq!(splat2(5), vec2!(5, 5));
+    assert_eq!(splat3(7.0f32), vec3!(7.0, 7.0, 7.0));
+    assert_eq!(splat4(true), vec4!(true, true, true, true));
+}
+
+// Test from_fn functionality
+#[test]
+fn test_vector_from_fn_edge_cases() {
+    // Test with different functions
+    let squares = Vec4::from_fn(|i| (i * i) as f32);
+    assert_eq!(squares, vec4!(0.0, 1.0, 4.0, 9.0));
+
+    let alternating = Vec3::from_fn(|i| if i % 2 == 0 { 1 } else { -1 });
+    assert_eq!(alternating, vec3!(1, -1, 1));
+}
+
+// Test map variants
+#[test]
+fn test_vector_map_variants() {
+    let vec = vec3!(1, 2, 3);
+
+    // Test map with different operations
+    let doubled = vec.map(|x| x * 2);
+    assert_eq!(doubled, vec3!(2, 4, 6));
+
+    let negated = vec.map(|x| -x);
+    assert_eq!(negated, vec3!(-1, -2, -3));
+
+    let as_f32 = vec3!(1i8, 2, 3).map(|x| x as f32);
+    assert_eq!(as_f32, vec3!(1.0f32, 2.0, 3.0));
+}
+
+// Test fold operations
+#[test]
+fn test_vector_fold_operations() {
+    let vec = vec4!(1, 2, 3, 4);
+
+    // Test different fold operations
+    assert_eq!(vec.fold(|a, b| a + b), 10); // sum
+    assert_eq!(vec.fold(|a, b| a * b), 24); // product
+    assert_eq!(vec.fold(|a, b| a.max(b)), 4); // max
+    assert_eq!(vec.fold(|a, b| a.min(b)), 1); // min
+}
+
+// Test constants for different types
+#[test]
+fn test_vector_constants() {
+    // Test that constants work for different numeric types
+    assert_eq!(Vec3::<f64>::ZERO, vec3!(0.0f64, 0.0, 0.0));
+    assert_eq!(Vec4::<u8>::ZERO, vec4!(0u8, 0, 0, 0));
+    assert_eq!(Vec4::<u8>::ONE, vec4!(1u8, 1, 1, 1));
+    assert_eq!(Vec2::<i16>::ZERO, vec2!(0i16, 0));
+    assert_eq!(Vec2::<i16>::ONE, vec2!(1i16, 1));
+
+    // Test negative one for signed types
+    assert_eq!(Vec3::<i64>::NEG_ONE, vec3!(-1i64, -1, -1));
+    assert_eq!(Vec2::<f32>::NEG_ONE, vec2!(-1.0f32, -1.0));
 }
