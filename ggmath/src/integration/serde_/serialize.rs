@@ -61,6 +61,6 @@ impl<T: Scalar + Serialize, A: VecAlignment> Serialize for Quaternion<T, A> {
     where
         S: serde::Serializer,
     {
-        self.0.serialize(serializer)
+        self.to_array().serialize(serializer)
     }
 }

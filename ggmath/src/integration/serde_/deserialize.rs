@@ -153,8 +153,6 @@ impl<'de, T: Scalar + Deserialize<'de>, A: VecAlignment> Deserialize<'de> for Qu
     where
         D: serde::Deserializer<'de>,
     {
-        let inner = Deserialize::deserialize(deserializer)?;
-
-        Ok(Self(inner))
+        Ok(Self::from_array(Deserialize::deserialize(deserializer)?))
     }
 }
