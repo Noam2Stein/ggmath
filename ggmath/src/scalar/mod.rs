@@ -18,12 +18,16 @@ pub use positive_dir::*;
 ///
 /// When implementing this trait, you need to fill out the [`VecAligned`] alignments for your type.
 ///
+/// You also need to specify the [`ScalarPadding`] for your type.
+/// This controls how `ggmath` initializes the padding of a vector.
 ///
 /// ```
-/// impl Scalar for MyScalar {
-///     type Vec2Alignment = Align<8>; // 8 byte aligned.
-///     type Vec3Alignment = Align<16>; // 16 byte aligned.
-///     type Vec4Alignment = Align<32>; // 32 byte aligned.
+/// impl Scalar for f32 {
+///     type Vec2Alignment = Align<8>;
+///     type Vec3Alignment = Align<16>;
+///     type Vec4Alignment = Align<16>;
+///
+///     const PADDING: ScalarPadding<Self> = ScalarPadding::Init(0.0);
 /// }
 /// ```
 ///
@@ -41,4 +45,43 @@ pub trait Scalar: Construct {
     /// Controls the alignment of `Vec4<Self>`.
     /// This will be the applied alignment only if the vector type is `VecAligned`.
     type Vec4Alignment: AlignTrait;
+
+    /// Specifies vector padding for this scalar type.
+    ///
+    /// The padding value in an aligned vector3 has to be a valid scalar.
+    /// This is so that operator functions can use optimal SIMD instructions.
+    ///
+    /// Marking this as `Uninit` tells `ggmath` that ANY memory is valid padding.
+    /// This lets initialization functions save a copy instruction because it doesn't have to initialize the padding.
+    ///
+    /// If NOT any memory is a valid padding value,
+    /// use `ScalarPadding::Init(_)` which will tell `ggmath` to initialize the padding with the specified value.
+    const PADDING: ScalarPadding<Self>;
+}
+
+/// Specifies vector padding for a scalar type.
+///
+/// The padding value in an aligned vector3 has to be a valid scalar.
+/// This is so that operator functions can use optimal SIMD instructions.
+///
+/// Marking this as `Uninit` tells `ggmath` that ANY memory is valid padding.
+/// This lets initialization functions save a copy instruction because it doesn't have to initialize the padding.
+///
+/// This value must not break operator functions.
+/// It can produce any value, even NaN, but it must not have side-effects like a panic.
+pub enum ScalarPadding<T: Scalar> {
+    /// Tells `ggmath` that vector padding has to be initialized with the specified value.
+    ///
+    /// This adds an extra copy instruction to vector initialization.
+    ///
+    /// If you can verify that any memory is a valid padding value,
+    /// then its better to use `ScalarPadding::Uninit` which saves the copy instruction.
+    Init(T),
+
+    /// Tells `ggmath` that any memory is a valid padding value.
+    ///
+    /// This saves a copy instruction to vector initialization because it doesn't have to initialize the padding.
+    ///
+    /// Only use this if ANY memory as a `T` will not break operator functions.
+    Uninit,
 }

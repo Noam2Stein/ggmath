@@ -6,6 +6,9 @@ impl Scalar for i8 {
     type Vec2Alignment = Align<2>;
     type Vec3Alignment = Align<4>;
     type Vec4Alignment = Align<4>;
+
+    // All bit patterns are valid ints, and no pattern can break operators.
+    const PADDING: ScalarPadding<Self> = ScalarPadding::Uninit;
 }
 
 // impl for all sint types

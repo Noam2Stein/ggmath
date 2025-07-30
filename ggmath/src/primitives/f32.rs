@@ -6,6 +6,9 @@ impl Scalar for f32 {
     type Vec2Alignment = Align<8>;
     type Vec3Alignment = Align<16>;
     type Vec4Alignment = Align<16>;
+
+    // All bit patterns are valid `f32`s, and no pattern can break operators.
+    const PADDING: ScalarPadding<Self> = ScalarPadding::Uninit;
 }
 
 // impl for all float types

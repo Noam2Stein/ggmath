@@ -3,9 +3,15 @@ use super::*;
 primitive_aliases! { pub B => bool }
 
 impl Scalar for bool {
-    type Vec2Alignment = Align<1>;
-    type Vec3Alignment = Align<1>;
-    type Vec4Alignment = Align<1>;
+    // A vector of bools can act like a uint when performing bitwise operations.
+    // This means that the alignment of a vector of bools should be the alignment of the corresponding uint type.
+    type Vec2Alignment = Align<{ align_of::<u16>() }>;
+    type Vec3Alignment = Align<{ align_of::<u32>() }>;
+    type Vec4Alignment = Align<{ align_of::<u32>() }>;
+
+    // Rust expects bools to be either `0` or `1` in memory.
+    // This means that garbage values could break operator functions.
+    const PADDING: ScalarPadding<Self> = ScalarPadding::Init(false);
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>

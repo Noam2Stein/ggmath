@@ -36,6 +36,7 @@ macro_loop! {
         {
             type Output = Vector<N, T::Output, A>;
 
+            #[inline(always)]
             fn @op_fn(self) -> Vector<N, <T as @op_trait>::Output, A> {
                 self.map(T::@op_fn)
             }
@@ -70,6 +71,7 @@ macro_loop! {
         {
             type Output = Vector<N, T::Output, A>;
 
+            #[inline(always)]
             fn @op_fn(self, rhs: Vector<N, TRhs, ARhs>) -> Vector<N, <T as @op_trait<TRhs>>::Output, A> {
                 self.map_rhs(rhs, |self_, rhs|T::@op_fn(self_, rhs))
             }
@@ -85,6 +87,7 @@ macro_loop! {
         where
             Usize<N>: VecLen,
         {
+            #[inline(always)]
             fn @op_assign_fn(&mut self, rhs: Vector<N, TRhs, ARhs>) {
                 for i in 0..N {
                     self[i].@op_assign_fn(rhs[i]);
@@ -111,6 +114,7 @@ macro_loop! {
         {
             type Output = <Self as @op_trait<Vector<N, Rhs, A>>>::Output;
 
+            #[inline(always)]
             fn @op_fn(self, rhs: Rhs) -> Self::Output {
                 self.@op_fn(Vector::<N, Rhs, A>::splat(rhs))
             }
@@ -124,6 +128,7 @@ macro_loop! {
         where
             Usize<N>: VecLen,
         {
+            #[inline(always)]
             fn @op_assign_fn(&mut self, rhs: Rhs) {
                 self.@op_assign_fn(Vector::<N, Rhs, A>::splat(rhs))
             }

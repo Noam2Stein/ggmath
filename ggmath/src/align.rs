@@ -63,5 +63,8 @@ macro_loop! {
         #[repr(align(@A))]
         #[derive(Clone, Copy, Default)]
         struct @[Archetype @A];
+
+        const _: () = assert!(size_of::<@[Archetype @A]>() == 0);
+        const _: () = assert!(align_of::<@[Archetype @A]>() == @A);
     }
 }

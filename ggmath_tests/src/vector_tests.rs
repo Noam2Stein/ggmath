@@ -7,6 +7,13 @@ const _: () = assert!(size_of::<FVec2P>() == 2 * size_of::<f32>());
 const _: () = assert!(size_of::<FVec3P>() == 3 * size_of::<f32>());
 const _: () = assert!(size_of::<FVec4P>() == 4 * size_of::<f32>());
 
+const _: () = assert!(align_of::<FVec2>() == 8);
+const _: () = assert!(align_of::<FVec3>() == 16);
+const _: () = assert!(align_of::<FVec4>() == 16);
+const _: () = assert!(align_of::<FVec2P>() == align_of::<f32>());
+const _: () = assert!(align_of::<FVec3P>() == align_of::<f32>());
+const _: () = assert!(align_of::<FVec4P>() == align_of::<f32>());
+
 const _: () = assert!(size_of::<IVec2>() == 2 * size_of::<i32>());
 const _: () = assert!(size_of::<IVec3>() == 4 * size_of::<i32>());
 const _: () = assert!(size_of::<IVec4>() == 4 * size_of::<i32>());

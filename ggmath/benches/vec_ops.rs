@@ -30,20 +30,6 @@ fn benchmark(c: &mut Criterion) {
 
             @for bin_op in [add, sub, mul, div, rem] {
                 benchmark_fn(
-                    @("" + @prefix + "vec2_" + @bin_op),
-                    || ggmath_left2.@bin_op(ggmath_right2),
-                    || glam_left2.@bin_op(glam_right2),
-                    c,
-                );
-
-                benchmark_fn(
-                    @("" + @prefix + "vec3_" + @bin_op),
-                    || ggmath_left3.@bin_op(ggmath_right3),
-                    || glam_left3.@bin_op(glam_right3),
-                    c,
-                );
-
-                benchmark_fn(
                     @("" + @prefix + "vec3a_" + @bin_op),
                     || ggmath_left3a.@bin_op(ggmath_right3a),
                     || glam_left3a.@bin_op(glam_right3a),
@@ -51,9 +37,23 @@ fn benchmark(c: &mut Criterion) {
                 );
 
                 benchmark_fn(
-                    @("" + @prefix + "vec4_" + @bin_op),
+                    @("" + @prefix + "vec4a_" + @bin_op),
                     || ggmath_left4.@bin_op(ggmath_right4),
                     || glam_left4.@bin_op(glam_right4),
+                    c,
+                );
+
+                benchmark_fn(
+                    @("" + @prefix + "vec2a_" + @bin_op),
+                    || ggmath_left2.@bin_op(ggmath_right2),
+                    || glam_left2.@bin_op(glam_right2),
+                    c,
+                );
+
+                benchmark_fn(
+                    @("" + @prefix + "vec3p_" + @bin_op),
+                    || ggmath_left3.@bin_op(ggmath_right3),
+                    || glam_left3.@bin_op(glam_right3),
                     c,
                 );
             }
