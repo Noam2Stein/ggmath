@@ -1,8 +1,4 @@
-use std::{
-    any::TypeId,
-    mem::{MaybeUninit, transmute_copy},
-    ops::*,
-};
+use std::{any::TypeId, mem::transmute_copy, ops::*};
 
 use super::*;
 
@@ -77,47 +73,31 @@ macro_loop! {
 
             #[inline(always)]
             fn @op_fn(self, rhs: Vector<N, TRhs, ARhs>) -> Vector<N, <T as @op_trait<TRhs>>::Output, A> {
-                // This function has alot of conditions over constant values.
-                // Those are removed at compile time by the compiler,
-                // and help it select the optimal way to perform the operator.
+                'vec3_optimization: {
+                    if !types_match::<Self, Vec3<T>>() {
+                        break 'vec3_optimization;
+                    }
 
-                'simd_optimization: {
-                    let garbage_fn = match T::@garbage_fn {
-                        Some(garbage_fn) => garbage_fn,
-                        None => break 'simd_optimization,
+                    if !types_match::<Vector<N, TRhs, ARhs>, Self>() {
+                        break 'vec3_optimization;
+                    }
+
+                    if !types_match::<T::Output, T>() {
+                        break 'vec3_optimization;
+                    }
+
+                    let self_vec3 = unsafe { transmute_copy::<Self, Vec3<T>>(&self) };
+                    let rhs_vec3 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec3<T>>(&rhs) };
+
+                    let output_vec3 = match T::@[vec3_ @op_fn](self_vec3, rhs_vec3) {
+                        Some(output_vec3) => output_vec3,
+                        None => break 'vec3_optimization,
                     };
 
-                    let is_all_self = types_match::<TRhs, T>() && types_match::<T::Output, T>();
-
-                    let is_vec4_aligned = size_align_matches::<Self, Vec4<T>>();
-                    let rhs_is_vec4_aligned = size_align_matches::<Vector<N, TRhs, ARhs>, Vec4<TRhs>>();
-
-                    if !is_all_self
-                        || !is_vec4_aligned
-                        || !rhs_is_vec4_aligned
-                    {
-                        break 'simd_optimization;
-                    };
-
-                    let self_vec4 = unsafe { transmute_copy::<Self, Vec4<MaybeUninit<T>>>(&self) };
-                    let rhs_vec4 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec4<MaybeUninit<T>>>(&rhs) };
-
-                    let output_vec4 = unsafe {
-                        Vec4::from_fn(|i| if i < N {
-                            MaybeUninit::new(T::@op_fn(self[i], rhs[i]))
-                        } else {
-                            let garbage_output = garbage_fn(self_vec4[i], rhs_vec4[i]);
-
-                            transmute_copy::<MaybeUninit<T>, MaybeUninit<T::Output>>(&garbage_output)
-                        })
-                    };
-
-                    return unsafe {
-                        transmute_copy::<Vec4<MaybeUninit<T::Output>>, Vector<N, T::Output, A>>(&output_vec4)
-                    };
+                    return unsafe { transmute_copy::<Vec3<T>, Vector<N, T::Output, A>>(&output_vec3) };
                 }
 
-                self.map_rhs(rhs, |self_, rhs|T::@op_fn(self_, rhs))
+                self.map_rhs(rhs, |self_, rhs| T::@op_fn(self_, rhs))
             }
         }
 
@@ -222,10 +202,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     }
 }
 
-fn size_align_matches<T1, T2>() -> bool {
-    size_of::<T1>() == size_of::<T2>() && align_of::<T1>() == align_of::<T2>()
-}
-
+#[inline(always)]
 fn types_match<T1: 'static, T2: 'static>() -> bool {
     TypeId::of::<T1>() == TypeId::of::<T2>()
 }

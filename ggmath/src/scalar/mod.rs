@@ -1,15 +1,12 @@
-//! Trait for types that can be put inside math-types like ```Vector``` and ```Matrix```.
-//! For example: [```f32```], [```u8```] and [```bool```] are scalars.
-
-use std::mem::MaybeUninit;
+//! Scalar trait!
 
 use super::*;
 
 mod positive_dir;
 pub use positive_dir::*;
 
-/// Trait for types that can be put inside math-types like ```Vector``` and ```Matrix```.
-/// For example: [```f32```], [```u8```] and [```bool```] are scalars.
+/// Trait for types that can be put inside math-types like `Vector` and `Matrix`.
+/// For example: `f32`, `u8` and `bool` are scalars.
 ///
 /// All scalar types must be `Construct`,
 /// which means `Copy` `'static` and that the value can be sent anywhere anytime.
@@ -43,92 +40,85 @@ pub trait Scalar: Construct {
     /// This will be the applied alignment only if the vector type is `VecAligned`.
     type Vec4Alignment: AlignTrait;
 
-    /// Specifies if `neg` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Neg` implementation,
-    /// which will allow the compiler to optimize the vector operator implementation.
-    const NEG_GARBAGE: Option<fn(MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+    fn vec3_neg(base: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = base;
 
-    /// Specifies if `not` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Not` implementation,
-    /// which will allow the compiler to optimize the vector operator implementation.
-    const NOT_GARBAGE: Option<fn(MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+        None
+    }
 
-    /// Specifies if `add` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Add` implementation,
-    const ADD_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+    fn vec3_not(base: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = base;
 
-    /// Specifies if `sub` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Sub` implementation,
-    const SUB_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+        None
+    }
 
-    /// Specifies if `mul` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Mul` implementation,
-    const MUL_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+    fn vec3_add(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
 
-    /// Specifies if `div` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Div` implementation,
-    const DIV_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+        None
+    }
 
-    /// Specifies if `rem` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Rem` implementation,
-    const REM_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+    fn vec3_sub(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
 
-    /// Specifies if `bitand` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `BitAnd` implementation,
-    const BITAND_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        None;
+        None
+    }
 
-    /// Specifies if `bitor` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `BitOr` implementation,
-    const BITOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        None;
+    fn vec3_mul(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
 
-    /// Specifies if `bitxor` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `BitXor` implementation,
-    const BITXOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        None;
+        None
+    }
 
-    /// Specifies if `shl` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Shl` implementation,
-    const SHL_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+    fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
 
-    /// Specifies if `shr` can be applied to garbage values.
-    ///
-    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
-    ///
-    /// This is only useful if the implementation is very similar to the `Shr` implementation,
-    const SHR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> = None;
+        None
+    }
+
+    fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
+
+        None
+    }
+
+    fn vec3_shl(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
+
+        None
+    }
+
+    fn vec3_shr(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
+
+        None
+    }
+
+    fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
+
+        None
+    }
+
+    fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
+
+        None
+    }
+
+    fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let _ = lhs;
+        let _ = rhs;
+
+        None
+    }
 }

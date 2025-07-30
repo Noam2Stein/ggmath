@@ -1,4 +1,4 @@
-use std::mem::MaybeUninit;
+use std::mem::transmute_copy;
 
 use super::*;
 
@@ -9,63 +9,58 @@ impl Scalar for f64 {
     type Vec3Alignment = Align<32>;
     type Vec4Alignment = Align<32>;
 
-    const NEG_GARBAGE: Option<fn(MaybeUninit<Self>) -> MaybeUninit<Self>> = Some(|x| unsafe {
-        let x = x.assume_init();
+    fn vec3_neg(base: Vec3<Self>) -> Option<Vec3<Self>> {
+        let base_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&base) };
 
-        let output = -x;
+        let output_vec4 = -base_vec4;
 
-        MaybeUninit::new(output)
-    });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const ADD_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_add(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x + y;
+        let output_vec4 = lhs_vec4 + rhs_vec4;
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const SUB_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_sub(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x - y;
+        let output_vec4 = lhs_vec4 - rhs_vec4;
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const MUL_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_mul(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x * y;
+        let output_vec4 = lhs_vec4 * rhs_vec4;
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const DIV_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x / y;
+        let output_vec4 = lhs_vec4 / rhs_vec4;
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const REM_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x % y;
+        let output_vec4 = lhs_vec4 % rhs_vec4;
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 }
 
 // f64 methods are defined using `macro_loop` in other files

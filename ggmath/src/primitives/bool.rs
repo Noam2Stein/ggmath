@@ -1,4 +1,4 @@
-use std::mem::{MaybeUninit, transmute_copy};
+use std::mem::transmute_copy;
 
 use super::*;
 
@@ -11,35 +11,32 @@ impl Scalar for bool {
     type Vec3Alignment = Align<{ align_of::<u32>() }>;
     type Vec4Alignment = Align<{ align_of::<u32>() }>;
 
-    const BITAND_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x_uint = transmute_copy::<MaybeUninit<bool>, u8>(&x);
-            let y_uint = transmute_copy::<MaybeUninit<bool>, u8>(&y);
+    fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&lhs) };
+        let rhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&rhs) };
 
-            let output_uint = x_uint & y_uint;
+        let output_int = lhs_int & rhs_int;
 
-            transmute_copy::<u8, MaybeUninit<bool>>(&output_uint)
-        });
+        Some(unsafe { transmute_copy::<u32, Vec3<Self>>(&output_int) })
+    }
 
-    const BITOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x_uint = transmute_copy::<MaybeUninit<bool>, u8>(&x);
-            let y_uint = transmute_copy::<MaybeUninit<bool>, u8>(&y);
+    fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&lhs) };
+        let rhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&rhs) };
 
-            let output_uint = x_uint | y_uint;
+        let output_int = lhs_int | rhs_int;
 
-            transmute_copy::<u8, MaybeUninit<bool>>(&output_uint)
-        });
+        Some(unsafe { transmute_copy::<u32, Vec3<Self>>(&output_int) })
+    }
 
-    const BITXOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x_uint = transmute_copy::<MaybeUninit<bool>, u8>(&x);
-            let y_uint = transmute_copy::<MaybeUninit<bool>, u8>(&y);
+    fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&lhs) };
+        let rhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&rhs) };
 
-            let output_uint = x_uint ^ y_uint;
+        let output_int = lhs_int ^ rhs_int;
 
-            transmute_copy::<u8, MaybeUninit<bool>>(&output_uint)
-        });
+        Some(unsafe { transmute_copy::<u32, Vec3<Self>>(&output_int) })
+    }
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>

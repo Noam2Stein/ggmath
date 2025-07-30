@@ -1,4 +1,4 @@
-use std::mem::MaybeUninit;
+use std::mem::transmute_copy;
 
 use super::*;
 
@@ -9,83 +9,125 @@ impl Scalar for usize {
     type Vec3Alignment = <usized as Scalar>::Vec3Alignment;
     type Vec4Alignment = <usized as Scalar>::Vec4Alignment;
 
-    const NOT_GARBAGE: Option<fn(MaybeUninit<Self>) -> MaybeUninit<Self>> = Some(|x| unsafe {
-        let x = x.assume_init();
+    fn vec3_not(base: Vec3<Self>) -> Option<Vec3<Self>> {
+        let base_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&base) };
 
-        let output = !x;
+        let output_vec4 = base_vec4.map(|x| !x);
 
-        MaybeUninit::new(output)
-    });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const ADD_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_add(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x.checked_add(y).unwrap_unchecked();
+        let output_vec4 = vec4!(
+            lhs_vec4.x() + rhs_vec4.x(),
+            lhs_vec4.y() + rhs_vec4.y(),
+            lhs_vec4.z() + rhs_vec4.z(),
+            lhs_vec4.w().overflowing_add(rhs_vec4.w()).0,
+        );
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const SUB_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_sub(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x.checked_sub(y).unwrap_unchecked();
+        let output_vec4 = vec4!(
+            lhs_vec4.x() - rhs_vec4.x(),
+            lhs_vec4.y() - rhs_vec4.y(),
+            lhs_vec4.z() - rhs_vec4.z(),
+            lhs_vec4.w().overflowing_sub(rhs_vec4.w()).0,
+        );
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const MUL_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_mul(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x.checked_mul(y).unwrap_unchecked();
+        let output_vec4 = vec4!(
+            lhs_vec4.x() * rhs_vec4.x(),
+            lhs_vec4.y() * rhs_vec4.y(),
+            lhs_vec4.z() * rhs_vec4.z(),
+            lhs_vec4.w().overflowing_mul(rhs_vec4.w()).0,
+        );
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const REM_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x.checked_rem(y).unwrap_unchecked();
+        let output_vec4 = vec4!(
+            lhs_vec4.x() / rhs_vec4.x(),
+            lhs_vec4.y() / rhs_vec4.y(),
+            lhs_vec4.z() / rhs_vec4.z(),
+            lhs_vec4.w().overflowing_div(rhs_vec4.w()).0,
+        );
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const BITAND_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x & y;
+        let output_vec4 = vec4!(
+            lhs_vec4.x() % rhs_vec4.x(),
+            lhs_vec4.y() % rhs_vec4.y(),
+            lhs_vec4.z() % rhs_vec4.z(),
+            lhs_vec4.w().overflowing_rem(rhs_vec4.w()).0,
+        );
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const BITOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x | y;
+        let output_vec4 = vec4!(
+            lhs_vec4.x() & rhs_vec4.x(),
+            lhs_vec4.y() & rhs_vec4.y(),
+            lhs_vec4.z() & rhs_vec4.z(),
+            lhs_vec4.w() & rhs_vec4.w(),
+        );
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 
-    const BITXOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
-        Some(|x, y| unsafe {
-            let x = x.assume_init();
-            let y = y.assume_init();
+    fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
 
-            let output = x ^ y;
+        let output_vec4 = vec4!(
+            lhs_vec4.x() | rhs_vec4.x(),
+            lhs_vec4.y() | rhs_vec4.y(),
+            lhs_vec4.z() | rhs_vec4.z(),
+            lhs_vec4.w() | rhs_vec4.w(),
+        );
 
-            MaybeUninit::new(output)
-        });
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
+
+    fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
+        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
+        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
+
+        let output_vec4 = vec4!(
+            lhs_vec4.x() ^ rhs_vec4.x(),
+            lhs_vec4.y() ^ rhs_vec4.y(),
+            lhs_vec4.z() ^ rhs_vec4.z(),
+            lhs_vec4.w() ^ rhs_vec4.w(),
+        );
+
+        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
+    }
 }
 
 // usize methods are defined using `macro_loop` in other files
