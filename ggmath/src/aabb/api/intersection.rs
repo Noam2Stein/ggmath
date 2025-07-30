@@ -26,6 +26,7 @@ where
         }
     }
 
+    #[inline(always)]
     pub fn intersection(self, other: Aabb<N, T, impl VecAlignment, impl AabbRepr>) -> Option<Self> {
         if self.intersects(other) {
             Some(Aabb::from_min_max(

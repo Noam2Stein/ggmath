@@ -6,6 +6,7 @@ impl<const N: usize, T: AabbScalar + Hash, A: VecAlignment, R: AabbRepr> Hash fo
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self.resolve() {
             ResolvedAabb::Cornered(rect) => rect.hash(state),

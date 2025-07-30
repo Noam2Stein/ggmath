@@ -30,6 +30,7 @@ impl<const N: usize, T: AabbScalar + Display, A: VecAlignment, R: AabbRepr> Disp
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.resolve_ref() {
             ResolvedAabbRef::Centered(rect) => write!(

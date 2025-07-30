@@ -8,6 +8,7 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "({})", self.rows().map(|c| format!("{c:?}")).join(", "))
     }
@@ -19,6 +20,7 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "({})", self.rows().map(|c| c.to_string()).join(", "))
     }

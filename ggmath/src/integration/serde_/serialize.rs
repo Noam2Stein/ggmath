@@ -8,6 +8,7 @@ impl<const N: usize, T: Scalar + Serialize, A: VecAlignment> Serialize for Vecto
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -24,6 +25,7 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    #[inline(always)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -42,6 +44,7 @@ impl<const N: usize, T: AabbScalar + Serialize, A: VecAlignment, R: AabbRepr> Se
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -57,6 +60,7 @@ where
 // Quaternion
 
 impl<T: Scalar + Serialize, A: VecAlignment> Serialize for Quaternion<T, A> {
+    #[inline(always)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,

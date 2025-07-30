@@ -11,6 +11,7 @@ impl Scalar for bool {
     type Vec3Alignment = Align<{ align_of::<u32>() }>;
     type Vec4Alignment = Align<{ align_of::<u32>() }>;
 
+    #[inline(always)]
     fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&lhs) };
         let rhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&rhs) };
@@ -20,6 +21,7 @@ impl Scalar for bool {
         Some(unsafe { transmute_copy::<u32, Vec3<Self>>(&output_int) })
     }
 
+    #[inline(always)]
     fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&lhs) };
         let rhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&rhs) };
@@ -29,6 +31,7 @@ impl Scalar for bool {
         Some(unsafe { transmute_copy::<u32, Vec3<Self>>(&output_int) })
     }
 
+    #[inline(always)]
     fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&lhs) };
         let rhs_int = unsafe { transmute_copy::<Vec3<Self>, u32>(&rhs) };

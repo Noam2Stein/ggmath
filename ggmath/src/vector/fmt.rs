@@ -6,6 +6,7 @@ impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, 
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
@@ -19,6 +20,7 @@ impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N,
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "({})", self.to_array().map(|c| c.to_string()).join(", "))
     }

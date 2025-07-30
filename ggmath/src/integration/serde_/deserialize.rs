@@ -11,6 +11,7 @@ impl<'de, const N: usize, T: Scalar + Deserialize<'de>, A: VecAlignment> Deseria
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -54,6 +55,7 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -121,6 +123,7 @@ impl<'de, const N: usize, T: AabbScalar + Deserialize<'de>, A: VecAlignment, R: 
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -149,6 +152,7 @@ where
 // Quaternion
 
 impl<'de, T: Scalar + Deserialize<'de>, A: VecAlignment> Deserialize<'de> for Quaternion<T, A> {
+    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,

@@ -40,18 +40,21 @@ pub trait Scalar: Construct {
     /// This will be the applied alignment only if the vector type is `VecAligned`.
     type Vec4Alignment: AlignTrait;
 
+    #[inline(always)]
     fn vec3_neg(base: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = base;
 
         None
     }
 
+    #[inline(always)]
     fn vec3_not(base: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = base;
 
         None
     }
 
+    #[inline(always)]
     fn vec3_add(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -59,6 +62,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_sub(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -66,6 +70,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_mul(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -73,6 +78,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -80,6 +86,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -87,6 +94,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_shl(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -94,6 +102,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_shr(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -101,6 +110,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -108,6 +118,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;
@@ -115,6 +126,7 @@ pub trait Scalar: Construct {
         None
     }
 
+    #[inline(always)]
     fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let _ = lhs;
         let _ = rhs;

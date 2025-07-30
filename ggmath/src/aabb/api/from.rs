@@ -4,6 +4,7 @@ impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, 
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     pub fn from_min_size(
         min: Vector<N, T, impl VecAlignment>,
         size: Vector<N, T, impl VecAlignment>,
@@ -30,6 +31,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_max_size(
         max: Vector<N, T, impl VecAlignment>,
         size: Vector<N, T, impl VecAlignment>,
@@ -56,6 +58,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_center_size(
         center: Vector<N, T, impl VecAlignment>,
         size: Vector<N, T, impl VecAlignment>,
@@ -82,6 +85,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_min_extents(
         min: Vector<N, T, impl VecAlignment>,
         extents: Vector<N, T, impl VecAlignment>,
@@ -108,6 +112,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_max_extents(
         max: Vector<N, T, impl VecAlignment>,
         extents: Vector<N, T, impl VecAlignment>,
@@ -134,6 +139,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_center_extents(
         center: Vector<N, T, impl VecAlignment>,
         extents: Vector<N, T, impl VecAlignment>,
@@ -160,6 +166,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_min_max(
         min: Vector<N, T, impl VecAlignment>,
         max: Vector<N, T, impl VecAlignment>,
@@ -186,6 +193,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_min_center(
         min: Vector<N, T, impl VecAlignment>,
         center: Vector<N, T, impl VecAlignment>,
@@ -212,6 +220,7 @@ where
         )
     }
 
+    #[inline(always)]
     pub fn from_center_max(
         center: Vector<N, T, impl VecAlignment>,
         max: Vector<N, T, impl VecAlignment>,

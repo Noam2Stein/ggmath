@@ -43,10 +43,12 @@ macro_loop! {
         impl<T: @ScalarMatAsStd, A: VecAlignment, M: MatrixMajorAxis> @AsStd for Matrix<@N, @N, T, A, M> {
             type Output = T::@[OutputMat @N];
 
+            #[inline(always)]
             fn @as_std(&self) -> Self::Output {
                 T::@[to_mat @N](self.columns().map(|column| column.@as_std()))
             }
 
+            #[inline(always)]
             fn @from_std(val: Self::Output) -> Self {
                 Self::from_columns(T::@[from_mat @N](val).map(|column| Vector::<@N, T, A>::@from_std(column)))
             }

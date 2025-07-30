@@ -9,6 +9,7 @@ impl Scalar for usize {
     type Vec3Alignment = <usized as Scalar>::Vec3Alignment;
     type Vec4Alignment = <usized as Scalar>::Vec4Alignment;
 
+    #[inline(always)]
     fn vec3_not(base: Vec3<Self>) -> Option<Vec3<Self>> {
         let base_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&base) };
 
@@ -17,6 +18,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_add(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -31,6 +33,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_sub(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -45,6 +48,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_mul(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -59,6 +63,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -73,6 +78,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -87,6 +93,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -101,6 +108,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -115,6 +123,7 @@ impl Scalar for usize {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };

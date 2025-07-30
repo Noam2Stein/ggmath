@@ -43,10 +43,12 @@ macro_loop! {
         impl<A: VecAlignment, T: @ScalarAsStd> @AsStd for Vector<@N, T, A> {
             type Output = T::@[OutputVec @N];
 
+            #[inline(always)]
             fn @as_std(&self) -> Self::Output {
                 T::@[to_vec @N](self.to_array().map(|t| t.@as_std()))
             }
 
+            #[inline(always)]
             fn @from_std(val: Self::Output) -> Self {
                 Self::from_array(T::@[from_vec @N](val).map(|t| T::@from_std(t)))
             }

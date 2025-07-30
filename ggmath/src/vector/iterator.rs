@@ -23,6 +23,7 @@ where
     }
 
     /// Returns a vector of the same size and alignment as `self`, with function `f` applied to each element of `self` and `rhs` in order.
+    #[inline(always)]
     pub fn map_rhs<TRhs: Scalar, TOutput: Scalar>(
         self,
         rhs: Vector<N, TRhs, impl VecAlignment>,
@@ -32,6 +33,7 @@ where
     }
 
     /// Returns a vector of the same size and alignment as `self`, with function `f` applied to each element reference of `self` and `rhs` in order.
+    #[inline(always)]
     pub fn map_ref_rhs<TRhs: Scalar, TOutput: Scalar>(
         &self,
         rhs: &Vector<N, TRhs, impl VecAlignment>,

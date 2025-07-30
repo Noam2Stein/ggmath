@@ -9,6 +9,7 @@ impl Scalar for u8 {
     type Vec3Alignment = Align<4>;
     type Vec4Alignment = Align<4>;
 
+    #[inline(always)]
     fn vec3_not(base: Vec3<Self>) -> Option<Vec3<Self>> {
         let base_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&base) };
 
@@ -17,6 +18,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_add(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -31,6 +33,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_sub(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -45,6 +48,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_mul(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -59,6 +63,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -73,6 +78,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -87,6 +93,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -101,6 +108,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -115,6 +123,7 @@ impl Scalar for u8 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 
+    #[inline(always)]
     fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
@@ -139,6 +148,7 @@ macro_loop! {
         {
             /// Returns a vector of the signum of the input vector.
             /// This is equivalent to `if x == 0 { 0 } else { 1 }`.
+            #[inline(always)]
             pub fn signumt(self) -> Self {
                 self.map(|x| if x == 0 { 0 } else { 1 })
             }
@@ -160,20 +170,24 @@ macro_loop! {
 
             /// Returns a vector of boolean values, where each element is `true` if the corresponding element in the input vector is positive, and `false` otherwise.
             /// This is equivalent to `self > 0`.
+            #[inline(always)]
             pub fn is_positive(&self) -> Vector<N, bool, A> {
                 self.map(|x| x > 0)
             }
             /// Returns a vector of boolean values, where each element is `true` if the corresponding element in the input vector is zero, and `false` otherwise.
             /// This is equivalent to `self == 0`.
+            #[inline(always)]
             pub fn is_zero(&self) -> Vector<N, bool, A> {
                 self.map(|x| x == 0)
             }
 
             /// Returns a vector of the minimum elements between the two vectors.
+            #[inline(always)]
             pub fn min(self, other: Vector<N, @int, impl VecAlignment>) -> Self {
                 self.map_rhs(other, @int::min)
             }
             /// Returns a vector of the maximum elements between the two vectors.
+            #[inline(always)]
             pub fn max(self, other: Vector<N, @int, impl VecAlignment>) -> Self {
                 self.map_rhs(other, @int::max)
             }
@@ -202,6 +216,7 @@ macro_loop! {
             pub const MAX: Self = Self::splat(@num::MAX);
 
             /// Returns a vector of the elements clamped between the minimum and maximum vectors.
+            #[inline(always)]
             pub fn clamp(
                 self,
                 min: Vector<N, @num, impl VecAlignment>,
@@ -212,6 +227,7 @@ macro_loop! {
 
             /// Returns a vector of the absolute difference between the elements and the corresponding elements of the other vector.
             /// This is equivalent to `abs(self - rhs)`, not `abs(self) - abs(rhs)`.
+            #[inline(always)]
             pub fn abs_diff(self, rhs: Vector<N, @num, impl VecAlignment>) -> Self {
                 self.map_rhs(rhs, |a, b| if a > b { a - b } else { b - a })
             }
@@ -221,6 +237,7 @@ macro_loop! {
                     @if @other_num != @num {
                         /// Convert the vector to a vector of the given primitive type.
                         /// This uses the `as` keyword to perform the conversion.
+                        #[inline(always)]
                         pub const fn @[as_ @other_num](self) -> Vector<N, @other_num, A> {
                             let mut output = Vector::splat(0 as @other_num);
 
