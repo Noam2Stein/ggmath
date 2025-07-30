@@ -1,4 +1,8 @@
-use std::{any::TypeId, mem::transmute_copy, ops::*};
+use std::{
+    any::TypeId,
+    mem::{MaybeUninit, transmute_copy},
+    ops::*,
+};
 
 use super::*;
 
@@ -95,22 +99,21 @@ macro_loop! {
                         break 'simd_optimization;
                     };
 
-                    let self_vec4 = unsafe { transmute_copy::<Self, Vec4<T>>(&self) };
-                    let rhs_vec4 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec4<TRhs>>(&rhs) };
-                    let rhs_t_vec4 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec4<T>>(&rhs) };
+                    let self_vec4 = unsafe { transmute_copy::<Self, Vec4<MaybeUninit<T>>>(&self) };
+                    let rhs_vec4 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec4<MaybeUninit<T>>>(&rhs) };
 
                     let output_vec4 = unsafe {
                         Vec4::from_fn(|i| if i < N {
-                            T::@op_fn(self_vec4[i], rhs_vec4[i])
+                            MaybeUninit::new(T::@op_fn(self[i], rhs[i]))
                         } else {
-                            let garbage_output = garbage_fn(self_vec4[i], rhs_t_vec4[i]);
+                            let garbage_output = garbage_fn(self_vec4[i], rhs_vec4[i]);
 
-                            transmute_copy::<T, T::Output>(&garbage_output)
+                            transmute_copy::<MaybeUninit<T>, MaybeUninit<T::Output>>(&garbage_output)
                         })
                     };
 
                     return unsafe {
-                        transmute_copy::<Vec4<T::Output>, Vector<N, T::Output, A>>(&output_vec4)
+                        transmute_copy::<Vec4<MaybeUninit<T::Output>>, Vector<N, T::Output, A>>(&output_vec4)
                     };
                 }
 

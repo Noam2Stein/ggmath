@@ -1,3 +1,5 @@
+use std::mem::MaybeUninit;
+
 use super::*;
 
 primitive_aliases! { pub I128 => i128 }
@@ -7,31 +9,91 @@ impl Scalar for i128 {
     type Vec3Alignment = Align<32>;
     type Vec4Alignment = Align<32>;
 
-    const NEG_GARBAGE: Option<fn(Self) -> Self> =
-        Some(|a| unsafe { a.checked_neg().unwrap_unchecked() });
+    const NEG_GARBAGE: Option<fn(MaybeUninit<Self>) -> MaybeUninit<Self>> = Some(|x| unsafe {
+        let x = x.assume_init();
 
-    const NOT_GARBAGE: Option<fn(Self) -> Self> = Some(|a| !a);
+        let output = x.checked_neg().unwrap_unchecked();
 
-    const ADD_GARBAGE: Option<fn(Self, Self) -> Self> =
-        Some(|a, b| unsafe { a.checked_add(b).unwrap_unchecked() });
+        MaybeUninit::new(output)
+    });
 
-    const SUB_GARBAGE: Option<fn(Self, Self) -> Self> =
-        Some(|a, b| unsafe { a.checked_sub(b).unwrap_unchecked() });
+    const NOT_GARBAGE: Option<fn(MaybeUninit<Self>) -> MaybeUninit<Self>> = Some(|x| unsafe {
+        let x = x.assume_init();
 
-    const MUL_GARBAGE: Option<fn(Self, Self) -> Self> =
-        Some(|a, b| unsafe { a.checked_mul(b).unwrap_unchecked() });
+        let output = !x;
 
-    const DIV_GARBAGE: Option<fn(Self, Self) -> Self> =
-        Some(|a, b| unsafe { a.checked_div(b).unwrap_unchecked() });
+        MaybeUninit::new(output)
+    });
 
-    const REM_GARBAGE: Option<fn(Self, Self) -> Self> =
-        Some(|a, b| unsafe { a.checked_rem(b).unwrap_unchecked() });
+    const ADD_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x = x.assume_init();
+            let y = y.assume_init();
 
-    const BITAND_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a & b);
+            let output = x.checked_add(y).unwrap_unchecked();
 
-    const BITOR_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a | b);
+            MaybeUninit::new(output)
+        });
 
-    const BITXOR_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a ^ b);
+    const SUB_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x = x.assume_init();
+            let y = y.assume_init();
+
+            let output = x.checked_sub(y).unwrap_unchecked();
+
+            MaybeUninit::new(output)
+        });
+
+    const MUL_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x = x.assume_init();
+            let y = y.assume_init();
+
+            let output = x.checked_mul(y).unwrap_unchecked();
+
+            MaybeUninit::new(output)
+        });
+
+    const REM_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x = x.assume_init();
+            let y = y.assume_init();
+
+            let output = x.checked_rem(y).unwrap_unchecked();
+
+            MaybeUninit::new(output)
+        });
+
+    const BITAND_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x = x.assume_init();
+            let y = y.assume_init();
+
+            let output = x & y;
+
+            MaybeUninit::new(output)
+        });
+
+    const BITOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x = x.assume_init();
+            let y = y.assume_init();
+
+            let output = x | y;
+
+            MaybeUninit::new(output)
+        });
+
+    const BITXOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x = x.assume_init();
+            let y = y.assume_init();
+
+            let output = x ^ y;
+
+            MaybeUninit::new(output)
+        });
 }
 
 // i128 methods are defined using `macro_loop` in i8.rs

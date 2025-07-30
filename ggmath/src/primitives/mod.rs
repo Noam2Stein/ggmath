@@ -3,7 +3,25 @@
 use super::*;
 
 macro_loop! {
-    @for prim_mod in [u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f32, f64, bool, ordering] {
+    @for prim_mod in [
+        u8,
+        u16,
+        u32,
+        u64,
+        u128,
+        usize,
+        i8,
+        i16,
+        i32,
+        i64,
+        i128,
+        isize,
+        f32,
+        f64,
+        bool,
+        ordering,
+        maybe_uninit,
+    ] {
         #[doc = @("Module with " + @prim_mod + " type aliases")]
         pub mod @prim_mod;
 

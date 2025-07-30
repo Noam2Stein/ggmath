@@ -1,3 +1,5 @@
+use std::mem::{MaybeUninit, transmute_copy};
+
 use super::*;
 
 primitive_aliases! { pub B => bool }
@@ -8,6 +10,36 @@ impl Scalar for bool {
     type Vec2Alignment = Align<{ align_of::<u16>() }>;
     type Vec3Alignment = Align<{ align_of::<u32>() }>;
     type Vec4Alignment = Align<{ align_of::<u32>() }>;
+
+    const BITAND_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x_uint = transmute_copy::<MaybeUninit<bool>, u8>(&x);
+            let y_uint = transmute_copy::<MaybeUninit<bool>, u8>(&y);
+
+            let output_uint = x_uint & y_uint;
+
+            transmute_copy::<u8, MaybeUninit<bool>>(&output_uint)
+        });
+
+    const BITOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x_uint = transmute_copy::<MaybeUninit<bool>, u8>(&x);
+            let y_uint = transmute_copy::<MaybeUninit<bool>, u8>(&y);
+
+            let output_uint = x_uint | y_uint;
+
+            transmute_copy::<u8, MaybeUninit<bool>>(&output_uint)
+        });
+
+    const BITXOR_GARBAGE: Option<fn(MaybeUninit<Self>, MaybeUninit<Self>) -> MaybeUninit<Self>> =
+        Some(|x, y| unsafe {
+            let x_uint = transmute_copy::<MaybeUninit<bool>, u8>(&x);
+            let y_uint = transmute_copy::<MaybeUninit<bool>, u8>(&y);
+
+            let output_uint = x_uint ^ y_uint;
+
+            transmute_copy::<u8, MaybeUninit<bool>>(&output_uint)
+        });
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>
@@ -37,3 +69,6 @@ where
         }
     }
 }
+
+const _: () = assert!(size_of::<bool>() == 1);
+const _: () = assert!(align_of::<bool>() == 1);
