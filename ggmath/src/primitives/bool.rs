@@ -8,10 +8,6 @@ impl Scalar for bool {
     type Vec2Alignment = Align<{ align_of::<u16>() }>;
     type Vec3Alignment = Align<{ align_of::<u32>() }>;
     type Vec4Alignment = Align<{ align_of::<u32>() }>;
-
-    // Rust expects bools to be either `0` or `1` in memory.
-    // This means that garbage values could break operator functions.
-    const PADDING: ScalarPadding<Self> = ScalarPadding::Init(false);
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>

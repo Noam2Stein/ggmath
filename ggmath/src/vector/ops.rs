@@ -1,4 +1,4 @@
-use std::ops::*;
+use std::{any::TypeId, mem::transmute_copy, ops::*};
 
 use super::*;
 
@@ -45,17 +45,17 @@ macro_loop! {
 
     // Binary, Assign
 
-    @for [op_trait, op_fn] in [
-        [Add, add],
-        [Sub, sub],
-        [Mul, mul],
-        [Div, div],
-        [Rem, rem],
-        [BitAnd, bitand],
-        [BitOr, bitor],
-        [BitXor, bitxor],
-        [Shl, shl],
-        [Shr, shr],
+    @for [op_trait, op_fn, garbage_fn] in [
+        [Add, add, ADD_GARBAGE],
+        [Sub, sub, SUB_GARBAGE],
+        [Mul, mul, MUL_GARBAGE],
+        [Div, div, DIV_GARBAGE],
+        [Rem, rem, REM_GARBAGE],
+        [BitAnd, bitand, BITAND_GARBAGE],
+        [BitOr, bitor, BITOR_GARBAGE],
+        [BitXor, bitxor, BITXOR_GARBAGE],
+        [Shl, shl, SHL_GARBAGE],
+        [Shr, shr, SHR_GARBAGE],
     ] {
         // Bin Ops
 
@@ -73,6 +73,47 @@ macro_loop! {
 
             #[inline(always)]
             fn @op_fn(self, rhs: Vector<N, TRhs, ARhs>) -> Vector<N, <T as @op_trait<TRhs>>::Output, A> {
+                // This function has alot of conditions over constant values.
+                // Those are removed at compile time by the compiler,
+                // and help it select the optimal way to perform the operator.
+
+                'simd_optimization: {
+                    let garbage_fn = match T::@garbage_fn {
+                        Some(garbage_fn) => garbage_fn,
+                        None => break 'simd_optimization,
+                    };
+
+                    let is_all_self = types_match::<TRhs, T>() && types_match::<T::Output, T>();
+
+                    let is_vec4_aligned = size_align_matches::<Self, Vec4<T>>();
+                    let rhs_is_vec4_aligned = size_align_matches::<Vector<N, TRhs, ARhs>, Vec4<TRhs>>();
+
+                    if !is_all_self
+                        || !is_vec4_aligned
+                        || !rhs_is_vec4_aligned
+                    {
+                        break 'simd_optimization;
+                    };
+
+                    let self_vec4 = unsafe { transmute_copy::<Self, Vec4<T>>(&self) };
+                    let rhs_vec4 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec4<TRhs>>(&rhs) };
+                    let rhs_t_vec4 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec4<T>>(&rhs) };
+
+                    let output_vec4 = unsafe {
+                        Vec4::from_fn(|i| if i < N {
+                            T::@op_fn(self_vec4[i], rhs_vec4[i])
+                        } else {
+                            let garbage_output = garbage_fn(self_vec4[i], rhs_t_vec4[i]);
+
+                            transmute_copy::<T, T::Output>(&garbage_output)
+                        })
+                    };
+
+                    return unsafe {
+                        transmute_copy::<Vec4<T::Output>, Vector<N, T::Output, A>>(&output_vec4)
+                    };
+                }
+
                 self.map_rhs(rhs, |self_, rhs|T::@op_fn(self_, rhs))
             }
         }
@@ -176,4 +217,12 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     {
         (self.zxy() * other - self * other.zxy()).zxy()
     }
+}
+
+fn size_align_matches<T1, T2>() -> bool {
+    size_of::<T1>() == size_of::<T2>() && align_of::<T1>() == align_of::<T2>()
+}
+
+fn types_match<T1: 'static, T2: 'static>() -> bool {
+    TypeId::of::<T1>() == TypeId::of::<T2>()
 }

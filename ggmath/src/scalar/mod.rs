@@ -18,21 +18,16 @@ pub use positive_dir::*;
 ///
 /// When implementing this trait, you need to fill out the [`VecAligned`] alignments for your type.
 ///
-/// You also need to specify the [`ScalarPadding`] for your type.
-/// This controls how `ggmath` initializes the padding of a vector.
-///
 /// ```
 /// impl Scalar for f32 {
 ///     type Vec2Alignment = Align<8>;
 ///     type Vec3Alignment = Align<16>;
 ///     type Vec4Alignment = Align<16>;
-///
-///     const PADDING: ScalarPadding<Self> = ScalarPadding::Init(0.0);
 /// }
 /// ```
 ///
 /// `ggmath` currently trusts that rustc will use the alignment to correctly use SIMD instructions.
-/// This means you currently cannot override the implementations of built in functions like operators..
+/// This means you currently cannot override the implementations of built in functions like operators.
 pub trait Scalar: Construct {
     /// Controls the alignment of `Vec2<Self>`.
     /// This will be the applied alignment only if the vector type is `VecAligned`.
@@ -46,42 +41,101 @@ pub trait Scalar: Construct {
     /// This will be the applied alignment only if the vector type is `VecAligned`.
     type Vec4Alignment: AlignTrait;
 
-    /// Specifies vector padding for this scalar type.
+    /// Specifies if `neg` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
     ///
-    /// The padding value in an aligned vector3 has to be a valid scalar.
-    /// This is so that operator functions can use optimal SIMD instructions.
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
     ///
-    /// Marking this as `Uninit` tells `ggmath` that ANY memory is valid padding.
-    /// This lets initialization functions save a copy instruction because it doesn't have to initialize the padding.
-    ///
-    /// If NOT any memory is a valid padding value,
-    /// use `ScalarPadding::Init(_)` which will tell `ggmath` to initialize the padding with the specified value.
-    const PADDING: ScalarPadding<Self>;
-}
+    /// This is only useful if the implementation is very similar to the `Neg` implementation,
+    /// which will allow the compiler to optimize the vector operator implementation.
+    const NEG_GARBAGE: Option<fn(Self) -> Self> = None;
 
-/// Specifies vector padding for a scalar type.
-///
-/// The padding value in an aligned vector3 has to be a valid scalar.
-/// This is so that operator functions can use optimal SIMD instructions.
-///
-/// Marking this as `Uninit` tells `ggmath` that ANY memory is valid padding.
-/// This lets initialization functions save a copy instruction because it doesn't have to initialize the padding.
-///
-/// This value must not break operator functions.
-/// It can produce any value, even NaN, but it must not have side-effects like a panic.
-pub enum ScalarPadding<T: Scalar> {
-    /// Tells `ggmath` that vector padding has to be initialized with the specified value.
+    /// Specifies if `not` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
     ///
-    /// This adds an extra copy instruction to vector initialization.
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
     ///
-    /// If you can verify that any memory is a valid padding value,
-    /// then its better to use `ScalarPadding::Uninit` which saves the copy instruction.
-    Init(T),
+    /// This is only useful if the implementation is very similar to the `Not` implementation,
+    /// which will allow the compiler to optimize the vector operator implementation.
+    const NOT_GARBAGE: Option<fn(Self) -> Self> = None;
 
-    /// Tells `ggmath` that any memory is a valid padding value.
+    /// Specifies if `add` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
     ///
-    /// This saves a copy instruction to vector initialization because it doesn't have to initialize the padding.
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
     ///
-    /// Only use this if ANY memory as a `T` will not break operator functions.
-    Uninit,
+    /// This is only useful if the implementation is very similar to the `Add` implementation,
+    const ADD_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `sub` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `Sub` implementation,
+    const SUB_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `mul` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `Mul` implementation,
+    const MUL_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `div` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `Div` implementation,
+    const DIV_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `rem` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `Rem` implementation,
+    const REM_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `bitand` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `BitAnd` implementation,
+    const BITAND_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `bitor` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `BitOr` implementation,
+    const BITOR_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `bitxor` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `BitXor` implementation,
+    const BITXOR_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `shl` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `Shl` implementation,
+    const SHL_GARBAGE: Option<fn(Self, Self) -> Self> = None;
+
+    /// Specifies if `shr` can be applied to garbage values.
+    /// The input to this function is NOT guaranteed to be a valid value.
+    ///
+    /// This is used to enable SIMD for vectors with padding, usually `Vec3`.
+    ///
+    /// This is only useful if the implementation is very similar to the `Shr` implementation,
+    const SHR_GARBAGE: Option<fn(Self, Self) -> Self> = None;
 }

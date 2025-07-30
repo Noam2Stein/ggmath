@@ -7,8 +7,31 @@ impl Scalar for u128 {
     type Vec3Alignment = Align<32>;
     type Vec4Alignment = Align<32>;
 
-    // All bit patterns are valid ints, and no pattern can break operators.
-    const PADDING: ScalarPadding<Self> = ScalarPadding::Uninit;
+    const NEG_GARBAGE: Option<fn(Self) -> Self> =
+        Some(|a| unsafe { a.checked_neg().unwrap_unchecked() });
+
+    const NOT_GARBAGE: Option<fn(Self) -> Self> = Some(|a| !a);
+
+    const ADD_GARBAGE: Option<fn(Self, Self) -> Self> =
+        Some(|a, b| unsafe { a.checked_add(b).unwrap_unchecked() });
+
+    const SUB_GARBAGE: Option<fn(Self, Self) -> Self> =
+        Some(|a, b| unsafe { a.checked_sub(b).unwrap_unchecked() });
+
+    const MUL_GARBAGE: Option<fn(Self, Self) -> Self> =
+        Some(|a, b| unsafe { a.checked_mul(b).unwrap_unchecked() });
+
+    const DIV_GARBAGE: Option<fn(Self, Self) -> Self> =
+        Some(|a, b| unsafe { a.checked_div(b).unwrap_unchecked() });
+
+    const REM_GARBAGE: Option<fn(Self, Self) -> Self> =
+        Some(|a, b| unsafe { a.checked_rem(b).unwrap_unchecked() });
+
+    const BITAND_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a & b);
+
+    const BITOR_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a | b);
+
+    const BITXOR_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a ^ b);
 }
 
 // u128 methods are defined using `macro_loop` in other files

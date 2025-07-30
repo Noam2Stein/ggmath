@@ -7,8 +7,12 @@ impl Scalar for f32 {
     type Vec3Alignment = Align<16>;
     type Vec4Alignment = Align<16>;
 
-    // All bit patterns are valid `f32`s, and no pattern can break operators.
-    const PADDING: ScalarPadding<Self> = ScalarPadding::Uninit;
+    const NEG_GARBAGE: Option<fn(Self) -> Self> = Some(|a| -a);
+    const ADD_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a + b);
+    const SUB_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a - b);
+    const MUL_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a * b);
+    const DIV_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a / b);
+    const REM_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a % b);
 }
 
 // impl for all float types

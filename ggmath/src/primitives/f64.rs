@@ -7,8 +7,12 @@ impl Scalar for f64 {
     type Vec3Alignment = Align<32>;
     type Vec4Alignment = Align<32>;
 
-    // All bit patterns are valid `f64`s, and no pattern can break operators.
-    const PADDING: ScalarPadding<Self> = ScalarPadding::Uninit;
+    const NEG_GARBAGE: Option<fn(Self) -> Self> = Some(|a| -a);
+    const ADD_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a + b);
+    const SUB_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a - b);
+    const MUL_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a * b);
+    const DIV_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a / b);
+    const REM_GARBAGE: Option<fn(Self, Self) -> Self> = Some(|a, b| a % b);
 }
 
 // f64 methods are defined using `macro_loop` in other files

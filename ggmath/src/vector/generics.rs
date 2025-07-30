@@ -11,6 +11,8 @@ use super::*;
 ///
 /// In the future if rust has more powerful const-generics,
 /// this trait could be deleted and all `usize` values will be valid vector lengths.
+///
+/// Implementing this trait for a custom type would do nothing since vectors require `Usize<N>: VecLen` specificly.
 pub unsafe trait VecLen {
     /// Is used to "redirect" the vector to its alignment marker-type through this pattern:
     ///
@@ -44,6 +46,8 @@ unsafe impl VecLen for Usize<4> {
 
 // Alignment
 
+/// Sealed marker trait.
+///
 /// All `ggmath` types are generic over the *marker* type `A: VecAlignment`.
 ///
 /// The value of `A` decides whether or not the vector is aligned for SIMD (see <https://doc.rust-lang.org/reference/type-layout.html>).
@@ -56,6 +60,8 @@ unsafe impl VecLen for Usize<4> {
 /// to be whatever is most efficient for the target platform's SIMD.
 ///
 /// `VecPacked` means that the vector is not aligned for SIMD, and is identical in memory to `[T; N]`.
+///
+/// Implementing this trait for a custom type is straight up undefined behavior.
 #[allow(private_bounds)]
 pub unsafe trait VecAlignment: Sized + 'static + Send + Sync {
     /// Is used internally by [`Vector`] to know if the vector is aligned in a generic function.

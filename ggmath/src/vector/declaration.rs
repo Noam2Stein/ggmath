@@ -1,3 +1,5 @@
+use std::mem::offset_of;
+
 use derive_where::derive_where;
 
 use super::*;
@@ -67,3 +69,17 @@ pub type Vec3P<T> = Vector<3, T, VecPacked>;
 /// type alias to [`Vector<4, T, VecPacked>`].
 /// See [`VecAlignment`]
 pub type Vec4P<T> = Vector<4, T, VecPacked>;
+
+const _: () = assert!(offset_of!(Vec2<f32>, array) == 0);
+const _: () = assert!(offset_of!(Vec3<f32>, array) == 0);
+const _: () = assert!(offset_of!(Vec4<f32>, array) == 0);
+const _: () = assert!(offset_of!(Vec2P<f32>, array) == 0);
+const _: () = assert!(offset_of!(Vec3P<f32>, array) == 0);
+const _: () = assert!(offset_of!(Vec4P<f32>, array) == 0);
+
+const _: () = assert!(offset_of!(Vec2<bool>, array) == 0);
+const _: () = assert!(offset_of!(Vec3<bool>, array) == 0);
+const _: () = assert!(offset_of!(Vec4<bool>, array) == 0);
+const _: () = assert!(offset_of!(Vec2P<bool>, array) == 0);
+const _: () = assert!(offset_of!(Vec3P<bool>, array) == 0);
+const _: () = assert!(offset_of!(Vec4P<bool>, array) == 0);
