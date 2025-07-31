@@ -123,7 +123,7 @@ pub struct Matrix<
     const R: usize,
     T: Scalar,
     A: VecAlignment,
-    M: MatrixMajorAxis,
+    M: MatMajorAxis,
 >
 where
     Usize<C>: VecLen,

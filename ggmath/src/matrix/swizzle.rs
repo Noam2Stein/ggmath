@@ -8,7 +8,7 @@ macro_loop! {
     @for C in 2..=4, c in 0..@C {
         @let c_name = ["first", "second", "third", "fourth"][@c];
 
-        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<@C, R, T, A, M>
+        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<@C, R, T, A, M>
         where
             Usize<R>: VecLen,
         {
@@ -24,7 +24,7 @@ macro_loop! {
         @let c0_name = ["first", "second", "third", "fourth"][@c0];
         @let c1_name = ["first", "second", "third", "fourth"][@c1];
 
-        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<@C, R, T, A, M>
+        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<@C, R, T, A, M>
         where
             Usize<R>: VecLen,
         {
@@ -44,7 +44,7 @@ macro_loop! {
         @let c1_name = ["first", "second", "third", "fourth"][@c1];
         @let c2_name = ["first", "second", "third", "fourth"][@c2];
 
-        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<@C, R, T, A, M>
+        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<@C, R, T, A, M>
         where
             Usize<R>: VecLen,
         {
@@ -66,7 +66,7 @@ macro_loop! {
         @let c2_name = ["first", "second", "third", "fourth"][@c2];
         @let c3_name = ["first", "second", "third", "fourth"][@c3];
 
-        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<@C, R, T, A, M>
+        impl<const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<@C, R, T, A, M>
         where
             Usize<R>: VecLen,
         {
@@ -88,7 +88,7 @@ macro_loop! {
     @for R in 2..=4, r in 0..@R {
         @let r_name = ["first", "second", "third", "fourth"][@r];
 
-        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<C, @R, T, A, M>
+        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<C, @R, T, A, M>
         where
             Usize<C>: VecLen,
         {
@@ -104,7 +104,7 @@ macro_loop! {
         @let r0_name = ["first", "second", "third", "fourth"][@r0];
         @let r1_name = ["first", "second", "third", "fourth"][@r1];
 
-        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<C, @R, T, A, M>
+        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<C, @R, T, A, M>
         where
             Usize<C>: VecLen,
         {
@@ -124,7 +124,7 @@ macro_loop! {
         @let r1_name = ["first", "second", "third", "fourth"][@r1];
         @let r2_name = ["first", "second", "third", "fourth"][@r2];
 
-        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<C, @R, T, A, M>
+        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<C, @R, T, A, M>
         where
             Usize<C>: VecLen,
         {
@@ -146,7 +146,7 @@ macro_loop! {
         @let r2_name = ["first", "second", "third", "fourth"][@r2];
         @let r3_name = ["first", "second", "third", "fourth"][@r3];
 
-        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<C, @R, T, A, M>
+        impl<const C: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<C, @R, T, A, M>
         where
             Usize<C>: VecLen,
         {
@@ -169,7 +169,7 @@ macro_loop! {
         @let c_name = ["first", "second", "third", "fourth"][@c];
         @let r_name = ["first", "second", "third", "fourth"][@r];
 
-        impl<T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<@C, @R, T, A, M> {
+        impl<T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<@C, @R, T, A, M> {
             #[doc = @("Returns the value at the " + @c_name + " column and " + @r_name + " row of the matrix.")]
             #[inline(always)]
             pub const fn @[m @c @r](self) -> T {
@@ -250,7 +250,7 @@ macro_loop! {
         @let c_name = ["first", "second", "third", "fourth"][@c];
         @let r_name = ["first", "second", "third", "fourth"][@r];
 
-        impl<T: Scalar, A: VecAlignment, M: MatrixMajorAxis> Matrix<@C, @R, T, A, M> {
+        impl<T: Scalar, A: VecAlignment, M: MatMajorAxis> Matrix<@C, @R, T, A, M> {
             #[doc = @("Returns a reference to the value at the " + @c_name + " column and " + @r_name + " row of the matrix.")]
             #[inline(always)]
             pub const fn @[m @c @r _ref](&self) -> &T {

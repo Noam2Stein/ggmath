@@ -144,7 +144,7 @@ macro_loop! {
             @let std_from_mat = @[@std _from_mat @N];
 
             #[cfg(feature = "matrix")]
-            impl<T: @ScalarMatAsStd, A: VecAlignment, M: MatrixMajorAxis> @AsStd for Matrix<@N, @N, T, A, M> {
+            impl<T: @ScalarMatAsStd, A: VecAlignment, M: MatMajorAxis> @AsStd for Matrix<@N, @N, T, A, M> {
                 type Output = T::@OutputMat;
 
                 #[inline(always)]

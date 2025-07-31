@@ -1,8 +1,44 @@
+use std::ops::{Index, IndexMut};
+
 use super::*;
+
+// Implement Index
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
+    Index<(usize, usize)> for Matrix<C, R, T, A, M>
+where
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
+{
+    type Output = T;
+
+    #[inline(always)]
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        match self.resolve_ref() {
+            ResolvedMatrixRef::ColumnMajor(mat) => &mat.inner[index.0][index.1],
+            ResolvedMatrixRef::RowMajor(mat) => &mat.inner[index.1][index.0],
+        }
+    }
+}
+
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
+    IndexMut<(usize, usize)> for Matrix<C, R, T, A, M>
+where
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        match self.resolve_mut() {
+            ResolvedMatrixMut::ColumnMajor(mat) => &mut mat.inner[index.0][index.1],
+            ResolvedMatrixMut::RowMajor(mat) => &mut mat.inner[index.1][index.0],
+        }
+    }
+}
 
 // Get
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
     Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
@@ -50,7 +86,7 @@ where
 
 // Get Unchecked
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
     Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
@@ -118,7 +154,7 @@ where
 
 // Get Ref
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
     Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
@@ -301,7 +337,7 @@ where
 
 // Get Ref Unchecked
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
     Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
@@ -499,7 +535,7 @@ where
 
 // Get Mut
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
     Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
@@ -559,7 +595,7 @@ where
 
 // Get Mut Unchecked
 
-impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+impl<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
     Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,

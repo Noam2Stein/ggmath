@@ -57,7 +57,7 @@ where
 // Matrix
 
 #[cfg(feature = "matrix")]
-impl<const C: usize, const R: usize, T: Scalar + Serialize, A: VecAlignment, M: MatrixMajorAxis>
+impl<const C: usize, const R: usize, T: Scalar + Serialize, A: VecAlignment, M: MatMajorAxis>
     Serialize for Matrix<R, C, T, A, M>
 where
     Usize<C>: VecLen,
@@ -82,7 +82,7 @@ impl<
     const R: usize,
     T: Scalar + Deserialize<'de>,
     A: VecAlignment,
-    M: MatrixMajorAxis,
+    M: MatMajorAxis,
 > Deserialize<'de> for Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
@@ -94,7 +94,7 @@ where
         D: serde::Deserializer<'de>,
     {
         Ok(match M::ENUM {
-            MatrixMajorAxisEnum::ColumnMajor => match C {
+            MatMajorAxisEnum::ColumnMajor => match C {
                 2 => {
                     let arr = <[Vector<R, T, A>; 2]>::deserialize(deserializer)?;
 
@@ -120,7 +120,7 @@ where
                 _ => unreachable!("matrix column length is expected to be 2, 3, or 4"),
             },
 
-            MatrixMajorAxisEnum::RowMajor => match R {
+            MatMajorAxisEnum::RowMajor => match R {
                 2 => {
                     let arr = <[Vector<C, T, A>; 2]>::deserialize(deserializer)?;
 

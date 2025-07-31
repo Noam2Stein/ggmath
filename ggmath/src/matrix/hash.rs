@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use super::*;
 
-impl<const C: usize, const R: usize, T: Scalar + Hash, A: VecAlignment, M: MatrixMajorAxis> Hash
+impl<const C: usize, const R: usize, T: Scalar + Hash, A: VecAlignment, M: MatMajorAxis> Hash
     for Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
