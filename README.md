@@ -2,14 +2,30 @@
 
 ## Development Status
 
-| Type        | Declaration | Functionality    | Documentation | Tests          | Benchmarks |
-|-------------|-------------|------------------|---------------|----------------|------------|
-| Vectors     | 🏁 Stable  | ✅ Mostly stable | 🏁 100%      | ✅ Mostly Done | ❌ None    |
-| Matrices    | 🏁 Stable  | ❌ Only layout   | ❌ Not much  | ❌ None        | ❌ None    |
-| Quaternions | 🏁 Stable  | ❌ Only layout   | ❌ Not much  | ❌ None        | ❌ None    |
-| Aabbs       | 🏁 Stable  | ✅ Mostly done   | ❌ Not much  | ❌ None        | ❌ None    |
+Usability:
 
-A *generic graphics math* Rust crate with precise generic math types specialized for graphics.
+| API         | Stable | 100% Documentation | 100% Tests | 100% Benchmarks |
+|-------------|--------|--------------------|-------------|----------------|
+| Vectors     | ✅    | ✅                 | ❌         | ❌             |
+| Matrices    | ❌    | ❌                | ❌          | ❌            |
+| Quaternions | ❌    | ❌                | ❌          | ❌            |
+| Aabbs       | ✅    | ❌                | ❌          | ❌            |
+
+Performance:
+
+| API              | Is On Par With `glam` |
+|------------------|-----------------------|
+| Vector (swizzle) | ❌                   |
+| Vector (floats)  | ❌                   |
+| Vector (ints)    | ❌                   |
+|                  |                       |
+| Matrix (swizzle) | ❌                   |
+|                  |                       |
+| Aabb             | ❌                   |
+
+### GGMath
+
+A *generic graphics math* Rust crate with precise, flexible generic math types specialized for graphics.
 
 `ggmath` has vectors, and optionally matrices, quaternions, and aabbs.
 
@@ -25,99 +41,110 @@ fn main() {
 ```
 
 `ggmath` types are fully generic over absolutely everything.
-There is only one type for `Vector` and `Matrix`, and they are both generic over length, type and *alignment*.
 
-`ggmath` types are generic over their memory-layout,
-which includes *alignment* (see <https://doc.rust-lang.org/reference/type-layout.html>).
+The `Vector` type is generic over length, type,
+and whether it's aligned for fast operations, or unaligned to save space.
 
-The minimum alignment of a vector is the alignment of its `T`,
-but you may want higher alignment so that operators on the vector are faster due to SIMD.
-Because of this, all `ggmath` types are generic over `A: VecAlignment` which can be either `VecAligned` (aligned for SIMD) or `VecPacked` (not additionally aligned, like `[T; _]`).
+The `Matrix` type is generic over column count, row count, type, alignment,
+and whether it's column-major or row-major.
 
-`ggmath` matricies are also generic over whether they are column-major or row-major.
+The `Aabb` type is generic over length, type, alignment,
+and it's inner representation (by min+size, min+max, or center+extents).
 
 ### Vectors
 
-Vectors are generic over:
-- **Length** (`N`): 2, 3, or 4 (vector dimension)
-- **Type** (`T`): e.g., `f32`, `i32`, `bool`, etc. (element type)
-- **Alignment** (`A`): `VecAligned` (aligned for SIMD) or `VecPacked` (not additionally aligned, like `[T; _]`)
-
 ```rust
-use ggmath::*;
+pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
+where
+    Usize<N>: VecLen,
 
-// This type is aligned for optimal SIMD usage.
-// On most platforms:
-//   SIZE      -> 128 bits
-//   ALIGNMENT -> 128 bits
-type SimdVec3 = Vector<3, f32, VecAligned>; // Could also just write `FVec3`
+// `VecAligned` vectors are the default.
+// They are aligned for fast operators (SIMD)
+pub type Vec2<T> = Vector<2, T, VecAligned>;
+pub type Vec3<T> = Vector<3, T, VecAligned>;
+pub type Vec4<T> = Vector<4, T, VecAligned>;
 
-// This type is not specially aligned and is identical in memory to [f32; 3].
-// On most platforms:
-//   SIZE      -> 96 bits
-//   ALIGNMENT -> 32 bits (f32's alignment)
-type PackedVec3 = Vector<3, f32, VecPacked>; // Could also just write `FVec3P`
+// `VecPacked` vectors have the same memory layout as `[T; N]`.
+// This saves space, but makes operators slower.
+pub type Vec2P<T> = Vector<2, T, VecPacked>;
+pub type Vec3P<T> = Vector<3, T, VecPacked>;
+pub type Vec4P<T> = Vector<4, T, VecPacked>;
 ```
 
-Vectors have type aliases `Vec{2/3/4}` style where `VecAligned` is the default alignment, and `VecPacked` is `Vec{2/3/4}P`.
+Vectors support all expected features:
+- Swizzling: `vec.xyw()`, `vec4!(1, vec2!(2, 3), 4)`
+- Arithmetic: `vec + vec`, `vec * 2.0`
+- Math: `vec.mag()`, `vec.dot(vec)`, `vec.cross(vec)`, `vec.lerp(vec, t)`
+- Array-like API: `vec[0]`, `vec.map(...)`, `vec.get()`
+- Nice type aliases: `FVec3`, `IVec4`, `BVec2P`, etc.
 
-The `primitive_aliases` feature adds type aliases for Rust primitives (e.g., `FVec3`).
-
-### Matrices
-
-Matrices are generic over:
-- **Columns** (`C`): 2, 3, or 4 (number of columns)
-- **Rows** (`R`): 2, 3, or 4 (number of rows)
-- **Type** (`T`): e.g., `f32`, `i32`, `bool`, etc. (element type)
-- **Alignment** (`A`): `VecAligned` or `VecPacked`
-- **Major Axis** (`M`): `ColMajor` or `RowMajor`
+### Matrices (optional feature)
 
 ```rust
-use ggmath::*;
+pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
+where
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
 
-// Column-major, aligned matrix
-type Mat4x3F32Col = Matrix<4, 3, f32, VecAligned, ColMajor>; // Could just write `FMat4x3C`
+pub type Mat2C<T> = Matrix<2, 2, T, VecAligned, ColMajor>;
+pub type Mat2x3C<T> = Matrix<2, 3, T, VecAligned, ColMajor>;
 
-// Row-major, packed matrix
-type Mat2x2I32RowPacked = Matrix<2, 2, i32, VecPacked, RowMajor>; // Could just write `IMat2RP`
+pub type Mat2R<T> = Matrix<2, 2, T, VecAligned, RowMajor>;
+
+pub type Mat2CP<T> = Matrix<2, 2, T, VecPacked, ColMajor>;
+
+pub type Mat2RP<T> = Matrix<2, 2, T, VecPacked, RowMajor>;
+
+// ...
 ```
 
-Matricies have type aliases `Mat{2/3/4}{C/R}` style which end with their major axis.
+Matricies are not feature full yet.
+They do support swizzling and construction from columns/rows.
 
-### Bounding Boxes (optional feature)
-
-The `aabb` feature adds support for axis-aligned bounding boxes.
-Aabbs can be represented in multiple ways, like by their minimum and maximum corners, or their center and size, etc.
-Because of this, `ggmath`'s aabbs are generic over their internal representation.
-
-Aabbs are generic over:
-- **Length** (`N`): number of dimensions (e.g., 2 for rectangles, 3 for boxes, etc.)
-- **Type** (`T`): e.g., `f32`, `i32`, etc. (element type)
-- **Alignment** (`A`): `VecAligned` or `VecPacked`
-- **Representation** (`R`): e.g., `AabbCornered`, `AabbMinMaxed`, `AabbCentered`
+### Aabbs (Bounding Boxes) (optional feature)
 
 ```rust
-use ggmath::*;
+pub struct Aabb<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr>
+where
+    Usize<N>: VecLen,
 
-// Cornered: minimum corner and size
-type RectF32 = Aabb<2, f32, VecAligned, AabbCornered>;
+// `AabbCornered` is the default aabb representation.
+// `AabbCornered` aabbs are stored by their minimum corner and their size.
+pub type Rect<T> = Aabb<2, T, VecAligned, AabbCornered>;
+pub type RectP<T> = Aabb<2, T, VecPacked, AabbCornered>;
 
-// MinMaxed: minimum and maximum corners
-type BoxI32Packed = Aabb<3, i32, VecPacked, AabbMinMaxed>;
+// `AabbCentered` aabbs are stored by their center and their extents.
+pub type RectC<T> = Aabb<2, T, VecAligned, AabbCentered>;
 
-// Centered: center and extents (center, extents)
-type HyperBoxF64Packed = Aabb<4, f64, VecPacked, AabbCentered>;
+// `AabbMinMaxed` aabbs are stored by their minimum and maximum corners.
+pub type RectM<T> = Aabb<2, T, VecAligned, AabbMinMaxed>;
+
+// 3D
+pub type Aabb3<T> = Aabb<3, T, VecAligned, AabbCornered>;
+
+pub type Aabb3M<T> = Aabb<3, T, VecAligned, AabbMinMaxed>;
+
+// 4D
+
+pub type Aabb4<T> = Aabb<4, T, VecAligned, AabbCornered>;
 ```
 
-Aabbs have type aliases where `Aabb<2, ..>` is named `Rect` unlike `Aabb{3/4}`.
-`AabbCornered` is the default representation and `Rect{C/M}` stand for `AabbCentered` / `AabbMinMaxed`.
+Aabbs support all expected features:
+- Construction: `Aabb::from_min_size`, `Aabb::from_min_max`, `Aabb::from_center_size` etc.
+- Accessors: `aabb.min()`, `aabb.max()`, `aabb.center()`, `aabb.extents()` etc.
+- Logic: `aabb.contains(point)`, `aabb.intersects(aabb)` etc.
+- Swizzling: `aabb.xy()`, `aabb.xyz()` etc.
+- Nice type aliases: `FAabb3`, `IRectMP`, etc.
 
-### Performance
+### Quaternions (optional feature)
 
-`ggmath` heavily relies on rustc's heavy optimizations.
+```rust
+pub struct Quaternion<T: Scalar, A: VecAlignment>
 
-This means that in release mode `ggmath` is optimal,
-but it will be slower than other math crates in debug mode.
+pub type Quat<T> = Quaternion<T, VecAligned>;
+pub type QuatP<T> = Quaternion<T, VecPacked>;
+
+```
 
 ### Crate Integration
 
