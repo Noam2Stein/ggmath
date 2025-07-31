@@ -38,6 +38,25 @@ macro_loop! {
 
             #[inline(always)]
             fn @op_fn(self) -> Vector<N, <T as @op_trait>::Output, A> {
+                'vec3_optimization: {
+                    if !types_match::<Self, Vec3<T>>() {
+                        break 'vec3_optimization;
+                    }
+
+                    if !types_match::<T::Output, T>() {
+                        break 'vec3_optimization;
+                    }
+
+                    let self_vec3 = unsafe { transmute_copy::<Self, Vec3<T>>(&self) };
+
+                    let output_vec3 = match T::@[vec3_ @op_fn](self_vec3) {
+                        Some(output_vec3) => output_vec3,
+                        None => break 'vec3_optimization,
+                    };
+
+                    return unsafe { transmute_copy::<Vec3<T>, Vector<N, T::Output, A>>(&output_vec3) };
+                }
+
                 self.map(T::@op_fn)
             }
         }

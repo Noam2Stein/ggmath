@@ -64,36 +64,6 @@ impl Scalar for u16 {
     }
 
     #[inline(always)]
-    fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
-        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
-
-        let output_vec4 = vec4!(
-            lhs_vec4.x() / rhs_vec4.x(),
-            lhs_vec4.y() / rhs_vec4.y(),
-            lhs_vec4.z() / rhs_vec4.z(),
-            lhs_vec4.w().overflowing_div(rhs_vec4.w()).0,
-        );
-
-        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
-    }
-
-    #[inline(always)]
-    fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
-        let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
-
-        let output_vec4 = vec4!(
-            lhs_vec4.x() % rhs_vec4.x(),
-            lhs_vec4.y() % rhs_vec4.y(),
-            lhs_vec4.z() % rhs_vec4.z(),
-            lhs_vec4.w().overflowing_rem(rhs_vec4.w()).0,
-        );
-
-        Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
-    }
-
-    #[inline(always)]
     fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
         let lhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&lhs) };
         let rhs_vec4 = unsafe { transmute_copy::<Vec3<Self>, Vec4<Self>>(&rhs) };
