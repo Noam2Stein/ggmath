@@ -3,6 +3,9 @@ use std::ops::*;
 use super::*;
 
 /// Trait required to put a type inside a `Aabb`.
+///
+/// This trait contains simple arithmetic operations that are used by the `Aabb` type,
+/// like doubling or halving a vector.
 pub trait AabbScalar:
     Scalar + Add<Output = Self> + Sub<Output = Self> + PartialEq + PartialOrd
 {
@@ -24,6 +27,8 @@ pub trait AabbScalar:
     where
         Usize<N>: VecLen;
 
+    /// Maps the vectors to the absolute difference of their components.
+    /// Used by `Rectangle` functions.
     fn aabb_vector_abs_diff<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         rhs: Vector<N, Self, impl VecAlignment>,
@@ -31,6 +36,8 @@ pub trait AabbScalar:
     where
         Usize<N>: VecLen;
 
+    /// Maps the vectors to the minimum of their components.
+    /// Used by `Rectangle` functions.
     fn aabb_vector_min<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         other: Vector<N, Self, impl VecAlignment>,
@@ -38,6 +45,8 @@ pub trait AabbScalar:
     where
         Usize<N>: VecLen;
 
+    /// Maps the vectors to the maximum of their components.
+    /// Used by `Rectangle` functions.
     fn aabb_vector_max<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
         other: Vector<N, Self, impl VecAlignment>,

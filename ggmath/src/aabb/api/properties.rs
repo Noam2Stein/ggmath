@@ -8,6 +8,7 @@ impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, 
 where
     Usize<N>: VecLen,
 {
+    /// Returns the minimum corner of the aabb.
     #[inline(always)]
     pub fn min(self) -> Vector<N, T, A> {
         match self.resolve() {
@@ -17,6 +18,7 @@ where
         }
     }
 
+    /// Returns the maximum corner of the aabb.
     #[inline(always)]
     pub fn max(self) -> Vector<N, T, A> {
         match self.resolve() {
@@ -26,6 +28,11 @@ where
         }
     }
 
+    /// Returns the center of the aabb.
+    ///
+    /// Note:
+    /// For int-aabbs, there could be a precision mistake if the representation is not `AabbCentered`.
+    /// The exact rounding behaviour is not specified yet.
     #[inline(always)]
     pub fn center(self) -> Vector<N, T, A> {
         match self.resolve() {
@@ -39,6 +46,7 @@ where
         }
     }
 
+    /// Returns the size of the aabb.
     #[inline(always)]
     pub fn size(self) -> Vector<N, T, A> {
         match self.resolve() {
@@ -48,6 +56,11 @@ where
         }
     }
 
+    /// Returns the extents of the aabb.
+    ///
+    /// Note:
+    /// For int-aabbs, there could be a precision mistake if the representation is not `AabbCentered`.
+    /// The exact rounding behaviour is not specified yet.
     #[inline(always)]
     pub fn extents(self) -> Vector<N, T, A> {
         match self.resolve() {
@@ -194,6 +207,7 @@ where
         Self::from_min_center(self.min(), value)
     }
 
+    /// returns `self` but moved by the given vector.
     #[inline(always)]
     pub fn moved(self, value: Vector<N, T, impl VecAlignment>) -> Self {
         match self.resolve() {
@@ -228,6 +242,7 @@ macro_loop! {
                 self.with_center_maximized(self.center().@[with_ @x](value))
             }
 
+            #[doc = @("returns `self` but moved on the " + @x + " axis by the given value")]
             #[inline(always)]
             pub fn @[moved_ @x](self, value: T) -> Self {
                 match self.resolve() {
@@ -467,6 +482,8 @@ where
         *self = self.with_center_maximized(value);
     }
 
+    /// Moves the rectangle by the given vector.
+    /// This mutates the original value, not returning a new one.
     #[inline(always)]
     pub fn move_(&mut self, value: Vector<N, T, impl VecAlignment>) {
         *self = self.moved(value);
@@ -497,6 +514,10 @@ macro_loop! {
                 *self = self.@[with_center_ @x _maximized](value);
             }
 
+            #[doc = @(
+                "Moves the rectangle by the given value on the " + @x + " axis.\n" +
+                "This mutates the original value, not returning a new one."
+            )]
             #[inline(always)]
             pub fn @[move_ @x](&mut self, value: T) {
                 *self = self.@[moved_ @x](value);
@@ -606,6 +627,7 @@ macro_loop! {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             // Get
 
+            #[doc = @("Returns the " + @x_word + " of the aabb")]
             #[inline(always)]
             pub fn @x_word(&self) -> T {
                 self.size().@x()
@@ -613,16 +635,19 @@ macro_loop! {
 
             // With
 
+            #[doc = @("Returns `self` but resized to the given " + @x_word + ", keeping the center unchanged")]
             #[inline(always)]
             pub fn @[with_ @x_word _centered](self, value: T) -> Self {
                 self.@[resized_ @x _centered](value)
             }
 
+            #[doc = @("Returns `self` but resized to the given " + @x_word + ", keeping the maximum corner unchanged")]
             #[inline(always)]
             pub fn @[with_ @x_word _minimized](self, value: T) -> Self {
                 self.@[resized_ @x _minimized](value)
             }
 
+            #[doc = @("Returns `self` but resized to the given " + @x_word + ", keeping the minimum corner unchanged")]
             #[inline(always)]
             pub fn @[with_ @x_word _maximized](self, value: T) -> Self {
                 self.@[resized_ @x _maximized](value)
@@ -630,16 +655,19 @@ macro_loop! {
 
             // Set
 
+            #[doc = @("Resizes the rectangle to the given " + @x_word + ", keeping the center unchanged")]
             #[inline(always)]
             pub fn @[set_ @x_word _centered](&mut self, value: T) {
                 self.@[resize_ @x _centered](value)
             }
 
+            #[doc = @("Resizes the rectangle to the given " + @x_word + ", keeping the maximum corner unchanged")]
             #[inline(always)]
             pub fn @[set_ @x_word _minimized](&mut self, value: T)  {
                 self.@[resize_ @x _minimized](value)
             }
 
+            #[doc = @("Resizes the rectangle to the given " + @x_word + ", keeping the minimum corner unchanged")]
             #[inline(always)]
             pub fn @[set_ @x_word _maximized](&mut self, value: T)  {
                 self.@[resize_ @x _maximized](value)

@@ -13,6 +13,9 @@ impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, 
 where
     Usize<N>: VecLen,
 {
+    /// Converts the aabb to the specified memory-layout.
+    ///
+    /// This can swap the alignment and representation of the aabb.
     #[inline(always)]
     pub fn to_layout<AOutput: VecAlignment, ROutput: AabbRepr>(
         self,

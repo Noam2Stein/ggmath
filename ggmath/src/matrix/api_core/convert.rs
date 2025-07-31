@@ -8,6 +8,10 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Constructs a matrix from an array of column vectors.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub const fn from_columns(columns: [Vector<R, T, impl VecAlignment>; C]) -> Self {
         match M::ENUM {
@@ -52,6 +56,10 @@ where
         }
     }
 
+    /// Constructs a matrix from an array of column arrays.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub const fn from_column_arrays(columns: [[T; R]; C]) -> Self {
         Self::from_columns(unsafe {
@@ -59,21 +67,42 @@ where
         })
     }
 
+    /// Constructs a matrix by mapping column indices to their values using function `f`.
+    /// This is equivalent to [`std::array::from_fn`].
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub fn from_column_fn(f: impl FnMut(usize) -> Vector<R, T, A>) -> Self {
         Self::from_columns(array::from_fn(f))
     }
 
+    /// Constructs a matrix by mapping column indices to their values using function `f`.
+    /// This is equivalent to [`std::array::from_fn`].
+    ///
+    /// Unlike [`Matrix::from_column_fn`],
+    /// this function asks for column arrays instead of column vectors.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub fn from_column_array_fn(f: impl FnMut(usize) -> [T; R]) -> Self {
         Self::from_column_arrays(array::from_fn(f))
     }
 
+    /// Returns the columns of the matrix as an array of column vectors.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub const fn columns(self) -> [Vector<R, T, A>; C] {
         self.to_storage::<A, ColMajor>().inner
     }
 
+    /// Returns the columns of the matrix as an array of column arrays.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub const fn column_arrays(self) -> [[T; R]; C] {
         unsafe {
@@ -90,6 +119,10 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Constructs a matrix from an array of row vectors.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub const fn from_rows(rows: [Vector<C, T, impl VecAlignment>; R]) -> Self {
         match M::ENUM {
@@ -134,6 +167,10 @@ where
         }
     }
 
+    /// Constructs a matrix from an array of row arrays.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub const fn from_row_arrays(rows: [[T; C]; R]) -> Self {
         Self::from_rows(unsafe {
@@ -141,21 +178,42 @@ where
         })
     }
 
+    /// Constructs a matrix by mapping row indices to their values using function `f`.
+    /// This is equivalent to [`std::array::from_fn`].
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub fn from_row_fn(f: impl FnMut(usize) -> Vector<C, T, A>) -> Self {
         Self::from_rows(array::from_fn(f))
     }
 
+    /// Constructs a matrix by mapping row indices to their values using function `f`.
+    /// This is equivalent to [`std::array::from_fn`].
+    ///
+    /// Unlike [`Matrix::from_row_fn`],
+    /// this function asks for row arrays instead of row vectors.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub fn from_row_array_fn(f: impl FnMut(usize) -> [T; C]) -> Self {
         Self::from_row_arrays(array::from_fn(f))
     }
 
+    /// Returns the rows of the matrix as an array of row vectors.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub const fn rows(self) -> [Vector<C, T, A>; R] {
         self.to_storage::<A, RowMajor>().inner
     }
 
+    /// Returns the rows of the matrix as an array of row arrays.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub const fn row_arrays(self) -> [[T; C]; R] {
         unsafe {

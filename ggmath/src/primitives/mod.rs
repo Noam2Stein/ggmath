@@ -1,5 +1,3 @@
-#![deny(missing_docs)]
-
 use super::*;
 
 macro_loop! {

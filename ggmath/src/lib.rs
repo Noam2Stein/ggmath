@@ -1,4 +1,4 @@
-//#![warn(missing_docs)]
+#![deny(missing_docs)]
 
 //! Generic-Graphics-Math with internal optimized SIMD.
 //!
@@ -25,8 +25,6 @@ pub mod vector;
 pub use scalar::*;
 pub use vector::*;
 
-pub mod integration;
-
 macro_loop! {
     @for feature_mod in [matrix, quaternion, aabb] {
         #[cfg(feature = @[@feature_mod => str])]
@@ -39,3 +37,11 @@ macro_loop! {
 
 #[doc(hidden)]
 pub use macro_loop::macro_loop;
+
+// Crate integration
+
+#[cfg(feature = "serde")]
+mod serde_;
+
+#[cfg(feature = "crevice")]
+pub mod crevice_;

@@ -1,3 +1,23 @@
+/// Expands to a declaration of type specific vector aliases.
+///
+/// Syntax:
+/// `<vis> <prefix> => <type>`
+///
+/// Example:
+/// ```rust
+/// vector_aliases!(pub Big => BigInt);
+/// ```
+///
+/// Expands to:
+/// ```rust
+/// pub type BigVec2 = Vector<2, BigInt, VecAligned>;
+/// pub type BigVec3 = Vector<3, BigInt, VecAligned>;
+/// pub type BigVec4 = Vector<4, BigInt, VecAligned>;
+///
+/// pub type BigVec2P = Vector<2, BigInt, VecPacked>;
+/// pub type BigVec3P = Vector<3, BigInt, VecPacked>;
+/// pub type BigVec4P = Vector<4, BigInt, VecPacked>;
+/// ```
 #[macro_export]
 macro_rules! vector_aliases {
     (
@@ -25,6 +45,23 @@ macro_rules! vector_aliases {
     };
 }
 
+/// Expands to a declaration of type specific matrix aliases.
+///
+/// Syntax:
+/// `<vis> <prefix> => <type>`
+///
+/// Example:
+/// ```rust
+/// matrix_aliases!(pub Big => BigInt);
+/// ```
+///
+/// Expands to:
+/// ```rust
+/// pub type BigMat2C = Matrix<2, 2, BigInt, VecAligned, ColMajor>;
+/// pub type BigMat2x3C = Matrix<2, 3, BigInt, VecAligned, ColMajor>;
+/// pub type BigMat2x4C = Matrix<2, 4, BigInt, VecAligned, ColMajor>;
+/// // ...
+/// ```
 #[cfg(feature = "matrix")]
 #[macro_export]
 macro_rules! matrix_aliases {
@@ -128,6 +165,27 @@ macro_rules! matrix_aliases {
     };
 }
 
+/// Expands to a declaration of type specific aabb aliases.
+///
+/// Syntax:
+/// `<vis> <prefix> => <type>`
+///
+/// Example:
+/// ```rust
+/// aabb_aliases!(pub Big => BigInt);
+/// ```
+///
+/// Expands to:
+/// ```rust
+/// pub type BigRect = Rect<BigInt>;
+/// pub type BigRectP = RectP<BigInt>;
+/// pub type BigRectCP = RectCP<BigInt>;
+///
+/// pub type BigAabb3 = Aabb3<BigInt>;
+/// pub type BigAabb3P = Aabb3P<BigInt>;
+///
+/// // ...
+/// ```
 #[cfg(feature = "aabb")]
 #[macro_export]
 macro_rules! aabb_aliases {

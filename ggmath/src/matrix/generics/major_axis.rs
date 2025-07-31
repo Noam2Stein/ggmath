@@ -1,22 +1,32 @@
 use super::*;
 
-#[allow(private_bounds)]
-#[allow(private_interfaces)]
+/// Marker trait for matrix major axis.
+///
+/// Is implemented for `ColMajor` and `RowMajor`.
 pub unsafe trait MatrixMajorAxis {
+    /// Enum that is used to specialize function implementations based on the major axis.
     const ENUM: MatrixMajorAxisEnum;
 
+    /// The inner array type that is inside a matrix.
+    /// This has to be controlled by the major axis.
     type InnerMatrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment>: Construct
     where
         Usize<C>: VecLen,
         Usize<R>: VecLen;
 }
 
+/// Marker type for column major matrices.
 pub struct ColMajor;
+
+/// Marker type for row major matrices.
 pub struct RowMajor;
 
+/// Enum that mirrors the `MatrixMajorAxis` trait and its impls.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) enum MatrixMajorAxisEnum {
+pub enum MatrixMajorAxisEnum {
+    /// Column major matrix.
     ColumnMajor,
+    /// Row major matrix.
     RowMajor,
 }
 
@@ -26,11 +36,13 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Converts the matrix to a column major matrix.
     #[inline(always)]
     pub const fn to_c_major(self) -> Matrix<C, R, T, A, ColMajor> {
         Matrix::from_columns(self.columns())
     }
 
+    /// Converts the matrix to a row major matrix.
     #[inline(always)]
     pub const fn to_r_major(self) -> Matrix<C, R, T, A, RowMajor> {
         Matrix::from_rows(self.rows())

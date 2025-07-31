@@ -4,6 +4,11 @@ impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, 
 where
     Usize<N>: VecLen,
 {
+    /// Creates an `Aabb` from its minimum corner and size.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_min_size(
         min: Vector<N, T, impl VecAlignment>,
@@ -31,6 +36,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its maximum corner and size.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_max_size(
         max: Vector<N, T, impl VecAlignment>,
@@ -58,6 +68,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its center and size.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_center_size(
         center: Vector<N, T, impl VecAlignment>,
@@ -85,6 +100,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its minimum corner and extents.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_min_extents(
         min: Vector<N, T, impl VecAlignment>,
@@ -112,6 +132,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its maximum corner and extents.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_max_extents(
         max: Vector<N, T, impl VecAlignment>,
@@ -139,6 +164,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its center and extents.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_center_extents(
         center: Vector<N, T, impl VecAlignment>,
@@ -166,6 +196,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its minimum and maximum corners.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_min_max(
         min: Vector<N, T, impl VecAlignment>,
@@ -193,6 +228,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its minimum corner and center.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_min_center(
         min: Vector<N, T, impl VecAlignment>,
@@ -220,6 +260,11 @@ where
         )
     }
 
+    /// Creates an `Aabb` from its center and maximum corner.
+    ///
+    /// Note:
+    /// Sometimes int-aabbs can loose precision when initializing them depending on their `AabbRepr`.
+    /// The exact behviour of the rounding is not specified yet.
     #[inline(always)]
     pub fn from_center_max(
         center: Vector<N, T, impl VecAlignment>,

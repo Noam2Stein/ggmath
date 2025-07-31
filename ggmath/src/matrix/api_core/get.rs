@@ -8,6 +8,8 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns the value at the specified column and row indices,
+    /// or `None` if the indices are out of bounds.
     #[inline(always)]
     pub const fn get_cell(self, column_idx: usize, row_idx: usize) -> Option<T> {
         if column_idx < C && row_idx < R {
@@ -17,6 +19,11 @@ where
         }
     }
 
+    /// Returns the column at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub const fn get_column(self, column_idx: usize) -> Option<Vector<R, T, A>> {
         if column_idx < C {
@@ -26,6 +33,11 @@ where
         }
     }
 
+    /// Returns the row at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub const fn get_row(self, row_idx: usize) -> Option<Vector<C, T, A>> {
         if row_idx < R {
@@ -44,11 +56,18 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns the value at the specified column and row indices,
+    /// without bounds checking.
     #[inline(always)]
     pub const unsafe fn get_cell_unchecked(self, column_idx: usize, row_idx: usize) -> T {
         unsafe { *self.get_cell_ref_unchecked(column_idx, row_idx) }
     }
 
+    /// Returns the column at the specified index,
+    /// without bounds checking.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is column major.
     #[inline(always)]
     pub const unsafe fn get_column_unchecked(self, column_idx: usize) -> Vector<R, T, A> {
         match self.resolve() {
@@ -71,6 +90,11 @@ where
         }
     }
 
+    /// Returns the row at the specified index,
+    /// without bounds checking.
+    ///
+    /// This works regardless of if the matrix is column major or row major,
+    /// but is faster if the matrix is row major.
     #[inline(always)]
     pub const unsafe fn get_row_unchecked(self, row_idx: usize) -> Vector<C, T, A> {
         match self.resolve() {
@@ -100,6 +124,8 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a reference to the value at the specified column and row indices,
+    /// or `None` if the indices are out of bounds.
     #[inline(always)]
     pub const fn get_cell_ref(&self, column_idx: usize, row_idx: usize) -> Option<&T> {
         if column_idx < C && row_idx < R {
@@ -115,6 +141,11 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a reference to the column at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_column_ref(&self, column_idx: usize) -> Option<&Vector<R, T, A>> {
         if column_idx < C {
@@ -124,6 +155,12 @@ where
         }
     }
 
+    /// Returns a reference to two consecutive columns of the matrix,
+    /// starting at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_2_columns_ref(
         &self,
@@ -132,6 +169,12 @@ where
         self.get_matc_ref(column_idx)
     }
 
+    /// Returns a reference to three consecutive columns of the matrix,
+    /// starting at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_3_columns_ref(
         &self,
@@ -140,6 +183,12 @@ where
         self.get_matc_ref(column_idx)
     }
 
+    /// Returns a reference to four consecutive columns of the matrix,
+    /// starting at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_4_columns_ref(
         &self,
@@ -148,6 +197,15 @@ where
         self.get_matc_ref(column_idx)
     }
 
+    /// Returns a reference to a generic number of consecutive columns of the matrix,
+    /// starting at the specified column index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
+    ///
+    /// This is a generic version of [`Matrix::get_2_columns_ref`],
+    /// [`Matrix::get_3_columns_ref`], and [`Matrix::get_4_columns_ref`].
     #[inline(always)]
     pub const fn get_matc_ref<const C_OUT: usize>(
         &self,
@@ -169,6 +227,11 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a reference to the row at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_row_ref(&self, row_idx: usize) -> Option<&Vector<C, T, A>> {
         if row_idx < R {
@@ -178,21 +241,48 @@ where
         }
     }
 
+    /// Returns a reference to two consecutive rows of the matrix,
+    /// starting at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_2_rows_ref(&self, row_idx: usize) -> Option<&Matrix<C, 2, T, A, RowMajor>> {
         self.get_matr_ref(row_idx)
     }
 
+    /// Returns a reference to three consecutive rows of the matrix,
+    /// starting at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_3_rows_ref(&self, row_idx: usize) -> Option<&Matrix<C, 3, T, A, RowMajor>> {
         self.get_matr_ref(row_idx)
     }
 
+    /// Returns a reference to four consecutive rows of the matrix,
+    /// starting at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_4_rows_ref(&self, row_idx: usize) -> Option<&Matrix<C, 4, T, A, RowMajor>> {
         self.get_matr_ref(row_idx)
     }
 
+    /// Returns a reference to a generic number of consecutive rows of the matrix,
+    /// starting at the specified row index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
+    ///
+    /// This is a generic version of [`Matrix::get_2_rows_ref`],
+    /// [`Matrix::get_3_rows_ref`], and [`Matrix::get_4_rows_ref`].
     #[inline(always)]
     pub const fn get_matr_ref<const R_OUT: usize>(
         &self,
@@ -217,6 +307,8 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a reference to the value at the specified column and row indices,
+    /// without bounds checking.
     #[inline(always)]
     pub const unsafe fn get_cell_ref_unchecked(&self, column_idx: usize, row_idx: usize) -> &T {
         unsafe {
@@ -238,6 +330,11 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a reference to the column at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_column_ref_unchecked(&self, column_idx: usize) -> &Vector<R, T, A> {
         unsafe {
@@ -249,6 +346,12 @@ where
         }
     }
 
+    /// Returns a reference to two consecutive columns of the matrix,
+    /// starting at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_2_columns_ref_unchecked(
         &self,
@@ -257,6 +360,12 @@ where
         unsafe { self.get_matc_ref_unchecked(column_idx) }
     }
 
+    /// Returns a reference to three consecutive columns of the matrix,
+    /// starting at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_3_columns_ref_unchecked(
         &self,
@@ -265,6 +374,12 @@ where
         unsafe { self.get_matc_ref_unchecked(column_idx) }
     }
 
+    /// Returns a reference to four consecutive columns of the matrix,
+    /// starting at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_4_columns_ref_unchecked(
         &self,
@@ -273,6 +388,15 @@ where
         unsafe { self.get_matc_ref_unchecked(column_idx) }
     }
 
+    /// Returns a reference to a generic number of consecutive columns of the matrix,
+    /// starting at the specified column index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
+    ///
+    /// This is a generic version of [`Matrix::get_2_columns_ref_unchecked`],
+    /// [`Matrix::get_3_columns_ref_unchecked`], and [`Matrix::get_4_columns_ref_unchecked`].
     #[inline(always)]
     pub const unsafe fn get_matc_ref_unchecked<const C_OUT: usize>(
         &self,
@@ -295,11 +419,22 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a reference to the row at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_row_ref_unchecked(&self, row_idx: usize) -> &Vector<C, T, A> {
         unsafe { self.inner.as_ptr().add(row_idx).as_ref().unwrap_unchecked() }
     }
 
+    /// Returns a reference to two consecutive rows of the matrix,
+    /// starting at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_2_rows_ref_unchecked(
         &self,
@@ -308,6 +443,12 @@ where
         unsafe { self.get_matr_ref_unchecked(row_idx) }
     }
 
+    /// Returns a reference to three consecutive rows of the matrix,
+    /// starting at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_3_rows_ref_unchecked(
         &self,
@@ -316,6 +457,12 @@ where
         unsafe { self.get_matr_ref_unchecked(row_idx) }
     }
 
+    /// Returns a reference to four consecutive rows of the matrix,
+    /// starting at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_4_rows_ref_unchecked(
         &self,
@@ -324,6 +471,15 @@ where
         unsafe { self.get_matr_ref_unchecked(row_idx) }
     }
 
+    /// Returns a reference to a generic number of consecutive rows of the matrix,
+    /// starting at the specified row index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
+    ///
+    /// This is a generic version of [`Matrix::get_2_rows_ref_unchecked`],
+    /// [`Matrix::get_3_rows_ref_unchecked`], and [`Matrix::get_4_rows_ref_unchecked`].
     #[inline(always)]
     pub const unsafe fn get_matr_ref_unchecked<const R_OUT: usize>(
         &self,
@@ -349,6 +505,8 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a mutable reference to the value at the specified column and row indices,
+    /// or `None` if the indices are out of bounds.
     #[inline(always)]
     pub const fn get_cell_mut(&mut self, column_idx: usize, row_idx: usize) -> Option<&mut T> {
         if column_idx < C && row_idx < R {
@@ -364,6 +522,11 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a mutable reference to the column at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_column_mut(&mut self, column_idx: usize) -> Option<&mut Vector<R, T, A>> {
         if column_idx < C {
@@ -379,6 +542,11 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a mutable reference to the row at the specified index,
+    /// or `None` if the index is out of bounds.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const fn get_row_mut(&mut self, row_idx: usize) -> Option<&mut Vector<C, T, A>> {
         if row_idx < R {
@@ -397,6 +565,8 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a mutable reference to the value at the specified column and row indices,
+    /// without bounds checking.
     #[inline(always)]
     pub const unsafe fn get_cell_mut_unchecked(
         &mut self,
@@ -422,6 +592,11 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a mutable reference to the column at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be column major.
+    /// This is because else the columns of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_column_mut_unchecked(
         &mut self,
@@ -442,6 +617,11 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Returns a mutable reference to the row at the specified index,
+    /// without bounds checking.
+    ///
+    /// This requires the matrix to be row major.
+    /// This is because else the rows of the matrix would not be contiguous in memory.
     #[inline(always)]
     pub const unsafe fn get_row_mut_unchecked(&mut self, row_idx: usize) -> &mut Vector<C, T, A> {
         unsafe {

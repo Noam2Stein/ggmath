@@ -1,3 +1,5 @@
+//! Matrix type?
+
 use derive_where::derive_where;
 
 use super::{construct::*, scalar::*, vector::*, *};
@@ -9,6 +11,39 @@ mod impl_std;
 pub use api_core::*;
 pub use generics::*;
 
+/// The matrix type.
+/// Statically-sized matrix.
+///
+/// In most cases you can use this type's type aliases instead.
+/// See in [`crate::matrix`].
+///
+/// This type is generic over columns, rows, scalar type, alignment and major axis.
+/// The first 4 match the generics of [`Vector`].
+///
+/// The major axis is a marker type like `VecAlignment` types, which is either `ColMajor` or `RowMajor`.
+/// This only affects the memory representation of the matrix,
+/// and does not affect the outer API.
+///
+/// `ggmath` matrix size specification is ordered columns then rows.
+/// `2x3` means 2 columns and 3 rows.
+///
+/// ### Impl Pattern
+///
+/// Because of this type's complex generics, this is how you make an impl block that applies to all matrices:
+///
+/// ```
+/// impl<
+///     const C: usize,
+///     const R: usize,
+///     T: Scalar,
+///     A: VecAlignment,
+///     M: MatrixMajorAxis
+/// > Matrix<C, R, T, A, M>
+/// where
+///     Usize<C>: VecLen,
+///     Usize<R>: VecLen,
+/// {
+/// }
 #[derive_where(Clone, Copy)]
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatrixMajorAxis>
 where

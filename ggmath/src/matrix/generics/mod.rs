@@ -13,6 +13,10 @@ where
     Usize<C>: VecLen,
     Usize<R>: VecLen,
 {
+    /// Converts the matrix to the specified memory-layout generics.
+    ///
+    /// This can convert between `VecAligned` and `VecPacked` matrices,
+    /// and between `ColMajor` and `RowMajor` matrices.
     #[inline(always)]
     pub const fn to_storage<AOutput: VecAlignment, MOutput: MatrixMajorAxis>(
         self,

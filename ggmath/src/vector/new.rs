@@ -89,13 +89,11 @@ macro_loop! {
         }
 
         /// Constructs a new vector from flexible arguments like shaders, generic over alignment.
-        /// This means that without an inference hint, there will be a compile error.
         ///
-        /// ```
-        /// const EXAMPLE_2: Vec2<f32> = vec2g!(1.0, 2.0);
-        /// const EXAMPLE_3: Vec3P<f32> = vec3g!(1.0, 2.0, 3.0);
-        /// const EXAMPLE_4: Vec4P<f32> = vec4g!(1.0, EXAMPLE_2, 4.0);
-        /// ```
+        /// Unlike `vec{}!` and `vec{}p!` macros,
+        /// this macro does not decide the alignment of the vector.
+        ///
+        /// Instead, it is not specified and requires an inference hint.
         #[macro_export]
         macro_rules! @[vec @N g] {
             ($($item:expr), * $(,)?) => {{

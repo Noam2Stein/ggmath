@@ -1,10 +1,23 @@
 use std::mem::transmute_copy;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::*;
 
 // Vector
+
+impl<const N: usize, T: Scalar + Serialize, A: VecAlignment> Serialize for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_array().serialize(serializer)
+    }
+}
 
 impl<'de, const N: usize, T: Scalar + Deserialize<'de>, A: VecAlignment> Deserialize<'de>
     for Vector<N, T, A>
@@ -43,6 +56,26 @@ where
 
 // Matrix
 
+#[cfg(feature = "matrix")]
+impl<const C: usize, const R: usize, T: Scalar + Serialize, A: VecAlignment, M: MatrixMajorAxis>
+    Serialize for Matrix<R, C, T, A, M>
+where
+    Usize<C>: VecLen,
+    Usize<R>: VecLen,
+{
+    #[inline(always)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self.resolve() {
+            ResolvedMatrix::ColumnMajor(m) => m.columns().serialize(serializer),
+            ResolvedMatrix::RowMajor(m) => m.rows().serialize(serializer),
+        }
+    }
+}
+
+#[cfg(feature = "matrix")]
 impl<
     'de,
     const C: usize,
@@ -118,6 +151,26 @@ where
 
 // Aabb
 
+#[cfg(feature = "aabb")]
+impl<const N: usize, T: AabbScalar + Serialize, A: VecAlignment, R: AabbRepr> Serialize
+    for Aabb<N, T, A, R>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self.resolve() {
+            ResolvedAabb::Cornered(a) => (a.min(), a.size()).serialize(serializer),
+            ResolvedAabb::Centered(a) => (a.center(), a.extents()).serialize(serializer),
+            ResolvedAabb::MinMaxed(a) => (a.min(), a.max()).serialize(serializer),
+        }
+    }
+}
+
+#[cfg(feature = "aabb")]
 impl<'de, const N: usize, T: AabbScalar + Deserialize<'de>, A: VecAlignment, R: AabbRepr>
     Deserialize<'de> for Aabb<N, T, A, R>
 where
@@ -151,6 +204,18 @@ where
 
 // Quaternion
 
+#[cfg(feature = "quaternion")]
+impl<T: Scalar + Serialize, A: VecAlignment> Serialize for Quaternion<T, A> {
+    #[inline(always)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_array().serialize(serializer)
+    }
+}
+
+#[cfg(feature = "quaternion")]
 impl<'de, T: Scalar + Deserialize<'de>, A: VecAlignment> Deserialize<'de> for Quaternion<T, A> {
     #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

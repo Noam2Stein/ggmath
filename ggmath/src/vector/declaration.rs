@@ -4,27 +4,19 @@ use derive_where::derive_where;
 
 use super::*;
 
-/// The only vector type.
-/// Statically-lengthed vector generic over `N` (length), `T` (scalar type), and `A` (alignment??).
+/// The vector type.
+/// Statically-sized vector.
 ///
-/// This type, like all `ggmath` types, is generic over `A: VecAlignment`.
-/// The value of `A` decides whether or not the vector is aligned for SIMD.
+/// In most cases you can use this type's type aliases instead.
+/// See in [`crate::vector`].
 ///
-/// `VecAligned` => aligned.
+/// This type is generic over length, which can be either 2, 3 or 4.
 ///
-/// `VecPacked` => not aligned, identical in memory to `[T; N]`.
+/// This type is also generic over scalar type, which can be any type that implements [`Scalar`].
 ///
-/// There are short type aliases for this type.
-///
-/// `Vec2<T>` => `Vector<2, T, VecAligned>`
-/// `Vec3<T>` => `Vector<3, T, VecAligned>`
-/// `Vec4<T>` => `Vector<4, T, VecAligned>`
-///
-/// `Vec2P<T>` => `Vector<2, T, VecPacked>`
-/// `Vec3P<T>` => `Vector<3, T, VecPacked>`
-/// `Vec4P<T>` => `Vector<4, T, VecPacked>`
-///
-/// There are also type aliases for specific types through the `primitive_aliases` feature which is enabled by default.
+/// Finally,
+/// this type is generic over whether its aligned for SIMD, or unaligned to save space.
+/// See [`VecAlignment`] for more information.
 ///
 /// ### Impl Pattern
 ///

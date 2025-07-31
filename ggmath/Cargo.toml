@@ -24,13 +24,6 @@ aabb = [  ]
 
 full = [ "aabb", "matrix", "primitive_aliases", "quaternion" ]
 
-positive_backward = [  ]
-positive_down     = [  ]
-positive_forward  = [  ]
-positive_left     = [  ]
-positive_right    = [  ]
-positive_up       = [  ]
-
 [dependencies]
 derive-where  = "1.2.7"
 macro_loop    = "0.4.2"

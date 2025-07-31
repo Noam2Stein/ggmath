@@ -1,5 +1,5 @@
 use super::*;
 
-pub mod from;
-pub mod intersection;
-pub mod properties;
+mod from;
+mod intersection;
+mod properties;

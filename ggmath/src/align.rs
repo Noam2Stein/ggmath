@@ -1,6 +1,11 @@
 use super::*;
 
 /// Empty type that is aligned to the specified power of two.
+///
+/// ```rust
+/// const _: () = assert!(size_of::<Align<16>>() == 0);
+/// const _: () = assert!(align_of::<Align<16>>() == 16);
+/// ```
 #[allow(private_bounds)]
 #[derive(Clone, Copy, Default)]
 pub struct Align<const A: usize>
@@ -11,8 +16,22 @@ where
 }
 
 /// Is only implemented for `Align<A>`s.
-/// Useful when creating an associated align type, because rust's const-generics are still limited.
+/// Is made for this pattern:
+///
+/// ```rust
+/// trait MyTrait {
+///     type AlignPlease: AlignTrait;
+/// }
+///
+/// impl MyTrait for ... {
+///     type AlignPlease = Align<16>;
+/// }
+/// ```
 pub unsafe trait AlignTrait: Construct + Default {
+    /// A value of the type.
+    ///
+    /// Alignment types are zero-sized and always have only a single value.
+    /// This constant allows safe initialization of the type.
     const VALUE: Self;
 }
 

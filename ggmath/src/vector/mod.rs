@@ -1,5 +1,3 @@
-#![deny(missing_docs)]
-
 //! Vector!
 
 use super::{construct::*, scalar::*, *};

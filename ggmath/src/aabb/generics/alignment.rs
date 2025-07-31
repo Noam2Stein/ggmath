@@ -4,11 +4,13 @@ impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, 
 where
     Usize<N>: VecLen,
 {
+    /// Aligns the aabb to `VecAligned`.
     #[inline(always)]
     pub fn align(self) -> Aabb<N, T, VecAligned, R> {
         self.to_layout()
     }
 
+    /// Unaligns the aabb to `VecPacked`.
     #[inline(always)]
     pub fn unalign(self) -> Aabb<N, T, VecPacked, R> {
         self.to_layout()
