@@ -32,7 +32,7 @@ it means that all functions have been benchmarked and reached `glam`'s performan
 
 A *generic graphics math* Rust crate with precise, flexible generic math types specialized for graphics.
 
-`ggmath` has vectors, and optionally matrices, quaternions, and aabbs.
+`ggmath` has vectors, matrices, quaternions, and aabbs.
 
 ```rust
 use ggmath::*;
@@ -48,13 +48,13 @@ fn main() {
 `ggmath` types are fully generic over absolutely everything.
 
 The `Vector` type is generic over length, type,
-and whether it's aligned for fast operations, or unaligned to save space.
+and whether it's aligned for SIMD, or unaligned to save space.
 
-The `Matrix` type is generic over column count, row count, type, alignment,
+The `Matrix` type is generic over column count, row count, type, alignment (like vectors),
 and whether it's column-major or row-major.
 
 The `Aabb` type is generic over length, type, alignment,
-and it's inner representation (by min+size, min+max, or center+extents).
+and it's inner representation (repr by min+size, min+max, or center+extents).
 
 ### Vectors
 
@@ -63,7 +63,7 @@ pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
 
-// `A` is a generic marker type that only affects the memory alignment of the vector.
+// `A` is a generic marker type that affects the memory alignment of the vector.
 // See <https://doc.rust-lang.org/reference/type-layout.html> for rust's type layout.
 //
 // `A` can be set to either `VecAligned` or `VecPacked`.
@@ -115,7 +115,7 @@ Vectors support all expected features:
 - Array-like API: `vec[0]`, `vec.map(...)`, `vec.get()`
 - Nice type aliases: `FVec3`, `IVec4`, `BVec2P`, etc.
 
-### Matrices (optional feature)
+### Matrices
 
 ```rust
 pub struct Matrix<
@@ -162,7 +162,7 @@ struct MyCamera {
 Matrices are not feature full yet.
 They do support swizzling and construction from columns/rows.
 
-### Aabbs (Bounding Boxes) (optional feature)
+### Aabbs (Bounding Boxes) (opt-in feature)
 
 ```rust
 pub struct Aabb<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr>
@@ -224,7 +224,7 @@ Aabbs support all expected features:
 - Swizzling: `aabb.xy()`, `aabb.xyz()` etc.
 - Nice type aliases: `FAabb3`, `IRectMP`, etc.
 
-### Quaternions (optional feature)
+### Quaternions
 
 ```rust
 pub struct Quaternion<T: Scalar, A: VecAlignment>
