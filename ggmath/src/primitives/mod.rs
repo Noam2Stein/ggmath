@@ -33,6 +33,7 @@ macro_loop! {
 macro_rules! primitive_aliases {
     { $vis:vis $prefix:ident => $type:ty } => {
         #[cfg(feature = "primitive_aliases")]
+        #[cfg(feature = "vector")]
         vector_aliases! { $vis $prefix => $type }
 
         #[cfg(feature = "primitive_aliases")]

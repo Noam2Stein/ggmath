@@ -18,6 +18,7 @@
 /// pub type BigVec3P = Vector<3, BigInt, VecPacked>;
 /// pub type BigVec4P = Vector<4, BigInt, VecPacked>;
 /// ```
+#[cfg(feature = "vector")]
 #[macro_export]
 macro_rules! vector_aliases {
     (

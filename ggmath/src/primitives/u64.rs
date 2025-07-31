@@ -4,6 +4,7 @@ use super::*;
 
 primitive_aliases! { pub U64 => u64 }
 
+#[cfg(feature = "vector")]
 impl Scalar for u64 {
     type Vec2Alignment = Align<16>;
     type Vec3Alignment = Align<32>;

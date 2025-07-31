@@ -2,7 +2,7 @@
 
 use derive_where::derive_where;
 
-use super::{scalar::*, vector::*};
+use super::*;
 
 mod conversion;
 mod new;

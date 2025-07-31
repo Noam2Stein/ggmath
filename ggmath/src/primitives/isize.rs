@@ -4,6 +4,7 @@ use super::*;
 
 primitive_aliases! { pub Isize => isize }
 
+#[cfg(feature = "vector")]
 impl Scalar for isize {
     type Vec2Alignment = <isized as Scalar>::Vec2Alignment;
     type Vec3Alignment = <isized as Scalar>::Vec3Alignment;

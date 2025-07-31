@@ -4,6 +4,7 @@ use super::*;
 
 primitive_aliases! { pub I8 => i8 }
 
+#[cfg(feature = "vector")]
 impl Scalar for i8 {
     type Vec2Alignment = Align<2>;
     type Vec3Alignment = Align<4>;
@@ -126,6 +127,7 @@ impl Scalar for i8 {
 // impl for all sint types
 macro_loop! {
     @for int in [i8, i16, i32, i64, i128, isize] {
+        #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @int, A>
         where
             Usize<N>: VecLen,

@@ -4,6 +4,7 @@ use super::*;
 
 primitive_aliases! { pub Usize => usize }
 
+#[cfg(feature = "vector")]
 impl Scalar for usize {
     type Vec2Alignment = <usized as Scalar>::Vec2Alignment;
     type Vec3Alignment = <usized as Scalar>::Vec3Alignment;
@@ -111,14 +112,17 @@ impl Scalar for usize {
 
 // usize methods are defined using `macro_loop` in other files
 
+#[cfg(feature = "vector")]
 #[cfg(target_pointer_width = "16")]
 #[allow(non_camel_case_types)]
 type usized = u16;
 
+#[cfg(feature = "vector")]
 #[cfg(target_pointer_width = "32")]
 #[allow(non_camel_case_types)]
 type usized = u32;
 
+#[cfg(feature = "vector")]
 #[cfg(target_pointer_width = "64")]
 #[allow(non_camel_case_types)]
 type usized = u64;

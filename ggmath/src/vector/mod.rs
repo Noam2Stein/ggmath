@@ -1,6 +1,6 @@
 //! Vector!
 
-use super::{construct::*, scalar::*, *};
+use super::*;
 
 mod declaration;
 pub use declaration::*;

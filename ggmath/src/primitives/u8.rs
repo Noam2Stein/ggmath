@@ -4,6 +4,7 @@ use super::*;
 
 primitive_aliases! { pub U8 => u8 }
 
+#[cfg(feature = "vector")]
 impl Scalar for u8 {
     type Vec2Alignment = Align<2>;
     type Vec3Alignment = Align<4>;
@@ -112,6 +113,7 @@ impl Scalar for u8 {
 // impl for all uint types
 macro_loop! {
     @for uint in [u8, u16, u32, u64, u128, usize] {
+        #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @uint, A>
         where
             Usize<N>: VecLen,
@@ -129,6 +131,7 @@ macro_loop! {
 // impl for all int types
 macro_loop! {
     @for int in [u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize] {
+        #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @int, A>
         where
             Usize<N>: VecLen,
@@ -171,6 +174,7 @@ macro_loop! {
             }
         }
 
+        #[cfg(feature = "aabb")]
         impl AabbScalar for @int {
             #[inline(always)]
             fn aabb_mul_vector_by_two<const N: usize, A: VecAlignment>(
@@ -231,6 +235,7 @@ macro_loop! {
 // impl for all number types
 macro_loop! {
     @for num in [u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f32, f64] {
+        #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @num, A>
         where
             Usize<N>: VecLen,

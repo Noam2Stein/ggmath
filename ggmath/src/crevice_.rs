@@ -18,6 +18,7 @@ macro_loop! {
         @let as_std = @[as_std @std_num];
         @let from_std = @[from_std @std_num];
 
+        #[cfg(feature = "vector")]
         #[doc = @(
             "A trait that allows vectors of `Self` to implement `" + @AsStd + "`.\n" +
             "\n" +
@@ -49,6 +50,7 @@ macro_loop! {
             @let std_to_vec = @[@std _to_vec @N];
             @let std_from_vec = @[@std _from_vec @N];
 
+            #[cfg(feature = "vector")]
             impl<A: VecAlignment, T: @ScalarAsStd> @AsStd for Vector<@N, T, A> {
                 type Output = T::@OutputVec;
 
@@ -72,6 +74,7 @@ macro_loop! {
             [u32, U],
             [bool, B],
         ] {
+            #[cfg(feature = "vector")]
             impl @ScalarAsStd for @T {
                 @for N in 2..=4 {
                     @let components = [x, y, z, w][0..@N];

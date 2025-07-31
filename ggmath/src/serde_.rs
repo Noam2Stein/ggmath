@@ -6,6 +6,7 @@ use super::*;
 
 // Vector
 
+#[cfg(feature = "vector")]
 impl<const N: usize, T: Scalar + Serialize, A: VecAlignment> Serialize for Vector<N, T, A>
 where
     Usize<N>: VecLen,
@@ -19,6 +20,7 @@ where
     }
 }
 
+#[cfg(feature = "vector")]
 impl<'de, const N: usize, T: Scalar + Deserialize<'de>, A: VecAlignment> Deserialize<'de>
     for Vector<N, T, A>
 where

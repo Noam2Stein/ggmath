@@ -2,12 +2,14 @@ use std::cmp::Ordering;
 
 use super::*;
 
+#[cfg(feature = "vector")]
 impl Scalar for Ordering {
     type Vec2Alignment = Align<1>;
     type Vec3Alignment = Align<1>;
     type Vec4Alignment = Align<1>;
 }
 
+#[cfg(feature = "vector")]
 impl<const N: usize, A: VecAlignment> Vector<N, Ordering, A>
 where
     Usize<N>: VecLen,

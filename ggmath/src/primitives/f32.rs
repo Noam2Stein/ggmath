@@ -4,6 +4,7 @@ use super::*;
 
 primitive_aliases! { pub F => f32 }
 
+#[cfg(feature = "vector")]
 impl Scalar for f32 {
     type Vec2Alignment = Align<8>;
     type Vec3Alignment = Align<16>;
@@ -72,6 +73,7 @@ impl Scalar for f32 {
 // impl for all float types
 macro_loop! {
     @for float in [f32, f64] {
+        #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @float, A>
         where
             Usize<N>: VecLen,
@@ -373,6 +375,7 @@ macro_loop! {
             }
         }
 
+        #[cfg(feature = "aabb")]
         impl AabbScalar for @float {
             #[inline(always)]
             fn aabb_mul_vector_by_two<const N: usize, A: VecAlignment>(

@@ -4,6 +4,7 @@ use super::*;
 
 primitive_aliases! { pub B => bool }
 
+#[cfg(feature = "vector")]
 impl Scalar for bool {
     // A vector of bools can act like a uint when performing bitwise operations.
     // This means that the alignment of a vector of bools should be the alignment of the corresponding uint type.
@@ -42,6 +43,7 @@ impl Scalar for bool {
     }
 }
 
+#[cfg(feature = "vector")]
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>
 where
     Usize<N>: VecLen,

@@ -20,13 +20,8 @@ pub use construct::*;
 pub use primitives::*;
 pub use usize_::*;
 
-pub mod scalar;
-pub mod vector;
-pub use scalar::*;
-pub use vector::*;
-
 macro_loop! {
-    @for feature_mod in [matrix, quaternion, aabb] {
+    @for feature_mod in [vector, matrix, quaternion, aabb] {
         #[cfg(feature = @[@feature_mod => str])]
         pub mod @feature_mod;
 

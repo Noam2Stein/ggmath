@@ -14,15 +14,14 @@ repository = "https://github.com/Noam2Stein/ggmath"
 version = "0.11.1"
 
 [features]
-matrix            = [  ]
+aabb              = [ "vector" ]
+matrix            = [ "vector" ]
 primitive_aliases = [  ]
-quaternion        = [  ]
+quaternion        = [ "vector" ]
+vector            = [  ]
 
-default = [ "matrix", "primitive_aliases", "quaternion" ]
-
-aabb = [  ]
-
-full = [ "aabb", "matrix", "primitive_aliases", "quaternion" ]
+default = [ "matrix", "primitive_aliases", "quaternion", "vector" ]
+full    = [ "aabb", "matrix", "primitive_aliases", "quaternion", "vector" ]
 
 [dependencies]
 derive-where  = "1.2.7"
