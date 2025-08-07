@@ -4,4 +4,5 @@ name    = "ggmath_tests"
 version = "0.1.0"
 
 [dependencies]
-ggmath = { path = "../ggmath", features = [ "full" ] }
+ggmath     = { path = "../ggmath", features = [ "full" ] }
+repetitive = "0.1.5"
