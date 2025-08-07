@@ -125,8 +125,8 @@ impl Scalar for i8 {
 }
 
 // impl for all sint types
-macro_loop! {
-    @for int in [i8, i16, i32, i64, i128, isize] {
+repetitive! {
+    @for int in ['i8, 'i16, 'i32, 'i64, 'i128, 'isize] {
         #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @int, A>
         where

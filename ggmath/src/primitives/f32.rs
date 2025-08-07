@@ -71,8 +71,8 @@ impl Scalar for f32 {
 }
 
 // impl for all float types
-macro_loop! {
-    @for float in [f32, f64] {
+repetitive! {
+    @for float in ['f32, 'f64] {
         #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @float, A>
         where

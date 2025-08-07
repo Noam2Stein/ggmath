@@ -56,7 +56,7 @@ where
 
 // Construction
 
-macro_loop! {
+repetitive! {
     @for N in 2..=4 {
         /// Constructs a new aligned vector from flexible arguments like shaders.
         ///
@@ -66,9 +66,9 @@ macro_loop! {
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
         /// ```
         #[macro_export]
-        macro_rules! @[vec @N] {
+        macro_rules! @['vec N] {
             ($($item:expr), * $(,)?) => {{
-                let output: $crate::@[Vec @N]<_> = $crate::new_vector(($($item,)*));
+                let output: $crate::@['Vec N]<_> = $crate::new_vector(($($item,)*));
                 output
             }};
         }
@@ -81,9 +81,9 @@ macro_loop! {
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
         /// ```
         #[macro_export]
-        macro_rules! @[vec @N p] {
+        macro_rules! @['vec N 'p] {
             ($($item:expr), * $(,)?) => {{
-                let output: $crate::@[Vec @N P]<_> = $crate::new_vector(($($item,)*));
+                let output: $crate::@['Vec N 'P]<_> = $crate::new_vector(($($item,)*));
                 output
             }};
         }
@@ -95,9 +95,9 @@ macro_loop! {
         ///
         /// Instead, it is not specified and requires an inference hint.
         #[macro_export]
-        macro_rules! @[vec @N g] {
+        macro_rules! @['vec N 'g] {
             ($($item:expr), * $(,)?) => {{
-                let output: $crate::@[Vector]<@N, _, _> = $crate::new_vector(($($item,)*));
+                let output: $crate::Vector<@N, _, _> = $crate::new_vector(($($item,)*));
                 output
             }};
         }
@@ -142,23 +142,22 @@ pub unsafe trait IntoVector<const N: usize, T: Scalar>: Construct {
 
 // Impl IntoVector
 
-macro_loop! {
+repetitive! {
     // (_)
 
     @for N1 in 1..=4 {
-        @let N = @N1;
-        @let is_vec = @N >= 2 && @N <= 4;
+        @let N = N1;
+        @let is_vec = N >= 2 && N <= 4;
 
-        @if @is_vec {
-            unsafe impl<
-                T: Scalar,
-                @if @N1 > 1 { A1: VecAlignment, }
-            > IntoVector<@N, T> for (
-                @if @N1 > 1 { Vector<@N1, T, A1> }
-                @if @N1 == 1 { T },
-            ) {
+        @if is_vec {
+            @let N1Param = @{ @if N1 > 1 { A1: VecAlignment, } };
+            @let NParams = @{ @N1Param };
+
+            @let N1Type = @{ @if N1 > 1 { Vector<@N1, T, A1> } else { T } };
+
+            unsafe impl<T: Scalar, @NParams> IntoVector<@N, T> for (@N1Type,) {
                 const SOURCES: [usize; @N] = [
-                    @for i in 0..@N1 {
+                    @for i in 0..N1 {
                         offset_of!(Self, 0) + size_of::<T>() * @i,
                     }
                 ];
@@ -169,25 +168,23 @@ macro_loop! {
     // (_, _)
 
     @for N1 in 1..=4, N2 in 1..=4 {
-        @let N = @N1 + @N2;
-        @let is_vec = @N >= 2 && @N <= 4;
+        @let N = N1 + N2;
+        @let is_vec = N >= 2 && N <= 4;
 
-        @if @is_vec {
-            unsafe impl<
-                T: Scalar,
-                @if @N1 > 1 { A1: VecAlignment, }
-                @if @N2 > 1 { A2: VecAlignment, }
-            > IntoVector<@N, T> for (
-                @if @N1 > 1 { Vector<@N1, T, A1> }
-                @if @N1 == 1 { T },
-                @if @N2 > 1 { Vector<@N2, T, A2> }
-                @if @N2 == 1 { T },
-            ) {
+        @if is_vec {
+            @let N1Param = @{ @if N1 > 1 { A1: VecAlignment, } };
+            @let N2Param = @{ @if N2 > 1 { A2: VecAlignment, } };
+            @let NParams = @{ @N1Param @N2Param };
+
+            @let N1Type = @{ @if N1 > 1 { Vector<@N1, T, A1> } else { T } };
+            @let N2Type = @{ @if N2 > 1 { Vector<@N2, T, A2> } else { T } };
+
+            unsafe impl<T: Scalar, @NParams> IntoVector<@N, T> for (@N1Type, @N2Type) {
                 const SOURCES: [usize; @N] = [
-                    @for i in 0..@N1 {
+                    @for i in 0..N1 {
                         offset_of!(Self, 0) + size_of::<T>() * @i,
                     }
-                    @for i in 0..@N2 {
+                    @for i in 0..N2 {
                         offset_of!(Self, 1) + size_of::<T>() * @i,
                     }
                 ];
@@ -198,31 +195,28 @@ macro_loop! {
     // (_, _, _)
 
     @for N1 in 1..=4, N2 in 1..=4, N3 in 1..=4 {
-        @let N = @N1 + @N2 + @N3;
-        @let is_vec = @N >= 2 && @N <= 4;
+        @let N = N1 + N2 + N3;
+        @let is_vec = N >= 2 && N <= 4;
 
-        @if @is_vec {
-            unsafe impl<
-                T: Scalar,
-                @if @N1 > 1 { A1: VecAlignment, }
-                @if @N2 > 1 { A2: VecAlignment, }
-                @if @N3 > 1 { A3: VecAlignment, }
-            > IntoVector<@N, T> for (
-                @if @N1 > 1 { Vector<@N1, T, A1> }
-                @if @N1 == 1 { T },
-                @if @N2 > 1 { Vector<@N2, T, A2> }
-                @if @N2 == 1 { T },
-                @if @N3 > 1 { Vector<@N3, T, A3> }
-                @if @N3 == 1 { T },
-            ) {
+        @if is_vec {
+            @let N1Param = @{ @if N1 > 1 { A1: VecAlignment, } };
+            @let N2Param = @{ @if N2 > 1 { A2: VecAlignment, } };
+            @let N3Param = @{ @if N3 > 1 { A3: VecAlignment, } };
+            @let NParams = @{ @N1Param @N2Param @N3Param };
+
+            @let N1Type = @{ @if N1 > 1 { Vector<@N1, T, A1> } else { T } };
+            @let N2Type = @{ @if N2 > 1 { Vector<@N2, T, A2> } else { T } };
+            @let N3Type = @{ @if N3 > 1 { Vector<@N3, T, A3> } else { T } };
+
+            unsafe impl<T: Scalar, @NParams> IntoVector<@N, T> for (@N1Type, @N2Type, @N3Type) {
                 const SOURCES: [usize; @N] = [
-                    @for i in 0..@N1 {
+                    @for i in 0..N1 {
                         offset_of!(Self, 0) + size_of::<T>() * @i,
                     }
-                    @for i in 0..@N2 {
+                    @for i in 0..N2 {
                         offset_of!(Self, 1) + size_of::<T>() * @i,
                     }
-                    @for i in 0..@N3 {
+                    @for i in 0..N3 {
                         offset_of!(Self, 2) + size_of::<T>() * @i,
                     }
                 ];
@@ -233,37 +227,33 @@ macro_loop! {
     // (_, _, _, _)
 
     @for N1 in 1..=4, N2 in 1..=4, N3 in 1..=4, N4 in 1..=4 {
-        @let N = @N1 + @N2 + @N3 + @N4;
-        @let is_vec = @N >= 2 && @N <= 4;
+        @let N = N1 + N2 + N3 + N4;
+        @let is_vec = N >= 2 && N <= 4;
 
-        @if @is_vec {
-            unsafe impl<
-                T: Scalar,
-                @if @N1 > 1 { A1: VecAlignment, }
-                @if @N2 > 1 { A2: VecAlignment, }
-                @if @N3 > 1 { A3: VecAlignment, }
-                @if @N4 > 1 { A4: VecAlignment, }
-            > IntoVector<@N, T> for (
-                @if @N1 > 1 { Vector<@N1, T, A1> }
-                @if @N1 == 1 { T },
-                @if @N2 > 1 { Vector<@N2, T, A2> }
-                @if @N2 == 1 { T },
-                @if @N3 > 1 { Vector<@N3, T, A3> }
-                @if @N3 == 1 { T },
-                @if @N4 > 1 { Vector<@N4, T, A4> }
-                @if @N4 == 1 { T },
-            ) {
+        @if is_vec {
+            @let N1Param = @{ @if N1 > 1 { A1: VecAlignment, } };
+            @let N2Param = @{ @if N2 > 1 { A2: VecAlignment, } };
+            @let N3Param = @{ @if N3 > 1 { A3: VecAlignment, } };
+            @let N4Param = @{ @if N4 > 1 { A4: VecAlignment, } };
+            @let NParams = @{ @N1Param @N2Param @N3Param @N4Param };
+
+            @let N1Type = @{ @if N1 > 1 { Vector<@N1, T, A1> } else { T } };
+            @let N2Type = @{ @if N2 > 1 { Vector<@N2, T, A2> } else { T } };
+            @let N3Type = @{ @if N3 > 1 { Vector<@N3, T, A3> } else { T } };
+            @let N4Type = @{ @if N4 > 1 { Vector<@N4, T, A4> } else { T } };
+
+            unsafe impl<T: Scalar, @NParams> IntoVector<@N, T> for (@N1Type, @N2Type, @N3Type, @N4Type) {
                 const SOURCES: [usize; @N] = [
-                    @for i in 0..@N1 {
+                    @for i in 0..N1 {
                         offset_of!(Self, 0) + size_of::<T>() * @i,
                     }
-                    @for i in 0..@N2 {
+                    @for i in 0..N2 {
                         offset_of!(Self, 1) + size_of::<T>() * @i,
                     }
-                    @for i in 0..@N3 {
+                    @for i in 0..N3 {
                         offset_of!(Self, 2) + size_of::<T>() * @i,
                     }
-                    @for i in 0..@N4 {
+                    @for i in 0..N4 {
                         offset_of!(Self, 3) + size_of::<T>() * @i,
                     }
                 ];

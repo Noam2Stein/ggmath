@@ -20,18 +20,18 @@ pub use construct::*;
 pub use primitives::*;
 pub use usize_::*;
 
-macro_loop! {
-    @for feature_mod in [vector, matrix, quaternion, aabb] {
-        #[cfg(feature = @[@feature_mod => str])]
+repetitive! {
+    @for feature_mod in ['vector, 'matrix, 'quaternion, 'aabb] {
+        #[cfg(feature = @str[feature_mod])]
         pub mod @feature_mod;
 
-        #[cfg(feature = @[@feature_mod => str])]
+        #[cfg(feature = @str[feature_mod])]
         pub use @feature_mod::*;
     }
 }
 
 #[doc(hidden)]
-pub use macro_loop::macro_loop;
+pub use repetitive::repetitive;
 
 // Crate integration
 

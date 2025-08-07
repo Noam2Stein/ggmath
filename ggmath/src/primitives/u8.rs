@@ -111,8 +111,8 @@ impl Scalar for u8 {
 }
 
 // impl for all uint types
-macro_loop! {
-    @for uint in [u8, u16, u32, u64, u128, usize] {
+repetitive! {
+    @for uint in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize] {
         #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @uint, A>
         where
@@ -129,8 +129,8 @@ macro_loop! {
 }
 
 // impl for all int types
-macro_loop! {
-    @for int in [u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize] {
+repetitive! {
+    @for int in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize] {
         #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @int, A>
         where
@@ -233,16 +233,16 @@ macro_loop! {
 }
 
 // impl for all number types
-macro_loop! {
-    @for num in [u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f32, f64] {
+repetitive! {
+    @for num in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
         #[cfg(feature = "vector")]
         impl<const N: usize, A: VecAlignment> Vector<N, @num, A>
         where
             Usize<N>: VecLen,
         {
-            #[doc = @("Vector of all `" + @num + "::MIN` values.")]
+            #[doc = @str["Vector of all `" num "::MIN` values."]]
             pub const MIN: Self = Self::splat(@num::MIN);
-            #[doc = @("Vector of all `" + @num + "::MAX` values.")]
+            #[doc = @str["Vector of all `" num "::MAX` values."]]
             pub const MAX: Self = Self::splat(@num::MAX);
 
             /// Returns a vector of the elements clamped between the minimum and maximum vectors.
@@ -262,23 +262,21 @@ macro_loop! {
                 self.map_rhs(rhs, |a, b| if a > b { a - b } else { b - a })
             }
 
-            macro_loop! {
-                @for other_num in [u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize, f32, f64] {
-                    @if @other_num != @num {
-                        /// Convert the vector to a vector of the given primitive type.
-                        /// This uses the `as` keyword to perform the conversion.
-                        #[inline(always)]
-                        pub const fn @[as_ @other_num](self) -> Vector<N, @other_num, A> {
-                            let mut output = Vector::splat(0 as @other_num);
+            @for other_num in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
+                @if other_num != num {
+                    /// Convert the vector to a vector of the given primitive type.
+                    /// This uses the `as` keyword to perform the conversion.
+                    #[inline(always)]
+                    pub const fn @['as_ other_num](self) -> Vector<N, @other_num, A> {
+                        let mut output = Vector::splat(0 as @other_num);
 
-                            let mut i = 0;
-                            while i < N {
-                                output.as_array_mut()[i] = self.to_array()[i] as @other_num;
-                                i += 1;
-                            }
-
-                            output
+                        let mut i = 0;
+                        while i < N {
+                            output.as_array_mut()[i] = self.to_array()[i] as @other_num;
+                            i += 1;
                         }
+
+                        output
                     }
                 }
             }

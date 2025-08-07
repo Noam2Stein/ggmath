@@ -1,5 +1,3 @@
-use macro_loop::macro_loop;
-
 use super::*;
 
 // Get
@@ -101,28 +99,28 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but moved so that the minimum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
-            pub fn @[with_min_ @x](self, value: T) -> Self {
-                self.with_min(self.min().@[with_ @x](value))
+            pub fn @['with_min_ x](self, value: T) -> Self {
+                self.with_min(self.min().@['with_ x](value))
             }
 
             /// returns `self` but resized so that the minimum corner is at the given position,
             /// keeping the maximum corner unchanged.
             #[inline(always)]
-            pub fn @[with_min_ @x _resize](self, value: T) -> Self {
-                self.with_min_resize(self.min().@[with_ @x](value))
+            pub fn @['with_min_ x '_resize](self, value: T) -> Self {
+                self.with_min_resize(self.min().@['with_ x](value))
             }
 
             /// returns `self` but resized so that the minimum corner is at the given position,
             /// keeping the center unchanged.
             #[inline(always)]
-            pub fn @[with_min_ @x _centered](self, value: T) -> Self {
-                self.with_min_centered(self.min().@[with_ @x](value))
+            pub fn @['with_min_ x '_centered](self, value: T) -> Self {
+                self.with_min_centered(self.min().@['with_ x](value))
             }
         }
     }
@@ -154,28 +152,28 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but moved so that the maximum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
-            pub fn @[with_max_ @x](self, value: T) -> Self {
-                self.with_max(self.max().@[with_ @x](value))
+            pub fn @['with_max_ x](self, value: T) -> Self {
+                self.with_max(self.max().@['with_ x](value))
             }
 
             /// returns `self` but resized so that the maximum corner is at the given position,
             /// keeping the minimum corner unchanged.
             #[inline(always)]
-            pub fn @[with_max_ @x _resize](self, value: T) -> Self {
-                self.with_max_resize(self.max().@[with_ @x](value))
+            pub fn @['with_max_ x '_resize](self, value: T) -> Self {
+                self.with_max_resize(self.max().@['with_ x](value))
             }
 
             /// returns `self` but resized so that the maximum corner is at the given position,
             /// keeping the center unchanged.
             #[inline(always)]
-            pub fn @[with_max_ @x _centered](self, value: T) -> Self {
-                self.with_max_centered(self.max().@[with_ @x](value))
+            pub fn @['with_max_ x '_centered](self, value: T) -> Self {
+                self.with_max_centered(self.max().@['with_ x](value))
             }
         }
     }
@@ -218,37 +216,37 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but moved so that the center is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
-            pub fn @[with_center_ @x](self, value: T) -> Self {
-                self.with_center(self.center().@[with_ @x](value))
+            pub fn @['with_center_ x](self, value: T) -> Self {
+                self.with_center(self.center().@['with_ x](value))
             }
 
             /// returns `self` but resized so that the center is at the given position,
             /// keeping the maximum corner unchanged.
             #[inline(always)]
-            pub fn @[with_center_ @x _minimized](self, value: T) -> Self {
-                self.with_center_minimized(self.center().@[with_ @x](value))
+            pub fn @['with_center_ x '_minimized](self, value: T) -> Self {
+                self.with_center_minimized(self.center().@['with_ x](value))
             }
 
             /// returns `self` but resized so that the center is at the given position,
             /// keeping the minimum corner unchanged.
             #[inline(always)]
-            pub fn @[with_center_ @x _maximized](self, value: T) -> Self {
-                self.with_center_maximized(self.center().@[with_ @x](value))
+            pub fn @['with_center_ x '_maximized](self, value: T) -> Self {
+                self.with_center_maximized(self.center().@['with_ x](value))
             }
 
-            #[doc = @("returns `self` but moved on the " + @x + " axis by the given value")]
+            #[doc = @str["returns `self` but moved on the " x " axis by the given value"]]
             #[inline(always)]
-            pub fn @[moved_ @x](self, value: T) -> Self {
+            pub fn @['moved_ x](self, value: T) -> Self {
                 match self.resolve() {
-                    ResolvedAabb::Cornered(_) => self.@[with_min_ @x](self.min().@x() + value),
-                    ResolvedAabb::Centered(_) => self.@[with_center_ @x](self.center().@x() + value),
-                    ResolvedAabb::MinMaxed(_) => self.@[with_min_ @x](self.min().@x() + value),
+                    ResolvedAabb::Cornered(_) => self.@['with_min_ x](self.min().@x() + value),
+                    ResolvedAabb::Centered(_) => self.@['with_center_ x](self.center().@x() + value),
+                    ResolvedAabb::MinMaxed(_) => self.@['with_min_ x](self.min().@x() + value),
                 }
             }
         }
@@ -278,25 +276,25 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but resized to the given size, keeping the center unchanged.
             #[inline(always)]
-            pub fn @[resized_ @x _centered](self, value: T) -> Self {
-                self.resized_centered(self.size().@[with_ @x](value))
+            pub fn @['resized_ x '_centered](self, value: T) -> Self {
+                self.resized_centered(self.size().@['with_ x](value))
             }
 
             /// returns `self` but resized to the given size, keeping the maximum corner unchanged.
             #[inline(always)]
-            pub fn @[resized_ @x _minimized](self, value: T) -> Self {
-                self.resized_minimized(self.size().@[with_ @x](value))
+            pub fn @['resized_ x '_minimized](self, value: T) -> Self {
+                self.resized_minimized(self.size().@['with_ x](value))
             }
 
             /// returns `self` but resized to the given size, keeping the minimum corner unchanged.
             #[inline(always)]
-            pub fn @[resized_ @x _maximized](self, value: T) -> Self {
-                self.resized_maximized(self.size().@[with_ @x](value))
+            pub fn @['resized_ x '_maximized](self, value: T) -> Self {
+                self.resized_maximized(self.size().@['with_ x](value))
             }
         }
     }
@@ -325,25 +323,25 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// returns `self` but resized to the given extents, keeping the center unchanged.
             #[inline(always)]
-            pub fn @[with_extents_ @x _centered](self, value: T) -> Self {
-                self.with_extents_centered(self.extents().@[with_ @x](value))
+            pub fn @['with_extents_ x '_centered](self, value: T) -> Self {
+                self.with_extents_centered(self.extents().@['with_ x](value))
             }
 
             /// returns `self` but resized to the given extents, keeping the maximum corner unchanged.
             #[inline(always)]
-            pub fn @[with_extents_ @x _minimized](self, value: T) -> Self {
-                self.with_extents_minimized(self.extents().@[with_ @x](value))
+            pub fn @['with_extents_ x '_minimized](self, value: T) -> Self {
+                self.with_extents_minimized(self.extents().@['with_ x](value))
             }
 
             /// returns `self` but resized to the given extents, keeping the minimum corner unchanged.
             #[inline(always)]
-            pub fn @[with_extents_ @x _maximized](self, value: T) -> Self {
-                self.with_extents_maximized(self.extents().@[with_ @x](value))
+            pub fn @['with_extents_ x '_maximized](self, value: T) -> Self {
+                self.with_extents_maximized(self.extents().@['with_ x](value))
             }
         }
     }
@@ -377,28 +375,28 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Moves the rectangle so that the minimum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
-            pub fn @[set_min_ @x](&mut self, value: T) {
-                *self = self.@[with_min_ @x](value);
+            pub fn @['set_min_ x](&mut self, value: T) {
+                *self = self.@['with_min_ x](value);
             }
 
             /// Resizes the rectangle so that the minimum corner is at the given position,
             /// keeping the maximum corner unchanged.
             #[inline(always)]
-            pub fn @[set_min_ @x _resize](&mut self, value: T) {
-                *self = self.@[with_min_ @x _resize](value);
+            pub fn @['set_min_ x '_resize](&mut self, value: T) {
+                *self = self.@['with_min_ x '_resize](value);
             }
 
             /// Resizes the rectangle so that the minimum corner is at the given position,
             /// keeping the center unchanged.
             #[inline(always)]
-            pub fn @[set_min_ @x _centered](&mut self, value: T) {
-                *self = self.@[with_min_ @x _centered](value);
+            pub fn @['set_min_ x '_centered](&mut self, value: T) {
+                *self = self.@['with_min_ x '_centered](value);
             }
         }
     }
@@ -430,28 +428,28 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Moves the rectangle so that the maximum corner is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
-            pub fn @[set_max_ @x](&mut self, value: T) {
-                *self = self.@[with_max_ @x](value);
+            pub fn @['set_max_ x](&mut self, value: T) {
+                *self = self.@['with_max_ x](value);
             }
 
             /// Resizes the rectangle so that the maximum corner is at the given position,
             /// keeping the minimum corner unchanged.
             #[inline(always)]
-            pub fn @[set_max_ @x _resize](&mut self, value: T) {
-                *self = self.@[with_max_ @x _resize](value);
+            pub fn @['set_max_ x '_resize](&mut self, value: T) {
+                *self = self.@['with_max_ x '_resize](value);
             }
 
             /// Resizes the rectangle so that the maximum corner is at the given position,
             /// keeping the center unchanged.
             #[inline(always)]
-            pub fn @[set_max_ @x _centered](&mut self, value: T) {
-                *self = self.@[with_max_ @x _centered](value);
+            pub fn @['set_max_ x '_centered](&mut self, value: T) {
+                *self = self.@['with_max_ x '_centered](value);
             }
         }
     }
@@ -490,37 +488,37 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Moves the rectangle so that the center is at the given position,
             /// keeping the size unchanged.
             #[inline(always)]
-            pub fn @[set_center_ @x](&mut self, value: T) {
-                *self = self.@[with_center_ @x](value);
+            pub fn @['set_center_ x](&mut self, value: T) {
+                *self = self.@['with_center_ x](value);
             }
 
             /// Moves the rectangle so that the center is at the given position,
             /// keeping the maximum unchanged.
             #[inline(always)]
-            pub fn @[set_center_ @x _minimized](&mut self, value: T) {
-                *self = self.@[with_center_ @x _minimized](value);
+            pub fn @['set_center_ x '_minimized](&mut self, value: T) {
+                *self = self.@['with_center_ x '_minimized](value);
             }
 
             /// Moves the rectangle so that the center is at the given position,
             /// keeping the minimum unchanged.
             #[inline(always)]
-            pub fn @[set_center_ @x _maximized](&mut self, value: T) {
-                *self = self.@[with_center_ @x _maximized](value);
+            pub fn @['set_center_ x '_maximized](&mut self, value: T) {
+                *self = self.@['with_center_ x '_maximized](value);
             }
 
-            #[doc = @(
-                "Moves the rectangle by the given value on the " + @x + " axis.\n" +
-                "This mutates the original value, not returning a new one."
-            )]
+            #[doc = @str[
+                "Moves the rectangle by the given value on the " x " axis."
+                " This mutates the original value, not returning a new one."
+            ]]
             #[inline(always)]
-            pub fn @[move_ @x](&mut self, value: T) {
-                *self = self.@[moved_ @x](value);
+            pub fn @['move_ x](&mut self, value: T) {
+                *self = self.@['moved_ x](value);
             }
         }
     }
@@ -549,25 +547,25 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Resizes the rectangle to the given size, keeping the center unchanged.
             #[inline(always)]
-            pub fn @[resize_ @x _centered](&mut self, value: T) {
-                *self = self.@[resized_ @x _centered](value);
+            pub fn @['resize_ x '_centered](&mut self, value: T) {
+                *self = self.@['resized_ x '_centered](value);
             }
 
             /// Resizes the rectangle to the given size, keeping the maximum corner unchanged.
             #[inline(always)]
-            pub fn @[resize_ @x _minimized](&mut self, value: T) {
-                *self = self.@[resized_ @x _minimized](value);
+            pub fn @['resize_ x '_minimized](&mut self, value: T) {
+                *self = self.@['resized_ x '_minimized](value);
             }
 
             /// Resizes the rectangle to the given size, keeping the minimum corner unchanged.
             #[inline(always)]
-            pub fn @[resize_ @x _maximized](&mut self, value: T) {
-                *self = self.@[resized_ @x _maximized](value);
+            pub fn @['resize_ x '_maximized](&mut self, value: T) {
+                *self = self.@['resized_ x '_maximized](value);
             }
         }
     }
@@ -596,25 +594,25 @@ where
     }
 }
 
-macro_loop! {
-    @for N in 2..=4, x in [x, y, z, w][0..@N] {
+repetitive! {
+    @for N in 2..=4, x in ['x, 'y, 'z, 'w][0..N] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             /// Resizes the rectangle to the given extents, keeping the center unchanged.
             #[inline(always)]
-            pub fn @[set_extents_ @x _centered](&mut self, value: T) {
-                *self = self.@[with_extents_ @x _centered](value);
+            pub fn @['set_extents_ x '_centered](&mut self, value: T) {
+                *self = self.@['with_extents_ x '_centered](value);
             }
 
             /// Resizes the rectangle to the given extents, keeping the maximum corner unchanged.
             #[inline(always)]
-            pub fn @[set_extents_ @x _minimized](&mut self, value: T) {
-                *self = self.@[with_extents_ @x _minimized](value);
+            pub fn @['set_extents_ x '_minimized](&mut self, value: T) {
+                *self = self.@['with_extents_ x '_minimized](value);
             }
 
             /// Resizes the rectangle to the given extents, keeping the minimum corner unchanged.
             #[inline(always)]
-            pub fn @[set_extents_ @x _maximized](&mut self, value: T) {
-                *self = self.@[with_extents_ @x _maximized](value);
+            pub fn @['set_extents_ x '_maximized](&mut self, value: T) {
+                *self = self.@['with_extents_ x '_maximized](value);
             }
         }
     }
@@ -622,12 +620,12 @@ macro_loop! {
 
 // Width Height...
 
-macro_loop! {
-    @for N in 2..=4, [x, x_word] in [[x, width], [y, height], [z, depth]][0..@N.min(3)] {
+repetitive! {
+    @for N in 2..=4, [x, x_word] in [['x, 'width], ['y, 'height], ['z, 'depth]][0..N.min(3)] {
         impl<T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<@N, T, A, R> {
             // Get
 
-            #[doc = @("Returns the " + @x_word + " of the aabb")]
+            #[doc = @str["Returns the " x_word " of the aabb"]]
             #[inline(always)]
             pub fn @x_word(&self) -> T {
                 self.size().@x()
@@ -635,42 +633,42 @@ macro_loop! {
 
             // With
 
-            #[doc = @("Returns `self` but resized to the given " + @x_word + ", keeping the center unchanged")]
+            #[doc = @str["Returns `self` but resized to the given " x_word ", keeping the center unchanged"]]
             #[inline(always)]
-            pub fn @[with_ @x_word _centered](self, value: T) -> Self {
-                self.@[resized_ @x _centered](value)
+            pub fn @['with_ x_word '_centered](self, value: T) -> Self {
+                self.@['resized_ x '_centered](value)
             }
 
-            #[doc = @("Returns `self` but resized to the given " + @x_word + ", keeping the maximum corner unchanged")]
+            #[doc = @str["Returns `self` but resized to the given " x_word ", keeping the maximum corner unchanged"]]
             #[inline(always)]
-            pub fn @[with_ @x_word _minimized](self, value: T) -> Self {
-                self.@[resized_ @x _minimized](value)
+            pub fn @['with_ x_word '_minimized](self, value: T) -> Self {
+                self.@['resized_ x '_minimized](value)
             }
 
-            #[doc = @("Returns `self` but resized to the given " + @x_word + ", keeping the minimum corner unchanged")]
+            #[doc = @str["Returns `self` but resized to the given " x_word ", keeping the minimum corner unchanged"]]
             #[inline(always)]
-            pub fn @[with_ @x_word _maximized](self, value: T) -> Self {
-                self.@[resized_ @x _maximized](value)
+            pub fn @['with_ x_word '_maximized](self, value: T) -> Self {
+                self.@['resized_ x '_maximized](value)
             }
 
             // Set
 
-            #[doc = @("Resizes the rectangle to the given " + @x_word + ", keeping the center unchanged")]
+            #[doc = @str["Resizes the rectangle to the given " x_word ", keeping the center unchanged"]]
             #[inline(always)]
-            pub fn @[set_ @x_word _centered](&mut self, value: T) {
-                self.@[resize_ @x _centered](value)
+            pub fn @['set_ x_word '_centered](&mut self, value: T) {
+                self.@['resize_ x '_centered](value)
             }
 
-            #[doc = @("Resizes the rectangle to the given " + @x_word + ", keeping the maximum corner unchanged")]
+            #[doc = @str["Resizes the rectangle to the given " x_word ", keeping the maximum corner unchanged"]]
             #[inline(always)]
-            pub fn @[set_ @x_word _minimized](&mut self, value: T)  {
-                self.@[resize_ @x _minimized](value)
+            pub fn @['set_ x_word '_minimized](&mut self, value: T)  {
+                self.@['resize_ x '_minimized](value)
             }
 
-            #[doc = @("Resizes the rectangle to the given " + @x_word + ", keeping the minimum corner unchanged")]
+            #[doc = @str["Resizes the rectangle to the given " x_word ", keeping the minimum corner unchanged"]]
             #[inline(always)]
-            pub fn @[set_ @x_word _maximized](&mut self, value: T)  {
-                self.@[resize_ @x _maximized](value)
+            pub fn @['set_ x_word '_maximized](&mut self, value: T)  {
+                self.@['resize_ x '_maximized](value)
             }
         }
     }

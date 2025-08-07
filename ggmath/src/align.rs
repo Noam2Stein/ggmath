@@ -50,7 +50,7 @@ where
     };
 }
 
-macro_loop! {
+repetitive! {
     @for A in [
         1,
         2,
@@ -73,17 +73,19 @@ macro_loop! {
         262144,
         524288,
     ] {
-        impl PowOfTwo for Usize<@A> {
-            type Archetype = @[Archetype @A];
+        @let ArchetypeA = @['Archetype A];
 
-            const ARCHETYPE: Self::Archetype = @[Archetype @A];
+        impl PowOfTwo for Usize<@A> {
+            type Archetype = @ArchetypeA;
+
+            const ARCHETYPE: Self::Archetype = @ArchetypeA;
         }
 
         #[repr(align(@A))]
         #[derive(Clone, Copy, Default)]
-        struct @[Archetype @A];
+        struct @ArchetypeA;
 
-        const _: () = assert!(size_of::<@[Archetype @A]>() == 0);
-        const _: () = assert!(align_of::<@[Archetype @A]>() == @A);
+        const _: () = assert!(size_of::<@ArchetypeA>() == 0);
+        const _: () = assert!(align_of::<@ArchetypeA>() == @A);
     }
 }

@@ -22,12 +22,12 @@ where
     }
 }
 
-macro_loop! {
+repetitive! {
     // Unary
 
     @for [op_trait, op_fn] in [
-        [Neg, neg],
-        [Not, not],
+        ['Neg, 'neg],
+        ['Not, 'not],
     ] {
         impl<const N: usize, T: Scalar + @op_trait<Output: Scalar>, A: VecAlignment> @op_trait
             for Vector<N, T, A>
@@ -49,7 +49,7 @@ macro_loop! {
 
                     let self_vec3 = unsafe { transmute_copy::<Self, Vec3<T>>(&self) };
 
-                    let output_vec3 = match T::@[vec3_ @op_fn](self_vec3) {
+                    let output_vec3 = match T::@['vec3_ op_fn](self_vec3) {
                         Some(output_vec3) => output_vec3,
                         None => break 'vec3_optimization,
                     };
@@ -65,16 +65,16 @@ macro_loop! {
     // Binary, Assign
 
     @for [op_trait, op_fn, garbage_fn] in [
-        [Add, add, ADD_GARBAGE],
-        [Sub, sub, SUB_GARBAGE],
-        [Mul, mul, MUL_GARBAGE],
-        [Div, div, DIV_GARBAGE],
-        [Rem, rem, REM_GARBAGE],
-        [BitAnd, bitand, BITAND_GARBAGE],
-        [BitOr, bitor, BITOR_GARBAGE],
-        [BitXor, bitxor, BITXOR_GARBAGE],
-        [Shl, shl, SHL_GARBAGE],
-        [Shr, shr, SHR_GARBAGE],
+        ['Add, 'add, 'ADD_GARBAGE],
+        ['Sub, 'sub, 'SUB_GARBAGE],
+        ['Mul, 'mul, 'MUL_GARBAGE],
+        ['Div, 'div, 'DIV_GARBAGE],
+        ['Rem, 'rem, 'REM_GARBAGE],
+        ['BitAnd, 'bitand, 'BITAND_GARBAGE],
+        ['BitOr, 'bitor, 'BITOR_GARBAGE],
+        ['BitXor, 'bitxor, 'BITXOR_GARBAGE],
+        ['Shl, 'shl, 'SHL_GARBAGE],
+        ['Shr, 'shr, 'SHR_GARBAGE],
     ] {
         // Bin Ops
 
@@ -108,7 +108,7 @@ macro_loop! {
                     let self_vec3 = unsafe { transmute_copy::<Self, Vec3<T>>(&self) };
                     let rhs_vec3 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec3<T>>(&rhs) };
 
-                    let output_vec3 = match T::@[vec3_ @op_fn](self_vec3, rhs_vec3) {
+                    let output_vec3 = match T::@['vec3_ op_fn](self_vec3, rhs_vec3) {
                         Some(output_vec3) => output_vec3,
                         None => break 'vec3_optimization,
                     };
@@ -122,8 +122,8 @@ macro_loop! {
 
         // Assign Ops
 
-        @let op_assign_trait = @op_trait + Assign;
-        @let op_assign_fn = @op_fn + _assign;
+        @let op_assign_trait = @[op_trait 'Assign];
+        @let op_assign_fn = @[op_fn '_assign];
 
         impl<const N: usize, T: Scalar + @op_assign_trait<TRhs>, A: VecAlignment, TRhs: Scalar, ARhs: VecAlignment>
         @op_assign_trait<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
@@ -142,9 +142,9 @@ macro_loop! {
     // Scalar Ops
 
     @for [op_trait, op_fn] in [
-        [Mul, mul],
-        [Div, div],
-        [Rem, rem],
+        ['Mul, 'mul],
+        ['Div, 'div],
+        ['Rem, 'rem],
     ] {
         impl<
             const N: usize,
@@ -163,8 +163,8 @@ macro_loop! {
             }
         }
 
-        @let op_assign_trait = @op_trait + Assign;
-        @let op_assign_fn = @op_fn + _assign;
+        @let op_assign_trait = @[op_trait 'Assign];
+        @let op_assign_fn = @[op_fn '_assign];
 
         impl<const N: usize, T: Scalar + @op_assign_trait<Rhs>, A: VecAlignment, Rhs: Scalar>
             @op_assign_trait<Rhs> for Vector<N, T, A>
