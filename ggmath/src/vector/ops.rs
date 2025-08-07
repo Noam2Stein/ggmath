@@ -221,6 +221,29 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     }
 }
 
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    /// Returns the vector with the padding set to the given value, if there is padding.
+    ///
+    /// This is not useful for most scenarios because the padding value is usually garbage and is not meant to be read.
+    /// This is used to test edge cases for `Vec3` SIMD operators that could break upon padding overflow.
+    #[inline(always)]
+    pub const fn with_padding(mut self, padding: T) -> Self {
+        let mut i = N;
+        while i < size_of::<Self>() / size_of::<T>() {
+            unsafe {
+                *self.as_mut_ptr().add(i).as_mut().unwrap_unchecked() = padding;
+            };
+
+            i += 1;
+        }
+
+        self
+    }
+}
+
 #[inline(always)]
 fn types_match<T1: 'static, T2: 'static>() -> bool {
     TypeId::of::<T1>() == TypeId::of::<T2>()

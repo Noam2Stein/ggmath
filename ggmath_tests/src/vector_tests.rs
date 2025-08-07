@@ -378,6 +378,8 @@ fn test_ops() {
     assert_eq!(vec2!(1, 2) != vec2!(1, 2), false);
     assert_eq!(vec2!(1, 3) != vec2!(1, 2), true);
 
+    // vec3.
+    // needs more tests because of padding.
     repetitive! {
         // bool
         let lhs = vec3!(true, true, false);
@@ -397,14 +399,24 @@ fn test_ops() {
             let lhs = vec3!(4 as @prim, 5 as @prim, 6 as @prim);
             let rhs = vec3!(1 as @prim, 2 as @prim, 3 as @prim);
 
-            assert_eq!(lhs + rhs, vec3!(5 as @prim, 7 as @prim, 9 as @prim));
-            assert_eq!(lhs - rhs, vec3!(3 as @prim, 3 as @prim, 3 as @prim));
-            assert_eq!(lhs * rhs, vec3!(4 as @prim, 10 as @prim, 18 as @prim));
-            assert_eq!(lhs * (2 as @prim), vec3!(8 as @prim, 10 as @prim, 12 as @prim));
-            assert_eq!(lhs % rhs, vec3!(0 as @prim, 1 as @prim, 0 as @prim));
-            assert_eq!(lhs % (2 as @prim), vec3!(0 as @prim, 1 as @prim, 0 as @prim));
+            assert_eq!(
+                lhs.with_padding(@prim::MAX) + rhs.with_padding(1 as @prim),
+                vec3!(5 as @prim, 7 as @prim, 9 as @prim),
+            );
+            assert_eq!(
+                lhs.with_padding(@prim::MIN) - rhs.with_padding(1 as @prim),
+                vec3!(3 as @prim, 3 as @prim, 3 as @prim),
+            );
+            assert_eq!(
+                lhs.with_padding(@prim::MAX) * rhs.with_padding(2 as @prim),
+                vec3!(4 as @prim, 10 as @prim, 18 as @prim),
+            );
+            assert_eq!(
+                lhs.with_padding(@prim::MAX) % rhs.with_padding(1 as @prim),
+                vec3!(0 as @prim, 1 as @prim, 0 as @prim),
+            );
 
-            assert_eq!((lhs == lhs), true);
+            assert_eq!((lhs.with_padding(1 as @prim) == lhs.with_padding(3 as @prim)), true);
             assert_eq!((lhs == rhs), false);
             assert_eq!((lhs != lhs), false);
             assert_eq!((lhs != rhs), true);
@@ -414,7 +426,7 @@ fn test_ops() {
         @for prim in ['i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
             let lhs = vec3!(4 as @prim, 5 as @prim, 6 as @prim);
 
-            assert_eq!(-lhs, vec3!(-4 as @prim, -5 as @prim, -6 as @prim));
+            assert_eq!(-lhs.with_padding(@prim::MIN), vec3!(-4 as @prim, -5 as @prim, -6 as @prim));
         }
 
         // ints
@@ -422,8 +434,7 @@ fn test_ops() {
             let lhs = vec3!(4 as @prim, 5 as @prim, 6 as @prim);
             let rhs = vec3!(1 as @prim, 2 as @prim, 3 as @prim);
 
-            assert_eq!(lhs / rhs, vec3!(4 as @prim, 2 as @prim, 2 as @prim));
-            assert_eq!(lhs / (2 as @prim), vec3!(2 as @prim, 2 as @prim, 3 as @prim));
+            assert_eq!(lhs.with_padding(2 as @prim) / rhs.with_padding(0 as @prim), vec3!(4 as @prim, 2 as @prim, 2 as @prim));
             assert_eq!(!lhs, vec3!(!4 as @prim, !5 as @prim, !6 as @prim));
             assert_eq!(lhs & rhs, vec3!(0 as @prim, 0 as @prim, 2 as @prim));
             assert_eq!(lhs | rhs, vec3!(5 as @prim, 7 as @prim, 7 as @prim));
@@ -441,4 +452,8 @@ fn test_ops() {
             assert_eq!(lhs / (2 as @prim), vec3!(2.0, 2.5, 3.0));
         }
     }
+
+    assert_eq!(vec3!(1, 2, 3).sum(), 6);
+    assert_eq!(vec3!(1, 2, 3).dot(vec3!(4, 5, 6)), 32);
+    assert_eq!(vec3!(1, 2, 3).cross(vec3!(4, 5, 6)), vec3!(-3, 6, -3));
 }
