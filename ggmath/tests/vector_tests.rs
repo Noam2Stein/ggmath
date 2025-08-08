@@ -654,10 +654,10 @@ fn test_signed_num() {
     }
 }
 
-#[test]
-fn test_floats() {
-    repetitive! {
-        @for prim in ['f32, 'f64] {
+repetitive! {
+    @for prim in ['f32, 'f64] {
+        #[test]
+        fn @['test_ prim '_round]() {
             assert_eq!(
                 vec4!(5.6, 5.1, -3.3, -3.7 as @prim).round(),
                 vec4!(6.0, 5.0, -3.0, -4.0),
@@ -683,7 +683,10 @@ fn test_floats() {
                 vec4!(6.0, 6.0, -4.0, -4.0),
                 "atrunc",
             );
+        }
 
+        #[test]
+        fn @['test_ prim '_trig]() {
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).sin(),
                 vec3!((5.6 as @prim).sin(), (5.1 as @prim).sin(), (-3.3 as @prim).sin()),
@@ -744,7 +747,10 @@ fn test_floats() {
                 vec3!((0.5 as @prim).atanh(), (0.0 as @prim).atanh(), (-0.5 as @prim).atanh()),
                 "atanh",
             );
+        }
 
+        #[test]
+        fn @['test_ prim '_mag]() {
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).mag(),
                 vec3!(5.6, 5.1, -3.3 as @prim).mag_sq().sqrt(),
@@ -867,6 +873,17 @@ fn test_floats() {
                 vec3!(-2.0, 0.0, 0.0 as @prim),
                 "clamp_mag_sq",
             );
+        }
+
+        #[test]
+        fn @['test_ prim '_mag_nan]() {
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).normalize().into_iter().all(|x| x.is_nan()));
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).with_mag(1.0).into_iter().all(|x| x.is_nan()));
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).with_mag_sq(1.0).into_iter().all(|x| x.is_nan()));
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).with_min_mag(1.0).into_iter().all(|x| x.is_nan()));
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).clamp_mag(1.0, 2.0).into_iter().all(|x| x.is_nan()));
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).with_min_mag_sq(1.0).into_iter().all(|x| x.is_nan()));
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).clamp_mag_sq(1.0, 2.0).into_iter().all(|x| x.is_nan()));
         }
     }
 }
