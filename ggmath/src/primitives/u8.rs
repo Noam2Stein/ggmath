@@ -290,5 +290,11 @@ repetitive! {
             }
         }
 
+        impl Zero for @num {
+            const ZERO: Self = 0 as @num;
+        }
+        impl One for @num {
+            const ONE: Self = 1 as @num;
+        }
     }
 }
