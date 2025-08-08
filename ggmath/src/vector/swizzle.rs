@@ -15,7 +15,7 @@ repetitive! {
 
                 #[doc = @str["Returns the `" c_name "` (" c_ordinal ") component of the vector."]]
                 #[inline(always)]
-                pub fn @x(self) -> T {
+                pub const fn @x(self) -> T {
                     self.array[@x_idx]
                 }
             }
@@ -29,7 +29,7 @@ repetitive! {
 
                 #[doc = @str["Returns the `" c_names "` (" c_ordinals ") component of the vector."]]
                 #[inline(always)]
-                pub fn @[x y](self) -> Vector<2, T, A> {
+                pub const fn @[x y](self) -> Vector<2, T, A> {
                     Vector::from_array([self.@x(), self.@y()])
                 }
             }
@@ -44,7 +44,7 @@ repetitive! {
 
                 #[doc = @str["Returns the `" c_names "` (" c_ordinals ") component of the vector."]]
                 #[inline(always)]
-                pub fn @[x y z](self) -> Vector<3, T, A> {
+                pub const fn @[x y z](self) -> Vector<3, T, A> {
                     Vector::from_array([self.@x(), self.@y(), self.@z()])
                 }
             }
@@ -60,7 +60,7 @@ repetitive! {
 
                 #[doc = @str["Returns the `" c_names "` (" c_ordinals ") component of the vector."]]
                 #[inline(always)]
-                pub fn @[x y z w](self) -> Vector<4, T, A> {
+                pub const fn @[x y z w](self) -> Vector<4, T, A> {
                     Vector::from_array([
                         self.@x(),
                         self.@y(),
@@ -78,7 +78,7 @@ repetitive! {
 
                 #[doc = @str["Returns a reference to the `" c_name "` (" c_ordinal ") component of the vector."]]
                 #[inline(always)]
-                pub fn @[x '_ref](&self) -> &T {
+                pub const fn @[x '_ref](&self) -> &T {
                     &self.array[@x_idx]
                 }
             }
@@ -88,7 +88,7 @@ repetitive! {
 
                 #[doc = @str["Returns a reference to the " ref_components.concat_string() " part of the vector."]]
                 #[inline(always)]
-                pub fn @[ref_components.concat_string() '_ref](&self) -> &Vector<@NOutput, T, VecPacked> {
+                pub const fn @[ref_components.concat_string() '_ref](&self) -> &Vector<@NOutput, T, VecPacked> {
                     unsafe {
                         std::mem::transmute::<
                             &T,
@@ -110,7 +110,7 @@ repetitive! {
                 @if len_0 > 1 { #[doc = @("Returns a mutable reference to a sub-vector of the vector.")] }
                 @if len_0 == 1 { #[doc = @("Returns a mutable reference to the component of the vector.")] }
                 #[inline(always)]
-                pub fn @[x.concat_ident() '_mut](&mut self)
+                pub const fn @[x.concat_ident() '_mut](&mut self)
                 @if len_0 > 1 { -> &mut Vector<@len_0, T, VecPacked> }
                 @if len_0 == 1 { -> &mut T }
                 {
@@ -135,7 +135,7 @@ repetitive! {
 
                     /// Splits the vector into 2 mutable references.
                     #[inline(always)]
-                    pub fn @[x.concat_ident() '_ y.concat_ident() '_mut](&mut self) -> (
+                    pub const fn @[x.concat_ident() '_ y.concat_ident() '_mut](&mut self) -> (
                         @if len_0 > 1 { &mut Vector<@len_0, T, VecPacked> }
                         @if len_0 == 1 { &mut T },
 
@@ -171,7 +171,7 @@ repetitive! {
 
                     /// Splits the vector into 3 mutable references.
                     #[inline(always)]
-                    pub fn @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_mut](&mut self) -> (
+                    pub const fn @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_mut](&mut self) -> (
                         @if len_0 > 1 { &mut Vector<@len_0, T, VecPacked> }
                         @if len_0 == 1 { &mut T },
 
@@ -215,7 +215,7 @@ repetitive! {
 
                     /// Splits the vector into 4 mutable references.
                     #[inline(always)]
-                    pub fn @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_ w.concat_ident() '_mut](&mut self) -> (
+                    pub const fn @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_ w.concat_ident() '_mut](&mut self) -> (
                         @if len_0 > 1 { &mut Vector<@len_0, T, VecPacked> }
                         @if len_0 == 1 { &mut T },
 
@@ -248,7 +248,7 @@ repetitive! {
 
                 #[doc = @str["Sets the `" c_name "` (" c_ordinal ") component of the vector."]]
                 #[inline(always)]
-                pub fn @['set_ x](&mut self, value: T) {
+                pub const fn @['set_ x](&mut self, value: T) {
                     self.array[@x_idx] = value;
                 }
             }
@@ -263,7 +263,7 @@ repetitive! {
 
                     #[doc = @str["Sets the `" c_names "` (" c_ordinals ") components of the vector."]]
                     #[inline(always)]
-                    pub fn @['set_ x y](&mut self, value: Vector<2, T, impl VecAlignment>) {
+                    pub const fn @['set_ x y](&mut self, value: Vector<2, T, impl VecAlignment>) {
                         self.@['set_ x](value.x());
                         self.@['set_ y](value.y());
                     }
@@ -281,7 +281,7 @@ repetitive! {
 
                     #[doc = @str["Sets the `" c_names "` (" c_ordinals ") components of the vector."]]
                     #[inline(always)]
-                    pub fn @['set_ x y z](&mut self, value: Vector<3, T, impl VecAlignment>) {
+                    pub const fn @['set_ x y z](&mut self, value: Vector<3, T, impl VecAlignment>) {
                         self.@['set_ x](value.x());
                         self.@['set_ y](value.y());
                         self.@['set_ z](value.z());
@@ -301,7 +301,7 @@ repetitive! {
 
                     #[doc = @str["Sets the `" c_names "` (" c_ordinals ") components of the vector."]]
                     #[inline(always)]
-                    pub fn @['set_ x y z w](&mut self, value: Vector<4, T, impl VecAlignment>) {
+                    pub const fn @['set_ x y z w](&mut self, value: Vector<4, T, impl VecAlignment>) {
                         self.@['set_ x](value.x());
                         self.@['set_ y](value.y());
                         self.@['set_ z](value.z());
@@ -318,7 +318,7 @@ repetitive! {
 
                 #[doc = @str["Returns a new vector with the `" c_name "` (" c_ordinal ") component set to the given value."]]
                 #[inline(always)]
-                pub fn @['with_ x](mut self, value: T) -> Self {
+                pub const fn @['with_ x](mut self, value: T) -> Self {
                     self.array[@x_idx] = value;
 
                     self
@@ -332,7 +332,7 @@ repetitive! {
 
                     #[doc = @str["Returns a new vector with the `" c_names "` (" c_ordinals ") components set to the given value."]]
                     #[inline(always)]
-                    pub fn @['with_ x y](mut self, value: Vector<2, T, impl VecAlignment>) -> Self {
+                    pub const fn @['with_ x y](mut self, value: Vector<2, T, impl VecAlignment>) -> Self {
                         self.@['set_ x](value.x());
                         self.@['set_ y](value.y());
 
@@ -352,7 +352,7 @@ repetitive! {
 
                     #[doc = @str["Returns a new vector with the `" c_names "` (" c_ordinals ") components set to the given value."]]
                     #[inline(always)]
-                    pub fn @['with_ x y z](mut self, value: Vector<3, T, impl VecAlignment>) -> Self {
+                    pub const fn @['with_ x y z](mut self, value: Vector<3, T, impl VecAlignment>) -> Self {
                         self.@['set_ x](value.x());
                         self.@['set_ y](value.y());
                         self.@['set_ z](value.z());
@@ -374,7 +374,7 @@ repetitive! {
 
                     #[doc = @str["Returns a new vector with the `" c_names "` (" c_ordinals ") components set to the given value."]]
                     #[inline(always)]
-                    pub fn @['with_ x y z w](mut self, value: Vector<4, T, impl VecAlignment>) -> Self {
+                    pub const fn @['with_ x y z w](mut self, value: Vector<4, T, impl VecAlignment>) -> Self {
                         self.@['set_ x](value.x());
                         self.@['set_ y](value.y());
                         self.@['set_ z](value.z());
