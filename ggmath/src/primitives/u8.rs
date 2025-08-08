@@ -169,8 +169,16 @@ repetitive! {
             ///
             /// The `mag` method does not exist for ints because it requires a square root.
             #[inline(always)]
-            pub fn square_mag(self) -> @int {
+            pub fn mag_sq(self) -> @int {
                 self.map(|x| x * x).sum()
+            }
+            /// Returns the square of the magnitude of the vector.
+            ///
+            /// The `mag` method does not exist for ints because it requires a square root.
+            #[inline(always)]
+            #[deprecated(note = "Renamed to `mag_sq`")]
+            pub fn square_mag(self) -> @int {
+                self.mag_sq()
             }
         }
 

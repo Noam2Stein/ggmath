@@ -281,8 +281,17 @@ repetitive! {
             /// This is faster than `mag` because it doesn't require performing a square root.
             /// So when doing things like comparing magnitudes, use this instead of `mag`.
             #[inline(always)]
-            pub fn square_mag(self) -> @float {
+            pub fn mag_sq(self) -> @float {
                 self.map(|x| x * x).sum()
+            }
+            /// Returns the square of the magnitude of the vector.
+            ///
+            /// This is faster than `mag` because it doesn't require performing a square root.
+            /// So when doing things like comparing magnitudes, use this instead of `mag`.
+            #[inline(always)]
+            #[deprecated(note = "Renamed to `mag_sq`")]
+            pub fn square_mag(self) -> @float {
+                self.mag_sq()
             }
 
             /// Returns a vector with the same direction as the original, but with a magnitude of 1.
@@ -304,6 +313,14 @@ repetitive! {
             ///
             /// Calling this with a zero vector will result in a NaN vector.
             #[inline(always)]
+            pub fn with_mag_sq(self, mag_sq: @float) -> Self {
+                self.with_mag(mag_sq.sqrt())
+            }
+            /// Returns a vector with the same direction as the original, but with the given square magnitude.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            #[deprecated(note = "Renamed to `with_mag_sq`")]
             pub fn with_square_mag(self, square_mag: @float) -> Self {
                 self.with_mag(square_mag.sqrt())
             }
@@ -313,7 +330,7 @@ repetitive! {
             /// Calling this with a zero vector will result in a NaN vector.
             #[inline(always)]
             pub fn with_min_mag(self, min_mag: @float) -> Self {
-                if self.square_mag() < min_mag * min_mag {
+                if self.mag_sq() < min_mag * min_mag {
                     self.with_mag(min_mag)
                 } else {
                     self
@@ -324,7 +341,7 @@ repetitive! {
             /// Calling this with a zero vector will result in a NaN vector.
             #[inline(always)]
             pub fn with_max_mag(self, max_mag: @float) -> Self {
-                if self.square_mag() > max_mag * max_mag {
+                if self.mag_sq() > max_mag * max_mag {
                     self.with_mag(max_mag)
                 } else {
                     self
@@ -335,9 +352,9 @@ repetitive! {
             /// Calling this with a zero vector will result in a NaN vector.
             #[inline(always)]
             pub fn clamp_mag(self, min_mag: @float, max_mag: @float) -> Self {
-                if self.square_mag() < min_mag * min_mag {
+                if self.mag_sq() < min_mag * min_mag {
                     self.with_mag(min_mag)
-                } else if self.square_mag() > max_mag * max_mag {
+                } else if self.mag_sq() > max_mag * max_mag {
                     self.with_mag(max_mag)
                 } else {
                     self
@@ -348,9 +365,9 @@ repetitive! {
             ///
             /// Calling this with a zero vector will result in a NaN vector.
             #[inline(always)]
-            pub fn with_min_square_mag(self, min_square_mag: @float) -> Self {
-                if self.square_mag() < min_square_mag {
-                    self.with_square_mag(min_square_mag)
+            pub fn with_min_mag_sq(self, min_mag_sq: @float) -> Self {
+                if self.mag_sq() < min_mag_sq {
+                    self.with_mag_sq(min_mag_sq)
                 } else {
                     self
                 }
@@ -359,9 +376,9 @@ repetitive! {
             ///
             /// Calling this with a zero vector will result in a NaN vector.
             #[inline(always)]
-            pub fn with_max_square_mag(self, max_square_mag: @float) -> Self {
-                if self.square_mag() > max_square_mag {
-                    self.with_square_mag(max_square_mag)
+            pub fn with_max_mag_sq(self, max_mag_sq: @float) -> Self {
+                if self.mag_sq() > max_mag_sq {
+                    self.with_mag_sq(max_mag_sq)
                 } else {
                     self
                 }
@@ -370,8 +387,32 @@ repetitive! {
             ///
             /// Calling this with a zero vector will result in a NaN vector.
             #[inline(always)]
+            pub fn clamp_mag_sq(self, min_mag_sq: @float, max_mag_sq: @float) -> Self {
+                self.with_min_mag_sq(min_mag_sq).with_max_mag_sq(max_mag_sq)
+            }
+            /// Returns a vector with the same direction as the original, but with the square magnitude at least the given value.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            #[deprecated(note = "Renamed to `with_min_mag_sq`")]
+            pub fn with_min_square_mag(self, min_square_mag: @float) -> Self {
+                self.with_min_mag_sq(min_square_mag)
+            }
+            /// Returns a vector with the same direction as the original, but with the square magnitude at most the given value.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            #[deprecated(note = "Renamed to `with_max_mag_sq`")]
+            pub fn with_max_square_mag(self, max_square_mag: @float) -> Self {
+                self.with_max_mag_sq(max_square_mag)
+            }
+            /// Returns a vector with the same direction as the original, but with the square magnitude clamped between the given values.
+            ///
+            /// Calling this with a zero vector will result in a NaN vector.
+            #[inline(always)]
+            #[deprecated(note = "Renamed to `clamp_mag_sq`")]
             pub fn clamp_square_mag(self, min_square_mag: @float, max_square_mag: @float) -> Self {
-                self.with_min_square_mag(min_square_mag).with_max_square_mag(max_square_mag)
+                self.clamp_mag_sq(min_square_mag, max_square_mag)
             }
         }
 

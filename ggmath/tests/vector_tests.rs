@@ -581,7 +581,7 @@ fn test_num() {
             );
 
             assert_eq!(
-                vec3!(1 as @prim, 5 as @prim, 3 as @prim).square_mag(),
+                vec3!(1 as @prim, 5 as @prim, 3 as @prim).mag_sq(),
                 35 as @prim,
             );
 
@@ -638,7 +638,7 @@ fn test_signed_num() {
             );
 
             assert_eq!(
-                vec3!(-1 as @prim, 5 as @prim, -3 as @prim).square_mag(),
+                vec3!(-1 as @prim, 5 as @prim, -3 as @prim).mag_sq(),
                 35 as @prim,
             );
 
@@ -747,7 +747,7 @@ fn test_floats() {
 
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).mag(),
-                vec3!(5.6, 5.1, -3.3 as @prim).square_mag().sqrt(),
+                vec3!(5.6, 5.1, -3.3 as @prim).mag_sq().sqrt(),
                 "mag",
             );
             assert_eq!(
@@ -776,14 +776,14 @@ fn test_floats() {
                 "with_mag",
             );
             assert_eq!(
-                vec3!(3.0, 0.0, 0.0 as @prim).with_square_mag(4.0),
+                vec3!(3.0, 0.0, 0.0 as @prim).with_mag_sq(4.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
-                "with_square_mag",
+                "with_mag_sq",
             );
             assert_eq!(
-                vec3!(-5.0, 0.0, 0.0 as @prim).with_square_mag(4.0),
+                vec3!(-5.0, 0.0, 0.0 as @prim).with_mag_sq(4.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
-                "with_max_square_mag",
+                "with_mag_sq",
             );
 
             assert_eq!(
@@ -828,44 +828,44 @@ fn test_floats() {
             );
 
             assert_eq!(
-                vec3!(5.6, 5.1, -3.3 as @prim).with_min_square_mag(4.0),
+                vec3!(5.6, 5.1, -3.3 as @prim).with_min_mag_sq(4.0),
                 vec3!(5.6, 5.1, -3.3 as @prim),
-                "with_min_square_mag",
+                "with_min_mag_sq",
             );
             assert_eq!(
-                vec3!(3.0, 0.0, 0.0 as @prim).with_max_square_mag(4.0),
+                vec3!(3.0, 0.0, 0.0 as @prim).with_max_mag_sq(4.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
-                "with_max_square_mag",
+                "with_max_mag_sq",
             );
             assert_eq!(
-                vec3!(-5.0, 0.0, 0.0 as @prim).with_max_square_mag(4.0),
+                vec3!(-5.0, 0.0, 0.0 as @prim).with_max_mag_sq(4.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
-                "with_max_square_mag",
+                "with_max_mag_sq",
             );
             assert_eq!(
-                vec3!(5.6, 5.1, -3.3 as @prim).clamp_square_mag(49.0, 81.0),
+                vec3!(5.6, 5.1, -3.3 as @prim).clamp_mag_sq(49.0, 81.0),
                 vec3!(5.6, 5.1, -3.3 as @prim),
-                "clamp_square_mag",
+                "clamp_mag_sq",
             );
             assert_eq!(
-                vec3!(6.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
+                vec3!(6.0, 0.0, 0.0 as @prim).clamp_mag_sq(4.0, 9.0),
                 vec3!(3.0, 0.0, 0.0 as @prim),
-                "clamp_square_mag",
+                "clamp_mag_sq",
             );
             assert_eq!(
-                vec3!(-6.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
+                vec3!(-6.0, 0.0, 0.0 as @prim).clamp_mag_sq(4.0, 9.0),
                 vec3!(-3.0, 0.0, 0.0 as @prim),
-                "clamp_square_mag",
+                "clamp_mag_sq",
             );
             assert_eq!(
-                vec3!(1.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
+                vec3!(1.0, 0.0, 0.0 as @prim).clamp_mag_sq(4.0, 9.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
-                "clamp_square_mag",
+                "clamp_mag_sq",
             );
             assert_eq!(
-                vec3!(-1.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
+                vec3!(-1.0, 0.0, 0.0 as @prim).clamp_mag_sq(4.0, 9.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
-                "clamp_square_mag",
+                "clamp_mag_sq",
             );
         }
     }
