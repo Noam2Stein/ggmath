@@ -109,6 +109,8 @@ where
     /// ### Example
     ///
     /// ```
+    /// use ggmath::*;
+    ///
     /// fn foo(matrix: Matrix<2, 2, f32, VecAligned, impl MatMajorAxis>) {
     ///     match matrix.resolve() {
     ///         ResolvedMatrix::ColumnMajor(matrix) => {
@@ -145,6 +147,8 @@ where
     /// ### Example
     ///
     /// ```
+    /// use ggmath::*;
+    ///
     /// fn foo(matrix: &Matrix<2, 2, f32, VecAligned, impl MatMajorAxis>) {
     ///     match matrix.resolve_ref() {
     ///         ResolvedMatrixRef::ColumnMajor(matrix) => {
@@ -181,6 +185,8 @@ where
     /// ### Example
     ///
     /// ```
+    /// use ggmath::*;
+    ///
     /// fn foo(matrix: &mut Matrix<2, 2, f32, VecAligned, impl MatMajorAxis>) {
     ///     match matrix.resolve_mut() {
     ///         ResolvedMatrixMut::ColumnMajor(matrix) => {

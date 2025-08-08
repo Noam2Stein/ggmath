@@ -16,6 +16,9 @@ use super::*;
 pub unsafe trait VecLen {
     /// Is used to "redirect" the vector to its alignment marker-type through this pattern:
     ///
+    /// ```
+    /// use ggmath::AlignTrait;
+    ///
     /// trait VecAlignment {
     ///     type Alignment<const N: usize, T: Scalar>: AlignTrait;
     /// }
@@ -29,6 +32,7 @@ pub unsafe trait VecLen {
     ///     type Vec3Alignment: AlignTrait;
     ///     type Vec4Alignment: AlignTrait;
     /// }
+    /// ```
     type Alignment<T: Scalar>: AlignTrait;
 }
 
@@ -59,7 +63,12 @@ unsafe impl VecLen for Usize<4> {
 /// When implementing this trait, you need to fill out the [`VecAligned`] alignments for your type.
 ///
 /// ```
-/// impl Scalar for f32 {
+/// use ggmath::*;
+///
+/// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
+/// struct MyF32(f32);
+///
+/// impl Scalar for MyF32 {
 ///     type Vec2Alignment = Align<8>;
 ///     type Vec3Alignment = Align<16>;
 ///     type Vec4Alignment = Align<16>;
@@ -309,6 +318,9 @@ pub unsafe trait VecAlignment: Sized + 'static + Send + Sync {
 
     /// Is used to "redirect" the vector to its alignment marker-type through this pattern:
     ///
+    /// ```
+    /// use ggmath::AlignTrait;
+    ///
     /// trait VecAlignment {
     ///     type Alignment<const N: usize, T: Scalar>: AlignTrait;
     /// }
@@ -322,6 +334,7 @@ pub unsafe trait VecAlignment: Sized + 'static + Send + Sync {
     ///     type Vec3Alignment: AlignTrait;
     ///     type Vec4Alignment: AlignTrait;
     /// }
+    /// ```
     type Alignment<const N: usize, T: Scalar>: AlignTrait
     where
         Usize<N>: VecLen;
@@ -358,6 +371,8 @@ unsafe impl VecAlignment for VecPacked {
 /// This is used to implement memory-layout generic functions by "matching" the generic arguments:
 ///
 /// ```
+/// use ggmath::*;
+///
 /// fn example<A: VecAlignment>(vector: Vector<2, f32, A>) {
 ///     match vector.resolve() {
 ///         ResolvedVector::Aligned(aligned) => {
@@ -385,6 +400,8 @@ where
 /// This is used to implement memory-layout generic functions by "matching" the generic arguments:
 ///
 /// ```
+/// use ggmath::*;
+///
 /// fn example<A: VecAlignment>(vector: &Vector<2, f32, A>) {
 ///     match vector.resolve_ref() {
 ///         ResolvedVectorRef::Aligned(aligned) => {
@@ -412,6 +429,8 @@ where
 /// This is used to implement memory-layout generic functions by "matching" the generic arguments:
 ///
 /// ```
+/// use ggmath::*;
+///
 /// fn example<A: VecAlignment>(vector: &mut Vector<2, f32, A>) {
 ///     match vector.resolve_mut() {
 ///         ResolvedVectorMut::Aligned(aligned) => {
@@ -443,6 +462,8 @@ where
     /// This is used to implement memory-layout generic functions by "matching" the generic arguments.
     ///
     /// ```
+    /// use ggmath::*;
+    ///
     /// fn example<A: VecAlignment>(vector: Vector<2, f32, A>) {
     ///     match vector.resolve() {
     ///         ResolvedVector::Aligned(aligned) => {
@@ -474,6 +495,8 @@ where
     /// This is used to implement memory-layout generic functions by "matching" the generic arguments.
     ///
     /// ```
+    /// use ggmath::*;
+    ///
     /// fn example<A: VecAlignment>(vector: &Vector<2, f32, A>) {
     ///     match vector.resolve_ref() {
     ///         ResolvedVectorRef::Aligned(aligned) => {
@@ -505,6 +528,8 @@ where
     /// This is used to implement memory-layout generic functions by "matching" the generic arguments.
     ///
     /// ```
+    /// use ggmath::*;
+    ///
     /// fn example<A: VecAlignment>(vector: &mut Vector<2, f32, A>) {
     ///     match vector.resolve_mut() {
     ///         ResolvedVectorMut::Aligned(aligned) => {

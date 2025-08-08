@@ -20,19 +20,6 @@ use super::*;
 /// - `AabbCornered` represents the bounding box by its minimum corner and size.
 /// - `AabbCentered` represents the bounding box by its center and extents.
 /// - `AabbMinMaxed` represents the bounding box by its minimum and maximum corners.
-///
-/// ### Impl Pattern
-///
-/// This is how you create an impl block that applies to all aabbs:
-///
-/// ```rust
-/// impl<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr> Aabb<N, T, A, R>
-/// where
-///     Usize<N>: VecLen,
-/// {
-///     // ...
-/// }
-/// ```
 #[derive_where(Clone, Copy)]
 pub struct Aabb<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr>
 where

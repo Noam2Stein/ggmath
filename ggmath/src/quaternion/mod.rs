@@ -15,15 +15,6 @@ mod ops;
 ///
 /// This type is generic over scalar type and alignment,
 /// which follows the generics of [`Vector`].
-///
-/// ### Impl Pattern
-///
-/// This is how you make an impl block that applies to all quaternions:
-///
-/// ```
-/// impl<T: Scalar, A: VecAlignment> Quaternion<T, A> {
-/// }
-/// ```
 #[derive_where(Clone, Copy)]
 #[derive_where(Debug, Eq, Hash; T)]
 pub struct Quaternion<T: Scalar, A: VecAlignment> {

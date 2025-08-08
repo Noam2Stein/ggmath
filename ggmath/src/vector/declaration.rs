@@ -17,18 +17,6 @@ use super::*;
 /// Finally,
 /// this type is generic over whether its aligned for SIMD, or unaligned to save space.
 /// See [`VecAlignment`] for more information.
-///
-/// ### Impl Pattern
-///
-/// Because of this type's complex generics, this is how you make an impl block that applies to all vectors:
-///
-/// ```
-/// impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
-/// where
-///     Usize<N>: VecLen,
-/// {
-/// }
-/// ```
 #[derive_where(Clone, Copy)]
 #[derive_where(Eq, Hash; T)]
 pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>

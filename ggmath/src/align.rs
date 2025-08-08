@@ -3,6 +3,8 @@ use super::*;
 /// Empty type that is aligned to the specified power of two.
 ///
 /// ```rust
+/// use ggmath::*;
+///
 /// const _: () = assert!(size_of::<Align<16>>() == 0);
 /// const _: () = assert!(align_of::<Align<16>>() == 16);
 /// ```
@@ -19,11 +21,15 @@ where
 /// Is made for this pattern:
 ///
 /// ```rust
+/// use ggmath::*;
+///
 /// trait MyTrait {
 ///     type AlignPlease: AlignTrait;
 /// }
 ///
-/// impl MyTrait for ... {
+/// type SomeType = f32;
+///
+/// impl MyTrait for SomeType {
 ///     type AlignPlease = Align<16>;
 /// }
 /// ```

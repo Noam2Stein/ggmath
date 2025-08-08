@@ -15,24 +15,6 @@ use super::*;
 ///
 /// `ggmath` matrix size specification is ordered columns then rows.
 /// `2x3` means 2 columns and 3 rows.
-///
-/// ### Impl Pattern
-///
-/// Because of this type's complex generics, this is how you make an impl block that applies to all matrices:
-///
-/// ```
-/// impl<
-///     const C: usize,
-///     const R: usize,
-///     T: Scalar,
-///     A: VecAlignment,
-///     M: MatMajorAxis
-/// > Matrix<C, R, T, A, M>
-/// where
-///     Usize<C>: VecLen,
-///     Usize<R>: VecLen,
-/// {
-/// }
 #[derive_where(Clone, Copy)]
 pub struct Matrix<const C: usize, const R: usize, T: Scalar, A: VecAlignment, M: MatMajorAxis>
 where

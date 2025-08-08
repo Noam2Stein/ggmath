@@ -220,7 +220,9 @@ where
     /// ### Example
     ///
     /// ```rust
-    /// fn foo(aabb: Aabb<2, f32, VecAligned, impl AabbRepr>) {
+    /// use ggmath::*;
+    ///
+    /// fn foo(aabb: Aabb<2, f32, impl VecAlignment, impl AabbRepr>) {
     ///     match aabb.resolve() {
     ///         ResolvedAabb::Cornered(aabb) => {
     ///             println!("aabb is represented by its minimum corner and size");
@@ -261,7 +263,9 @@ where
     /// ### Example
     ///
     /// ```rust
-    /// fn foo(aabb: &Aabb<2, f32, A, impl AabbRepr>) {
+    /// use ggmath::*;
+    ///
+    /// fn foo(aabb: &Aabb<2, f32, impl VecAlignment, impl AabbRepr>) {
     ///     match aabb.resolve_ref() {
     ///         ResolvedAabbRef::Cornered(aabb) => {
     ///             println!("aabb is represented by its minimum corner and size");
@@ -302,7 +306,9 @@ where
     /// ### Example
     ///
     /// ```rust
-    /// fn foo(aabb: &mut Aabb<2, f32, A, impl AabbRepr>) {
+    /// use ggmath::*;
+    ///
+    /// fn foo(aabb: &mut Aabb<2, f32, impl VecAlignment, impl AabbRepr>) {
     ///     match aabb.resolve_repr_mut() {
     ///         ResolvedAabbMut::Cornered(aabb) => {
     ///             println!("aabb is represented by its minimum corner and size");

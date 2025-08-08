@@ -61,6 +61,8 @@ repetitive! {
         /// Constructs a new aligned vector from flexible arguments like shaders.
         ///
         /// ```
+        /// use ggmath::*;
+        ///
         /// const EXAMPLE_2: Vec2<f32> = vec2!(1.0, 2.0);
         /// const EXAMPLE_3: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
@@ -76,6 +78,8 @@ repetitive! {
         /// Constructs a new packed vector from flexible arguments like shaders.
         ///
         /// ```
+        /// use ggmath::*;
+        ///
         /// const EXAMPLE_2: Vec2<f32> = vec2!(1.0, 2.0);
         /// const EXAMPLE_3: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);

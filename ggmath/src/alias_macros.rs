@@ -5,11 +5,21 @@
 ///
 /// Example:
 /// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
 /// vector_aliases!(pub Big => BigInt);
 /// ```
 ///
 /// Expands to:
 /// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
 /// pub type BigVec2 = Vector<2, BigInt, VecAligned>;
 /// pub type BigVec3 = Vector<3, BigInt, VecAligned>;
 /// pub type BigVec4 = Vector<4, BigInt, VecAligned>;
@@ -61,11 +71,21 @@ macro_rules! vector_aliases {
 ///
 /// Example:
 /// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
 /// matrix_aliases!(pub Big => BigInt);
 /// ```
 ///
 /// Expands to:
 /// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
 /// pub type BigMat2C = Matrix<2, 2, BigInt, VecAligned, ColMajor>;
 /// pub type BigMat2x3C = Matrix<2, 3, BigInt, VecAligned, ColMajor>;
 /// pub type BigMat2x4C = Matrix<2, 4, BigInt, VecAligned, ColMajor>;
@@ -188,11 +208,21 @@ macro_rules! matrix_aliases {
 ///
 /// Example:
 /// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
 /// aabb_aliases!(pub Big => BigInt);
 /// ```
 ///
 /// Expands to:
 /// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
 /// pub type BigRect = Rect<BigInt>;
 /// pub type BigRectP = RectP<BigInt>;
 /// pub type BigRectCP = RectCP<BigInt>;

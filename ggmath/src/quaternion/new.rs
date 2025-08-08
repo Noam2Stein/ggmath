@@ -4,6 +4,8 @@
 /// ### Example
 ///
 /// ```
+/// use ggmath::*;
+///
 /// let q = quat!(1.0, vec2!(2.0, 3.0), 4.0);
 /// ```
 #[macro_export]
@@ -19,6 +21,8 @@ macro_rules! quat {
 /// ### Example
 ///
 /// ```
+/// use ggmath::*;
+///
 /// let q = quatp!(1.0, vec2!(2.0, 3.0), 4.0);
 /// ```
 #[macro_export]
