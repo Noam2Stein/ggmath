@@ -587,170 +587,211 @@ fn test_floats() {
             assert_eq!(
                 vec4!(5.6, 5.1, -3.3, -3.7 as @prim).round(),
                 vec4!(6.0, 5.0, -3.0, -4.0),
+                "round",
             );
             assert_eq!(
                 vec4!(5.6, 5.1, -3.3, -3.7 as @prim).floor(),
                 vec4!(5.0, 5.0, -4.0, -4.0),
+                "floor",
             );
             assert_eq!(
                 vec4!(5.6, 5.1, -3.3, -3.7 as @prim).ceil(),
                 vec4!(6.0, 6.0, -3.0, -3.0),
+                "ceil",
             );
             assert_eq!(
                 vec4!(5.6, 5.1, -3.3, -3.7 as @prim).trunc(),
                 vec4!(5.0, 5.0, -3.0, -3.0),
+                "trunc",
             );
             assert_eq!(
                 vec4!(5.6, 5.1, -3.3, -3.7 as @prim).atrunc(),
                 vec4!(6.0, 6.0, -4.0, -4.0),
+                "atrunc",
             );
 
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).sin(),
                 vec3!((5.6 as @prim).sin(), (5.1 as @prim).sin(), (-3.3 as @prim).sin()),
+                "sin",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).cos(),
                 vec3!((5.6 as @prim).cos(), (5.1 as @prim).cos(), (-3.3 as @prim).cos()),
+                "cos",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).tan(),
                 vec3!((5.6 as @prim).tan(), (5.1 as @prim).tan(), (-3.3 as @prim).tan()),
+                "tan",
             );
             assert_eq!(
-                vec3!(5.6, 5.1, -3.3 as @prim).asin(),
-                vec3!((5.6 as @prim).asin(), (5.1 as @prim).asin(), (-3.3 as @prim).asin()),
+                vec3!(0.5, 0.0, -0.5 as @prim).asin(),
+                vec3!((0.5 as @prim).asin(), (0.0 as @prim).asin(), (-0.5 as @prim).asin()),
+                "asin",
             );
             assert_eq!(
-                vec3!(5.6, 5.1, -3.3 as @prim).acos(),
-                vec3!((5.6 as @prim).acos(), (5.1 as @prim).acos(), (-3.3 as @prim).acos()),
+                vec3!(0.5, 0.0, -0.5 as @prim).acos(),
+                vec3!((0.5 as @prim).acos(), (0.0 as @prim).acos(), (-0.5 as @prim).acos()),
+                "acos",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).atan(),
                 vec3!((5.6 as @prim).atan(), (5.1 as @prim).atan(), (-3.3 as @prim).atan()),
+                "atan",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).sinh(),
                 vec3!((5.6 as @prim).sinh(), (5.1 as @prim).sinh(), (-3.3 as @prim).sinh()),
+                "sinh",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).cosh(),
                 vec3!((5.6 as @prim).cosh(), (5.1 as @prim).cosh(), (-3.3 as @prim).cosh()),
+                "cosh",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).tanh(),
                 vec3!((5.6 as @prim).tanh(), (5.1 as @prim).tanh(), (-3.3 as @prim).tanh()),
+                "tanh",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).asinh(),
                 vec3!((5.6 as @prim).asinh(), (5.1 as @prim).asinh(), (-3.3 as @prim).asinh()),
+                "asinh",
             );
             assert_eq!(
-                vec3!(5.6, 5.1, -3.3 as @prim).acosh(),
-                vec3!((5.6 as @prim).acosh(), (5.1 as @prim).acosh(), (-3.3 as @prim).acosh()),
+                vec3!(1.5, 2.0, 3.0 as @prim).acosh(),
+                vec3!((1.5 as @prim).acosh(), (2.0 as @prim).acosh(), (3.0 as @prim).acosh()),
+                "acosh",
             );
             assert_eq!(
-                vec3!(5.6, 5.1, -3.3 as @prim).atanh(),
-                vec3!((5.6 as @prim).atanh(), (5.1 as @prim).atanh(), (-3.3 as @prim).atanh()),
+                vec3!(0.5, 0.0, -0.5 as @prim).atanh(),
+                vec3!((0.5 as @prim).atanh(), (0.0 as @prim).atanh(), (-0.5 as @prim).atanh()),
+                "atanh",
             );
 
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).mag(),
                 vec3!(5.6, 5.1, -3.3 as @prim).square_mag().sqrt(),
+                "mag",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).normalize(),
                 vec3!(5.6, 5.1, -3.3 as @prim) / vec3!(5.6, 5.1, -3.3 as @prim).mag(),
+                "normalize",
             );
             assert_eq!(
                 vec3!(1.0, 0.0, 0.0 as @prim).normalize(),
                 vec3!(1.0, 0.0, 0.0 as @prim),
+                "normalize",
             );
             assert_eq!(
                 vec3!(-1.0, 0.0, 0.0 as @prim).normalize(),
                 vec3!(-1.0, 0.0, 0.0 as @prim),
+                "normalize",
             );
             assert_eq!(
                 vec3!(3.0, 0.0, 0.0 as @prim).with_mag(2.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
+                "with_mag",
             );
             assert_eq!(
                 vec3!(-5.0, 0.0, 0.0 as @prim).with_mag(2.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
+                "with_mag",
             );
             assert_eq!(
                 vec3!(3.0, 0.0, 0.0 as @prim).with_square_mag(4.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
+                "with_square_mag",
             );
             assert_eq!(
                 vec3!(-5.0, 0.0, 0.0 as @prim).with_square_mag(4.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
+                "with_max_square_mag",
             );
 
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).with_min_mag(2.0),
                 vec3!(5.6, 5.1, -3.3 as @prim),
+                "with_min_mag",
             );
             assert_eq!(
                 vec3!(3.0, 0.0, 0.0 as @prim).with_max_mag(2.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
+                "with_max_mag",
             );
             assert_eq!(
                 vec3!(-5.0, 0.0, 0.0 as @prim).with_max_mag(2.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
+                "with_max_mag",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).clamp_mag(7.0, 9.0),
                 vec3!(5.6, 5.1, -3.3 as @prim),
+                "clamp_mag",
             );
             assert_eq!(
                 vec3!(6.0, 0.0, 0.0 as @prim).clamp_mag(2.0, 3.0),
                 vec3!(3.0, 0.0, 0.0 as @prim),
+                "clamp_mag",
             );
             assert_eq!(
                 vec3!(-6.0, 0.0, 0.0 as @prim).clamp_mag(2.0, 3.0),
                 vec3!(-3.0, 0.0, 0.0 as @prim),
+                "clamp_mag",
             );
             assert_eq!(
                 vec3!(1.0, 0.0, 0.0 as @prim).clamp_mag(2.0, 3.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
+                "clamp_mag",
             );
             assert_eq!(
                 vec3!(-1.0, 0.0, 0.0 as @prim).clamp_mag(2.0, 3.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
+                "clamp_mag",
             );
 
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).with_min_square_mag(4.0),
                 vec3!(5.6, 5.1, -3.3 as @prim),
+                "with_min_square_mag",
             );
             assert_eq!(
                 vec3!(3.0, 0.0, 0.0 as @prim).with_max_square_mag(4.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
+                "with_max_square_mag",
             );
             assert_eq!(
                 vec3!(-5.0, 0.0, 0.0 as @prim).with_max_square_mag(4.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
+                "with_max_square_mag",
             );
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).clamp_square_mag(49.0, 81.0),
                 vec3!(5.6, 5.1, -3.3 as @prim),
+                "clamp_square_mag",
             );
             assert_eq!(
                 vec3!(6.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
                 vec3!(3.0, 0.0, 0.0 as @prim),
+                "clamp_square_mag",
             );
             assert_eq!(
                 vec3!(-6.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
                 vec3!(-3.0, 0.0, 0.0 as @prim),
+                "clamp_square_mag",
             );
             assert_eq!(
                 vec3!(1.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
                 vec3!(2.0, 0.0, 0.0 as @prim),
+                "clamp_square_mag",
             );
             assert_eq!(
                 vec3!(-1.0, 0.0, 0.0 as @prim).clamp_square_mag(4.0, 9.0),
                 vec3!(-2.0, 0.0, 0.0 as @prim),
+                "clamp_square_mag",
             );
         }
     }
