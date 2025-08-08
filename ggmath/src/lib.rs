@@ -13,12 +13,10 @@
 mod alias_macros;
 mod align;
 mod construct;
-mod dir;
 mod primitives;
 mod usize_;
 pub use align::*;
 pub use construct::*;
-pub use dir::*;
 pub use primitives::*;
 pub use usize_::*;
 

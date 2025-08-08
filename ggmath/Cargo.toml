@@ -23,13 +23,6 @@ vector            = [  ]
 default = [ "matrix", "primitive_aliases", "quaternion", "vector" ]
 full    = [ "aabb", "matrix", "primitive_aliases", "quaternion", "vector" ]
 
-backward = [  ]
-down     = [  ]
-forward  = [  ]
-left     = [  ]
-right    = [  ]
-up       = [  ]
-
 [dependencies]
 derive-where  = "1.2.7"
 repetitive    = "0.1.5"
