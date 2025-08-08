@@ -6,7 +6,7 @@ Usability:
 
 | API         | Stable | 100% Documentation | 100% Tests | 100% Benchmarks |
 |-------------|--------|--------------------|------------|-----------------|
-| Vectors     | ✅    | ✅                 | ❌        | ❌              |
+| Vectors     | ✅    | ✅                 | ✅        | ❌              |
 | Matrices    | ❌    | ✅                 | ❌        | ❌              |
 | Quaternions | ❌    | ✅                 | ❌        | ❌              |
 | Aabbs       | ✅    | ✅                 | ❌        | ❌              |
