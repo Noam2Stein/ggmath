@@ -204,7 +204,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        self.map_rhs(other, |a, b| a * b).sum()
+        (self * other).sum()
     }
 }
 
