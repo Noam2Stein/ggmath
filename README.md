@@ -53,12 +53,13 @@ and whether it's aligned for SIMD, or unaligned to save space.
 The `Matrix` type is generic over column count, row count, type, alignment (like vectors),
 and whether it's column-major or row-major.
 
-The `Aabb` type is generic over length, type, alignment,
-and it's inner representation (repr by min+size, min+max, or center+extents).
+The `Aabb` type is generic over dimension count, type, alignment,
+and it's inner representation (represented by min+size, min+max, or center+extents).
 
 ### Vectors
 
 ```rust
+// Vector's declaration
 pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
 where
     Usize<N>: VecLen,
@@ -118,6 +119,7 @@ Vectors support all expected features:
 ### Matrices
 
 ```rust
+// Matrix's declaration
 pub struct Matrix<
     const C: usize,
     const R: usize,
@@ -165,6 +167,7 @@ They do support swizzling and construction from columns/rows.
 ### Aabbs (Bounding Boxes) (opt-in feature)
 
 ```rust
+// Aabb's declaration
 pub struct Aabb<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr>
 where
     Usize<N>: VecLen,
@@ -227,6 +230,7 @@ Aabbs support all expected features:
 ### Quaternions
 
 ```rust
+// Quaternion's declaration
 pub struct Quaternion<T: Scalar, A: VecAlignment>
 
 pub type Quat<T> = Quaternion<T, VecAligned>;
