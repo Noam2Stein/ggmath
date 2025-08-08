@@ -42,7 +42,7 @@ macro_rules! vector_aliases {
     };
 
     (@($($vis:tt)*) $prefix:ident => $type:tt) => {
-        $crate::repetitive! {
+        $crate::_private_::repetitive! {
             #[doc = @str["Type alias for `Vector<2, " ~$type ", VecAligned>`"]]
             $($vis)* type @[~$prefix 'Vec2] = $crate::Vec2<$type>;
 
@@ -105,7 +105,7 @@ macro_rules! matrix_aliases {
     };
 
     (@($($vis:tt)*) $prefix:ident => $type:tt) => {
-        $crate::repetitive! {
+        $crate::_private_::repetitive! {
             // Column-Major, Aligned
 
             #[doc = @str["Type alias for `Matrix<2, 2, " ~$type ", VecAligned, ColMajor>`"]]
@@ -246,7 +246,7 @@ macro_rules! aabb_aliases {
     };
 
     (@($($vis:tt)*) $prefix:ident => $type:tt) => {
-        $crate::repetitive! {
+        $crate::_private_::repetitive! {
             // 2D
 
             #[doc = @str["Type alias for `Rect<" ~$type ">` / `Aabb<2, " ~$type ", VecAligned, RectCornered>`"]]

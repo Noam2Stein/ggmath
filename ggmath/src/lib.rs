@@ -10,6 +10,8 @@
 //! - Optimal for GPU structs.
 //! - Optional additional types (Rect, Ray...).
 
+use repetitive::repetitive;
+
 mod alias_macros;
 mod align;
 mod construct;
@@ -33,7 +35,9 @@ repetitive! {
 }
 
 #[doc(hidden)]
-pub use repetitive::repetitive;
+pub mod _private_ {
+    pub use repetitive::repetitive;
+}
 
 // Crate integration
 

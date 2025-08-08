@@ -1,6 +1,7 @@
 use std::mem::transmute;
 
 use ggmath::*;
+use repetitive::repetitive;
 
 // verify size
 const _: () = assert!(size_of::<FVec2>() == 2 * size_of::<f32>());
