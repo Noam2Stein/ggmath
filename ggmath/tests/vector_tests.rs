@@ -458,6 +458,60 @@ fn test_ops() {
     assert_eq!(vec3!(1, 2, 3).cross(vec3!(4, 5, 6)), vec3!(-3, 6, -3));
 }
 
+repetitive! {
+    // ints
+    @for prim in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize] {
+        #[test]
+        #[should_panic]
+        fn @['test_ prim '_add_panic]() {
+            let _ =
+                vec3!(@prim::MAX, 2 as @prim, 3 as @prim)
+                + vec3!(1 as @prim, 5 as @prim, 6 as @prim);
+        }
+
+        #[test]
+        #[should_panic]
+        fn @['test_ prim '_sub_panic]() {
+            let _ =
+                vec3!(@prim::MIN, 2 as @prim, 3 as @prim)
+                - vec3!(1 as @prim, 5 as @prim, 6 as @prim);
+        }
+
+        #[test]
+        #[should_panic]
+        fn @['test_ prim '_mul_panic]() {
+            let _ =
+                vec3!(@prim::MAX, 2 as @prim, 3 as @prim)
+                * vec3!(2 as @prim, 5 as @prim, 6 as @prim);
+        }
+
+        #[test]
+        #[should_panic]
+        fn @['test_ prim '_div_panic]() {
+            let _ =
+                vec3!(3 as @prim, 2 as @prim, 3 as @prim)
+                / vec3!(0 as @prim, 5 as @prim, 6 as @prim);
+        }
+
+        #[test]
+        #[should_panic]
+        fn @['test_ prim '_rem_panic]() {
+            let _ =
+                vec3!(3 as @prim, 2 as @prim, 3 as @prim)
+                % vec3!(0 as @prim, 5 as @prim, 6 as @prim);
+        }
+    }
+
+    // signed ints
+    @for prim in ['i8, 'i16, 'i32, 'i64, 'i128, 'isize] {
+        #[test]
+        #[should_panic]
+        fn @['test_ prim '_neg_panic]() {
+            let _ = -vec3!(@prim::MIN, 2 as @prim, 3 as @prim);
+        }
+    }
+}
+
 #[test]
 fn test_bool() {
     assert_eq!(vec3!(true, true, false).as_u8(), vec3!(1, 1, 0));
