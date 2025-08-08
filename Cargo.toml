@@ -1,3 +1,3 @@
 [workspace]
 
-members = [ "ggmath", "ggmath_bench_analyser", "ggmath_tests", "sandbox" ]
+members = [ "ggmath", "ggmath_bench_analyser", "sandbox" ]
