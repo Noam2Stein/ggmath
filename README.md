@@ -30,7 +30,7 @@ it means that all functions have been benchmarked and reached `glam`'s performan
 
 ### GGMath
 
-A *generic graphics math* Rust crate with precise, flexible generic math types specialized for graphics.
+A *generic graphics math* Rust crate with generic math types and full SIMD support.
 
 `ggmath` has vectors, matrices, quaternions, and aabbs.
 
@@ -235,6 +235,23 @@ pub type QuatP<T> = Quaternion<T, VecPacked>;
 
 Quaternions are not feature full yet.
 
-### Crate Integration
+### Features
 
-`ggmath` currently integrates with `serde` and `crevice`.
+default features:
+- `vector`: vector type.
+- `matrix`: matrix type.
+- `quaternion`: quaternion type.
+- `primitive_aliases`: primitive type aliases like `FVec3`.
+
+"full" features:
+- `aabb`: aabb type.
+
+optional features:
+- `right`: `RIGHT` and `LEFT` constants where right is positive.
+- `left`: `LEFT` and `RIGHT` constants where left is positive.
+- `up`: `UP` and `DOWN` constants where up is positive.
+- `down`: `DOWN` and `UP` constants where down is positive.
+- `forward`: `FORWARD` and `BACKWARD` constants where forward is positive.
+- `backward`: `BACKWARD` and `FORWARD` constants where backward is positive.
+- `serde`: enables support for the `serde` crate.
+- `crevice`: enables support for the `crevice` crate.
