@@ -751,6 +751,9 @@ repetitive! {
 
         #[test]
         fn @['test_ prim '_mag]() {
+            assert_eq!(vec3!(0.0, 0.0, -0.0 as @prim).mag(), 0.0, "mag");
+            assert_eq!(vec3!(0.0, 0.0, -0.0 as @prim).mag_sq(), 0.0, "mag_sq");
+
             assert_eq!(
                 vec3!(5.6, 5.1, -3.3 as @prim).mag(),
                 vec3!(5.6, 5.1, -3.3 as @prim).mag_sq().sqrt(),
