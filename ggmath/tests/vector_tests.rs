@@ -750,6 +750,51 @@ repetitive! {
         }
 
         #[test]
+        fn @['test_ prim '_lerp]() {
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp(vec3!(4.0, 5.0, 6.0 as @prim), -1.0),
+                vec3!(1.0, 2.0, 3.0 as @prim),
+                "lerp",
+            );
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp(vec3!(4.0, 5.0, 6.0 as @prim), 0.0),
+                vec3!(1.0, 2.0, 3.0 as @prim),
+                "lerp",
+            );
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp(vec3!(4.0, 5.0, 6.0 as @prim), 1.0),
+                vec3!(4.0, 5.0, 6.0 as @prim),
+                "lerp",
+            );
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp(vec3!(4.0, 5.0, 6.0 as @prim), 2.0),
+                vec3!(4.0, 5.0, 6.0 as @prim),
+                "lerp",
+            );
+
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp_unclamped(vec3!(4.0, 5.0, 6.0 as @prim), -1.0),
+                vec3!(-2.0, -1.0, 0.0 as @prim),
+                "lerp_unclamped",
+            );
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp_unclamped(vec3!(4.0, 5.0, 6.0 as @prim), 0.0),
+                vec3!(1.0, 2.0, 3.0 as @prim),
+                "lerp_unclamped",
+            );
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp_unclamped(vec3!(4.0, 5.0, 6.0 as @prim), 1.0),
+                vec3!(4.0, 5.0, 6.0 as @prim),
+                "lerp_unclamped",
+            );
+            assert_eq!(
+                vec3!(1.0, 2.0, 3.0 as @prim).lerp_unclamped(vec3!(4.0, 5.0, 6.0 as @prim), 2.0),
+                vec3!(7.0, 8.0, 9.0 as @prim),
+                "lerp_unclamped",
+            );
+        }
+
+        #[test]
         fn @['test_ prim '_mag]() {
             assert_eq!(vec3!(0.0, 0.0, -0.0 as @prim).mag(), 0.0, "mag");
             assert_eq!(vec3!(0.0, 0.0, -0.0 as @prim).mag_sq(), 0.0, "mag_sq");

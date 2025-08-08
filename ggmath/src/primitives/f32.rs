@@ -414,6 +414,27 @@ repetitive! {
             pub fn clamp_square_mag(self, min_square_mag: @float, max_square_mag: @float) -> Self {
                 self.clamp_mag_sq(min_square_mag, max_square_mag)
             }
+
+            /// Performs linear interpolation between `self` and `other` based on the value `t`.
+            ///
+            /// When `t` is `0.0`, the result will be equal to `self`.
+            /// When `t` is `1.0`, the result will be equal to `other`.
+            /// `t` is clamped to the range `[0, 1]`.
+            ///
+            /// For unclamped interpolation, use `lerp_unclamped`.
+            #[inline(always)]
+            pub fn lerp(self, other: Vector<N, @float, impl VecAlignment>, t: @float) -> Self {
+                self.lerp_unclamped(other, t.clamp(0.0, 1.0))
+            }
+            /// Performs linear interpolation between `self` and `other` based on the value `t`.
+            ///
+            /// When `t` is `0.0`, the result will be equal to `self`.
+            /// When `t` is `1.0`, the result will be equal to `other`.
+            /// When `t` is outside of range `[0, 1]`, the result is linearly extrapolated.
+            #[inline(always)]
+            pub fn lerp_unclamped(self, other: Vector<N, @float, impl VecAlignment>, t: @float) -> Self {
+                self * (1.0 - t) + other * t
+            }
         }
 
         #[cfg(feature = "aabb")]
