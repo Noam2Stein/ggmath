@@ -26,12 +26,15 @@ const _: () = assert!(align_of::<FVec3P>() == align_of::<f32>());
 const _: () = assert!(align_of::<FVec4P>() == align_of::<f32>());
 
 #[test]
-fn test_new() {
+fn test_constructor() {
     assert!(vec4!(1, vec2p!(2, 3), 4) == Vec4::from_array([1, 2, 3, 4]));
     assert!(vec4!(1, vec3p!(2, 3, 4)) == Vec4::from_array([1, 2, 3, 4]));
     assert!(vec4!(vec2p!(1, 2), vec2p!(3, 4)) == Vec4::from_array([1, 2, 3, 4]));
     assert!(vec4!(vec4!(1, 2, 3, 4)) == Vec4::from_array([1, 2, 3, 4]));
+}
 
+#[test]
+fn test_splat() {
     assert!(splat2(1) == Vec2::from_array([1; 2]));
     assert!(splat3(-1) == Vec3::from_array([-1; 3]));
     assert!(splat4(u8::MAX) == Vec4::from_array([u8::MAX; 4]));
@@ -62,8 +65,6 @@ fn test_default() {
 
 #[test]
 fn test_swizzle() {
-    // Get
-
     assert_eq!(vec2!(1, 2).xxy(), vec3!(1, 1, 2));
     assert_eq!(vec3!(1, 2, 3).xyzx(), vec4!(1, 2, 3, 1));
     assert_eq!(vec4!(1, 2, 3, 4).xyzw(), vec4!(1, 2, 3, 4));
@@ -71,20 +72,23 @@ fn test_swizzle() {
 
     assert_eq!(vec2p!(false, true).xyx(), vec3p!(false, true, false));
     assert_eq!(vec2p!(false, true).y(), true);
+}
 
-    // Get Ref
-
+#[test]
+fn test_swizzle_ref() {
     assert_eq!(vec2!(1, 2).x_ref(), &1);
     assert_eq!(vec3p!(1, 2, 3).yz_ref(), &vec2p!(2, 3));
+}
 
-    // Get Mut
-
+#[test]
+fn test_swizzle_mut() {
     assert_eq!(vec2!(1, 2).x_mut(), &mut 1);
     assert_eq!(vec3p!(1, 2, 3).yz_mut(), &mut vec2p!(2, 3));
     assert_eq!(vec4p!(1, 2, 3, 4).xy_z_mut(), (&mut vec2p!(1, 2), &mut 3));
+}
 
-    // Set
-
+#[test]
+fn test_swizzle_set() {
     let mut vec = vec2!(1, 2);
     vec.set_x(3);
     assert_eq!(vec, vec2!(3, 2));
@@ -96,23 +100,23 @@ fn test_swizzle() {
     let mut vec = vec4p!(1, 2, 3, 4);
     vec.set_xzyw(vec4p!(5, 6, 7, 8));
     assert_eq!(vec, vec4p!(5, 7, 6, 8));
+}
 
-    // With
-
+#[test]
+fn test_swizzle_with() {
     assert_eq!(vec2!(1, 2).with_x(3), vec2!(3, 2));
     assert_eq!(vec3p!(1, 2, 3).with_y(4), vec3p!(1, 4, 3));
     assert_eq!(vec4!(1, 2, 3, 4).with_zx(vec2!(5, 6)), vec4p!(6, 2, 5, 4));
 }
 
 #[test]
-fn test_conversion() {
-    // T
-
+fn test_t_conversion() {
     assert_eq!(vec2!(1, 2).to_t::<f64>(), vec2!(1.0, 2.0));
     assert_eq!(vec3p!(1, 2, 3).to_t::<f64>(), vec3!(1.0, 2.0, 3.0));
+}
 
-    // A
-
+#[test]
+fn test_alignment_conversion() {
     assert_eq!(vec2!(1, 2).align(), vec2!(1, 2));
     assert_eq!(vec3p!(1, 2, 3).align(), vec3!(1, 2, 3));
     assert_eq!(vec4!(1, 2, 3, 4).unalign(), vec4!(1, 2, 3, 4));
@@ -120,15 +124,17 @@ fn test_conversion() {
 
     assert_eq!(Vec2::from(vec2p!(1, 2)), vec2!(1, 2));
     assert_eq!(Vec3P::from(vec3!(1, 2, 3)), vec3!(1, 2, 3));
+}
 
-    // Layout
-
-    assert_eq!(vec2p!(1, 2).to_layout::<VecAligned>(), vec2!(1, 2));
+#[test]
+fn test_layout_conversion() {
+    assert_eq!(vec2!(1, 2).to_layout::<VecAligned>(), vec2!(1, 2));
     assert_eq!(vec3!(1, 2, 3).to_layout::<VecAligned>(), vec3!(1, 2, 3));
     assert_eq!(vec3!(1, 2, 3).to_layout::<VecPacked>(), vec3!(1, 2, 3));
+}
 
-    // Array
-
+#[test]
+fn test_array_conversion() {
     assert_eq!(vec2!(1, 2).to_array(), [1, 2]);
     assert_eq!(vec3p!(1, 2, 3).to_array(), [1, 2, 3]);
 
@@ -163,9 +169,10 @@ fn test_conversion() {
     assert_eq!(<Vec2<_> as Into<[_; 2]>>::into(vec2!(1, 2)), [1, 2]);
 
     assert_eq!(<Vec2<_> as AsRef<[_; 2]>>::as_ref(&vec2!(1, 2)), &[1, 2]);
+}
 
-    // Bytes
-
+#[test]
+fn test_bytes_conversion() {
     unsafe {
         assert_eq!(
             vec2!(1u16, 2u16).as_bytes_ref(),
@@ -278,6 +285,7 @@ fn test_index() {
     assert_eq!(vec4!(1, 2, 3, 4).get(3), Some(4));
     assert_eq!(vec2!(1, 2).get(2), None);
     assert_eq!(vec2!(1, 2).index(0), 1);
+    assert_eq!(vec2!(1, 2)[1], 2);
 
     unsafe {
         assert_eq!(vec2!(1, 2).get_unchecked(0), 1);
@@ -317,6 +325,12 @@ fn test_index() {
         assert_eq!(vec2!(1, 2).get_2_mut_unchecked(0), &mut vec2p!(1, 2));
         assert_eq!(vec4p!(1, 2, 3, 4).get_2_mut_unchecked(1), &mut vec2p!(2, 3));
     }
+}
+
+#[test]
+#[should_panic]
+fn test_index_panic() {
+    let _ = vec2!(1, 2)[2];
 }
 
 #[test]
@@ -378,10 +392,14 @@ fn test_ops() {
     assert_eq!(vec2!(1, 2) != vec2!(1, 2), false);
     assert_eq!(vec2!(1, 3) != vec2!(1, 2), true);
 
-    // vec3.
-    // needs more tests because of padding.
-    repetitive! {
-        // bool
+    assert_eq!(vec3!(1, 2, 3).sum(), 6);
+    assert_eq!(vec3!(1, 2, 3).dot(vec3!(4, 5, 6)), 32);
+    assert_eq!(vec3!(1, 2, 3).cross(vec3!(4, 5, 6)), vec3!(-3, 6, -3));
+}
+
+repetitive! {
+    #[test]
+    fn test_bvec3_ops() {
         let lhs = vec3!(true, true, false);
         let rhs = vec3!(true, false, true);
         assert_eq!(!lhs, vec3!(false, false, true));
@@ -393,9 +411,27 @@ fn test_ops() {
         assert_eq!((lhs == rhs), false);
         assert_eq!((lhs != lhs), false);
         assert_eq!((lhs != rhs), true);
+    }
 
-        // numbers
-        @for prim in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
+    // numbers
+    @for [prim, prim_is_signed, prim_is_int, prim_is_float] in [
+        ['u8, false, true, false],
+        ['u16, false, true, false],
+        ['u32, false, true, false],
+        ['u64, false, true, false],
+        ['u128, false, true, false],
+        ['usize, false, true, false],
+        ['i8, true, true, false],
+        ['i16, true, true, false],
+        ['i32, true, true, false],
+        ['i64, true, true, false],
+        ['i128, true, true, false],
+        ['isize, true, true, false],
+        ['f32, false, false, true],
+        ['f64, false, false, true],
+    ] {
+        #[test]
+        fn @['test_ prim '_vec3_ops]() {
             let lhs = vec3!(4 as @prim, 5 as @prim, 6 as @prim);
             let rhs = vec3!(1 as @prim, 2 as @prim, 3 as @prim);
 
@@ -420,42 +456,26 @@ fn test_ops() {
             assert_eq!((lhs == rhs), false);
             assert_eq!((lhs != lhs), false);
             assert_eq!((lhs != rhs), true);
-        }
 
-        // signed numbers
-        @for prim in ['i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
-            let lhs = vec3!(4 as @prim, 5 as @prim, 6 as @prim);
+            @if prim_is_signed {
+                assert_eq!(-lhs.with_padding(@prim::MIN), vec3!(-4 as @prim, -5 as @prim, -6 as @prim));
+            }
 
-            assert_eq!(-lhs.with_padding(@prim::MIN), vec3!(-4 as @prim, -5 as @prim, -6 as @prim));
-        }
+            @if prim_is_int {
+                assert_eq!(lhs.with_padding(2 as @prim) / rhs.with_padding(0 as @prim), vec3!(4 as @prim, 2 as @prim, 2 as @prim));
+                assert_eq!(!lhs, vec3!(!4 as @prim, !5 as @prim, !6 as @prim));
+                assert_eq!(lhs & rhs, vec3!(0 as @prim, 0 as @prim, 2 as @prim));
+                assert_eq!(lhs | rhs, vec3!(5 as @prim, 7 as @prim, 7 as @prim));
+                assert_eq!(lhs ^ rhs, vec3!(5 as @prim, 7 as @prim, 5 as @prim));
+                assert_eq!(lhs << rhs, vec3!(8 as @prim, 20 as @prim, 48 as @prim));
+                assert_eq!(lhs >> rhs, vec3!(2 as @prim, 1 as @prim, 0 as @prim));
+            }
 
-        // ints
-        @for prim in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize] {
-            let lhs = vec3!(4 as @prim, 5 as @prim, 6 as @prim);
-            let rhs = vec3!(1 as @prim, 2 as @prim, 3 as @prim);
-
-            assert_eq!(lhs.with_padding(2 as @prim) / rhs.with_padding(0 as @prim), vec3!(4 as @prim, 2 as @prim, 2 as @prim));
-            assert_eq!(!lhs, vec3!(!4 as @prim, !5 as @prim, !6 as @prim));
-            assert_eq!(lhs & rhs, vec3!(0 as @prim, 0 as @prim, 2 as @prim));
-            assert_eq!(lhs | rhs, vec3!(5 as @prim, 7 as @prim, 7 as @prim));
-            assert_eq!(lhs ^ rhs, vec3!(5 as @prim, 7 as @prim, 5 as @prim));
-            assert_eq!(lhs << rhs, vec3!(8 as @prim, 20 as @prim, 48 as @prim));
-            assert_eq!(lhs >> rhs, vec3!(2 as @prim, 1 as @prim, 0 as @prim));
-        }
-
-        // floats
-        @for prim in ['f32, 'f64] {
-            let lhs = vec3!(4 as @prim, 5 as @prim, 6 as @prim);
-            let rhs = vec3!(1 as @prim, 2 as @prim, 3 as @prim);
-
-            assert_eq!(lhs / rhs, vec3!(4.0, 2.5, 2.0));
-            assert_eq!(lhs / (2 as @prim), vec3!(2.0, 2.5, 3.0));
+            @if prim_is_float {
+                assert_eq!(lhs / rhs, vec3!(4.0, 2.5, 2.0));
+            }
         }
     }
-
-    assert_eq!(vec3!(1, 2, 3).sum(), 6);
-    assert_eq!(vec3!(1, 2, 3).dot(vec3!(4, 5, 6)), 32);
-    assert_eq!(vec3!(1, 2, 3).cross(vec3!(4, 5, 6)), vec3!(-3, 6, -3));
 }
 
 repetitive! {
