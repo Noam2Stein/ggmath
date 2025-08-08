@@ -1,42 +1,42 @@
 use super::*;
 
-/// A trait for scalar types that have a constant `0` value.
-pub trait ScalarZero: Scalar {
+/// A trait for the `ZERO` constant.
+pub trait Zero {
     /// The `0` value of the type.
     const ZERO: Self;
 }
 
-/// A trait for scalar types that have a constant `1` value.
-pub trait ScalarOne: Scalar {
+/// A trait for the `ONE` constant.
+pub trait One {
     /// The `1` value of the type.
     const ONE: Self;
 }
 
-/// A trait for scalar types that have a constant `-1` value.
-pub trait ScalarNegOne: Scalar {
+/// A trait for the `NEG_ONE` constant.
+pub trait NegOne {
     /// The `-1` value of the type.
     const NEG_ONE: Self;
 }
 
-impl<const N: usize, T: ScalarZero, A: VecAlignment> Vector<N, T, A>
+impl<const N: usize, T: Scalar + Zero, A: VecAlignment> Zero for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    pub const ZERO: Self = Self::splat(T::ZERO);
+    const ZERO: Self = Self::splat(T::ZERO);
 }
 
-impl<const N: usize, T: ScalarOne, A: VecAlignment> Vector<N, T, A>
+impl<const N: usize, T: Scalar + One, A: VecAlignment> One for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    pub const ONE: Self = Self::splat(T::ONE);
+    const ONE: Self = Self::splat(T::ONE);
 }
 
-impl<const N: usize, T: ScalarNegOne, A: VecAlignment> Vector<N, T, A>
+impl<const N: usize, T: Scalar + NegOne, A: VecAlignment> NegOne for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
+    const NEG_ONE: Self = Self::splat(T::NEG_ONE);
 }
 
 repetitive! {
@@ -85,30 +85,45 @@ repetitive! {
         }
 
         #[cfg(feature = @str[right])]
-        impl<T: ScalarOne> @PositiveRightExt for T {
+        impl<T: Scalar + One> @PositiveRightExt for T {
             const @RIGHT: Self = Self::ONE;
         }
 
         #[cfg(feature = @str[right])]
-        impl<T: ScalarNegOne> @NegativeLeftExt for T {
+        impl<T: Scalar + NegOne> @NegativeLeftExt for T {
             const @LEFT: Self = Self::NEG_ONE;
         }
 
         #[cfg(feature = @str[left])]
-        impl<T: ScalarNegOne> @NegativeRightExt for T {
+        impl<T: Scalar + NegOne> @NegativeRightExt for T {
             const @RIGHT: Self = Self::NEG_ONE;
         }
 
         #[cfg(feature = @str[left])]
-        impl<T: ScalarOne> @PositiveLeftExt for T {
+        impl<T: Scalar + One> @PositiveLeftExt for T {
             const @LEFT: Self = Self::ONE;
         }
 
         @for N in 2..=4 {
             @if axis_idx < N {
                 #[cfg(feature = @str[right])]
-                impl<T: ScalarZero + ScalarOne, A: VecAlignment> @PositiveRightExt for Vector<@N, T, A> {
+                impl<T: Scalar + Zero + One, A: VecAlignment> @PositiveRightExt for Vector<@N, T, A> {
                     const @RIGHT: Self = Self::ZERO.@['with_ axis](T::@RIGHT);
+                }
+
+                #[cfg(feature = @str[right])]
+                impl<T: Scalar + Zero + NegOne, A: VecAlignment> @NegativeLeftExt for Vector<@N, T, A> {
+                    const @LEFT: Self = Self::ZERO.@['with_ axis](T::@LEFT);
+                }
+
+                #[cfg(feature = @str[left])]
+                impl<T: Scalar + Zero + NegOne, A: VecAlignment> @NegativeRightExt for Vector<@N, T, A> {
+                    const @RIGHT: Self = Self::ZERO.@['with_ axis](T::@RIGHT);
+                }
+
+                #[cfg(feature = @str[left])]
+                impl<T: Scalar + Zero + One, A: VecAlignment> @PositiveLeftExt for Vector<@N, T, A> {
+                    const @LEFT: Self = Self::ZERO.@['with_ axis](T::@LEFT);
                 }
             }
         }

@@ -169,3 +169,12 @@ repetitive! {
         }
     }
 }
+
+// for all signed number types
+repetitive! {
+    @for num in ['i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
+        impl NegOne for @num {
+            const NEG_ONE: Self = -1 as @num;
+        }
+    }
+}
