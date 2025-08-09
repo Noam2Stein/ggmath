@@ -123,5 +123,3 @@ impl Scalar for i16 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 }
-
-// i16 methods are defined using `macro_loop` in i8.rs

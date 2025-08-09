@@ -110,8 +110,6 @@ impl Scalar for usize {
     }
 }
 
-// usize methods are defined using `macro_loop` in other files
-
 #[cfg(feature = "vector")]
 #[cfg(target_pointer_width = "16")]
 #[allow(non_camel_case_types)]

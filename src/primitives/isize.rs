@@ -124,8 +124,6 @@ impl Scalar for isize {
     }
 }
 
-// isize methods are defined using `macro_loop` in i8.rs
-
 #[cfg(target_pointer_width = "16")]
 #[allow(non_camel_case_types)]
 type isized = i16;

@@ -40,6 +40,39 @@ where
 }
 
 repetitive! {
+    @for [prim, prim_is_signed] in [
+        ['u8, false],
+        ['u16, false],
+        ['u32, false],
+        ['u64, false],
+        ['u128, false],
+        ['usize, false],
+        ['i8, true],
+        ['i16, true],
+        ['i32, true],
+        ['i64, true],
+        ['i128, true],
+        ['isize, true],
+        ['f32, true],
+        ['f64, true],
+    ] {
+        impl Zero for @prim {
+            const ZERO: Self = 0 as @prim;
+        }
+
+        impl One for @prim {
+            const ONE: Self = 1 as @prim;
+        }
+
+        @if prim_is_signed {
+            impl NegOne for @prim {
+                const NEG_ONE: Self = -1 as @prim;
+            }
+        }
+    }
+}
+
+repetitive! {
     @for axis_idx in 0..3 {
         @let axis = ['x, 'y, 'z][axis_idx];
         @let to_the = ["to the ", "", ""][axis_idx];

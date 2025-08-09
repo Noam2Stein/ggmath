@@ -69,5 +69,3 @@ impl Scalar for f64 {
         Some(unsafe { transmute_copy::<Vec4<Self>, Vec3<Self>>(&output_vec4) })
     }
 }
-
-// f64 methods are defined using `macro_loop` in other files

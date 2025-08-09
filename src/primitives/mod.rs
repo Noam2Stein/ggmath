@@ -1,5 +1,14 @@
 use super::*;
 
+mod constants;
+mod conversion;
+mod lerp;
+mod mag;
+mod num_cmp;
+mod num_sign;
+mod round;
+mod trig;
+
 repetitive! {
     @for prim_mod in [
         'u8,
