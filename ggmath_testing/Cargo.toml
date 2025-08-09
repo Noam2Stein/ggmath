@@ -1,0 +1,10 @@
+[package]
+description = "deprecated"
+edition     = "2024"
+license     = "MIT"
+name        = "ggmath_testing"
+readme      = "README.md"
+repository  = "https://github.com/Noam2Stein/ggmath"
+version     = "0.12.2-deprecated"
+
+[dependencies]
