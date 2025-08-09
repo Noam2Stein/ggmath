@@ -509,7 +509,7 @@ where
     /// }
     /// ```
     #[inline(always)]
-    pub const fn resolve_ref(&self) -> ResolvedVectorRef<N, T> {
+    pub const fn resolve_ref(&'_ self) -> ResolvedVectorRef<'_, N, T> {
         unsafe {
             if A::IS_ALIGNED {
                 ResolvedVectorRef::Aligned(
@@ -542,7 +542,7 @@ where
     /// }
     /// ```
     #[inline(always)]
-    pub const fn resolve_mut(&mut self) -> ResolvedVectorMut<N, T> {
+    pub const fn resolve_mut(&'_ mut self) -> ResolvedVectorMut<'_, N, T> {
         unsafe {
             if A::IS_ALIGNED {
                 ResolvedVectorMut::Aligned(transmute::<

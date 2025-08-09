@@ -161,7 +161,7 @@ where
     /// }
     /// ```
     #[inline(always)]
-    pub const fn resolve_ref(&self) -> ResolvedMatrixRef<C, R, T, A> {
+    pub const fn resolve_ref(&'_ self) -> ResolvedMatrixRef<'_, C, R, T, A> {
         unsafe {
             match M::ENUM {
                 MatMajorAxisEnum::ColumnMajor => {
@@ -199,7 +199,7 @@ where
     /// }
     /// ```
     #[inline(always)]
-    pub const fn resolve_mut(&mut self) -> ResolvedMatrixMut<C, R, T, A> {
+    pub const fn resolve_mut(&'_ mut self) -> ResolvedMatrixMut<'_, C, R, T, A> {
         unsafe {
             match M::ENUM {
                 MatMajorAxisEnum::ColumnMajor => {

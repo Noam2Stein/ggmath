@@ -280,7 +280,7 @@ where
     /// }
     /// ```
     #[inline(always)]
-    pub const fn resolve_ref(&self) -> ResolvedAabbRef<N, T, A> {
+    pub const fn resolve_ref(&'_ self) -> ResolvedAabbRef<'_, N, T, A> {
         unsafe {
             match R::ENUM {
                 AabbReprEnum::Cornered => ResolvedAabbRef::Cornered(transmute::<
@@ -323,7 +323,7 @@ where
     /// }
     /// ```
     #[inline(always)]
-    pub const fn resolve_repr_mut(&mut self) -> ResolvedAabbMut<N, T, A> {
+    pub const fn resolve_repr_mut(&'_ mut self) -> ResolvedAabbMut<'_, N, T, A> {
         unsafe {
             match R::ENUM {
                 AabbReprEnum::Cornered => ResolvedAabbMut::Cornered(transmute::<
