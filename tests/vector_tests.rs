@@ -809,17 +809,17 @@ repetitive! {
                 "mag",
             );
             assert_eq!(
-                vec3!(5.6, 5.1, -3.3 as @prim).normalize(),
+                vec3!(5.6, 5.1, -3.3 as @prim).normalized(),
                 vec3!(5.6, 5.1, -3.3 as @prim) / vec3!(5.6, 5.1, -3.3 as @prim).mag(),
                 "normalize",
             );
             assert_eq!(
-                vec3!(1.0, 0.0, 0.0 as @prim).normalize(),
+                vec3!(1.0, 0.0, 0.0 as @prim).normalized(),
                 vec3!(1.0, 0.0, 0.0 as @prim),
                 "normalize",
             );
             assert_eq!(
-                vec3!(-1.0, 0.0, 0.0 as @prim).normalize(),
+                vec3!(-1.0, 0.0, 0.0 as @prim).normalized(),
                 vec3!(-1.0, 0.0, 0.0 as @prim),
                 "normalize",
             );
@@ -929,7 +929,7 @@ repetitive! {
 
         #[test]
         fn @['test_ prim '_mag_nan]() {
-            assert!(vec3!(0.0, 0.0, 0.0 as @prim).normalize().into_iter().all(|x| x.is_nan()));
+            assert!(vec3!(0.0, 0.0, 0.0 as @prim).normalized().into_iter().all(|x| x.is_nan()));
             assert!(vec3!(0.0, 0.0, 0.0 as @prim).with_mag(1.0).into_iter().all(|x| x.is_nan()));
             assert!(vec3!(0.0, 0.0, 0.0 as @prim).with_mag_sq(1.0).into_iter().all(|x| x.is_nan()));
             assert!(vec3!(0.0, 0.0, 0.0 as @prim).with_min_mag(1.0).into_iter().all(|x| x.is_nan()));

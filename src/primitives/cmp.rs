@@ -176,6 +176,26 @@ repetitive! {
             /// Returns a vector of the absolute difference between the elements and the corresponding elements of the other vector.
             /// This is equivalent to `abs(self - rhs)`, not `abs(self) - abs(rhs)`.
             #[inline(always)]
+            #[cfg(@prim_is_uint)]
+            pub const fn abs_diff(self, rhs: Vector<N, @prim, impl VecAlignment>) -> Self {
+                let mut output = Vector::splat(0 as @prim);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = if self.index(i) > rhs.index(i) {
+                        self.index(i) - rhs.index(i)
+                    } else {
+                        rhs.index(i) - self.index(i)
+                    };
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of the absolute difference between the elements and the corresponding elements of the other vector.
+            /// This is equivalent to `abs(self - rhs)`, not `abs(self) - abs(rhs)`.
+            #[inline(always)]
             #[cfg(@prim_is_signed)]
             pub const fn abs_diff(self, rhs: Vector<N, @prim, impl VecAlignment>) -> Self {
                 let mut output = Vector::splat(0 as @prim);

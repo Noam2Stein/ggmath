@@ -1,66 +1,17 @@
 use super::*;
 
+mod aabb_scalar;
+mod cmp;
 mod constants;
 mod conversion;
 mod lerp;
-mod mag;
-mod num_cmp;
-mod num_sign;
+mod magnitude;
 mod round;
-mod trig;
+mod scalar;
+mod sign;
+mod trigonometry;
 
-repetitive! {
-    @for prim_mod in [
-        'u8,
-        'u16,
-        'u32,
-        'u64,
-        'u128,
-        'usize,
-        'i8,
-        'i16,
-        'i32,
-        'i64,
-        'i128,
-        'isize,
-        'f32,
-        'f64,
-        'bool,
-        'ordering,
-        'maybe_uninit,
-    ] {
-        #[doc = @str["Module with " prim_mod " type aliases"]]
-        pub mod @prim_mod;
-
-        #[allow(unused_imports)]
-        pub use @prim_mod::*;
-    }
-}
-
-/// Internal macro to define primitive aliases for vector and matrix types.
-#[macro_export(local_inner_macros)]
-macro_rules! primitive_aliases {
-    { pub($(vis:tt)*) $prefix:ident => $type:ty } => {
-        primitive_aliases! { @(pub($(vis)*)) $prefix => $type }
-    };
-    { pub $prefix:ident => $type:ty } => {
-        primitive_aliases! { @(pub) $prefix => $type }
-    };
-    { $prefix:ident => $type:ty } => {
-        primitive_aliases! { @() $prefix => $type }
-    };
-
-    { @($($vis:tt)*) $prefix:ident => $type:ty } => {
-        #[cfg(feature = "primitive_aliases")]
-        #[cfg(feature = "vector")]
-        vector_aliases! { $($vis)* $prefix => $type }
-
-        #[cfg(feature = "primitive_aliases")]
-        #[cfg(feature = "matrix")]
-        matrix_aliases! { $($vis)* $prefix => $type }
-
-        #[cfg(feature = "primitive_aliases")]
-        #[cfg(feature = "aabb")]
-        aabb_aliases! { $($vis)* $prefix => $type }
-    };
-}
+#[cfg(feature = "primitive_aliases")]
+mod primitive_aliases;
+#[cfg(feature = "primitive_aliases")]
+pub use primitive_aliases::*;
