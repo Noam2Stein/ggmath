@@ -58,7 +58,7 @@ and it's inner representation (represented by min+size, min+max, or center+exten
 
 ### Vectors
 
-```rust
+```rust,ignore
 // Vector's declaration
 pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
 where
@@ -90,7 +90,9 @@ pub type Vec4P<T> = Vector<4, T, VecPacked>;
 
 Examples:
 
-```rust
+```rust,ignore
+use ggmath::*;
+
 // In this scenario, it is more efficient to use `VecAligned` vectors.
 // This will ensure that operations on the vectors are fast.
 struct MyPhysicsObject {
@@ -118,7 +120,7 @@ Vectors support all expected features:
 
 ### Matrices
 
-```rust
+```rust,ignore
 // Matrix's declaration
 pub struct Matrix<
     const C: usize,
@@ -148,7 +150,9 @@ pub type Mat2RP<T> = Matrix<2, 2, T, VecPacked, RowMajor>;
 
 Examples:
 
-```rust
+```rust,ignore
+use ggmath::*;
+
 // In here, i feel like using column-major order.
 struct MyTransform {
     transformation_matrix: Mat4C<f32>,
@@ -166,7 +170,7 @@ They do support swizzling and construction from columns/rows.
 
 ### Aabbs (Bounding Boxes) (opt-in feature)
 
-```rust
+```rust,ignore
 // Aabb's declaration
 pub struct Aabb<const N: usize, T: AabbScalar, A: VecAlignment, R: AabbRepr>
 where
@@ -206,7 +210,9 @@ pub type Aabb4<T> = Aabb<4, T, VecAligned, AabbCornered>;
 
 Examples:
 
-```rust
+```rust,ignore
+use ggmath::*;
+
 // Ui rectangles are usually stored by their minimum corner and their size.
 struct MyUi {
     // `AabbCornered`
@@ -229,7 +235,7 @@ Aabbs support all expected features:
 
 ### Quaternions
 
-```rust
+```rust,ignore
 // Quaternion's declaration
 pub struct Quaternion<T: Scalar, A: VecAlignment>
 
