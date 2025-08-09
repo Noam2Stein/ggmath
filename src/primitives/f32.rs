@@ -92,89 +92,39 @@ repetitive! {
             /// Vector of all `-Infinity` values.
             pub const NEG_INFINITY: Self = Self::splat(@float::NEG_INFINITY);
 
-            /// Maps the vector to a vector of booleans, where each element is `true` if the element is positive, and `false` otherwise.
-            /// This returns FALSE if the element is zero.
-            /// To check the binary sign, use `is_bin_positive`.
-            #[inline(always)]
-            pub fn is_positive(&self) -> Vector<N, bool, A> {
-                self.map(|x| x > 0.0)
-            }
-            /// Maps the vector to a vector of booleans, where each element is `true` if the element is negative, and `false` otherwise.
-            /// This returns FALSE if the element is zero.
-            /// To check the binary sign, use `is_bin_negative`.
-            #[inline(always)]
-            pub fn is_negative(&self) -> Vector<N, bool, A> {
-                self.map(|x| x < 0.0)
-            }
-            /// Maps the vector to a vector of booleans, where each element is `true` if the element is zero, and `false` otherwise.
-            #[inline(always)]
-            pub fn is_zero(&self) -> Vector<N, bool, A> {
-                self.map(|x| x == 0.0)
-            }
-            /// Maps the vector to a vector of booleans,
-            /// where each element is `true` if the element's binary sign is positive, and `false` otherwise.
-            ///
-            /// This returns true if the element is `+0.0`.
-            /// To check if the element is more than zero, use `is_positive`.
-            #[inline(always)]
-            pub fn is_bin_positive(&self) -> Vector<N, bool, A> {
-                self.map(@float::is_sign_positive)
-            }
-            /// Maps the vector to a vector of booleans,
-            /// where each element is `true` if the element's binary sign is negative, and `false` otherwise.
-            ///
-            /// This returns true if the element is `-0.0`.
-            /// To check if the element is less than zero, use `is_negative`.
-            #[inline(always)]
-            pub fn is_bin_negative(&self) -> Vector<N, bool, A> {
-                self.map(@float::is_sign_negative)
-            }
-
-            /// Maps the vector to a vector of the absolute values of the elements.
-            #[inline(always)]
-            pub fn abs(self) -> Self {
-                self.map(@float::abs)
-            }
-            /// Maps the vector to a vector of the negative absolute values of the elements.
-            #[inline(always)]
-            pub fn neg_abs(self) -> Self {
-                self.map(|x| -x.abs())
-            }
-
-            /// Maps the vector to a vector of the signum values of the elements.
-            /// This returns `0.0` if the element is zero.
-            ///
-            /// For binary sign signum, use `bin_signum`.
-            #[inline(always)]
-            pub fn signumt(self) -> Self {
-                self.map(|x| {
-                    if x > 0.0 {
-                        1.0
-                    } else if x < 0.0 {
-                        -1.0
-                    } else {
-                        0.0
-                    }
-                })
-            }
-            /// Maps the vector to a vector of the signum values of the elements.
-            /// This returns `1.0` for `+0.0` and `-1.0` for `-0.0`.
-            ///
-            /// For signum that returns `0.0` for zero, use `signumt`.
-            #[inline(always)]
-            pub fn bin_signum(self) -> Self {
-                self.map(@float::signum)
-            }
-
             /// Maps the vector to a vector of the minimum of the elements and the corresponding elements of the other vector.
             #[inline(always)]
-            pub fn min(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
-                self.map_rhs(other, |a, b| if a < b { a } else { b })
+            pub const fn min(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
+                let mut output = Vector::splat(0.0);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = if self.index(i) < other.index(i) {
+                        self.index(i)
+                    } else {
+                        other.index(i)
+                    };
+                    i += 1;
+                }
+
+                output
             }
             /// Maps the vector to a vector of the maximum of the elements and the corresponding elements of the other vector.
             #[inline(always)]
-            pub fn max(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
-                self.map_rhs(other, |a, b| if a > b { a } else { b })
+            pub const fn max(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
+                let mut output = Vector::splat(0.0);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = if self.index(i) > other.index(i) {
+                        self.index(i)
+                    } else {
+                        other.index(i)
+                    };
+                    i += 1;
+                }
+
+                output
             }
 
             /// Maps the vector to a vector of the rounded values of the elements.

@@ -573,11 +573,11 @@ fn test_num() {
             );
 
             assert_eq!(
-                vec3!(1 as @prim, 0 as @prim, 3 as @prim).is_positive(),
+                vec3!(1 as @prim, 0 as @prim, 3 as @prim).positive_mask(),
                 vec3!(true, false, true),
             );
             assert_eq!(
-                vec3!(1 as @prim, 0 as @prim, 3 as @prim).is_zero(),
+                vec3!(1 as @prim, 0 as @prim, 3 as @prim).zero_mask(),
                 vec3!(false, true, false),
             );
 
@@ -586,10 +586,17 @@ fn test_num() {
                 35 as @prim,
             );
 
-            assert_eq!(
-                vec3!(1 as @prim, 0 as @prim, 3 as @prim).signumt(),
-                vec3!(1 as @prim, 0 as @prim, 1 as @prim),
-            );
+            @if prim == 'f32 || prim == 'f64 {
+                assert_eq!(
+                    vec3!(1 as @prim, 0 as @prim, 3 as @prim).tri_signum(),
+                    vec3!(1 as @prim, 0 as @prim, 1 as @prim),
+                );
+            } else {
+                assert_eq!(
+                    vec3!(1 as @prim, 0 as @prim, 3 as @prim).signum(),
+                    vec3!(1 as @prim, 0 as @prim, 1 as @prim),
+                );
+            }
 
             @for other_prim in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
                 @if other_prim != prim {
@@ -608,15 +615,15 @@ fn test_signed_num() {
     repetitive! {
         @for prim in ['i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
             assert_eq!(
-                vec3!(-1 as @prim, 5 as @prim, -3 as @prim).is_positive(),
+                vec3!(-1 as @prim, 5 as @prim, -3 as @prim).positive_mask(),
                 vec3!(false, true, false),
             );
             assert_eq!(
-                vec3!(-1 as @prim, 0 as @prim, -3 as @prim).is_zero(),
+                vec3!(-1 as @prim, 0 as @prim, -3 as @prim).zero_mask(),
                 vec3!(false, true, false),
             );
             assert_eq!(
-                vec3!(-1 as @prim, 5 as @prim, 0 as @prim).is_negative(),
+                vec3!(-1 as @prim, 5 as @prim, 0 as @prim).negative_mask(),
                 vec3!(true, false, false),
             );
 
@@ -625,17 +632,13 @@ fn test_signed_num() {
                 vec3!(-1 as @prim, 1 as @prim, 1 as @prim),
             );
             assert_eq!(
-                vec3!(-1 as @prim, 5 as @prim, 0 as @prim).is_bin_positive(),
+                vec3!(-1 as @prim, 5 as @prim, 0 as @prim).bin_positive_mask(),
                 vec3!(false, true, true),
             );
 
             assert_eq!(
                 vec3!(-1 as @prim, 5 as @prim, -0 as @prim).abs(),
                 vec3!(1 as @prim, 5 as @prim, 0 as @prim),
-            );
-            assert_eq!(
-                vec3!(-1 as @prim, 5 as @prim, 0 as @prim).neg_abs(),
-                vec3!(-1 as @prim, -5 as @prim, -0 as @prim),
             );
 
             assert_eq!(
