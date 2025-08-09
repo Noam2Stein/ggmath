@@ -9,7 +9,7 @@ categories = [
     "graphics",
     "mathematics",
 ]
-description = "graphics-math with generics and SIMD"
+description = "graphics-math crate with generics and SIMD"
 edition = "2024"
 license = "MIT"
 name = "ggmath"
