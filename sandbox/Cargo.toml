@@ -1,12 +1,12 @@
 [package]
 edition = "2024"
-name    = "sandbox"
+name    = "ggmath_sandbox"
 version = "0.1.0"
 
 [dependencies]
 crevice = "0.18.0"
 derive_more = { version = "2.0.1", features = [ "full" ] }
-ggmath = { path = "../ggmath", features = [
+ggmath = { path = "..", features = [
     "backward",
     "crevice",
     "down",

@@ -6,7 +6,7 @@ version = "0.1.0"
 [dependencies]
 colored    = "2.0"
 criterion  = "0.7.0"
-ggmath     = { path = "../ggmath" }
+ggmath     = { path = ".." }
 glam       = "0.30.5"
 regex      = "1.0"
 repetitive = "0.1.1"
