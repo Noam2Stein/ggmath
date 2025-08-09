@@ -1,6 +1,6 @@
 [workspace]
 
-members = [ ".", "bench_analyser", "ggmath_proc_macros", "ggmath_testing", "sandbox" ]
+members = [ ".", "bench_analyser", "sandbox" ]
 
 [package]
 categories = [
