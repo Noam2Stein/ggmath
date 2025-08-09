@@ -153,46 +153,6 @@ repetitive! {
             /// Vector of all `1` values.
             pub const ONE: Self = Self::splat(1);
 
-            /// Returns a vector of minimum values between the two vector's elements.
-            ///
-            /// Basically `[self.x.min(other.x), self.y.min(other.y), ...]`.
-            #[inline(always)]
-            pub const fn min(self, other: Vector<N, @int, impl VecAlignment>) -> Self {
-                let mut output = Vector::splat(0);
-
-                let mut i = 0;
-                while i < N {
-                    *output.index_mut(i) = if self.index(i) < other.index(i) {
-                        self.index(i)
-                    } else {
-                        other.index(i)
-                    };
-                    i += 1;
-                }
-
-                output
-            }
-
-            /// Returns a vector of maximum values between the two vector's elements.
-            ///
-            /// Basically `[self.x.max(other.x), self.y.max(other.y), ...]`.
-            #[inline(always)]
-            pub const fn max(self, other: Vector<N, @int, impl VecAlignment>) -> Self {
-                let mut output = Vector::splat(0);
-
-                let mut i = 0;
-                while i < N {
-                    *output.index_mut(i) = if self.index(i) > other.index(i) {
-                        self.index(i)
-                    } else {
-                        other.index(i)
-                    };
-                    i += 1;
-                }
-
-                output
-            }
-
             /// Returns the square of the magnitude of the vector.
             ///
             /// The `mag` method does not exist for ints because it could be a non whole number.
@@ -292,16 +252,6 @@ repetitive! {
             #[doc = @str["Vector of all `" num "::MAX` values."]]
             pub const MAX: Self = Self::splat(@num::MAX);
 
-            /// Returns a vector of the elements clamped between the minimum and maximum vectors.
-            #[inline(always)]
-            pub const fn clamp(
-                self,
-                min: Vector<N, @num, impl VecAlignment>,
-                max: Vector<N, @num, impl VecAlignment>,
-            ) -> Self {
-                self.min(max).max(min)
-            }
-
             @for other_num in ['u8, 'u16, 'u32, 'u64, 'u128, 'usize, 'i8, 'i16, 'i32, 'i64, 'i128, 'isize, 'f32, 'f64] {
                 @if other_num != num {
                     /// Convert the vector to a vector of the given primitive type.
@@ -350,6 +300,162 @@ repetitive! {
     ] {
         @let prim_is_sint = prim_is_int && prim_is_signed;
         @let prim_is_uint = prim_is_int && !prim_is_signed;
+
+        // Comparison
+
+        #[cfg(feature = "vector")]
+        impl<const N: usize, A: VecAlignment> Vector<N, @prim, A>
+        where
+            Usize<N>: VecLen,
+        {
+            /// Returns a vector of bools, where each element is `true` is the input element is equal to the corresponding element of the other vector.
+            ///
+            /// Basically `[self.x == other.x, self.y == other.y, ...]`.
+            #[inline(always)]
+            pub const fn eq_mask(self, other: Vector<N, @prim, impl VecAlignment>) -> Vector<N, bool, A> {
+                let mut output = Vector::splat(false);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = self.index(i) == other.index(i);
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of bools, where each element is `true` is the input element is not equal to the corresponding element of the other vector.
+            ///
+            /// Basically `[self.x != other.x, self.y != other.y, ...]`.
+            #[inline(always)]
+            pub const fn ne_mask(self, other: Vector<N, @prim, impl VecAlignment>) -> Vector<N, bool, A> {
+                let mut output = Vector::splat(false);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = self.index(i) != other.index(i);
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of bools, where each element is `true` is the input element is less than the corresponding element of the other vector.
+            ///
+            /// Basically `[self.x < other.x, self.y < other.y, ...]`.
+            #[inline(always)]
+            pub const fn lt_mask(self, other: Vector<N, @prim, impl VecAlignment>) -> Vector<N, bool, A> {
+                let mut output = Vector::splat(false);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = self.index(i) < other.index(i);
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of bools, where each element is `true` is the input element is greater than the corresponding element of the other vector.
+            ///
+            /// Basically `[self.x > other.x, self.y > other.y, ...]`.
+            #[inline(always)]
+            pub const fn gt_mask(self, other: Vector<N, @prim, impl VecAlignment>) -> Vector<N, bool, A> {
+                let mut output = Vector::splat(false);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = self.index(i) > other.index(i);
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of bools, where each element is `true` is the input element is less than or equal to the corresponding element of the other vector.
+            ///
+            /// Basically `[self.x <= other.x, self.y <= other.y, ...]`.
+            #[inline(always)]
+            pub const fn le_mask(self, other: Vector<N, @prim, impl VecAlignment>) -> Vector<N, bool, A> {
+                let mut output = Vector::splat(false);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = self.index(i) <= other.index(i);
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of bools, where each element is `true` is the input element is greater than or equal to the corresponding element of the other vector.
+            ///
+            /// Basically `[self.x >= other.x, self.y >= other.y, ...]`.
+            #[inline(always)]
+            pub const fn ge_mask(self, other: Vector<N, @prim, impl VecAlignment>) -> Vector<N, bool, A> {
+                let mut output = Vector::splat(false);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = self.index(i) >= other.index(i);
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of the minimum values between the two vector's elements.
+            ///
+            /// Basically `[self.x.min(other.x), self.y.min(other.y), ...]`.
+            #[inline(always)]
+            pub const fn min(self, other: Vector<N, @prim, impl VecAlignment>) -> Self {
+                let mut output = Vector::splat(0 as @prim);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = if self.index(i) < other.index(i) {
+                        self.index(i)
+                    } else {
+                        other.index(i)
+                    };
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of the maximum values between the two vector's elements.
+            ///
+            /// Basically `[self.x.max(other.x), self.y.max(other.y), ...]`.
+            #[inline(always)]
+            pub const fn max(self, other: Vector<N, @prim, impl VecAlignment>) -> Self {
+                let mut output = Vector::splat(0 as @prim);
+
+                let mut i = 0;
+                while i < N {
+                    *output.index_mut(i) = if self.index(i) > other.index(i) {
+                        self.index(i)
+                    } else {
+                        other.index(i)
+                    };
+                    i += 1;
+                }
+
+                output
+            }
+
+            /// Returns a vector of the input elements clamped between the minimum and maximum vectors.
+            ///
+            /// Basically `[self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...]`.
+            #[inline(always)]
+            pub const fn clamp(
+                self,
+                min: Vector<N, @prim, impl VecAlignment>,
+                max: Vector<N, @prim, impl VecAlignment>,
+            ) -> Self {
+                self.min(max).max(min)
+            }
+        }
 
         // Sign
 

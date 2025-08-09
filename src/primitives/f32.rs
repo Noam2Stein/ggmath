@@ -92,41 +92,6 @@ repetitive! {
             /// Vector of all `-Infinity` values.
             pub const NEG_INFINITY: Self = Self::splat(@float::NEG_INFINITY);
 
-            /// Maps the vector to a vector of the minimum of the elements and the corresponding elements of the other vector.
-            #[inline(always)]
-            pub const fn min(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
-                let mut output = Vector::splat(0.0);
-
-                let mut i = 0;
-                while i < N {
-                    *output.index_mut(i) = if self.index(i) < other.index(i) {
-                        self.index(i)
-                    } else {
-                        other.index(i)
-                    };
-                    i += 1;
-                }
-
-                output
-            }
-            /// Maps the vector to a vector of the maximum of the elements and the corresponding elements of the other vector.
-            #[inline(always)]
-            pub const fn max(self, other: Vector<N, @float, impl VecAlignment>) -> Self {
-                let mut output = Vector::splat(0.0);
-
-                let mut i = 0;
-                while i < N {
-                    *output.index_mut(i) = if self.index(i) > other.index(i) {
-                        self.index(i)
-                    } else {
-                        other.index(i)
-                    };
-                    i += 1;
-                }
-
-                output
-            }
-
             /// Maps the vector to a vector of the rounded values of the elements.
             #[inline(always)]
             pub fn round(self) -> Self {
