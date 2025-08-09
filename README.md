@@ -239,6 +239,10 @@ pub type QuatP<T> = Quaternion<T, VecPacked>;
 
 Quaternions are not feature full yet.
 
+### Minimum Supported Rust Version
+
+`ggmath` requires Rust 1.89.0 or higher.
+
 ### Features
 
 default features:
