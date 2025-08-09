@@ -1,3 +1,5 @@
+use std::mem::transmute_copy;
+
 use super::*;
 
 // T
@@ -40,14 +42,76 @@ where
 {
     /// Aligns the aabb to `VecAligned`.
     #[inline(always)]
-    pub fn align(self) -> Aabb<N, T, VecAligned, R> {
-        self.to_layout()
+    pub const fn align(self) -> Aabb<N, T, VecAligned, R> {
+        match self.resolve() {
+            ResolvedAabb::Centered(rect) => unsafe {
+                transmute_copy::<Aabb<N, T, VecAligned, AabbCentered>, Aabb<N, T, VecAligned, R>>(
+                    &Aabb {
+                        inner: InnerCenteredAabb {
+                            center: rect.inner.center.align(),
+                            extents: rect.inner.extents.align(),
+                        },
+                    },
+                )
+            },
+            ResolvedAabb::Cornered(rect) => unsafe {
+                transmute_copy::<Aabb<N, T, VecAligned, AabbCornered>, Aabb<N, T, VecAligned, R>>(
+                    &Aabb {
+                        inner: InnerCorneredAabb {
+                            min: rect.inner.min.align(),
+                            size: rect.inner.size.align(),
+                        },
+                    },
+                )
+            },
+            ResolvedAabb::MinMaxed(rect) => unsafe {
+                transmute_copy::<Aabb<N, T, VecAligned, AabbMinMaxed>, Aabb<N, T, VecAligned, R>>(
+                    &Aabb {
+                        inner: InnerMinMaxedAabb {
+                            min: rect.inner.min.align(),
+                            max: rect.inner.max.align(),
+                        },
+                    },
+                )
+            },
+        }
     }
 
     /// Unaligns the aabb to `VecPacked`.
     #[inline(always)]
-    pub fn unalign(self) -> Aabb<N, T, VecPacked, R> {
-        self.to_layout()
+    pub const fn unalign(self) -> Aabb<N, T, VecPacked, R> {
+        match self.resolve() {
+            ResolvedAabb::Centered(rect) => unsafe {
+                transmute_copy::<Aabb<N, T, VecPacked, AabbCentered>, Aabb<N, T, VecPacked, R>>(
+                    &Aabb {
+                        inner: InnerCenteredAabb {
+                            center: rect.inner.center.unalign(),
+                            extents: rect.inner.extents.unalign(),
+                        },
+                    },
+                )
+            },
+            ResolvedAabb::Cornered(rect) => unsafe {
+                transmute_copy::<Aabb<N, T, VecPacked, AabbCornered>, Aabb<N, T, VecPacked, R>>(
+                    &Aabb {
+                        inner: InnerCorneredAabb {
+                            min: rect.inner.min.unalign(),
+                            size: rect.inner.size.unalign(),
+                        },
+                    },
+                )
+            },
+            ResolvedAabb::MinMaxed(rect) => unsafe {
+                transmute_copy::<Aabb<N, T, VecPacked, AabbMinMaxed>, Aabb<N, T, VecPacked, R>>(
+                    &Aabb {
+                        inner: InnerMinMaxedAabb {
+                            min: rect.inner.min.unalign(),
+                            max: rect.inner.max.unalign(),
+                        },
+                    },
+                )
+            },
+        }
     }
 }
 

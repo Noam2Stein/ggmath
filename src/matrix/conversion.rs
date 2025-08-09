@@ -29,7 +29,7 @@ where
 {
     /// Aligns the matrix to [`VecAligned`] vectors.
     #[inline(always)]
-    pub fn align(self) -> Matrix<C, R, T, VecAligned, M> {
+    pub const fn align(self) -> Matrix<C, R, T, VecAligned, M> {
         self.to_layout()
     }
 
@@ -37,7 +37,7 @@ where
     ///
     /// This is always a zero cost operation.
     #[inline(always)]
-    pub fn unalign(self) -> Matrix<C, R, T, VecAligned, M> {
+    pub const fn unalign(self) -> Matrix<C, R, T, VecAligned, M> {
         self.to_layout()
     }
 }

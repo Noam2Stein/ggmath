@@ -9,7 +9,7 @@ use super::*;
 
 /// Creates a `Vec2` where all components are given the same value.
 #[inline(always)]
-pub fn splat2<T: Scalar>(value: T) -> Vec2<T> {
+pub const fn splat2<T: Scalar>(value: T) -> Vec2<T> {
     Vector::splat(value)
 }
 

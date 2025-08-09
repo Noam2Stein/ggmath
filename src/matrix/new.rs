@@ -14,13 +14,13 @@ repetitive! {
 
             #[doc = @str["Constructs a " major " aligned " matrixCxR " where all elements are the same value."]]
             #[inline(always)]
-            pub fn @splat<T: Scalar>(t: T) -> @Mat<T> {
+            pub const fn @splat<T: Scalar>(t: T) -> @Mat<T> {
                 Matrix::splat(t)
             }
 
             #[doc = @str["Constructs a " major " unaligned " matrixCxR " where all elements are the same value."]]
             #[inline(always)]
-            pub fn @splatp<T: Scalar>(t: T) -> @MatP<T> {
+            pub const fn @splatp<T: Scalar>(t: T) -> @MatP<T> {
                 Matrix::splat(t)
             }
         }
@@ -31,13 +31,13 @@ repetitive! {
 
             #[doc = @str["Constructs a " major " aligned " matrixCxR " where all elements are the same value."]]
             #[inline(always)]
-            pub fn @splat<T: Scalar>(t: T) -> @Mat<T> {
+            pub const fn @splat<T: Scalar>(t: T) -> @Mat<T> {
                 Matrix::splat(t)
             }
 
             #[doc = @str["Constructs a " major " unaligned " matrixCxR " where all elements are the same value."]]
             #[inline(always)]
-            pub fn @splatp<T: Scalar>(t: T) -> @MatP<T> {
+            pub const fn @splatp<T: Scalar>(t: T) -> @MatP<T> {
                 Matrix::splat(t)
             }
         }
@@ -53,7 +53,14 @@ where
 {
     /// Constructs a matrix where all elements are the same value.
     #[inline(always)]
-    pub fn splat(t: T) -> Self {
-        Self::from_fn(|_c, _r| t)
+    pub const fn splat(t: T) -> Self {
+        Self::resolved(
+            Matrix {
+                inner: [Vector::splat(t); _],
+            },
+            Matrix {
+                inner: [Vector::splat(t); _],
+            },
+        )
     }
 }
