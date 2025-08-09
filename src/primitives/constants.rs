@@ -72,9 +72,9 @@ where
     Usize<N>: VecLen,
 {
     /// Vector of all `Less` values.
-    pub const LESS: Self = Self::from_array([Ordering::Less; N]);
+    pub const LESS: Self = Self::splat(Ordering::Less);
     /// Vector of all `Equal` values.
-    pub const EQUAL: Self = Self::from_array([Ordering::Equal; N]);
+    pub const EQUAL: Self = Self::splat(Ordering::Equal);
     /// Vector of all `Greater` values.
-    pub const GREATER: Self = Self::from_array([Ordering::Greater; N]);
+    pub const GREATER: Self = Self::splat(Ordering::Greater);
 }
