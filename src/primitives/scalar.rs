@@ -27,23 +27,68 @@ repetitive! {
         @let prim_is_uint = prim_is_int && !prim_is_signed;
         @let prim_has_bitops = prim_is_int || prim == 'bool;
 
+        @let supported_alignment = @{{
+            let _align = 8;
+
+            // X86
+
+            #[cfg(target_feature = "sse")]
+            #[cfg(@(prim == 'f32))]
+            let _align = 16;
+
+            #[cfg(target_feature = "sse2")]
+            let _align = 16;
+
+            #[cfg(target_feature = "avx")]
+            #[cfg(@(prim == 'f64))]
+            let _align = 32;
+
+            #[cfg(target_feature = "avx2")]
+            let _align = 32;
+
+            // ARM
+
+            #[cfg(target_feature = "neon")]
+            #[cfg(@(prim == 'f32 || prim_is_int))]
+            let _align = 16;
+
+            #[cfg(target_arch = "aarch64")]
+            #[cfg(target_feature = "neon")]
+            let _align = 32;
+
+            // WASM
+
+            #[cfg(target_feature = "simd128")]
+            let _align = 16;
+
+            _align
+        }};
+
         impl Scalar for @prim {
             type Vec2Alignment = Align<{
                 let size = size_of::<@prim>() * 2;
+                let wanted_alignment = size.next_power_of_two();
+                let supported_alignment = @supported_alignment;
 
-                size.next_power_of_two()
+                if wanted_alignment > supported_alignment {
+                    supported_alignment
+                } else {
+                    wanted_alignment
+                }
             }>;
 
-            type Vec3Alignment = Align<{
-                let size = size_of::<@prim>() * 3;
-
-                size.next_power_of_two()
-            }>;
+            type Vec3Alignment = Self::Vec4Alignment;
 
             type Vec4Alignment = Align<{
                 let size = size_of::<@prim>() * 4;
+                let wanted_alignment = size.next_power_of_two();
+                let supported_alignment = @supported_alignment;
 
-                size.next_power_of_two()
+                if wanted_alignment > supported_alignment {
+                    supported_alignment
+                } else {
+                    wanted_alignment
+                }
             }>;
 
             #[inline(always)]
