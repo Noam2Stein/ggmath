@@ -21,6 +21,83 @@ where
     }
 }
 
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    /// Returns a vector of booleans where each element is true if the corresponding elements in the two vectors are equal.
+    #[inline(always)]
+    pub fn eq_mask<T2: Scalar, A2: VecAlignment>(
+        &self,
+        other: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialEq<T2>,
+    {
+        T::vec_eq_mask(self, other)
+    }
+
+    /// Returns a vector of booleans where each element is true if the corresponding elements in the two vectors are not equal.
+    #[inline(always)]
+    pub fn ne_mask<T2: Scalar, A2: VecAlignment>(
+        &self,
+        other: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialEq<T2>,
+    {
+        T::vec_ne_mask(self, other)
+    }
+
+    /// Returns a vector of booleans where each element is true if the corresponding element in the vector is less than the other vector.
+    #[inline(always)]
+    pub fn lt_mask<T2: Scalar, A2: VecAlignment>(
+        &self,
+        other: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_lt_mask(self, other)
+    }
+
+    /// Returns a vector of booleans where each element is true if the corresponding element in the vector is greater than the other vector.
+    #[inline(always)]
+    pub fn gt_mask<T2: Scalar, A2: VecAlignment>(
+        &self,
+        other: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_gt_mask(self, other)
+    }
+
+    /// Returns a vector of booleans where each element is true if the corresponding element in the vector is less than or equal to the other vector.
+    #[inline(always)]
+    pub fn le_mask<T2: Scalar, A2: VecAlignment>(
+        &self,
+        other: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_le_mask(self, other)
+    }
+
+    /// Returns a vector of booleans where each element is true if the corresponding element in the vector is greater than or equal to the other vector.
+    #[inline(always)]
+    pub fn ge_mask<T2: Scalar, A2: VecAlignment>(
+        &self,
+        other: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_ge_mask(self, other)
+    }
+}
+
 repetitive! {
     // Unary
 

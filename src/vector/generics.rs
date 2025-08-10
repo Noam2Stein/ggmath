@@ -95,8 +95,33 @@ pub trait Scalar: Construct {
 
     // Comparison
 
-    /// Compares two vectors for equality.
-    /// This is used to implement [`PartialEq`] for [`Vector`].
+    /// Overridable implementation of [`Vector::eq_mask`].
+    #[inline(always)]
+    fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        vec.map_ref_rhs(rhs, |x, y| x == y)
+    }
+
+    /// Overridable implementation of [`Vector::ne_mask`].
+    #[inline(always)]
+    fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        !Self::vec_eq_mask(vec, rhs)
+    }
+
+    /// Overridable implementation of [`Vector::eq`].
     #[inline(always)]
     fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
         vec: &Vector<N, Self, A>,
@@ -106,14 +131,10 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
-        vec.into_iter().zip(rhs).all(|(x, y)| x == y)
+        Self::vec_eq_mask(vec, rhs).into_iter().all(|x| x)
     }
 
-    /// Compares two vectors for inequality.
-    /// This is used to implement [`PartialEq`] for [`Vector`].
-    ///
-    /// This defaults to `!Self::vec_eq(vec, rhs)`.
-    /// So if `vec_eq` is overridden, `vec_ne` will be too.
+    /// Overridable implementation of [`Vector::ne`].
     #[inline(always)]
     fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
         vec: &Vector<N, Self, A>,
@@ -124,6 +145,58 @@ pub trait Scalar: Construct {
         Self: PartialEq<T2>,
     {
         !Self::vec_eq(vec, rhs)
+    }
+
+    /// Overridable implementation of [`Vector::lt_mask`].
+    #[inline(always)]
+    fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        vec.map_ref_rhs(rhs, |x, y| x < y)
+    }
+
+    /// Overridable implementation of [`Vector::gt_mask`].
+    #[inline(always)]
+    fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        vec.map_ref_rhs(rhs, |x, y| x > y)
+    }
+
+    /// Overridable implementation of [`Vector::le_mask`].
+    #[inline(always)]
+    fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        vec.map_ref_rhs(rhs, |x, y| x <= y)
+    }
+
+    /// Overridable implementation of [`Vector::ge_mask`].
+    #[inline(always)]
+    fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        vec.map_ref_rhs(rhs, |x, y| x >= y)
     }
 
     // Unary Ops
