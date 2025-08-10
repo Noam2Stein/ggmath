@@ -1,24 +1,23 @@
-use std::{any::TypeId, mem::transmute_copy, ops::*};
+use std::ops::*;
 
 use super::*;
 
-// Note:
-// Alot of operator traits cannot be derived because they have a generic `Rhs` type.
-// If we were to derive them, the implementation would only support `Rhs = Self`.
-
 // Comparison
 
-impl<const N: usize, T: Scalar + PartialEq<TRhs>, A: VecAlignment, TRhs: Scalar, ARhs: VecAlignment>
-    PartialEq<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    PartialEq<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
+    T: PartialEq<T2>,
 {
     #[inline(always)]
-    fn eq(&self, other: &Vector<N, TRhs, ARhs>) -> bool {
-        self.array
-            .iter()
-            .zip(other.array.iter())
-            .all(|(a, b)| *a == *b)
+    fn eq(&self, other: &Vector<N, T2, A2>) -> bool {
+        T::vec_eq(self, other)
+    }
+
+    #[inline(always)]
+    fn ne(&self, other: &Vector<N, T2, A2>) -> bool {
+        T::vec_ne(self, other)
     }
 }
 
@@ -38,26 +37,7 @@ repetitive! {
 
             #[inline(always)]
             fn @op_fn(self) -> Vector<N, <T as @op_trait>::Output, A> {
-                'vec3_optimization: {
-                    if !types_match::<Self, Vec3<T>>() {
-                        break 'vec3_optimization;
-                    }
-
-                    if !types_match::<T::Output, T>() {
-                        break 'vec3_optimization;
-                    }
-
-                    let self_vec3 = unsafe { transmute_copy::<Self, Vec3<T>>(&self) };
-
-                    let output_vec3 = match T::@['vec3_ op_fn](self_vec3) {
-                        Some(output_vec3) => output_vec3,
-                        None => break 'vec3_optimization,
-                    };
-
-                    return unsafe { transmute_copy::<Vec3<T>, Vector<N, T::Output, A>>(&output_vec3) };
-                }
-
-                self.map(T::@op_fn)
+                T::@['vec_ op_fn](self)
             }
         }
     }
@@ -80,43 +60,19 @@ repetitive! {
 
         impl<
             const N: usize,
-            T: Scalar + @op_trait<TRhs, Output: Scalar>,
+            T: Scalar + @op_trait<T2, Output: Scalar>,
             A: VecAlignment,
-            TRhs: Scalar,
-            ARhs: VecAlignment,
-        > @op_trait<Vector<N, TRhs, ARhs>> for Vector<N, T, A>
+            T2: Scalar,
+            A2: VecAlignment,
+        > @op_trait<Vector<N, T2, A2>> for Vector<N, T, A>
         where
             Usize<N>: VecLen,
         {
             type Output = Vector<N, T::Output, A>;
 
             #[inline(always)]
-            fn @op_fn(self, rhs: Vector<N, TRhs, ARhs>) -> Vector<N, <T as @op_trait<TRhs>>::Output, A> {
-                'vec3_optimization: {
-                    if !types_match::<Self, Vec3<T>>() {
-                        break 'vec3_optimization;
-                    }
-
-                    if !types_match::<Vector<N, TRhs, ARhs>, Self>() {
-                        break 'vec3_optimization;
-                    }
-
-                    if !types_match::<T::Output, T>() {
-                        break 'vec3_optimization;
-                    }
-
-                    let self_vec3 = unsafe { transmute_copy::<Self, Vec3<T>>(&self) };
-                    let rhs_vec3 = unsafe { transmute_copy::<Vector<N, TRhs, ARhs>, Vec3<T>>(&rhs) };
-
-                    let output_vec3 = match T::@['vec3_ op_fn](self_vec3, rhs_vec3) {
-                        Some(output_vec3) => output_vec3,
-                        None => break 'vec3_optimization,
-                    };
-
-                    return unsafe { transmute_copy::<Vec3<T>, Vector<N, T::Output, A>>(&output_vec3) };
-                }
-
-                self.map_rhs(rhs, |self_, rhs| T::@op_fn(self_, rhs))
+            fn @op_fn(self, rhs: Vector<N, T2, A2>) -> Vector<N, <T as @op_trait<T2>>::Output, A> {
+                T::@['vec_ op_fn](self, rhs)
             }
         }
 
@@ -242,9 +198,4 @@ where
 
         self
     }
-}
-
-#[inline(always)]
-fn types_match<T1: 'static, T2: 'static>() -> bool {
-    TypeId::of::<T1>() == TypeId::of::<T2>()
 }

@@ -1,4 +1,7 @@
-use std::mem::{transmute, transmute_copy};
+use std::{
+    mem::{transmute, transmute_copy},
+    ops::*,
+};
 
 use super::*;
 
@@ -90,206 +93,207 @@ pub trait Scalar: Construct {
     /// This will be the applied alignment only if the vector type is `VecAligned`.
     type Vec4Alignment: AlignTrait;
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::neg`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
-    #[inline(always)]
-    fn vec3_neg(base: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = base;
+    // Comparison
 
-        None
+    /// Compares two vectors for equality.
+    /// This is used to implement [`PartialEq`] for [`Vector`].
+    #[inline(always)]
+    fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> bool
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        vec.into_iter().zip(rhs).all(|(x, y)| x == y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::not`.
+    /// Compares two vectors for inequality.
+    /// This is used to implement [`PartialEq`] for [`Vector`].
     ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// This defaults to `!Self::vec_eq(vec, rhs)`.
+    /// So if `vec_eq` is overridden, `vec_ne` will be too.
     #[inline(always)]
-    fn vec3_not(base: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = base;
-
-        None
+    fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: &Vector<N, Self, A>,
+        rhs: &Vector<N, T2, A2>,
+    ) -> bool
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        !Self::vec_eq(vec, rhs)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::add`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
-    #[inline(always)]
-    fn vec3_add(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
+    // Unary Ops
 
-        None
+    /// Negates a vector.
+    /// This is used to implement [`Neg`] for [`Vector`].
+    #[inline(always)]
+    fn vec_neg<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Neg<Output: Scalar>,
+    {
+        vec.map(|x| -x)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::sub`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Inverts a vector.
+    /// This is used to implement [`Not`] for [`Vector`].
     #[inline(always)]
-    fn vec3_sub(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
-
-        None
+    fn vec_not<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Not<Output: Scalar>,
+    {
+        vec.map(|x| !x)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::mul`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
-    #[inline(always)]
-    fn vec3_mul(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
+    // Binary Ops
 
-        None
+    /// Adds two vectors.
+    /// This is used to implement [`Add`] for [`Vector`].
+    #[inline(always)]
+    fn vec_add<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Add<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x + y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::div`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Subtracts two vectors.
+    /// This is used to implement [`Sub`] for [`Vector`].
     #[inline(always)]
-    fn vec3_div(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
-
-        None
+    fn vec_sub<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Sub<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x - y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::rem`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Multiplies two vectors.
+    /// This is used to implement [`Mul`] for [`Vector`].
     #[inline(always)]
-    fn vec3_rem(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
-
-        None
+    fn vec_mul<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Mul<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x * y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::shl`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Divides two vectors.
+    /// This is used to implement [`Div`] for [`Vector`].
     #[inline(always)]
-    fn vec3_shl(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
-
-        None
+    fn vec_div<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Div<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x / y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::shr`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Takes the remainder of two vectors.
+    /// This is used to implement [`Rem`] for [`Vector`].
     #[inline(always)]
-    fn vec3_shr(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
-
-        None
+    fn vec_rem<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Rem<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x % y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::bitand`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Shifts the bits of a vector to the left.
+    /// This is used to implement [`Shl`] for [`Vector`].
     #[inline(always)]
-    fn vec3_bitand(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
-
-        None
+    fn vec_shl<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Shl<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x << y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::bitor`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Shifts the bits of a vector to the right.
+    /// This is used to implement [`Shr`] for [`Vector`].
     #[inline(always)]
-    fn vec3_bitor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
-
-        None
+    fn vec_shr<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Shr<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x >> y)
     }
 
-    /// Allows you to optimize the implementation of `Vec3<Self>::bitxor`.
-    ///
-    /// The implementation is meant to always return either `Some` or `None`.
-    /// If you return `None`, the default implementation will be used.
-    /// If you return `Some`, your implementation will be used.
-    ///
-    /// Operator optimization functions are only available for `Vec3<Self>`.
-    /// This is because usually only vector3s have padding,
-    /// which stops the compiler from using SIMD instructions on its own.
+    /// Performs a bitwise AND on two vectors.
+    /// This is used to implement [`BitAnd`] for [`Vector`].
     #[inline(always)]
-    fn vec3_bitxor(lhs: Vec3<Self>, rhs: Vec3<Self>) -> Option<Vec3<Self>> {
-        let _ = lhs;
-        let _ = rhs;
+    fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: BitAnd<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x & y)
+    }
 
-        None
+    /// Performs a bitwise OR on two vectors.
+    /// This is used to implement [`BitOr`] for [`Vector`].
+    #[inline(always)]
+    fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: BitOr<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x | y)
+    }
+
+    /// Performs a bitwise XOR on two vectors.
+    /// This is used to implement [`BitXor`] for [`Vector`].
+    #[inline(always)]
+    fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, A2>,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: BitXor<T2, Output: Scalar>,
+    {
+        vec.map_rhs(rhs, |x, y| x ^ y)
     }
 }
 
