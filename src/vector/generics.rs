@@ -290,19 +290,6 @@ pub trait Scalar: Construct {
         vec.max(min).min(max)
     }
 
-    /// Overridable implementation of [`Vector::abs_diff`].
-    #[inline(always)]
-    fn vec_abs_diff<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, Self, impl VecAlignment>,
-    ) -> Vector<N, Self, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialOrd + Sub<Output = Self>,
-    {
-        vec.map_rhs(rhs, |x, y| if x > y { x - y } else { y - x })
-    }
-
     // Unary Ops
 
     /// Negates a vector.
@@ -471,6 +458,56 @@ pub trait Scalar: Construct {
         Self: BitXor<T2, Output: Scalar>,
     {
         vec.map_rhs(rhs, |x, y| x ^ y)
+    }
+
+    // Operator Dependent Functions
+
+    /// Overridable implementation of [`Vector::sum`].
+    #[inline(always)]
+    fn vec_sum<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Add<Output = Self>,
+    {
+        vec.fold(|a, b| a + b)
+    }
+
+    /// Overridable implementation of [`Vector::dot`].
+    #[inline(always)]
+    fn vec_dot<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, Self, impl VecAlignment>,
+    ) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Add<Output = Self> + Mul<Output = Self>,
+    {
+        (vec * other).sum()
+    }
+
+    /// Overridable implementation of [`Vector::cross`].
+    #[inline(always)]
+    fn vec_cross<A: VecAlignment>(
+        vec: Vector<3, Self, A>,
+        other: Vector<3, Self, impl VecAlignment>,
+    ) -> Vector<3, Self, A>
+    where
+        Self: Mul<Output = Self> + Sub<Output = Self>,
+    {
+        (vec.zxy() * other - vec * other.zxy()).zxy()
+    }
+
+    /// Overridable implementation of [`Vector::abs_diff`].
+    #[inline(always)]
+    fn vec_abs_diff<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd + Sub<Output = Self>,
+    {
+        vec.map_rhs(rhs, |x, y| if x > y { x - y } else { y - x })
     }
 }
 
