@@ -97,22 +97,22 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of [`Vector::eq_mask`].
     #[inline(always)]
-    fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, bool, A>
     where
         Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
-        vec.map_ref_rhs(rhs, |x, y| x == y)
+        vec.map_rhs(rhs, |x, y| x == y)
     }
 
     /// Overridable implementation of [`Vector::ne_mask`].
     #[inline(always)]
-    fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, bool, A>
     where
         Usize<N>: VecLen,
@@ -123,9 +123,9 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of [`Vector::eq`].
     #[inline(always)]
-    fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> bool
     where
         Usize<N>: VecLen,
@@ -136,9 +136,9 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of [`Vector::ne`].
     #[inline(always)]
-    fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> bool
     where
         Usize<N>: VecLen,
@@ -149,54 +149,107 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of [`Vector::lt_mask`].
     #[inline(always)]
-    fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, bool, A>
     where
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        vec.map_ref_rhs(rhs, |x, y| x < y)
+        vec.map_rhs(rhs, |x, y| x < y)
     }
 
     /// Overridable implementation of [`Vector::gt_mask`].
     #[inline(always)]
-    fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, bool, A>
     where
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        vec.map_ref_rhs(rhs, |x, y| x > y)
+        vec.map_rhs(rhs, |x, y| x > y)
     }
 
     /// Overridable implementation of [`Vector::le_mask`].
     #[inline(always)]
-    fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, bool, A>
     where
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        vec.map_ref_rhs(rhs, |x, y| x <= y)
+        vec.map_rhs(rhs, |x, y| x <= y)
     }
 
     /// Overridable implementation of [`Vector::ge_mask`].
     #[inline(always)]
-    fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, A2>,
+    fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, bool, A>
     where
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        vec.map_ref_rhs(rhs, |x, y| x >= y)
+        vec.map_rhs(rhs, |x, y| x >= y)
+    }
+
+    /// Overridable implementation of [`Vector::min`].
+    #[inline(always)]
+    fn vec_min<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd,
+    {
+        vec.map_rhs(rhs, |x, y| if x < y { x } else { y })
+    }
+
+    /// Overridable implementation of [`Vector::max`].
+    #[inline(always)]
+    fn vec_max<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd,
+    {
+        vec.map_rhs(rhs, |x, y| if x > y { x } else { y })
+    }
+
+    /// Overridable implementation of [`Vector::clamp`].
+    #[inline(always)]
+    fn vec_clamp<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        min: Vector<N, Self, impl VecAlignment>,
+        max: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd,
+    {
+        vec.max(min).min(max)
+    }
+
+    /// Overridable implementation of [`Vector::abs_diff`].
+    #[inline(always)]
+    fn vec_abs_diff<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        rhs: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd + Sub<Output = Self>,
+    {
+        vec.map_rhs(rhs, |x, y| if x > y { x - y } else { y - x })
     }
 
     // Unary Ops
@@ -232,9 +285,9 @@ pub trait Scalar: Construct {
     /// Adds two vectors.
     /// This is used to implement [`Add`] for [`Vector`].
     #[inline(always)]
-    fn vec_add<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_add<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -246,9 +299,9 @@ pub trait Scalar: Construct {
     /// Subtracts two vectors.
     /// This is used to implement [`Sub`] for [`Vector`].
     #[inline(always)]
-    fn vec_sub<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_sub<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -260,9 +313,9 @@ pub trait Scalar: Construct {
     /// Multiplies two vectors.
     /// This is used to implement [`Mul`] for [`Vector`].
     #[inline(always)]
-    fn vec_mul<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_mul<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -274,9 +327,9 @@ pub trait Scalar: Construct {
     /// Divides two vectors.
     /// This is used to implement [`Div`] for [`Vector`].
     #[inline(always)]
-    fn vec_div<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_div<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -288,9 +341,9 @@ pub trait Scalar: Construct {
     /// Takes the remainder of two vectors.
     /// This is used to implement [`Rem`] for [`Vector`].
     #[inline(always)]
-    fn vec_rem<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_rem<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -302,9 +355,9 @@ pub trait Scalar: Construct {
     /// Shifts the bits of a vector to the left.
     /// This is used to implement [`Shl`] for [`Vector`].
     #[inline(always)]
-    fn vec_shl<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_shl<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -316,9 +369,9 @@ pub trait Scalar: Construct {
     /// Shifts the bits of a vector to the right.
     /// This is used to implement [`Shr`] for [`Vector`].
     #[inline(always)]
-    fn vec_shr<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_shr<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -330,9 +383,9 @@ pub trait Scalar: Construct {
     /// Performs a bitwise AND on two vectors.
     /// This is used to implement [`BitAnd`] for [`Vector`].
     #[inline(always)]
-    fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -344,9 +397,9 @@ pub trait Scalar: Construct {
     /// Performs a bitwise OR on two vectors.
     /// This is used to implement [`BitOr`] for [`Vector`].
     #[inline(always)]
-    fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
@@ -358,9 +411,9 @@ pub trait Scalar: Construct {
     /// Performs a bitwise XOR on two vectors.
     /// This is used to implement [`BitXor`] for [`Vector`].
     #[inline(always)]
-    fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar, A2: VecAlignment>(
+    fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, A2>,
+        rhs: Vector<N, T2, impl VecAlignment>,
     ) -> Vector<N, Self::Output, A>
     where
         Usize<N>: VecLen,
