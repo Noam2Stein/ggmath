@@ -93,6 +93,57 @@ pub trait Scalar: Construct {
     /// This will be the applied alignment only if the vector type is `VecAligned`.
     type Vec4Alignment: AlignTrait;
 
+    // Swizzle
+
+    /// Overridable implementation of swizzle functions that return a `Vec2`,
+    /// like [`Vec2::xy`] and [`Vec3::yz`].
+    #[inline(always)]
+    fn to_vec2_swizzle<const N: usize, A: VecAlignment, const X: usize, const Y: usize>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<2, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        vec2g!(vec[X], vec[Y])
+    }
+
+    /// Overridable implementation of swizzle functions that return a `Vec3`,
+    /// like [`Vec2::xyy`] and [`Vec4::www`].
+    #[inline(always)]
+    fn to_vec3_swizzle<
+        const N: usize,
+        A: VecAlignment,
+        const X: usize,
+        const Y: usize,
+        const Z: usize,
+    >(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<3, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        vec3g!(vec[X], vec[Y], vec[Z])
+    }
+
+    /// Overridable implementation of swizzle functions that return a `Vec4`,
+    /// like [`Vec2::xyxy`] and [`Vec3::yzyx`].
+    #[inline(always)]
+    fn to_vec4_swizzle<
+        const N: usize,
+        A: VecAlignment,
+        const X: usize,
+        const Y: usize,
+        const Z: usize,
+        const W: usize,
+    >(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<4, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        vec4g!(vec[X], vec[Y], vec[Z], vec[W])
+    }
+
     // Comparison
 
     /// Overridable implementation of [`Vector::eq_mask`].

@@ -1,5 +1,13 @@
-use ggmath::{FVec3, PositiveRightExt};
+use ggmath::*;
 
 fn main() {
-    println!("{}", FVec3::RIGHT)
+    let a: fn(&FVec2) -> FVec2 = test;
+
+    println!("{a:?}");
+    println!("{}", align_of::<FVec2>());
+}
+
+#[inline(never)]
+fn test(a: &FVec2) -> FVec2 {
+    a.yx()
 }

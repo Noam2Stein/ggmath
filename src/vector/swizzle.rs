@@ -3,70 +3,86 @@ use super::*;
 repetitive! {
     @let ordinals = ["1st", "2nd", "3rd", "4th"];
 
+    // Get
     @for N in 2..=4 {
         @let components = ['x, 'y, 'z, 'w][0..N];
 
         impl<T: Scalar, A: VecAlignment> Vector<@N, T, A> {
             // Get
 
-            @for [x_idx, x] in components.enumerate() {
-                @let c_name = @str[x];
-                @let c_ordinal = @str[ordinals[x_idx]];
+            @for x_idx in 0..N {
+                @let x = components[x_idx];
+                @let c = @str["`" x "`"];
 
-                #[doc = @str["Returns the `" c_name "` (" c_ordinal ") component of the vector."]]
+                @let x_ordinal = ordinals[x_idx];
+                @let c_ordinals = @str[x_ordinal];
+
+                @let fn_name = x;
+
+                #[doc = @str["Returns the " c " (" c_ordinals ") component of the vector."]]
                 #[inline(always)]
-                pub const fn @x(self) -> T {
+                pub const fn @fn_name(self) -> T {
                     self.array[@x_idx]
                 }
             }
 
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-            {
-                @let c_names = @str[x " and " y];
-                @let c_ordinals = @str[ordinals[x_idx] " and " ordinals[y_idx]];
+            @for x_idx in 0..N, y_idx in 0..N {
+                @let x = components[x_idx];
+                @let y = components[y_idx];
+                @let c = @str["`" x "` and `" y "`"];
 
-                #[doc = @str["Returns the `" c_names "` (" c_ordinals ") component of the vector."]]
+                @let x_ordinal = ordinals[x_idx];
+                @let y_ordinal = ordinals[y_idx];
+                @let c_ordinals = @str[x_ordinal " and " y_ordinal];
+
+                @let fn_name = @[x y];
+
+                #[doc = @str["Returns the " c " (" c_ordinals ") components of the vector."]]
                 #[inline(always)]
-                pub const fn @[x y](self) -> Vector<2, T, A> {
-                    Vector::from_array([self.@x(), self.@y()])
+                pub fn @fn_name(self) -> Vector<2, T, A> {
+                    T::to_vec2_swizzle::<@N, A, @x_idx, @y_idx>(self)
                 }
             }
 
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-                [z_idx, z] in components.enumerate(),
-            {
-                @let c_names = @str[x ", " y " and " z];
-                @let c_ordinals = @str[ordinals[x_idx] ", " ordinals[y_idx] " and " ordinals[z_idx]];
+            @for x_idx in 0..N, y_idx in 0..N, z_idx in 0..N {
+                @let x = components[x_idx];
+                @let y = components[y_idx];
+                @let z = components[z_idx];
+                @let c = @str["`" x "`, `" y "` and `" z "`"];
 
-                #[doc = @str["Returns the `" c_names "` (" c_ordinals ") component of the vector."]]
+                @let x_ordinal = ordinals[x_idx];
+                @let y_ordinal = ordinals[y_idx];
+                @let z_ordinal = ordinals[z_idx];
+                @let c_ordinals = @str[x_ordinal ", " y_ordinal " and " z_ordinal];
+
+                @let fn_name = @[x y z];
+
+                #[doc = @str["Returns the " c " (" c_ordinals ") components of the vector."]]
                 #[inline(always)]
-                pub const fn @[x y z](self) -> Vector<3, T, A> {
-                    Vector::from_array([self.@x(), self.@y(), self.@z()])
+                pub fn @fn_name(self) -> Vector<3, T, A> {
+                    T::to_vec3_swizzle::<@N, A, @x_idx, @y_idx, @z_idx>(self)
                 }
             }
 
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-                [z_idx, z] in components.enumerate(),
-                [w_idx, w] in components.enumerate(),
-            {
-                @let c_names = @str[x ", " y ", " z " and " w];
-                @let c_ordinals = @str[ordinals[x_idx] ", " ordinals[y_idx] ", " ordinals[z_idx] " and " ordinals[w_idx]];
+            @for x_idx in 0..N, y_idx in 0..N, z_idx in 0..N, w_idx in 0..N {
+                @let x = components[x_idx];
+                @let y = components[y_idx];
+                @let z = components[z_idx];
+                @let w = components[w_idx];
+                @let c = @str["`" x "`, `" y "`, `" z "` and `" w "`"];
 
-                #[doc = @str["Returns the `" c_names "` (" c_ordinals ") component of the vector."]]
+                @let x_ordinal = ordinals[x_idx];
+                @let y_ordinal = ordinals[y_idx];
+                @let z_ordinal = ordinals[z_idx];
+                @let w_ordinal = ordinals[w_idx];
+                @let c_ordinals = @str[x_ordinal ", " y_ordinal ", " z_ordinal " and " w_ordinal];
+
+                @let fn_name = @[x y z w];
+
+                #[doc = @str["Returns the " c " (" c_ordinals ") components of the vector."]]
                 #[inline(always)]
-                pub const fn @[x y z w](self) -> Vector<4, T, A> {
-                    Vector::from_array([
-                        self.@x(),
-                        self.@y(),
-                        self.@z(),
-                        self.@w(),
-                    ])
+                pub fn @fn_name(self) -> Vector<4, T, A> {
+                    T::to_vec4_swizzle::<@N, A, @x_idx, @y_idx, @z_idx, @w_idx>(self)
                 }
             }
 

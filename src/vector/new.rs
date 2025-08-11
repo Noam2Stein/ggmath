@@ -70,7 +70,9 @@ repetitive! {
         #[macro_export]
         macro_rules! @['vec N] {
             ($($item:expr), * $(,)?) => {{
-                let output: $crate::@['Vec N]<_> = $crate::new_vector(($($item,)*));
+                let output: $crate::Vector<@N, _, $crate::VecAligned>
+                    = $crate::new_vector::<@N, _, $crate::VecAligned, _>(($($item,)*));
+
                 output
             }};
         }
@@ -87,7 +89,9 @@ repetitive! {
         #[macro_export]
         macro_rules! @['vec N 'p] {
             ($($item:expr), * $(,)?) => {{
-                let output: $crate::@['Vec N 'P]<_> = $crate::new_vector(($($item,)*));
+                let output: $crate::Vector<@N, _, $crate::VecPacked>
+                    = $crate::new_vector::<@N, _, $crate::VecPacked, _>(($($item,)*));
+
                 output
             }};
         }
@@ -101,7 +105,9 @@ repetitive! {
         #[macro_export]
         macro_rules! @['vec N 'g] {
             ($($item:expr), * $(,)?) => {{
-                let output: $crate::Vector<@N, _, _> = $crate::new_vector(($($item,)*));
+                let output: $crate::Vector<@N, _, _>
+                    = $crate::new_vector::<@N, _, _, _>(($($item,)*));
+
                 output
             }};
         }
