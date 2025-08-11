@@ -6,8 +6,6 @@ use repetitive::repetitive;
 
 fn benchmark(c: &mut Criterion) {
     repetitive! {
-        // Swizzle isn't concerned about the scalar type, just its size.
-        // This means it is only necessary to benchmark one type per size.
         @for prim in ['u8, 'u16, 'u32, 'u64, 'u128] {
             let ggmath2 = Vec2P::<@prim>::from_array([20, 1]);
             let ggmath3 = Vec3P::<@prim>::from_array([20, 1, 2]);
