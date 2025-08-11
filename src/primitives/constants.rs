@@ -42,16 +42,6 @@ repetitive! {
                 pub const MIN: Self = Self::splat(@prim::MIN);
                 #[doc = @str["vector of all `" prim "::MAX` values"]]
                 pub const MAX: Self = Self::splat(@prim::MAX);
-
-                #[doc = @str["vector of all `0` values"]]
-                pub const ZERO: Self = Self::splat(0 as @prim);
-                #[doc = @str["vector of all `1` values"]]
-                pub const ONE: Self = Self::splat(1 as @prim);
-            }
-
-            @if prim_is_signed {
-                #[doc = @str["vector of all `-1` values"]]
-                pub const NEG_ONE: Self = Self::splat(-1 as @prim);
             }
 
             @if prim_is_float {
