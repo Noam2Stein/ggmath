@@ -13,20 +13,19 @@ Usability:
 
 Performance:
 
-| API              | Is 100% On Par With `glam` |
-|------------------|----------------------------|
-| Vector (swizzle) | ❌                        |
-| Vector (floats)  | ❌                        |
-| Vector (ints)    | ❌                        |
-|                  |                            |
-| Matrix (swizzle) | ❌                        |
-|                  |                            |
-| Aabb             | ❌                        |
-| Quaternion       | ❌                        |
+| API              | Is 100% Optimized On X86 | Is 100% Optimized On ARM | Is 100% Optimized On WASM |
+|------------------|--------------------------|--------------------------|---------------------------|
+| Vector (swizzle) | ❌                       | ❌                      | ❌                        |
+| Vector (floats)  | ❌                       | ❌                      | ❌                        |
+| Vector (ints)    | ❌                       | ❌                      | ❌                        |
+|                  |                          |                          |                           |
+| Matrix (swizzle) | ❌                       | ❌                      | ❌                        |
+|                  |                          |                          |                           |
+| Aabb             | ❌                       | ❌                      | ❌                        |
+| Quaternion       | ❌                       | ❌                      | ❌                        |
 
-`ggmath` is benchmarked against `glam`.
-If a feature is considered "on par",
-it means that all functions have been benchmarked and reached `glam`'s performance.
+If an API is marked as 100% optimized,
+it means every single function results in the most optimal assembly possible.
 
 ### GGMath
 
