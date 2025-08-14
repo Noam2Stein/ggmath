@@ -37,7 +37,7 @@ up       = [  ]
 
 [dependencies]
 derive-where  = "1.2.7"
-repetitive    = "0.1.5"
+repetitive    = "0.1.6"
 splat_attribs = "1.0.0"
 
 crevice = { version = "0.18.0", optional = true }
