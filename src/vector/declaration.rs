@@ -50,6 +50,37 @@ pub type Vec3P<T> = Vector<3, T, VecPacked>;
 /// See [`VecAlignment`]
 pub type Vec4P<T> = Vector<4, T, VecPacked>;
 
+// verify size
+const _: () = assert!(size_of::<Vec2<f32>>() >= 8);
+const _: () = assert!(size_of::<Vec3<f32>>() >= 12);
+const _: () = assert!(size_of::<Vec4<f32>>() >= 16);
+const _: () = assert!(size_of::<Vec2P<f32>>() == 8);
+const _: () = assert!(size_of::<Vec3P<f32>>() == 12);
+const _: () = assert!(size_of::<Vec4P<f32>>() == 16);
+
+const _: () = assert!(size_of::<Vec2<bool>>() >= 2);
+const _: () = assert!(size_of::<Vec3<bool>>() >= 3);
+const _: () = assert!(size_of::<Vec4<bool>>() >= 4);
+const _: () = assert!(size_of::<Vec2P<bool>>() == 2);
+const _: () = assert!(size_of::<Vec3P<bool>>() == 3);
+const _: () = assert!(size_of::<Vec4P<bool>>() == 4);
+
+// verify alignment
+const _: () = assert!(align_of::<Vec2<f32>>() >= align_of::<f32>());
+const _: () = assert!(align_of::<Vec3<f32>>() >= align_of::<f32>());
+const _: () = assert!(align_of::<Vec4<f32>>() >= align_of::<f32>());
+const _: () = assert!(align_of::<Vec2P<f32>>() == align_of::<f32>());
+const _: () = assert!(align_of::<Vec3P<f32>>() == align_of::<f32>());
+const _: () = assert!(align_of::<Vec4P<f32>>() == align_of::<f32>());
+
+const _: () = assert!(align_of::<Vec2<bool>>() >= align_of::<bool>());
+const _: () = assert!(align_of::<Vec3<bool>>() >= align_of::<bool>());
+const _: () = assert!(align_of::<Vec4<bool>>() >= align_of::<bool>());
+const _: () = assert!(align_of::<Vec2P<bool>>() == align_of::<bool>());
+const _: () = assert!(align_of::<Vec3P<bool>>() == align_of::<bool>());
+const _: () = assert!(align_of::<Vec4P<bool>>() == align_of::<bool>());
+
+// verify offset
 const _: () = assert!(offset_of!(Vec2<f32>, array) == 0);
 const _: () = assert!(offset_of!(Vec3<f32>, array) == 0);
 const _: () = assert!(offset_of!(Vec4<f32>, array) == 0);

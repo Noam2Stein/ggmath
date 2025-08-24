@@ -236,3 +236,145 @@ where
         unsafe { from_raw_parts_mut(ptr, size_of::<Self>()) }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_t_conversion() {
+        assert_eq!(vec2!(1, 2).to_t::<f64>(), vec2!(1.0, 2.0));
+        assert_eq!(vec3p!(1, 2, 3).to_t::<f64>(), vec3!(1.0, 2.0, 3.0));
+    }
+
+    #[test]
+    fn test_alignment_conversion() {
+        assert_eq!(vec2!(1, 2).align(), vec2!(1, 2));
+        assert_eq!(vec3p!(1, 2, 3).align(), vec3!(1, 2, 3));
+        assert_eq!(vec4!(1, 2, 3, 4).unalign(), vec4!(1, 2, 3, 4));
+        assert_eq!(vec2p!(1, 2).unalign(), vec2p!(1, 2));
+
+        assert_eq!(Vec2::from(vec2p!(1, 2)), vec2!(1, 2));
+        assert_eq!(Vec3P::from(vec3!(1, 2, 3)), vec3!(1, 2, 3));
+    }
+
+    #[test]
+    fn test_layout_conversion() {
+        assert_eq!(vec2!(1, 2).to_layout::<VecAligned>(), vec2!(1, 2));
+        assert_eq!(vec3!(1, 2, 3).to_layout::<VecAligned>(), vec3!(1, 2, 3));
+        assert_eq!(vec3!(1, 2, 3).to_layout::<VecPacked>(), vec3!(1, 2, 3));
+    }
+
+    #[test]
+    fn test_array_conversion() {
+        assert_eq!(vec2!(1, 2).to_array(), [1, 2]);
+        assert_eq!(vec3p!(1, 2, 3).to_array(), [1, 2, 3]);
+
+        assert_eq!(vec2!(1, 2).as_array_ref(), &[1, 2]);
+        assert_eq!(vec3p!(1, 2, 3).as_array_ref(), &[1, 2, 3]);
+
+        assert_eq!(vec2!(1, 2).as_array_mut(), &mut [1, 2]);
+        assert_eq!(vec3p!(1, 2, 3).as_array_mut(), &mut [1, 2, 3]);
+
+        unsafe {
+            assert_eq!(vec2!(1, 2).as_ptr().as_ref(), [1, 2].as_ptr().as_ref());
+            assert_eq!(
+                vec3p!(1, 2, 3).as_ptr().as_ref(),
+                [1, 2, 3].as_ptr().as_ref()
+            );
+
+            assert_eq!(
+                vec2!(1, 2).as_mut_ptr().as_mut(),
+                [1, 2].as_mut_ptr().as_mut()
+            );
+            assert_eq!(
+                vec3p!(1, 2, 3).as_mut_ptr().as_mut(),
+                [1, 2, 3].as_mut_ptr().as_mut()
+            );
+        }
+
+        assert_eq!(Vec2P::from_array_ref(&[1, 2]), &vec2p!(1, 2));
+        assert_eq!(Vec2P::from_array_mut(&mut [1, 2]), &mut vec2!(1, 2));
+
+        assert_eq!(Vec2::from([1, 2]), vec2!(1, 2));
+        assert_eq!(Vec3P::from([1, 2, 3]), vec3p!(1, 2, 3));
+        assert_eq!(<Vec2<_> as Into<[_; 2]>>::into(vec2!(1, 2)), [1, 2]);
+
+        assert_eq!(<Vec2<_> as AsRef<[_; 2]>>::as_ref(&vec2!(1, 2)), &[1, 2]);
+    }
+
+    #[test]
+    fn test_bytes_conversion() {
+        unsafe {
+            assert_eq!(
+                vec2!(1u16, 2u16).as_bytes_ref(),
+                &transmute::<[u16; 2], [u8; 4]>([1, 2])
+            );
+            assert_eq!(
+                vec3p!(1u16, 2u16, 3u16).as_bytes_ref(),
+                &transmute::<[u16; 3], [u8; 6]>([1, 2, 3])
+            );
+
+            assert_eq!(
+                vec2!(1u16, 2u16).as_bytes_mut(),
+                &mut transmute::<[u16; 2], [u8; 4]>([1, 2])
+            );
+            assert_eq!(
+                vec3p!(1u16, 2u16, 3u16).as_bytes_mut(),
+                &mut transmute::<[u16; 3], [u8; 6]>([1, 2, 3])
+            );
+
+            assert_eq!(
+                vec2!(1u16, 2u16).as_bytes_ref_padded().len(),
+                size_of::<U16Vec2>()
+            );
+            assert_eq!(
+                vec3!(1u16, 2u16, 3u16).as_bytes_ref_padded().len(),
+                size_of::<U16Vec3>()
+            );
+            assert_eq!(
+                vec4!(1u16, 2u16, 3u16, 4u16).as_bytes_ref_padded().len(),
+                size_of::<U16Vec4>()
+            );
+
+            assert_eq!(
+                vec2p!(1u16, 2u16).as_bytes_ref_padded(),
+                vec2p!(1u16, 2u16).as_bytes_ref()
+            );
+            assert_eq!(
+                vec3p!(1u16, 2u16, 3u16).as_bytes_ref_padded(),
+                vec3p!(1u16, 2u16, 3u16).as_bytes_ref()
+            );
+            assert_eq!(
+                vec4p!(1u16, 2u16, 3u16, 4u16).as_bytes_ref_padded(),
+                vec4p!(1u16, 2u16, 3u16, 4u16).as_bytes_ref()
+            );
+
+            assert_eq!(
+                vec2!(1u16, 2u16).as_bytes_mut_padded().len(),
+                size_of::<U16Vec2>()
+            );
+            assert_eq!(
+                vec3!(1u16, 2u16, 3u16).as_bytes_mut_padded().len(),
+                size_of::<U16Vec3>()
+            );
+            assert_eq!(
+                vec4!(1u16, 2u16, 3u16, 4u16).as_bytes_mut_padded().len(),
+                size_of::<U16Vec4>()
+            );
+
+            assert_eq!(
+                vec2p!(1u16, 2u16).as_bytes_mut_padded(),
+                vec2p!(1u16, 2u16).as_bytes_mut()
+            );
+            assert_eq!(
+                vec3p!(1u16, 2u16, 3u16).as_bytes_mut_padded(),
+                vec3p!(1u16, 2u16, 3u16).as_bytes_mut()
+            );
+            assert_eq!(
+                vec4p!(1u16, 2u16, 3u16, 4u16).as_bytes_mut_padded(),
+                vec4p!(1u16, 2u16, 3u16, 4u16).as_bytes_mut()
+            );
+        }
+    }
+}

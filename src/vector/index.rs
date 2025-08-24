@@ -333,3 +333,62 @@ where
         unsafe { transmute(self.get_mut_unchecked(idx)) }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_index() {
+        assert_eq!(vec2!(1, 2).get(0), Some(1));
+        assert_eq!(vec4!(1, 2, 3, 4).get(3), Some(4));
+        assert_eq!(vec2!(1, 2).get(2), None);
+        assert_eq!(vec2!(1, 2).index(0), 1);
+        assert_eq!(vec2!(1, 2)[1], 2);
+
+        unsafe {
+            assert_eq!(vec2!(1, 2).get_unchecked(0), 1);
+            assert_eq!(vec4!(1, 2, 3, 4).get_unchecked(3), 4);
+        }
+
+        assert_eq!(vec2!(1, 2).get_ref(0), Some(&1));
+        assert_eq!(vec3p!(1, 2, 3).get_ref(1), Some(&2));
+        assert_eq!(vec4!(1, 2, 3, 4).get_ref(4), None);
+        assert_eq!(vec2!(1, 2).index_ref(0), &1);
+        assert_eq!(vec2!(1, 2).get_2_ref(0), Some(&vec2p!(1, 2)));
+        assert_eq!(vec4p!(1, 2, 3, 4).get_2_ref(1), Some(&vec2p!(2, 3)));
+        assert_eq!(vec4!(1, 2, 3, 4).get_4_ref(1), None);
+        assert_eq!(vec4p!(1, 2, 3, 4).get_2_ref(3), None);
+
+        unsafe {
+            assert_eq!(vec2!(1, 2).get_ref_unchecked(0), &1);
+            assert_eq!(vec3p!(1, 2, 3).get_ref_unchecked(1), &2);
+            assert_eq!(vec4!(1, 2, 3, 4).get_ref_unchecked(3), &4);
+            assert_eq!(vec2!(1, 2).get_2_ref_unchecked(0), &vec2p!(1, 2));
+            assert_eq!(vec4p!(1, 2, 3, 4).get_2_ref_unchecked(1), &vec2p!(2, 3));
+        }
+
+        assert_eq!(vec2!(1, 2).get_mut(0), Some(&mut 1));
+        assert_eq!(vec3p!(1, 2, 3).get_mut(1), Some(&mut 2));
+        assert_eq!(vec4!(1, 2, 3, 4).get_mut(4), None);
+        assert_eq!(vec2!(1, 2).index_mut(0), &mut 1);
+        assert_eq!(vec2!(1, 2).get_2_mut(0), Some(&mut vec2p!(1, 2)));
+        assert_eq!(vec4p!(1, 2, 3, 4).get_2_mut(1), Some(&mut vec2p!(2, 3)));
+        assert_eq!(vec4!(1, 2, 3, 4).get_4_mut(1), None);
+        assert_eq!(vec4p!(1, 2, 3, 4).get_2_mut(3), None);
+
+        unsafe {
+            assert_eq!(vec2!(1, 2).get_mut_unchecked(0), &mut 1);
+            assert_eq!(vec3p!(1, 2, 3).get_mut_unchecked(1), &mut 2);
+            assert_eq!(vec4!(1, 2, 3, 4).get_mut_unchecked(3), &mut 4);
+            assert_eq!(vec2!(1, 2).get_2_mut_unchecked(0), &mut vec2p!(1, 2));
+            assert_eq!(vec4p!(1, 2, 3, 4).get_2_mut_unchecked(1), &mut vec2p!(2, 3));
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_index_panic() {
+        let _ = vec2!(1, 2)[2];
+    }
+}

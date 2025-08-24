@@ -119,17 +119,26 @@ repetitive! {
             @for
                 len_0 in 1..=N,
 
-                idx_0 in 0..=N - len_0
+                idx_0 in 0..=N - len_0,
             {
                 @let x = components[idx_0..idx_0 + len_0];
+                @let x_type = if len_0 > 1 {
+                    @{ &mut Vector<@len_0, T, VecPacked> }
+                } else {
+                    @{ &mut T }
+                };
 
-                @if len_0 > 1 { #[doc = @("Returns a mutable reference to a sub-vector of the vector.")] }
-                @if len_0 == 1 { #[doc = @("Returns a mutable reference to the component of the vector.")] }
+                @let fn_name = @[x.concat_ident() '_mut];
+
+                @let doc = if len_0 > 1 {
+                    "Returns a mutable reference to a sub-vector of the vector."
+                } else {
+                    "Returns a mutable reference to the component of the vector."
+                };
+
+                #[doc = @doc]
                 #[inline(always)]
-                pub const fn @[x.concat_ident() '_mut](&mut self)
-                @if len_0 > 1 { -> &mut Vector<@len_0, T, VecPacked> }
-                @if len_0 == 1 { -> &mut T }
-                {
+                pub const fn @fn_name(&mut self) -> @x_type {
                     unsafe {
                         std::mem::transmute(&mut self.array[@idx_0])
                     }
@@ -141,7 +150,7 @@ repetitive! {
                 len_1 in 1..=N,
 
                 idx_0 in 0..=N - len_0,
-                idx_1 in 0..=N - len_1
+                idx_1 in 0..=N - len_1,
             {
                 @if
                     (idx_1 >= idx_0 + len_0)
@@ -149,19 +158,26 @@ repetitive! {
                     @let x = components[idx_0..idx_0 + len_0];
                     @let y = components[idx_1..idx_1 + len_1];
 
+                    @let x_type = if len_0 > 1 {
+                        @{ &mut Vector<@len_0, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+                    @let y_type = if len_1 > 1 {
+                        @{ &mut Vector<@len_1, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+
+                    @let fn_name = @[x.concat_ident() '_ y.concat_ident() '_mut];
+
                     /// Splits the vector into 2 mutable references.
                     #[inline(always)]
-                    pub const fn @[x.concat_ident() '_ y.concat_ident() '_mut](&mut self) -> (
-                        @if len_0 > 1 { &mut Vector<@len_0, T, VecPacked> }
-                        @if len_0 == 1 { &mut T },
-
-                        @if len_1 > 1 { &mut Vector<@len_1, T, VecPacked> }
-                        @if len_1 == 1 { &mut T },
-                    ) {
+                    pub const fn @fn_name(&mut self) -> (@x_type, @y_type) {
                         unsafe {
                             (
                                 std::mem::transmute(&mut self.array[@idx_0]),
-                                std::mem::transmute(&mut self.array[@idx_1])
+                                std::mem::transmute(&mut self.array[@idx_1]),
                             )
                         }
                     }
@@ -175,7 +191,7 @@ repetitive! {
 
                 idx_0 in 0..=N - len_0,
                 idx_1 in 0..=N - len_1,
-                idx_2 in 0..=N - len_2
+                idx_2 in 0..=N - len_2,
             {
                 @if
                     (idx_1 >= idx_0 + len_0)
@@ -185,25 +201,32 @@ repetitive! {
                     @let y = components[idx_1..idx_1 + len_1];
                     @let z = components[idx_2..idx_2 + len_2];
 
+                    @let x_type = if len_0 > 1 {
+                        @{ &mut Vector<@len_0, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+                    @let y_type = if len_1 > 1 {
+                        @{ &mut Vector<@len_1, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+                    @let z_type = if len_2 > 1 {
+                        @{ &mut Vector<@len_2, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+
+                    @let fn_name = @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_mut];
+
                     /// Splits the vector into 3 mutable references.
                     #[inline(always)]
-                    pub const fn @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_mut](&mut self) -> (
-                        @if len_0 > 1 { &mut Vector<@len_0, T, VecPacked> }
-                        @if len_0 == 1 { &mut T },
-
-                        @if len_1 > 1 { &mut Vector<@len_1, T, VecPacked> }
-                        @if len_1 == 1 { &mut T },
-
-                        @if len_2 > 1 { &mut Vector<@len_2, T, VecPacked> }
-                        @if len_2 == 1 { &mut T },
-                    ) {
-                        unsafe {
-                            (
-                                std::mem::transmute(&mut self.array[@idx_0]),
-                                std::mem::transmute(&mut self.array[@idx_1]),
-                                std::mem::transmute(&mut self.array[@idx_2]),
-                            )
-                        }
+                    pub const fn @fn_name(&mut self) -> (@x_type, @y_type, @z_type) {
+                        unsafe {(
+                            std::mem::transmute(&mut self.array[@idx_0]),
+                            std::mem::transmute(&mut self.array[@idx_1]),
+                            std::mem::transmute(&mut self.array[@idx_2]),
+                        )}
                     }
                 }
             }
@@ -217,7 +240,7 @@ repetitive! {
                 idx_0 in 0..=N - len_0,
                 idx_1 in 0..=N - len_1,
                 idx_2 in 0..=N - len_2,
-                idx_3 in 0..=N - len_3
+                idx_3 in 0..=N - len_3,
             {
                 @if
                     (idx_1 >= idx_0 + len_0)
@@ -229,29 +252,38 @@ repetitive! {
                     @let z = components[idx_2..idx_2 + len_2];
                     @let w = components[idx_3..idx_3 + len_3];
 
+                    @let x_type = if len_0 > 1 {
+                        @{ &mut Vector<@len_0, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+                    @let y_type = if len_1 > 1 {
+                        @{ &mut Vector<@len_1, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+                    @let z_type = if len_2 > 1 {
+                        @{ &mut Vector<@len_2, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+                    @let w_type = if len_3 > 1 {
+                        @{ &mut Vector<@len_3, T, VecPacked> }
+                    } else {
+                        @{ &mut T }
+                    };
+
+                    @let fn_name = @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_ w.concat_ident() '_mut];
+
                     /// Splits the vector into 4 mutable references.
                     #[inline(always)]
-                    pub const fn @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_ w.concat_ident() '_mut](&mut self) -> (
-                        @if len_0 > 1 { &mut Vector<@len_0, T, VecPacked> }
-                        @if len_0 == 1 { &mut T },
-
-                        @if len_1 > 1 { &mut Vector<@len_1, T, VecPacked> }
-                        @if len_1 == 1 { &mut T },
-
-                        @if len_2 > 1 { &mut Vector<@len_2, T, VecPacked> }
-                        @if len_2 == 1 { &mut T },
-
-                        @if len_3 > 1 { &mut Vector<@len_3, T, VecPacked> }
-                        @if len_3 == 1 { &mut T },
-                    ) {
-                        unsafe {
-                            (
-                                std::mem::transmute(&mut self.array[@idx_0]),
-                                std::mem::transmute(&mut self.array[@idx_1]),
-                                std::mem::transmute(&mut self.array[@idx_2]),
-                                std::mem::transmute(&mut self.array[@idx_3]),
-                            )
-                        }
+                    pub const fn @fn_name(&mut self) -> (@x_type, @y_type, @z_type, @w_type) {
+                        unsafe {(
+                            std::mem::transmute(&mut self.array[@idx_0]),
+                            std::mem::transmute(&mut self.array[@idx_1]),
+                            std::mem::transmute(&mut self.array[@idx_2]),
+                            std::mem::transmute(&mut self.array[@idx_3]),
+                        )}
                     }
                 }
             }
@@ -401,5 +433,56 @@ repetitive! {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_swizzle() {
+        assert_eq!(vec2!(1, 2).xxy(), vec3!(1, 1, 2));
+        assert_eq!(vec3!(1, 2, 3).xyzx(), vec4!(1, 2, 3, 1));
+        assert_eq!(vec4!(1, 2, 3, 4).xyzw(), vec4!(1, 2, 3, 4));
+        assert_eq!(vec2!(1, 2).y(), 2);
+
+        assert_eq!(vec2p!(false, true).xyx(), vec3p!(false, true, false));
+        assert_eq!(vec2p!(false, true).y(), true);
+    }
+
+    #[test]
+    fn test_swizzle_ref() {
+        assert_eq!(vec2!(1, 2).x_ref(), &1);
+        assert_eq!(vec3p!(1, 2, 3).yz_ref(), &vec2p!(2, 3));
+    }
+
+    #[test]
+    fn test_swizzle_mut() {
+        assert_eq!(vec2!(1, 2).x_mut(), &mut 1);
+        assert_eq!(vec3p!(1, 2, 3).yz_mut(), &mut vec2p!(2, 3));
+        assert_eq!(vec4p!(1, 2, 3, 4).xy_z_mut(), (&mut vec2p!(1, 2), &mut 3));
+    }
+
+    #[test]
+    fn test_swizzle_set() {
+        let mut vec = vec2!(1, 2);
+        vec.set_x(3);
+        assert_eq!(vec, vec2!(3, 2));
+
+        let mut vec = vec3p!(1, 2, 3);
+        vec.set_zx(vec2!(4, 5));
+        assert_eq!(vec, vec3p!(5, 2, 4));
+
+        let mut vec = vec4p!(1, 2, 3, 4);
+        vec.set_xzyw(vec4p!(5, 6, 7, 8));
+        assert_eq!(vec, vec4p!(5, 7, 6, 8));
+    }
+
+    #[test]
+    fn test_swizzle_with() {
+        assert_eq!(vec2!(1, 2).with_x(3), vec2!(3, 2));
+        assert_eq!(vec3p!(1, 2, 3).with_y(4), vec3p!(1, 4, 3));
+        assert_eq!(vec4!(1, 2, 3, 4).with_zx(vec2!(5, 6)), vec4p!(6, 2, 5, 4));
     }
 }

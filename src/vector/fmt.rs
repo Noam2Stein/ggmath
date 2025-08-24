@@ -25,3 +25,17 @@ where
         write!(f, "({})", self.to_array().map(|c| c.to_string()).join(", "))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!(format!("{:?}", vec2!(1, 2)), "(1, 2)");
+        assert_eq!(format!("{}", vec3p!(1, 2, 3)), "(1, 2, 3)");
+
+        assert_eq!(format!("{:?}", vec2!(1.0, 2.0)), "(1.0, 2.0)");
+        assert_eq!(format!("{}", vec4p!(1.0, 2.0, 3.0, 4.0)), "(1, 2, 3, 4)");
+    }
+}

@@ -107,3 +107,44 @@ where
         self.as_array_mut().iter_mut()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_iterator() {
+        assert_eq!(Vec2::from_fn(|i| i + 1), vec2!(1, 2));
+        assert_eq!(
+            vec4!(1, 2, 3, 4).map(|x| (x + 1) as f64),
+            vec4!(2.0, 3.0, 4.0, 5.0)
+        );
+        assert_eq!(
+            vec4!(1, 2, 3, 4).map_ref(|x| (*x + 1) as f64),
+            vec4!(2.0, 3.0, 4.0, 5.0)
+        );
+        assert_eq!(
+            vec4!(1, 2, 3, 4).map_rhs(vec4!(5, 6, 7, 8), |x, y| x + y),
+            vec4!(6, 8, 10, 12)
+        );
+        assert_eq!(
+            vec4!(1, 2, 3, 4).map_ref_rhs(&vec4!(5, 6, 7, 8), |x, y| x + y),
+            vec4!(6, 8, 10, 12)
+        );
+
+        assert_eq!(vec2!(1, 2).into_iter().collect::<Vec<_>>(), vec![1, 2]);
+        assert_eq!(vec2!(1, 2).iter_ref().collect::<Vec<_>>(), vec![&1, &2]);
+        assert_eq!(
+            vec2!(1, 2).iter_mut().collect::<Vec<_>>(),
+            vec![&mut 1, &mut 2]
+        );
+        assert_eq!((&vec2!(1, 2)).into_iter().collect::<Vec<_>>(), vec![&1, &2]);
+        assert_eq!(
+            (&mut vec2!(1, 2)).into_iter().collect::<Vec<_>>(),
+            vec![&mut 1, &mut 2]
+        );
+
+        assert_eq!(vec2!(1, 2).fold(|x, y| x + y), 3);
+        assert_eq!(vec4!(1, 2, 3, 4).fold(|x, y| (x + y) / 2), 3);
+    }
+}

@@ -43,6 +43,24 @@ pub const fn splat4p<T: Scalar>(value: T) -> Vec4P<T> {
     Vector::splat(value)
 }
 
+/// Creates a `Vector<2, _, _>` where all components are given the same value.
+#[inline(always)]
+pub const fn splat2g<T: Scalar, A: VecAlignment>(value: T) -> Vector<2, T, A> {
+    Vector::splat(value)
+}
+
+/// Creates a `Vector<3, _, _>` where all components are given the same value.
+#[inline(always)]
+pub const fn splat3g<T: Scalar, A: VecAlignment>(value: T) -> Vector<3, T, A> {
+    Vector::splat(value)
+}
+
+/// Creates a `Vector<4, _, _>` where all components are given the same value.
+#[inline(always)]
+pub const fn splat4g<T: Scalar, A: VecAlignment>(value: T) -> Vector<4, T, A> {
+    Vector::splat(value)
+}
+
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
@@ -58,6 +76,10 @@ where
 
 repetitive! {
     @for N in 2..=4 {
+        @let vecn = @['vec N];
+        @let vecnp = @['vec N 'p];
+        @let vecng = @['vec N 'g];
+
         /// Constructs a new aligned vector from flexible arguments like shaders.
         ///
         /// ```
@@ -68,7 +90,7 @@ repetitive! {
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
         /// ```
         #[macro_export]
-        macro_rules! @['vec N] {
+        macro_rules! @vecn {
             ($($item:expr), * $(,)?) => {{
                 let output: $crate::Vector<@N, _, $crate::VecAligned>
                     = $crate::new_vector::<@N, _, $crate::VecAligned, _>(($($item,)*));
@@ -87,7 +109,7 @@ repetitive! {
         /// const EXAMPLE_4: Vec4<f32> = vec4!(1.0, EXAMPLE_2, 4.0);
         /// ```
         #[macro_export]
-        macro_rules! @['vec N 'p] {
+        macro_rules! @vecnp {
             ($($item:expr), * $(,)?) => {{
                 let output: $crate::Vector<@N, _, $crate::VecPacked>
                     = $crate::new_vector::<@N, _, $crate::VecPacked, _>(($($item,)*));
@@ -103,7 +125,7 @@ repetitive! {
         ///
         /// Instead, it is not specified and requires an inference hint.
         #[macro_export]
-        macro_rules! @['vec N 'g] {
+        macro_rules! @vecng {
             ($($item:expr), * $(,)?) => {{
                 let output: $crate::Vector<@N, _, _>
                     = $crate::new_vector::<@N, _, _, _>(($($item,)*));
@@ -269,5 +291,52 @@ repetitive! {
                 ];
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_splat() {
+        assert_eq!(splat2(1), Vec2::from_array([1; 2]));
+        assert_eq!(splat3(1), Vec3::from_array([1; 3]));
+        assert_eq!(splat4(1), Vec4::from_array([1; 4]));
+        assert_eq!(splat2p(1), Vec2P::from_array([1; 2]));
+        assert_eq!(splat3p(1), Vec3P::from_array([1; 3]));
+        assert_eq!(splat4p(1), Vec4P::from_array([1; 4]));
+
+        assert_eq!(splat2g::<_, VecAligned>(1), Vec2::from_array([1; 2]));
+        assert_eq!(splat3g::<_, VecPacked>(1), Vec3::from_array([1; 3]));
+        assert_eq!(splat4g::<_, VecAligned>(1), Vec4::from_array([1; 4]));
+    }
+
+    #[test]
+    fn test_vecn() {
+        assert_eq!(vec2!(1, 2), Vec2::from_array([1, 2]));
+        assert_eq!(vec3!(1, 2, 3), Vec3::from_array([1, 2, 3]));
+        assert_eq!(vec4!(1, vec2p!(2, 3), 4), Vec4::from_array([1, 2, 3, 4]));
+        assert_eq!(
+            vec4p!(vec2p!(1, 2), vec2!(3, 4)),
+            Vec4::from_array([1, 2, 3, 4])
+        );
+
+        assert!(<Vec2<u32> as PartialEq>::eq(
+            &vec2g!(1, 2),
+            &Vec2::from_array([1, 2])
+        ));
+        assert!(<Vec3<u32> as PartialEq>::eq(
+            &vec3g!(1, 2, 3),
+            &Vec3::from_array([1, 2, 3])
+        ));
+        assert!(<Vec4<u32> as PartialEq>::eq(
+            &vec4g!(1, vec2p!(2, 3), 4),
+            &Vec4::from_array([1, 2, 3, 4])
+        ));
+        assert!(<Vec4P<u32> as PartialEq>::eq(
+            &vec4g!(vec2p!(1, 2), vec2!(3, 4)),
+            &Vec4P::from_array([1, 2, 3, 4])
+        ));
     }
 }

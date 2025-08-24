@@ -791,3 +791,41 @@ where
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_resolve() {
+        assert_eq!(vec2!(1, 2).resolve(), ResolvedVector::Aligned(vec2!(1, 2)));
+        assert_eq!(
+            vec3p!(1, 2, 3).resolve(),
+            ResolvedVector::Packed(vec3p!(1, 2, 3))
+        );
+
+        assert_eq!(
+            vec2!(1, 2).resolve_ref(),
+            ResolvedVectorRef::Aligned(&vec2!(1, 2))
+        );
+        assert_eq!(
+            vec3p!(1, 2, 3).resolve_ref(),
+            ResolvedVectorRef::Packed(&vec3p!(1, 2, 3))
+        );
+
+        assert_eq!(
+            vec2!(1, 2).resolve_mut(),
+            ResolvedVectorMut::Aligned(&mut vec2!(1, 2))
+        );
+        assert_eq!(
+            vec3p!(1, 2, 3).resolve_mut(),
+            ResolvedVectorMut::Packed(&mut vec3p!(1, 2, 3))
+        );
+
+        assert_eq!(Vec2::resolved(vec2!(1, 2), vec2p!(3, 4)), vec2!(1, 2));
+        assert_eq!(
+            Vec3P::resolved(vec3!(1, 2, 3), vec3p!(3, 4, 5)),
+            vec3!(3, 4, 5)
+        );
+    }
+}
