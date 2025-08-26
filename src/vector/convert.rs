@@ -1,5 +1,5 @@
 use std::{
-    mem::transmute,
+    mem::{transmute, transmute_copy},
     slice::{from_raw_parts, from_raw_parts_mut},
 };
 
@@ -87,10 +87,16 @@ where
     /// If `A` is `VecAligned`, this will perform a copy instruction to align the vector.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
-        Self {
-            array,
-            _align: <A::Alignment<N, T> as AlignTrait>::VALUE,
-        }
+        let mut output = match (N, A::IS_ALIGNED) {
+            (2, true) => unsafe { transmute_copy::<T::InnerVec2A, Self>(&T::INNER_VEC2A_GARBAGE) },
+            (3, true) => unsafe { transmute_copy::<T::InnerVec3A, Self>(&T::INNER_VEC3A_GARBAGE) },
+            (4, true) => unsafe { transmute_copy::<T::InnerVec4A, Self>(&T::INNER_VEC4A_GARBAGE) },
+            (_, false) => unsafe { transmute_copy::<[T; N], Self>(&[0; N]) },
+        };
+
+        *output.as_array_mut() = array;
+
+        output
     }
 
     /// Converts the vector into an array.

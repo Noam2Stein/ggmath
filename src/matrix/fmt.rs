@@ -14,8 +14,8 @@ where
     }
 }
 
-impl<const C: usize, const R: usize, T: Scalar + Display, A: VecAlignment, M: MatMajorAxis>
-    Display for Matrix<C, R, T, A, M>
+impl<const C: usize, const R: usize, T: Scalar + Display, A: VecAlignment, M: MatMajorAxis> Display
+    for Matrix<C, R, T, A, M>
 where
     Usize<C>: VecLen,
     Usize<R>: VecLen,

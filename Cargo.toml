@@ -1,6 +1,6 @@
 [workspace]
 
-members = [ ".", "bench_analyser", "sandbox" ]
+members = [ ".", "bench_analyser", "codegen", "sandbox" ]
 
 [package]
 categories = [
@@ -20,13 +20,21 @@ version = "0.12.3"
 
 [features]
 aabb              = [ "vector" ]
+aliases           = [  ]
 matrix            = [ "vector" ]
-primitive_aliases = [  ]
+primitive_aliases = [ "aliases" ]
 quaternion        = [ "vector" ]
 vector            = [  ]
 
-default = [ "matrix", "primitive_aliases", "quaternion", "vector" ]
-full    = [ "aabb", "matrix", "primitive_aliases", "quaternion", "vector" ]
+default = [ "aliases", "matrix", "primitive_aliases", "quaternion", "vector" ]
+full = [
+    "aabb",
+    "aliases",
+    "matrix",
+    "primitive_aliases",
+    "quaternion",
+    "vector",
+]
 
 backward = [  ]
 down     = [  ]
@@ -36,9 +44,7 @@ right    = [  ]
 up       = [  ]
 
 [dependencies]
-derive-where  = "1.2.7"
-repetitive    = "0.1.6"
-splat_attribs = "1.0.0"
+paste = "1.0.14"
 
 crevice = { version = "0.18.0", optional = true }
 serde   = { version = "1.0.219", optional = true }

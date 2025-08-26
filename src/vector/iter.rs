@@ -4,7 +4,7 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    /// Creates a vector, where each element T is the returned value from `cb` using that element’s index.
+    /// Creates a vector, where each element T is the returned value from `cb` using that element's index.
     #[inline(always)]
     pub fn from_fn(cb: impl FnMut(usize) -> T) -> Self {
         Vector::from_array(std::array::from_fn(cb))
@@ -113,6 +113,7 @@ mod tests {
     use super::*;
 
     #[test]
+
     fn test_iterator() {
         assert_eq!(Vec2::from_fn(|i| i + 1), vec2!(1, 2));
         assert_eq!(

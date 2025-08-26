@@ -1,441 +1,2987 @@
 use super::*;
 
-repetitive! {
-    @let ordinals = ["1st", "2nd", "3rd", "4th"];
-
-    // Get
-    @for N in 2..=4 {
-        @let components = ['x, 'y, 'z, 'w][0..N];
-
-        impl<T: Scalar, A: VecAlignment> Vector<@N, T, A> {
-            // Get
-
-            @for x_idx in 0..N {
-                @let x = components[x_idx];
-                @let c = @str["`" x "`"];
-
-                @let x_ordinal = ordinals[x_idx];
-                @let c_ordinals = @str[x_ordinal];
-
-                @let fn_name = x;
-
-                #[doc = @str["Returns the " c " (" c_ordinals ") component of the vector."]]
-                #[inline(always)]
-                pub const fn @fn_name(self) -> T {
-                    self.array[@x_idx]
-                }
-            }
-
-            @for x_idx in 0..N, y_idx in 0..N {
-                @let x = components[x_idx];
-                @let y = components[y_idx];
-                @let c = @str["`" x "` and `" y "`"];
-
-                @let x_ordinal = ordinals[x_idx];
-                @let y_ordinal = ordinals[y_idx];
-                @let c_ordinals = @str[x_ordinal " and " y_ordinal];
-
-                @let fn_name = @[x y];
-
-                #[doc = @str["Returns the " c " (" c_ordinals ") components of the vector."]]
-                #[inline(always)]
-                pub fn @fn_name(self) -> Vector<2, T, A> {
-                    T::to_vec2_swizzle::<@N, A, @x_idx, @y_idx>(self)
-                }
-            }
-
-            @for x_idx in 0..N, y_idx in 0..N, z_idx in 0..N {
-                @let x = components[x_idx];
-                @let y = components[y_idx];
-                @let z = components[z_idx];
-                @let c = @str["`" x "`, `" y "` and `" z "`"];
-
-                @let x_ordinal = ordinals[x_idx];
-                @let y_ordinal = ordinals[y_idx];
-                @let z_ordinal = ordinals[z_idx];
-                @let c_ordinals = @str[x_ordinal ", " y_ordinal " and " z_ordinal];
-
-                @let fn_name = @[x y z];
-
-                #[doc = @str["Returns the " c " (" c_ordinals ") components of the vector."]]
-                #[inline(always)]
-                pub fn @fn_name(self) -> Vector<3, T, A> {
-                    T::to_vec3_swizzle::<@N, A, @x_idx, @y_idx, @z_idx>(self)
-                }
-            }
-
-            @for x_idx in 0..N, y_idx in 0..N, z_idx in 0..N, w_idx in 0..N {
-                @let x = components[x_idx];
-                @let y = components[y_idx];
-                @let z = components[z_idx];
-                @let w = components[w_idx];
-                @let c = @str["`" x "`, `" y "`, `" z "` and `" w "`"];
-
-                @let x_ordinal = ordinals[x_idx];
-                @let y_ordinal = ordinals[y_idx];
-                @let z_ordinal = ordinals[z_idx];
-                @let w_ordinal = ordinals[w_idx];
-                @let c_ordinals = @str[x_ordinal ", " y_ordinal ", " z_ordinal " and " w_ordinal];
-
-                @let fn_name = @[x y z w];
-
-                #[doc = @str["Returns the " c " (" c_ordinals ") components of the vector."]]
-                #[inline(always)]
-                pub fn @fn_name(self) -> Vector<4, T, A> {
-                    T::to_vec4_swizzle::<@N, A, @x_idx, @y_idx, @z_idx, @w_idx>(self)
-                }
-            }
-
-            // Get Ref
-
-            @for [x_idx, x] in components.enumerate() {
-                @let c_name = @str[x];
-                @let c_ordinal = @str[ordinals[x_idx]];
-
-                #[doc = @str["Returns a reference to the `" c_name "` (" c_ordinal ") component of the vector."]]
-                #[inline(always)]
-                pub const fn @[x '_ref](&self) -> &T {
-                    &self.array[@x_idx]
-                }
-            }
-
-            @for NOutput in 2..=N, x_idx in 0..=N - NOutput {
-                @let ref_components = components[x_idx..x_idx + NOutput];
-
-                #[doc = @str["Returns a reference to the " ref_components.concat_string() " part of the vector."]]
-                #[inline(always)]
-                pub const fn @[ref_components.concat_string() '_ref](&self) -> &Vector<@NOutput, T, VecPacked> {
-                    unsafe {
-                        std::mem::transmute::<
-                            &T,
-                            &Vector<@NOutput, T, VecPacked>
-                        >(&self.array[@x_idx])
-                    }
-                }
-            }
-
-            // Get Mut
-
-            @for
-                len_0 in 1..=N,
-
-                idx_0 in 0..=N - len_0,
-            {
-                @let x = components[idx_0..idx_0 + len_0];
-                @let x_type = if len_0 > 1 {
-                    @{ &mut Vector<@len_0, T, VecPacked> }
-                } else {
-                    @{ &mut T }
-                };
-
-                @let fn_name = @[x.concat_ident() '_mut];
-
-                @let doc = if len_0 > 1 {
-                    "Returns a mutable reference to a sub-vector of the vector."
-                } else {
-                    "Returns a mutable reference to the component of the vector."
-                };
-
-                #[doc = @doc]
-                #[inline(always)]
-                pub const fn @fn_name(&mut self) -> @x_type {
-                    unsafe {
-                        std::mem::transmute(&mut self.array[@idx_0])
-                    }
-                }
-            }
-
-            @for
-                len_0 in 1..=N,
-                len_1 in 1..=N,
-
-                idx_0 in 0..=N - len_0,
-                idx_1 in 0..=N - len_1,
-            {
-                @if
-                    (idx_1 >= idx_0 + len_0)
-                {
-                    @let x = components[idx_0..idx_0 + len_0];
-                    @let y = components[idx_1..idx_1 + len_1];
-
-                    @let x_type = if len_0 > 1 {
-                        @{ &mut Vector<@len_0, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-                    @let y_type = if len_1 > 1 {
-                        @{ &mut Vector<@len_1, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-
-                    @let fn_name = @[x.concat_ident() '_ y.concat_ident() '_mut];
-
-                    /// Splits the vector into 2 mutable references.
-                    #[inline(always)]
-                    pub const fn @fn_name(&mut self) -> (@x_type, @y_type) {
-                        unsafe {
-                            (
-                                std::mem::transmute(&mut self.array[@idx_0]),
-                                std::mem::transmute(&mut self.array[@idx_1]),
-                            )
-                        }
-                    }
-                }
-            }
-
-            @for
-                len_0 in 1..=N,
-                len_1 in 1..=N,
-                len_2 in 1..=N,
-
-                idx_0 in 0..=N - len_0,
-                idx_1 in 0..=N - len_1,
-                idx_2 in 0..=N - len_2,
-            {
-                @if
-                    (idx_1 >= idx_0 + len_0)
-                    && (idx_2 >= idx_1 + len_1)
-                {
-                    @let x = components[idx_0..idx_0 + len_0];
-                    @let y = components[idx_1..idx_1 + len_1];
-                    @let z = components[idx_2..idx_2 + len_2];
-
-                    @let x_type = if len_0 > 1 {
-                        @{ &mut Vector<@len_0, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-                    @let y_type = if len_1 > 1 {
-                        @{ &mut Vector<@len_1, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-                    @let z_type = if len_2 > 1 {
-                        @{ &mut Vector<@len_2, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-
-                    @let fn_name = @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_mut];
-
-                    /// Splits the vector into 3 mutable references.
-                    #[inline(always)]
-                    pub const fn @fn_name(&mut self) -> (@x_type, @y_type, @z_type) {
-                        unsafe {(
-                            std::mem::transmute(&mut self.array[@idx_0]),
-                            std::mem::transmute(&mut self.array[@idx_1]),
-                            std::mem::transmute(&mut self.array[@idx_2]),
-                        )}
-                    }
-                }
-            }
-
-            @for
-                len_0 in 1..=N,
-                len_1 in 1..=N,
-                len_2 in 1..=N,
-                len_3 in 1..=N,
-
-                idx_0 in 0..=N - len_0,
-                idx_1 in 0..=N - len_1,
-                idx_2 in 0..=N - len_2,
-                idx_3 in 0..=N - len_3,
-            {
-                @if
-                    (idx_1 >= idx_0 + len_0)
-                    && (idx_2 >= idx_1 + len_1)
-                    && (idx_3 >= idx_2 + len_2)
-                {
-                    @let x = components[idx_0..idx_0 + len_0];
-                    @let y = components[idx_1..idx_1 + len_1];
-                    @let z = components[idx_2..idx_2 + len_2];
-                    @let w = components[idx_3..idx_3 + len_3];
-
-                    @let x_type = if len_0 > 1 {
-                        @{ &mut Vector<@len_0, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-                    @let y_type = if len_1 > 1 {
-                        @{ &mut Vector<@len_1, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-                    @let z_type = if len_2 > 1 {
-                        @{ &mut Vector<@len_2, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-                    @let w_type = if len_3 > 1 {
-                        @{ &mut Vector<@len_3, T, VecPacked> }
-                    } else {
-                        @{ &mut T }
-                    };
-
-                    @let fn_name = @[x.concat_ident() '_ y.concat_ident() '_ z.concat_ident() '_ w.concat_ident() '_mut];
-
-                    /// Splits the vector into 4 mutable references.
-                    #[inline(always)]
-                    pub const fn @fn_name(&mut self) -> (@x_type, @y_type, @z_type, @w_type) {
-                        unsafe {(
-                            std::mem::transmute(&mut self.array[@idx_0]),
-                            std::mem::transmute(&mut self.array[@idx_1]),
-                            std::mem::transmute(&mut self.array[@idx_2]),
-                            std::mem::transmute(&mut self.array[@idx_3]),
-                        )}
-                    }
-                }
-            }
-
-            // Set
-
-            @for [x_idx, x] in components.enumerate() {
-                @let c_name = @str[x];
-                @let c_ordinal = @str[ordinals[x_idx]];
-
-                #[doc = @str["Sets the `" c_name "` (" c_ordinal ") component of the vector."]]
-                #[inline(always)]
-                pub const fn @['set_ x](&mut self, value: T) {
-                    self.array[@x_idx] = value;
-                }
-            }
-
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-            {
-                @if x != y {
-                    @let c_names = @str[x " and " y];
-                    @let c_ordinals = @str[ordinals[x_idx] " and " ordinals[y_idx]];
-
-                    #[doc = @str["Sets the `" c_names "` (" c_ordinals ") components of the vector."]]
-                    #[inline(always)]
-                    pub const fn @['set_ x y](&mut self, value: Vector<2, T, impl VecAlignment>) {
-                        self.@['set_ x](value.x());
-                        self.@['set_ y](value.y());
-                    }
-                }
-            }
-
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-                [z_idx, z] in components.enumerate()
-            {
-                @if x != y && x != z && y != z {
-                    @let c_names = @str[x ", " y " and " z];
-                    @let c_ordinals = @str[ordinals[x_idx] ", " ordinals[y_idx] " and " ordinals[z_idx]];
-
-                    #[doc = @str["Sets the `" c_names "` (" c_ordinals ") components of the vector."]]
-                    #[inline(always)]
-                    pub const fn @['set_ x y z](&mut self, value: Vector<3, T, impl VecAlignment>) {
-                        self.@['set_ x](value.x());
-                        self.@['set_ y](value.y());
-                        self.@['set_ z](value.z());
-                    }
-                }
-            }
-
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-                [z_idx, z] in components.enumerate(),
-                [w_idx, w] in components.enumerate()
-            {
-                @if x != y && x != z && x != w && y != z && y != w && z != w {
-                    @let c_names = @str[x ", " y ", " z " and " w];
-                    @let c_ordinals = @str[ordinals[x_idx] ", " ordinals[y_idx] ", " ordinals[z_idx] " and " ordinals[w_idx]];
-
-                    #[doc = @str["Sets the `" c_names "` (" c_ordinals ") components of the vector."]]
-                    #[inline(always)]
-                    pub const fn @['set_ x y z w](&mut self, value: Vector<4, T, impl VecAlignment>) {
-                        self.@['set_ x](value.x());
-                        self.@['set_ y](value.y());
-                        self.@['set_ z](value.z());
-                        self.@['set_ w](value.w());
-                    }
-                }
-            }
-
-            // With
-
-            @for [x_idx, x] in components.enumerate() {
-                @let c_name = @str[x];
-                @let c_ordinal = @str[ordinals[x_idx]];
-
-                #[doc = @str["Returns a new vector with the `" c_name "` (" c_ordinal ") component set to the given value."]]
-                #[inline(always)]
-                pub const fn @['with_ x](mut self, value: T) -> Self {
-                    self.array[@x_idx] = value;
-
-                    self
-                }
-            }
-
-            @for [x_idx, x] in components.enumerate(), [y_idx, y] in components.enumerate() {
-                @if x != y {
-                    @let c_names = @str[x " and " y];
-                    @let c_ordinals = @str[ordinals[x_idx] " and " ordinals[y_idx]];
-
-                    #[doc = @str["Returns a new vector with the `" c_names "` (" c_ordinals ") components set to the given value."]]
-                    #[inline(always)]
-                    pub const fn @['with_ x y](mut self, value: Vector<2, T, impl VecAlignment>) -> Self {
-                        self.@['set_ x](value.x());
-                        self.@['set_ y](value.y());
-
-                        self
-                    }
-                }
-            }
-
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-                [z_idx, z] in components.enumerate()
-            {
-                @if x != y && x != z && y != z {
-                    @let c_names = @str[x ", " y " and " z];
-                    @let c_ordinals = @str[ordinals[x_idx] ", " ordinals[y_idx] " and " ordinals[z_idx]];
-
-                    #[doc = @str["Returns a new vector with the `" c_names "` (" c_ordinals ") components set to the given value."]]
-                    #[inline(always)]
-                    pub const fn @['with_ x y z](mut self, value: Vector<3, T, impl VecAlignment>) -> Self {
-                        self.@['set_ x](value.x());
-                        self.@['set_ y](value.y());
-                        self.@['set_ z](value.z());
-
-                        self
-                    }
-                }
-            }
-
-            @for
-                [x_idx, x] in components.enumerate(),
-                [y_idx, y] in components.enumerate(),
-                [z_idx, z] in components.enumerate(),
-                [w_idx, w] in components.enumerate()
-            {
-                @if x != y && x != z && x != w && y != z && y != w && z != w {
-                    @let c_names = @str[x ", " y ", " z " and " w];
-                    @let c_ordinals = @str[ordinals[x_idx] ", " ordinals[y_idx] ", " ordinals[z_idx] " and " ordinals[w_idx]];
-
-                    #[doc = @str["Returns a new vector with the `" c_names "` (" c_ordinals ") components set to the given value."]]
-                    #[inline(always)]
-                    pub const fn @['with_ x y z w](mut self, value: Vector<4, T, impl VecAlignment>) -> Self {
-                        self.@['set_ x](value.x());
-                        self.@['set_ y](value.y());
-                        self.@['set_ z](value.z());
-                        self.@['set_ w](value.w());
-
-                        self
-                    }
-                }
-            }
-        }
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns the `x` (1st) component of the vector.
+    #[inline(always)]
+    pub const fn x(self) -> T {
+        self.array[0]
+    }
+
+    /// Returns the `y` (2nd) component of the vector.
+    #[inline(always)]
+    pub const fn y(self) -> T {
+        self.array[1]
     }
 }
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns a vector with the `x` and `x` (1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[0]])
+    }
 
+    /// Returns a vector with the `x` and `y` (1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `y` and `x` (2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y` and `y` (2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[1]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns the `x` (1st) component of the vector.
+    #[inline(always)]
+    pub const fn x(self) -> T {
+        self.array[0]
+    }
+
+    /// Returns the `y` (2nd) component of the vector.
+    #[inline(always)]
+    pub const fn y(self) -> T {
+        self.array[1]
+    }
+
+    /// Returns the `z` (3rd) component of the vector.
+    #[inline(always)]
+    pub const fn z(self) -> T {
+        self.array[2]
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns a vector with the `x` and `x` (1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x` and `y` (1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x` and `z` (1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xz(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `y` and `x` (2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y` and `y` (2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y` and `z` (2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yz(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `z` and `x` (3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z` and `y` (3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z` and `z` (3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zz(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[2], self.array[2]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns a vector with the `x`, `x` and `x` (1st, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xxx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `x` and `y` (1st, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `x` and `z` (1st, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `y` and `x` (1st, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xyx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `y` and `y` (1st, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `y` and `z` (1st, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `z` and `x` (1st, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xzx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `z` and `y` (1st, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `z` and `z` (1st, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `x` and `x` (2nd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yxx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `x` and `y` (2nd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `x` and `z` (2nd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `y` and `x` (2nd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yyx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `y` and `y` (2nd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `y` and `z` (2nd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `z` and `x` (2nd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yzx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `z` and `y` (2nd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `z` and `z` (2nd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `x` and `x` (3rd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zxx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `x` and `y` (3rd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `x` and `z` (3rd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `y` and `x` (3rd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zyx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `y` and `y` (3rd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `y` and `z` (3rd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `z` and `x` (3rd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zzx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `z` and `y` (3rd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `z` and `z` (3rd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[2]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns the `x` (1st) component of the vector.
+    #[inline(always)]
+    pub const fn x(self) -> T {
+        self.array[0]
+    }
+
+    /// Returns the `y` (2nd) component of the vector.
+    #[inline(always)]
+    pub const fn y(self) -> T {
+        self.array[1]
+    }
+
+    /// Returns the `z` (3rd) component of the vector.
+    #[inline(always)]
+    pub const fn z(self) -> T {
+        self.array[2]
+    }
+
+    /// Returns the `w` (4th) component of the vector.
+    #[inline(always)]
+    pub const fn w(self) -> T {
+        self.array[3]
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns a vector with the `x` and `x` (1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x` and `y` (1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x` and `z` (1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xz(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `x` and `w` (1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xw(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `y` and `x` (2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y` and `y` (2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y` and `z` (2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yz(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `y` and `w` (2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yw(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `z` and `x` (3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z` and `y` (3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z` and `z` (3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zz(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `z` and `w` (3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zw(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `w` and `x` (4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wx(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `w` and `y` (4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wy(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `w` and `z` (4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wz(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `w` and `w` (4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn ww(self) -> Vector<2, T, A> {
+        Vector::from_array([self.array[3], self.array[3]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns a vector with the `x`, `x` and `x` (1st, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xxx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `x` and `y` (1st, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `x` and `z` (1st, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `x` and `w` (1st, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xxw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `y` and `x` (1st, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xyx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `y` and `y` (1st, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `y` and `z` (1st, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `y` and `w` (1st, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xyw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `z` and `x` (1st, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xzx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `z` and `y` (1st, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `z` and `z` (1st, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `z` and `w` (1st, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xzw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `w` and `x` (1st, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xwx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `w` and `y` (1st, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `w` and `z` (1st, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `w` and `w` (1st, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xww(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `x` and `x` (2nd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yxx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `x` and `y` (2nd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `x` and `z` (2nd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `x` and `w` (2nd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yxw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `y` and `x` (2nd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yyx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `y` and `y` (2nd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `y` and `z` (2nd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `y` and `w` (2nd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yyw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `z` and `x` (2nd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yzx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `z` and `y` (2nd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `z` and `z` (2nd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `z` and `w` (2nd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yzw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `w` and `x` (2nd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn ywx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `w` and `y` (2nd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `w` and `z` (2nd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `w` and `w` (2nd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yww(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `x` and `x` (3rd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zxx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `x` and `y` (3rd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `x` and `z` (3rd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `x` and `w` (3rd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zxw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `y` and `x` (3rd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zyx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `y` and `y` (3rd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `y` and `z` (3rd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `y` and `w` (3rd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zyw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `z` and `x` (3rd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zzx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `z` and `y` (3rd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `z` and `z` (3rd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `z` and `w` (3rd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zzw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `w` and `x` (3rd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zwx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `w` and `y` (3rd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `w` and `z` (3rd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `w` and `w` (3rd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zww(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `x` and `x` (4th, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wxx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `x` and `y` (4th, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `x` and `z` (4th, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `x` and `w` (4th, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wxw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `y` and `x` (4th, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wyx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `y` and `y` (4th, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `y` and `z` (4th, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `y` and `w` (4th, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wyw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `z` and `x` (4th, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wzx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `z` and `y` (4th, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `z` and `z` (4th, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `z` and `w` (4th, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wzw(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `w` and `x` (4th, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wwx(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `w` and `y` (4th, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwy(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `w` and `z` (4th, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwz(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `w` and `w` (4th, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn www(self) -> Vector<3, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[3]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns a vector with the `x`, `x`, `x` and `x` (1st, 1st, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xxxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `x` and `y` (1st, 1st, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `x` and `z` (1st, 1st, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `x` and `w` (1st, 1st, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xxxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `y` and `x` (1st, 1st, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xxyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `y` and `y` (1st, 1st, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `y` and `z` (1st, 1st, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `y` and `w` (1st, 1st, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xxyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `z` and `x` (1st, 1st, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xxzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `z` and `y` (1st, 1st, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `z` and `z` (1st, 1st, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `z` and `w` (1st, 1st, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xxzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `w` and `x` (1st, 1st, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xxwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `w` and `y` (1st, 1st, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `w` and `z` (1st, 1st, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xxwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `x`, `w` and `w` (1st, 1st, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xxww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[0], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `x` and `x` (1st, 2nd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xyxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `x` and `y` (1st, 2nd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `x` and `z` (1st, 2nd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `x` and `w` (1st, 2nd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xyxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `y` and `x` (1st, 2nd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xyyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `y` and `y` (1st, 2nd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `y` and `z` (1st, 2nd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `y` and `w` (1st, 2nd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xyyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `z` and `x` (1st, 2nd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xyzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `z` and `y` (1st, 2nd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `z` and `z` (1st, 2nd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xyzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `z` and `w` (1st, 2nd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xyzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `w` and `x` (1st, 2nd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xywx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `w` and `y` (1st, 2nd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xywy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `w` and `z` (1st, 2nd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xywz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `y`, `w` and `w` (1st, 2nd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xyww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[1], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `x` and `x` (1st, 3rd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xzxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `x` and `y` (1st, 3rd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `x` and `z` (1st, 3rd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `x` and `w` (1st, 3rd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xzxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `y` and `x` (1st, 3rd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xzyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `y` and `y` (1st, 3rd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `y` and `z` (1st, 3rd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `y` and `w` (1st, 3rd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xzyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `z` and `x` (1st, 3rd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xzzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `z` and `y` (1st, 3rd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `z` and `z` (1st, 3rd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `z` and `w` (1st, 3rd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xzzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `w` and `x` (1st, 3rd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xzwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `w` and `y` (1st, 3rd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `w` and `z` (1st, 3rd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xzwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `z`, `w` and `w` (1st, 3rd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xzww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[2], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `x` and `x` (1st, 4th, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xwxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `x` and `y` (1st, 4th, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `x` and `z` (1st, 4th, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `x` and `w` (1st, 4th, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xwxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `y` and `x` (1st, 4th, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xwyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `y` and `y` (1st, 4th, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `y` and `z` (1st, 4th, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `y` and `w` (1st, 4th, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xwyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `z` and `x` (1st, 4th, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xwzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `z` and `y` (1st, 4th, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `z` and `z` (1st, 4th, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `z` and `w` (1st, 4th, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xwzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `w` and `x` (1st, 4th, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn xwwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `w` and `y` (1st, 4th, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `w` and `z` (1st, 4th, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn xwwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `x`, `w`, `w` and `w` (1st, 4th, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn xwww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[0], self.array[3], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `x` and `x` (2nd, 1st, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yxxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `x` and `y` (2nd, 1st, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `x` and `z` (2nd, 1st, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `x` and `w` (2nd, 1st, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yxxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `y` and `x` (2nd, 1st, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yxyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `y` and `y` (2nd, 1st, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `y` and `z` (2nd, 1st, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `y` and `w` (2nd, 1st, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yxyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `z` and `x` (2nd, 1st, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yxzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `z` and `y` (2nd, 1st, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `z` and `z` (2nd, 1st, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `z` and `w` (2nd, 1st, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yxzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `w` and `x` (2nd, 1st, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yxwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `w` and `y` (2nd, 1st, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `w` and `z` (2nd, 1st, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yxwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `x`, `w` and `w` (2nd, 1st, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yxww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[0], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `x` and `x` (2nd, 2nd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yyxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `x` and `y` (2nd, 2nd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `x` and `z` (2nd, 2nd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `x` and `w` (2nd, 2nd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yyxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `y` and `x` (2nd, 2nd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yyyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `y` and `y` (2nd, 2nd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `y` and `z` (2nd, 2nd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `y` and `w` (2nd, 2nd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yyyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `z` and `x` (2nd, 2nd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yyzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `z` and `y` (2nd, 2nd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `z` and `z` (2nd, 2nd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yyzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `z` and `w` (2nd, 2nd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yyzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `w` and `x` (2nd, 2nd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yywx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `w` and `y` (2nd, 2nd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yywy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `w` and `z` (2nd, 2nd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yywz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `y`, `w` and `w` (2nd, 2nd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yyww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[1], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `x` and `x` (2nd, 3rd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yzxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `x` and `y` (2nd, 3rd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `x` and `z` (2nd, 3rd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `x` and `w` (2nd, 3rd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yzxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `y` and `x` (2nd, 3rd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yzyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `y` and `y` (2nd, 3rd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `y` and `z` (2nd, 3rd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `y` and `w` (2nd, 3rd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yzyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `z` and `x` (2nd, 3rd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yzzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `z` and `y` (2nd, 3rd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `z` and `z` (2nd, 3rd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `z` and `w` (2nd, 3rd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yzzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `w` and `x` (2nd, 3rd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn yzwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `w` and `y` (2nd, 3rd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `w` and `z` (2nd, 3rd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn yzwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `z`, `w` and `w` (2nd, 3rd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn yzww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[2], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `x` and `x` (2nd, 4th, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn ywxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `x` and `y` (2nd, 4th, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `x` and `z` (2nd, 4th, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `x` and `w` (2nd, 4th, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn ywxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `y` and `x` (2nd, 4th, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn ywyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `y` and `y` (2nd, 4th, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `y` and `z` (2nd, 4th, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `y` and `w` (2nd, 4th, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn ywyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `z` and `x` (2nd, 4th, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn ywzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `z` and `y` (2nd, 4th, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `z` and `z` (2nd, 4th, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `z` and `w` (2nd, 4th, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn ywzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `w` and `x` (2nd, 4th, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn ywwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `w` and `y` (2nd, 4th, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `w` and `z` (2nd, 4th, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn ywwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `y`, `w`, `w` and `w` (2nd, 4th, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn ywww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[1], self.array[3], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `x` and `x` (3rd, 1st, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zxxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `x` and `y` (3rd, 1st, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `x` and `z` (3rd, 1st, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `x` and `w` (3rd, 1st, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zxxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `y` and `x` (3rd, 1st, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zxyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `y` and `y` (3rd, 1st, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `y` and `z` (3rd, 1st, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `y` and `w` (3rd, 1st, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zxyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `z` and `x` (3rd, 1st, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zxzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `z` and `y` (3rd, 1st, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `z` and `z` (3rd, 1st, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `z` and `w` (3rd, 1st, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zxzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `w` and `x` (3rd, 1st, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zxwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `w` and `y` (3rd, 1st, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `w` and `z` (3rd, 1st, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zxwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `x`, `w` and `w` (3rd, 1st, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zxww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[0], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `x` and `x` (3rd, 2nd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zyxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `x` and `y` (3rd, 2nd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `x` and `z` (3rd, 2nd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `x` and `w` (3rd, 2nd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zyxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `y` and `x` (3rd, 2nd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zyyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `y` and `y` (3rd, 2nd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `y` and `z` (3rd, 2nd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `y` and `w` (3rd, 2nd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zyyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `z` and `x` (3rd, 2nd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zyzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `z` and `y` (3rd, 2nd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `z` and `z` (3rd, 2nd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zyzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `z` and `w` (3rd, 2nd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zyzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `w` and `x` (3rd, 2nd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zywx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `w` and `y` (3rd, 2nd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zywy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `w` and `z` (3rd, 2nd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zywz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `y`, `w` and `w` (3rd, 2nd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zyww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[1], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `x` and `x` (3rd, 3rd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zzxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `x` and `y` (3rd, 3rd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `x` and `z` (3rd, 3rd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `x` and `w` (3rd, 3rd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zzxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `y` and `x` (3rd, 3rd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zzyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `y` and `y` (3rd, 3rd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `y` and `z` (3rd, 3rd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `y` and `w` (3rd, 3rd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zzyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `z` and `x` (3rd, 3rd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zzzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `z` and `y` (3rd, 3rd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `z` and `z` (3rd, 3rd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `z` and `w` (3rd, 3rd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zzzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `w` and `x` (3rd, 3rd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zzwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `w` and `y` (3rd, 3rd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `w` and `z` (3rd, 3rd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zzwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `z`, `w` and `w` (3rd, 3rd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zzww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[2], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `x` and `x` (3rd, 4th, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zwxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `x` and `y` (3rd, 4th, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `x` and `z` (3rd, 4th, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `x` and `w` (3rd, 4th, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zwxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `y` and `x` (3rd, 4th, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zwyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `y` and `y` (3rd, 4th, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `y` and `z` (3rd, 4th, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `y` and `w` (3rd, 4th, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zwyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `z` and `x` (3rd, 4th, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zwzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `z` and `y` (3rd, 4th, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `z` and `z` (3rd, 4th, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `z` and `w` (3rd, 4th, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zwzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `w` and `x` (3rd, 4th, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn zwwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `w` and `y` (3rd, 4th, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `w` and `z` (3rd, 4th, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn zwwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `z`, `w`, `w` and `w` (3rd, 4th, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn zwww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[2], self.array[3], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `x` and `x` (4th, 1st, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wxxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `x` and `y` (4th, 1st, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `x` and `z` (4th, 1st, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `x` and `w` (4th, 1st, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wxxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `y` and `x` (4th, 1st, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wxyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `y` and `y` (4th, 1st, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `y` and `z` (4th, 1st, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `y` and `w` (4th, 1st, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wxyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `z` and `x` (4th, 1st, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wxzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `z` and `y` (4th, 1st, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `z` and `z` (4th, 1st, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `z` and `w` (4th, 1st, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wxzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `w` and `x` (4th, 1st, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wxwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `w` and `y` (4th, 1st, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `w` and `z` (4th, 1st, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wxwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `x`, `w` and `w` (4th, 1st, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wxww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[0], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `x` and `x` (4th, 2nd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wyxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `x` and `y` (4th, 2nd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `x` and `z` (4th, 2nd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `x` and `w` (4th, 2nd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wyxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `y` and `x` (4th, 2nd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wyyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `y` and `y` (4th, 2nd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `y` and `z` (4th, 2nd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `y` and `w` (4th, 2nd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wyyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `z` and `x` (4th, 2nd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wyzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `z` and `y` (4th, 2nd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `z` and `z` (4th, 2nd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wyzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `z` and `w` (4th, 2nd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wyzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `w` and `x` (4th, 2nd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wywx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `w` and `y` (4th, 2nd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wywy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `w` and `z` (4th, 2nd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wywz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `y`, `w` and `w` (4th, 2nd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wyww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[1], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `x` and `x` (4th, 3rd, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wzxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `x` and `y` (4th, 3rd, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `x` and `z` (4th, 3rd, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `x` and `w` (4th, 3rd, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wzxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `y` and `x` (4th, 3rd, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wzyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `y` and `y` (4th, 3rd, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `y` and `z` (4th, 3rd, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `y` and `w` (4th, 3rd, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wzyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `z` and `x` (4th, 3rd, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wzzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `z` and `y` (4th, 3rd, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `z` and `z` (4th, 3rd, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `z` and `w` (4th, 3rd, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wzzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `w` and `x` (4th, 3rd, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wzwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `w` and `y` (4th, 3rd, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `w` and `z` (4th, 3rd, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wzwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `z`, `w` and `w` (4th, 3rd, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wzww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[2], self.array[3], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `x` and `x` (4th, 4th, 1st and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wwxx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[0], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `x` and `y` (4th, 4th, 1st and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwxy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[0], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `x` and `z` (4th, 4th, 1st and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwxz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[0], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `x` and `w` (4th, 4th, 1st and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wwxw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[0], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `y` and `x` (4th, 4th, 2nd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wwyx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[1], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `y` and `y` (4th, 4th, 2nd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwyy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[1], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `y` and `z` (4th, 4th, 2nd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwyz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[1], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `y` and `w` (4th, 4th, 2nd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wwyw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[1], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `z` and `x` (4th, 4th, 3rd and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wwzx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[2], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `z` and `y` (4th, 4th, 3rd and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwzy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[2], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `z` and `z` (4th, 4th, 3rd and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwzz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[2], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `z` and `w` (4th, 4th, 3rd and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wwzw(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[2], self.array[3]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `w` and `x` (4th, 4th, 4th and 1st) components of the input vector.
+    #[inline(always)]
+    pub const fn wwwx(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[3], self.array[0]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `w` and `y` (4th, 4th, 4th and 2nd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwwy(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[3], self.array[1]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `w` and `z` (4th, 4th, 4th and 3rd) components of the input vector.
+    #[inline(always)]
+    pub const fn wwwz(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[3], self.array[2]])
+    }
+
+    /// Returns a vector with the `w`, `w`, `w` and `w` (4th, 4th, 4th and 4th) components of the input vector.
+    #[inline(always)]
+    pub const fn wwww(self) -> Vector<4, T, A> {
+        Vector::from_array([self.array[3], self.array[3], self.array[3], self.array[3]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns a reference to the `x` (1st) component of the vector.
+    #[inline(always)]
+    pub const fn x_ref(&self) -> &T {
+        &self.array[0]
+    }
+
+    /// Returns a reference to the `y` (2nd) component of the vector.
+    #[inline(always)]
+    pub const fn y_ref(&self) -> &T {
+        &self.array[1]
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns a reference to the `x` and `y` (1st and 2nd) components part of the vector.
+    #[inline(always)]
+    pub const fn xy_ref(&self) -> &Vector<2, T, VecPacked> {
+        self.get_2_ref(0)
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns a reference to the `x` (1st) component of the vector.
+    #[inline(always)]
+    pub const fn x_ref(&self) -> &T {
+        &self.array[0]
+    }
+
+    /// Returns a reference to the `y` (2nd) component of the vector.
+    #[inline(always)]
+    pub const fn y_ref(&self) -> &T {
+        &self.array[1]
+    }
+
+    /// Returns a reference to the `z` (3rd) component of the vector.
+    #[inline(always)]
+    pub const fn z_ref(&self) -> &T {
+        &self.array[2]
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns a reference to the `x` and `y` (1st and 2nd) components part of the vector.
+    #[inline(always)]
+    pub const fn xy_ref(&self) -> &Vector<2, T, VecPacked> {
+        self.get_2_ref(0)
+    }
+
+    /// Returns a reference to the `y` and `z` (2nd and 3rd) components part of the vector.
+    #[inline(always)]
+    pub const fn yz_ref(&self) -> &Vector<2, T, VecPacked> {
+        self.get_2_ref(1)
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns a reference to the `x`, `y` and `z` (1st, 2nd and 3rd) components part of the vector.
+    #[inline(always)]
+    pub const fn xyz_ref(&self) -> &Vector<3, T, VecPacked> {
+        self.get_3_ref(0)
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns a reference to the `x` (1st) component of the vector.
+    #[inline(always)]
+    pub const fn x_ref(&self) -> &T {
+        &self.array[0]
+    }
+
+    /// Returns a reference to the `y` (2nd) component of the vector.
+    #[inline(always)]
+    pub const fn y_ref(&self) -> &T {
+        &self.array[1]
+    }
+
+    /// Returns a reference to the `z` (3rd) component of the vector.
+    #[inline(always)]
+    pub const fn z_ref(&self) -> &T {
+        &self.array[2]
+    }
+
+    /// Returns a reference to the `w` (4th) component of the vector.
+    #[inline(always)]
+    pub const fn w_ref(&self) -> &T {
+        &self.array[3]
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns a reference to the `x` and `y` (1st and 2nd) components part of the vector.
+    #[inline(always)]
+    pub const fn xy_ref(&self) -> &Vector<2, T, VecPacked> {
+        self.get_2_ref(0)
+    }
+
+    /// Returns a reference to the `y` and `z` (2nd and 3rd) components part of the vector.
+    #[inline(always)]
+    pub const fn yz_ref(&self) -> &Vector<2, T, VecPacked> {
+        self.get_2_ref(1)
+    }
+
+    /// Returns a reference to the `z` and `w` (3rd and 4th) components part of the vector.
+    #[inline(always)]
+    pub const fn zw_ref(&self) -> &Vector<2, T, VecPacked> {
+        self.get_2_ref(2)
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns a reference to the `x`, `y` and `z` (1st, 2nd and 3rd) components part of the vector.
+    #[inline(always)]
+    pub const fn xyz_ref(&self) -> &Vector<3, T, VecPacked> {
+        self.get_3_ref(0)
+    }
+
+    /// Returns a reference to the `y`, `z` and `w` (2nd, 3rd and 4th) components part of the vector.
+    #[inline(always)]
+    pub const fn yzw_ref(&self) -> &Vector<3, T, VecPacked> {
+        self.get_3_ref(1)
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns a reference to the `x`, `y`, `z` and `w` (1st, 2nd, 3rd and 4th) components part of the vector.
+    #[inline(always)]
+    pub const fn xyzw_ref(&self) -> &Vector<4, T, VecPacked> {
+        self.get_4_ref(0)
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Sets the `x` and `y` (1st and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_xy(&mut self, value: Vector<2, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[1] = value.array[1];
+    }
+
+    /// Sets the `y` and `x` (2nd and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_yx(&mut self, value: Vector<2, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[0] = value.array[1];
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Sets the `x`, `y` and `z` (1st, 2nd and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_xyz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[2] = value.array[2];
+    }
+
+    /// Sets the `x`, `z` and `y` (1st, 3rd and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_xzy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[1] = value.array[2];
+    }
+
+    /// Sets the `y`, `x` and `z` (2nd, 1st and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_yxz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[2] = value.array[2];
+    }
+
+    /// Sets the `y`, `z` and `x` (2nd, 3rd and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_yzx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[0] = value.array[2];
+    }
+
+    /// Sets the `z`, `x` and `y` (3rd, 1st and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_zxy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[1] = value.array[2];
+    }
+
+    /// Sets the `z`, `y` and `x` (3rd, 2nd and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_zyx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[0] = value.array[2];
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Sets the `x`, `y`, `z` and `w` (1st, 2nd, 3rd and 4th) components of the vector.
+    #[inline(always)]
+    pub const fn set_xyzw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[2] = value.array[2];
+        self.array[3] = value.array[3];
+    }
+
+    /// Sets the `x`, `y`, `w` and `z` (1st, 2nd, 4th and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_xywz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[3] = value.array[2];
+        self.array[2] = value.array[3];
+    }
+
+    /// Sets the `x`, `z`, `y` and `w` (1st, 3rd, 2nd and 4th) components of the vector.
+    #[inline(always)]
+    pub const fn set_xzyw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[1] = value.array[2];
+        self.array[3] = value.array[3];
+    }
+
+    /// Sets the `x`, `z`, `w` and `y` (1st, 3rd, 4th and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_xzwy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[3] = value.array[2];
+        self.array[1] = value.array[3];
+    }
+
+    /// Sets the `x`, `w`, `y` and `z` (1st, 4th, 2nd and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_xwyz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[3] = value.array[1];
+        self.array[1] = value.array[2];
+        self.array[2] = value.array[3];
+    }
+
+    /// Sets the `x`, `w`, `z` and `y` (1st, 4th, 3rd and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_xwzy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[0] = value.array[0];
+        self.array[3] = value.array[1];
+        self.array[2] = value.array[2];
+        self.array[1] = value.array[3];
+    }
+
+    /// Sets the `y`, `x`, `z` and `w` (2nd, 1st, 3rd and 4th) components of the vector.
+    #[inline(always)]
+    pub const fn set_yxzw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[2] = value.array[2];
+        self.array[3] = value.array[3];
+    }
+
+    /// Sets the `y`, `x`, `w` and `z` (2nd, 1st, 4th and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_yxwz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[3] = value.array[2];
+        self.array[2] = value.array[3];
+    }
+
+    /// Sets the `y`, `z`, `x` and `w` (2nd, 3rd, 1st and 4th) components of the vector.
+    #[inline(always)]
+    pub const fn set_yzxw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[0] = value.array[2];
+        self.array[3] = value.array[3];
+    }
+
+    /// Sets the `y`, `z`, `w` and `x` (2nd, 3rd, 4th and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_yzwx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[3] = value.array[2];
+        self.array[0] = value.array[3];
+    }
+
+    /// Sets the `y`, `w`, `x` and `z` (2nd, 4th, 1st and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_ywxz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[3] = value.array[1];
+        self.array[0] = value.array[2];
+        self.array[2] = value.array[3];
+    }
+
+    /// Sets the `y`, `w`, `z` and `x` (2nd, 4th, 3rd and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_ywzx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[1] = value.array[0];
+        self.array[3] = value.array[1];
+        self.array[2] = value.array[2];
+        self.array[0] = value.array[3];
+    }
+
+    /// Sets the `z`, `x`, `y` and `w` (3rd, 1st, 2nd and 4th) components of the vector.
+    #[inline(always)]
+    pub const fn set_zxyw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[1] = value.array[2];
+        self.array[3] = value.array[3];
+    }
+
+    /// Sets the `z`, `x`, `w` and `y` (3rd, 1st, 4th and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_zxwy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[3] = value.array[2];
+        self.array[1] = value.array[3];
+    }
+
+    /// Sets the `z`, `y`, `x` and `w` (3rd, 2nd, 1st and 4th) components of the vector.
+    #[inline(always)]
+    pub const fn set_zyxw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[0] = value.array[2];
+        self.array[3] = value.array[3];
+    }
+
+    /// Sets the `z`, `y`, `w` and `x` (3rd, 2nd, 4th and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_zywx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[3] = value.array[2];
+        self.array[0] = value.array[3];
+    }
+
+    /// Sets the `z`, `w`, `x` and `y` (3rd, 4th, 1st and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_zwxy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[3] = value.array[1];
+        self.array[0] = value.array[2];
+        self.array[1] = value.array[3];
+    }
+
+    /// Sets the `z`, `w`, `y` and `x` (3rd, 4th, 2nd and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_zwyx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[2] = value.array[0];
+        self.array[3] = value.array[1];
+        self.array[1] = value.array[2];
+        self.array[0] = value.array[3];
+    }
+
+    /// Sets the `w`, `x`, `y` and `z` (4th, 1st, 2nd and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_wxyz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[3] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[1] = value.array[2];
+        self.array[2] = value.array[3];
+    }
+
+    /// Sets the `w`, `x`, `z` and `y` (4th, 1st, 3rd and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_wxzy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[3] = value.array[0];
+        self.array[0] = value.array[1];
+        self.array[2] = value.array[2];
+        self.array[1] = value.array[3];
+    }
+
+    /// Sets the `w`, `y`, `x` and `z` (4th, 2nd, 1st and 3rd) components of the vector.
+    #[inline(always)]
+    pub const fn set_wyxz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[3] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[0] = value.array[2];
+        self.array[2] = value.array[3];
+    }
+
+    /// Sets the `w`, `y`, `z` and `x` (4th, 2nd, 3rd and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_wyzx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[3] = value.array[0];
+        self.array[1] = value.array[1];
+        self.array[2] = value.array[2];
+        self.array[0] = value.array[3];
+    }
+
+    /// Sets the `w`, `z`, `x` and `y` (4th, 3rd, 1st and 2nd) components of the vector.
+    #[inline(always)]
+    pub const fn set_wzxy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[3] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[0] = value.array[2];
+        self.array[1] = value.array[3];
+    }
+
+    /// Sets the `w`, `z`, `y` and `x` (4th, 3rd, 2nd and 1st) components of the vector.
+    #[inline(always)]
+    pub const fn set_wzyx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+        self.array[3] = value.array[0];
+        self.array[2] = value.array[1];
+        self.array[1] = value.array[2];
+        self.array[0] = value.array[3];
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns the input vector with the `x` and `y` (1st and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_xy(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xy(value);
+        result
+    }
+
+    /// Returns the input vector with the `y` and `x` (2nd and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_yx(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_yx(value);
+        result
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns the input vector with the `x`, `y` and `z` (1st, 2nd and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_xyz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xyz(value);
+        result
+    }
+
+    /// Returns the input vector with the `x`, `z` and `y` (1st, 3rd and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_xzy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xzy(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `x` and `z` (2nd, 1st and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_yxz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_yxz(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `z` and `x` (2nd, 3rd and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_yzx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_yzx(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `x` and `y` (3rd, 1st and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_zxy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zxy(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `y` and `x` (3rd, 2nd and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_zyx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zyx(value);
+        result
+    }
+}
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns the input vector with the `x`, `y`, `z` and `w` (1st, 2nd, 3rd and 4th) components modified.
+    #[inline(always)]
+    pub const fn with_xyzw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xyzw(value);
+        result
+    }
+
+    /// Returns the input vector with the `x`, `y`, `w` and `z` (1st, 2nd, 4th and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_xywz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xywz(value);
+        result
+    }
+
+    /// Returns the input vector with the `x`, `z`, `y` and `w` (1st, 3rd, 2nd and 4th) components modified.
+    #[inline(always)]
+    pub const fn with_xzyw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xzyw(value);
+        result
+    }
+
+    /// Returns the input vector with the `x`, `z`, `w` and `y` (1st, 3rd, 4th and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_xzwy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xzwy(value);
+        result
+    }
+
+    /// Returns the input vector with the `x`, `w`, `y` and `z` (1st, 4th, 2nd and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_xwyz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xwyz(value);
+        result
+    }
+
+    /// Returns the input vector with the `x`, `w`, `z` and `y` (1st, 4th, 3rd and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_xwzy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_xwzy(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `x`, `z` and `w` (2nd, 1st, 3rd and 4th) components modified.
+    #[inline(always)]
+    pub const fn with_yxzw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_yxzw(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `x`, `w` and `z` (2nd, 1st, 4th and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_yxwz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_yxwz(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `z`, `x` and `w` (2nd, 3rd, 1st and 4th) components modified.
+    #[inline(always)]
+    pub const fn with_yzxw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_yzxw(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `z`, `w` and `x` (2nd, 3rd, 4th and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_yzwx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_yzwx(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `w`, `x` and `z` (2nd, 4th, 1st and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_ywxz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_ywxz(value);
+        result
+    }
+
+    /// Returns the input vector with the `y`, `w`, `z` and `x` (2nd, 4th, 3rd and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_ywzx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_ywzx(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `x`, `y` and `w` (3rd, 1st, 2nd and 4th) components modified.
+    #[inline(always)]
+    pub const fn with_zxyw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zxyw(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `x`, `w` and `y` (3rd, 1st, 4th and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_zxwy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zxwy(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `y`, `x` and `w` (3rd, 2nd, 1st and 4th) components modified.
+    #[inline(always)]
+    pub const fn with_zyxw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zyxw(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `y`, `w` and `x` (3rd, 2nd, 4th and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_zywx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zywx(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `w`, `x` and `y` (3rd, 4th, 1st and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_zwxy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zwxy(value);
+        result
+    }
+
+    /// Returns the input vector with the `z`, `w`, `y` and `x` (3rd, 4th, 2nd and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_zwyx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_zwyx(value);
+        result
+    }
+
+    /// Returns the input vector with the `w`, `x`, `y` and `z` (4th, 1st, 2nd and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_wxyz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_wxyz(value);
+        result
+    }
+
+    /// Returns the input vector with the `w`, `x`, `z` and `y` (4th, 1st, 3rd and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_wxzy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_wxzy(value);
+        result
+    }
+
+    /// Returns the input vector with the `w`, `y`, `x` and `z` (4th, 2nd, 1st and 3rd) components modified.
+    #[inline(always)]
+    pub const fn with_wyxz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_wyxz(value);
+        result
+    }
+
+    /// Returns the input vector with the `w`, `y`, `z` and `x` (4th, 2nd, 3rd and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_wyzx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_wyzx(value);
+        result
+    }
+
+    /// Returns the input vector with the `w`, `z`, `x` and `y` (4th, 3rd, 1st and 2nd) components modified.
+    #[inline(always)]
+    pub const fn with_wzxy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_wzxy(value);
+        result
+    }
+
+    /// Returns the input vector with the `w`, `z`, `y` and `x` (4th, 3rd, 2nd and 1st) components modified.
+    #[inline(always)]
+    pub const fn with_wzyx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+        let mut result = self;
+        result.set_wzyx(value);
+        result
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
