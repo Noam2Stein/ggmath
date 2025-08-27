@@ -4,6 +4,7 @@ use const_format::formatcp;
 use indoc::writedoc;
 
 mod module;
+mod primitives;
 mod vector;
 use module::*;
 
@@ -20,6 +21,7 @@ const LENGTHS: RangeInclusive<usize> = MIN_LENGTH..=MAX_LENGTH;
 fn main() {
     let mut module = ModDir::lib_rs();
 
+    primitives::write_mod(module.submod_dir("primitives"));
     vector::write_mod(module.submod_dir("vector"));
 
     writedoc!(

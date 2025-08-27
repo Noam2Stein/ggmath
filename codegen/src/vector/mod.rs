@@ -1,15 +1,12 @@
 use std::fmt::Display;
 
-use indoc::formatdoc;
+use indoc::{formatdoc, indoc};
 
 use super::*;
 
 mod cmp;
 mod construct;
 mod convert;
-mod default;
-mod fmt;
-mod hash;
 mod index;
 mod iter;
 mod ops;
@@ -25,9 +22,6 @@ pub fn write_mod(mut module: ModDir) {
     let mut scalar_trait = ScalarTrait::new();
 
     cmp::write_mod(module.submod("cmp"), &mut scalar_trait);
-    default::write_mod(module.submod("default"), &mut scalar_trait);
-    fmt::write_mod(module.submod("fmt"));
-    hash::write_mod(module.submod("hash"), &mut scalar_trait);
     ops::write_mod(module.submod("ops"), &mut scalar_trait);
     splat::write_mod(module.submod("splat"));
     construct::write_mod(module.submod("construct"));
@@ -76,25 +70,43 @@ pub fn write_mod(mut module: ModDir) {
         .collect::<Vec<_>>()
         .join("\n");
 
+    let macro_aliases = LENGTHS
+        .map(|len| {
+            formatdoc! {r#"
+            #[doc = "Type alias to `Vec{len}<" $type ">`"]
+            $($vis)* type [<$prefix Vec{len}>] = $crate::Vec{len}<$type>;
+
+            #[doc = "Type alias to `Vec{len}P<" $type ">`"]
+            $($vis)* type [<$prefix Vec{len}P>] = $crate::Vec{len}P<$type>;
+        "#}
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let impl_hash = impl_hash(&mut scalar_trait);
+    let impl_default = impl_default(&mut scalar_trait);
+    let impl_fmt = impl_fmt();
+
     writedoc!(
         module,
-        "
+        r#"
         //! Module for the vector type.
         
-        use std::ops::*;
+        use std::{{
+            fmt::{{Display, Debug}},
+            hash::{{Hash, Hasher}},
+            ops::*,
+        }};
 
         use super::*;
 
         mod cmp;
-        mod default;
-        mod hash;
         mod convert;
         mod swizzle;
         mod construct;
         mod ops;
         mod index;
         mod iter;
-        mod fmt;
         mod splat;
         pub use splat::*;
         pub use construct::*;
@@ -195,6 +207,56 @@ pub fn write_mod(mut module: ModDir) {
 
         {type_aliases}
 
+        /// Expands to a declaration of type specific vector aliases.
+        ///
+        /// Syntax:
+        /// `<vis> <prefix> => <type>`
+        ///
+        /// Example:
+        /// ```rust
+        /// use ggmath::*;
+        ///
+        /// // Declare a `Scalar` type.
+        /// type BigInt = i128;
+        ///
+        /// vector_aliases!(pub Big => BigInt);
+        /// ```
+        ///
+        /// Expands to:
+        /// ```rust
+        /// use ggmath::*;
+        ///
+        /// // Declare a `Scalar` type.
+        /// type BigInt = i128;
+        ///
+        /// pub type BigVec2 = Vec2<BigInt>;
+        /// pub type BigVec3 = Vec3<BigInt>;
+        /// pub type BigVec4 = Vec4<BigInt>;
+        ///
+        /// pub type BigVec2P = Vec2P<BigInt>;
+        /// pub type BigVec3P = Vec3P<BigInt>;
+        /// pub type BigVec4P = Vec4P<BigInt>;
+        /// ```
+        #[cfg(feature = "vector")]
+        #[macro_export]
+        macro_rules! vector_aliases {{
+            (pub($($vis:tt)*) $prefix:ident => $type:ident) => {{
+                $crate::vector_aliases! {{ @(pub($($vis)*)) $prefix => $type }}
+            }};
+            (pub $prefix:ident => $type:ident) => {{
+                $crate::vector_aliases! {{ @(pub) $prefix => $type }}
+            }};
+            ($prefix:ident => $type:ident) => {{
+                $crate::vector_aliases! {{ @() $prefix => $type }}
+            }};
+
+            (@($($vis:tt)*) $prefix:ident => $type:ident) => {{
+                $crate::_hidden_::paste! {{
+                    {macro_aliases}
+                }}
+            }};
+        }}
+
         impl<const N: usize, T: Scalar, A: VecAlignment> Clone for Vector<N, T, A>
         where
             Usize<N>: VecLen,
@@ -207,6 +269,12 @@ pub fn write_mod(mut module: ModDir) {
         where
             Usize<N>: VecLen,
         {{}}
+
+        {impl_hash}
+
+        {impl_default}
+
+        {impl_fmt}
 
         #[cfg(test)]
         mod tests {{
@@ -252,11 +320,12 @@ pub fn write_mod(mut module: ModDir) {
                 _verify_construct::<Vector<N, T, A>>();
             }}
         }}
-        ",
+        "#,
         length_list = length_list.trim(),
         length_impls = length_impls.trim(),
         scalar_trait = scalar_trait.to_string().trim(),
         type_aliases = type_aliases.trim(),
+        macro_aliases = macro_aliases.trim().replace("\n", "\n\t\t\t"),
     )
     .unwrap();
 }
@@ -328,4 +397,103 @@ impl Display for ScalarTrait {
             overridable_fns = self.overridable_fns.replace("\n", "\n\t").trim(),
         )
     }
+}
+
+fn impl_hash(scalar_trait: &mut ScalarTrait) -> String {
+    scalar_trait.push_overridable_fn(
+        "hash",
+        formatdoc! {r#"
+        #[inline(always)]
+        fn vec_hash<const N: usize, A: VecAlignment, H: std::hash::Hasher>(
+            vec: &Vector<N, Self, A>,
+            state: &mut H,
+        )
+        where
+            Usize<N>: VecLen,
+            Self: std::hash::Hash,
+        {{
+            vec.as_array_ref().hash(state);
+        }}
+        "#},
+    );
+
+    formatdoc! {r#"
+        impl<const N: usize, T: Scalar + Hash, A: VecAlignment> Hash for Vector<N, T, A>
+        where
+            Usize<N>: VecLen,
+        {{
+            #[inline(always)]
+            fn hash<H: Hasher>(&self, state: &mut H) {{
+                T::vec_hash(self, state);
+            }}
+        }}
+    "#}
+}
+
+fn impl_default(scalar_trait: &mut ScalarTrait) -> String {
+    scalar_trait.push_overridable_fn(
+        "default",
+        indoc! {"
+            #[inline(always)]
+            fn vec_default<const N: usize, A: VecAlignment>() -> Vector<N, Self, A>
+            where
+                Usize<N>: VecLen,
+                Self: Default,
+            {
+                Vector::splat(Self::default())
+            }
+        "},
+    );
+
+    formatdoc! {r#"
+        impl<const N: usize, T: Scalar + Default, A: VecAlignment> Default for Vector<N, T, A>
+        where
+            Usize<N>: VecLen,
+        {{
+            #[inline(always)]
+            fn default() -> Self {{
+                T::vec_default()
+            }}
+        }}
+    "#}
+}
+
+fn impl_fmt() -> String {
+    formatdoc! {r#"
+        impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N, T, A>
+        where
+            Usize<N>: VecLen,
+        {{
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
+                write!(f, "(")?;
+
+                for item in &self.as_array_ref()[..N - 1] {{
+                    write!(f, "{{item}}, ")?;
+                }}
+                write!(f, "{{}}", self.as_array_ref()[N - 1])?;
+
+                write!(f, ")")?;
+
+                Ok(())
+            }}
+        }}
+
+        impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, A>
+        where
+            Usize<N>: VecLen,
+        {{
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{
+                write!(f, "(")?;
+
+                for item in &self.as_array_ref()[..N - 1] {{
+                    write!(f, "{{item:?}}, ")?;
+                }}
+                write!(f, "{{:?}}", self.as_array_ref()[N - 1])?;
+
+                write!(f, ")")?;
+
+                Ok(())
+            }}
+        }}
+    "#}
 }

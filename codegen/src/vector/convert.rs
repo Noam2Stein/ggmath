@@ -1,6 +1,10 @@
 use super::*;
 
 pub fn write_mod(mut module: Mod) {
+    let from_array_len_match_arms = LENGTHS.map(|len| {
+        format! {"{len} => unsafe {{ transmute_copy::<T::InnerVec{len}A, Self>(&T::INNER_VEC{len}A_GARBAGE) }},"}
+    }).collect::<Vec<_>>().join("\n\t\t\t");
+
     writedoc!(
         module,
         r#"
@@ -93,16 +97,19 @@ pub fn write_mod(mut module: Mod) {
             /// If `A` is `VecAligned`, this will perform a copy instruction to align the vector.
             #[inline(always)]
             pub const fn from_array(array: [T; N]) -> Self {{
-                let mut output = match (N, A::IS_ALIGNED) {{
-                    (2, true) => unsafe {{ transmute_copy::<T::InnerVec2A, Self>(&T::INNER_VEC2A_GARBAGE) }},
-                    (3, true) => unsafe {{ transmute_copy::<T::InnerVec3A, Self>(&T::INNER_VEC3A_GARBAGE) }},
-                    (4, true) => unsafe {{ transmute_copy::<T::InnerVec4A, Self>(&T::INNER_VEC4A_GARBAGE) }},
-                    (_, false) => unsafe {{ transmute_copy::<[T; N], Self>(&[0; N]) }},
-                }};
+                match A::IS_ALIGNED {{
+                    true => {{
+                        let mut output = match N {{
+                            {from_array_len_match_arms}
+                            _ => unreachable!(),
+                        }};
 
-                *output.as_array_mut() = array;
+                        *output.as_array_mut() = array;
 
-                output
+                        output
+                    }},
+                    false => unsafe {{ transmute_copy::<[T; N], Self>(&array) }},
+                }}
             }}
 
             /// Converts the vector into an array.
@@ -110,7 +117,7 @@ pub fn write_mod(mut module: Mod) {
             /// Cost: nothing.
             #[inline(always)]
             pub const fn to_array(self) -> [T; N] {{
-                self.array
+                unsafe {{ transmute_copy::<Self, [T; N]>(&self) }}
             }}
 
             /// Referecnes the vector as an array.
@@ -118,7 +125,7 @@ pub fn write_mod(mut module: Mod) {
             /// Cost: nothing.
             #[inline(always)]
             pub const fn as_array_ref(&self) -> &[T; N] {{
-                &self.array
+                unsafe {{ transmute::<&Self, &[T; N]>(self) }}
             }}
 
             /// Mutably referecnes the vector as an array.
@@ -126,7 +133,7 @@ pub fn write_mod(mut module: Mod) {
             /// Cost: nothing.
             #[inline(always)]
             pub const fn as_array_mut(&mut self) -> &mut [T; N] {{
-                &mut self.array
+                unsafe {{ transmute::<&mut Self, &mut [T; N]>(self) }}
             }}
 
             /// Returns a pointer to the vector's buffer.

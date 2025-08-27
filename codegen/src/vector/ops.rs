@@ -40,7 +40,7 @@ pub fn write_mod(mut module: Mod, scalar_trait: &mut ScalarTrait) {
                     Usize<N>: VecLen,
                     Self: {op_trait}<Output: Scalar>,
                 {{
-                    Vector::from_array(vec.as_array().map(|x| x.{op_fn}()))
+                    Vector::from_array(vec.to_array().map(|x| x.{op_fn}()))
                 }}
             "#},
         );

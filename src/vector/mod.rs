@@ -1,15 +1,16 @@
 //! Module for the vector type.
 
-use std::ops::*;
+use std::{
+    fmt::{Debug, Display},
+    hash::{Hash, Hasher},
+    ops::*,
+};
 
 use super::*;
 
 mod cmp;
 mod construct;
 mod convert;
-mod default;
-mod fmt;
-mod hash;
 mod index;
 mod iter;
 mod ops;
@@ -92,7 +93,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
-        Vector::from_fn(|i| vec[i].eq(rhs[i]))
+        Vector::from_fn(|i| vec[i].eq(&rhs[i]))
     }
 
     ///Overridable implementation of [`Vector::ne`].
@@ -105,7 +106,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
-        Vector::from_fn(|i| vec[i].ne(rhs[i]))
+        Vector::from_fn(|i| vec[i].ne(&rhs[i]))
     }
 
     ///Overridable implementation of [`Vector::lt`].
@@ -118,7 +119,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| vec[i].lt(rhs[i]))
+        Vector::from_fn(|i| vec[i].lt(&rhs[i]))
     }
 
     ///Overridable implementation of [`Vector::le`].
@@ -131,7 +132,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| vec[i].le(rhs[i]))
+        Vector::from_fn(|i| vec[i].le(&rhs[i]))
     }
 
     ///Overridable implementation of [`Vector::gt`].
@@ -144,7 +145,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| vec[i].gt(rhs[i]))
+        Vector::from_fn(|i| vec[i].gt(&rhs[i]))
     }
 
     ///Overridable implementation of [`Vector::ge`].
@@ -157,7 +158,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| vec[i].ge(rhs[i]))
+        Vector::from_fn(|i| vec[i].ge(&rhs[i]))
     }
 
     ///Overridable implementation of [`Vector::eq`].
@@ -186,24 +187,6 @@ pub trait Scalar: Construct {
         !Self::vec_eq(vec, rhs)
     }
 
-    ///Overridable implementation of [`Vector::default`].
-    #[inline(always)]
-    fn vec_default<const N: usize, A: VecAlignment>() -> Vector<N, Self, A> {
-        Vector::splat(Self::default())
-    }
-
-    ///Overridable implementation of [`Vector::hash`].
-    #[inline(always)]
-    fn vec_hash<const N: usize, A: VecAlignment, H: std::hash::Hasher>(
-        vec: &Vector<N, Self, A>,
-        state: &mut H,
-    ) where
-        Usize<N>: VecLen,
-        Self: std::hash::Hash,
-    {
-        vec.as_array().hash(state);
-    }
-
     ///Overridable implementation of [`Vector::neg`].
     #[inline(always)]
     fn vec_neg<const N: usize, A: VecAlignment>(
@@ -213,7 +196,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: Neg<Output: Scalar>,
     {
-        Vector::from_array(vec.as_array().map(|x| x.neg()))
+        Vector::from_array(vec.to_array().map(|x| x.neg()))
     }
 
     ///Overridable implementation of [`Vector::not`].
@@ -225,7 +208,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: Not<Output: Scalar>,
     {
-        Vector::from_array(vec.as_array().map(|x| x.not()))
+        Vector::from_array(vec.to_array().map(|x| x.not()))
     }
 
     ///Overridable implementation of [`Vector::add`].
@@ -497,6 +480,28 @@ pub trait Scalar: Construct {
             vec[i].bitxor_assign(rhs[i]);
         }
     }
+
+    ///Overridable implementation of [`Vector::hash`].
+    #[inline(always)]
+    fn vec_hash<const N: usize, A: VecAlignment, H: std::hash::Hasher>(
+        vec: &Vector<N, Self, A>,
+        state: &mut H,
+    ) where
+        Usize<N>: VecLen,
+        Self: std::hash::Hash,
+    {
+        vec.as_array_ref().hash(state);
+    }
+
+    ///Overridable implementation of [`Vector::default`].
+    #[inline(always)]
+    fn vec_default<const N: usize, A: VecAlignment>() -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: Default,
+    {
+        Vector::splat(Self::default())
+    }
 }
 
 /// Sealed marker trait that marks vectors as either `VecAligned` or `VecPacked`.
@@ -620,6 +625,72 @@ pub type Vec4<T> = Vector<4, T, VecAligned>;
 #[cfg(feature = "aliases")]
 pub type Vec4P<T> = Vector<4, T, VecPacked>;
 
+/// Expands to a declaration of type specific vector aliases.
+///
+/// Syntax:
+/// `<vis> <prefix> => <type>`
+///
+/// Example:
+/// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
+/// vector_aliases!(pub Big => BigInt);
+/// ```
+///
+/// Expands to:
+/// ```rust
+/// use ggmath::*;
+///
+/// // Declare a `Scalar` type.
+/// type BigInt = i128;
+///
+/// pub type BigVec2 = Vec2<BigInt>;
+/// pub type BigVec3 = Vec3<BigInt>;
+/// pub type BigVec4 = Vec4<BigInt>;
+///
+/// pub type BigVec2P = Vec2P<BigInt>;
+/// pub type BigVec3P = Vec3P<BigInt>;
+/// pub type BigVec4P = Vec4P<BigInt>;
+/// ```
+#[cfg(feature = "vector")]
+#[macro_export]
+macro_rules! vector_aliases {
+    (pub($($vis:tt)*) $prefix:ident => $type:ident) => {
+        $crate::vector_aliases! { @(pub($($vis)*)) $prefix => $type }
+    };
+    (pub $prefix:ident => $type:ident) => {
+        $crate::vector_aliases! { @(pub) $prefix => $type }
+    };
+    ($prefix:ident => $type:ident) => {
+        $crate::vector_aliases! { @() $prefix => $type }
+    };
+
+    (@($($vis:tt)*) $prefix:ident => $type:ident) => {
+        $crate::_hidden_::paste! {
+            #[doc = "Type alias to `Vec2<" $type ">`"]
+			$($vis)* type [<$prefix Vec2>] = $crate::Vec2<$type>;
+
+			#[doc = "Type alias to `Vec2P<" $type ">`"]
+			$($vis)* type [<$prefix Vec2P>] = $crate::Vec2P<$type>;
+
+			#[doc = "Type alias to `Vec3<" $type ">`"]
+			$($vis)* type [<$prefix Vec3>] = $crate::Vec3<$type>;
+
+			#[doc = "Type alias to `Vec3P<" $type ">`"]
+			$($vis)* type [<$prefix Vec3P>] = $crate::Vec3P<$type>;
+
+			#[doc = "Type alias to `Vec4<" $type ">`"]
+			$($vis)* type [<$prefix Vec4>] = $crate::Vec4<$type>;
+
+			#[doc = "Type alias to `Vec4P<" $type ">`"]
+			$($vis)* type [<$prefix Vec4P>] = $crate::Vec4P<$type>;
+        }
+    };
+}
+
 impl<const N: usize, T: Scalar, A: VecAlignment> Clone for Vector<N, T, A>
 where
     Usize<N>: VecLen,
@@ -629,6 +700,62 @@ where
     }
 }
 impl<const N: usize, T: Scalar, A: VecAlignment> Copy for Vector<N, T, A> where Usize<N>: VecLen {}
+
+impl<const N: usize, T: Scalar + Hash, A: VecAlignment> Hash for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        T::vec_hash(self, state);
+    }
+}
+
+impl<const N: usize, T: Scalar + Default, A: VecAlignment> Default for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn default() -> Self {
+        T::vec_default()
+    }
+}
+
+impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(")?;
+
+        for item in &self.as_array_ref()[..N - 1] {
+            write!(f, "{item}, ")?;
+        }
+        write!(f, "{}", self.as_array_ref()[N - 1])?;
+
+        write!(f, ")")?;
+
+        Ok(())
+    }
+}
+
+impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(")?;
+
+        for item in &self.as_array_ref()[..N - 1] {
+            write!(f, "{item:?}, ")?;
+        }
+        write!(f, "{:?}", self.as_array_ref()[N - 1])?;
+
+        write!(f, ")")?;
+
+        Ok(())
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -42,7 +42,7 @@ macro_rules! vector_aliases {
     };
 
     (@($($vis:tt)*) $prefix:ident => $type:tt) => {
-        $crate::_private_::repetitive! {
+        $crate::_hidden_::paste! {
             #[doc = @str["Type alias for `Vector<2, " ~$type ", VecAligned>`"]]
             $($vis)* type @[~$prefix 'Vec2] = $crate::Vec2<$type>;
 

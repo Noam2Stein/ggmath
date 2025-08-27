@@ -24,7 +24,7 @@ pub fn write_mod(mut module: Mod, scalar_trait: &mut ScalarTrait) {
                     Usize<N>: VecLen,
                     Self: {op_trait}<T2>,
                 {{
-                    Vector::from_fn(|i| vec[i].{op}(rhs[i]))
+                    Vector::from_fn(|i| vec[i].{op}(&rhs[i]))
                 }}
             "#},
             );
