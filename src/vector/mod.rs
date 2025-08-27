@@ -83,7 +83,7 @@ pub trait Scalar: Construct {
     /// This is used when initializing vectors to make sure padding is initialized.
     const INNER_VEC4A_GARBAGE: Self::InnerVec4A;
 
-    ///Overridable implementation of [`Vector::eq`].
+    /// Overridable implementation of [`Vector::eq`].
     #[inline(always)]
     fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -96,7 +96,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].eq(&rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::ne`].
+    /// Overridable implementation of [`Vector::ne`].
     #[inline(always)]
     fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -109,7 +109,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].ne(&rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::lt`].
+    /// Overridable implementation of [`Vector::lt`].
     #[inline(always)]
     fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -122,7 +122,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].lt(&rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::le`].
+    /// Overridable implementation of [`Vector::le`].
     #[inline(always)]
     fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -135,7 +135,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].le(&rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::gt`].
+    /// Overridable implementation of [`Vector::gt`].
     #[inline(always)]
     fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -148,7 +148,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].gt(&rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::ge`].
+    /// Overridable implementation of [`Vector::ge`].
     #[inline(always)]
     fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -161,7 +161,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].ge(&rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::eq`].
+    /// Overridable implementation of [`Vector::eq`].
     #[inline(always)]
     fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -174,7 +174,7 @@ pub trait Scalar: Construct {
         Self::vec_eq_mask(vec, rhs).into_iter().all(|x| x)
     }
 
-    ///Overridable implementation of [`Vector::ne`].
+    /// Overridable implementation of [`Vector::ne`].
     #[inline(always)]
     fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &Vector<N, Self, A>,
@@ -187,7 +187,7 @@ pub trait Scalar: Construct {
         !Self::vec_eq(vec, rhs)
     }
 
-    ///Overridable implementation of [`Vector::neg`].
+    /// Overridable implementation of [`Vector::neg`].
     #[inline(always)]
     fn vec_neg<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -199,7 +199,7 @@ pub trait Scalar: Construct {
         Vector::from_array(vec.to_array().map(|x| x.neg()))
     }
 
-    ///Overridable implementation of [`Vector::not`].
+    /// Overridable implementation of [`Vector::not`].
     #[inline(always)]
     fn vec_not<const N: usize, A: VecAlignment>(
         vec: Vector<N, Self, A>,
@@ -211,7 +211,7 @@ pub trait Scalar: Construct {
         Vector::from_array(vec.to_array().map(|x| x.not()))
     }
 
-    ///Overridable implementation of [`Vector::add`].
+    /// Overridable implementation of [`Vector::add`].
     #[inline(always)]
     fn vec_add<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -224,7 +224,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].add(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::add_assign`].
+    /// Overridable implementation of [`Vector::add_assign`].
     #[inline(always)]
     fn vec_add_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -238,7 +238,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::sub`].
+    /// Overridable implementation of [`Vector::sub`].
     #[inline(always)]
     fn vec_sub<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -251,7 +251,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].sub(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::sub_assign`].
+    /// Overridable implementation of [`Vector::sub_assign`].
     #[inline(always)]
     fn vec_sub_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -265,7 +265,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::mul`].
+    /// Overridable implementation of [`Vector::mul`].
     #[inline(always)]
     fn vec_mul<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -278,7 +278,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].mul(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::mul_assign`].
+    /// Overridable implementation of [`Vector::mul_assign`].
     #[inline(always)]
     fn vec_mul_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -292,7 +292,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::div`].
+    /// Overridable implementation of [`Vector::div`].
     #[inline(always)]
     fn vec_div<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -305,7 +305,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].div(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::div_assign`].
+    /// Overridable implementation of [`Vector::div_assign`].
     #[inline(always)]
     fn vec_div_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -319,7 +319,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::rem`].
+    /// Overridable implementation of [`Vector::rem`].
     #[inline(always)]
     fn vec_rem<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -332,7 +332,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].rem(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::rem_assign`].
+    /// Overridable implementation of [`Vector::rem_assign`].
     #[inline(always)]
     fn vec_rem_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -346,7 +346,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::shl`].
+    /// Overridable implementation of [`Vector::shl`].
     #[inline(always)]
     fn vec_shl<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -359,7 +359,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].shl(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::shl_assign`].
+    /// Overridable implementation of [`Vector::shl_assign`].
     #[inline(always)]
     fn vec_shl_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -373,7 +373,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::shr`].
+    /// Overridable implementation of [`Vector::shr`].
     #[inline(always)]
     fn vec_shr<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -386,7 +386,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].shr(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::shr_assign`].
+    /// Overridable implementation of [`Vector::shr_assign`].
     #[inline(always)]
     fn vec_shr_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -400,7 +400,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::bitand`].
+    /// Overridable implementation of [`Vector::bitand`].
     #[inline(always)]
     fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -413,7 +413,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].bitand(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::bitand_assign`].
+    /// Overridable implementation of [`Vector::bitand_assign`].
     #[inline(always)]
     fn vec_bitand_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -427,7 +427,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::bitor`].
+    /// Overridable implementation of [`Vector::bitor`].
     #[inline(always)]
     fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -440,7 +440,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].bitor(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::bitor_assign`].
+    /// Overridable implementation of [`Vector::bitor_assign`].
     #[inline(always)]
     fn vec_bitor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -454,7 +454,7 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::bitxor`].
+    /// Overridable implementation of [`Vector::bitxor`].
     #[inline(always)]
     fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: Vector<N, Self, A>,
@@ -467,7 +467,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i].bitxor(rhs[i]))
     }
 
-    ///Overridable implementation of [`Vector::bitxor_assign`].
+    /// Overridable implementation of [`Vector::bitxor_assign`].
     #[inline(always)]
     fn vec_bitxor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
         vec: &mut Vector<N, Self, A>,
@@ -481,7 +481,88 @@ pub trait Scalar: Construct {
         }
     }
 
-    ///Overridable implementation of [`Vector::hash`].
+    /// Overridable implementation of [`Vector::mul`].
+    #[inline(always)]
+    fn vec_scalar_mul<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: T2,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Mul<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i].mul(rhs))
+    }
+
+    /// Overridable implementation of [`Vector::mul_assign`].
+    #[inline(always)]
+    fn vec_scalar_mul_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: &mut Vector<N, Self, A>,
+        rhs: T2,
+    ) where
+        Usize<N>: VecLen,
+        Self: MulAssign<T2>,
+    {
+        for i in 0..N {
+            vec[i].mul_assign(rhs);
+        }
+    }
+
+    /// Overridable implementation of [`Vector::div`].
+    #[inline(always)]
+    fn vec_scalar_div<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: T2,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Div<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i].div(rhs))
+    }
+
+    /// Overridable implementation of [`Vector::div_assign`].
+    #[inline(always)]
+    fn vec_scalar_div_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: &mut Vector<N, Self, A>,
+        rhs: T2,
+    ) where
+        Usize<N>: VecLen,
+        Self: DivAssign<T2>,
+    {
+        for i in 0..N {
+            vec[i].div_assign(rhs);
+        }
+    }
+
+    /// Overridable implementation of [`Vector::rem`].
+    #[inline(always)]
+    fn vec_scalar_rem<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        rhs: T2,
+    ) -> Vector<N, Self::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Rem<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i].rem(rhs))
+    }
+
+    /// Overridable implementation of [`Vector::rem_assign`].
+    #[inline(always)]
+    fn vec_scalar_rem_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: &mut Vector<N, Self, A>,
+        rhs: T2,
+    ) where
+        Usize<N>: VecLen,
+        Self: RemAssign<T2>,
+    {
+        for i in 0..N {
+            vec[i].rem_assign(rhs);
+        }
+    }
+
+    /// Overridable implementation of [`Vector::hash`].
     #[inline(always)]
     fn vec_hash<const N: usize, A: VecAlignment, H: std::hash::Hasher>(
         vec: &Vector<N, Self, A>,
@@ -493,7 +574,7 @@ pub trait Scalar: Construct {
         vec.as_array_ref().hash(state);
     }
 
-    ///Overridable implementation of [`Vector::default`].
+    /// Overridable implementation of [`Vector::default`].
     #[inline(always)]
     fn vec_default<const N: usize, A: VecAlignment>() -> Vector<N, Self, A>
     where

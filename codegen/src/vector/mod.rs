@@ -341,7 +341,7 @@ impl ScalarTrait {
         writedoc!(
             self.overridable_fns,
             "
-            ///Overridable implementation of [`Vector::{name}`].
+            /// Overridable implementation of [`Vector::{name}`].
             {content}
             "
         )

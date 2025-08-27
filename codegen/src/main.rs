@@ -5,6 +5,7 @@ use indoc::writedoc;
 
 mod module;
 mod primitives;
+mod quaternion;
 mod vector;
 use module::*;
 
@@ -23,6 +24,7 @@ fn main() {
 
     primitives::write_mod(module.submod_dir("primitives"));
     vector::write_mod(module.submod_dir("vector"));
+    quaternion::write_mod(module.submod_dir("quaternion"));
 
     writedoc!(
         module,
