@@ -44,6 +44,49 @@ pub trait Scalar: Construct {
     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4;
 
     #[inline(always)]
+    fn vec_swizzle2<const N: usize, A: VecAlignment, const SRC0: usize, const SRC1: usize>(
+        vector: Vector<N, Self, A>,
+    ) -> Vector<2, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<2, _, _>::from_array([vector[SRC0], vector[SRC1]])
+    }
+
+    #[inline(always)]
+    fn vec_swizzle3<
+        const N: usize,
+        A: VecAlignment,
+        const SRC0: usize,
+        const SRC1: usize,
+        const SRC2: usize,
+    >(
+        vector: Vector<N, Self, A>,
+    ) -> Vector<3, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<3, _, _>::from_array([vector[SRC0], vector[SRC1], vector[SRC2]])
+    }
+
+    #[inline(always)]
+    fn vec_swizzle4<
+        const N: usize,
+        A: VecAlignment,
+        const SRC0: usize,
+        const SRC1: usize,
+        const SRC2: usize,
+        const SRC3: usize,
+    >(
+        vector: Vector<N, Self, A>,
+    ) -> Vector<4, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<4, _, _>::from_array([vector[SRC0], vector[SRC1], vector[SRC2], vector[SRC3]])
+    }
+
+    #[inline(always)]
     fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
         vector: &Vector<N, Self, A>,
         other: &Vector<N, T2, impl VecAlignment>,

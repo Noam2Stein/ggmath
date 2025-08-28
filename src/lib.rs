@@ -1,5 +1,9 @@
 use std::panic::{RefUnwindSafe, UnwindSafe};
 
+mod generated;
+#[allow(unused_imports)]
+pub use generated::*;
+
 mod primitives;
 #[allow(unused_imports)]
 pub use primitives::*;

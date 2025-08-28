@@ -1,3 +1,6 @@
+[workspace]
+members = [ ".", "codegen" ]
+
 [package]
 categories = [
     "data-structures",
