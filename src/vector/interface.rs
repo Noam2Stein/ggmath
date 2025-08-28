@@ -116,3 +116,33 @@ where
         unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{vec2, vec2p, vec3, vec3p, vec4, vec4p};
+
+    use super::*;
+
+    #[test]
+    fn test_swizzle() {
+        assert_eq!(vec2!(1, 2).yx(), vec2!(2, 1));
+        assert_eq!(vec2!(1, 2).yxy(), vec3!(2, 1, 2));
+        assert_eq!(vec2!(1, 2).yxyy(), vec4!(2, 1, 2, 2));
+        assert_eq!(vec3!(1, 2, 3).yz(), vec2!(2, 3));
+        assert_eq!(vec3!(1, 2, 3).yxz(), vec3!(2, 1, 3));
+        assert_eq!(vec3!(1, 2, 3).yxyz(), vec4!(2, 1, 2, 3));
+        assert_eq!(vec4!(1, 2, 3, 4).yx(), vec2!(2, 1));
+        assert_eq!(vec4!(1, 2, 3, 4).yxy(), vec3!(2, 1, 2));
+        assert_eq!(vec4!(1, 2, 3, 4).yxww(), vec4!(2, 1, 4, 4));
+
+        assert_eq!(vec2p!(1, 2).yx(), vec2!(2, 1));
+        assert_eq!(vec2p!(1, 2).yxy(), vec3!(2, 1, 2));
+        assert_eq!(vec2p!(1, 2).yxyy(), vec4!(2, 1, 2, 2));
+        assert_eq!(vec3p!(1, 2, 3).yz(), vec2!(2, 3));
+        assert_eq!(vec3p!(1, 2, 3).yxz(), vec3!(2, 1, 3));
+        assert_eq!(vec3p!(1, 2, 3).yxyz(), vec4!(2, 1, 2, 3));
+        assert_eq!(vec4p!(1, 2, 3, 4).yx(), vec2!(2, 1));
+        assert_eq!(vec4p!(1, 2, 3, 4).yxy(), vec3!(2, 1, 2));
+        assert_eq!(vec4p!(1, 2, 3, 4).yxww(), vec4!(2, 1, 4, 4));
+    }
+}
