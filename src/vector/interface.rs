@@ -84,6 +84,22 @@ where
     pub const fn as_mut_ptr(&mut self) -> *mut T {
         self.as_array_mut().as_mut_ptr()
     }
+
+    #[inline(always)]
+    pub fn from_fn<F: Fn(usize) -> T>(f: F) -> Self
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::from_array(std::array::from_fn(f))
+    }
+
+    #[inline(always)]
+    pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::from_array(self.as_array().map(f))
+    }
 }
 
 impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
