@@ -1,4 +1,12 @@
+use std::{
+    fmt::{Debug, Display},
+    ops::{Index, IndexMut},
+    slice::SliceIndex,
+};
+
 use crate::{Construct, Usize};
+
+mod interface;
 
 #[repr(transparent)]
 pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
@@ -9,7 +17,16 @@ where
 }
 
 pub trait VecLen {
+    const ENUM: VecLenEnum;
+
     type InnerAlignedVector<T: Scalar>: Construct;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum VecLenEnum {
+    Two,
+    Three,
+    Four,
 }
 
 pub trait Scalar: Construct {
@@ -17,12 +34,15 @@ pub trait Scalar: Construct {
     type InnerAlignedVec3: Construct;
     type InnerAlignedVec4: Construct;
 
+    const GARBAGE: Self;
     const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2;
     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3;
     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4;
 }
 
 pub trait VecAlignment: 'static {
+    const IS_ALIGNED: bool;
+
     type InnerVector<const N: usize, T: Scalar>: Construct
     where
         Usize<N>: VecLen;
@@ -32,22 +52,32 @@ pub struct VecAligned;
 pub struct VecPacked;
 
 impl VecLen for Usize<2> {
+    const ENUM: VecLenEnum = VecLenEnum::Two;
+
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec2;
 }
 impl VecLen for Usize<3> {
+    const ENUM: VecLenEnum = VecLenEnum::Three;
+
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec3;
 }
 impl VecLen for Usize<4> {
+    const ENUM: VecLenEnum = VecLenEnum::Four;
+
     type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
 }
 
 impl VecAlignment for VecAligned {
+    const IS_ALIGNED: bool = true;
+
     type InnerVector<const N: usize, T: Scalar>
         = <Usize<N> as VecLen>::InnerAlignedVector<T>
     where
         Usize<N>: VecLen;
 }
 impl VecAlignment for VecPacked {
+    const IS_ALIGNED: bool = false;
+
     type InnerVector<const N: usize, T: Scalar>
         = [T; N]
     where
@@ -58,11 +88,74 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Clone for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    #[inline(always)]
     fn clone(&self) -> Self {
         *self
     }
 }
 impl<const N: usize, T: Scalar, A: VecAlignment> Copy for Vector<N, T, A> where Usize<N>: VecLen {}
+
+impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(")?;
+
+        for i in 0..N {
+            if i != 0 {
+                write!(f, ", ")?;
+            }
+
+            write!(f, "{:?}", self[i])?;
+        }
+
+        write!(f, ")")?;
+
+        Ok(())
+    }
+}
+impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(")?;
+
+        for i in 0..N {
+            if i != 0 {
+                write!(f, ", ")?;
+            }
+
+            write!(f, "{}", self[i])?;
+        }
+
+        write!(f, ")")?;
+
+        Ok(())
+    }
+}
+
+impl<const N: usize, T: Scalar, A: VecAlignment, I: SliceIndex<[T]>> Index<I> for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = I::Output;
+
+    #[inline(always)]
+    fn index(&self, index: I) -> &Self::Output {
+        &self.as_array()[index]
+    }
+}
+impl<const N: usize, T: Scalar, A: VecAlignment, I: SliceIndex<[T]>> IndexMut<I> for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        &mut self.as_array_mut()[index]
+    }
+}
 
 #[cfg(test)]
 mod tests {
