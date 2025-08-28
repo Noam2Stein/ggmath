@@ -51,6 +51,63 @@ pub trait VecAlignment: 'static {
 pub struct VecAligned;
 pub struct VecPacked;
 
+#[macro_export]
+macro_rules! vec2 {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<2, _, VecAligned>::from(($($expr),*,))
+    };
+}
+#[macro_export]
+macro_rules! vec3 {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<3, _, VecAligned>::from(($($expr),*,))
+    };
+}
+#[macro_export]
+macro_rules! vec4 {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<4, _, VecAligned>::from(($($expr),*,))
+    };
+}
+
+#[macro_export]
+macro_rules! vec2p {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<2, _, VecPacked>::from(($($expr),*,))
+    };
+}
+#[macro_export]
+macro_rules! vec3p {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<3, _, VecPacked>::from(($($expr),*,))
+    };
+}
+#[macro_export]
+macro_rules! vec4p {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<4, _, VecPacked>::from(($($expr),*,))
+    };
+}
+
+#[macro_export]
+macro_rules! vec2g {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<2, _, _>::from(($($expr),*,))
+    };
+}
+#[macro_export]
+macro_rules! vec3g {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<3, _, _>::from(($($expr),*,))
+    };
+}
+#[macro_export]
+macro_rules! vec4g {
+    ($($expr:expr),* $(,)?) => {
+        $crate::vector::Vector::<4, _, _>::from(($($expr),*,))
+    };
+}
+
 impl VecLen for Usize<2> {
     const ENUM: VecLenEnum = VecLenEnum::Two;
 
@@ -154,6 +211,99 @@ where
     #[inline(always)]
     fn index_mut(&mut self, index: I) -> &mut Self::Output {
         &mut self.as_array_mut()[index]
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> From<(T, T)> for Vector<2, T, A> {
+    #[inline(always)]
+    fn from(value: (T, T)) -> Self {
+        Self::from_array([value.0, value.1])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>,)> for Vector<2, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<2, T, A0>,)) -> Self {
+        Self::from_array([value.0[0], value.0[1]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> From<(T, T, T)> for Vector<3, T, A> {
+    #[inline(always)]
+    fn from(value: (T, T, T)) -> Self {
+        Self::from_array([value.0, value.1, value.2])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, Vector<2, T, A0>)> for Vector<3, T, A> {
+    #[inline(always)]
+    fn from(value: (T, Vector<2, T, A0>)) -> Self {
+        Self::from_array([value.0, value.1[0], value.1[1]])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, T)> for Vector<3, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<2, T, A0>, T)) -> Self {
+        Self::from_array([value.0[0], value.0[1], value.1])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<3, T, A0>,)> for Vector<3, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<3, T, A0>,)) -> Self {
+        Self::from_array([value.0[0], value.0[1], value.0[2]])
+    }
+}
+impl<T: Scalar, A: VecAlignment> From<(T, T, T, T)> for Vector<4, T, A> {
+    #[inline(always)]
+    fn from(value: (T, T, T, T)) -> Self {
+        Self::from_array([value.0, value.1, value.2, value.3])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, T, Vector<2, T, A0>)>
+    for Vector<4, T, A>
+{
+    #[inline(always)]
+    fn from(value: (T, T, Vector<2, T, A0>)) -> Self {
+        Self::from_array([value.0, value.1, value.2[0], value.2[1]])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, Vector<2, T, A0>, T)>
+    for Vector<4, T, A>
+{
+    #[inline(always)]
+    fn from(value: (T, Vector<2, T, A0>, T)) -> Self {
+        Self::from_array([value.0, value.1[0], value.1[1], value.2])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, Vector<3, T, A0>)> for Vector<4, T, A> {
+    #[inline(always)]
+    fn from(value: (T, Vector<3, T, A0>)) -> Self {
+        Self::from_array([value.0, value.1[0], value.1[1], value.1[2]])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, T, T)>
+    for Vector<4, T, A>
+{
+    #[inline(always)]
+    fn from(value: (Vector<2, T, A0>, T, T)) -> Self {
+        Self::from_array([value.0[0], value.0[1], value.1, value.2])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, Vector<2, T, A0>)>
+    for Vector<4, T, A>
+{
+    #[inline(always)]
+    fn from(value: (Vector<2, T, A0>, Vector<2, T, A0>)) -> Self {
+        Self::from_array([value.0[0], value.0[1], value.1[0], value.1[1]])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<3, T, A0>, T)> for Vector<4, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<3, T, A0>, T)) -> Self {
+        Self::from_array([value.0[0], value.0[1], value.0[2], value.1])
+    }
+}
+impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<4, T, A0>,)> for Vector<4, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<4, T, A0>,)) -> Self {
+        Self::from_array([value.0[0], value.0[1], value.0[2], value.0[3]])
     }
 }
 
