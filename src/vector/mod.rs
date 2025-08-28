@@ -38,6 +38,36 @@ pub trait Scalar: Construct {
     const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2;
     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3;
     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4;
+
+    #[inline(always)]
+    fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> bool
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        for i in 0..N {
+            if vector[i] != other[i] {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    #[inline(always)]
+    fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> bool
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        !Self::vec_eq(vector, other)
+    }
 }
 
 pub trait VecAlignment: 'static {
@@ -190,6 +220,22 @@ where
         write!(f, ")")?;
 
         Ok(())
+    }
+}
+
+impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    PartialEq<Vector<N, T2, A2>> for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn eq(&self, other: &Vector<N, T2, A2>) -> bool {
+        T::vec_eq(self, other)
+    }
+
+    #[inline(always)]
+    fn ne(&self, other: &Vector<N, T2, A2>) -> bool {
+        T::vec_ne(self, other)
     }
 }
 
