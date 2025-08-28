@@ -167,6 +167,7 @@ macro_rules! vec4g {
     }};
 }
 
+
 #[doc(hidden)]
 #[inline(always)]
 pub const fn construct_vector<const N: usize, T: Scalar, A: VecAlignment, I: IntoVector<N, T>>(
@@ -204,121 +205,58 @@ pub unsafe trait IntoVector<const N: usize, T: Scalar>: Construct {
 }
 
 unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<2, T> for (Vector<2, T, A0>,) {
-    const SOURCES: [usize; 2] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 0) + size_of::<T>() * 1,
-    ];
+    const SOURCES: [usize; 2] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 0) + size_of::<T>() * 1];
 }
 
-unsafe impl<T: Scalar> IntoVector<2, T> for (T, T) {
-    const SOURCES: [usize; 2] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-    ];
+unsafe impl<T: Scalar> IntoVector<2, T> for (T, T,) {
+    const SOURCES: [usize; 2] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 0];
 }
 
 unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<3, T> for (Vector<3, T, A0>,) {
-    const SOURCES: [usize; 3] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 0) + size_of::<T>() * 1,
-        offset_of!(Self, 0) + size_of::<T>() * 2,
-    ];
+    const SOURCES: [usize; 3] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 0) + size_of::<T>() * 1, offset_of!(Self, 0) + size_of::<T>() * 2];
 }
 
-unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<3, T> for (Vector<2, T, A0>, T) {
-    const SOURCES: [usize; 3] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 0) + size_of::<T>() * 1,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-    ];
+unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<3, T> for (Vector<2, T, A0>, T,) {
+    const SOURCES: [usize; 3] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 0) + size_of::<T>() * 1, offset_of!(Self, 1) + size_of::<T>() * 0];
 }
 
-unsafe impl<T: Scalar, A1: VecAlignment> IntoVector<3, T> for (T, Vector<2, T, A1>) {
-    const SOURCES: [usize; 3] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 1,
-    ];
+unsafe impl<T: Scalar, A1: VecAlignment> IntoVector<3, T> for (T, Vector<2, T, A1>,) {
+    const SOURCES: [usize; 3] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 1];
 }
 
-unsafe impl<T: Scalar> IntoVector<3, T> for (T, T, T) {
-    const SOURCES: [usize; 3] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 2) + size_of::<T>() * 0,
-    ];
+unsafe impl<T: Scalar> IntoVector<3, T> for (T, T, T,) {
+    const SOURCES: [usize; 3] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 2) + size_of::<T>() * 0];
 }
 
 unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<4, T> for (Vector<4, T, A0>,) {
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 0) + size_of::<T>() * 1,
-        offset_of!(Self, 0) + size_of::<T>() * 2,
-        offset_of!(Self, 0) + size_of::<T>() * 3,
-    ];
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 0) + size_of::<T>() * 1, offset_of!(Self, 0) + size_of::<T>() * 2, offset_of!(Self, 0) + size_of::<T>() * 3];
 }
 
-unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<4, T> for (Vector<3, T, A0>, T) {
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 0) + size_of::<T>() * 1,
-        offset_of!(Self, 0) + size_of::<T>() * 2,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-    ];
+unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<4, T> for (Vector<3, T, A0>, T,) {
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 0) + size_of::<T>() * 1, offset_of!(Self, 0) + size_of::<T>() * 2, offset_of!(Self, 1) + size_of::<T>() * 0];
 }
 
-unsafe impl<T: Scalar, A0: VecAlignment, A1: VecAlignment> IntoVector<4, T>
-    for (Vector<2, T, A0>, Vector<2, T, A1>)
-{
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 0) + size_of::<T>() * 1,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 1,
-    ];
+unsafe impl<T: Scalar, A0: VecAlignment, A1: VecAlignment> IntoVector<4, T> for (Vector<2, T, A0>, Vector<2, T, A1>,) {
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 0) + size_of::<T>() * 1, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 1];
 }
 
-unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<4, T> for (Vector<2, T, A0>, T, T) {
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 0) + size_of::<T>() * 1,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 2) + size_of::<T>() * 0,
-    ];
+unsafe impl<T: Scalar, A0: VecAlignment> IntoVector<4, T> for (Vector<2, T, A0>, T, T,) {
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 0) + size_of::<T>() * 1, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 2) + size_of::<T>() * 0];
 }
 
-unsafe impl<T: Scalar, A1: VecAlignment> IntoVector<4, T> for (T, Vector<3, T, A1>) {
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 1,
-        offset_of!(Self, 1) + size_of::<T>() * 2,
-    ];
+unsafe impl<T: Scalar, A1: VecAlignment> IntoVector<4, T> for (T, Vector<3, T, A1>,) {
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 1, offset_of!(Self, 1) + size_of::<T>() * 2];
 }
 
-unsafe impl<T: Scalar, A1: VecAlignment> IntoVector<4, T> for (T, Vector<2, T, A1>, T) {
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 1,
-        offset_of!(Self, 2) + size_of::<T>() * 0,
-    ];
+unsafe impl<T: Scalar, A1: VecAlignment> IntoVector<4, T> for (T, Vector<2, T, A1>, T,) {
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 1, offset_of!(Self, 2) + size_of::<T>() * 0];
 }
 
-unsafe impl<T: Scalar, A2: VecAlignment> IntoVector<4, T> for (T, T, Vector<2, T, A2>) {
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 2) + size_of::<T>() * 0,
-        offset_of!(Self, 2) + size_of::<T>() * 1,
-    ];
+unsafe impl<T: Scalar, A2: VecAlignment> IntoVector<4, T> for (T, T, Vector<2, T, A2>,) {
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 2) + size_of::<T>() * 0, offset_of!(Self, 2) + size_of::<T>() * 1];
 }
 
-unsafe impl<T: Scalar> IntoVector<4, T> for (T, T, T, T) {
-    const SOURCES: [usize; 4] = [
-        offset_of!(Self, 0) + size_of::<T>() * 0,
-        offset_of!(Self, 1) + size_of::<T>() * 0,
-        offset_of!(Self, 2) + size_of::<T>() * 0,
-        offset_of!(Self, 3) + size_of::<T>() * 0,
-    ];
+unsafe impl<T: Scalar> IntoVector<4, T> for (T, T, T, T,) {
+    const SOURCES: [usize; 4] = [offset_of!(Self, 0) + size_of::<T>() * 0, offset_of!(Self, 1) + size_of::<T>() * 0, offset_of!(Self, 2) + size_of::<T>() * 0, offset_of!(Self, 3) + size_of::<T>() * 0];
 }
+

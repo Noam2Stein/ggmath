@@ -91,15 +91,15 @@ where
             true => {
                 let mut output = match N {
                     2 => unsafe { transmute_copy::<T::InnerVec2A, Self>(&T::INNER_VEC2A_GARBAGE) },
-                    3 => unsafe { transmute_copy::<T::InnerVec3A, Self>(&T::INNER_VEC3A_GARBAGE) },
-                    4 => unsafe { transmute_copy::<T::InnerVec4A, Self>(&T::INNER_VEC4A_GARBAGE) },
+			3 => unsafe { transmute_copy::<T::InnerVec3A, Self>(&T::INNER_VEC3A_GARBAGE) },
+			4 => unsafe { transmute_copy::<T::InnerVec4A, Self>(&T::INNER_VEC4A_GARBAGE) },
                     _ => unreachable!(),
                 };
 
                 *output.as_array_mut() = array;
 
                 output
-            }
+            },
             false => unsafe { transmute_copy::<[T; N], Self>(&array) },
         }
     }

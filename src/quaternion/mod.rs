@@ -1,7 +1,7 @@
 //! Module for the quaternion type.
 
 use std::{
-    fmt::{Debug, Display},
+    fmt::{Display, Debug},
     hash::{Hash, Hasher},
 };
 
@@ -44,6 +44,7 @@ impl<T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
     }
 }
 impl<T: Scalar + Eq, A: VecAlignment> Eq for Quaternion<T, A> {}
+
 
 impl<T: Scalar + Hash, A: VecAlignment> Hash for Quaternion<T, A> {
     fn hash<H: Hasher>(&self, state: &mut H) {

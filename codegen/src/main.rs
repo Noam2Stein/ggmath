@@ -3,6 +3,8 @@ use std::{fmt::Write, ops::RangeInclusive, process::Command};
 use const_format::formatcp;
 use indoc::writedoc;
 
+mod aabb;
+mod matrix;
 mod module;
 mod primitives;
 mod quaternion;
@@ -24,7 +26,9 @@ fn main() {
 
     primitives::write_mod(module.submod_dir("primitives"));
     vector::write_mod(module.submod_dir("vector"));
+    matrix::write_mod(module.submod_dir("matrix"));
     quaternion::write_mod(module.submod_dir("quaternion"));
+    aabb::write_mod(module.submod_dir("aabb"));
 
     writedoc!(
         module,

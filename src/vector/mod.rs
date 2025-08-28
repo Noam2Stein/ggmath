@@ -1,7 +1,7 @@
 //! Module for the vector type.
 
 use std::{
-    fmt::{Debug, Display},
+    fmt::{Display, Debug},
     hash::{Hash, Hasher},
     ops::*,
 };
@@ -9,15 +9,15 @@ use std::{
 use super::*;
 
 mod cmp;
-mod construct;
 mod convert;
+mod swizzle;
+mod construct;
+mod ops;
 mod index;
 mod iter;
-mod ops;
 mod splat;
-mod swizzle;
-pub use construct::*;
 pub use splat::*;
+pub use construct::*;
 
 /// Marks a [`Usize`] type as a valid length for a vector.
 /// This trait is currently implemented for `2`, `3` and `4`.
@@ -48,541 +48,551 @@ unsafe impl VecLen for Usize<4> {
 /// All scalar types are `Copy` and some more basic traits like `Send` and `Sync`.
 pub trait Scalar: Construct {
     /// Specifies the inner memory representation of an aligned vector2.
-    /// This type's reference must be a valid `&[T; 2]`.
-    ///
-    /// This type is useful to add extra memory alignment to vectors for use in SIMD instructions.
-    /// If `Self` does not benifit from SIMD or additional memory alignment, use `[Self; 2]` to minimize size.
-    type InnerVec2A: Construct;
-
-    /// Specifies the inner memory representation of an aligned vector3.
-    /// This type's reference must be a valid `&[T; 3]`.
-    ///
-    /// This type is useful to add extra memory alignment to vectors for use in SIMD instructions.
-    /// If `Self` does not benifit from SIMD or additional memory alignment, use `[Self; 3]` to minimize size.
-    type InnerVec3A: Construct;
-
-    /// Specifies the inner memory representation of an aligned vector4.
-    /// This type's reference must be a valid `&[T; 4]`.
-    ///
-    /// This type is useful to add extra memory alignment to vectors for use in SIMD instructions.
-    /// If `Self` does not benifit from SIMD or additional memory alignment, use `[Self; 4]` to minimize size.
-    type InnerVec4A: Construct;
+	/// This type's reference must be a valid `&[T; 2]`.
+	///
+	/// This type is useful to add extra memory alignment to vectors for use in SIMD instructions.
+	/// If `Self` does not benifit from SIMD or additional memory alignment, use `[Self; 2]` to minimize size.
+	type InnerVec2A: Construct;
+	
+	/// Specifies the inner memory representation of an aligned vector3.
+	/// This type's reference must be a valid `&[T; 3]`.
+	///
+	/// This type is useful to add extra memory alignment to vectors for use in SIMD instructions.
+	/// If `Self` does not benifit from SIMD or additional memory alignment, use `[Self; 3]` to minimize size.
+	type InnerVec3A: Construct;
+	
+	/// Specifies the inner memory representation of an aligned vector4.
+	/// This type's reference must be a valid `&[T; 4]`.
+	///
+	/// This type is useful to add extra memory alignment to vectors for use in SIMD instructions.
+	/// If `Self` does not benifit from SIMD or additional memory alignment, use `[Self; 4]` to minimize size.
+	type InnerVec4A: Construct;
 
     /// Specifies a valid value of the `InnerVec2A` type.
-    ///
-    /// This is used when initializing vectors to make sure padding is initialized.
-    const INNER_VEC2A_GARBAGE: Self::InnerVec2A;
-
-    /// Specifies a valid value of the `InnerVec3A` type.
-    ///
-    /// This is used when initializing vectors to make sure padding is initialized.
-    const INNER_VEC3A_GARBAGE: Self::InnerVec3A;
-
-    /// Specifies a valid value of the `InnerVec4A` type.
-    ///
-    /// This is used when initializing vectors to make sure padding is initialized.
-    const INNER_VEC4A_GARBAGE: Self::InnerVec4A;
-
-    /// Overridable implementation of [`Vector::eq`].
-    #[inline(always)]
-    fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        Vector::from_fn(|i| vec[i].eq(&rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::ne`].
-    #[inline(always)]
-    fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        Vector::from_fn(|i| vec[i].ne(&rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::lt`].
-    #[inline(always)]
-    fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec[i].lt(&rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::le`].
-    #[inline(always)]
-    fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec[i].le(&rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::gt`].
-    #[inline(always)]
-    fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec[i].gt(&rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::ge`].
-    #[inline(always)]
-    fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec[i].ge(&rhs[i]))
-    }
+	///
+	/// This is used when initializing vectors to make sure padding is initialized.
+	const INNER_VEC2A_GARBAGE: Self::InnerVec2A;
+	
+	/// Specifies a valid value of the `InnerVec3A` type.
+	///
+	/// This is used when initializing vectors to make sure padding is initialized.
+	const INNER_VEC3A_GARBAGE: Self::InnerVec3A;
+	
+	/// Specifies a valid value of the `InnerVec4A` type.
+	///
+	/// This is used when initializing vectors to make sure padding is initialized.
+	const INNER_VEC4A_GARBAGE: Self::InnerVec4A;
 
     /// Overridable implementation of [`Vector::eq`].
-    #[inline(always)]
-    fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> bool
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        Self::vec_eq_mask(vec, rhs).into_iter().all(|x| x)
-    }
-
-    /// Overridable implementation of [`Vector::ne`].
-    #[inline(always)]
-    fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &Vector<N, Self, A>,
-        rhs: &Vector<N, T2, impl VecAlignment>,
-    ) -> bool
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        !Self::vec_eq(vec, rhs)
-    }
-
-    /// Overridable implementation of [`Vector::neg`].
-    #[inline(always)]
-    fn vec_neg<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Neg<Output: Scalar>,
-    {
-        Vector::from_array(vec.to_array().map(|x| x.neg()))
-    }
-
-    /// Overridable implementation of [`Vector::not`].
-    #[inline(always)]
-    fn vec_not<const N: usize, A: VecAlignment>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Not<Output: Scalar>,
-    {
-        Vector::from_array(vec.to_array().map(|x| x.not()))
-    }
-
-    /// Overridable implementation of [`Vector::add`].
-    #[inline(always)]
-    fn vec_add<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Add<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].add(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::add_assign`].
-    #[inline(always)]
-    fn vec_add_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: AddAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].add_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::sub`].
-    #[inline(always)]
-    fn vec_sub<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Sub<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].sub(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::sub_assign`].
-    #[inline(always)]
-    fn vec_sub_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: SubAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].sub_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::mul`].
-    #[inline(always)]
-    fn vec_mul<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Mul<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].mul(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::mul_assign`].
-    #[inline(always)]
-    fn vec_mul_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: MulAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].mul_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::div`].
-    #[inline(always)]
-    fn vec_div<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Div<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].div(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::div_assign`].
-    #[inline(always)]
-    fn vec_div_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: DivAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].div_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::rem`].
-    #[inline(always)]
-    fn vec_rem<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Rem<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].rem(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::rem_assign`].
-    #[inline(always)]
-    fn vec_rem_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: RemAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].rem_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::shl`].
-    #[inline(always)]
-    fn vec_shl<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Shl<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].shl(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::shl_assign`].
-    #[inline(always)]
-    fn vec_shl_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: ShlAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].shl_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::shr`].
-    #[inline(always)]
-    fn vec_shr<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Shr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].shr(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::shr_assign`].
-    #[inline(always)]
-    fn vec_shr_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: ShrAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].shr_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::bitand`].
-    #[inline(always)]
-    fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: BitAnd<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].bitand(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::bitand_assign`].
-    #[inline(always)]
-    fn vec_bitand_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: BitAndAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].bitand_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::bitor`].
-    #[inline(always)]
-    fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: BitOr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].bitor(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::bitor_assign`].
-    #[inline(always)]
-    fn vec_bitor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: BitOrAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].bitor_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::bitxor`].
-    #[inline(always)]
-    fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: BitXor<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].bitxor(rhs[i]))
-    }
-
-    /// Overridable implementation of [`Vector::bitxor_assign`].
-    #[inline(always)]
-    fn vec_bitxor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: BitXorAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].bitxor_assign(rhs[i]);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::mul`].
-    #[inline(always)]
-    fn vec_scalar_mul<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: T2,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Mul<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].mul(rhs))
-    }
-
-    /// Overridable implementation of [`Vector::mul_assign`].
-    #[inline(always)]
-    fn vec_scalar_mul_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: T2,
-    ) where
-        Usize<N>: VecLen,
-        Self: MulAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].mul_assign(rhs);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::div`].
-    #[inline(always)]
-    fn vec_scalar_div<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: T2,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Div<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].div(rhs))
-    }
-
-    /// Overridable implementation of [`Vector::div_assign`].
-    #[inline(always)]
-    fn vec_scalar_div_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: T2,
-    ) where
-        Usize<N>: VecLen,
-        Self: DivAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].div_assign(rhs);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::rem`].
-    #[inline(always)]
-    fn vec_scalar_rem<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: Vector<N, Self, A>,
-        rhs: T2,
-    ) -> Vector<N, Self::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: Rem<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec[i].rem(rhs))
-    }
-
-    /// Overridable implementation of [`Vector::rem_assign`].
-    #[inline(always)]
-    fn vec_scalar_rem_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vec: &mut Vector<N, Self, A>,
-        rhs: T2,
-    ) where
-        Usize<N>: VecLen,
-        Self: RemAssign<T2>,
-    {
-        for i in 0..N {
-            vec[i].rem_assign(rhs);
-        }
-    }
-
-    /// Overridable implementation of [`Vector::hash`].
-    #[inline(always)]
-    fn vec_hash<const N: usize, A: VecAlignment, H: std::hash::Hasher>(
-        vec: &Vector<N, Self, A>,
-        state: &mut H,
-    ) where
-        Usize<N>: VecLen,
-        Self: std::hash::Hash,
-    {
-        vec.as_array_ref().hash(state);
-    }
-
-    /// Overridable implementation of [`Vector::default`].
-    #[inline(always)]
-    fn vec_default<const N: usize, A: VecAlignment>() -> Vector<N, Self, A>
-    where
-        Usize<N>: VecLen,
-        Self: Default,
-    {
-        Vector::splat(Self::default())
-    }
+	#[inline(always)]
+	fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, bool, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialEq<T2>,
+	{
+	    Vector::from_fn(|i| vec[i].eq(&rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::ne`].
+	#[inline(always)]
+	fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, bool, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialEq<T2>,
+	{
+	    Vector::from_fn(|i| vec[i].ne(&rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::lt`].
+	#[inline(always)]
+	fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, bool, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialOrd<T2>,
+	{
+	    Vector::from_fn(|i| vec[i].lt(&rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::le`].
+	#[inline(always)]
+	fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, bool, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialOrd<T2>,
+	{
+	    Vector::from_fn(|i| vec[i].le(&rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::gt`].
+	#[inline(always)]
+	fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, bool, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialOrd<T2>,
+	{
+	    Vector::from_fn(|i| vec[i].gt(&rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::ge`].
+	#[inline(always)]
+	fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, bool, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialOrd<T2>,
+	{
+	    Vector::from_fn(|i| vec[i].ge(&rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::eq`].
+	#[inline(always)]
+	fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> bool
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialEq<T2>,
+	{
+	    Self::vec_eq_mask(vec, rhs).into_iter().all(|x| x)
+	}
+	
+	/// Overridable implementation of [`Vector::ne`].
+	#[inline(always)]
+	fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &Vector<N, Self, A>,
+	    rhs: &Vector<N, T2, impl VecAlignment>,
+	) -> bool
+	where
+	    Usize<N>: VecLen,
+	    Self: PartialEq<T2>,
+	{
+	    !Self::vec_eq(vec, rhs)
+	}
+	
+	/// Overridable implementation of [`Vector::neg`].
+	#[inline(always)]
+	fn vec_neg<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Neg<Output: Scalar>,
+	{
+	    Vector::from_array(vec.to_array().map(|x| x.neg()))
+	}
+	
+	/// Overridable implementation of [`Vector::not`].
+	#[inline(always)]
+	fn vec_not<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Not<Output: Scalar>,
+	{
+	    Vector::from_array(vec.to_array().map(|x| x.not()))
+	}
+	
+	/// Overridable implementation of [`Vector::add`].
+	#[inline(always)]
+	fn vec_add<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Add<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].add(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::add_assign`].
+	#[inline(always)]
+	fn vec_add_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: AddAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].add_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::sub`].
+	#[inline(always)]
+	fn vec_sub<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Sub<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].sub(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::sub_assign`].
+	#[inline(always)]
+	fn vec_sub_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: SubAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].sub_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::mul`].
+	#[inline(always)]
+	fn vec_mul<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Mul<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].mul(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::mul_assign`].
+	#[inline(always)]
+	fn vec_mul_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: MulAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].mul_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::div`].
+	#[inline(always)]
+	fn vec_div<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Div<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].div(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::div_assign`].
+	#[inline(always)]
+	fn vec_div_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: DivAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].div_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::rem`].
+	#[inline(always)]
+	fn vec_rem<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Rem<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].rem(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::rem_assign`].
+	#[inline(always)]
+	fn vec_rem_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: RemAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].rem_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::shl`].
+	#[inline(always)]
+	fn vec_shl<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Shl<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].shl(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::shl_assign`].
+	#[inline(always)]
+	fn vec_shl_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: ShlAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].shl_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::shr`].
+	#[inline(always)]
+	fn vec_shr<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Shr<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].shr(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::shr_assign`].
+	#[inline(always)]
+	fn vec_shr_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: ShrAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].shr_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::bitand`].
+	#[inline(always)]
+	fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: BitAnd<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].bitand(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::bitand_assign`].
+	#[inline(always)]
+	fn vec_bitand_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: BitAndAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].bitand_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::bitor`].
+	#[inline(always)]
+	fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: BitOr<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].bitor(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::bitor_assign`].
+	#[inline(always)]
+	fn vec_bitor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: BitOrAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].bitor_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::bitxor`].
+	#[inline(always)]
+	fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: BitXor<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].bitxor(rhs[i]))
+	}
+	
+	/// Overridable implementation of [`Vector::bitxor_assign`].
+	#[inline(always)]
+	fn vec_bitxor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: Vector<N, T2, impl VecAlignment>,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: BitXorAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].bitxor_assign(rhs[i]);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::mul`].
+	#[inline(always)]
+	fn vec_scalar_mul<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: T2,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Mul<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].mul(rhs))
+	}
+	
+	/// Overridable implementation of [`Vector::mul_assign`].
+	#[inline(always)]
+	fn vec_scalar_mul_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: T2,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: MulAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].mul_assign(rhs);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::div`].
+	#[inline(always)]
+	fn vec_scalar_div<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: T2,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Div<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].div(rhs))
+	}
+	
+	/// Overridable implementation of [`Vector::div_assign`].
+	#[inline(always)]
+	fn vec_scalar_div_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: T2,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: DivAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].div_assign(rhs);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::rem`].
+	#[inline(always)]
+	fn vec_scalar_rem<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: Vector<N, Self, A>,
+	    rhs: T2,
+	) -> Vector<N, Self::Output, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Rem<T2, Output: Scalar>,
+	{
+	    Vector::from_fn(|i| vec[i].rem(rhs))
+	}
+	
+	/// Overridable implementation of [`Vector::rem_assign`].
+	#[inline(always)]
+	fn vec_scalar_rem_assign<const N: usize, A: VecAlignment, T2: Scalar>(
+	    vec: &mut Vector<N, Self, A>,
+	    rhs: T2,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: RemAssign<T2>,
+	{
+	    for i in 0..N {
+	        vec[i].rem_assign(rhs);
+	    }
+	}
+	
+	/// Overridable implementation of [`Vector::hash`].
+	#[inline(always)]
+	fn vec_hash<const N: usize, A: VecAlignment, H: std::hash::Hasher>(
+	    vec: &Vector<N, Self, A>,
+	    state: &mut H,
+	)
+	where
+	    Usize<N>: VecLen,
+	    Self: std::hash::Hash,
+	{
+	    vec.as_array_ref().hash(state);
+	}
+	
+	/// Overridable implementation of [`Vector::default`].
+	#[inline(always)]
+	fn vec_default<const N: usize, A: VecAlignment>() -> Vector<N, Self, A>
+	where
+	    Usize<N>: VecLen,
+	    Self: Default,
+	{
+	    Vector::splat(Self::default())
+	}
 }
 
 /// Sealed marker trait that marks vectors as either `VecAligned` or `VecPacked`.
@@ -753,19 +763,19 @@ macro_rules! vector_aliases {
         $crate::_hidden_::paste! {
             #[doc = "Type alias to `Vec2<" $type ">`"]
 			$($vis)* type [<$prefix Vec2>] = $crate::Vec2<$type>;
-
+			
 			#[doc = "Type alias to `Vec2P<" $type ">`"]
 			$($vis)* type [<$prefix Vec2P>] = $crate::Vec2P<$type>;
-
+			
 			#[doc = "Type alias to `Vec3<" $type ">`"]
 			$($vis)* type [<$prefix Vec3>] = $crate::Vec3<$type>;
-
+			
 			#[doc = "Type alias to `Vec3P<" $type ">`"]
 			$($vis)* type [<$prefix Vec3P>] = $crate::Vec3P<$type>;
-
+			
 			#[doc = "Type alias to `Vec4<" $type ">`"]
 			$($vis)* type [<$prefix Vec4>] = $crate::Vec4<$type>;
-
+			
 			#[doc = "Type alias to `Vec4P<" $type ">`"]
 			$($vis)* type [<$prefix Vec4P>] = $crate::Vec4P<$type>;
         }
@@ -780,7 +790,10 @@ where
         *self
     }
 }
-impl<const N: usize, T: Scalar, A: VecAlignment> Copy for Vector<N, T, A> where Usize<N>: VecLen {}
+impl<const N: usize, T: Scalar, A: VecAlignment> Copy for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{}
 
 impl<const N: usize, T: Scalar + Hash, A: VecAlignment> Hash for Vector<N, T, A>
 where
@@ -792,6 +805,7 @@ where
     }
 }
 
+
 impl<const N: usize, T: Scalar + Default, A: VecAlignment> Default for Vector<N, T, A>
 where
     Usize<N>: VecLen,
@@ -801,6 +815,7 @@ where
         T::vec_default()
     }
 }
+
 
 impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N, T, A>
 where
@@ -837,6 +852,7 @@ where
         Ok(())
     }
 }
+
 
 #[cfg(test)]
 mod tests {
