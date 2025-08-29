@@ -84,6 +84,7 @@ mod tests {
         helper::<bool>();
     }
 
+    #[cfg(feature = "primitive_aliases")]
     fn _test_primitive_aliases() {
         fn helper<T>() -> PhantomData<T> {
             PhantomData
