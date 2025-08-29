@@ -60,7 +60,9 @@ pub use bool::*;
 
 #[cfg(test)]
 mod tests {
-    use crate::vector::Scalar;
+    use std::marker::PhantomData;
+
+    use crate::vector::{Scalar, VecAligned, VecPacked, Vector};
 
     fn _test_scalar_impl() {
         fn helper<T: Scalar>() {}
@@ -80,5 +82,14 @@ mod tests {
         helper::<u128>();
         helper::<usize>();
         helper::<bool>();
+    }
+
+    fn _test_primitive_aliases() {
+        fn helper<T>() -> PhantomData<T> {
+            PhantomData
+        }
+
+        let _: PhantomData<Vector<2, f32, VecAligned>> = helper::<crate::f32_aliases::FVec2>();
+        let _: PhantomData<Vector<4, bool, VecPacked>> = helper::<crate::bool_aliases::BVec4P>();
     }
 }

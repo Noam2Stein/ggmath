@@ -8,11 +8,20 @@ mod primitives;
 #[allow(unused_imports)]
 pub use primitives::*;
 
+#[cfg(feature = "aliases")]
+pub mod aliases;
+
 #[cfg(feature = "vector")]
 pub mod vector;
 
 pub trait Construct: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe {}
 
 pub struct Usize<const N: usize>;
+
+#[doc(hidden)]
+pub mod _hidden_ {
+    #[cfg(feature = "aliases")]
+    pub use paste;
+}
 
 impl<T: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe> Construct for T {}
