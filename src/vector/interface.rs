@@ -113,6 +113,47 @@ where
         Vector::from_array(self.as_array().map(f))
     }
 
+    /// Folds the vector into a single value using the given function.
+    /// The function is applied on the output for each component in order.
+    #[inline(always)]
+    pub fn fold(self, mut f: impl FnMut(T, T) -> T) -> T {
+        let mut output = self[0];
+
+        for i in 1..N {
+            output = f(output, self[i]);
+        }
+
+        output
+    }
+
+    /// Returns true if all components of the vector satisfy the given predicate.
+    /// If a component does not satisfy the predicate,
+    /// the function returns false immediately without evaluating the remaining components.
+    #[inline(always)]
+    pub fn all(self, mut f: impl FnMut(T) -> bool) -> bool {
+        for i in 0..N {
+            if !f(self[i]) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    /// Returns true if any component of the vector satisfies the given predicate.
+    /// If a component satisfies the predicate,
+    /// the function returns true immediately without evaluating the remaining components.
+    #[inline(always)]
+    pub fn any(self, mut f: impl FnMut(T) -> bool) -> bool {
+        for i in 0..N {
+            if f(self[i]) {
+                return true;
+            }
+        }
+
+        false
+    }
+
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
     #[inline(always)]
     pub fn eq_mask<T2: Scalar>(

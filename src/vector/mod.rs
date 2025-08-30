@@ -716,13 +716,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: Add<Output = Self>,
     {
-        let mut sum = vector[0];
-
-        for i in 1..N {
-            sum = sum + vector[i];
-        }
-
-        sum
+        vector.fold(|a, b| a + b)
     }
 
     /// Overridable implementation of `Vector::product`.
@@ -732,13 +726,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: Mul<Output = Self>,
     {
-        let mut product = vector[0];
-
-        for i in 1..N {
-            product = product * vector[i];
-        }
-
-        product
+        vector.fold(|a, b| a * b)
     }
 
     /// Overridable implementation of `Vector::mag_sq`.
