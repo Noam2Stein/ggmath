@@ -824,7 +824,7 @@ pub struct VecPacked;
 #[macro_export]
 macro_rules! vec2 {
     ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<2, _, VecAligned>::from(($($expr),*,))
+        $crate::vector::Vector::<2, _, $crate::vector::VecAligned>::from(($($expr),*,))
     };
 }
 
@@ -839,7 +839,7 @@ macro_rules! vec2 {
 #[macro_export]
 macro_rules! vec3 {
     ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<3, _, VecAligned>::from(($($expr),*,))
+        $crate::vector::Vector::<3, _, $crate::vector::VecAligned>::from(($($expr),*,))
     };
 }
 
@@ -858,7 +858,7 @@ macro_rules! vec3 {
 #[macro_export]
 macro_rules! vec4 {
     ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<4, _, VecAligned>::from(($($expr),*,))
+        $crate::vector::Vector::<4, _, $crate::vector::VecAligned>::from(($($expr),*,))
     };
 }
 
@@ -871,7 +871,7 @@ macro_rules! vec4 {
 #[macro_export]
 macro_rules! vec2p {
     ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<2, _, VecPacked>::from(($($expr),*,))
+        $crate::vector::Vector::<2, _, $crate::vector::VecPacked>::from(($($expr),*,))
     };
 }
 
@@ -886,7 +886,7 @@ macro_rules! vec2p {
 #[macro_export]
 macro_rules! vec3p {
     ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<3, _, VecPacked>::from(($($expr),*,))
+        $crate::vector::Vector::<3, _, $crate::vector::VecPacked>::from(($($expr),*,))
     };
 }
 
@@ -905,7 +905,7 @@ macro_rules! vec3p {
 #[macro_export]
 macro_rules! vec4p {
     ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<4, _, VecPacked>::from(($($expr),*,))
+        $crate::vector::Vector::<4, _, $crate::vector::VecPacked>::from(($($expr),*,))
     };
 }
 
