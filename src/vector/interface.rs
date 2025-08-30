@@ -12,6 +12,8 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
+    /// A constant with an unknown valid value.
+    /// Can be used to initialize temporary vectors.
     pub const GARBAGE: Self = match A::IS_ALIGNED {
         true => match Usize::<N>::ENUM {
             VecLenEnum::Two => unsafe {
@@ -49,6 +51,7 @@ where
         },
     };
 
+    /// Creates a new vector from an array.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
         let mut output = Self::GARBAGE;
@@ -60,39 +63,47 @@ where
         output
     }
 
+    /// Converts the vector to an array.
     #[inline(always)]
     pub const fn to_array(self) -> [T; N] {
         unsafe { transmute_copy::<Vector<N, T, A>, [T; N]>(&self) }
     }
 
+    /// Converts a vector reference to an array reference.
     #[inline(always)]
     pub const fn as_array(&self) -> &[T; N] {
         unsafe { transmute::<&Vector<N, T, A>, &[T; N]>(self) }
     }
 
+    /// Converts a mutable vector reference to a mutable array reference.
     #[inline(always)]
     pub const fn as_array_mut(&mut self) -> &mut [T; N] {
         unsafe { transmute::<&mut Vector<N, T, A>, &mut [T; N]>(self) }
     }
 
+    /// Returns a pointer to the first element of the vector.
     #[inline(always)]
     pub const fn as_ptr(&self) -> *const T {
         self.as_array().as_ptr()
     }
 
+    /// Returns a mutable pointer to the first element of the vector.
     #[inline(always)]
     pub const fn as_mut_ptr(&mut self) -> *mut T {
         self.as_array_mut().as_mut_ptr()
     }
 
+    /// Creates a new vector where each component is evaluated from the given function called with the component index.
+    /// The function is called in order.
     #[inline(always)]
-    pub fn from_fn<F: Fn(usize) -> T>(f: F) -> Self
+    pub fn from_fn<F: FnMut(usize) -> T>(f: F) -> Self
     where
         Usize<N>: VecLen,
     {
         Vector::from_array(std::array::from_fn(f))
     }
 
+    /// Maps each component of the vector to a new value using the given function.
     #[inline(always)]
     pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, A>
     where
@@ -106,11 +117,17 @@ impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
 where
     Usize<N>: VecLen,
 {
+    /// Converts an array reference to a vector reference.
+    ///
+    /// This requires `VecPacked` alignment because a SIMD aligned vector reference is incompatible with an array reference.
     #[inline(always)]
     pub const fn from_array_ref(array: &[T; N]) -> &Self {
         unsafe { transmute::<&[T; N], &Vector<N, T, VecPacked>>(array) }
     }
 
+    /// Converts a mutable array reference to a mutable vector reference.
+    ///
+    /// This requires `VecPacked` alignment because a SIMD aligned vector reference is incompatible with an array reference.
     #[inline(always)]
     pub const fn from_array_mut(array: &mut [T; N]) -> &mut Self {
         unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }

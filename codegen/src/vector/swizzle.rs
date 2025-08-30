@@ -2,10 +2,11 @@ use std::fmt::Write;
 
 use indoc::{formatdoc, writedoc};
 
-use crate::module::*;
+use crate::{join_and, module::*};
 
 const LENGTHS: &[usize] = &[2, 3, 4];
 const COMPONENTS: &[&str] = &["x", "y", "z", "w"];
+const COMPONENT_ORDINALS: &[&str] = &["1st", "2nd", "3rd", "4th"];
 
 pub fn write_mod(mut module: Mod) {
     let mut vector_impls = Vec::new();
@@ -27,7 +28,17 @@ pub fn write_mod(mut module: Mod) {
                     .collect::<Vec<_>>()
                     .join(", ");
 
+                let components_list =
+                    join_and(combination.iter().map(|i| format!("`{}`", COMPONENTS[*i])));
+
+                let component_oridinal_list = join_and(
+                    combination
+                        .iter()
+                        .map(|i| format!("{}", COMPONENT_ORDINALS[*i])),
+                );
+
                 functions.push(formatdoc! {r#"
+                    /// Returns a new vector with the {components_list} ({component_oridinal_list}) components of the input vector.
                     #[inline(always)]
                     pub fn {fn_name}(self) -> Vector<{n2}, T, A> {{
                         T::vec_swizzle{n2}::<{n}, A, {combination_args}>(self)

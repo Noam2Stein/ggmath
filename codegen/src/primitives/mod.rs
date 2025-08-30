@@ -54,6 +54,7 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
     writedoc!(
         module,
         r#"
+        /// A module with `{primitive}` type aliases.
         #[cfg(feature = "primitive_aliases")]
         pub mod {primitive}_aliases {{
             use crate::vector_aliases;

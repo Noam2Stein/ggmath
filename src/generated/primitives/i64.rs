@@ -1,3 +1,4 @@
+/// A module with `i64` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod i64_aliases {
     use crate::vector_aliases;
