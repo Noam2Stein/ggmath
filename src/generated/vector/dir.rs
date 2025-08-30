@@ -1,6 +1,6 @@
 use crate::{
     Construct,
-    vector::{ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector},
+    vector::{ScalarZero, ScalarOne, ScalarNegOne, VecAlignment, Vector},
 };
 
 /// A trait for a `Right` constant where right is the positive direction.
@@ -86,6 +86,7 @@ pub trait NegativeBackward: Construct {
     /// A value that points backwards with magnitude `1` where forwards is the positive direction.
     const BACKWARD: Self;
 }
+
 
 #[cfg(feature = "right")]
 impl<T: ScalarOne> PositiveRight for T {
@@ -326,3 +327,4 @@ impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<4
 impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<4, T, A> {
     const BACKWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE, T::ZERO]);
 }
+

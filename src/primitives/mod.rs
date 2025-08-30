@@ -1,3 +1,8 @@
+#[path = "../generated/primitives/mod.rs"]
+mod generated;
+#[allow(unused_imports)]
+pub use generated::*;
+
 mod f32;
 #[allow(unused_imports)]
 pub use f32::*;
