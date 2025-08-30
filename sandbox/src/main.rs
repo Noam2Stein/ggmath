@@ -1,3 +1,5 @@
+use ggmath::{f32_aliases::FVec2, vector::NegativeLeft};
+
 fn main() {
-    println!("Hello, world!");
+    println!("{}", FVec2::LEFT);
 }

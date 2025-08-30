@@ -4,4 +4,12 @@ name    = "sandbox"
 version = "0.1.0"
 
 [dependencies]
-ggmath = { path = "../", features = [ "full", "right" ] }
+ggmath = { path = "../", features = [
+    "backwards",
+    "down",
+    "forwards",
+    "full",
+    "left",
+    "right",
+    "up",
+] }

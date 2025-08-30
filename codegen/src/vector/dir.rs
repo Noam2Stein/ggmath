@@ -37,17 +37,17 @@ pub fn write_mod(mut module: Mod) {
                 const {dir_b_upper}: Self;
             }}
 
-            /// A trait for a `{dir_a_camel}` constant where {dir_a_lower} is the negative direction.
+            /// A trait for a `{dir_a_camel}` constant where {dir_b_lower} is the positive direction.
             #[cfg(feature = "{dir_b_lower}")]
             pub trait Negative{dir_a_camel}: Construct {{
-                /// A value that points {dir_a_lower} with magnitude `1` where {dir_a_lower} is the negative direction.
+                /// A value that points {dir_a_lower} with magnitude `1` where {dir_b_lower} is the positive direction.
                 const {dir_a_upper}: Self;
             }}
             
-            /// A trait for a `{dir_b_camel}` constant where {dir_b_lower} is the negative direction.
+            /// A trait for a `{dir_b_camel}` constant where {dir_a_lower} is the positive direction.
             #[cfg(feature = "{dir_a_lower}")]
             pub trait Negative{dir_b_camel}: Construct {{
-                /// A value that points {dir_b_lower} with magnitude `1` where {dir_b_lower} is the negative direction.
+                /// A value that points {dir_b_lower} with magnitude `1` where {dir_a_lower} is the positive direction.
                 const {dir_b_upper}: Self;
             }}
         "#});
@@ -96,22 +96,22 @@ pub fn write_mod(mut module: Mod) {
                 r#"
                 #[cfg(feature = "{dir_a_lower}")]
                 impl<T: ScalarZero + ScalarOne, A: VecAlignment> Positive{dir_a_camel} for Vector<{n}, T, A> {{
-                    const {dir_a_upper}: Self = vec{n}g!({positive_values});
+                    const {dir_a_upper}: Self = Self::from_array([{positive_values}]);
                 }}
 
                 #[cfg(feature = "{dir_b_lower}")]
                 impl<T: ScalarZero + ScalarOne, A: VecAlignment> Positive{dir_b_camel} for Vector<{n}, T, A> {{
-                    const {dir_b_upper}: Self = vec{n}g!({positive_values});
+                    const {dir_b_upper}: Self = Self::from_array([{positive_values}]);
                 }}
 
                 #[cfg(feature = "{dir_b_lower}")]
                 impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Negative{dir_a_camel} for Vector<{n}, T, A> {{
-                    const {dir_a_upper}: Self = vec{n}g!({negative_values});
+                    const {dir_a_upper}: Self = Self::from_array([{negative_values}]);
                 }}
 
                 #[cfg(feature = "{dir_a_lower}")]
                 impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Negative{dir_b_camel} for Vector<{n}, T, A> {{
-                    const {dir_b_upper}: Self = vec{n}g!({negative_values});
+                    const {dir_b_upper}: Self = Self::from_array([{negative_values}]);
                 }}
             "#});
         }
@@ -125,9 +125,6 @@ pub fn write_mod(mut module: Mod) {
         r#"
         use crate::{{
             Construct,
-            vec2g,
-            vec3g,
-            vec4g,
             vector::{{ScalarZero, ScalarOne, ScalarNegOne, VecAlignment, Vector}},
         }};
 
