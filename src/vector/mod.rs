@@ -956,6 +956,63 @@ macro_rules! vec4g {
     };
 }
 
+/// Creates a new aligned vec2 where each component is the same value.
+#[inline(always)]
+pub const fn splat2<T: Scalar>(value: T) -> Vector<2, T, VecPacked> {
+    Vector::<2, T, VecPacked>::splat(value)
+}
+
+/// Creates a new aligned vec3 where each component is the same value.
+#[inline(always)]
+pub const fn splat3<T: Scalar>(value: T) -> Vector<3, T, VecPacked> {
+    Vector::<3, T, VecPacked>::splat(value)
+}
+
+/// Creates a new aligned vec4 where each component is the same value.
+#[inline(always)]
+pub const fn splat4<T: Scalar>(value: T) -> Vector<4, T, VecPacked> {
+    Vector::<4, T, VecPacked>::splat(value)
+}
+
+/// Creates a new packed vec2 where each component is the same value.
+#[inline(always)]
+pub const fn splat2p<T: Scalar>(value: T) -> Vector<2, T, VecPacked> {
+    Vector::<2, T, VecPacked>::splat(value)
+}
+
+/// Creates a new packed vec3 where each component is the same value.
+#[inline(always)]
+pub const fn splat3p<T: Scalar>(value: T) -> Vector<3, T, VecPacked> {
+    Vector::<3, T, VecPacked>::splat(value)
+}
+
+/// Creates a new packed vec4 where each component is the same value.
+#[inline(always)]
+pub const fn splat4p<T: Scalar>(value: T) -> Vector<4, T, VecPacked> {
+    Vector::<4, T, VecPacked>::splat(value)
+}
+
+/// Creates a new vec2 where each component is the same value,
+/// where type inference can be used to determine if it's aligned or packed.
+#[inline(always)]
+pub const fn splat2g<T: Scalar, A: VecAlignment>(value: T) -> Vector<2, T, A> {
+    Vector::<2, T, A>::splat(value)
+}
+
+/// Creates a new vec3 where each component is the same value,
+/// where type inference can be used to determine if it's aligned or packed.
+#[inline(always)]
+pub const fn splat3g<T: Scalar, A: VecAlignment>(value: T) -> Vector<3, T, A> {
+    Vector::<3, T, A>::splat(value)
+}
+
+/// Creates a new vec4 where each component is the same value,
+/// where type inference can be used to determine if it's aligned or packed.
+#[inline(always)]
+pub const fn splat4g<T: Scalar, A: VecAlignment>(value: T) -> Vector<4, T, A> {
+    Vector::<4, T, A>::splat(value)
+}
+
 impl VecLen for Usize<2> {
     const ENUM: VecLenEnum = VecLenEnum::Two;
 

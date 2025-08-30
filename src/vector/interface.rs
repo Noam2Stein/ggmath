@@ -154,6 +154,12 @@ where
         false
     }
 
+    /// Creates a new vector where each component is the same value.
+    #[inline(always)]
+    pub const fn splat(value: T) -> Self {
+        Vector::from_array([value; N])
+    }
+
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
     #[inline(always)]
     pub fn eq_mask<T2: Scalar>(
