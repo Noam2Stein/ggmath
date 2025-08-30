@@ -1,5 +1,6 @@
 use std::{
     mem::{transmute, transmute_copy},
+    ops::{Add, Mul, Sub},
     ptr::copy_nonoverlapping,
 };
 
@@ -183,6 +184,50 @@ where
     {
         T::vec_ge_mask(self, other)
     }
+
+    /// Sums the components of the vector.
+    #[inline(always)]
+    pub fn sum(self) -> T
+    where
+        Usize<N>: VecLen,
+        T: Add<Output = T>,
+    {
+        T::vec_sum(self)
+    }
+
+    /// Multiplies the components of the vector.
+    #[inline(always)]
+    pub fn product(self) -> T
+    where
+        Usize<N>: VecLen,
+        T: Mul<Output = T>,
+    {
+        T::vec_product(self)
+    }
+
+    /// Returns the squared magnitude of the vector.
+    /// This is faster than `mag` because it avoids a square root operation.
+    ///
+    /// Note that `mag` only exists for specific primitives and not as a generic method.
+    #[inline(always)]
+    pub fn mag_sq(self) -> T
+    where
+        Usize<N>: VecLen,
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        T::vec_mag_sq(self)
+    }
+
+    /// Returns the dot product of the vector and another vector.
+    #[inline(always)]
+    pub fn dot<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> T::Output
+    where
+        Usize<N>: VecLen,
+        T: Mul<T2, Output: Scalar>,
+        T::Output: Add<Output = T::Output>,
+    {
+        T::vec_dot(self, other)
+    }
 }
 
 impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
@@ -203,6 +248,18 @@ where
     #[inline(always)]
     pub const fn from_array_mut(array: &mut [T; N]) -> &mut Self {
         unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns the cross product of the vector and another vector.
+    #[inline(always)]
+    pub fn cross(self, other: Vector<3, T, impl VecAlignment>) -> Self
+    where
+        T: Mul<T, Output = T>,
+        T: Sub<T, Output = T>,
+    {
+        T::vec_cross(self, other)
     }
 }
 

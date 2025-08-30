@@ -708,6 +708,75 @@ pub trait Scalar: Construct {
     {
         Vector::from_fn(|i| vector[i] >= other[i])
     }
+
+    /// Overridable implementation of `Vector::sum`.
+    #[inline(always)]
+    fn vec_sum<const N: usize, A: VecAlignment>(vector: Vector<N, Self, A>) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Add<Output = Self>,
+    {
+        let mut sum = vector[0];
+
+        for i in 1..N {
+            sum = sum + vector[i];
+        }
+
+        sum
+    }
+
+    /// Overridable implementation of `Vector::product`.
+    #[inline(always)]
+    fn vec_product<const N: usize, A: VecAlignment>(vector: Vector<N, Self, A>) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Mul<Output = Self>,
+    {
+        let mut product = vector[0];
+
+        for i in 1..N {
+            product = product * vector[i];
+        }
+
+        product
+    }
+
+    /// Overridable implementation of `Vector::mag_sq`.
+    #[inline(always)]
+    fn vec_mag_sq<const N: usize, A: VecAlignment>(vector: Vector<N, Self, A>) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Add<Output = Self> + Mul<Output = Self>,
+    {
+        vector.map(|x| x * x).sum()
+    }
+
+    /// Overridable implementation of `Vector::dot`.
+    #[inline(always)]
+    fn vec_dot<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Self::Output
+    where
+        Usize<N>: VecLen,
+        Self: Mul<T2, Output: Scalar>,
+        Self::Output: Add<Output = Self::Output>,
+    {
+        Vector::<N, Self::Output, A>::from_fn(|i| vector[i] * other[i]).sum()
+    }
+
+    /// Overridable implementation of `Vector::cross`.
+    #[inline(always)]
+    fn vec_cross<A: VecAlignment>(
+        vector: Vector<3, Self, A>,
+        other: Vector<3, Self, impl VecAlignment>,
+    ) -> Vector<3, Self, A>
+    where
+        Self: Mul<Self, Output = Self>,
+        Self: Sub<Self, Output = Self>,
+    {
+        vector.yzx() * other.zxy() - vector.zxy() * other.yzx()
+    }
 }
 
 /// `Vector` is generic over `A: VecAlignment`,
