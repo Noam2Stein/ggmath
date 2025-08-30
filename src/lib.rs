@@ -1,4 +1,5 @@
 #![deny(missing_docs)]
+#![deny(unconditional_recursion)]
 #![doc = include_str!("../README.md")]
 
 use std::panic::{RefUnwindSafe, UnwindSafe};
