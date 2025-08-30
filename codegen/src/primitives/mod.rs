@@ -179,4 +179,41 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
     "#
     )
     .unwrap();
+
+    let primitive_is_number = primitive != "bool";
+    let primitive_is_signed = match primitive {
+        "f32" | "f64" => true,
+        "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => true,
+        _ => false,
+    };
+
+    if primitive_is_number {
+        writeln!(module).unwrap();
+        writedoc!(
+            module,
+            r#"
+            impl crate::vector::ScalarZero for {primitive} {{
+                const ZERO: {primitive} = 0 as Self;
+            }}
+
+            impl crate::vector::ScalarOne for {primitive} {{
+                const ONE: {primitive} = 1 as Self;
+            }}
+            "#
+        )
+        .unwrap();
+    }
+
+    if primitive_is_signed {
+        writeln!(module).unwrap();
+        writedoc!(
+            module,
+            r#"
+            impl crate::vector::ScalarNegOne for {primitive} {{
+                const NEG_ONE: {primitive} = -1 as Self;
+            }}
+            "#
+        )
+        .unwrap();
+    }
 }

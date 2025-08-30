@@ -12,7 +12,13 @@ use std::{
 
 use crate::{Construct, Usize};
 
+mod constants;
+#[path = "../generated/vector/mod.rs"]
+mod generated;
 mod interface;
+pub use constants::*;
+#[allow(unused_imports)]
+pub use generated::*;
 
 /// A generic vector type.
 ///

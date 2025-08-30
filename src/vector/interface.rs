@@ -314,8 +314,6 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
 mod tests {
     use crate::{vec2, vec2p, vec3, vec3p, vec4, vec4p};
 
-    use super::*;
-
     #[test]
     fn test_swizzle() {
         assert_eq!(vec2!(1, 2).yx(), vec2!(2, 1));

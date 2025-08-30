@@ -1,5 +1,5 @@
 [workspace]
-members = [ ".", "codegen" ]
+members = [ ".", "codegen" , "sandbox"]
 
 [package]
 categories = [
@@ -22,12 +22,12 @@ primitive_aliases = [ "aliases" ]
 quaternion        = [ "vector" ]
 vector            = [  ]
 
-backward = [  ]
-down     = [  ]
-forward  = [  ]
-left     = [  ]
-right    = [  ]
-up       = [  ]
+backwards = [  ]
+down      = [  ]
+forwards  = [  ]
+left      = [  ]
+right     = [  ]
+up        = [  ]
 
 default = [ "aliases", "matrix", "primitive_aliases", "quaternion", "vector" ]
 full = [

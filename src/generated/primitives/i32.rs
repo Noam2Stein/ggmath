@@ -193,3 +193,15 @@ where
 	}
 	
 }
+
+impl crate::vector::ScalarZero for i32 {
+    const ZERO: i32 = 0 as Self;
+}
+
+impl crate::vector::ScalarOne for i32 {
+    const ONE: i32 = 1 as Self;
+}
+
+impl crate::vector::ScalarNegOne for i32 {
+    const NEG_ONE: i32 = -1 as Self;
+}

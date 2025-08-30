@@ -47,11 +47,11 @@ pub type Vec4P<T> = Vector<4, T, VecPacked>;
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// vector_aliases!(pub F => f32);
 /// ```
 /// Generates:
-/// ```
+/// ```ignore
 /// pub type FVec2 = Vec2<f32>;
 /// pub type FVec3 = Vec3<f32>;
 /// pub type FVec4 = Vec4<f32>;

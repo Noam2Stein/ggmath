@@ -103,3 +103,15 @@ where
 	}
 	
 }
+
+impl crate::vector::ScalarZero for f32 {
+    const ZERO: f32 = 0 as Self;
+}
+
+impl crate::vector::ScalarOne for f32 {
+    const ONE: f32 = 1 as Self;
+}
+
+impl crate::vector::ScalarNegOne for f32 {
+    const NEG_ONE: f32 = -1 as Self;
+}

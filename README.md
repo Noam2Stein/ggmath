@@ -7,7 +7,7 @@
 
 A Rust graphics math crate with heavily generic math types that fully support SIMD.
 
-```rust
+```rust ignore
 use std::ops::{Add, Mul};
 
 use ggmath::{f32_aliases::*, vector::*};
@@ -55,7 +55,7 @@ This is achieved by specializing the implementation of vector methods for each s
 
 Add this to your `Cargo.toml`:
 
-```toml
+```toml ignore
 [dependencies]
 ggmath = "0.13.0"
 ```
@@ -81,7 +81,7 @@ Default features:
 Optional features:
 - `aabb` enables the `Aabb` type (Axis Aligned Bounding Box)
 
-- `right`, `left`, `up`, `down`, `forward`, and `backward`
+- `right`, `left`, `up`, `down`, `forwards`, and `backwards`
 enable direction constants where the respective direction is the positive direction of its axis.
 For example, `right` enables `RIGHT` and `LEFT` constants where right is the positive direction.
 

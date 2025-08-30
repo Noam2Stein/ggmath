@@ -178,3 +178,11 @@ where
 	}
 	
 }
+
+impl crate::vector::ScalarZero for u64 {
+    const ZERO: u64 = 0 as Self;
+}
+
+impl crate::vector::ScalarOne for u64 {
+    const ONE: u64 = 1 as Self;
+}

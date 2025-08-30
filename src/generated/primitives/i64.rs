@@ -193,3 +193,15 @@ where
 	}
 	
 }
+
+impl crate::vector::ScalarZero for i64 {
+    const ZERO: i64 = 0 as Self;
+}
+
+impl crate::vector::ScalarOne for i64 {
+    const ONE: i64 = 1 as Self;
+}
+
+impl crate::vector::ScalarNegOne for i64 {
+    const NEG_ONE: i64 = -1 as Self;
+}

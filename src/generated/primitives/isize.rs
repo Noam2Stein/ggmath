@@ -193,3 +193,15 @@ where
 	}
 	
 }
+
+impl crate::vector::ScalarZero for isize {
+    const ZERO: isize = 0 as Self;
+}
+
+impl crate::vector::ScalarOne for isize {
+    const ONE: isize = 1 as Self;
+}
+
+impl crate::vector::ScalarNegOne for isize {
+    const NEG_ONE: isize = -1 as Self;
+}

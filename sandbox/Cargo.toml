@@ -1,0 +1,7 @@
+[package]
+edition = "2024"
+name    = "sandbox"
+version = "0.1.0"
+
+[dependencies]
+ggmath = { path = "../", features = [ "full", "right" ] }
