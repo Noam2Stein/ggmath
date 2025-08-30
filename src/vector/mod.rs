@@ -630,6 +630,84 @@ pub trait Scalar: Construct {
             vector[i] ^= other[i];
         }
     }
+
+    /// Overridable implementation of `Vector::eq_mask`.
+    #[inline(always)]
+    fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        Vector::from_fn(|i| vector[i] == other[i])
+    }
+
+    /// Overridable implementation of `Vector::ne_mask`.
+    #[inline(always)]
+    fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        !Self::vec_eq_mask(vector, other)
+    }
+
+    /// Overridable implementation of `Vector::lt_mask`.
+    #[inline(always)]
+    fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vector[i] < other[i])
+    }
+
+    /// Overridable implementation of `Vector::le_mask`.
+    #[inline(always)]
+    fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vector[i] <= other[i])
+    }
+
+    /// Overridable implementation of `Vector::gt_mask`.
+    #[inline(always)]
+    fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vector[i] > other[i])
+    }
+
+    /// Overridable implementation of `Vector::ge_mask`.
+    #[inline(always)]
+    fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vector: &Vector<N, Self, A>,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vector[i] >= other[i])
+    }
 }
 
 /// `Vector` is generic over `A: VecAlignment`,

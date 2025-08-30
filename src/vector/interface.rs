@@ -111,6 +111,78 @@ where
     {
         Vector::from_array(self.as_array().map(f))
     }
+
+    /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
+    #[inline(always)]
+    pub fn eq_mask<T2: Scalar>(
+        &self,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialEq<T2>,
+    {
+        T::vec_eq_mask(self, other)
+    }
+
+    /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are not equal.
+    #[inline(always)]
+    pub fn ne_mask<T2: Scalar>(
+        &self,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialEq<T2>,
+    {
+        T::vec_ne_mask(self, other)
+    }
+
+    /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are less than the corresponding component of the other vector.
+    #[inline(always)]
+    pub fn lt_mask<T2: Scalar>(
+        &self,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_lt_mask(self, other)
+    }
+
+    /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are less than or equal to the corresponding component of the other vector.
+    #[inline(always)]
+    pub fn le_mask<T2: Scalar>(
+        &self,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_le_mask(self, other)
+    }
+
+    /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are greater than the corresponding component of the other vector.
+    #[inline(always)]
+    pub fn gt_mask<T2: Scalar>(
+        &self,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_gt_mask(self, other)
+    }
+
+    /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are greater than or equal to the corresponding component of the other vector.
+    #[inline(always)]
+    pub fn ge_mask<T2: Scalar>(
+        &self,
+        other: &Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        T::vec_ge_mask(self, other)
+    }
 }
 
 impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
