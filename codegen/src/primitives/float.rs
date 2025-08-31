@@ -234,6 +234,22 @@ pub fn push_fns(primitive: &str, output: &mut Vec<String>) {
             output
         }}
 
+        /// Returns the distance between `self` and `other`.
+        /// 
+        /// This function exists to allow the function to be used in const contexts.
+        #[inline(always)]
+        pub fn distance(self, other: Self) -> {primitive} {{
+            self.const_distance_sq(other).sqrt()
+        }}
+
+        /// Returns the square of the distance between `self` and `other`.
+        /// 
+        /// This function exists to allow the function to be used in const contexts.
+        #[inline(always)]
+        pub const fn const_distance_sq(self, other: Self) -> {primitive} {{
+            self.sub(other).const_mag_sq()
+        }}
+
         /// Returns a vector containing the sine of each element of `self`.
         #[inline(always)]
         pub fn sin(mut self) -> Self {{
