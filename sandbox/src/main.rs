@@ -1,5 +1,5 @@
-use ggmath::{NegativeLeft, f32_aliases::*};
+use ggmath::{f32_aliases::*, right::*};
 
 fn main() {
-    println!("{}", FVec2::LEFT);
+    println!("{}", FVec2::RIGHT);
 }
