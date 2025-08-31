@@ -4,6 +4,11 @@ use indoc::{formatdoc, writedoc};
 
 use crate::module::*;
 
+mod bool_;
+mod float;
+mod sint;
+mod uint;
+
 pub fn write_mod(mut module: ModDir) {
     let mut primitive_mods = Vec::new();
 
@@ -52,110 +57,60 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
     };
 
     let mut functions = Vec::new();
+    let mut trait_impls = Vec::new();
 
-    for &unary_op in {
-        let unary_ops: &[&str] = match primitive {
-            "f32" | "f64" => &["neg"],
-            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => &["not"],
-            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => &["neg", "not"],
-            "bool" => &["not"],
-            _ => panic!("unhandled primitive in unary operations: {primitive}"),
-        };
+    let primitive_is_float = primitive == "f32" || primitive == "f64";
 
-        unary_ops
-    } {
-        let doc_op = match unary_op {
-            "neg" => "Negation",
-            "not" => "Bitwise NOT",
-            _ => panic!("unhandled unary operation in doc: {unary_op}"),
-        };
+    let primitive_is_sint = primitive == "i8"
+        || primitive == "i16"
+        || primitive == "i32"
+        || primitive == "i64"
+        || primitive == "i128"
+        || primitive == "isize";
 
-        let op_token = match unary_op {
-            "neg" => "-",
-            "not" => "!",
-            _ => panic!("unhandled unary operation in op token: {unary_op}"),
-        };
+    let primitive_is_uint = primitive == "u8"
+        || primitive == "u16"
+        || primitive == "u32"
+        || primitive == "u64"
+        || primitive == "u128"
+        || primitive == "usize";
 
-        functions.push(formatdoc! {r#"
-            /// Applies {doc_op} to each element of the vector.
-            /// 
-            /// This function exists to allow vector {doc_op} to be used in const contexts.
-            #[inline(always)]
-            pub const fn {unary_op}(mut self) -> Self {{
-                let mut i = 0;
+    let primitive_is_bool = primitive == "bool";
 
-                while i < N {{
-                    self.as_array_mut()[i] = {op_token}self.as_array()[i];
-                    i += 1;
-                }}
+    if primitive_is_float {
+        float::push_fns(primitive, &mut functions);
+    } else if primitive_is_sint {
+        sint::push_fns(primitive, &mut functions);
+    } else if primitive_is_uint {
+        uint::push_fns(primitive, &mut functions);
+    } else if primitive_is_bool {
+        bool_::push_fns(primitive, &mut functions);
+    } else {
+        panic!("unhandled primitive in push_fns: {primitive}");
+    }
 
-                self
+    if primitive_is_float || primitive_is_sint || primitive_is_uint {
+        trait_impls.push(formatdoc! {r#"
+            impl crate::vector::ScalarZero for {primitive} {{
+                const ZERO: {primitive} = 0 as Self;
+            }}
+
+            impl crate::vector::ScalarOne for {primitive} {{
+                const ONE: {primitive} = 1 as Self;
             }}
         "#});
     }
 
-    for &bin_op in {
-        let bin_ops: &[&str] = match primitive {
-            "f32" | "f64" => &["add", "sub", "mul", "div", "rem"],
-            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => &[
-                "add", "sub", "mul", "div", "rem", "and", "or", "xor", "shl", "shr",
-            ],
-            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => &[
-                "add", "sub", "mul", "div", "rem", "and", "or", "xor", "shl", "shr",
-            ],
-            "bool" => &["and", "or", "xor"],
-            _ => panic!("unhandled primitive in binary operations: {primitive}"),
-        };
-
-        bin_ops
-    } {
-        let doc_op = match bin_op {
-            "add" => "Addition",
-            "sub" => "Subtraction",
-            "mul" => "Multiplication",
-            "div" => "Division",
-            "rem" => "Remainder",
-            "and" => "Bitwise AND",
-            "or" => "Bitwise OR",
-            "xor" => "Bitwise XOR",
-            "shl" => "Left Shift",
-            "shr" => "Right Shift",
-            _ => panic!("unhandled binary operation in doc: {bin_op}"),
-        };
-
-        let op_token = match bin_op {
-            "add" => "+",
-            "sub" => "-",
-            "mul" => "*",
-            "div" => "/",
-            "rem" => "%",
-            "and" => "&",
-            "or" => "|",
-            "xor" => "^",
-            "shl" => "<<",
-            "shr" => ">>",
-            _ => panic!("unhandled binary operation in op token: {bin_op}"),
-        };
-
-        functions.push(formatdoc! {r#"
-            /// Applies {doc_op} to each element of the vector.
-            /// 
-            /// This function exists to allow vector {doc_op} to be used in const contexts.
-            #[inline(always)]
-            pub const fn {bin_op}(mut self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-                let mut i = 0;
-
-                while i < N {{
-                    self.as_array_mut()[i] = self.as_array()[i] {op_token} other.as_array()[i];
-                    i += 1;
-                }}
-
-                self
+    if primitive_is_float || primitive_is_sint {
+        trait_impls.push(formatdoc! {r#"
+            impl crate::vector::ScalarNegOne for {primitive} {{
+                const NEG_ONE: {primitive} = -1 as Self;
             }}
         "#});
     }
 
     let functions = functions.join("\n").replace("\n", "\n\t");
+    let trait_impls = trait_impls.join("\n");
 
     writedoc!(
         module,
@@ -176,44 +131,9 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
         {{
             {functions}
         }}
+        
+        {trait_impls}
     "#
     )
     .unwrap();
-
-    let primitive_is_number = primitive != "bool";
-    let primitive_is_signed = match primitive {
-        "f32" | "f64" => true,
-        "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => true,
-        _ => false,
-    };
-
-    if primitive_is_number {
-        writeln!(module).unwrap();
-        writedoc!(
-            module,
-            r#"
-            impl crate::vector::ScalarZero for {primitive} {{
-                const ZERO: {primitive} = 0 as Self;
-            }}
-
-            impl crate::vector::ScalarOne for {primitive} {{
-                const ONE: {primitive} = 1 as Self;
-            }}
-            "#
-        )
-        .unwrap();
-    }
-
-    if primitive_is_signed {
-        writeln!(module).unwrap();
-        writedoc!(
-            module,
-            r#"
-            impl crate::vector::ScalarNegOne for {primitive} {{
-                const NEG_ONE: {primitive} = -1 as Self;
-            }}
-            "#
-        )
-        .unwrap();
-    }
 }
