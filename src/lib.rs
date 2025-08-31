@@ -17,6 +17,8 @@ pub mod aliases;
 
 #[cfg(feature = "vector")]
 pub mod vector;
+#[cfg(feature = "vector")]
+pub use vector::*;
 
 /// An auto trait for types that can be sent anywhere anytime.
 ///
