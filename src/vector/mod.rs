@@ -771,6 +771,38 @@ pub trait Scalar: Construct {
     {
         vector.yzx() * other.zxy() - vector.zxy() * other.yzx()
     }
+
+    /// Overridable implementation of `Vector::abs_diff`.
+    #[inline(always)]
+    fn vec_abs_diff<const N: usize, A: VecAlignment>(
+        vector: Vector<N, Self, A>,
+        other: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd + Sub<Output = Self>,
+    {
+        Vector::<N, Self, A>::from_fn(|i| {
+            if vector[i] < other[i] {
+                other[i] - vector[i]
+            } else {
+                vector[i] - other[i]
+            }
+        })
+    }
+
+    /// Overridable implementation of `Vector::distance_sq`.
+    #[inline(always)]
+    fn vec_distance_sq<const N: usize, A: VecAlignment>(
+        vector: Vector<N, Self, A>,
+        other: Vector<N, Self, impl VecAlignment>,
+    ) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self>,
+    {
+        vector.abs_diff(other).mag_sq()
+    }
 }
 
 /// `Vector` is generic over `A: VecAlignment`,

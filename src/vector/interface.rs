@@ -287,6 +287,24 @@ where
     {
         T::vec_dot(self, other)
     }
+
+    /// Returns the absolute difference between the vector and another vector.
+    #[inline(always)]
+    pub fn abs_diff(self, other: Vector<N, T, impl VecAlignment>) -> Self
+    where
+        T: PartialOrd + Sub<Output = T>,
+    {
+        T::vec_abs_diff(self, other)
+    }
+
+    /// Returns the squared distance between the vector and another vector.
+    #[inline(always)]
+    pub fn distance_sq(self, other: Vector<N, T, impl VecAlignment>) -> T
+    where
+        T: PartialOrd + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        T::vec_distance_sq(self, other)
+    }
 }
 
 impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
