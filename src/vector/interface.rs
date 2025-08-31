@@ -160,6 +160,18 @@ where
         Vector::from_array([value; N])
     }
 
+    /// Converts the vector to an aligned vector.
+    #[inline(always)]
+    pub const fn align(self) -> Vector<N, T, VecAligned> {
+        Vector::from_array(self.to_array())
+    }
+
+    /// Converts the vector to a packed vector.
+    #[inline(always)]
+    pub const fn pack(self) -> Vector<N, T, VecPacked> {
+        Vector::from_array(self.to_array())
+    }
+
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
     #[inline(always)]
     pub fn eq_mask<T2: Scalar>(
