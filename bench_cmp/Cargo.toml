@@ -1,0 +1,11 @@
+[package]
+name = "bench_cmp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ggmath = { path = "../" }
+glam = "0.30.5"
+iai = "0.1.1"
+repetitive = "0.3.2"
+colored = "3.0.0"
