@@ -87,7 +87,20 @@ For example, `right` enables `RIGHT` and `LEFT` constants where right is the pos
 
 - `crevice` and `serde` enable integration with the respective crates
 
-## Dependencies
+## Performance
 
-`ggmath` has no dependencies other than optional features that integrate with other crates,
-and the `paste` crate which is used in the `aliases` feature to concat idents in a macro that generates type aliases.
+`ggmath` currently uses `glam` as the vector backend.
+This means that `ggmath` has the same performance as `glam`.
+
+This could be improved upon in the future because:
+- `glam` doesn't support integer SIMD
+- `glam` keeps SIMD alignment even for no SIMD architectures
+
+Beware that `ggmath` is very slow in debug mode because of type tricks.
+
+## Const Context Support
+
+`ggmath` tries to support const contexts as much as possible.
+Most functions are not `const` because of non `const` SIMD intrinsics or the lack of `const` traits.
+
+Most non `const` functions have a `const` variant that sacrifices performance for `const` context support.

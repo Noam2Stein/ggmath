@@ -1,9 +1,11 @@
+use std::mem::forget;
+
 use const_format::formatcp;
 
 mod module;
 use module::*;
 
-mod primitives;
+mod primitive_aliases;
 mod vector;
 
 const ROOT_DIR: &str = formatcp!("{}/..", env!("CARGO_MANIFEST_DIR"));
@@ -13,7 +15,9 @@ fn main() {
     let module = ModDir::root();
 
     vector::write_mod(module.submod_dir("vector"));
-    primitives::write_mod(module.submod_dir("primitives"));
+    primitive_aliases::write_mod(module.submod_dir("primitive_aliases"));
+
+    forget(module);
 }
 
 fn join_and(iter: impl Iterator<Item = String>) -> String {

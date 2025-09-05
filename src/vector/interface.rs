@@ -52,6 +52,12 @@ where
         },
     };
 
+    /// Creates a new vector from its inner type.
+    #[inline(always)]
+    pub const fn from_inner(inner: A::InnerVector<N, T>) -> Self {
+        Vector { inner }
+    }
+
     /// Creates a new vector from an array.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
@@ -130,28 +136,22 @@ where
     /// If a component does not satisfy the predicate,
     /// the function returns false immediately without evaluating the remaining components.
     #[inline(always)]
-    pub fn all(self, mut f: impl FnMut(T) -> bool) -> bool {
-        for i in 0..N {
-            if !f(self[i]) {
-                return false;
-            }
-        }
-
-        true
+    pub fn all(self, f: impl FnMut(T) -> bool) -> bool {
+        self.into_iter().all(f)
     }
 
     /// Returns true if any component of the vector satisfies the given predicate.
     /// If a component satisfies the predicate,
     /// the function returns true immediately without evaluating the remaining components.
     #[inline(always)]
-    pub fn any(self, mut f: impl FnMut(T) -> bool) -> bool {
-        for i in 0..N {
-            if f(self[i]) {
-                return true;
-            }
-        }
+    pub fn any(self, f: impl FnMut(T) -> bool) -> bool {
+        self.into_iter().any(f)
+    }
 
-        false
+    /// Returns the number of components that satisfy the given predicate.
+    #[inline(always)]
+    pub fn count(self, mut f: impl FnMut(T) -> bool) -> usize {
+        self.into_iter().filter(|x| f(*x)).count()
     }
 
     /// Creates a new vector where each component is the same value.
@@ -163,13 +163,44 @@ where
     /// Converts the vector to an aligned vector.
     #[inline(always)]
     pub const fn align(self) -> Vector<N, T, VecAligned> {
+        if self.is_aligned() {
+            return unsafe { self.transmute_alignment() };
+        }
+
         Vector::from_array(self.to_array())
     }
 
     /// Converts the vector to a packed vector.
     #[inline(always)]
     pub const fn pack(self) -> Vector<N, T, VecPacked> {
+        if !self.is_aligned() {
+            return unsafe { self.transmute_alignment() };
+        }
+
         Vector::from_array(self.to_array())
+    }
+
+    /// Converts the vector to the specified alignment.
+    #[inline(always)]
+    pub const fn to_storage<A2: VecAlignment>(self) -> Vector<N, T, A2> {
+        if self.is_aligned() == A2::IS_ALIGNED {
+            return unsafe { self.transmute_alignment::<A2>() };
+        }
+
+        Vector::from_array(self.to_array())
+    }
+
+    /// Returns true if the vector is aligned.
+    /// The output is strictly determined by the type of the vector.
+    #[inline(always)]
+    pub const fn is_aligned(self) -> bool {
+        A::IS_ALIGNED
+    }
+
+    /// Returns the number of components in the vector.
+    #[inline(always)]
+    pub const fn len(self) -> usize {
+        N
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.

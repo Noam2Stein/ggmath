@@ -1,4 +1,8 @@
 mod swizzle;
+mod primitives;
+mod transmute;
+mod typematch;
+mod ops;
 
 #[cfg(any(
     feature = "right",
