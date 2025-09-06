@@ -12,12 +12,12 @@ use std::{
 
 use crate::{Construct, Usize};
 
-mod constants;
+mod dir;
 #[path = "../generated/vector/mod.rs"]
 mod generated;
 mod interface;
 mod primitives;
-pub use constants::*;
+pub use dir::*;
 #[allow(unused_imports)]
 pub use generated::*;
 
