@@ -3,6 +3,7 @@ use std::any::TypeId;
 use crate::{
     Usize, VecAligned,
     vector::{Scalar, VecAlignment, VecLen, VecLenEnum, Vector},
+    vector_optimization,
 };
 
 impl Scalar for bool {
@@ -23,47 +24,25 @@ impl Scalar for bool {
         Usize<N>: VecLen,
         Self: std::ops::Not<Output: Scalar>,
     {
-        if vector.is_aligned() && N == 2 {
-            match N {
-                2 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec2();
+        vector_optimization! {
+            (vector => Vector<2, bool, VecAligned>)
+            -> Vector<2, bool, VecAligned> => Vector<N, bool, A>:
 
-                        let output = Vector::<2, bool, VecAligned>::from_inner(!vector.inner);
+            |vector| Vector::<2, _, _>::from_inner(!vector.inner)
+        }
 
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                3 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec3();
+        vector_optimization! {
+            (vector => Vector<3, bool, VecAligned>)
+            -> Vector<3, bool, VecAligned> => Vector<N, bool, A>:
 
-                        let output = Vector::<3, bool, VecAligned>::from_inner(!vector.inner);
+            |vector| Vector::<3, _, _>::from_inner(!vector.inner)
+        }
 
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                4 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec4();
+        vector_optimization! {
+            (vector => Vector<4, bool, VecAligned>)
+            -> Vector<4, bool, VecAligned> => Vector<N, bool, A>:
 
-                        let output = Vector::<4, bool, VecAligned>::from_inner(!vector.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-
-                _ => {}
-            }
+            |vector| Vector::<4, _, _>::from_inner(!vector.inner)
         }
 
         vector.map(|b| !b)

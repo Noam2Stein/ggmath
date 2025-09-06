@@ -210,6 +210,12 @@ where
         A::IS_ALIGNED
     }
 
+    /// Returns true if the vector has the same alignment type as the given alignment type.
+    #[inline(always)]
+    pub fn has_alignment_type<A2: VecAlignment>(self) -> bool {
+        TypeId::of::<A2>() == TypeId::of::<A>()
+    }
+
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
     #[inline(always)]
     pub fn eq_mask<T2: Scalar>(
