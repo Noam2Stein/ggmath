@@ -36,6 +36,8 @@ pub fn write_mod(mut module: ModDir) {
 fn write_primitive_mod(mut module: Mod, primitive: &str) {
     let mut functions = Vec::new();
     let mut const_functions = Vec::new();
+    let mut std_functions = Vec::new();
+    let mut std_const_functions = Vec::new();
     let mut trait_impls = Vec::new();
 
     let primitive_is_float = primitive == "f32" || primitive == "f64";
@@ -55,11 +57,29 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
         || primitive == "usize";
 
     if primitive_is_float {
-        float::push_fns(primitive, &mut functions, &mut const_functions);
+        float::push_fns(
+            primitive,
+            &mut functions,
+            &mut const_functions,
+            &mut std_functions,
+            &mut std_const_functions,
+        );
     } else if primitive_is_sint {
-        sint::push_fns(primitive, &mut functions, &mut const_functions);
+        sint::push_fns(
+            primitive,
+            &mut functions,
+            &mut const_functions,
+            &mut std_functions,
+            &mut std_const_functions,
+        );
     } else if primitive_is_uint {
-        uint::push_fns(primitive, &mut functions, &mut const_functions);
+        uint::push_fns(
+            primitive,
+            &mut functions,
+            &mut const_functions,
+            &mut std_functions,
+            &mut std_const_functions,
+        );
     } else {
         panic!("unhandled primitive in push_fns: {primitive}");
     }
@@ -86,6 +106,8 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
 
     let functions = functions.join("\n").replace("\n", "\n\t");
     let const_functions = const_functions.join("\n").replace("\n", "\n\t");
+    let std_functions = std_functions.join("\n").replace("\n", "\n\t");
+    let std_const_functions = std_const_functions.join("\n").replace("\n", "\n\t");
     let trait_impls = trait_impls.join("\n");
 
     writedoc!(
@@ -105,6 +127,22 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
             Usize<N>: VecLen,
         {{
             {const_functions}
+        }}
+
+        #[cfg(feature = "std")]
+        impl<const N: usize, A: VecAlignment> Vector<N, {primitive}, A>
+        where
+            Usize<N>: VecLen,
+        {{
+            {std_functions}
+        }}
+
+        #[cfg(feature = "std")]
+        impl<const N: usize, A: VecAlignment> Vector<N, {primitive}, A>
+        where
+            Usize<N>: VecLen,
+        {{
+            {std_const_functions}
         }}
         
         {trait_impls}

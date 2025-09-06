@@ -136,7 +136,7 @@ pub fn write_mod(mut module: Mod) {
     writedoc!(
         module,
         r#"
-        use std::ops::*;
+        use core::ops::*;
 
         use crate::{{Scalar, Usize, VecAlignment, VecLen, Vector}};
 

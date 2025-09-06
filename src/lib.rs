@@ -1,8 +1,9 @@
 #![deny(missing_docs)]
 #![deny(unconditional_recursion)]
 #![doc = include_str!("../README.md")]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-use std::panic::{RefUnwindSafe, UnwindSafe};
+use core::panic::{RefUnwindSafe, UnwindSafe};
 
 #[cfg(feature = "aliases")]
 pub mod aliases;

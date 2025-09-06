@@ -470,6 +470,22 @@ where
 	
 }
 
+#[cfg(feature = "std")]
+impl<const N: usize, A: VecAlignment> Vector<N, u64, A>
+where
+    Usize<N>: VecLen,
+{
+    
+}
+
+#[cfg(feature = "std")]
+impl<const N: usize, A: VecAlignment> Vector<N, u64, A>
+where
+    Usize<N>: VecLen,
+{
+    
+}
+
 impl crate::vector::ScalarZero for u64 {
     const ZERO: u64 = 0 as Self;
 }

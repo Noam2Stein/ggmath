@@ -14,7 +14,7 @@ A Rust graphics math crate with heavily generic math types that fully support SI
 ```rust ignore
 use std::ops::{Add, Mul};
 
-use ggmath::{f32_aliases::*, vector::*};
+use ggmath::{f32_aliases::*, *};
 
 // does not add boilerplate when not using generics
 fn main() {

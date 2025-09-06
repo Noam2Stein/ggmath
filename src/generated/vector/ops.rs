@@ -1,4 +1,4 @@
-use std::ops::*;
+use core::ops::*;
 
 use crate::{Scalar, Usize, VecAlignment, VecLen, Vector};
 

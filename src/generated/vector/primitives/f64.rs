@@ -114,126 +114,6 @@ where
 	    self.finite_mask().all_true()
 	}
 	
-	/// Returns a vector containing the square root of each element of `self`.
-	#[inline(always)]
-	pub fn sqrt(self) -> Self {
-	    self.map(|x| x.sqrt())
-	}
-	
-	/// Returns the magnitude of `self`.
-	#[inline(always)]
-	pub fn mag(self) -> f64 {
-	    self.mag_sq().sqrt()
-	}
-	
-	/// Returns the Euclidean distance between `self` and `other`.
-	#[inline(always)]
-	pub fn distance(self, other: Self) -> f64 {
-	    self.distance_sq(other).sqrt()
-	}
-	
-	/// Returns a vector containing the rounded value of each element of `self`.
-	#[inline(always)]
-	pub fn round(self) -> Self {
-	    self.map(|x| x.round())
-	}
-	
-	/// Returns a vector containing the floor value of each element of `self`.
-	#[inline(always)]
-	pub fn floor(self) -> Self {
-	    self.map(|x| x.floor())
-	}
-	
-	/// Returns a vector containing the ceiling value of each element of `self`.
-	#[inline(always)]
-	pub fn ceil(self) -> Self {
-	    self.map(|x| x.ceil())
-	}
-	
-	/// Returns a vector containing the truncated value of each element of `self`.
-	#[inline(always)]
-	pub fn trunc(self) -> Self {
-	    self.map(|x| x.trunc())
-	}
-	
-	/// Returns a vector containing the fractional part of each element of `self` as `self - self.trunc()`.
-	#[inline(always)]
-	pub fn fract(self) -> Self {
-	    self.map(|x| x.fract())
-	}
-	
-	/// Returns a vector containing the sine of each element of `self`.
-	#[inline(always)]
-	pub fn sin(self) -> Self {
-	    self.map(|x| x.sin())
-	}
-	
-	/// Returns a vector containing the cosine of each element of `self`.
-	#[inline(always)]
-	pub fn cos(self) -> Self {
-	    self.map(|x| x.cos())
-	}
-	
-	/// Returns a vector containing the tangent of each element of `self`.
-	#[inline(always)]
-	pub fn tan(self) -> Self {
-	    self.map(|x| x.tan())
-	}
-	
-	/// Returns a vector containing the arcsine of each element of `self`.
-	#[inline(always)]
-	pub fn asin(self) -> Self {
-	    self.map(|x| x.asin())
-	}
-	
-	/// Returns a vector containing the arccosine of each element of `self`.
-	#[inline(always)]
-	pub fn acos(self) -> Self {
-	    self.map(|x| x.acos())
-	}
-	
-	/// Returns a vector containing the arctangent of each element of `self`.
-	#[inline(always)]
-	pub fn atan(self) -> Self {
-	    self.map(|x| x.atan())
-	}
-	
-	/// Returns a vector containing the hyperbolic sine of each element of `self`.
-	#[inline(always)]
-	pub fn sinh(self) -> Self {
-	    self.map(|x| x.sinh())
-	}
-	
-	/// Returns a vector containing the hyperbolic cosine of each element of `self`.
-	#[inline(always)]
-	pub fn cosh(self) -> Self {
-	    self.map(|x| x.cosh())
-	}
-	
-	/// Returns a vector containing the hyperbolic tangent of each element of `self`.
-	#[inline(always)]
-	pub fn tanh(self) -> Self {
-	    self.map(|x| x.tanh())
-	}
-	
-	/// Returns a vector containing the hyperbolic arclength sine of each element of `self`.
-	#[inline(always)]
-	pub fn asinh(self) -> Self {
-	    self.map(|x| x.asinh())
-	}
-	
-	/// Returns a vector containing the hyperbolic arclength cosine of each element of `self`.
-	#[inline(always)]
-	pub fn acosh(self) -> Self {
-	    self.map(|x| x.acosh())
-	}
-	
-	/// Returns a vector containing the hyperbolic arclength tangent of each element of `self`.
-	#[inline(always)]
-	pub fn atanh(self) -> Self {
-	    self.map(|x| x.atanh())
-	}
-	
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, f64, A>
@@ -442,6 +322,141 @@ where
 	    output
 	}
 	
+}
+
+#[cfg(feature = "std")]
+impl<const N: usize, A: VecAlignment> Vector<N, f64, A>
+where
+    Usize<N>: VecLen,
+{
+    /// Returns a vector containing the square root of each element of `self`.
+	#[inline(always)]
+	pub fn sqrt(self) -> Self {
+	    self.map(|x| x.sqrt())
+	}
+	
+	/// Returns a vector containing the rounded value of each element of `self`.
+	#[inline(always)]
+	pub fn round(self) -> Self {
+	    self.map(|x| x.round())
+	}
+	
+	/// Returns a vector containing the floor value of each element of `self`.
+	#[inline(always)]
+	pub fn floor(self) -> Self {
+	    self.map(|x| x.floor())
+	}
+	
+	/// Returns a vector containing the ceiling value of each element of `self`.
+	#[inline(always)]
+	pub fn ceil(self) -> Self {
+	    self.map(|x| x.ceil())
+	}
+	
+	/// Returns a vector containing the truncated value of each element of `self`.
+	#[inline(always)]
+	pub fn trunc(self) -> Self {
+	    self.map(|x| x.trunc())
+	}
+	
+	/// Returns a vector containing the fractional part of each element of `self` as `self - self.trunc()`.
+	#[inline(always)]
+	pub fn fract(self) -> Self {
+	    self.map(|x| x.fract())
+	}
+	
+	/// Returns a vector containing the sine of each element of `self`.
+	#[inline(always)]
+	pub fn sin(self) -> Self {
+	    self.map(|x| x.sin())
+	}
+	
+	/// Returns a vector containing the cosine of each element of `self`.
+	#[inline(always)]
+	pub fn cos(self) -> Self {
+	    self.map(|x| x.cos())
+	}
+	
+	/// Returns a vector containing the tangent of each element of `self`.
+	#[inline(always)]
+	pub fn tan(self) -> Self {
+	    self.map(|x| x.tan())
+	}
+	
+	/// Returns a vector containing the arcsine of each element of `self`.
+	#[inline(always)]
+	pub fn asin(self) -> Self {
+	    self.map(|x| x.asin())
+	}
+	
+	/// Returns a vector containing the arccosine of each element of `self`.
+	#[inline(always)]
+	pub fn acos(self) -> Self {
+	    self.map(|x| x.acos())
+	}
+	
+	/// Returns a vector containing the arctangent of each element of `self`.
+	#[inline(always)]
+	pub fn atan(self) -> Self {
+	    self.map(|x| x.atan())
+	}
+	
+	/// Returns a vector containing the hyperbolic sine of each element of `self`.
+	#[inline(always)]
+	pub fn sinh(self) -> Self {
+	    self.map(|x| x.sinh())
+	}
+	
+	/// Returns a vector containing the hyperbolic cosine of each element of `self`.
+	#[inline(always)]
+	pub fn cosh(self) -> Self {
+	    self.map(|x| x.cosh())
+	}
+	
+	/// Returns a vector containing the hyperbolic tangent of each element of `self`.
+	#[inline(always)]
+	pub fn tanh(self) -> Self {
+	    self.map(|x| x.tanh())
+	}
+	
+	/// Returns a vector containing the hyperbolic arclength sine of each element of `self`.
+	#[inline(always)]
+	pub fn asinh(self) -> Self {
+	    self.map(|x| x.asinh())
+	}
+	
+	/// Returns a vector containing the hyperbolic arclength cosine of each element of `self`.
+	#[inline(always)]
+	pub fn acosh(self) -> Self {
+	    self.map(|x| x.acosh())
+	}
+	
+	/// Returns a vector containing the hyperbolic arclength tangent of each element of `self`.
+	#[inline(always)]
+	pub fn atanh(self) -> Self {
+	    self.map(|x| x.atanh())
+	}
+	
+	/// Returns the magnitude of `self`.
+	#[inline(always)]
+	pub fn mag(self) -> f64 {
+	    self.mag_sq().sqrt()
+	}
+	
+	/// Returns the Euclidean distance between `self` and `other`.
+	#[inline(always)]
+	pub fn distance(self, other: Self) -> f64 {
+	    self.distance_sq(other).sqrt()
+	}
+	
+}
+
+#[cfg(feature = "std")]
+impl<const N: usize, A: VecAlignment> Vector<N, f64, A>
+where
+    Usize<N>: VecLen,
+{
+    
 }
 
 impl crate::vector::ScalarZero for f64 {

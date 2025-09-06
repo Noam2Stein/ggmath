@@ -1,4 +1,4 @@
-use std::mem::forget;
+use core::mem::forget;
 
 use const_format::formatcp;
 

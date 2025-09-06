@@ -1,4 +1,4 @@
-use std::ops::Sub;
+use core::ops::Sub;
 
 use crate::{Construct, Usize, VecAlignment, VecLen, Vector};
 
@@ -46,14 +46,14 @@ use crate::{Construct, Usize, VecAlignment, VecLen, Vector};
 /// // lets say MyScalar can benefit from SIMD operations.
 /// impl Scalar for MyScalar {
 ///     // use x86_64 simd types for aligned vectors.
-///     type InnerAlignedVec2 = std::arch::x86_64::__m128i;
-///     type InnerAlignedVec3 = std::arch::x86_64::__m128i;
-///     type InnerAlignedVec4 = std::arch::x86_64::__m128i;
+///     type InnerAlignedVec2 = core::arch::x86_64::__m128i;
+///     type InnerAlignedVec3 = core::arch::x86_64::__m128i;
+///     type InnerAlignedVec4 = core::arch::x86_64::__m128i;
 ///
 ///     const GARBAGE: Self = Self(0);
-///     const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = std::arch::x86_64::_mm_setzero_si128();
-///     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = std::arch::x86_64::_mm_setzero_si128();
-///     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = std::arch::x86_64::_mm_setzero_si128();
+///     const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = core::arch::x86_64::_mm_setzero_si128();
+///     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = core::arch::x86_64::_mm_setzero_si128();
+///     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = core::arch::x86_64::_mm_setzero_si128();
 /// }
 /// ```
 pub trait Scalar: Construct {

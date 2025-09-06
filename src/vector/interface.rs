@@ -1,4 +1,4 @@
-use std::{
+use core::{
     mem::{transmute, transmute_copy},
     ops::{Add, Mul, Sub},
     ptr::copy_nonoverlapping,
@@ -99,7 +99,7 @@ where
     where
         Usize<N>: VecLen,
     {
-        Vector::from_array(std::array::from_fn(f))
+        Vector::from_array(core::array::from_fn(f))
     }
 
     /// Maps each component of the vector to a new value using the given function.

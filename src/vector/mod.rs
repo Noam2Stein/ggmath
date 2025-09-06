@@ -1,6 +1,5 @@
 //! Vector related types and traits
-
-use std::{
+use core::{
     fmt::{Debug, Display},
     ops::{Index, IndexMut},
     slice::SliceIndex,
@@ -161,7 +160,7 @@ impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, 
 where
     Usize<N>: VecLen,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "(")?;
 
         for i in 0..N {
@@ -181,7 +180,7 @@ impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N,
 where
     Usize<N>: VecLen,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "(")?;
 
         for i in 0..N {

@@ -32,7 +32,7 @@ pub struct Aligned512<T>(pub T);
 
 #[cfg(test)]
 mod tests {
-    use std::marker::PhantomData;
+    use core::marker::PhantomData;
 
     use crate::vector::{Scalar, VecAligned, VecPacked, Vector};
 

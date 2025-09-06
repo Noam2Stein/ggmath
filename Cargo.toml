@@ -27,9 +27,17 @@ down      = [  ]
 forwards  = [  ]
 left      = [  ]
 right     = [  ]
+std       = [  ]
 up        = [  ]
 
-default = [ "aliases", "matrix", "primitive_aliases", "quaternion", "vector" ]
+default = [
+    "aliases",
+    "matrix",
+    "primitive_aliases",
+    "quaternion",
+    "std",
+    "vector",
+]
 full = [
     "aabb",
     "aliases",

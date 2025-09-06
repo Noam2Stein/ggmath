@@ -41,7 +41,7 @@ impl Scalar for f64 {
     ) -> Vector<N, Self, A>
     where
         crate::Usize<N>: crate::VecLen,
-        Self: PartialOrd + std::ops::Sub<Output = Self>,
+        Self: PartialOrd + core::ops::Sub<Output = Self>,
     {
         (vec - other).abs()
     }

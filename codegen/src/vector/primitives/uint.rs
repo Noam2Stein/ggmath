@@ -1,6 +1,12 @@
 use indoc::formatdoc;
 
-pub fn push_fns(primitive: &str, functions: &mut Vec<String>, const_functions: &mut Vec<String>) {
+pub fn push_fns(
+    primitive: &str,
+    functions: &mut Vec<String>,
+    const_functions: &mut Vec<String>,
+    _std_functions: &mut Vec<String>,
+    _std_const_functions: &mut Vec<String>,
+) {
     functions.push(formatdoc! {r#"
         /// Returns `-self` or `None` if there is an overflow.
         #[inline(always)]
