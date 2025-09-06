@@ -24,7 +24,7 @@ pub fn write_mod(mut module: Mod) {
 
                 let combination_args = combination
                     .iter()
-                    .map(|i| format!("self[{i}]"))
+                    .map(|i| format!("self.as_array()[{i}]"))
                     .collect::<Vec<_>>()
                     .join(", ");
 
@@ -40,7 +40,7 @@ pub fn write_mod(mut module: Mod) {
                 functions.push(formatdoc! {r#"
                     /// Returns a new vector with the {components_list} ({component_oridinal_list}) components of the input vector.
                     #[inline(always)]
-                    pub fn {fn_name}(self) -> Vector<{n2}, T, A> {{
+                    pub const fn {fn_name}(self) -> Vector<{n2}, T, A> {{
                         Vector::from_array([{combination_args}])
                     }}
                 "#});
