@@ -3,6 +3,7 @@ use cfg_if::cfg_if;
 use crate::vector::Scalar;
 
 impl Scalar for i64 {
+    // SSE alone doesn't provide integer instructions so SSE2 is required
     cfg_if! {
         if #[cfg(any(
             all(target_arch = "x86", target_feature = "sse2"),
@@ -17,6 +18,8 @@ impl Scalar for i64 {
         }
     }
 
+    // ARM and WASM don't support 256-bit SIMD
+    // AVX alone doesn't provide integer instructions so AVX2 is required
     cfg_if! {
         if #[cfg(any(
             all(target_arch = "x86", target_feature = "avx2"),

@@ -1,8 +1,10 @@
 use crate::vector::Scalar;
 
 impl Scalar for i32 {
+    // Vec2<i32> ops don't benefit from SIMD
     type InnerAlignedVec2 = [Self; 2];
 
+    // SSE alone doesn't provide integer instructions so SSE2 is required
     cfg_if::cfg_if! {
         if #[cfg(any(
             all(target_arch = "x86", target_feature = "sse2"),

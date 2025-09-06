@@ -3,6 +3,7 @@ use cfg_if::cfg_if;
 use crate::vector::Scalar;
 
 impl Scalar for u128 {
+    // AVX2 doesn't provide u128x2 instructions but the alignment is worth it for bit-ops
     cfg_if! {
         if #[cfg(any(
             all(target_arch = "x86", target_feature = "avx2"),
@@ -14,6 +15,7 @@ impl Scalar for u128 {
         }
     }
 
+    // AVX512 doesn't provide u128x4 instructions but the alignment is worth it for bit-ops
     cfg_if! {
         if #[cfg(any(
             all(target_arch = "x86", target_feature = "avx512f"),

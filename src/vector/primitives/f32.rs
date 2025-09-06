@@ -3,6 +3,7 @@ use cfg_if::cfg_if;
 use crate::{Vector, vector::Scalar};
 
 impl Scalar for f32 {
+    // Vec2<f32> ops don't benefit from SIMD
     type InnerAlignedVec2 = [Self; 2];
 
     cfg_if! {
