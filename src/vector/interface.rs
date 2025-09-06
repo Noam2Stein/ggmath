@@ -1,4 +1,5 @@
 use std::{
+    any::TypeId,
     mem::{transmute, transmute_copy},
     ops::{Add, Mul, Sub},
     ptr::copy_nonoverlapping,
@@ -190,17 +191,23 @@ where
         Vector::from_array(self.to_array())
     }
 
+    /// Returns the number of components in the vector.
+    #[inline(always)]
+    pub const fn len(self) -> usize {
+        N
+    }
+
+    /// Returns true if the vector has the same scalar type as the given scalar type.
+    #[inline(always)]
+    pub fn has_scalar_type<T2: Scalar>(self) -> bool {
+        TypeId::of::<T2>() == TypeId::of::<T>()
+    }
+
     /// Returns true if the vector is aligned.
     /// The output is strictly determined by the type of the vector.
     #[inline(always)]
     pub const fn is_aligned(self) -> bool {
         A::IS_ALIGNED
-    }
-
-    /// Returns the number of components in the vector.
-    #[inline(always)]
-    pub const fn len(self) -> usize {
-        N
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
