@@ -82,9 +82,9 @@ where
 	    if self.is_aligned() {
 	        unsafe {
 	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.is_nan_mask()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.is_nan_mask()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.is_nan_mask()).transmute_len::<N>().transmute_alignment::<A>(),
+	                2 => return Vector::<3, _, VecAligned>::from_array(self.transmute_vec3().inner.is_nan_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
+	                3 => return Vector::<3, _, VecAligned>::from_array(self.transmute_vec3().inner.is_nan_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
+	                4 => return Vector::<4, _, VecAligned>::from_array(self.transmute_vec4().inner.is_nan_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
 	                _ => {},
 	            }
 	        }
@@ -99,9 +99,9 @@ where
 	    if self.is_aligned() {
 	        unsafe {
 	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.is_finite_mask()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.is_finite_mask()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.is_finite_mask()).transmute_len::<N>().transmute_alignment::<A>(),
+	                2 => return Vector::<2, _, VecAligned>::from_array(self.transmute_vec2().inner.is_finite_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
+	                3 => return Vector::<3, _, VecAligned>::from_array(self.transmute_vec3().inner.is_finite_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
+	                4 => return Vector::<4, _, VecAligned>::from_array(self.transmute_vec4().inner.is_finite_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
 	                _ => {},
 	            }
 	        }

@@ -106,19 +106,7 @@ impl<const N: usize, A: VecAlignment> Vector<N, u32, A>
 where
     Usize<N>: VecLen,
 {
-    /// Performs `-self` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_neg(mut self) -> Self {
-	    let mut i = 0;
-	    while i < N {
-	        self.as_array_mut()[i] = -self.as_array()[i];
-	        i += 1;
-	    }
-	
-	    self
-	}
-	
-	/// Performs `!self` using a slower implementation that supports const contexts.
+    /// Performs `!self` using a slower implementation that supports const contexts.
 	#[inline(always)]
 	pub const fn const_not(mut self) -> Self {
 	    let mut i = 0;
@@ -412,18 +400,6 @@ where
 	    let mut i = 0;
 	    while i < N {
 	        self.as_array_mut()[i] = self.as_array()[i].wrapping_rem(other.as_array()[i]);
-	        i += 1;
-	    }
-	
-	    self
-	}
-	
-	/// Performs `self.saturating_neg()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_saturating_neg(mut self) -> Self {
-	    let mut i = 0;
-	    while i < N {
-	        self.as_array_mut()[i] = self.as_array()[i].saturating_neg();
 	        i += 1;
 	    }
 	

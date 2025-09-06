@@ -15,6 +15,8 @@ impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, Option<T>, A>
 where
     Usize<N>: VecLen,
 {
+    /// Turns a `Vector<N, Option<T>, A>` into a `Option<Vector<N, T, A>>`
+    /// where if any element is `None`, the entire `Option<Vector<N, T, A>>` is `None`.
     pub const fn flatten(self) -> Option<Vector<N, T, A>> {
         let mut output = Vector::GARBAGE;
 

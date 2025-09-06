@@ -348,7 +348,7 @@ pub trait Scalar: Construct {
     #[inline(always)]
     fn vec_neg<const N: usize, A: VecAlignment>(
         vector: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
+    ) -> Vector<N, <Self as Neg>::Output, A>
     where
         Usize<N>: VecLen,
         Self: Neg<Output: Scalar>,
@@ -360,7 +360,7 @@ pub trait Scalar: Construct {
     #[inline(always)]
     fn vec_not<const N: usize, A: VecAlignment>(
         vector: Vector<N, Self, A>,
-    ) -> Vector<N, Self::Output, A>
+    ) -> Vector<N, <Self as Not>::Output, A>
     where
         Usize<N>: VecLen,
         Self: Not<Output: Scalar>,
@@ -743,7 +743,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: Add<Output = Self> + Mul<Output = Self>,
     {
-        vector.map(|x| x * x).sum()
+        (vector * vector).sum()
     }
 
     /// Overridable implementation of `Vector::dot`.
@@ -757,7 +757,7 @@ pub trait Scalar: Construct {
         Self: Mul<T2, Output: Scalar>,
         Self::Output: Add<Output = Self::Output>,
     {
-        Vector::<N, Self::Output, A>::from_fn(|i| vector[i] * other[i]).sum()
+        (vector * other).sum()
     }
 
     /// Overridable implementation of `Vector::cross`.

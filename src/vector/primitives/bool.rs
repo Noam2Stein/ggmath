@@ -258,28 +258,34 @@ impl Scalar for bool {
         Self: std::ops::BitAndAssign<T2>,
     {
         if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => unsafe {
-                    let vector = vector.transmute_vec2_mut();
-                    let other = other.transmute_vec2().transmute_scalar::<bool>();
+            unsafe {
+                match N {
+                    2 => {
+                        return {
+                            let vector = vector.transmute_vec2_mut();
+                            let other = other.transmute_vec2().transmute_scalar::<bool>();
 
-                    vector.inner &= other.inner;
-                },
-                3 => unsafe {
-                    let vector = vector.transmute_vec3_mut();
-                    let other = other.transmute_vec3().transmute_scalar::<bool>();
+                            vector.inner &= other.inner;
+                        };
+                    }
+                    3 => {
+                        return {
+                            let vector = vector.transmute_vec3_mut();
+                            let other = other.transmute_vec3().transmute_scalar::<bool>();
 
-                    vector.inner &= other.inner;
-                },
-                4 => {
-                    unsafe {
-                        let vector = vector.transmute_vec4_mut();
-                        let other = other.transmute_vec4().transmute_scalar::<bool>();
+                            vector.inner &= other.inner;
+                        };
+                    }
+                    4 => {
+                        return {
+                            let vector = vector.transmute_vec4_mut();
+                            let other = other.transmute_vec4().transmute_scalar::<bool>();
 
-                        vector.inner &= other.inner;
-                    };
+                            vector.inner &= other.inner;
+                        };
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
         }
 
@@ -297,26 +303,34 @@ impl Scalar for bool {
         Self: std::ops::BitOrAssign<T2>,
     {
         if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => unsafe {
-                    let vector = vector.transmute_vec2_mut();
-                    let other = other.transmute_vec2().transmute_scalar::<bool>();
+            unsafe {
+                match N {
+                    2 => {
+                        return {
+                            let vector = vector.transmute_vec2_mut();
+                            let other = other.transmute_vec2().transmute_scalar::<bool>();
 
-                    vector.inner |= other.inner;
-                },
-                3 => unsafe {
-                    let vector = vector.transmute_vec3_mut();
-                    let other = other.transmute_vec3().transmute_scalar::<bool>();
+                            vector.inner |= other.inner;
+                        };
+                    }
+                    3 => {
+                        return {
+                            let vector = vector.transmute_vec3_mut();
+                            let other = other.transmute_vec3().transmute_scalar::<bool>();
 
-                    vector.inner |= other.inner;
-                },
-                4 => unsafe {
-                    let vector = vector.transmute_vec4_mut();
-                    let other = other.transmute_vec4().transmute_scalar::<bool>();
+                            vector.inner |= other.inner;
+                        };
+                    }
+                    4 => {
+                        return {
+                            let vector = vector.transmute_vec4_mut();
+                            let other = other.transmute_vec4().transmute_scalar::<bool>();
 
-                    vector.inner |= other.inner;
-                },
-                _ => {}
+                            vector.inner |= other.inner;
+                        };
+                    }
+                    _ => {}
+                }
             }
         }
 
@@ -334,26 +348,34 @@ impl Scalar for bool {
         Self: std::ops::BitXorAssign<T2>,
     {
         if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => unsafe {
-                    let vector = vector.transmute_vec2_mut();
-                    let other = other.transmute_vec2().transmute_scalar::<bool>();
+            unsafe {
+                match N {
+                    2 => {
+                        return {
+                            let vector = vector.transmute_vec2_mut();
+                            let other = other.transmute_vec2().transmute_scalar::<bool>();
 
-                    vector.inner ^= other.inner;
-                },
-                3 => unsafe {
-                    let vector = vector.transmute_vec3_mut();
-                    let other = other.transmute_vec3().transmute_scalar::<bool>();
+                            vector.inner ^= other.inner;
+                        };
+                    }
+                    3 => {
+                        return {
+                            let vector = vector.transmute_vec3_mut();
+                            let other = other.transmute_vec3().transmute_scalar::<bool>();
 
-                    vector.inner ^= other.inner;
-                },
-                4 => unsafe {
-                    let vector = vector.transmute_vec4_mut();
-                    let other = other.transmute_vec4().transmute_scalar::<bool>();
+                            vector.inner ^= other.inner;
+                        };
+                    }
+                    4 => {
+                        return {
+                            let vector = vector.transmute_vec4_mut();
+                            let other = other.transmute_vec4().transmute_scalar::<bool>();
 
-                    vector.inner ^= other.inner;
-                },
-                _ => {}
+                            vector.inner ^= other.inner;
+                        };
+                    }
+                    _ => {}
+                }
             }
         }
 

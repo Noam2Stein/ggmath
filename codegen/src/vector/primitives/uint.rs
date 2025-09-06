@@ -400,18 +400,6 @@ pub fn push_fns(_primitive: &str, functions: &mut Vec<String>, const_functions: 
             self
         }}
 
-        /// Performs `self.saturating_neg()` using a slower implementation that supports const contexts.
-        #[inline(always)]
-        pub const fn const_saturating_neg(mut self) -> Self {{
-            let mut i = 0;
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i].saturating_neg();
-                i += 1;
-            }}
-
-            self
-        }}
-
         /// Performs `self.saturating_add(other)` using a slower implementation that supports const contexts.
         #[inline(always)]
         pub const fn const_saturating_add(mut self, other: Self) -> Self {{
