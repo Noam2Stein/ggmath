@@ -6,9 +6,9 @@ impl<T: Scalar> Scalar for Option<T> {
     type InnerAlignedVec4 = [Option<T>; 4];
 
     const GARBAGE: Self = None;
-    const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = [None; _];
-    const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = [None; _];
-    const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = [None; _];
+    const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = [None; 2];
+    const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = [None; 3];
+    const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = [None; 4];
 }
 
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, Option<T>, A>
@@ -22,11 +22,10 @@ where
 
         let mut i = 0;
         while i < N {
-            if self.as_array()[i].is_none() {
-                return None;
+            match self.as_array()[i] {
+                None => return None,
+                Some(value) => output.as_array_mut()[i] = value,
             }
-
-            output.as_array_mut()[i] = self.as_array()[i].unwrap();
 
             i += 1;
         }
