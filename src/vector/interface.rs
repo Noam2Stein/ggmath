@@ -1,5 +1,4 @@
 use std::{
-    any::TypeId,
     mem::{transmute, transmute_copy},
     ops::{Add, Mul, Sub},
     ptr::copy_nonoverlapping,
@@ -23,41 +22,33 @@ where
                     2,
                     T,
                     VecAligned,
-                > {
-                    inner: T::INNER_ALIGNED_VEC2_GARBAGE,
-                })
+                >(
+                    T::INNER_ALIGNED_VEC2_GARBAGE,
+                ))
             },
             VecLenEnum::Three => unsafe {
                 transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(&Vector::<
                     3,
                     T,
                     VecAligned,
-                > {
-                    inner: T::INNER_ALIGNED_VEC3_GARBAGE,
-                })
+                >(
+                    T::INNER_ALIGNED_VEC3_GARBAGE,
+                ))
             },
             VecLenEnum::Four => unsafe {
                 transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(&Vector::<
                     4,
                     T,
                     VecAligned,
-                > {
-                    inner: T::INNER_ALIGNED_VEC4_GARBAGE,
-                })
+                >(
+                    T::INNER_ALIGNED_VEC4_GARBAGE,
+                ))
             },
         },
         false => unsafe {
-            transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector {
-                inner: [T::GARBAGE; N],
-            })
+            transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector([T::GARBAGE; N]))
         },
     };
-
-    /// Creates a new vector from its inner type.
-    #[inline(always)]
-    pub const fn from_inner(inner: A::InnerVector<N, T>) -> Self {
-        Vector { inner }
-    }
 
     /// Creates a new vector from an array.
     #[inline(always)]
@@ -164,30 +155,18 @@ where
     /// Converts the vector to an aligned vector.
     #[inline(always)]
     pub const fn align(self) -> Vector<N, T, VecAligned> {
-        if self.is_aligned() {
-            return unsafe { self.transmute_alignment() };
-        }
-
         Vector::from_array(self.to_array())
     }
 
     /// Converts the vector to a packed vector.
     #[inline(always)]
     pub const fn pack(self) -> Vector<N, T, VecPacked> {
-        if !self.is_aligned() {
-            return unsafe { self.transmute_alignment() };
-        }
-
         Vector::from_array(self.to_array())
     }
 
     /// Converts the vector to the specified alignment.
     #[inline(always)]
     pub const fn to_storage<A2: VecAlignment>(self) -> Vector<N, T, A2> {
-        if self.is_aligned() == A2::IS_ALIGNED {
-            return unsafe { self.transmute_alignment::<A2>() };
-        }
-
         Vector::from_array(self.to_array())
     }
 
@@ -197,23 +176,11 @@ where
         N
     }
 
-    /// Returns true if the vector has the same scalar type as the given scalar type.
-    #[inline(always)]
-    pub fn has_scalar_type<T2: Scalar>(self) -> bool {
-        TypeId::of::<T2>() == TypeId::of::<T>()
-    }
-
     /// Returns true if the vector is aligned.
     /// The output is strictly determined by the type of the vector.
     #[inline(always)]
     pub const fn is_aligned(self) -> bool {
         A::IS_ALIGNED
-    }
-
-    /// Returns true if the vector has the same alignment type as the given alignment type.
-    #[inline(always)]
-    pub fn has_alignment_type<A2: VecAlignment>(self) -> bool {
-        TypeId::of::<A2>() == TypeId::of::<A>()
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
@@ -225,7 +192,7 @@ where
     where
         T: PartialEq<T2>,
     {
-        T::vec_eq_mask(self, other)
+        Vector::from_fn(|i| self[i] == other[i])
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are not equal.
@@ -237,7 +204,7 @@ where
     where
         T: PartialEq<T2>,
     {
-        T::vec_ne_mask(self, other)
+        Vector::from_fn(|i| self[i] != other[i])
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are less than the corresponding component of the other vector.
@@ -249,7 +216,7 @@ where
     where
         T: PartialOrd<T2>,
     {
-        T::vec_lt_mask(self, other)
+        Vector::from_fn(|i| self[i] < other[i])
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are less than or equal to the corresponding component of the other vector.
@@ -261,7 +228,7 @@ where
     where
         T: PartialOrd<T2>,
     {
-        T::vec_le_mask(self, other)
+        Vector::from_fn(|i| self[i] <= other[i])
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are greater than the corresponding component of the other vector.
@@ -273,7 +240,7 @@ where
     where
         T: PartialOrd<T2>,
     {
-        T::vec_gt_mask(self, other)
+        Vector::from_fn(|i| self[i] > other[i])
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are greater than or equal to the corresponding component of the other vector.
@@ -285,7 +252,7 @@ where
     where
         T: PartialOrd<T2>,
     {
-        T::vec_ge_mask(self, other)
+        Vector::from_fn(|i| self[i] >= other[i])
     }
 
     /// Sums the components of the vector.
@@ -295,7 +262,7 @@ where
         Usize<N>: VecLen,
         T: Add<Output = T>,
     {
-        T::vec_sum(self)
+        self.fold(|a, b| a + b)
     }
 
     /// Multiplies the components of the vector.
@@ -305,7 +272,7 @@ where
         Usize<N>: VecLen,
         T: Mul<Output = T>,
     {
-        T::vec_product(self)
+        self.fold(|a, b| a * b)
     }
 
     /// Returns the squared magnitude of the vector.
@@ -318,7 +285,7 @@ where
         Usize<N>: VecLen,
         T: Add<Output = T> + Mul<Output = T>,
     {
-        T::vec_mag_sq(self)
+        (self * self).sum()
     }
 
     /// Returns the dot product of the vector and another vector.
@@ -329,7 +296,7 @@ where
         T: Mul<T2, Output: Scalar>,
         T::Output: Add<Output = T::Output>,
     {
-        T::vec_dot(self, other)
+        (self * other).sum()
     }
 
     /// Returns the absolute difference between the vector and another vector.
@@ -347,7 +314,7 @@ where
     where
         T: PartialOrd + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
-        T::vec_distance_sq(self, other)
+        (self - other).mag_sq()
     }
 }
 
@@ -380,7 +347,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         T: Mul<T, Output = T>,
         T: Sub<T, Output = T>,
     {
-        T::vec_cross(self, other)
+        self.yzx() * other.zxy() - self.zxy() * other.yzx()
     }
 }
 

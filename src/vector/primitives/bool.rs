@@ -1,9 +1,6 @@
-use std::any::TypeId;
-
 use crate::{
-    Usize, VecAligned,
-    vector::{Scalar, VecAlignment, VecLen, VecLenEnum, Vector},
-    vector_optimization,
+    Usize,
+    vector::{Scalar, VecAlignment, VecLen, Vector},
 };
 
 impl Scalar for bool {
@@ -15,474 +12,6 @@ impl Scalar for bool {
     const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = glam::BVec2::FALSE;
     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = glam::BVec3A::FALSE;
     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = glam::BVec4A::FALSE;
-
-    #[inline(always)]
-    fn vec_not<const N: usize, A: VecAlignment>(
-        vector: Vector<N, Self, A>,
-    ) -> Vector<N, <Self as std::ops::Not>::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: std::ops::Not<Output: Scalar>,
-    {
-        vector_optimization! {
-            (vector => Vector<2, bool, VecAligned>)
-            -> Vector<2, bool, VecAligned> => Vector<N, bool, A>:
-
-            |vector| Vector::<2, _, _>::from_inner(!vector.inner)
-        }
-
-        vector_optimization! {
-            (vector => Vector<3, bool, VecAligned>)
-            -> Vector<3, bool, VecAligned> => Vector<N, bool, A>:
-
-            |vector| Vector::<3, _, _>::from_inner(!vector.inner)
-        }
-
-        vector_optimization! {
-            (vector => Vector<4, bool, VecAligned>)
-            -> Vector<4, bool, VecAligned> => Vector<N, bool, A>:
-
-            |vector| Vector::<4, _, _>::from_inner(!vector.inner)
-        }
-
-        vector.map(|b| !b)
-    }
-
-    #[inline(always)]
-    fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: Vector<N, Self, A>,
-        other: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, <Self as std::ops::BitAnd<T2>>::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: std::ops::BitAnd<T2, Output: Scalar>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec2();
-                        let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<2, bool, VecAligned>::from_inner(vector.inner & other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                3 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec3();
-                        let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<3, bool, VecAligned>::from_inner(vector.inner & other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                4 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec4();
-                        let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<4, bool, VecAligned>::from_inner(vector.inner & other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                _ => {}
-            }
-        }
-
-        Vector::from_fn(|i| vector[i] & other[i])
-    }
-
-    #[inline(always)]
-    fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: Vector<N, Self, A>,
-        other: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, <Self as std::ops::BitOr<T2>>::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: std::ops::BitOr<T2, Output: Scalar>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec2();
-                        let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<2, bool, VecAligned>::from_inner(vector.inner | other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                3 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec3();
-                        let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<3, bool, VecAligned>::from_inner(vector.inner | other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                4 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec4();
-                        let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<4, bool, VecAligned>::from_inner(vector.inner | other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                _ => {}
-            }
-        }
-
-        Vector::from_fn(|i| vector[i] | other[i])
-    }
-
-    #[inline(always)]
-    fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: Vector<N, Self, A>,
-        other: Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, <Self as std::ops::BitXor<T2>>::Output, A>
-    where
-        Usize<N>: VecLen,
-        Self: std::ops::BitXor<T2, Output: Scalar>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec2();
-                        let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<2, bool, VecAligned>::from_inner(vector.inner ^ other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                3 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec3();
-                        let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<3, bool, VecAligned>::from_inner(vector.inner ^ other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                4 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec4();
-                        let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                        let output =
-                            Vector::<4, bool, VecAligned>::from_inner(vector.inner ^ other.inner);
-
-                        output
-                            .transmute_len()
-                            .transmute_scalar()
-                            .transmute_alignment()
-                    };
-                }
-                _ => {}
-            }
-        }
-
-        Vector::from_fn(|i| vector[i] ^ other[i])
-    }
-
-    #[inline(always)]
-    fn vec_bitand_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: &mut Vector<N, Self, A>,
-        other: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: std::ops::BitAndAssign<T2>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            unsafe {
-                match N {
-                    2 => {
-                        return {
-                            let vector = vector.transmute_vec2_mut();
-                            let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                            vector.inner &= other.inner;
-                        };
-                    }
-                    3 => {
-                        return {
-                            let vector = vector.transmute_vec3_mut();
-                            let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                            vector.inner &= other.inner;
-                        };
-                    }
-                    4 => {
-                        return {
-                            let vector = vector.transmute_vec4_mut();
-                            let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                            vector.inner &= other.inner;
-                        };
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        for i in 0..N {
-            vector[i] &= other[i];
-        }
-    }
-
-    #[inline(always)]
-    fn vec_bitor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: &mut Vector<N, Self, A>,
-        other: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: std::ops::BitOrAssign<T2>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            unsafe {
-                match N {
-                    2 => {
-                        return {
-                            let vector = vector.transmute_vec2_mut();
-                            let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                            vector.inner |= other.inner;
-                        };
-                    }
-                    3 => {
-                        return {
-                            let vector = vector.transmute_vec3_mut();
-                            let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                            vector.inner |= other.inner;
-                        };
-                    }
-                    4 => {
-                        return {
-                            let vector = vector.transmute_vec4_mut();
-                            let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                            vector.inner |= other.inner;
-                        };
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        for i in 0..N {
-            vector[i] |= other[i];
-        }
-    }
-
-    #[inline(always)]
-    fn vec_bitxor_assign<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: &mut Vector<N, Self, A>,
-        other: Vector<N, T2, impl VecAlignment>,
-    ) where
-        Usize<N>: VecLen,
-        Self: std::ops::BitXorAssign<T2>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            unsafe {
-                match N {
-                    2 => {
-                        return {
-                            let vector = vector.transmute_vec2_mut();
-                            let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                            vector.inner ^= other.inner;
-                        };
-                    }
-                    3 => {
-                        return {
-                            let vector = vector.transmute_vec3_mut();
-                            let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                            vector.inner ^= other.inner;
-                        };
-                    }
-                    4 => {
-                        return {
-                            let vector = vector.transmute_vec4_mut();
-                            let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                            vector.inner ^= other.inner;
-                        };
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        for i in 0..N {
-            vector[i] ^= other[i];
-        }
-    }
-
-    #[inline(always)]
-    fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: &Vector<N, Self, A>,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> bool
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec2();
-                        let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                        vector.inner == other.inner
-                    };
-                }
-                3 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec3();
-                        let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                        vector.inner == other.inner
-                    };
-                }
-                4 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec4();
-                        let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                        vector.inner == other.inner
-                    };
-                }
-                _ => {}
-            }
-        }
-
-        vector.eq_mask(other).all_true()
-    }
-
-    fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: &Vector<N, Self, A>,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> bool
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            match N {
-                2 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec2();
-                        let other = other.transmute_vec2().transmute_scalar::<bool>();
-
-                        vector.inner != other.inner
-                    };
-                }
-                3 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec3();
-                        let other = other.transmute_vec3().transmute_scalar::<bool>();
-
-                        vector.inner != other.inner
-                    };
-                }
-                4 => {
-                    return unsafe {
-                        let vector = vector.transmute_vec4();
-                        let other = other.transmute_vec4().transmute_scalar::<bool>();
-
-                        vector.inner != other.inner
-                    };
-                }
-                _ => {}
-            }
-        }
-
-        !vector.eq(other)
-    }
-
-    fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: &Vector<N, Self, A>,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            return unsafe {
-                let other = other.transmute_scalar_ref::<bool>();
-
-                !(vector ^ other)
-            };
-        }
-
-        Vector::from_fn(|i| vector[i] == other[i])
-    }
-
-    fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar>(
-        vector: &Vector<N, Self, A>,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
-    where
-        Usize<N>: VecLen,
-        Self: PartialEq<T2>,
-    {
-        if vector.is_aligned() && other.is_aligned() && TypeId::of::<T2>() == TypeId::of::<bool>() {
-            return unsafe {
-                let other = other.transmute_scalar_ref::<bool>();
-
-                vector ^ other
-            };
-        }
-
-        Vector::from_fn(|i| vector[i] != other[i])
-    }
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>
@@ -491,70 +20,88 @@ where
 {
     /// Returns true if all components of the vector are true.
     #[inline(always)]
-    pub fn all_true(self) -> bool {
-        unsafe {
-            match (Usize::<N>::ENUM, A::IS_ALIGNED) {
-                (VecLenEnum::Two, true) => self.transmute_vec2().inner.all(),
-                (VecLenEnum::Three, true) => self.transmute_vec3().inner.all(),
-                (VecLenEnum::Four, true) => self.transmute_vec4().inner.all(),
-
-                (_, false) => self.all(|b| b),
+    pub const fn all_true(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if !self.as_array()[i] {
+                return false;
             }
+            i += 1;
         }
+
+        true
     }
 
     /// Returns true if all components of the vector are false.
     #[inline(always)]
-    pub fn all_false(self) -> bool {
-        unsafe {
-            match (Usize::<N>::ENUM, A::IS_ALIGNED) {
-                (VecLenEnum::Two, true) => !self.transmute_vec2().inner.any(),
-                (VecLenEnum::Three, true) => !self.transmute_vec3().inner.any(),
-                (VecLenEnum::Four, true) => !self.transmute_vec4().inner.any(),
-
-                (_, false) => self.all(|b| !b),
+    pub const fn all_false(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if self.as_array()[i] {
+                return false;
             }
+            i += 1;
         }
+
+        true
     }
 
     /// Returns true if any component of the vector is true.
     #[inline(always)]
-    pub fn any_true(self) -> bool {
-        unsafe {
-            match (Usize::<N>::ENUM, A::IS_ALIGNED) {
-                (VecLenEnum::Two, true) => self.transmute_vec2().inner.any(),
-                (VecLenEnum::Three, true) => self.transmute_vec3().inner.any(),
-                (VecLenEnum::Four, true) => self.transmute_vec4().inner.any(),
-
-                (_, false) => self.any(|b| b),
+    pub const fn any_true(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if self.as_array()[i] {
+                return true;
             }
+            i += 1;
         }
+
+        false
     }
 
     /// Returns true if any component of the vector is false.
     #[inline(always)]
-    pub fn any_false(self) -> bool {
-        unsafe {
-            match (Usize::<N>::ENUM, A::IS_ALIGNED) {
-                (VecLenEnum::Two, true) => !self.transmute_vec2().inner.all(),
-                (VecLenEnum::Three, true) => !self.transmute_vec3().inner.all(),
-                (VecLenEnum::Four, true) => !self.transmute_vec4().inner.all(),
-
-                (_, false) => self.any(|b| !b),
+    pub const fn any_false(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if !self.as_array()[i] {
+                return true;
             }
+            i += 1;
         }
+
+        false
     }
 
     /// Returns the number of true components in the vector.
     #[inline(always)]
-    pub fn count_true(self) -> usize {
-        self.count(|b| b)
+    pub const fn count_true(self) -> usize {
+        let mut i = 0;
+        let mut count = 0;
+        while i < N {
+            if self.as_array()[i] {
+                count += 1;
+            }
+            i += 1;
+        }
+
+        count
     }
 
     /// Returns the number of false components in the vector.
     #[inline(always)]
-    pub fn count_false(self) -> usize {
-        self.count(|b| !b)
+    pub const fn count_false(self) -> usize {
+        let mut i = 0;
+        let mut count = 0;
+        while i < N {
+            if !self.as_array()[i] {
+                count += 1;
+            }
+            i += 1;
+        }
+
+        count
     }
 }
 
@@ -562,89 +109,113 @@ impl<const N: usize, A: VecAlignment> Vector<N, bool, A>
 where
     Usize<N>: VecLen,
 {
-    /// Performs `self.all_true()` using a slower implementation that supports const contexts.
+    /// Returns `self == other` and supports const contexts.
     #[inline(always)]
-    pub const fn const_all_true(self) -> bool {
+    pub const fn const_eq(self, other: Vector<N, bool, impl VecAlignment>) -> bool {
         let mut i = 0;
         while i < N {
-            if !self.as_array()[i] {
+            if self.as_array()[i] != other.as_array()[i] {
                 return false;
             }
             i += 1;
         }
-
         true
     }
 
-    /// Performs `self.all_false()` using a slower implementation that supports const contexts.
+    /// Returns `self != other` and supports const contexts.
     #[inline(always)]
-    pub const fn const_all_false(self) -> bool {
+    pub const fn const_ne(self, other: Vector<N, bool, impl VecAlignment>) -> bool {
         let mut i = 0;
         while i < N {
-            if self.as_array()[i] {
-                return false;
-            }
-            i += 1;
-        }
-
-        true
-    }
-
-    /// Performs `self.any_true()` using a slower implementation that supports const contexts.
-    #[inline(always)]
-    pub const fn const_any_true(self) -> bool {
-        let mut i = 0;
-        while i < N {
-            if self.as_array()[i] {
+            if self.as_array()[i] != other.as_array()[i] {
                 return true;
             }
             i += 1;
         }
-
         false
     }
 
-    /// Performs `self.any_false()` using a slower implementation that supports const contexts.
-    #[inline(always)]
-    pub const fn const_any_false(self) -> bool {
+    /// Returns `self.eq_mask(other)` and supports const contexts.
+    pub const fn const_eq_mask(
+        self,
+        other: Vector<N, bool, impl VecAlignment>,
+    ) -> Vector<N, bool, A> {
+        let mut output = Vector::<N, bool, A>::splat(false);
         let mut i = 0;
         while i < N {
-            if !self.as_array()[i] {
-                return true;
-            }
+            output.as_array_mut()[i] = self.as_array()[i] == other.as_array()[i];
             i += 1;
         }
-
-        false
+        output
     }
 
-    /// Performs `self.count_true()` using a slower implementation that supports const contexts.
-    #[inline(always)]
-    pub const fn const_count_true(self) -> usize {
+    /// Returns `self.ne_mask(other)` and supports const contexts.
+    pub const fn const_ne_mask(
+        self,
+        other: Vector<N, bool, impl VecAlignment>,
+    ) -> Vector<N, bool, A> {
+        let mut output = Vector::<N, bool, A>::splat(false);
         let mut i = 0;
-        let mut count = 0;
         while i < N {
-            if self.as_array()[i] {
-                count += 1;
-            }
+            output.as_array_mut()[i] = self.as_array()[i] != other.as_array()[i];
             i += 1;
         }
-
-        count
+        output
     }
 
-    /// Performs `self.count_false()` using a slower implementation that supports const contexts.
-    #[inline(always)]
-    pub const fn const_count_false(self) -> usize {
+    /// Returns `self.lt_mask(other)` and supports const contexts.
+    pub const fn const_lt_mask(
+        self,
+        other: Vector<N, bool, impl VecAlignment>,
+    ) -> Vector<N, bool, A> {
+        let mut output = Vector::<N, bool, A>::splat(false);
         let mut i = 0;
-        let mut count = 0;
         while i < N {
-            if !self.as_array()[i] {
-                count += 1;
-            }
+            output.as_array_mut()[i] = self.as_array()[i] < other.as_array()[i];
             i += 1;
         }
+        output
+    }
 
-        count
+    /// Returns `self.gt_mask(other)` and supports const contexts.
+    pub const fn const_gt_mask(
+        self,
+        other: Vector<N, bool, impl VecAlignment>,
+    ) -> Vector<N, bool, A> {
+        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] > other.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
+    /// Returns `self.le_mask(other)` and supports const contexts.
+    pub const fn const_le_mask(
+        self,
+        other: Vector<N, bool, impl VecAlignment>,
+    ) -> Vector<N, bool, A> {
+        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] <= other.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
+    /// Returns `self.ge_mask(other)` and supports const contexts.
+    pub const fn const_ge_mask(
+        self,
+        other: Vector<N, bool, impl VecAlignment>,
+    ) -> Vector<N, bool, A> {
+        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] >= other.as_array()[i];
+            i += 1;
+        }
+        output
     }
 }

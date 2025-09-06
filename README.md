@@ -39,17 +39,17 @@ For matrices, `ggmath` defines a single `Matrix` type that is generic over dimen
 alignment (SIMD or not), and major axis (row-major / column-major).
 
 The heavy use of generics provides:
-- it allows for flexible types
-- it makes creating new scalar types easier
-- it can reduce code duplication
+- flexible types
+- easier time creating new scalar types
+- less code duplication
 
 Additionally, when not needing generics,
-type aliases make the API simple and very similar to other math crates like `glam`.
+type aliases make the API simple and very similar to other math crates.
 
-`ggmath` is also a zero-cost abstraction.
-It usually results in the same assembly as other,
-non-generic math crates that use SIMD.
-This is achieved by specializing the implementation of vector methods for each scalar type.
+`ggmath` differs from other math crates with generics because it supports SIMD which is important for performance.
+Beware that while `ggmath` explicitly uses SIMD types like `_m128`,
+it currently does not explicitly call SIMD instructions and relies on compiler optimizations.
+This is due to rust's lack of specialization.
 
 ## Installation
 
@@ -67,7 +67,7 @@ you should use type aliases like `FVec3`, `FMat3C`, etc.
 When using type aliases the API is very similar to other math crates like `glam`.
 
 For more advanced use cases where generics are needed,
-you should read the documentation of types like `Vector`.
+you should read the documentation of generic types like `Vector`.
 
 ## Cargo Features
 
@@ -86,21 +86,3 @@ enable direction constants where the respective direction is the positive direct
 For example, `right` enables `RIGHT` and `LEFT` constants where right is the positive direction.
 
 - `crevice` and `serde` enable integration with the respective crates
-
-## Performance
-
-`ggmath` currently uses `glam` as the vector backend.
-This means that `ggmath` has the same performance as `glam`.
-
-This could be improved upon in the future because:
-- `glam` doesn't support integer SIMD
-- `glam` keeps SIMD alignment even for no SIMD architectures
-
-Beware that `ggmath` is very slow in debug mode because of type tricks.
-
-## Const Context Support
-
-`ggmath` tries to support const contexts as much as possible.
-Most functions are not `const` because of non `const` SIMD intrinsics or the lack of `const` traits.
-
-Most non `const` functions have a `const` variant that sacrifices performance for `const` context support.

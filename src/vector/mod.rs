@@ -73,10 +73,7 @@ pub use vec_len::*;
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>
-where
-    Usize<N>: VecLen,
-{
+pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(
     /// The inner value that contains the actual vector data.
     ///
     /// For `VecAligned` vectors this will be `<T as Scalar>::InnerAlignedVec{N}`,
@@ -86,8 +83,10 @@ where
     ///
     /// This field is public so that `Scalar` implementations that override vector function implementations
     /// can access the inner value.
-    pub inner: A::InnerVector<N, T>,
-}
+    pub A::InnerVector<N, T>,
+)
+where
+    Usize<N>: VecLen;
 
 /// Creates a new aligned vec2 where each component is the same value.
 #[inline(always)]
@@ -205,12 +204,7 @@ where
 {
     #[inline(always)]
     fn eq(&self, other: &Vector<N, T2, A2>) -> bool {
-        T::vec_eq(self, other)
-    }
-
-    #[inline(always)]
-    fn ne(&self, other: &Vector<N, T2, A2>) -> bool {
-        T::vec_ne(self, other)
+        (0..N).all(|i| self[i] == other[i])
     }
 }
 
@@ -262,26 +256,4 @@ mod tests {
 
         helper::<Vector<N, T, A>>();
     }
-}
-
-/// **TODO: Write a good doc comment for this macro.**
-#[macro_export]
-macro_rules! vector_optimization {
-    (
-        ($($arg:ident => $arg_type_b:ty),* $(,)?) -> $out_type_a:ty => $out_type_b:ty: $($closure_tt:tt)*
-    ) => {{
-        fn _vector_optimization_helper<T: Copy + 'static>(_: T) -> core::any::TypeId {
-            core::any::TypeId::of::<T>()
-        }
-
-        if $(core::any::TypeId::of::<$arg_type_b>() == _vector_optimization_helper($arg))&&* {
-            let closure: fn($($arg_type_b),*) -> $out_type_a = { $($closure_tt)* };
-
-            return unsafe {
-                std::mem::transmute_copy::<$out_type_a, $out_type_b>(
-                    &closure($(std::mem::transmute_copy::<_, $arg_type_b>(&$arg)),*)
-                )
-            };
-        }
-    }};
 }

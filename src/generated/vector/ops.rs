@@ -10,7 +10,7 @@ where
 
     #[inline(always)]
     fn neg(self) -> Vector<N, T::Output, A> {
-        T::vec_neg(self)
+        self.map(|x| x.neg())
     }
 }
 
@@ -22,7 +22,7 @@ where
 
     #[inline(always)]
     fn neg(self) -> Vector<N, T::Output, A> {
-        (*self).neg()
+        self.map(|x| x.neg())
     }
 }
 
@@ -34,7 +34,7 @@ where
 
     #[inline(always)]
     fn not(self) -> Vector<N, T::Output, A> {
-        T::vec_not(self)
+        self.map(|x| x.not())
     }
 }
 
@@ -46,7 +46,7 @@ where
 
     #[inline(always)]
     fn not(self) -> Vector<N, T::Output, A> {
-        (*self).not()
+        self.map(|x| x.not())
     }
 }
 
@@ -58,7 +58,7 @@ where
 
     #[inline(always)]
     fn add(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_add(self, rhs)
+        Vector::from_fn(|i| self[i].add(rhs[i]))
     }
 }
 
@@ -70,7 +70,7 @@ where
 
     #[inline(always)]
     fn add(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).add(rhs)
+        Vector::from_fn(|i| self[i].add(rhs[i]))
     }
 }
 
@@ -104,7 +104,9 @@ where
 {
     #[inline(always)]
     fn add_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_add_assign(self, rhs)
+        for i in 0..N {
+            self[i].add_assign(rhs[i]);
+        }
     }
 }
 
@@ -126,7 +128,7 @@ where
 
     #[inline(always)]
     fn sub(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_sub(self, rhs)
+        Vector::from_fn(|i| self[i].sub(rhs[i]))
     }
 }
 
@@ -138,7 +140,7 @@ where
 
     #[inline(always)]
     fn sub(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).sub(rhs)
+        Vector::from_fn(|i| self[i].sub(rhs[i]))
     }
 }
 
@@ -172,7 +174,9 @@ where
 {
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_sub_assign(self, rhs)
+        for i in 0..N {
+            self[i].sub_assign(rhs[i]);
+        }
     }
 }
 
@@ -194,7 +198,7 @@ where
 
     #[inline(always)]
     fn mul(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_mul(self, rhs)
+        Vector::from_fn(|i| self[i].mul(rhs[i]))
     }
 }
 
@@ -206,7 +210,7 @@ where
 
     #[inline(always)]
     fn mul(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).mul(rhs)
+        Vector::from_fn(|i| self[i].mul(rhs[i]))
     }
 }
 
@@ -240,7 +244,9 @@ where
 {
     #[inline(always)]
     fn mul_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_mul_assign(self, rhs)
+        for i in 0..N {
+            self[i].mul_assign(rhs[i]);
+        }
     }
 }
 
@@ -262,7 +268,7 @@ where
 
     #[inline(always)]
     fn div(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_div(self, rhs)
+        Vector::from_fn(|i| self[i].div(rhs[i]))
     }
 }
 
@@ -274,7 +280,7 @@ where
 
     #[inline(always)]
     fn div(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).div(rhs)
+        Vector::from_fn(|i| self[i].div(rhs[i]))
     }
 }
 
@@ -308,7 +314,9 @@ where
 {
     #[inline(always)]
     fn div_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_div_assign(self, rhs)
+        for i in 0..N {
+            self[i].div_assign(rhs[i]);
+        }
     }
 }
 
@@ -330,7 +338,7 @@ where
 
     #[inline(always)]
     fn rem(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_rem(self, rhs)
+        Vector::from_fn(|i| self[i].rem(rhs[i]))
     }
 }
 
@@ -342,7 +350,7 @@ where
 
     #[inline(always)]
     fn rem(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).rem(rhs)
+        Vector::from_fn(|i| self[i].rem(rhs[i]))
     }
 }
 
@@ -376,7 +384,9 @@ where
 {
     #[inline(always)]
     fn rem_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_rem_assign(self, rhs)
+        for i in 0..N {
+            self[i].rem_assign(rhs[i]);
+        }
     }
 }
 
@@ -398,7 +408,7 @@ where
 
     #[inline(always)]
     fn shl(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_shl(self, rhs)
+        Vector::from_fn(|i| self[i].shl(rhs[i]))
     }
 }
 
@@ -410,7 +420,7 @@ where
 
     #[inline(always)]
     fn shl(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).shl(rhs)
+        Vector::from_fn(|i| self[i].shl(rhs[i]))
     }
 }
 
@@ -444,7 +454,9 @@ where
 {
     #[inline(always)]
     fn shl_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_shl_assign(self, rhs)
+        for i in 0..N {
+            self[i].shl_assign(rhs[i]);
+        }
     }
 }
 
@@ -466,7 +478,7 @@ where
 
     #[inline(always)]
     fn shr(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_shr(self, rhs)
+        Vector::from_fn(|i| self[i].shr(rhs[i]))
     }
 }
 
@@ -478,7 +490,7 @@ where
 
     #[inline(always)]
     fn shr(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).shr(rhs)
+        Vector::from_fn(|i| self[i].shr(rhs[i]))
     }
 }
 
@@ -512,7 +524,9 @@ where
 {
     #[inline(always)]
     fn shr_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_shr_assign(self, rhs)
+        for i in 0..N {
+            self[i].shr_assign(rhs[i]);
+        }
     }
 }
 
@@ -534,7 +548,7 @@ where
 
     #[inline(always)]
     fn bitand(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_bitand(self, rhs)
+        Vector::from_fn(|i| self[i].bitand(rhs[i]))
     }
 }
 
@@ -546,7 +560,7 @@ where
 
     #[inline(always)]
     fn bitand(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).bitand(rhs)
+        Vector::from_fn(|i| self[i].bitand(rhs[i]))
     }
 }
 
@@ -580,7 +594,9 @@ where
 {
     #[inline(always)]
     fn bitand_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_bitand_assign(self, rhs)
+        for i in 0..N {
+            self[i].bitand_assign(rhs[i]);
+        }
     }
 }
 
@@ -602,7 +618,7 @@ where
 
     #[inline(always)]
     fn bitor(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_bitor(self, rhs)
+        Vector::from_fn(|i| self[i].bitor(rhs[i]))
     }
 }
 
@@ -614,7 +630,7 @@ where
 
     #[inline(always)]
     fn bitor(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).bitor(rhs)
+        Vector::from_fn(|i| self[i].bitor(rhs[i]))
     }
 }
 
@@ -648,7 +664,9 @@ where
 {
     #[inline(always)]
     fn bitor_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_bitor_assign(self, rhs)
+        for i in 0..N {
+            self[i].bitor_assign(rhs[i]);
+        }
     }
 }
 
@@ -670,7 +688,7 @@ where
 
     #[inline(always)]
     fn bitxor(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        T::vec_bitxor(self, rhs)
+        Vector::from_fn(|i| self[i].bitxor(rhs[i]))
     }
 }
 
@@ -682,7 +700,7 @@ where
 
     #[inline(always)]
     fn bitxor(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {
-        (*self).bitxor(rhs)
+        Vector::from_fn(|i| self[i].bitxor(rhs[i]))
     }
 }
 
@@ -716,7 +734,9 @@ where
 {
     #[inline(always)]
     fn bitxor_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        T::vec_bitxor_assign(self, rhs)
+        for i in 0..N {
+            self[i].bitxor_assign(rhs[i]);
+        }
     }
 }
 

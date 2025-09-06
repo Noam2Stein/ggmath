@@ -19,129 +19,105 @@ where
 	
 	/// Returns a vector containing the absolute value of each element of `self`.
 	#[inline(always)]
-	pub fn abs(self) -> Self {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.abs()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.abs()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.abs()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
+	pub const fn abs(mut self) -> Self {
+	    let mut i = 0;
+	
+	    while i < N {
+	        self.as_array_mut()[i] = self.as_array()[i].abs();
+	        i += 1;
 	    }
 	
-	    self.map(|x| x.abs())
+	    self
 	}
 	
-	/// Returns a vector containing elements that represent the sign of each element of `self`.
-	/// - `1.0` if the element is positive
-	/// - `-1.0` if the element is negative
-	/// - `0.0` if the element is zero
+	/// Returns a vector containing the signum of each element of `self`.
+	/// Signum for each element is:
+	/// - `1.0` if the element is positive or `+0.0`
+	/// - `-1.0` if the element is negative `-0.0`
 	#[inline(always)]
-	pub fn signum(self) -> Self {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.signum()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.signum()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.signum()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
+	pub const fn signum(mut self) -> Self {
+	    let mut i = 0;
+	
+	    while i < N {
+	        self.as_array_mut()[i] = self.as_array()[i].signum();
+	        i += 1;
 	    }
 	
-	    self.map(|x| x.signum())
+	    self
+	}
+	
+	/// Returns a vector of bools with `true` for each element that has a negative sign, including `-0.0`.
+	#[inline(always)]
+	pub const fn negative_sign_mask(self) -> Vector<N, bool, A> {
+	    let mut output = Vector::splat(false);
+	
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i].is_sign_negative();
+	        i += 1;
+	    }
+	
+	    output
+	}
+	
+	/// Returns a vector of bools with `true` for each element that has a positive sign, including `+0.0`.
+	#[inline(always)]
+	pub const fn positive_sign_mask(self) -> Vector<N, bool, A> {
+	    let mut output = Vector::splat(false);
+	
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i].is_sign_positive();
+	        i += 1;
+	    }
+	
+	    output
+	}
+	
+	/// Returns a vector of bools with `true` for each element that is `NaN`.
+	#[inline(always)]
+	pub const fn nan_mask(self) -> Vector<N, bool, A> {
+	    let mut output = Vector::splat(false);
+	
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i].is_nan();
+	        i += 1;
+	    }
+	
+	    output
+	}
+	
+	/// Returns a vector of bools with `true` for each element that is finite.
+	#[inline(always)]
+	pub const fn finite_mask(self) -> Vector<N, bool, A> {
+	    let mut output = Vector::splat(false);
+	
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i].is_finite();
+	        i += 1;
+	    }
+	
+	    output
+	}
+	
+	/// Returns `true` if any element is `NaN`.
+	#[inline(always)]
+	pub const fn is_nan(self) -> bool {
+	    self.nan_mask().any_true()
+	}
+	
+	/// Returns `true` if all elements are finite.
+	#[inline(always)]
+	pub const fn is_finite(self) -> bool {
+	    self.finite_mask().all_true()
 	}
 	
 	/// Returns a vector containing the square root of each element of `self`.
 	#[inline(always)]
 	pub fn sqrt(self) -> Self {
 	    self.map(|x| x.sqrt())
-	}
-	
-	/// Returns a vector containing a `true` value for each element of `self` that is negative.
-	/// 
-	/// An element is negative if it has a negative sign, which includes `-0.0`.
-	#[inline(always)]
-	pub fn negative_sign_mask(self) -> Vector<N, bool, A> {
-	    self.map(|x| x.is_sign_negative())
-	}
-	
-	/// Returns a vector containing a `true` value for each element of `self` that is positive.
-	/// 
-	/// An element is positive if it has a positive sign, which includes `+0.0`.
-	#[inline(always)]
-	pub fn positive_sign_mask(self) -> Vector<N, bool, A> {
-	    self.map(|x| x.is_sign_positive())
-	}
-	
-	/// Returns a vector containing a `true` value for each element of `self` that is NaN.
-	#[inline(always)]
-	pub fn nan_mask(self) -> Vector<N, bool, A> {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<3, _, VecAligned>::from_array(self.transmute_vec3().inner.is_nan_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_array(self.transmute_vec3().inner.is_nan_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_array(self.transmute_vec4().inner.is_nan_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
-	    self.map(|x| x.is_nan())
-	}
-	
-	/// Returns a vector containing a `true` value for each element of `self` that is finite.
-	#[inline(always)]
-	pub fn finite_mask(self) -> Vector<N, bool, A> {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_array(self.transmute_vec2().inner.is_finite_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_array(self.transmute_vec3().inner.is_finite_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_array(self.transmute_vec4().inner.is_finite_mask().into()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
-	    self.map(|x| x.is_finite())
-	}
-	
-	/// Returns `true` if any element of `self` is NaN.
-	#[inline(always)]
-	pub fn is_nan(self) -> bool {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return self.transmute_vec2().inner.is_nan(),
-	                3 => return self.transmute_vec3().inner.is_nan(),
-	                4 => return self.transmute_vec4().inner.is_nan(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
-	    self.nan_mask().any_true()
-	}
-	
-	/// Returns `true` if all elements of `self` are finite.
-	#[inline(always)]
-	pub fn is_finite(self) -> bool {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return self.transmute_vec2().inner.is_finite(),
-	                3 => return self.transmute_vec3().inner.is_finite(),
-	                4 => return self.transmute_vec4().inner.is_finite(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
-	    self.finite_mask().all_true()
 	}
 	
 	/// Returns the magnitude of `self`.
@@ -159,69 +135,31 @@ where
 	/// Returns a vector containing the rounded value of each element of `self`.
 	#[inline(always)]
 	pub fn round(self) -> Self {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.round()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.round()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.round()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
 	    self.map(|x| x.round())
-	}
-	
-	/// Returns a vector containing the truncated value of each element of `self`.
-	#[inline(always)]
-	pub fn trunc(self) -> Self {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.trunc()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.trunc()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.trunc()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
-	    self.map(|x| x.trunc())
 	}
 	
 	/// Returns a vector containing the floor value of each element of `self`.
 	#[inline(always)]
 	pub fn floor(self) -> Self {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.floor()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.floor()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.floor()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
 	    self.map(|x| x.floor())
 	}
 	
 	/// Returns a vector containing the ceiling value of each element of `self`.
 	#[inline(always)]
 	pub fn ceil(self) -> Self {
-	    if self.is_aligned() {
-	        unsafe {
-	            match self.len() {
-	                2 => return Vector::<2, _, VecAligned>::from_inner(self.transmute_vec2().inner.ceil()).transmute_len::<N>().transmute_alignment::<A>(),
-	                3 => return Vector::<3, _, VecAligned>::from_inner(self.transmute_vec3().inner.ceil()).transmute_len::<N>().transmute_alignment::<A>(),
-	                4 => return Vector::<4, _, VecAligned>::from_inner(self.transmute_vec4().inner.ceil()).transmute_len::<N>().transmute_alignment::<A>(),
-	                _ => {},
-	            }
-	        }
-	    }
-	
 	    self.map(|x| x.ceil())
+	}
+	
+	/// Returns a vector containing the truncated value of each element of `self`.
+	#[inline(always)]
+	pub fn trunc(self) -> Self {
+	    self.map(|x| x.trunc())
+	}
+	
+	/// Returns a vector containing the fractional part of each element of `self` as `self - self.trunc()`.
+	#[inline(always)]
+	pub fn fract(self) -> Self {
+	    self.map(|x| x.fract())
 	}
 	
 	/// Returns a vector containing the sine of each element of `self`.
@@ -302,7 +240,7 @@ impl<const N: usize, A: VecAlignment> Vector<N, f64, A>
 where
     Usize<N>: VecLen,
 {
-    /// Performs `-self` using a slower implementation that supports const contexts.
+    /// Returns `-self` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_neg(mut self) -> Self {
 	    let mut i = 0;
@@ -314,7 +252,7 @@ where
 	    self
 	}
 	
-	/// Performs `self + other` using a slower implementation that supports const contexts.
+	/// Returns `self + other` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_add(mut self, other: Vector<N, f64, impl VecAlignment>) -> Self {
 	    let mut i = 0;
@@ -326,7 +264,7 @@ where
 	    self
 	}
 	
-	/// Performs `self - other` using a slower implementation that supports const contexts.
+	/// Returns `self - other` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_sub(mut self, other: Vector<N, f64, impl VecAlignment>) -> Self {
 	    let mut i = 0;
@@ -338,7 +276,7 @@ where
 	    self
 	}
 	
-	/// Performs `self * other` using a slower implementation that supports const contexts.
+	/// Returns `self * other` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_mul(mut self, other: Vector<N, f64, impl VecAlignment>) -> Self {
 	    let mut i = 0;
@@ -350,7 +288,7 @@ where
 	    self
 	}
 	
-	/// Performs `self / other` using a slower implementation that supports const contexts.
+	/// Returns `self / other` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_div(mut self, other: Vector<N, f64, impl VecAlignment>) -> Self {
 	    let mut i = 0;
@@ -362,7 +300,7 @@ where
 	    self
 	}
 	
-	/// Performs `self % other` using a slower implementation that supports const contexts.
+	/// Returns `self % other` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_rem(mut self, other: Vector<N, f64, impl VecAlignment>) -> Self {
 	    let mut i = 0;
@@ -374,101 +312,7 @@ where
 	    self
 	}
 	
-	/// Performs `self.abs()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_abs(mut self) -> Self {
-	    let mut i = 0;
-	
-	    while i < N {
-	        self.as_array_mut()[i] = self.as_array()[i].abs();
-	        i += 1;
-	    }
-	
-	    self
-	}
-	
-	/// Performs `self.signum()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_signum(mut self) -> Self {
-	    let mut i = 0;
-	
-	    while i < N {
-	        self.as_array_mut()[i] = self.as_array()[i].signum();
-	        i += 1;
-	    }
-	
-	    self
-	}
-	
-	/// Performs `self.negative_sign_mask()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_negative_sign_mask(self) -> Vector<N, bool, A> {
-	    let mut output = Vector::splat(false);
-	
-	    let mut i = 0;
-	    while i < N {
-	        output.as_array_mut()[i] = self.as_array()[i].is_sign_negative();
-	        i += 1;
-	    }
-	
-	    output
-	}
-	
-	/// Performs `self.positive_sign_mask()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_positive_sign_mask(self) -> Vector<N, bool, A> {
-	    let mut output = Vector::splat(false);
-	
-	    let mut i = 0;
-	    while i < N {
-	        output.as_array_mut()[i] = self.as_array()[i].is_sign_positive();
-	        i += 1;
-	    }
-	
-	    output
-	}
-	
-	/// Performs `self.nan_mask()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_nan_mask(self) -> Vector<N, bool, A> {
-	    let mut output = Vector::splat(false);
-	
-	    let mut i = 0;
-	    while i < N {
-	        output.as_array_mut()[i] = self.as_array()[i].is_nan();
-	        i += 1;
-	    }
-	
-	    output
-	}
-	
-	/// Performs `self.finite_mask()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_finite_mask(self) -> Vector<N, bool, A> {
-	    let mut output = Vector::splat(false);
-	
-	    let mut i = 0;
-	    while i < N {
-	        output.as_array_mut()[i] = self.as_array()[i].is_finite();
-	        i += 1;
-	    }
-	
-	    output
-	}
-	
-	/// Performs `self.is_nan()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_is_nan(self) -> bool {
-	    self.const_nan_mask().const_any_true()
-	}
-	
-	/// Performs `self.is_finite()` using a slower implementation that supports const contexts.
-	#[inline(always)]
-	pub const fn const_is_finite(self) -> bool {
-	    self.const_finite_mask().const_all_true()
-	}
-	
-	/// Performs `self.mag_sq()` using a slower implementation that supports const contexts.
+	/// Returns `self.mag_sq()` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_mag_sq(self) -> f64 {
 	    let mut output = 0.0;
@@ -482,10 +326,120 @@ where
 	    output
 	}
 	
-	/// Performs `self.distance_sq(other)` using a slower implementation that supports const contexts.
+	/// Returns `self.distance_sq(other)` and supports const contexts.
 	#[inline(always)]
 	pub const fn const_distance_sq(self, other: Self) -> f64 {
 	    self.const_sub(other).const_mag_sq()
+	}
+	
+	/// Returns `self == other` and supports const contexts.
+	#[inline(always)]
+	pub const fn const_eq(self, other: Vector<N, f64, impl VecAlignment>) -> bool {
+	    let mut i = 0;
+	    while i < N {
+	        if self.as_array()[i] != other.as_array()[i] {
+	            return false;
+	        }
+	        i += 1;
+	    }
+	    true
+	}
+	
+	/// Returns `self != other` and supports const contexts.
+	#[inline(always)]
+	pub const fn const_ne(self, other: Vector<N, f64, impl VecAlignment>) -> bool {
+	    let mut i = 0;
+	    while i < N {
+	        if self.as_array()[i] != other.as_array()[i] {
+	            return true;
+	        }
+	        i += 1;
+	    }
+	    false
+	}
+	
+	/// Returns `self.eq_mask(other)` and supports const contexts.
+	pub const fn const_eq_mask(
+	    self,
+	    other: Vector<N, f64, impl VecAlignment>,
+	) -> Vector<N, bool, A> {
+	    let mut output = Vector::<N, bool, A>::splat(false);
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i] == other.as_array()[i];
+	        i += 1;
+	    }
+	    output
+	}
+	
+	/// Returns `self.ne_mask(other)` and supports const contexts.
+	pub const fn const_ne_mask(
+	    self,
+	    other: Vector<N, f64, impl VecAlignment>,
+	) -> Vector<N, bool, A> {
+	    let mut output = Vector::<N, bool, A>::splat(false);
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i] != other.as_array()[i];
+	        i += 1;
+	    }
+	    output
+	}
+	
+	/// Returns `self.lt_mask(other)` and supports const contexts.
+	pub const fn const_lt_mask(
+	    self,
+	    other: Vector<N, f64, impl VecAlignment>,
+	) -> Vector<N, bool, A> {
+	    let mut output = Vector::<N, bool, A>::splat(false);
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i] < other.as_array()[i];
+	        i += 1;
+	    }
+	    output
+	}
+	
+	/// Returns `self.gt_mask(other)` and supports const contexts.
+	pub const fn const_gt_mask(
+	    self,
+	    other: Vector<N, f64, impl VecAlignment>,
+	) -> Vector<N, bool, A> {
+	    let mut output = Vector::<N, bool, A>::splat(false);
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i] > other.as_array()[i];
+	        i += 1;
+	    }
+	    output
+	}
+	
+	/// Returns `self.le_mask(other)` and supports const contexts.
+	pub const fn const_le_mask(
+	    self,
+	    other: Vector<N, f64, impl VecAlignment>,
+	) -> Vector<N, bool, A> {
+	    let mut output = Vector::<N, bool, A>::splat(false);
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i] <= other.as_array()[i];
+	        i += 1;
+	    }
+	    output
+	}
+	
+	/// Returns `self.ge_mask(other)` and supports const contexts.
+	pub const fn const_ge_mask(
+	    self,
+	    other: Vector<N, f64, impl VecAlignment>,
+	) -> Vector<N, bool, A> {
+	    let mut output = Vector::<N, bool, A>::splat(false);
+	    let mut i = 0;
+	    while i < N {
+	        output.as_array_mut()[i] = self.as_array()[i] >= other.as_array()[i];
+	        i += 1;
+	    }
+	    output
 	}
 	
 }

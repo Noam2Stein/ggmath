@@ -12,5 +12,4 @@ mod u32;
 mod u64;
 mod u128;
 mod usize;
-mod bool;
 

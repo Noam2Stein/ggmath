@@ -23,7 +23,7 @@ pub fn write_mod(mut module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self) -> Vector<N, T::Output, A> {{
-                    T::vec_{op_fn}(self)
+                    self.map(|x| x.{op_fn}())
                 }}
             }}
 
@@ -35,7 +35,7 @@ pub fn write_mod(mut module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self) -> Vector<N, T::Output, A> {{
-                    (*self).{op_fn}()
+                    self.map(|x| x.{op_fn}())
                 }}
             }}
         "#});
@@ -67,7 +67,7 @@ pub fn write_mod(mut module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {{
-                    T::vec_{op_fn}(self, rhs)
+                    Vector::from_fn(|i| self[i].{op_fn}(rhs[i]))
                 }}
             }}
 
@@ -79,7 +79,7 @@ pub fn write_mod(mut module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {{
-                    (*self).{op_fn}(rhs)
+                    Vector::from_fn(|i| self[i].{op_fn}(rhs[i]))
                 }}
             }}
 
@@ -113,7 +113,9 @@ pub fn write_mod(mut module: Mod) {
             {{
                 #[inline(always)]
                 fn {op_fn}_assign(&mut self, rhs: Vector<N, T2, A2>) {{
-                    T::vec_{op_fn}_assign(self, rhs)
+                    for i in 0..N {{
+                        self[i].{op_fn}_assign(rhs[i]);
+                    }}
                 }}
             }}
             

@@ -24,7 +24,7 @@ pub fn write_mod(mut module: Mod) {
 
                 let combination_args = combination
                     .iter()
-                    .map(|i| i.to_string())
+                    .map(|i| format!("self[{i}]"))
                     .collect::<Vec<_>>()
                     .join(", ");
 
@@ -41,7 +41,7 @@ pub fn write_mod(mut module: Mod) {
                     /// Returns a new vector with the {components_list} ({component_oridinal_list}) components of the input vector.
                     #[inline(always)]
                     pub fn {fn_name}(self) -> Vector<{n2}, T, A> {{
-                        T::vec_swizzle{n2}::<{n}, A, {combination_args}>(self)
+                        Vector::from_array([{combination_args}])
                     }}
                 "#});
             }
