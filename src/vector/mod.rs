@@ -20,6 +20,7 @@ mod vec_len;
 pub use dir::*;
 #[allow(unused_imports)]
 pub use generated::*;
+pub use primitives::*;
 pub use scalar::*;
 pub use vec_alignment::*;
 pub use vec_len::*;

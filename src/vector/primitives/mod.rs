@@ -15,6 +15,21 @@ mod u64;
 mod u8;
 mod usize;
 
+/// Wraps `T` in 16-byte alignment.
+#[repr(align(16))]
+#[derive(Clone, Copy)]
+pub struct Aligned128<T>(pub T);
+
+/// Wraps `T` in 32-byte alignment.
+#[repr(align(32))]
+#[derive(Clone, Copy)]
+pub struct Aligned256<T>(pub T);
+
+/// Wraps `T` in 64-byte alignment.
+#[repr(align(64))]
+#[derive(Clone, Copy)]
+pub struct Aligned512<T>(pub T);
+
 #[cfg(test)]
 mod tests {
     use std::marker::PhantomData;

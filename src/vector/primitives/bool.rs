@@ -4,14 +4,14 @@ use crate::{
 };
 
 impl Scalar for bool {
-    type InnerAlignedVec2 = glam::BVec2;
-    type InnerAlignedVec3 = glam::BVec3A;
-    type InnerAlignedVec4 = glam::BVec4A;
+    type InnerAlignedVec2 = [Self; 2];
+    type InnerAlignedVec3 = [Self; 3];
+    type InnerAlignedVec4 = [Self; 4];
 
     const GARBAGE: Self = false;
-    const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = glam::BVec2::FALSE;
-    const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = glam::BVec3A::FALSE;
-    const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = glam::BVec4A::FALSE;
+    const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = unsafe { std::mem::zeroed() };
+    const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = unsafe { std::mem::zeroed() };
+    const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = unsafe { std::mem::zeroed() };
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, bool, A>

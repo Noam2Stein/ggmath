@@ -20,7 +20,7 @@ aliases           = [ "paste" ]
 matrix            = [ "vector" ]
 primitive_aliases = [ "aliases" ]
 quaternion        = [ "vector" ]
-vector            = [ "glam" ]
+vector            = [  ]
 
 backwards = [  ]
 down      = [  ]
@@ -40,8 +40,8 @@ full = [
 ]
 
 [dependencies]
-glam  = { version = "0.30.5", optional = true }
-paste = { version = "1.0.14", optional = true }
+cfg-if = "1.0.3"
+paste  = { version = "1.0.14", optional = true }
 
 crevice = { version = "0.18.0", optional = true }
 serde   = { version = "1.0.219", optional = true }

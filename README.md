@@ -1,3 +1,7 @@
+Beware!
+This crate is a work in progress and is missing benchmarks.
+It does have 100% test and doc coverage though.
+
 # GGMath
 
 [![Crates.io](https://img.shields.io/crates/v/ggmath.svg)](https://crates.io/crates/ggmath)
@@ -47,9 +51,10 @@ Additionally, when not needing generics,
 type aliases make the API simple and very similar to other math crates.
 
 `ggmath` differs from other math crates with generics because it supports SIMD which is important for performance.
-Beware that while `ggmath` explicitly uses SIMD types like `_m128`,
-it currently does not explicitly call SIMD instructions and relies on compiler optimizations.
-This is due to rust's lack of specialization.
+Beware that `ggmath` does not explicitly call SIMD instructions and relies on compiler optimizations
+due to rust's lack of specialization.
+what `ggmath` currently does is carefully control vector type layout
+to make it easy for the compiler to apply vectorization.
 
 ## Installation
 
