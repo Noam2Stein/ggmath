@@ -11,7 +11,9 @@ mod vector;
 const ROOT_DIR: &str = formatcp!("{}/..", env!("CARGO_MANIFEST_DIR"));
 const OUT_DIR: &str = formatcp!("{ROOT_DIR}/src/generated");
 
-fn main() {
+pub fn codegen() {
+    std::fs::remove_dir_all(OUT_DIR).unwrap();
+
     let module = ModDir::root();
 
     vector::write_mod(module.submod_dir("vector"));
