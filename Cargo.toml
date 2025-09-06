@@ -7,10 +7,14 @@ categories = [
     "game-development",
     "graphics",
     "mathematics",
+    "no-std",
 ]
-description = "math crate with heavy generics and optimal simd"
+description = "A math crate for games and graphics with heavy generics and full SIMD support"
 edition = "2024"
+keywords = [ "gamedev", "math", "matrix", "quaternion", "vector" ]
+license = "MIT OR Apache-2.0"
 name = "ggmath"
+repository = "https://github.com/Noam2Stein/ggmath"
 rust-version = "1.89.0"
 version = "0.13.0"
 
