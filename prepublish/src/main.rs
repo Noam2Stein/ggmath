@@ -161,6 +161,8 @@ fn collect_commands() -> Vec<Vec<&'static str>> {
 
     commands.push(vec!["cargo", "bench"]);
 
+    commands.push(vec!["cargo", "fmt", "--all"]);
+
     commands
 }
 
