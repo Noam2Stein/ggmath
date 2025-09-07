@@ -1,10 +1,8 @@
-use std::fmt::Write;
-
-use indoc::{formatdoc, writedoc};
+use indoc::formatdoc;
 
 use crate::module::*;
 
-pub fn write_mod(mut module: Mod) {
+pub fn write_mod(module: Mod) {
     let mut mods = Vec::new();
 
     for (axis_idx, &axis) in ["x", "y", "z"].iter().enumerate() {
@@ -143,11 +141,7 @@ pub fn write_mod(mut module: Mod) {
 
     let mods = mods.join("\n");
 
-    writedoc!(
-        module,
-        r#"
+    module.finish(formatdoc! {r#"
         {mods}
-        "#
-    )
-    .unwrap();
+    "#});
 }

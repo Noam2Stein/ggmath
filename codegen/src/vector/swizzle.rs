@@ -1,6 +1,4 @@
-use std::fmt::Write;
-
-use indoc::{formatdoc, writedoc};
+use indoc::formatdoc;
 
 use crate::{join_and, module::*};
 
@@ -8,7 +6,7 @@ const LENGTHS: &[usize] = &[2, 3, 4];
 const COMPONENTS: &[&str] = &["x", "y", "z", "w"];
 const COMPONENT_ORDINALS: &[&str] = &["1st", "2nd", "3rd", "4th"];
 
-pub fn write_mod(mut module: Mod) {
+pub fn write_mod(module: Mod) {
     let mut vector_impls = Vec::new();
 
     for &n in LENGTHS {
@@ -58,15 +56,11 @@ pub fn write_mod(mut module: Mod) {
 
     let vector_impls = vector_impls.join("\n");
 
-    writedoc!(
-        module,
-        r#"
+    module.finish(formatdoc! {r#"
         use crate::vector::{{Scalar, VecAlignment, Vector}};
 
         {vector_impls}
-        "#
-    )
-    .unwrap();
+    "#});
 }
 
 fn combinations(max: usize, len: usize) -> Vec<Vec<usize>> {

@@ -1,6 +1,4 @@
-use std::fmt::Write;
-
-use indoc::{formatdoc, writedoc};
+use indoc::formatdoc;
 
 use crate::module::*;
 
@@ -8,7 +6,7 @@ mod float;
 mod sint;
 mod uint;
 
-pub fn write_mod(mut module: ModDir) {
+pub fn write_mod(module: ModDir) {
     let mut primitive_mods = Vec::new();
 
     for primitive in [
@@ -24,16 +22,12 @@ pub fn write_mod(mut module: ModDir) {
 
     let primitive_mods = primitive_mods.join("");
 
-    writedoc!(
-        module,
-        r#"
-            {primitive_mods}
-        "#
-    )
-    .unwrap();
+    module.finish(formatdoc! {r#"
+        {primitive_mods}
+    "#});
 }
 
-fn write_primitive_mod(mut module: Mod, primitive: &str) {
+fn write_primitive_mod(module: Mod, primitive: &str) {
     let mut functions = Vec::new();
     let mut const_functions = Vec::new();
     let mut std_functions = Vec::new();
@@ -110,9 +104,7 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
     let std_const_functions = std_const_functions.join("\n").replace("\n", "\n\t");
     let trait_impls = trait_impls.join("\n");
 
-    writedoc!(
-        module,
-        r#"
+    module.finish(formatdoc! {r#"
         use crate::{{vector::*, Usize}};
 
         impl<const N: usize, A: VecAlignment> Vector<N, {primitive}, A>
@@ -146,7 +138,5 @@ fn write_primitive_mod(mut module: Mod, primitive: &str) {
         }}
         
         {trait_impls}
-    "#
-    )
-    .unwrap();
+    "#});
 }

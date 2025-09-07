@@ -1,10 +1,8 @@
-use std::fmt::Write;
-
-use indoc::{formatdoc, writedoc};
+use indoc::formatdoc;
 
 use crate::module::*;
 
-pub fn write_mod(mut module: Mod) {
+pub fn write_mod(module: Mod) {
     let mut impls = Vec::new();
 
     for op_trait in ["Neg", "Not"] {
@@ -133,15 +131,11 @@ pub fn write_mod(mut module: Mod) {
 
     let impls = impls.join("\n");
 
-    writedoc!(
-        module,
-        r#"
+    module.finish(formatdoc! {r#"
         use core::ops::*;
 
         use crate::{{Scalar, Usize, VecAlignment, VecLen, Vector}};
 
         {impls}
-        "#
-    )
-    .unwrap();
+    "#});
 }

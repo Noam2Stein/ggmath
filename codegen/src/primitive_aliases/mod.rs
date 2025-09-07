@@ -1,10 +1,8 @@
-use std::fmt::Write;
-
-use indoc::{formatdoc, writedoc};
+use indoc::formatdoc;
 
 use crate::module::*;
 
-pub fn write_mod(mut module: ModDir) {
+pub fn write_mod(module: ModDir) {
     let mut mods = Vec::new();
 
     for primitive in [
@@ -44,11 +42,7 @@ pub fn write_mod(mut module: ModDir) {
 
     let mods = mods.join("\n");
 
-    writedoc!(
-        module,
-        r#"
+    module.finish(formatdoc! {r#"
         {mods}
-        "#
-    )
-    .unwrap();
+    "#});
 }

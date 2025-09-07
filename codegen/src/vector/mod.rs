@@ -1,6 +1,4 @@
-use std::fmt::Write;
-
-use indoc::writedoc;
+use indoc::formatdoc;
 
 use crate::module::*;
 
@@ -9,15 +7,13 @@ mod ops;
 mod primitives;
 mod swizzle;
 
-pub fn write_mod(mut module: ModDir) {
+pub fn write_mod(module: ModDir) {
     swizzle::write_mod(module.submod("swizzle"));
     primitives::write_mod(module.submod_dir("primitives"));
     dir::write_mod(module.submod("dir"));
     ops::write_mod(module.submod("ops"));
 
-    writedoc!(
-        module,
-        r#"
+    module.finish(formatdoc! {r#"
         mod swizzle;
         mod primitives;
         mod ops;
@@ -40,7 +36,5 @@ pub fn write_mod(mut module: ModDir) {
             feature = "up"
         ))]
         pub use dir::*;
-        "#
-    )
-    .unwrap();
+    "#});
 }
