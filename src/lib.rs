@@ -8,17 +8,14 @@ use core::panic::{RefUnwindSafe, UnwindSafe};
 #[cfg(feature = "aliases")]
 pub mod aliases;
 
-#[path = "generated/primitive_aliases/mod.rs"]
-#[cfg(feature = "primitive_aliases")]
-mod primitive_aliases;
-#[cfg(feature = "primitive_aliases")]
-#[allow(unused_imports)]
-pub use primitive_aliases::*;
-
 #[cfg(feature = "vector")]
 pub mod vector;
 #[cfg(feature = "vector")]
 pub use vector::*;
+
+mod generated;
+#[allow(unused_imports)]
+pub use generated::*;
 
 /// An auto trait for types that can be sent anywhere anytime.
 ///

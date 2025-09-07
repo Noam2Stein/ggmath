@@ -1,8 +1,9 @@
-use core::mem::forget;
+use std::fmt::Write;
 
 use const_format::formatcp;
 
 mod module;
+use indoc::writedoc;
 use module::*;
 
 mod primitive_aliases;
@@ -14,12 +15,24 @@ const OUT_DIR: &str = formatcp!("{ROOT_DIR}/src/generated");
 pub fn codegen() {
     std::fs::remove_dir_all(OUT_DIR).unwrap();
 
-    let module = ModDir::root();
+    let mut module = ModDir::root();
 
     vector::write_mod(module.submod_dir("vector"));
     primitive_aliases::write_mod(module.submod_dir("primitive_aliases"));
 
-    forget(module);
+    writedoc!(
+        module,
+        r#"
+        #[cfg(feature = "vector")]
+        pub(crate) mod vector;
+
+        #[cfg(feature = "primitive_aliases")]
+        mod primitive_aliases;
+        #[cfg(feature = "primitive_aliases")]
+        pub use primitive_aliases::*;
+        "#
+    )
+    .unwrap();
 }
 
 fn join_and(iter: impl Iterator<Item = String>) -> String {
