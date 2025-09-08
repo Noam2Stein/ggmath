@@ -683,6 +683,12 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: PartialOrd,
     {
+        #[cfg(debug_assertions)]
+        assert!(
+            min.le_mask(max).all_true(),
+            "min must be less than or equal to max"
+        );
+
         vec.max(min).min(max)
     }
 

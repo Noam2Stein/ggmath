@@ -157,9 +157,11 @@ where
     }
 
     /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
-    /// If `self` is zero, the result is NaN.
     #[inline(always)]
     pub fn normalize(self) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(self.mag_sq() > 0.0, "self must be non-zero");
+
         self / self.mag()
     }
 
@@ -265,6 +267,9 @@ where
     /// This is faster than `project_onto`.
     #[inline(always)]
     pub fn project_onto_normalized(self, other: Self) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(other.mag_sq() == 1.0, "other must be normalized");
+
         other * self.dot(other)
     }
 
@@ -280,6 +285,9 @@ where
     /// This is faster than `reject_from`.
     #[inline(always)]
     pub fn reject_from_normalized(self, other: Self) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(other.mag_sq() == 1.0, "other must be normalized");
+
         self - self.project_onto_normalized(other)
     }
 
@@ -288,6 +296,9 @@ where
     /// `normal` must be normalized.
     #[inline(always)]
     pub fn reflect(self, normal: Self) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(normal.mag_sq() == 1.0, "normal must be normalized");
+
         self - normal * (2.0 * self.dot(normal))
     }
 
@@ -296,6 +307,12 @@ where
     /// `self` and `normal` must be normalized.
     #[inline(always)]
     pub fn refract(self, normal: Self, eta: f64) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(self.mag_sq() == 1.0, "self must be normalized");
+
+        #[cfg(debug_assertions)]
+        assert!(normal.mag_sq() == 1.0, "normal must be normalized");
+
         let n_dot_i = normal.dot(self);
         let k = 1.0 - eta * eta * (1.0 - n_dot_i * n_dot_i);
         if k >= 0.0 {
@@ -517,6 +534,12 @@ where
         min: Vector<N, f64, impl VecAlignment>,
         max: Vector<N, f64, impl VecAlignment>,
     ) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(
+            min.const_le_mask(max).const_all_true(),
+            "min must be less than or equal to max"
+        );
+
         self.const_min(max).const_max(min)
     }
 
@@ -979,6 +1002,9 @@ where
         self,
         other: Vector<N, f64, impl VecAlignment>,
     ) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(other.const_mag_sq() == 1.0, "other must be normalized");
+
         other
             .to_storage::<A>()
             .const_mul(Self::const_splat(self.const_dot(other)))
@@ -1002,6 +1028,9 @@ where
         self,
         other: Vector<N, f64, impl VecAlignment>,
     ) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(other.const_mag_sq() == 1.0, "other must be normalized");
+
         self.const_sub(self.const_project_onto_normalized(other))
     }
 
@@ -1011,6 +1040,9 @@ where
     /// When rust's const capabilities are expanded, this function will be removed.
     #[inline(always)]
     pub const fn const_reflect(self, normal: Vector<N, f64, impl VecAlignment>) -> Self {
+        #[cfg(debug_assertions)]
+        assert!(normal.const_mag_sq() == 1.0, "normal must be normalized");
+
         self.const_sub(
             normal
                 .to_storage::<A>()

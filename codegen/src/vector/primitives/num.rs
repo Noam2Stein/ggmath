@@ -108,6 +108,9 @@ pub fn push_fns(
         /// Returns `self.clamp(min, max)` and supports const contexts.
         #[inline(always)]
         pub const fn const_clamp(self, min: Vector<N, {primitive}, impl VecAlignment>, max: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(min.const_le_mask(max).const_all_true(), "min must be less than or equal to max");
+
             self.const_min(max).const_max(min)
         }}
 

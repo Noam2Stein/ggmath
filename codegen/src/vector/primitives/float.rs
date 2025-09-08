@@ -65,9 +65,11 @@ pub fn push_fns(
         }}
 
         /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
-        /// If `self` is zero, the result is NaN.
         #[inline(always)]
         pub fn normalize(self) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(self.mag_sq() > 0.0, "self must be non-zero");
+
             self / self.mag()
         }}
 
@@ -173,6 +175,9 @@ pub fn push_fns(
         /// This is faster than `project_onto`.
         #[inline(always)]
         pub fn project_onto_normalized(self, other: Self) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(other.mag_sq() == 1.0, "other must be normalized");
+
             other * self.dot(other)
         }}
 
@@ -188,6 +193,9 @@ pub fn push_fns(
         /// This is faster than `reject_from`.
         #[inline(always)]
         pub fn reject_from_normalized(self, other: Self) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(other.mag_sq() == 1.0, "other must be normalized");
+
             self - self.project_onto_normalized(other)
         }}
 
@@ -196,6 +204,9 @@ pub fn push_fns(
         /// `normal` must be normalized.
         #[inline(always)]
         pub fn reflect(self, normal: Self) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(normal.mag_sq() == 1.0, "normal must be normalized");
+
             self - normal * (2.0 * self.dot(normal))
         }}
 
@@ -204,6 +215,12 @@ pub fn push_fns(
         /// `self` and `normal` must be normalized.
         #[inline(always)]
         pub fn refract(self, normal: Self, eta: {primitive}) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(self.mag_sq() == 1.0, "self must be normalized");
+
+            #[cfg(debug_assertions)]
+            assert!(normal.mag_sq() == 1.0, "normal must be normalized");
+
             let n_dot_i = normal.dot(self);
             let k = 1.0 - eta * eta * (1.0 - n_dot_i * n_dot_i);
             if k >= 0.0 {{
@@ -360,6 +377,9 @@ pub fn push_fns(
         /// When rust's const capabilities are expanded, this function will be removed.
         #[inline(always)]
         pub const fn const_project_onto_normalized(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(other.const_mag_sq() == 1.0, "other must be normalized");
+
             other.to_storage::<A>().const_mul(Self::const_splat(self.const_dot(other)))
         }}
 
@@ -378,6 +398,9 @@ pub fn push_fns(
         /// When rust's const capabilities are expanded, this function will be removed.
         #[inline(always)]
         pub const fn const_reject_from_normalized(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(other.const_mag_sq() == 1.0, "other must be normalized");
+
             self.const_sub(self.const_project_onto_normalized(other))
         }}
 
@@ -387,6 +410,9 @@ pub fn push_fns(
         /// When rust's const capabilities are expanded, this function will be removed.
         #[inline(always)]
         pub const fn const_reflect(self, normal: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
+            #[cfg(debug_assertions)]
+            assert!(normal.const_mag_sq() == 1.0, "normal must be normalized");
+
             self.const_sub(normal.to_storage::<A>().const_mul(Self::const_splat(2.0 * self.const_dot(normal))))
         }}
     "#});
