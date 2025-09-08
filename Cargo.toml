@@ -1,5 +1,5 @@
 [workspace]
-members = [ ".", "bench_checker", "codegen", "prepublish", "sandbox" ]
+members = [ ".", "bench_checker", "codegen", "prepublish" ]
 
 [package]
 categories = [
