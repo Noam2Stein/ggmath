@@ -170,7 +170,7 @@ where
         let delta = target - self;
         let delta_mag = delta.mag();
         if delta_mag <= max_delta || delta_mag <= 1e-4 {
-            return target;
+            return target.to_storage();
         }
         self + delta / delta_mag * max_delta
     }
