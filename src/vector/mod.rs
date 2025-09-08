@@ -510,6 +510,46 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i] >= other[i])
     }
 
+    /// Overridable implementation of `Vector::min`.
+    #[inline(always)]
+    fn vec_min<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd,
+    {
+        Vector::from_fn(|i| if vec[i] < other[i] { vec[i] } else { other[i] })
+    }
+
+    /// Overridable implementation of `Vector::max`.
+    #[inline(always)]
+    fn vec_max<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd,
+    {
+        Vector::from_fn(|i| if vec[i] > other[i] { vec[i] } else { other[i] })
+    }
+
+    /// Overridable implementation of `Vector::clamp`.
+    #[inline(always)]
+    fn vec_clamp<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        min: Vector<N, Self, impl VecAlignment>,
+        max: Vector<N, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd,
+    {
+        vec.max(min).min(max)
+    }
+
     /// Overridable implementation of `Vector::sum`.
     #[inline(always)]
     fn vec_sum<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Self

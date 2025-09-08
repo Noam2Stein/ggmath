@@ -234,6 +234,40 @@ where
         T::vec_ge_mask(self, other)
     }
 
+    /// Returns a vector with the smaller elements between `self` and `other`.
+    #[inline(always)]
+    pub fn min(self, other: Vector<N, T, impl VecAlignment>) -> Self
+    where
+        Usize<N>: VecLen,
+        T: PartialOrd,
+    {
+        T::vec_min(self, other)
+    }
+
+    /// Returns a vector with the larger elements between `self` and `other`.
+    #[inline(always)]
+    pub fn max(self, other: Vector<N, T, impl VecAlignment>) -> Self
+    where
+        Usize<N>: VecLen,
+        T: PartialOrd,
+    {
+        T::vec_max(self, other)
+    }
+
+    /// Returns a vector with the elements of `self` clamped between `min` and `max`.
+    #[inline(always)]
+    pub fn clamp(
+        self,
+        min: Vector<N, T, impl VecAlignment>,
+        max: Vector<N, T, impl VecAlignment>,
+    ) -> Self
+    where
+        Usize<N>: VecLen,
+        T: PartialOrd,
+    {
+        T::vec_clamp(self, min, max)
+    }
+
     /// Sums the components of the vector.
     #[inline(always)]
     pub fn sum(self) -> T
