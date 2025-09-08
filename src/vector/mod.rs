@@ -255,20 +255,20 @@ pub struct VecPacked;
 
 /// Creates a new aligned vec2 where each component is the same value.
 #[inline(always)]
-pub const fn splat2<T: Scalar>(value: T) -> Vector<2, T, VecPacked> {
-    Vector::<2, T, VecPacked>::splat(value)
+pub const fn splat2<T: Scalar>(value: T) -> Vector<2, T, VecAligned> {
+    Vector::<2, T, VecAligned>::splat(value)
 }
 
 /// Creates a new aligned vec3 where each component is the same value.
 #[inline(always)]
-pub const fn splat3<T: Scalar>(value: T) -> Vector<3, T, VecPacked> {
-    Vector::<3, T, VecPacked>::splat(value)
+pub const fn splat3<T: Scalar>(value: T) -> Vector<3, T, VecAligned> {
+    Vector::<3, T, VecAligned>::splat(value)
 }
 
 /// Creates a new aligned vec4 where each component is the same value.
 #[inline(always)]
-pub const fn splat4<T: Scalar>(value: T) -> Vector<4, T, VecPacked> {
-    Vector::<4, T, VecPacked>::splat(value)
+pub const fn splat4<T: Scalar>(value: T) -> Vector<4, T, VecAligned> {
+    Vector::<4, T, VecAligned>::splat(value)
 }
 
 /// Creates a new packed vec2 where each component is the same value.
