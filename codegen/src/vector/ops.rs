@@ -21,7 +21,7 @@ pub fn write_mod(module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self) -> Vector<N, T::Output, A> {{
-                    self.map(|x| x.{op_fn}())
+                    T::vec_{op_fn}(self)
                 }}
             }}
 
@@ -33,7 +33,7 @@ pub fn write_mod(module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self) -> Vector<N, T::Output, A> {{
-                    self.map(|x| x.{op_fn}())
+                    T::vec_{op_fn}(*self)
                 }}
             }}
         "#});
@@ -65,7 +65,7 @@ pub fn write_mod(module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {{
-                    Vector::from_fn(|i| self[i].{op_fn}(rhs[i]))
+                    T::vec_{op_fn}(self, rhs)
                 }}
             }}
 
@@ -77,7 +77,7 @@ pub fn write_mod(module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A> {{
-                    Vector::from_fn(|i| self[i].{op_fn}(rhs[i]))
+                    T::vec_{op_fn}(*self, rhs)
                 }}
             }}
 
@@ -89,7 +89,7 @@ pub fn write_mod(module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self, rhs: &Vector<N, T2, A2>) -> Vector<N, T::Output, A> {{
-                    self.{op_fn}(*rhs)
+                    T::vec_{op_fn}(self, *rhs)
                 }}
             }}
 
@@ -101,29 +101,27 @@ pub fn write_mod(module: Mod) {
 
                 #[inline(always)]
                 fn {op_fn}(self, rhs: &Vector<N, T2, A2>) -> Vector<N, T::Output, A> {{
-                    (*self).{op_fn}(*rhs)
+                    T::vec_{op_fn}(*self, *rhs)
                 }}
             }}
 
-            impl<const N: usize, T: Scalar + {op_trait}Assign<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment> {op_trait}Assign<Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_trait}<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> {op_trait}Assign<Vector<N, T2, A2>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 #[inline(always)]
                 fn {op_fn}_assign(&mut self, rhs: Vector<N, T2, A2>) {{
-                    for i in 0..N {{
-                        self[i].{op_fn}_assign(rhs[i]);
-                    }}
+                    *self = <Self as {op_trait}<Vector<N, T2, A2>>>::{op_fn}(*self, rhs);
                 }}
             }}
             
-            impl<const N: usize, T: Scalar + {op_trait}Assign<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment> {op_trait}Assign<&Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_trait}<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> {op_trait}Assign<&Vector<N, T2, A2>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 #[inline(always)]
                 fn {op_fn}_assign(&mut self, rhs: &Vector<N, T2, A2>) {{
-                    self.{op_fn}_assign(*rhs)
+                    *self = <Self as {op_trait}<Vector<N, T2, A2>>>::{op_fn}(*self, *rhs);
                 }}
             }}
         "#});

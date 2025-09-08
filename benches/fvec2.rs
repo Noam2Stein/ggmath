@@ -95,32 +95,32 @@ fn fvec2(c: &mut Criterion) {
     // cmp masks
 
     let mut group = c.benchmark_group("fvec2_eq_mask");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.eq_mask(&ggmath2)));
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.eq_mask(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.cmpeq(glam2)));
     group.finish();
 
     let mut group = c.benchmark_group("fvec2_ne_mask");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.ne_mask(&ggmath2)));
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.ne_mask(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.cmpne(glam2)));
     group.finish();
 
     let mut group = c.benchmark_group("fvec2_lt_mask");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.lt_mask(&ggmath2)));
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.lt_mask(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.cmplt(glam2)));
     group.finish();
 
     let mut group = c.benchmark_group("fvec2_gt_mask");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.gt_mask(&ggmath2)));
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.gt_mask(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.cmpgt(glam2)));
     group.finish();
 
     let mut group = c.benchmark_group("fvec2_le_mask");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.le_mask(&ggmath2)));
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.le_mask(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.cmple(glam2)));
     group.finish();
 
     let mut group = c.benchmark_group("fvec2_ge_mask");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.ge_mask(&ggmath2)));
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.ge_mask(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.cmpge(glam2)));
     group.finish();
 

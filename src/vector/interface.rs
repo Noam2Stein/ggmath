@@ -1,7 +1,6 @@
 use core::{
     mem::{transmute, transmute_copy},
     ops::{Add, Mul, Sub},
-    ptr::copy_nonoverlapping,
 };
 
 use crate::{
@@ -55,9 +54,7 @@ where
     pub const fn from_array(array: [T; N]) -> Self {
         let mut output = Self::GARBAGE;
 
-        unsafe {
-            copy_nonoverlapping::<T>(array.as_ptr(), output.as_mut_ptr(), N);
-        }
+        *output.as_array_mut() = array;
 
         output
     }
@@ -185,74 +182,56 @@ where
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
     #[inline(always)]
-    pub fn eq_mask<T2: Scalar>(
-        &self,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
+    pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
     where
         T: PartialEq<T2>,
     {
-        Vector::from_fn(|i| self[i] == other[i])
+        T::vec_eq_mask(self, other)
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are not equal.
     #[inline(always)]
-    pub fn ne_mask<T2: Scalar>(
-        &self,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
+    pub fn ne_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
     where
         T: PartialEq<T2>,
     {
-        Vector::from_fn(|i| self[i] != other[i])
+        T::vec_ne_mask(self, other)
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are less than the corresponding component of the other vector.
     #[inline(always)]
-    pub fn lt_mask<T2: Scalar>(
-        &self,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
+    pub fn lt_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| self[i] < other[i])
+        T::vec_lt_mask(self, other)
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are less than or equal to the corresponding component of the other vector.
     #[inline(always)]
-    pub fn le_mask<T2: Scalar>(
-        &self,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
+    pub fn le_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| self[i] <= other[i])
+        T::vec_le_mask(self, other)
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are greater than the corresponding component of the other vector.
     #[inline(always)]
-    pub fn gt_mask<T2: Scalar>(
-        &self,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
+    pub fn gt_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| self[i] > other[i])
+        T::vec_gt_mask(self, other)
     }
 
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are greater than or equal to the corresponding component of the other vector.
     #[inline(always)]
-    pub fn ge_mask<T2: Scalar>(
-        &self,
-        other: &Vector<N, T2, impl VecAlignment>,
-    ) -> Vector<N, bool, A>
+    pub fn ge_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
-        Vector::from_fn(|i| self[i] >= other[i])
+        T::vec_ge_mask(self, other)
     }
 
     /// Sums the components of the vector.
@@ -262,7 +241,7 @@ where
         Usize<N>: VecLen,
         T: Add<Output = T>,
     {
-        self.fold(|a, b| a + b)
+        T::vec_sum(self)
     }
 
     /// Multiplies the components of the vector.
@@ -272,7 +251,7 @@ where
         Usize<N>: VecLen,
         T: Mul<Output = T>,
     {
-        self.fold(|a, b| a * b)
+        T::vec_product(self)
     }
 
     /// Returns the squared magnitude of the vector.
@@ -285,18 +264,17 @@ where
         Usize<N>: VecLen,
         T: Add<Output = T> + Mul<Output = T>,
     {
-        (self * self).sum()
+        T::vec_mag_sq(self)
     }
 
     /// Returns the dot product of the vector and another vector.
     #[inline(always)]
-    pub fn dot<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> T::Output
+    pub fn dot<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> T
     where
         Usize<N>: VecLen,
-        T: Mul<T2, Output: Scalar>,
-        T::Output: Add<Output = T::Output>,
+        T: Mul<T2, Output = T> + Add<Output = T>,
     {
-        (self * other).sum()
+        T::vec_dot(self, other)
     }
 
     /// Returns the absolute difference between the vector and another vector.
@@ -314,7 +292,7 @@ where
     where
         T: PartialOrd + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
-        (self - other).mag_sq()
+        T::vec_distance_sq(self, other)
     }
 }
 
@@ -347,7 +325,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
         T: Mul<T, Output = T>,
         T: Sub<T, Output = T>,
     {
-        self.yzx() * other.zxy() - self.zxy() * other.yzx()
+        T::vec_cross(self, other)
     }
 }
 

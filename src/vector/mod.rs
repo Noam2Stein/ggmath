@@ -1,7 +1,7 @@
 //! Vector related types and traits
 use core::{
     fmt::{Debug, Display},
-    ops::{Index, IndexMut, Sub},
+    ops::*,
     slice::SliceIndex,
 };
 
@@ -194,6 +194,284 @@ pub trait Scalar: Construct {
     /// This is used to properly initialize aligned vector padding.
     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4;
 
+    /// Overridable implementation of `Vector::neg`.
+    #[inline(always)]
+    fn vec_neg<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, <Self as Neg>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Neg<Output: Scalar>,
+    {
+        Vector::from_fn(|i| -vec[i])
+    }
+
+    /// Overridable implementation of `Vector::not`.
+    #[inline(always)]
+    fn vec_not<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<N, <Self as Not>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Not<Output: Scalar>,
+    {
+        Vector::from_fn(|i| !vec[i])
+    }
+
+    /// Overridable implementation of `Vector::add`.
+    #[inline(always)]
+    fn vec_add<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as Add<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Add<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] + other[i])
+    }
+
+    /// Overridable implementation of `Vector::sub`.
+    #[inline(always)]
+    fn vec_sub<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as Sub<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Sub<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] - other[i])
+    }
+
+    /// Overridable implementation of `Vector::mul`.
+    #[inline(always)]
+    fn vec_mul<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as Mul<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Mul<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] * other[i])
+    }
+
+    /// Overridable implementation of `Vector::div`.
+    #[inline(always)]
+    fn vec_div<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as Div<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Div<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] / other[i])
+    }
+
+    /// Overridable implementation of `Vector::rem`.
+    #[inline(always)]
+    fn vec_rem<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as Rem<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Rem<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] % other[i])
+    }
+
+    /// Overridable implementation of `Vector::shl`.
+    #[inline(always)]
+    fn vec_shl<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as Shl<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Shl<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] << other[i])
+    }
+
+    /// Overridable implementation of `Vector::shr`.
+    #[inline(always)]
+    fn vec_shr<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as Shr<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Shr<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] >> other[i])
+    }
+
+    /// Overridable implementation of `Vector::bitand`.
+    #[inline(always)]
+    fn vec_bitand<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as BitAnd<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: BitAnd<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] & other[i])
+    }
+
+    /// Overridable implementation of `Vector::bitor`.
+    #[inline(always)]
+    fn vec_bitor<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as BitOr<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: BitOr<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] | other[i])
+    }
+
+    /// Overridable implementation of `Vector::bitxor`.
+    #[inline(always)]
+    fn vec_bitxor<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, <Self as BitXor<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: BitXor<T2, Output: Scalar>,
+    {
+        Vector::from_fn(|i| vec[i] ^ other[i])
+    }
+
+    /// Overridable implementation of `Vector::eq`.
+    #[inline(always)]
+    fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> bool
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        (0..N).all(|i| vec[i] == other[i])
+    }
+
+    /// Overridable implementation of `Vector::ne`.
+    #[inline(always)]
+    fn vec_ne<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> bool
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        (0..N).any(|i| vec[i] != other[i])
+    }
+
+    /// Overridable implementation of `Vector::eq_mask`.
+    #[inline(always)]
+    fn vec_eq_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        Vector::from_fn(|i| vec[i] == other[i])
+    }
+
+    /// Overridable implementation of `Vector::ne_mask`.
+    #[inline(always)]
+    fn vec_ne_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialEq<T2>,
+    {
+        Vector::from_fn(|i| vec[i] != other[i])
+    }
+
+    /// Overridable implementation of `Vector::lt_mask`.
+    #[inline(always)]
+    fn vec_lt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vec[i] < other[i])
+    }
+
+    /// Overridable implementation of `Vector::gt_mask`.
+    #[inline(always)]
+    fn vec_gt_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vec[i] > other[i])
+    }
+
+    /// Overridable implementation of `Vector::le_mask`.
+    #[inline(always)]
+    fn vec_le_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vec[i] <= other[i])
+    }
+
+    /// Overridable implementation of `Vector::ge_mask`.
+    #[inline(always)]
+    fn vec_ge_mask<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, bool, A>
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd<T2>,
+    {
+        Vector::from_fn(|i| vec[i] >= other[i])
+    }
+
+    /// Overridable implementation of `Vector::sum`.
+    #[inline(always)]
+    fn vec_sum<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Add<Output = Self>,
+    {
+        vec.fold(|acc, x| acc + x)
+    }
+
+    /// Overridable implementation of `Vector::product`.
+    #[inline(always)]
+    fn vec_product<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Mul<Output = Self>,
+    {
+        vec.fold(|acc, x| acc * x)
+    }
+
     /// Overridable implementation of `Vector::abs_diff`.
     #[inline(always)]
     fn vec_abs_diff<const N: usize, A: VecAlignment>(
@@ -211,6 +489,54 @@ pub trait Scalar: Construct {
                 vec[i] - other[i]
             }
         })
+    }
+
+    /// Overridable implementation of `Vector::dot`.
+    #[inline(always)]
+    fn vec_dot<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, T2, impl VecAlignment>,
+    ) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Mul<T2, Output = Self> + Add<Output = Self>,
+    {
+        (vec * other).sum()
+    }
+
+    /// Overridable implementation of `Vector::mag_sq`.
+    #[inline(always)]
+    fn vec_mag_sq<const N: usize, A: VecAlignment>(vec: Vector<N, Self, A>) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: Mul<Output = Self> + Add<Output = Self>,
+    {
+        (vec * vec).sum()
+    }
+
+    /// Overridable implementation of `Vector::distance_sq`.
+    #[inline(always)]
+    fn vec_distance_sq<const N: usize, A: VecAlignment>(
+        vec: Vector<N, Self, A>,
+        other: Vector<N, Self, impl VecAlignment>,
+    ) -> Self
+    where
+        Usize<N>: VecLen,
+        Self: PartialOrd + Sub<Output = Self> + Mul<Output = Self> + Add<Output = Self>,
+    {
+        vec.abs_diff(other).mag_sq()
+    }
+
+    /// Overridable implementation of `Vector::cross`.
+    #[inline(always)]
+    fn vec_cross<A: VecAlignment>(
+        vec: Vector<3, Self, A>,
+        other: Vector<3, Self, impl VecAlignment>,
+    ) -> Vector<3, Self, A>
+    where
+        Self: Mul<Output = Self> + Sub<Output = Self>,
+    {
+        vec.yzx() * other.zxy() - vec.zxy() * other.yzx()
     }
 }
 
@@ -386,7 +712,12 @@ where
 {
     #[inline(always)]
     fn eq(&self, other: &Vector<N, T2, A2>) -> bool {
-        (0..N).all(|i| self[i] == other[i])
+        T::vec_eq(*self, *other)
+    }
+
+    #[inline(always)]
+    fn ne(&self, other: &Vector<N, T2, A2>) -> bool {
+        T::vec_ne(*self, *other)
     }
 }
 
