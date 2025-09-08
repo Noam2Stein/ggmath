@@ -427,17 +427,27 @@ where
         output
     }
 
+    /// Returns `self.dot(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_dot(self, other: Vector<N, u128, impl VecAlignment>) -> u128 {
+        let mut output = 0 as u128;
+        let mut i = 0;
+        while i < N {
+            output += self.as_array()[i] * other.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
     /// Returns `self.mag_sq()` and supports const contexts.
     #[inline(always)]
     pub const fn const_mag_sq(self) -> u128 {
         let mut output = 0 as u128;
-
         let mut i = 0;
         while i < N {
             output += self.as_array()[i] * self.as_array()[i];
             i += 1;
         }
-
         output
     }
 

@@ -252,6 +252,36 @@ where
         }
         self + delta / delta_mag * max_delta
     }
+
+    /// Returns the projection of `self` onto `other`.
+    #[inline(always)]
+    pub fn project_onto(self, other: Self) -> Self {
+        other * self.dot(other) * (1.0 / other.mag_sq())
+    }
+
+    /// Returns the projection of `self` onto `other`,
+    /// where `other` must be normalized.
+    ///
+    /// This is faster than `project_onto`.
+    #[inline(always)]
+    pub fn project_onto_normalized(self, other: Self) -> Self {
+        other * self.dot(other)
+    }
+
+    /// Returns the rejection of `self` from `other`.
+    #[inline(always)]
+    pub fn reject_from(self, other: Self) -> Self {
+        self - self.project_onto(other)
+    }
+
+    /// Returns the rejection of `self` from `other`,
+    /// where `other` must be normalized.
+    ///
+    /// This is faster than `reject_from`.
+    #[inline(always)]
+    pub fn reject_from_normalized(self, other: Self) -> Self {
+        self - self.project_onto_normalized(other)
+    }
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
@@ -490,17 +520,27 @@ where
         output
     }
 
+    /// Returns `self.dot(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_dot(self, other: Vector<N, f32, impl VecAlignment>) -> f32 {
+        let mut output = 0 as f32;
+        let mut i = 0;
+        while i < N {
+            output += self.as_array()[i] * other.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
     /// Returns `self.mag_sq()` and supports const contexts.
     #[inline(always)]
     pub const fn const_mag_sq(self) -> f32 {
         let mut output = 0 as f32;
-
         let mut i = 0;
         while i < N {
             output += self.as_array()[i] * self.as_array()[i];
             i += 1;
         }
-
         output
     }
 
@@ -892,6 +932,53 @@ where
     ) -> Self {
         self.const_mul(Self::const_splat(1.0 - t))
             .const_add(other.const_mul(Self::const_splat(t)))
+    }
+
+    /// Version of `Vector::project_onto` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_project_onto(self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        other
+            .to_storage::<A>()
+            .const_mul(Self::const_splat(self.const_dot(other)))
+            .const_mul(Self::const_splat(1.0 / other.const_mag_sq()))
+    }
+
+    /// Version of `Vector::project_onto_normalized` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_project_onto_normalized(
+        self,
+        other: Vector<N, f32, impl VecAlignment>,
+    ) -> Self {
+        other
+            .to_storage::<A>()
+            .const_mul(Self::const_splat(self.const_dot(other)))
+    }
+
+    /// Version of `Vector::reject_from` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_reject_from(self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        self.const_sub(self.const_project_onto(other))
+    }
+
+    /// Version of `Vector::reject_from_normalized` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_reject_from_normalized(
+        self,
+        other: Vector<N, f32, impl VecAlignment>,
+    ) -> Self {
+        self.const_sub(self.const_project_onto_normalized(other))
     }
 }
 
