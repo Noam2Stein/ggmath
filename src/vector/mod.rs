@@ -13,7 +13,6 @@ mod interface;
 mod optimization;
 mod primitives;
 pub use dir::*;
-pub use primitives::*;
 
 #[allow(unused_imports)]
 pub use crate::generated::vector::*;

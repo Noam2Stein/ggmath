@@ -12,7 +12,7 @@ impl Scalar for f64 {
             all(target_arch = "aarch64", target_feature = "neon"),
             all(target_arch = "wasm32", target_feature = "simd128"),
         ))] {
-            type InnerAlignedVec2 = super::Aligned128<[Self; 2]>;
+            type InnerAlignedVec2 = wide::f64x2;
         } else {
             type InnerAlignedVec2 = [Self; 2];
         }
@@ -24,8 +24,8 @@ impl Scalar for f64 {
             all(target_arch = "x86", target_feature = "avx"),
             all(target_arch = "x86_64", target_feature = "avx"),
         ))] {
-            type InnerAlignedVec3 = super::M256<[Self; 4]>;
-            type InnerAlignedVec4 = super::M256<[Self; 4]>;
+            type InnerAlignedVec3 = wide::f64x4;
+            type InnerAlignedVec4 = wide::f64x4;
         } else {
             type InnerAlignedVec3 = [Self; 3];
             type InnerAlignedVec4 = [Self; 4];
@@ -37,6 +37,7 @@ impl Scalar for f64 {
     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = unsafe { core::mem::zeroed() };
     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = unsafe { core::mem::zeroed() };
 
+    #[inline(always)]
     fn vec_abs_diff<const N: usize, A: crate::VecAlignment>(
         vec: Vector<N, Self, A>,
         other: Vector<N, Self, impl crate::VecAlignment>,

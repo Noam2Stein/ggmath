@@ -12,7 +12,7 @@ impl Scalar for u64 {
             all(target_arch = "aarch64", target_feature = "neon"),
             all(target_arch = "wasm32", target_feature = "simd128"),
         ))] {
-            type InnerAlignedVec2 = super::Aligned128<[Self; 2]>;
+            type InnerAlignedVec2 = wide::u64x2;
         } else {
             type InnerAlignedVec2 = [Self; 2];
         }
@@ -25,8 +25,8 @@ impl Scalar for u64 {
             all(target_arch = "x86", target_feature = "avx2"),
             all(target_arch = "x86_64", target_feature = "avx2"),
         ))] {
-            type InnerAlignedVec3 = super::Aligned256<[Self; 4]>;
-            type InnerAlignedVec4 = super::Aligned256<[Self; 4]>;
+            type InnerAlignedVec3 = wide::u64x4;
+            type InnerAlignedVec4 = wide::u64x4;
         } else {
             type InnerAlignedVec3 = [Self; 3];
             type InnerAlignedVec4 = [Self; 4];
