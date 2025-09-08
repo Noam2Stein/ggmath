@@ -4,6 +4,7 @@ mod module;
 use indoc::writedoc;
 use module::*;
 
+mod float_ext;
 mod primitive_aliases;
 mod vector;
 
@@ -17,9 +18,13 @@ pub fn codegen() {
 
     vector::write_mod(module.submod_dir("vector"));
     primitive_aliases::write_mod(module.submod_dir("primitive_aliases"));
+    float_ext::write_mod(module.submod("float_ext"));
 
     module.finish(
         r#"
+        mod float_ext;
+        pub use float_ext::*;
+
         #[cfg(feature = "vector")]
         pub(crate) mod vector;
 
@@ -27,6 +32,7 @@ pub fn codegen() {
         mod primitive_aliases;
         #[cfg(feature = "primitive_aliases")]
         pub use primitive_aliases::*;
+
         "#,
     );
 }

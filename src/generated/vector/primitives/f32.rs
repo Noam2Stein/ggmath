@@ -114,6 +114,55 @@ where
     pub fn normalize_or_zero(self) -> Self {
         self.normalize_or(Self::ZERO)
     }
+
+    /// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,
+    /// which is clamped to the range `[0.0, 1.0]`.
+    ///
+    /// This function uses the "delta lerp" formula which is:
+    /// `a + (b - a) * t`
+    ///
+    /// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
+    /// `a * (1.0 - t) + b * t`
+    ///
+    /// The other formula can be used by calling `lerp_weighted`.
+    /// It is useful when interpolating large values that are very far away from each other.
+    #[inline(always)]
+    pub fn lerp(self, other: Vector<N, f32, impl VecAlignment>, t: f32) -> Self {
+        self.lerp_unclamped(other, t.clamp(0.0, 1.0))
+    }
+
+    /// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,
+    /// which is clamped to the range `[0.0, 1.0]`.
+    ///
+    /// This function uses the "weighted lerp" formula which is:
+    /// `a * (1.0 - t) + b * t`
+    ///
+    /// This formula is usually worse than the "delta lerp" formula:
+    /// `a + (b - a) * t`
+    ///
+    /// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+    #[inline(always)]
+    pub fn lerp_weighted(self, other: Vector<N, f32, impl VecAlignment>, t: f32) -> Self {
+        self.lerp_unclamped_weighted(other, t.clamp(0.0, 1.0))
+    }
+
+    /// Linearly interpolates between `self` and `other` based on the interpolation factor `t`.
+    /// If `t` is outside the range `[0.0, 1.0]`, the result is linearly extrapolated.
+    ///
+    /// This function uses the "delta lerp" formula which is:
+    /// `a + (b - a) * t`
+    ///
+    /// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
+    #[inline(always)]
+    pub fn lerp_unclamped(self, other: Vector<N, f32, impl VecAlignment>, t: f32) -> Self {
+        self + (other - self) * t
+    }
+
+    /// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+    #[inline(always)]
+    pub fn lerp_unclamped_weighted(self, other: Vector<N, f32, impl VecAlignment>, t: f32) -> Self {
+        self * (1.0 - t) + other * t
+    }
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
