@@ -5,14 +5,7 @@
 /// where right is the positive direction.
 #[cfg(feature = "right")]
 pub mod right {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `RIGHT` constant where right is the positive direction.
     pub trait PositiveRight: Construct {
@@ -29,49 +22,41 @@ pub mod right {
     impl<T: ScalarOne> PositiveRight for T {
         const RIGHT: Self = Self::ONE;
     }
-    
+
     impl<T: ScalarNegOne> NegativeLeft for T {
         const LEFT: Self = Self::NEG_ONE;
     }
 
     impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<2, T, A> {
-	    const RIGHT: Self = Self::X;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<2, T, A> {
-	    const LEFT: Self = Self::NEG_X;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<3, T, A> {
-	    const RIGHT: Self = Self::X;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<3, T, A> {
-	    const LEFT: Self = Self::NEG_X;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<4, T, A> {
-	    const RIGHT: Self = Self::X;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<4, T, A> {
-	    const LEFT: Self = Self::NEG_X;
-	}
-	
+        const RIGHT: Self = Self::X;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<2, T, A> {
+        const LEFT: Self = Self::NEG_X;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<3, T, A> {
+        const RIGHT: Self = Self::X;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<3, T, A> {
+        const LEFT: Self = Self::NEG_X;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<4, T, A> {
+        const RIGHT: Self = Self::X;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<4, T, A> {
+        const LEFT: Self = Self::NEG_X;
+    }
 }
 
 /// A module for vectors with `RIGHT` and `LEFT` constants,
 /// where left is the positive direction.
 #[cfg(feature = "left")]
 pub mod left {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `RIGHT` constant where left is the positive direction.
     pub trait NegativeRight: Construct {
@@ -94,43 +79,35 @@ pub mod left {
     }
 
     impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<2, T, A> {
-	    const RIGHT: Self = Self::NEG_X;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<2, T, A> {
-	    const LEFT: Self = Self::X;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<3, T, A> {
-	    const RIGHT: Self = Self::NEG_X;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<3, T, A> {
-	    const LEFT: Self = Self::X;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<4, T, A> {
-	    const RIGHT: Self = Self::NEG_X;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<4, T, A> {
-	    const LEFT: Self = Self::X;
-	}
-	
+        const RIGHT: Self = Self::NEG_X;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<2, T, A> {
+        const LEFT: Self = Self::X;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<3, T, A> {
+        const RIGHT: Self = Self::NEG_X;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<3, T, A> {
+        const LEFT: Self = Self::X;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<4, T, A> {
+        const RIGHT: Self = Self::NEG_X;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<4, T, A> {
+        const LEFT: Self = Self::X;
+    }
 }
 
 /// A module for traits with `UP` and `DOWN` constants,
 /// where up is the positive direction.
 #[cfg(feature = "up")]
 pub mod up {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `UP` constant where up is the positive direction.
     pub trait PositiveUp: Construct {
@@ -147,49 +124,41 @@ pub mod up {
     impl<T: ScalarOne> PositiveUp for T {
         const UP: Self = Self::ONE;
     }
-    
+
     impl<T: ScalarNegOne> NegativeDown for T {
         const DOWN: Self = Self::NEG_ONE;
     }
 
     impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<2, T, A> {
-	    const UP: Self = Self::Y;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<2, T, A> {
-	    const DOWN: Self = Self::NEG_Y;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<3, T, A> {
-	    const UP: Self = Self::Y;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<3, T, A> {
-	    const DOWN: Self = Self::NEG_Y;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<4, T, A> {
-	    const UP: Self = Self::Y;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<4, T, A> {
-	    const DOWN: Self = Self::NEG_Y;
-	}
-	
+        const UP: Self = Self::Y;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<2, T, A> {
+        const DOWN: Self = Self::NEG_Y;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<3, T, A> {
+        const UP: Self = Self::Y;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<3, T, A> {
+        const DOWN: Self = Self::NEG_Y;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<4, T, A> {
+        const UP: Self = Self::Y;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<4, T, A> {
+        const DOWN: Self = Self::NEG_Y;
+    }
 }
 
 /// A module for vectors with `UP` and `DOWN` constants,
 /// where down is the positive direction.
 #[cfg(feature = "down")]
 pub mod down {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `UP` constant where down is the positive direction.
     pub trait NegativeUp: Construct {
@@ -212,43 +181,35 @@ pub mod down {
     }
 
     impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<2, T, A> {
-	    const UP: Self = Self::NEG_Y;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<2, T, A> {
-	    const DOWN: Self = Self::Y;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<3, T, A> {
-	    const UP: Self = Self::NEG_Y;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<3, T, A> {
-	    const DOWN: Self = Self::Y;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<4, T, A> {
-	    const UP: Self = Self::NEG_Y;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<4, T, A> {
-	    const DOWN: Self = Self::Y;
-	}
-	
+        const UP: Self = Self::NEG_Y;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<2, T, A> {
+        const DOWN: Self = Self::Y;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<3, T, A> {
+        const UP: Self = Self::NEG_Y;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<3, T, A> {
+        const DOWN: Self = Self::Y;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<4, T, A> {
+        const UP: Self = Self::NEG_Y;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<4, T, A> {
+        const DOWN: Self = Self::Y;
+    }
 }
 
 /// A module for traits with `FORWARD` and `BACKWARD` constants,
 /// where forwards is the positive direction.
 #[cfg(feature = "forwards")]
 pub mod forwards {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `FORWARD` constant where forwards is the positive direction.
     pub trait PositiveForward: Construct {
@@ -265,49 +226,41 @@ pub mod forwards {
     impl<T: ScalarOne> PositiveForward for T {
         const FORWARD: Self = Self::ONE;
     }
-    
+
     impl<T: ScalarNegOne> NegativeBackward for T {
         const BACKWARD: Self = Self::NEG_ONE;
     }
 
     impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<2, T, A> {
-	    const FORWARD: Self = Self::Z;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<2, T, A> {
-	    const BACKWARD: Self = Self::NEG_Z;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<3, T, A> {
-	    const FORWARD: Self = Self::Z;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<3, T, A> {
-	    const BACKWARD: Self = Self::NEG_Z;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<4, T, A> {
-	    const FORWARD: Self = Self::Z;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<4, T, A> {
-	    const BACKWARD: Self = Self::NEG_Z;
-	}
-	
+        const FORWARD: Self = Self::Z;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<2, T, A> {
+        const BACKWARD: Self = Self::NEG_Z;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<3, T, A> {
+        const FORWARD: Self = Self::Z;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<3, T, A> {
+        const BACKWARD: Self = Self::NEG_Z;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<4, T, A> {
+        const FORWARD: Self = Self::Z;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<4, T, A> {
+        const BACKWARD: Self = Self::NEG_Z;
+    }
 }
 
 /// A module for vectors with `FORWARD` and `BACKWARD` constants,
 /// where backwards is the positive direction.
 #[cfg(feature = "backwards")]
 pub mod backwards {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `FORWARD` constant where backwards is the positive direction.
     pub trait NegativeForward: Construct {
@@ -330,29 +283,26 @@ pub mod backwards {
     }
 
     impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<2, T, A> {
-	    const FORWARD: Self = Self::NEG_Z;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<2, T, A> {
-	    const BACKWARD: Self = Self::Z;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<3, T, A> {
-	    const FORWARD: Self = Self::NEG_Z;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<3, T, A> {
-	    const BACKWARD: Self = Self::Z;
-	}
-	
-	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<4, T, A> {
-	    const FORWARD: Self = Self::NEG_Z;
-	}
-	
-	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<4, T, A> {
-	    const BACKWARD: Self = Self::Z;
-	}
-	
+        const FORWARD: Self = Self::NEG_Z;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<2, T, A> {
+        const BACKWARD: Self = Self::Z;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<3, T, A> {
+        const FORWARD: Self = Self::NEG_Z;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<3, T, A> {
+        const BACKWARD: Self = Self::Z;
+    }
+
+    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<4, T, A> {
+        const FORWARD: Self = Self::NEG_Z;
+    }
+
+    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<4, T, A> {
+        const BACKWARD: Self = Self::Z;
+    }
 }
-
-

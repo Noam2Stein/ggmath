@@ -53,7 +53,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Add<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -65,7 +71,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Add<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -77,7 +89,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Add<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -89,7 +107,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Add<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -101,7 +125,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> AddAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    AddAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -111,7 +136,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> AddAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    AddAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -121,7 +147,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Sub<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -133,7 +165,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Sub<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -145,7 +183,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Sub<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -157,7 +201,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Sub<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -169,7 +219,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> SubAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    SubAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -179,7 +230,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> SubAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    SubAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -189,7 +241,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Mul<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -201,7 +259,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Mul<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -213,7 +277,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Mul<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -225,7 +295,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Mul<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -237,7 +313,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> MulAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    MulAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -247,7 +324,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> MulAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    MulAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -257,7 +335,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Div<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -269,7 +353,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Div<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -281,7 +371,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Div<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -293,7 +389,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Div<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -305,7 +407,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> DivAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    DivAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -315,7 +418,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> DivAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    DivAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -325,7 +429,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Rem<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -337,7 +447,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Rem<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -349,7 +465,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Rem<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -361,7 +483,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Rem<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -373,7 +501,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> RemAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    RemAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -383,7 +512,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> RemAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    RemAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -393,7 +523,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shl<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -405,7 +541,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shl<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -417,7 +559,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shl<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -429,7 +577,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shl<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -441,7 +595,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> ShlAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    ShlAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -451,7 +606,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> ShlAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    ShlAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -461,7 +617,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shr<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -473,7 +635,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shr<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -485,7 +653,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shr<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -497,7 +671,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> Shr<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -509,7 +689,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> ShrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    ShrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -519,7 +700,8 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> ShrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+    ShrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -529,7 +711,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitAnd<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -541,7 +729,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitAnd<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -553,7 +747,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitAnd<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -565,7 +765,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitAnd<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -577,7 +783,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitAndAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAndAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -587,7 +799,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitAndAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAndAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -597,7 +815,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitOr<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -609,7 +833,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitOr<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -621,7 +851,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitOr<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -633,7 +869,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitOr<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -645,7 +887,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitOrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -655,7 +903,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitOrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -665,7 +919,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitXor<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -677,7 +937,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitXor<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -689,7 +955,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitXor<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -701,7 +973,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitXor<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -713,7 +991,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitXorAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXorAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -723,7 +1007,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment> BitXorAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXorAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -732,5 +1022,3 @@ where
         *self = <Self as BitXor<Vector<N, T2, A2>>>::bitxor(*self, *rhs);
     }
 }
-
-

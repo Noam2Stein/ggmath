@@ -135,5 +135,3 @@ pub mod bool_aliases {
     #[cfg(feature = "vector")]
     vector_aliases!(pub B => bool);
 }
-
-
