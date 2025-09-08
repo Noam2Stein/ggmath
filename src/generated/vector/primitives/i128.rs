@@ -14,6 +14,84 @@ where
     /// A vector of all maximum values.
     pub const MAX: Self = Self::const_splat(i128::MAX);
 
+    /// Converts `self` to a vector of `f32` elements.
+    #[inline(always)]
+    pub fn as_f32(self) -> Vector<N, f32, A> {
+        self.map(|x| x as f32)
+    }
+
+    /// Converts `self` to a vector of `f64` elements.
+    #[inline(always)]
+    pub fn as_f64(self) -> Vector<N, f64, A> {
+        self.map(|x| x as f64)
+    }
+
+    /// Converts `self` to a vector of `i8` elements.
+    #[inline(always)]
+    pub fn as_i8(self) -> Vector<N, i8, A> {
+        self.map(|x| x as i8)
+    }
+
+    /// Converts `self` to a vector of `i16` elements.
+    #[inline(always)]
+    pub fn as_i16(self) -> Vector<N, i16, A> {
+        self.map(|x| x as i16)
+    }
+
+    /// Converts `self` to a vector of `i32` elements.
+    #[inline(always)]
+    pub fn as_i32(self) -> Vector<N, i32, A> {
+        self.map(|x| x as i32)
+    }
+
+    /// Converts `self` to a vector of `i64` elements.
+    #[inline(always)]
+    pub fn as_i64(self) -> Vector<N, i64, A> {
+        self.map(|x| x as i64)
+    }
+
+    /// Converts `self` to a vector of `isize` elements.
+    #[inline(always)]
+    pub fn as_isize(self) -> Vector<N, isize, A> {
+        self.map(|x| x as isize)
+    }
+
+    /// Converts `self` to a vector of `u8` elements.
+    #[inline(always)]
+    pub fn as_u8(self) -> Vector<N, u8, A> {
+        self.map(|x| x as u8)
+    }
+
+    /// Converts `self` to a vector of `u16` elements.
+    #[inline(always)]
+    pub fn as_u16(self) -> Vector<N, u16, A> {
+        self.map(|x| x as u16)
+    }
+
+    /// Converts `self` to a vector of `u32` elements.
+    #[inline(always)]
+    pub fn as_u32(self) -> Vector<N, u32, A> {
+        self.map(|x| x as u32)
+    }
+
+    /// Converts `self` to a vector of `u64` elements.
+    #[inline(always)]
+    pub fn as_u64(self) -> Vector<N, u64, A> {
+        self.map(|x| x as u64)
+    }
+
+    /// Converts `self` to a vector of `u128` elements.
+    #[inline(always)]
+    pub fn as_u128(self) -> Vector<N, u128, A> {
+        self.map(|x| x as u128)
+    }
+
+    /// Converts `self` to a vector of `usize` elements.
+    #[inline(always)]
+    pub fn as_usize(self) -> Vector<N, usize, A> {
+        self.map(|x| x as usize)
+    }
+
     // The following items are generated for all int types
 
     /// Returns `-self` or `None` if there is an overflow.
@@ -393,6 +471,201 @@ where
     #[inline(always)]
     pub const fn const_distance_sq(self, other: Vector<N, i128, impl VecAlignment>) -> i128 {
         self.const_abs_diff(other).const_mag_sq()
+    }
+
+    /// Version of `Vector::as_f32` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_f32(self) -> Vector<N, f32, A> {
+        let mut output = Vector::<N, f32, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as f32;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_f64` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_f64(self) -> Vector<N, f64, A> {
+        let mut output = Vector::<N, f64, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as f64;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_i8` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_i8(self) -> Vector<N, i8, A> {
+        let mut output = Vector::<N, i8, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as i8;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_i16` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_i16(self) -> Vector<N, i16, A> {
+        let mut output = Vector::<N, i16, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as i16;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_i32` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_i32(self) -> Vector<N, i32, A> {
+        let mut output = Vector::<N, i32, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as i32;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_i64` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_i64(self) -> Vector<N, i64, A> {
+        let mut output = Vector::<N, i64, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as i64;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_isize` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_isize(self) -> Vector<N, isize, A> {
+        let mut output = Vector::<N, isize, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as isize;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_u8` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_u8(self) -> Vector<N, u8, A> {
+        let mut output = Vector::<N, u8, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as u8;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_u16` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_u16(self) -> Vector<N, u16, A> {
+        let mut output = Vector::<N, u16, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as u16;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_u32` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_u32(self) -> Vector<N, u32, A> {
+        let mut output = Vector::<N, u32, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as u32;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_u64` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_u64(self) -> Vector<N, u64, A> {
+        let mut output = Vector::<N, u64, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as u64;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_u128` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_u128(self) -> Vector<N, u128, A> {
+        let mut output = Vector::<N, u128, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as u128;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_usize` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_usize(self) -> Vector<N, usize, A> {
+        let mut output = Vector::<N, usize, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as usize;
+            i += 1;
+        }
+        output
     }
 
     // The following items are generated for all int types
