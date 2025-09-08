@@ -71,6 +71,43 @@ pub fn push_fns(
         pub fn is_finite(self) -> bool {{
             self.finite_mask().all_true()
         }}
+
+        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
+        /// If `self` is zero, the result is NaN.
+        #[inline(always)]
+        pub fn normalize(self) -> Self {{
+            self / self.mag()
+        }}
+
+        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
+        /// If `self` is zero, `None` is returned.
+        #[inline(always)]
+        pub fn checked_normalize(self) -> Option<Self> {{
+            let normalized = self.normalize();
+            if normalized.is_finite() {{
+                Some(normalized)
+            }} else {{
+                None
+            }}
+        }}
+
+        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
+        #[inline(always)]
+        pub fn normalize_or(self, default: Self) -> Self {{
+            let normalized = self.normalize();
+            if normalized.is_finite() {{
+                normalized
+            }} else {{
+                default
+            }}
+        }}
+
+        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
+        /// If `self` is zero, zero is returned.
+        #[inline(always)]
+        pub fn normalize_or_zero(self) -> Self {{
+            self.normalize_or(Self::ZERO)
+        }}
     "#});
 
     const_functions.push(formatdoc! {r#"
