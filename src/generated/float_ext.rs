@@ -57,6 +57,130 @@ pub trait FloatExt {
     fn move_towards(self, other: Self, max_delta: Self) -> Self;
 }
 
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// which is clamped to the range `[0.0, 1.0]`.
+///
+/// This function uses the "delta lerp" formula which is:
+/// `a + (b - a) * t`
+///
+/// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
+/// `a * (1.0 - t) + b * t`
+///
+/// The other formula can be used by calling `const_f32_lerp_weighted`.
+/// It is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f32_lerp(a: f32, b: f32, t: f32) -> f32 {
+    const_f32_lerp_unclamped(a, b, t.clamp(0.0, 1.0))
+}
+
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// which is clamped to the range `[0.0, 1.0]`.
+///
+/// This function uses the "weighted lerp" formula which is:
+/// `a * (1.0 - t) + b * t`
+///
+/// This formula is usually worse than the "delta lerp" formula:
+/// `a + (b - a) * t`
+///
+/// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f32_lerp_weighted(a: f32, b: f32, t: f32) -> f32 {
+    const_f32_lerp_unclamped_weighted(a, b, t.clamp(0.0, 1.0))
+}
+
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// or extrapolates if `t` is outside the range `[0.0, 1.0]`.
+///
+/// This function uses the "delta lerp" formula which is:
+/// `a + (b - a) * t`
+///
+/// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
+/// `a * (1.0 - t) + b * t`
+///
+/// The other formula can be used by calling `const_f32_lerp_unclamped_weighted`.
+/// It is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f32_lerp_unclamped(a: f32, b: f32, t: f32) -> f32 {
+    a + (b - a) * t
+}
+
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// or extrapolates if `t` is outside the range `[0.0, 1.0]`.
+///
+/// This function uses the "weighted lerp" formula which is:
+/// `a * (1.0 - t) + b * t`
+///
+/// This formula is usually worse than the "delta lerp" formula:
+/// `a + (b - a) * t`
+///
+/// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f32_lerp_unclamped_weighted(a: f32, b: f32, t: f32) -> f32 {
+    a * (1.0 - t) + b * t
+}
+
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// which is clamped to the range `[0.0, 1.0]`.
+///
+/// This function uses the "delta lerp" formula which is:
+/// `a + (b - a) * t`
+///
+/// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
+/// `a * (1.0 - t) + b * t`
+///
+/// The other formula can be used by calling `const_f64_lerp_weighted`.
+/// It is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f64_lerp(a: f64, b: f64, t: f64) -> f64 {
+    const_f64_lerp_unclamped(a, b, t.clamp(0.0, 1.0))
+}
+
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// which is clamped to the range `[0.0, 1.0]`.
+///
+/// This function uses the "weighted lerp" formula which is:
+/// `a * (1.0 - t) + b * t`
+///
+/// This formula is usually worse than the "delta lerp" formula:
+/// `a + (b - a) * t`
+///
+/// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f64_lerp_weighted(a: f64, b: f64, t: f64) -> f64 {
+    const_f64_lerp_unclamped_weighted(a, b, t.clamp(0.0, 1.0))
+}
+
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// or extrapolates if `t` is outside the range `[0.0, 1.0]`.
+///
+/// This function uses the "delta lerp" formula which is:
+/// `a + (b - a) * t`
+///
+/// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
+/// `a * (1.0 - t) + b * t`
+///
+/// The other formula can be used by calling `const_f64_lerp_unclamped_weighted`.
+/// It is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f64_lerp_unclamped(a: f64, b: f64, t: f64) -> f64 {
+    a + (b - a) * t
+}
+
+/// Interpolates between `a` and `b` based on the interpolation factor `t`,
+/// or extrapolates if `t` is outside the range `[0.0, 1.0]`.
+///
+/// This function uses the "weighted lerp" formula which is:
+/// `a * (1.0 - t) + b * t`
+///
+/// This formula is usually worse than the "delta lerp" formula:
+/// `a + (b - a) * t`
+///
+/// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+#[inline(always)]
+pub const fn const_f64_lerp_unclamped_weighted(a: f64, b: f64, t: f64) -> f64 {
+    a * (1.0 - t) + b * t
+}
+
 impl FloatExt for f32 {
     #[inline(always)]
     fn lerp(self, other: Self, t: Self) -> Self {

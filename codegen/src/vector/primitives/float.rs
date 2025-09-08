@@ -256,6 +256,42 @@ pub fn push_fns(
         pub const fn const_is_finite(self) -> bool {{
             self.const_finite_mask().const_all_true()
         }}
+
+        /// Version of `Vector::lerp` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_lerp(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+            self.const_lerp_unclamped(other, t.clamp(0.0, 1.0))
+        }}
+
+        /// Version of `Vector::lerp_weighted` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_lerp_weighted(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+            self.const_lerp_unclamped_weighted(other, t.clamp(0.0, 1.0))
+        }}
+
+        /// Version of `Vector::lerp_unclamped` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_lerp_unclamped(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+            self.const_add(other.const_sub(self).const_mul(Self::const_splat(t)))
+        }}
+
+        /// Version of `Vector::lerp_unclamped_weighted` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_lerp_unclamped_weighted(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+            self.const_mul(Self::const_splat(1.0 - t)).const_add(other.const_mul(Self::const_splat(t)))
+        }}
     "#});
 
     std_functions.push(formatdoc! {r#"
