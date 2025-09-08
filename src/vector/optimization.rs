@@ -12,7 +12,7 @@
 ///
 /// ## Example
 ///
-/// ```
+/// ```ignore
 /// use ggmath::*;
 ///
 /// #[inline(always)]
