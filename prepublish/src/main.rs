@@ -1,8 +1,21 @@
-use std::process::{Command, Stdio};
+use std::{
+    path::Path,
+    process::{Command, Stdio},
+};
 
 use colored::Colorize;
+use const_format::concatcp;
+
+mod bench_verification;
+
+const WORKSPACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
+const CRITERION_DIR: &str = concatcp!(WORKSPACE_DIR, "/target/criterion");
 
 fn main() {
+    if Path::new(CRITERION_DIR).exists() {
+        std::fs::remove_dir_all(CRITERION_DIR).unwrap();
+    }
+
     let commands = collect_commands();
 
     for (i, command) in commands.iter().enumerate() {
@@ -17,6 +30,8 @@ fn main() {
 
         run(&command[0], &command[1..]);
     }
+
+    bench_verification::verify_bench_results();
 
     println!();
     println!("{}", "GG! ggmath is ready to cargo publish!".green().bold());
@@ -159,15 +174,16 @@ fn collect_commands() -> Vec<Vec<&'static str>> {
     commands.push(vec!["cargo", "test"]);
     commands.push(vec!["cargo", "test", "--release"]);
 
-    commands.push(vec!["cargo", "bench"]);
-
     commands.push(vec!["cargo", "fmt", "--all"]);
+
+    commands.push(vec!["cargo", "bench"]);
 
     commands
 }
 
 fn run(command: &str, args: &[&str]) {
     let status = Command::new(command)
+        .current_dir(WORKSPACE_DIR)
         .args(args)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())

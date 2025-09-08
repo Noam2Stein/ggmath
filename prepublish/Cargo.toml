@@ -4,4 +4,7 @@ name    = "prepublish"
 version = "0.1.0"
 
 [dependencies]
-colored = "3.0.0"
+colored      = "3.0.0"
+const_format = "0.2.34"
+serde        = { version = "1.0.219", features = [ "derive" ] }
+serde_json   = "1.0.143"
