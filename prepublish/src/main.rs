@@ -1,20 +1,11 @@
-use std::{
-    path::Path,
-    process::{Command, Stdio},
-};
+use std::process::{Command, Stdio};
 
 use colored::Colorize;
-use const_format::concatcp;
-
-mod bench_verification;
 
 const WORKSPACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
-const CRITERION_DIR: &str = concatcp!(WORKSPACE_DIR, "/target/criterion");
 
 fn main() {
-    if Path::new(CRITERION_DIR).exists() {
-        std::fs::remove_dir_all(CRITERION_DIR).unwrap();
-    }
+    bench_checker::clear_criterion_dir();
 
     let commands = collect_commands();
 
@@ -31,7 +22,7 @@ fn main() {
         run(&command[0], &command[1..]);
     }
 
-    bench_verification::verify_bench_results();
+    bench_checker::verify_bench_results();
 
     println!();
     println!("{}", "GG! ggmath is ready to cargo publish!".green().bold());
@@ -193,7 +184,6 @@ fn run(command: &str, args: &[&str]) {
         .expect(&"Failed to wait on process".red().bold().to_string());
 
     if !status.success() {
-        eprintln!("{}", "Command failed!".red().bold());
         std::process::exit(1);
     }
 }

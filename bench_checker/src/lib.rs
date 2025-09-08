@@ -1,10 +1,27 @@
+//! Verifies that all ggmath benchmarks are faster or equal to the opposing implementation, like glam or wide.
+
+#![deny(missing_docs)]
+
 use std::{collections::HashMap, path::Path};
 
 use colored::Colorize;
+use const_format::concatcp;
 use serde::Deserialize;
 
-use crate::CRITERION_DIR;
+const WORKSPACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
+const CRITERION_DIR: &str = concatcp!(WORKSPACE_DIR, "/target/criterion");
 
+/// Clears the criterion directory.
+/// This is important so that deleted benchmarks aren't accidentally checked.
+pub fn clear_criterion_dir() {
+    if Path::new(CRITERION_DIR).exists() {
+        std::fs::remove_dir_all(CRITERION_DIR).unwrap();
+    }
+}
+
+/// Verifies that all ggmath benchmarks are faster or equal to the opposing implementation, like glam or wide.
+///
+/// If any benchmarks are slower, this will print a nice error message and exit.
 pub fn verify_bench_results() {
     if !Path::new(CRITERION_DIR).exists() {
         panic!("{}", "Criterion directory not found".red().bold());
@@ -70,7 +87,7 @@ pub fn verify_bench_results() {
     }
 
     if !slow_fns.is_empty() {
-        panic!(
+        eprintln!(
             "{}",
             format!(
                 "ggmath is slower than the opposing implementation in:\n{}",
@@ -89,6 +106,8 @@ pub fn verify_bench_results() {
             .red()
             .bold()
         );
+
+        std::process::exit(1);
     }
 }
 
