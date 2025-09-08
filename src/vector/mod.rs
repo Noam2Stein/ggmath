@@ -252,6 +252,77 @@ pub trait Scalar: Construct {
         Vector::<4, _, _>::from_array([vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC]])
     }
 
+    /// Overridable implementation of vector "with" swizzle functions
+    /// like `vec.with_x(other)` and `vec.with_y(other)` where `other` is a single scalar.
+    fn vec_with_swizzle1<const N: usize, A: VecAlignment, const X_DST: usize>(
+        mut vec: Vector<N, Self, A>,
+        other: Self,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        vec[X_DST] = other;
+        vec
+    }
+
+    /// Overridable implementation of vector "with" swizzle functions
+    /// like `vec.with_xy(other)` and `vec.with_yz(other)` where `other` is a 2-component vector.
+    fn vec_with_swizzle2<const N: usize, A: VecAlignment, const X_DST: usize, const Y_DST: usize>(
+        mut vec: Vector<N, Self, A>,
+        other: Vector<2, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        vec[X_DST] = other[0];
+        vec[Y_DST] = other[1];
+        vec
+    }
+
+    /// Overridable implementation of vector "with" swizzle functions
+    /// like `vec.with_xyz(other)` and `vec.with_yzx(other)` where `other` is a 3-component vector.
+    fn vec_with_swizzle3<
+        const N: usize,
+        A: VecAlignment,
+        const X_DST: usize,
+        const Y_DST: usize,
+        const Z_DST: usize,
+    >(
+        mut vec: Vector<N, Self, A>,
+        other: Vector<3, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        vec[X_DST] = other[0];
+        vec[Y_DST] = other[1];
+        vec[Z_DST] = other[2];
+        vec
+    }
+
+    /// Overridable implementation of vector "with" swizzle functions
+    /// like `vec.with_xzyw(other)` and `vec.with_yzxw(other)` where `other` is a 4-component vector.
+    fn vec_with_swizzle4<
+        const N: usize,
+        A: VecAlignment,
+        const X_DST: usize,
+        const Y_DST: usize,
+        const Z_DST: usize,
+        const W_DST: usize,
+    >(
+        mut vec: Vector<N, Self, A>,
+        other: Vector<4, Self, impl VecAlignment>,
+    ) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        vec[X_DST] = other[0];
+        vec[Y_DST] = other[1];
+        vec[Z_DST] = other[2];
+        vec[W_DST] = other[3];
+        vec
+    }
+
     /// Overridable implementation of `Vector::neg`.
     #[inline(always)]
     fn vec_neg<const N: usize, A: VecAlignment>(
