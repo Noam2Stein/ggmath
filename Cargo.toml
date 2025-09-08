@@ -60,3 +60,20 @@ serde   = { version = "1.0.219", optional = true }
 
 [build-dependencies]
 codegen = { path = "codegen" }
+
+[dev-dependencies]
+criterion = "0.7.0"
+glam      = "0.30.5"
+wide      = "0.7.33"
+
+[[bench]]
+harness = false
+name    = "fvec2"
+
+[[bench]]
+harness = false
+name    = "fvec3"
+
+[[bench]]
+harness = false
+name    = "fvec4"

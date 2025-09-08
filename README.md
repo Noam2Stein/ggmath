@@ -50,11 +50,14 @@ The heavy use of generics provides:
 Additionally, when not needing generics,
 type aliases make the API simple and very similar to other math crates.
 
-`ggmath` differs from other math crates with generics because it supports SIMD which is important for performance.
-Beware that `ggmath` does not explicitly call SIMD instructions and relies on compiler optimizations
-due to rust's lack of specialization.
-what `ggmath` currently does is carefully control vector type layout
-to make it easy for the compiler to apply vectorization.
+## Performance
+
+`ggmath` differs from other math crates with generics because it supports SIMD,
+which is important for performance.
+
+`ggmath` functions are benchmarked against `glam`, or `wide` for functions that `glam` doesn't have.
+All benchmarked functions are verified to match `glam` and `wide` on x86,
+and `ggmath` aims to benchmark all functions that use SIMD.
 
 ## Installation
 
