@@ -13,6 +13,19 @@ pub fn write_mod(module: Mod) {
         let mut functions = Vec::new();
         let mut const_functions = Vec::new();
 
+        for i in 0..n {
+            let component = COMPONENTS[i];
+            let component_ordinal = COMPONENT_ORDINALS[i];
+
+            functions.push(formatdoc! {r#"
+                /// Returns the `{component}` ({component_ordinal}) component of `self`.
+                #[inline(always)]
+                pub const fn {component}(self) -> T {{
+                    self.as_array()[{i}]
+                }}
+            "#});
+        }
+
         for &n2 in LENGTHS {
             for combination in combinations(n, n2) {
                 let fn_name = combination

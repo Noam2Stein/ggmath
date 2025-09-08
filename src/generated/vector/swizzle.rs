@@ -4,7 +4,19 @@
 use crate::vector::{Scalar, VecAlignment, Vector};
 
 impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
-    /// Returns a new vector with the `x` and `x` (1st and 1st) components of the input vector.
+    /// Returns the `x` (1st) component of `self`.
+	#[inline(always)]
+	pub const fn x(self) -> T {
+	    self.as_array()[0]
+	}
+	
+	/// Returns the `y` (2nd) component of `self`.
+	#[inline(always)]
+	pub const fn y(self) -> T {
+	    self.as_array()[1]
+	}
+	
+	/// Returns a new vector with the `x` and `x` (1st and 1st) components of the input vector.
 	#[inline(always)]
 	pub fn xx(self) -> Vector<2, T, A> {
 	    T::vec_swizzle2::<_, _, 0, 0>(self)
@@ -346,7 +358,25 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
 }
 
 impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
-    /// Returns a new vector with the `x` and `x` (1st and 1st) components of the input vector.
+    /// Returns the `x` (1st) component of `self`.
+	#[inline(always)]
+	pub const fn x(self) -> T {
+	    self.as_array()[0]
+	}
+	
+	/// Returns the `y` (2nd) component of `self`.
+	#[inline(always)]
+	pub const fn y(self) -> T {
+	    self.as_array()[1]
+	}
+	
+	/// Returns the `z` (3rd) component of `self`.
+	#[inline(always)]
+	pub const fn z(self) -> T {
+	    self.as_array()[2]
+	}
+	
+	/// Returns a new vector with the `x` and `x` (1st and 1st) components of the input vector.
 	#[inline(always)]
 	pub fn xx(self) -> Vector<2, T, A> {
 	    T::vec_swizzle2::<_, _, 0, 0>(self)
@@ -1756,7 +1786,31 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
 }
 
 impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
-    /// Returns a new vector with the `x` and `x` (1st and 1st) components of the input vector.
+    /// Returns the `x` (1st) component of `self`.
+	#[inline(always)]
+	pub const fn x(self) -> T {
+	    self.as_array()[0]
+	}
+	
+	/// Returns the `y` (2nd) component of `self`.
+	#[inline(always)]
+	pub const fn y(self) -> T {
+	    self.as_array()[1]
+	}
+	
+	/// Returns the `z` (3rd) component of `self`.
+	#[inline(always)]
+	pub const fn z(self) -> T {
+	    self.as_array()[2]
+	}
+	
+	/// Returns the `w` (4th) component of `self`.
+	#[inline(always)]
+	pub const fn w(self) -> T {
+	    self.as_array()[3]
+	}
+	
+	/// Returns a new vector with the `x` and `x` (1st and 1st) components of the input vector.
 	#[inline(always)]
 	pub fn xx(self) -> Vector<2, T, A> {
 	    T::vec_swizzle2::<_, _, 0, 0>(self)
