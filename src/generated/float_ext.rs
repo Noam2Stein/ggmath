@@ -52,6 +52,9 @@ pub trait FloatExt {
     ///
     /// This "weighted" formula is useful when interpolating large values that are very far away from each other.
     fn lerp_unclamped_weighted(self, other: Self, t: Self) -> Self;
+
+    /// Moves `self` towards `target` by at most `max_delta`.
+    fn move_towards(self, other: Self, max_delta: Self) -> Self;
 }
 
 impl FloatExt for f32 {
@@ -74,6 +77,13 @@ impl FloatExt for f32 {
     fn lerp_unclamped_weighted(self, other: Self, t: Self) -> Self {
         self * (1.0 - t) + other * t
     }
+
+    #[inline(always)]
+    fn move_towards(self, target: Self, max_delta: Self) -> Self {
+        let delta = target - self;
+        let step = delta.clamp(-max_delta, max_delta);
+        self + step
+    }
 }
 
 impl FloatExt for f64 {
@@ -95,5 +105,12 @@ impl FloatExt for f64 {
     #[inline(always)]
     fn lerp_unclamped_weighted(self, other: Self, t: Self) -> Self {
         self * (1.0 - t) + other * t
+    }
+
+    #[inline(always)]
+    fn move_towards(self, target: Self, max_delta: Self) -> Self {
+        let delta = target - self;
+        let step = delta.clamp(-max_delta, max_delta);
+        self + step
     }
 }

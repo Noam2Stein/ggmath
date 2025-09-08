@@ -163,6 +163,17 @@ where
     pub fn lerp_unclamped_weighted(self, other: Vector<N, f64, impl VecAlignment>, t: f64) -> Self {
         self * (1.0 - t) + other * t
     }
+
+    /// Moves `self` towards `target` by at most `max_delta`.
+    #[inline(always)]
+    pub fn move_towards(self, target: Vector<N, f64, impl VecAlignment>, max_delta: f64) -> Self {
+        let delta = target - self;
+        let delta_mag = delta.mag();
+        if delta_mag <= max_delta || delta_mag <= 1e-4 {
+            return target;
+        }
+        self + delta / delta_mag * max_delta
+    }
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, f64, A>

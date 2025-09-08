@@ -149,6 +149,17 @@ pub fn push_fns(
         pub fn lerp_unclamped_weighted(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
             self * (1.0 - t) + other * t
         }}
+
+        /// Moves `self` towards `target` by at most `max_delta`.
+        #[inline(always)]
+        pub fn move_towards(self, target: Vector<N, {primitive}, impl VecAlignment>, max_delta: {primitive}) -> Self {{
+            let delta = target - self;
+            let delta_mag = delta.mag();
+            if delta_mag <= max_delta || delta_mag <= 1e-4 {{
+                return target;
+            }}
+            self + delta / delta_mag * max_delta
+        }}
     "#});
 
     const_functions.push(formatdoc! {r#"

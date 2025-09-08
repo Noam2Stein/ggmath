@@ -27,6 +27,13 @@ pub fn write_mod(module: Mod) {
                 fn lerp_unclamped_weighted(self, other: Self, t: Self) -> Self {{
                     self * (1.0 - t) + other * t
                 }}
+
+                #[inline(always)]
+                fn move_towards(self, target: Self, max_delta: Self) -> Self {{
+                    let delta = target - self;
+                    let step = delta.clamp(-max_delta, max_delta);
+                    self + step
+                }}
             }}
         "#});
     }
@@ -85,6 +92,9 @@ pub fn write_mod(module: Mod) {
             /// 
             /// This "weighted" formula is useful when interpolating large values that are very far away from each other.
             fn lerp_unclamped_weighted(self, other: Self, t: Self) -> Self;
+
+            /// Moves `self` towards `target` by at most `max_delta`.
+            fn move_towards(self, other: Self, max_delta: Self) -> Self;
         }}
 
         {impls}
