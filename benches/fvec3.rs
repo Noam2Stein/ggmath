@@ -24,6 +24,13 @@ fn fvec3(c: &mut Criterion) {
     #[expect(unused)]
     let wide2 = wide::f32x4::new([2.0, 21.5, 534.0, 0.0]);
 
+    let mut group = c.benchmark_group("fvec3_splat");
+    group.bench_function("ggmath", |b| {
+        b.iter(|| ggmath::Vector::<3, f32, ggmath::VecAligned>::splat(1.0))
+    });
+    group.bench_function("glam", |b| b.iter(|| glam::Vec3A::splat(1.0)));
+    group.finish();
+
     // swizzle
 
     let mut group = c.benchmark_group("fvec3_swizzle2");
