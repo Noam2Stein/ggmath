@@ -8,6 +8,8 @@ pub fn push_fns(
     _std_const_functions: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
+        // The following items are generated for all float types
+
         /// A vector with all elements set to `NaN`.
         pub const NAN: Self = Self::const_splat({primitive}::NAN);
         /// A vector with all elements set to `Infinity`.
@@ -16,16 +18,6 @@ pub fn push_fns(
         pub const NEG_INFINITY: Self = Self::const_splat({primitive}::NEG_INFINITY);
         /// A vector with all elements set to `Epsilon`.
         pub const EPSILON: Self = Self::const_splat({primitive}::EPSILON);
-        /// A vector with all elements set to `Min`.
-        pub const MIN: Self = Self::const_splat({primitive}::MIN);
-        /// A vector with all elements set to `Max`.
-        pub const MAX: Self = Self::const_splat({primitive}::MAX);
-
-        /// Returns a vector containing the absolute value of each element of `self`.
-        #[inline(always)]
-        pub fn abs(self) -> Self {{
-            self.map(|x| x.abs())
-        }}
 
         /// Returns a vector containing the signum of each element of `self`.
         /// Signum for each element is:
@@ -111,238 +103,12 @@ pub fn push_fns(
     "#});
 
     const_functions.push(formatdoc! {r#"
-        /// Returns `-self` and supports const contexts.
+        // The following items are generated for all float types
+
+        /// Returns `self.abs_diff(other)` and supports const contexts.
         #[inline(always)]
-        pub const fn const_neg(mut self) -> Self {{
-            let mut i = 0;
-            while i < N {{
-                self.as_array_mut()[i] = -self.as_array()[i];
-                i += 1;
-            }}
-
-            self
-        }}
-
-        /// Returns `self + other` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_add(mut self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            let mut i = 0;
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i] + other.as_array()[i];
-                i += 1;
-            }}
-
-            self
-        }}
-
-        /// Returns `self - other` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_sub(mut self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            let mut i = 0;
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i] - other.as_array()[i];
-                i += 1;
-            }}
-
-            self
-        }}
-
-        /// Returns `self * other` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_mul(mut self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            let mut i = 0;
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i] * other.as_array()[i];
-                i += 1;
-            }}
-
-            self
-        }}
-
-        /// Returns `self / other` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_div(mut self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            let mut i = 0;
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i] / other.as_array()[i];
-                i += 1;
-            }}
-
-            self
-        }}
-
-        /// Returns `self % other` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_rem(mut self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            let mut i = 0;
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i] % other.as_array()[i];
-                i += 1;
-            }}
-
-            self
-        }}
-
-        /// Returns `self.mag_sq()` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_mag_sq(self) -> {primitive} {{
-            let mut output = 0.0;
-
-            let mut i = 0;
-            while i < N {{
-                output += self.as_array()[i] * self.as_array()[i];
-                i += 1;
-            }}
-
-            output
-        }}
-
-        /// Returns `self.distance_sq(other)` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_distance_sq(self, other: Self) -> {primitive} {{
-            self.const_sub(other).const_mag_sq()
-        }}
-
-        /// Returns `self == other` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_eq(self, other: Vector<N, {primitive}, impl VecAlignment>) -> bool {{
-            let mut i = 0;
-            while i < N {{
-                if self.as_array()[i] != other.as_array()[i] {{
-                    return false;
-                }}
-                i += 1;
-            }}
-            true
-        }}
-
-        /// Returns `self != other` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_ne(self, other: Vector<N, {primitive}, impl VecAlignment>) -> bool {{
-            let mut i = 0;
-            while i < N {{
-                if self.as_array()[i] != other.as_array()[i] {{
-                    return true;
-                }}
-                i += 1;
-            }}
-            false
-        }}
-
-        /// Returns `self.eq_mask(other)` and supports const contexts.
-        pub const fn const_eq_mask(
-            self,
-            other: Vector<N, {primitive}, impl VecAlignment>,
-        ) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i] == other.as_array()[i];
-                i += 1;
-            }}
-            output
-        }}
-
-        /// Returns `self.ne_mask(other)` and supports const contexts.
-        pub const fn const_ne_mask(
-            self,
-            other: Vector<N, {primitive}, impl VecAlignment>,
-        ) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i] != other.as_array()[i];
-                i += 1;
-            }}
-            output
-        }}
-
-        /// Returns `self.lt_mask(other)` and supports const contexts.
-        pub const fn const_lt_mask(
-            self,
-            other: Vector<N, {primitive}, impl VecAlignment>,
-        ) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i] < other.as_array()[i];
-                i += 1;
-            }}
-            output
-        }}
-
-        /// Returns `self.gt_mask(other)` and supports const contexts.
-        pub const fn const_gt_mask(
-            self,
-            other: Vector<N, {primitive}, impl VecAlignment>,
-        ) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i] > other.as_array()[i];
-                i += 1;
-            }}
-            output
-        }}
-
-        /// Returns `self.le_mask(other)` and supports const contexts.
-        pub const fn const_le_mask(
-            self,
-            other: Vector<N, {primitive}, impl VecAlignment>,
-        ) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i] <= other.as_array()[i];
-                i += 1;
-            }}
-            output
-        }}
-
-        /// Returns `self.ge_mask(other)` and supports const contexts.
-        pub const fn const_ge_mask(
-            self,
-            other: Vector<N, {primitive}, impl VecAlignment>,
-        ) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i] >= other.as_array()[i];
-                i += 1;
-            }}
-            output
-        }}
-
-        /// Version of `Vector::abs` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_abs(mut self) -> Self {{
-            let mut i = 0;
-
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i].abs();
-                i += 1;
-            }}
-
-            self
-        }}
-
-        /// Version of `Vector::signum` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_signum(mut self) -> Self {{
-            let mut i = 0;
-
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i].signum();
-                i += 1;
-            }}
-
-            self
+        pub const fn const_abs_diff(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
+            self.const_sub(other).const_abs()
         }}
 
         /// Version of `Vector::negative_sign_mask` that can be called from const contexts.
@@ -433,6 +199,8 @@ pub fn push_fns(
     "#});
 
     std_functions.push(formatdoc! {r#"
+        // The following items are generated for all float types
+
         /// Returns a vector containing the square root of each element of `self`.
         #[inline(always)]
         pub fn sqrt(self) -> Self {{

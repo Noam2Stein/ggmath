@@ -7,6 +7,23 @@ impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
 where
     Usize<N>: VecLen,
 {
+    // The following items are generated for all number types
+
+    /// A vector of all minimum values.
+    pub const MIN: Self = Self::const_splat(f32::MIN);
+    /// A vector of all maximum values.
+    pub const MAX: Self = Self::const_splat(f32::MAX);
+
+    // The following items are generated for all signed number types
+
+    /// Returns a vector containing the absolute value of each element of `self`.
+    #[inline(always)]
+    pub fn abs(self) -> Self {
+        self.map(|x| x.abs())
+    }
+
+    // The following items are generated for all float types
+
     /// A vector with all elements set to `NaN`.
     pub const NAN: Self = Self::const_splat(f32::NAN);
     /// A vector with all elements set to `Infinity`.
@@ -15,16 +32,6 @@ where
     pub const NEG_INFINITY: Self = Self::const_splat(f32::NEG_INFINITY);
     /// A vector with all elements set to `Epsilon`.
     pub const EPSILON: Self = Self::const_splat(f32::EPSILON);
-    /// A vector with all elements set to `Min`.
-    pub const MIN: Self = Self::const_splat(f32::MIN);
-    /// A vector with all elements set to `Max`.
-    pub const MAX: Self = Self::const_splat(f32::MAX);
-
-    /// Returns a vector containing the absolute value of each element of `self`.
-    #[inline(always)]
-    pub fn abs(self) -> Self {
-        self.map(|x| x.abs())
-    }
 
     /// Returns a vector containing the signum of each element of `self`.
     /// Signum for each element is:
@@ -113,17 +120,7 @@ impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
 where
     Usize<N>: VecLen,
 {
-    /// Returns `-self` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_neg(mut self) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = -self.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
+    // The following items are generated for all number types
 
     /// Returns `self + other` and supports const contexts.
     #[inline(always)]
@@ -183,26 +180,6 @@ where
         }
 
         self
-    }
-
-    /// Returns `self.mag_sq()` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_mag_sq(self) -> f32 {
-        let mut output = 0.0;
-
-        let mut i = 0;
-        while i < N {
-            output += self.as_array()[i] * self.as_array()[i];
-            i += 1;
-        }
-
-        output
-    }
-
-    /// Returns `self.distance_sq(other)` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_distance_sq(self, other: Self) -> f32 {
-        self.const_sub(other).const_mag_sq()
     }
 
     /// Returns `self == other` and supports const contexts.
@@ -315,6 +292,100 @@ where
         output
     }
 
+    /// Returns `self.min(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_min(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            if other.as_array()[i] < self.as_array()[i] {
+                self.as_array_mut()[i] = other.as_array()[i];
+            }
+            i += 1;
+        }
+        self
+    }
+
+    /// Returns `self.max(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_max(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            if other.as_array()[i] > self.as_array()[i] {
+                self.as_array_mut()[i] = other.as_array()[i];
+            }
+            i += 1;
+        }
+        self
+    }
+
+    /// Returns `self.clamp(min, max)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_clamp(
+        self,
+        min: Vector<N, f32, impl VecAlignment>,
+        max: Vector<N, f32, impl VecAlignment>,
+    ) -> Self {
+        self.const_min(max).const_max(min)
+    }
+
+    /// Returns `self.sum()` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_sum(self) -> f32 {
+        let mut output = 0 as f32;
+        let mut i = 0;
+        while i < N {
+            output += self.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
+    /// Returns `self.product()` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_product(self) -> f32 {
+        let mut output = 1 as f32;
+        let mut i = 0;
+        while i < N {
+            output *= self.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
+    /// Returns `self.mag_sq()` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_mag_sq(self) -> f32 {
+        let mut output = 0 as f32;
+
+        let mut i = 0;
+        while i < N {
+            output += self.as_array()[i] * self.as_array()[i];
+            i += 1;
+        }
+
+        output
+    }
+
+    /// Returns `self.distance_sq(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_distance_sq(self, other: Vector<N, f32, impl VecAlignment>) -> f32 {
+        self.const_abs_diff(other).const_mag_sq()
+    }
+
+    // The following items are generated for all signed number types
+
+    /// Returns `-self` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_neg(mut self) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = -self.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
     /// Version of `Vector::abs` that can be called from const contexts.
     /// This version may be less performant than the normal version.
     ///
@@ -345,6 +416,14 @@ where
         }
 
         self
+    }
+
+    // The following items are generated for all float types
+
+    /// Returns `self.abs_diff(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_abs_diff(self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        self.const_sub(other).const_abs()
     }
 
     /// Version of `Vector::negative_sign_mask` that can be called from const contexts.
@@ -434,11 +513,12 @@ where
     }
 }
 
-#[cfg(feature = "std")]
 impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
 where
     Usize<N>: VecLen,
 {
+    // The following items are generated for all float types
+
     /// Returns a vector containing the square root of each element of `self`.
     #[inline(always)]
     pub fn sqrt(self) -> Self {
@@ -560,17 +640,14 @@ where
     }
 }
 
-#[cfg(feature = "std")]
-impl<const N: usize, A: VecAlignment> Vector<N, f32, A> where Usize<N>: VecLen {}
-
-impl crate::vector::ScalarZero for f32 {
+impl ScalarZero for f32 {
     const ZERO: f32 = 0 as Self;
 }
 
-impl crate::vector::ScalarOne for f32 {
+impl ScalarOne for f32 {
     const ONE: f32 = 1 as Self;
 }
 
-impl crate::vector::ScalarNegOne for f32 {
+impl ScalarNegOne for f32 {
     const NEG_ONE: f32 = -1 as Self;
 }

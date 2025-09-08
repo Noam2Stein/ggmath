@@ -7,6 +7,15 @@ impl<const N: usize, A: VecAlignment> Vector<N, u64, A>
 where
     Usize<N>: VecLen,
 {
+    // The following items are generated for all number types
+
+    /// A vector of all minimum values.
+    pub const MIN: Self = Self::const_splat(u64::MIN);
+    /// A vector of all maximum values.
+    pub const MAX: Self = Self::const_splat(u64::MAX);
+
+    // The following items are generated for all int types
+
     /// Returns `-self` or `None` if there is an overflow.
     #[inline(always)]
     pub fn checked_neg(self) -> Option<Self> {
@@ -108,21 +117,11 @@ impl<const N: usize, A: VecAlignment> Vector<N, u64, A>
 where
     Usize<N>: VecLen,
 {
-    /// Returns `!self` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_not(mut self) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = !self.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
+    // The following items are generated for all number types
 
     /// Returns `self + other` and supports const contexts.
     #[inline(always)]
-    pub const fn const_add(mut self, other: Self) -> Self {
+    pub const fn const_add(mut self, other: Vector<N, u64, impl VecAlignment>) -> Self {
         let mut i = 0;
         while i < N {
             self.as_array_mut()[i] = self.as_array()[i] + other.as_array()[i];
@@ -134,7 +133,7 @@ where
 
     /// Returns `self - other` and supports const contexts.
     #[inline(always)]
-    pub const fn const_sub(mut self, other: Self) -> Self {
+    pub const fn const_sub(mut self, other: Vector<N, u64, impl VecAlignment>) -> Self {
         let mut i = 0;
         while i < N {
             self.as_array_mut()[i] = self.as_array()[i] - other.as_array()[i];
@@ -146,7 +145,7 @@ where
 
     /// Returns `self * other` and supports const contexts.
     #[inline(always)]
-    pub const fn const_mul(mut self, other: Self) -> Self {
+    pub const fn const_mul(mut self, other: Vector<N, u64, impl VecAlignment>) -> Self {
         let mut i = 0;
         while i < N {
             self.as_array_mut()[i] = self.as_array()[i] * other.as_array()[i];
@@ -158,7 +157,7 @@ where
 
     /// Returns `self / other` and supports const contexts.
     #[inline(always)]
-    pub const fn const_div(mut self, other: Self) -> Self {
+    pub const fn const_div(mut self, other: Vector<N, u64, impl VecAlignment>) -> Self {
         let mut i = 0;
         while i < N {
             self.as_array_mut()[i] = self.as_array()[i] / other.as_array()[i];
@@ -170,70 +169,10 @@ where
 
     /// Returns `self % other` and supports const contexts.
     #[inline(always)]
-    pub const fn const_rem(mut self, other: Self) -> Self {
+    pub const fn const_rem(mut self, other: Vector<N, u64, impl VecAlignment>) -> Self {
         let mut i = 0;
         while i < N {
             self.as_array_mut()[i] = self.as_array()[i] % other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self << other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_shl(mut self, other: Self) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] << other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self >> other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_shr(mut self, other: Self) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] >> other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self & other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_bitand(mut self, other: Self) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] & other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self | other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_bitor(mut self, other: Self) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] | other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self ^ other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_bitxor(mut self, other: Self) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] ^ other.as_array()[i];
             i += 1;
         }
 
@@ -348,6 +287,160 @@ where
             i += 1;
         }
         output
+    }
+
+    /// Returns `self.min(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_min(mut self, other: Vector<N, u64, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            if other.as_array()[i] < self.as_array()[i] {
+                self.as_array_mut()[i] = other.as_array()[i];
+            }
+            i += 1;
+        }
+        self
+    }
+
+    /// Returns `self.max(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_max(mut self, other: Vector<N, u64, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            if other.as_array()[i] > self.as_array()[i] {
+                self.as_array_mut()[i] = other.as_array()[i];
+            }
+            i += 1;
+        }
+        self
+    }
+
+    /// Returns `self.clamp(min, max)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_clamp(
+        self,
+        min: Vector<N, u64, impl VecAlignment>,
+        max: Vector<N, u64, impl VecAlignment>,
+    ) -> Self {
+        self.const_min(max).const_max(min)
+    }
+
+    /// Returns `self.sum()` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_sum(self) -> u64 {
+        let mut output = 0 as u64;
+        let mut i = 0;
+        while i < N {
+            output += self.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
+    /// Returns `self.product()` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_product(self) -> u64 {
+        let mut output = 1 as u64;
+        let mut i = 0;
+        while i < N {
+            output *= self.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
+    /// Returns `self.mag_sq()` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_mag_sq(self) -> u64 {
+        let mut output = 0 as u64;
+
+        let mut i = 0;
+        while i < N {
+            output += self.as_array()[i] * self.as_array()[i];
+            i += 1;
+        }
+
+        output
+    }
+
+    /// Returns `self.distance_sq(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_distance_sq(self, other: Vector<N, u64, impl VecAlignment>) -> u64 {
+        self.const_abs_diff(other).const_mag_sq()
+    }
+
+    // The following items are generated for all int types
+
+    /// Returns `!self` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_not(mut self) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = !self.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self << other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_shl(mut self, other: Self) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] << other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self >> other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_shr(mut self, other: Self) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] >> other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self & other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_bitand(mut self, other: Self) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] & other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self | other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_bitor(mut self, other: Self) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] | other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self ^ other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_bitxor(mut self, other: Self) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] ^ other.as_array()[i];
+            i += 1;
+        }
+
+        self
     }
 
     /// Version of `Vector::checked_neg` that can be called from const contexts.
@@ -613,18 +706,18 @@ where
 
         self
     }
+
+    /// Returns `self.abs_diff(other)` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_abs_diff(self, other: Vector<N, u64, impl VecAlignment>) -> Self {
+        self.const_max(other).const_sub(self.const_min(other))
+    }
 }
 
-#[cfg(feature = "std")]
-impl<const N: usize, A: VecAlignment> Vector<N, u64, A> where Usize<N>: VecLen {}
-
-#[cfg(feature = "std")]
-impl<const N: usize, A: VecAlignment> Vector<N, u64, A> where Usize<N>: VecLen {}
-
-impl crate::vector::ScalarZero for u64 {
+impl ScalarZero for u64 {
     const ZERO: u64 = 0 as Self;
 }
 
-impl crate::vector::ScalarOne for u64 {
+impl ScalarOne for u64 {
     const ONE: u64 = 1 as Self;
 }
