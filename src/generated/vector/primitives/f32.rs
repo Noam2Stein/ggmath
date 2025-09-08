@@ -282,6 +282,28 @@ where
     pub fn reject_from_normalized(self, other: Self) -> Self {
         self - self.project_onto_normalized(other)
     }
+
+    /// Returns the reflection of `self` off of `normal`.
+    ///
+    /// `normal` must be normalized.
+    #[inline(always)]
+    pub fn reflect(self, normal: Self) -> Self {
+        self - normal * (2.0 * self.dot(normal))
+    }
+
+    /// Returns the refraction of `self` through `normal` for the given ratio of indices of refraction.
+    ///
+    /// `self` and `normal` must be normalized.
+    #[inline(always)]
+    pub fn refract(self, normal: Self, eta: f32) -> Self {
+        let n_dot_i = normal.dot(self);
+        let k = 1.0 - eta * eta * (1.0 - n_dot_i * n_dot_i);
+        if k >= 0.0 {
+            self * eta - normal * (eta * n_dot_i + k.sqrt())
+        } else {
+            Self::ZERO
+        }
+    }
 }
 
 impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
@@ -979,6 +1001,19 @@ where
         other: Vector<N, f32, impl VecAlignment>,
     ) -> Self {
         self.const_sub(self.const_project_onto_normalized(other))
+    }
+
+    /// Version of `Vector::reflect` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_reflect(self, normal: Vector<N, f32, impl VecAlignment>) -> Self {
+        self.const_sub(
+            normal
+                .to_storage::<A>()
+                .const_mul(Self::const_splat(2.0 * self.const_dot(normal))),
+        )
     }
 }
 
