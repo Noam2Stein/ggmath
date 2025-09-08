@@ -131,6 +131,23 @@ fn fvec3(c: &mut Criterion) {
     group.bench_function("glam", |b| b.iter(|| glam1.cmpge(glam2)));
     group.finish();
 
+    // min/max/clamp
+
+    let mut group = c.benchmark_group("fvec3_min");
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.min(ggmath2)));
+    group.bench_function("glam", |b| b.iter(|| glam1.min(glam2)));
+    group.finish();
+
+    let mut group = c.benchmark_group("fvec3_max");
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.max(ggmath2)));
+    group.bench_function("glam", |b| b.iter(|| glam1.max(glam2)));
+    group.finish();
+
+    let mut group = c.benchmark_group("fvec3_clamp");
+    group.bench_function("ggmath", |b| b.iter(|| ggmath1.clamp(ggmath1, ggmath2)));
+    group.bench_function("glam", |b| b.iter(|| glam1.clamp(glam1, glam2)));
+    group.finish();
+
     // generic functions
 
     let mut group = c.benchmark_group("fvec3_sum");
