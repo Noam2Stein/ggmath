@@ -28,6 +28,14 @@ pub use crate::generated::vector::*;
 /// - `Vec{N}<T>` like `Vec2<f32>` is for SIMD aligned vectors
 /// - `Vec{N}P<T>` like `Vec2P<f32>` is for non-SIMD aligned vectors
 ///
+/// # Length
+///
+/// Currently only the lengths 2, 3, and 4 are supported in order to specialize their inner vector type.
+/// In the future if rust gains more type-system features, more lengths will be supported.
+///
+/// Beware that code should never rely on the fact that 2, 3, and 4 are the only supported lengths.
+/// Code that branches based on vector length should either properly handle all usize values or use [`VecLenEnum`].
+///
 /// # Alignment
 ///
 /// The `A` generic parameter controls whether or not the vector is SIMD aligned,
@@ -41,9 +49,9 @@ pub use crate::generated::vector::*;
 ///
 /// This means that `VecAligned` are for performance and `VecPacked` are for memory efficiency.
 ///
-/// Beware that `VecAligned` does not guarantee a specific alignment rule/pattern.
+/// Beware that while `VecPacked` guarentees an exact memory layout of `[T; N]`, `VecAligned` does not guarantee a specific alignment rule/pattern.
 /// For example, `Vector<3, f32, VecAligned`/`Vec3<f32>` isn't guaranteed to be aligned to a 128-bit boundary.
-/// It is up to the implementation of [`Scalar`] to determine `VecAligned` alignment.
+/// It is up to the implementation of [`Scalar`] to determine `VecAligned` alignment for whatever is most performant.
 ///
 /// # Examples
 /// ```
@@ -67,34 +75,26 @@ pub use crate::generated::vector::*;
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(
-    /// The inner value that contains the actual vector data.
-    ///
-    /// For `VecAligned` vectors this will be `<T as Scalar>::InnerAlignedVec{N}`,
-    /// like `<T as Scalar>::InnerAlignedVec2` for `Vec2`.
-    ///
-    /// For `VecPacked` vectors this will always be `[T; N]`.
-    ///
-    /// This field is public so that `Scalar` implementations that override vector function implementations
-    /// can access the inner value.
-    pub A::InnerVector<N, T>,
-)
+pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(pub A::InnerVector<N, T>)
 where
     Usize<N>: VecLen;
 
 /// A trait that marks a `Usize<N>` type as a valid vector length.
+/// See [`Vector`] for more information.
 pub trait VecLen {
     /// The length value as an enum.
     const ENUM: VecLenEnum;
 
-    /// The inner aligned vector type which will be:
-    /// - `T::InnerAlignedVec2` for `Usize<2>`
-    /// - `T::InnerAlignedVec3` for `Usize<3>`
-    /// - `T::InnerAlignedVec4` for `Usize<4>`
+    /// The inner type contained inside `Vector<N, T, VecAligned>`.
+    ///
+    /// This redirects to `T::InnerAlignedVec{N}`,
+    /// for example `T::InnerAlignedVec2` for `Usize<2>`.
     type InnerAlignedVector<T: Scalar>: Construct;
 }
 
 /// An enum with all currently supported vector lengths.
+///
+/// The enum value of a generic `const N: usize` value can be accessed with [`<Usize<N> as VecLen>::ENUM`][`VecLen::ENUM`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum VecLenEnum {
     /// `2`
@@ -112,26 +112,34 @@ pub enum VecLenEnum {
 ///
 /// When implementing `Scalar` you need to fill:
 ///
-/// - `InnerAlignedVec2`, `InnerAlignedVec3`, and `InnerAlignedVec4`
-/// are the inner types inside `VecAligned` vectors.
-/// Their reference MUST be transmutable to `&[T; N]`,
-/// if its not then using that vector is undefined behavior.
+/// 1.
+/// `InnerAlignedVec2`, `InnerAlignedVec3`, and `InnerAlignedVec4`
 ///
-/// - `GARBAGE`, `INNER_ALIGNED_VEC2_GARBAGE`, `INNER_ALIGNED_VEC3_GARBAGE`, and `INNER_ALIGNED_VEC4_GARBAGE`
-/// need to be any valid value of `Self`, `Self::InnerAlignedVec2`, `Self::InnerAlignedVec3`, or `Self::InnerAlignedVec4` respectively.
+/// These are the inner types stored inside `VecAligned` vectors,
+/// for example `Vector<3, f32, VecAligned>` is stored as `f32::InnerAlignedVec3`.
+///
+/// The reference of these types MUST be transmutable to `&[T; N]`,
+/// if its not then using that vector is undefined behavior.
+/// This means that you cannot do things like expand `Vec3<bool>` into a 128-bit SIMD register with 32-bit lanes.
+///
+/// 2.
+/// `GARBAGE`, `INNER_ALIGNED_VEC2_GARBAGE`, `INNER_ALIGNED_VEC3_GARBAGE`, and `INNER_ALIGNED_VEC4_GARBAGE`
+///
+/// These need to be any valid value of `Self`, `Self::InnerAlignedVec2`, `Self::InnerAlignedVec3`, and `Self::InnerAlignedVec4`.
+/// This is used to properly initialize aligned vectors.
 ///
 /// # Examples
 ///
 /// ```ignore
-/// struct HeapInt {
+/// struct BigInt {
 ///     // private fields
 /// }
 ///
-/// // impl Add, Sub... for HeapInt
+/// // impl Add, Sub... for BigInt
 ///
-/// // lets say HeapInt cannot benefit from SIMD operations, or we just don't want to optimize yet.
+/// // lets say BigInt cannot benefit from SIMD operations, or we just don't want to optimize it yet.
 /// // When not wanting SIMD we can fill `InnerAlignedVec{N}` with `[Self; N]`.
-/// impl Scalar for HeapInt {
+/// impl Scalar for BigInt {
 ///     type InnerAlignedVec2 = [Self; 2];
 ///     type InnerAlignedVec3 = [Self; 3];
 ///     type InnerAlignedVec4 = [Self; 4];
@@ -142,21 +150,21 @@ pub enum VecLenEnum {
 ///     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = [Self::ZERO; 4];
 /// }
 ///
-/// struct MyScalar(i32);
+/// struct SmallInt(i32);
 ///
-/// // impl Add, Sub... for MyScalar
+/// // impl Add, Sub... for SmallInt
 ///
-/// // lets say MyScalar can benefit from SIMD operations.
-/// impl Scalar for MyScalar {
+/// // lets say SmallInt can benefit from SIMD operations.
+/// impl Scalar for SmallInt {
 ///     // use x86_64 simd types for aligned vectors.
 ///     type InnerAlignedVec2 = core::arch::x86_64::__m128i;
 ///     type InnerAlignedVec3 = core::arch::x86_64::__m128i;
 ///     type InnerAlignedVec4 = core::arch::x86_64::__m128i;
 ///
 ///     const GARBAGE: Self = Self(0);
-///     const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = core::arch::x86_64::_mm_setzero_si128();
-///     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = core::arch::x86_64::_mm_setzero_si128();
-///     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = core::arch::x86_64::_mm_setzero_si128();
+///     const INNER_ALIGNED_VEC2_GARBAGE: Self::InnerAlignedVec2 = unsafe { core::mem::zeroed() };
+///     const INNER_ALIGNED_VEC3_GARBAGE: Self::InnerAlignedVec3 = unsafe { core::mem::zeroed() };
+///     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4 = unsafe { core::mem::zeroed() };
 /// }
 /// ```
 pub trait Scalar: Construct {
@@ -206,85 +214,60 @@ pub trait Scalar: Construct {
     }
 }
 
-/// `Vector` is generic over `A: VecAlignment`,
-/// which specifies if the vector is SIMD aligned or not.
-///
-/// This trait is implemented for `VecAligned` and `VecPacked`.
-/// - `VecAligned` marks the vector as SIMD aligned.
-/// - `VecPacked` marks the vector as not SIMD aligned.
-///
-/// See [`Vector`] alignment for more information.
+/// See [`Vector`] for information.
 pub trait VecAlignment: 'static {
-    /// Whether the vector is SIMD aligned.
+    /// Whether or not the vector is SIMD aligned.
     const IS_ALIGNED: bool;
 
-    /// The inner vector type based on `N` and `T`.
-    /// This is the actual type that is stored in vectors.
+    /// The inner type contained inside [`Vector`].
     ///
-    /// - `VecAligned` sets this to `T::InnerAlignedVec2` / `T::InnerAlignedVec3` / `T::InnerAlignedVec4`.
-    /// - `VecPacked` sets this to `[T; N]`.
+    /// For `VecAligned` vectors this is `T::InnerAlignedVec{N}`,
+    /// for example `T::InnerAlignedVec2` for `Vec2`.
+    ///
+    /// For `VecPacked` vectors this is `[T; N]`,
+    /// for example `[T; 2]` for `Vec2`.
     type InnerVector<const N: usize, T: Scalar>: Construct
     where
         Usize<N>: VecLen;
 }
 
-/// Marks a `Vector` as SIMD aligned.
-///
-/// `Vector` can be marked as either `VecAligned` or `VecPacked`.
-///
-/// A `VecAligned` vector is aligned for optimal SIMD operations.
-/// The exact type stored in aligned vectors is specified in the implementation of [`Scalar`].
-///
-/// A `VecPacked` vector is not aligned for SIMD operations.
-/// It is guarenteed that a packed vector has the memory layout of `[T; N]`.
-///
-/// See [`Vector`] alignment for more information.
+/// See [`Vector`] for information.
 pub struct VecAligned;
 
-/// Marks a `Vector` as not SIMD aligned.
-///
-/// `Vector` can be marked as either `VecAligned` or `VecPacked`.
-///
-/// A `VecAligned` vector is aligned for optimal SIMD operations.
-/// The exact type stored in aligned vectors is specified in the implementation of [`Scalar`].
-///
-/// A `VecPacked` vector is not aligned for SIMD operations.
-/// It is guarenteed that a packed vector has the memory layout of `[T; N]`.
-///
-/// See [`Vector`] alignment for more information.
+/// See [`Vector`] for information.
 pub struct VecPacked;
 
-/// Creates a new aligned vec2 where each component is the same value.
+/// Creates a new vec2 where each component is the same value.
 #[inline(always)]
 pub const fn splat2<T: Scalar>(value: T) -> Vector<2, T, VecAligned> {
     Vector::<2, T, VecAligned>::splat(value)
 }
 
-/// Creates a new aligned vec3 where each component is the same value.
+/// Creates a new vec3 where each component is the same value.
 #[inline(always)]
 pub const fn splat3<T: Scalar>(value: T) -> Vector<3, T, VecAligned> {
     Vector::<3, T, VecAligned>::splat(value)
 }
 
-/// Creates a new aligned vec4 where each component is the same value.
+/// Creates a new vec4 where each component is the same value.
 #[inline(always)]
 pub const fn splat4<T: Scalar>(value: T) -> Vector<4, T, VecAligned> {
     Vector::<4, T, VecAligned>::splat(value)
 }
 
-/// Creates a new packed vec2 where each component is the same value.
+/// Creates a new `VecPacked` vec2 where each component is the same value.
 #[inline(always)]
 pub const fn splat2p<T: Scalar>(value: T) -> Vector<2, T, VecPacked> {
     Vector::<2, T, VecPacked>::splat(value)
 }
 
-/// Creates a new packed vec3 where each component is the same value.
+/// Creates a new `VecPacked` vec3 where each component is the same value.
 #[inline(always)]
 pub const fn splat3p<T: Scalar>(value: T) -> Vector<3, T, VecPacked> {
     Vector::<3, T, VecPacked>::splat(value)
 }
 
-/// Creates a new packed vec4 where each component is the same value.
+/// Creates a new `VecPacked` vec4 where each component is the same value.
 #[inline(always)]
 pub const fn splat4p<T: Scalar>(value: T) -> Vector<4, T, VecPacked> {
     Vector::<4, T, VecPacked>::splat(value)
