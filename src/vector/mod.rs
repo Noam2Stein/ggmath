@@ -10,6 +10,7 @@ use crate::{Construct, Usize};
 mod constructor;
 mod dir;
 mod interface;
+mod optimization;
 mod primitives;
 pub use dir::*;
 pub use primitives::*;
