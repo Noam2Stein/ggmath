@@ -1,6 +1,6 @@
 use core::{
     mem::{transmute, transmute_copy},
-    ops::{Add, Mul, Sub},
+    ops::{Add, Mul, Neg, Sub},
 };
 
 use crate::{
@@ -362,6 +362,26 @@ where
     #[inline(always)]
     pub const fn from_array_mut(array: &mut [T; N]) -> &mut Self {
         unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns `self` rotated 90 degrees counter-clockwise.
+    #[inline(always)]
+    pub fn perp(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        T::vec_perp(self)
+    }
+
+    /// Returns `self` rotated 90 degrees clockwise.
+    #[inline(always)]
+    pub fn perp_clockwise(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        T::vec_perp_clockwise(self)
     }
 }
 

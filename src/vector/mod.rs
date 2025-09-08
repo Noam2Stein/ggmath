@@ -5,7 +5,7 @@ use core::{
     slice::SliceIndex,
 };
 
-use crate::{Construct, Usize};
+use crate::{Construct, Usize, vec2g};
 
 mod constructor;
 mod dir;
@@ -771,6 +771,24 @@ pub trait Scalar: Construct {
         Self: Mul<Output = Self> + Sub<Output = Self>,
     {
         vec.yzx() * other.zxy() - vec.zxy() * other.yzx()
+    }
+
+    /// Overridable implementation of `Vector::perp`.
+    #[inline(always)]
+    fn vec_perp<A: VecAlignment>(vec: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Neg<Output = Self>,
+    {
+        vec2g!(-vec.y(), vec.x())
+    }
+
+    /// Overridable implementation of `Vector::perp_clockwise`.
+    #[inline(always)]
+    fn vec_perp_clockwise<A: VecAlignment>(vec: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Neg<Output = Self>,
+    {
+        vec2g!(vec.y(), -vec.x())
     }
 }
 
