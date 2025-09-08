@@ -23,39 +23,25 @@ pub fn write_mod(module: Mod) {
         let mut vector_impls_b = Vec::new();
 
         for n in 2..=4 {
-            let positive_values = (0..n)
-                .map(|i| if i == axis_idx { "T::ONE" } else { "T::ZERO" })
-                .collect::<Vec<_>>()
-                .join(", ");
-
-            let negative_values = (0..n)
-                .map(|i| {
-                    if i == axis_idx {
-                        "T::NEG_ONE"
-                    } else {
-                        "T::ZERO"
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join(", ");
+            let axis_uppercase = ["X", "Y", "Z", "W"][axis_idx];
 
             vector_impls_a.push(formatdoc! {r#"
                 impl<T: ScalarZero + ScalarOne, A: VecAlignment> Positive{dir_a_camel} for Vector<{n}, T, A> {{
-                    const {dir_a_upper}: Self = Self::from_array([{positive_values}]);
+                    const {dir_a_upper}: Self = Self::{axis_uppercase};
                 }}
 
                 impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Negative{dir_b_camel} for Vector<{n}, T, A> {{
-                    const {dir_b_upper}: Self = Self::from_array([{negative_values}]);
+                    const {dir_b_upper}: Self = Self::NEG_{axis_uppercase};
                 }}
             "#});
 
             vector_impls_b.push(formatdoc! {r#"
                 impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Negative{dir_a_camel} for Vector<{n}, T, A> {{
-                    const {dir_a_upper}: Self = Self::from_array([{negative_values}]);
+                    const {dir_a_upper}: Self = Self::NEG_{axis_uppercase};
                 }}
 
                 impl<T: ScalarZero + ScalarOne, A: VecAlignment> Positive{dir_b_camel} for Vector<{n}, T, A> {{
-                    const {dir_b_upper}: Self = Self::from_array([{positive_values}]);
+                    const {dir_b_upper}: Self = Self::{axis_uppercase};
                 }}
             "#});
         }

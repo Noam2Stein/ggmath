@@ -53,3 +53,69 @@ where
     /// A vector of all `-1`s.
     pub const NEG_ONE: Self = Self::const_splat(T::NEG_ONE);
 }
+
+impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<2, T, A> {
+    /// A vector that points to the positive x direction.
+    pub const X: Self = Self::from_array([T::ONE, T::ZERO]);
+
+    /// A vector that points to the positive y direction.
+    pub const Y: Self = Self::from_array([T::ZERO, T::ONE]);
+}
+
+impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<3, T, A> {
+    /// A vector that points to the positive x direction.
+    pub const X: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO]);
+
+    /// A vector that points to the positive y direction.
+    pub const Y: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO]);
+
+    /// A vector that points to the positive z direction.
+    pub const Z: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE]);
+}
+
+impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<4, T, A> {
+    /// A vector that points to the positive x direction.
+    pub const X: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO, T::ZERO]);
+
+    /// A vector that points to the positive y direction.
+    pub const Y: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO, T::ZERO]);
+
+    /// A vector that points to the positive z direction.
+    pub const Z: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE, T::ZERO]);
+
+    /// A vector that points to the positive w direction.
+    pub const W: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::ONE]);
+}
+
+impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<2, T, A> {
+    /// A vector that points to the negative x direction.
+    pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO]);
+
+    /// A vector that points to the negative y direction.
+    pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE]);
+}
+
+impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<3, T, A> {
+    /// A vector that points to the negative x direction.
+    pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO]);
+
+    /// A vector that points to the negative y direction.
+    pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO]);
+
+    /// A vector that points to the negative z direction.
+    pub const NEG_Z: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE]);
+}
+
+impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<4, T, A> {
+    /// A vector that points to the negative x direction.
+    pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO, T::ZERO]);
+
+    /// A vector that points to the negative y direction.
+    pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO, T::ZERO]);
+
+    /// A vector that points to the negative z direction.
+    pub const NEG_Z: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE, T::ZERO]);
+
+    /// A vector that points to the negative w direction.
+    pub const NEG_W: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::NEG_ONE]);
+}

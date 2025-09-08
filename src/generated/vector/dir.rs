@@ -35,27 +35,27 @@ pub mod right {
     }
 
     impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<2, T, A> {
-	    const RIGHT: Self = Self::from_array([T::ONE, T::ZERO]);
+	    const RIGHT: Self = Self::X;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<2, T, A> {
-	    const LEFT: Self = Self::from_array([T::NEG_ONE, T::ZERO]);
+	    const LEFT: Self = Self::NEG_X;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<3, T, A> {
-	    const RIGHT: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO]);
+	    const RIGHT: Self = Self::X;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<3, T, A> {
-	    const LEFT: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO]);
+	    const LEFT: Self = Self::NEG_X;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveRight for Vector<4, T, A> {
-	    const RIGHT: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO, T::ZERO]);
+	    const RIGHT: Self = Self::X;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<4, T, A> {
-	    const LEFT: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO, T::ZERO]);
+	    const LEFT: Self = Self::NEG_X;
 	}
 	
 }
@@ -94,27 +94,27 @@ pub mod left {
     }
 
     impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<2, T, A> {
-	    const RIGHT: Self = Self::from_array([T::NEG_ONE, T::ZERO]);
+	    const RIGHT: Self = Self::NEG_X;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<2, T, A> {
-	    const LEFT: Self = Self::from_array([T::ONE, T::ZERO]);
+	    const LEFT: Self = Self::X;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<3, T, A> {
-	    const RIGHT: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO]);
+	    const RIGHT: Self = Self::NEG_X;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<3, T, A> {
-	    const LEFT: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO]);
+	    const LEFT: Self = Self::X;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeRight for Vector<4, T, A> {
-	    const RIGHT: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO, T::ZERO]);
+	    const RIGHT: Self = Self::NEG_X;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveLeft for Vector<4, T, A> {
-	    const LEFT: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO, T::ZERO]);
+	    const LEFT: Self = Self::X;
 	}
 	
 }
@@ -153,27 +153,27 @@ pub mod up {
     }
 
     impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<2, T, A> {
-	    const UP: Self = Self::from_array([T::ZERO, T::ONE]);
+	    const UP: Self = Self::Y;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<2, T, A> {
-	    const DOWN: Self = Self::from_array([T::ZERO, T::NEG_ONE]);
+	    const DOWN: Self = Self::NEG_Y;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<3, T, A> {
-	    const UP: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO]);
+	    const UP: Self = Self::Y;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<3, T, A> {
-	    const DOWN: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO]);
+	    const DOWN: Self = Self::NEG_Y;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveUp for Vector<4, T, A> {
-	    const UP: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO, T::ZERO]);
+	    const UP: Self = Self::Y;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeDown for Vector<4, T, A> {
-	    const DOWN: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO, T::ZERO]);
+	    const DOWN: Self = Self::NEG_Y;
 	}
 	
 }
@@ -212,27 +212,27 @@ pub mod down {
     }
 
     impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<2, T, A> {
-	    const UP: Self = Self::from_array([T::ZERO, T::NEG_ONE]);
+	    const UP: Self = Self::NEG_Y;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<2, T, A> {
-	    const DOWN: Self = Self::from_array([T::ZERO, T::ONE]);
+	    const DOWN: Self = Self::Y;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<3, T, A> {
-	    const UP: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO]);
+	    const UP: Self = Self::NEG_Y;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<3, T, A> {
-	    const DOWN: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO]);
+	    const DOWN: Self = Self::Y;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeUp for Vector<4, T, A> {
-	    const UP: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO, T::ZERO]);
+	    const UP: Self = Self::NEG_Y;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveDown for Vector<4, T, A> {
-	    const DOWN: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO, T::ZERO]);
+	    const DOWN: Self = Self::Y;
 	}
 	
 }
@@ -271,27 +271,27 @@ pub mod forwards {
     }
 
     impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<2, T, A> {
-	    const FORWARD: Self = Self::from_array([T::ZERO, T::ZERO]);
+	    const FORWARD: Self = Self::Z;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<2, T, A> {
-	    const BACKWARD: Self = Self::from_array([T::ZERO, T::ZERO]);
+	    const BACKWARD: Self = Self::NEG_Z;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<3, T, A> {
-	    const FORWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE]);
+	    const FORWARD: Self = Self::Z;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<3, T, A> {
-	    const BACKWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE]);
+	    const BACKWARD: Self = Self::NEG_Z;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<4, T, A> {
-	    const FORWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE, T::ZERO]);
+	    const FORWARD: Self = Self::Z;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<4, T, A> {
-	    const BACKWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE, T::ZERO]);
+	    const BACKWARD: Self = Self::NEG_Z;
 	}
 	
 }
@@ -330,27 +330,27 @@ pub mod backwards {
     }
 
     impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<2, T, A> {
-	    const FORWARD: Self = Self::from_array([T::ZERO, T::ZERO]);
+	    const FORWARD: Self = Self::NEG_Z;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<2, T, A> {
-	    const BACKWARD: Self = Self::from_array([T::ZERO, T::ZERO]);
+	    const BACKWARD: Self = Self::Z;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<3, T, A> {
-	    const FORWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE]);
+	    const FORWARD: Self = Self::NEG_Z;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<3, T, A> {
-	    const BACKWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE]);
+	    const BACKWARD: Self = Self::Z;
 	}
 	
 	impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<4, T, A> {
-	    const FORWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE, T::ZERO]);
+	    const FORWARD: Self = Self::NEG_Z;
 	}
 	
 	impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<4, T, A> {
-	    const BACKWARD: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE, T::ZERO]);
+	    const BACKWARD: Self = Self::Z;
 	}
 	
 }
