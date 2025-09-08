@@ -1022,3 +1022,188 @@ where
         *self = <Self as BitXor<Vector<N, T2, A2>>>::bitxor(*self, *rhs);
     }
 }
+
+impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Mul<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn mul(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_mul(self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Mul<T2>
+    for &Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn mul(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_mul(*self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar> MulAssign<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: T2) {
+        *self = <Self as Mul<T2>>::mul(*self, rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Div<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn div(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_div(self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Div<T2>
+    for &Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn div(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_div(*self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar> DivAssign<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn div_assign(&mut self, rhs: T2) {
+        *self = <Self as Div<T2>>::div(*self, rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Rem<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn rem(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_rem(self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Rem<T2>
+    for &Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn rem(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_rem(*self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar> RemAssign<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn rem_assign(&mut self, rhs: T2) {
+        *self = <Self as Rem<T2>>::rem(*self, rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Shl<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn shl(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_shl(self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Shl<T2>
+    for &Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn shl(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_shl(*self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar> ShlAssign<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn shl_assign(&mut self, rhs: T2) {
+        *self = <Self as Shl<T2>>::shl(*self, rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Shr<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn shr(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_shr(self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar> Shr<T2>
+    for &Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T::Output, A>;
+
+    #[inline(always)]
+    fn shr(self, rhs: T2) -> Vector<N, T::Output, A> {
+        T::vec_scalar_shr(*self, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar> ShrAssign<T2>
+    for Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn shr_assign(&mut self, rhs: T2) {
+        *self = <Self as Shr<T2>>::shr(*self, rhs);
+    }
+}

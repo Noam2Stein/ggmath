@@ -477,6 +477,71 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec[i] ^ other[i])
     }
 
+    /// Overridable implementation of `vector * scalar` operations.
+    #[inline(always)]
+    fn vec_scalar_mul<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: T2,
+    ) -> Vector<N, <Self as Mul<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Mul<T2, Output: Scalar>,
+    {
+        vec * Vector::<N, T2, A>::splat(other)
+    }
+
+    /// Overridable implementation of `vector / scalar` operations.
+    #[inline(always)]
+    fn vec_scalar_div<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: T2,
+    ) -> Vector<N, <Self as Div<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Div<T2, Output: Scalar>,
+    {
+        vec / Vector::<N, T2, A>::splat(other)
+    }
+
+    /// Overridable implementation of `vector % scalar` operations.
+    #[inline(always)]
+    fn vec_scalar_rem<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: T2,
+    ) -> Vector<N, <Self as Rem<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Rem<T2, Output: Scalar>,
+    {
+        vec % Vector::<N, T2, A>::splat(other)
+    }
+
+    /// Overridable implementation of `vector << scalar` operations.
+    #[inline(always)]
+    fn vec_scalar_shl<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: T2,
+    ) -> Vector<N, <Self as Shl<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Shl<T2, Output: Scalar>,
+    {
+        vec << Vector::<N, T2, A>::splat(other)
+    }
+
+    /// Overridable implementation of `vector >> scalar` operations.
+    #[inline(always)]
+    fn vec_scalar_shr<const N: usize, A: VecAlignment, T2: Scalar>(
+        vec: Vector<N, Self, A>,
+        other: T2,
+    ) -> Vector<N, <Self as Shr<T2>>::Output, A>
+    where
+        Usize<N>: VecLen,
+        Self: Shr<T2, Output: Scalar>,
+    {
+        vec >> Vector::<N, T2, A>::splat(other)
+    }
+
     /// Overridable implementation of `Vector::eq`.
     #[inline(always)]
     fn vec_eq<const N: usize, A: VecAlignment, T2: Scalar>(
