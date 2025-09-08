@@ -35,7 +35,7 @@ where
     Usize<N>: VecLen,
 {
     /// A vector of all `0`s.
-    pub const ZERO: Self = Self::splat(T::ZERO);
+    pub const ZERO: Self = Self::const_splat(T::ZERO);
 }
 
 impl<const N: usize, T: ScalarOne, A: VecAlignment> Vector<N, T, A>
@@ -43,7 +43,7 @@ where
     Usize<N>: VecLen,
 {
     /// A vector of all `1`s.
-    pub const ONE: Self = Self::splat(T::ONE);
+    pub const ONE: Self = Self::const_splat(T::ONE);
 }
 
 impl<const N: usize, T: ScalarNegOne, A: VecAlignment> Vector<N, T, A>
@@ -51,5 +51,5 @@ where
     Usize<N>: VecLen,
 {
     /// A vector of all `-1`s.
-    pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
+    pub const NEG_ONE: Self = Self::const_splat(T::NEG_ONE);
 }

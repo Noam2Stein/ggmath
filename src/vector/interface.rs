@@ -145,8 +145,8 @@ where
 
     /// Creates a new vector where each component is the same value.
     #[inline(always)]
-    pub const fn splat(value: T) -> Self {
-        Vector::from_array([value; N])
+    pub fn splat(value: T) -> Self {
+        T::vec_splat(value)
     }
 
     /// Converts the vector to an aligned vector.
@@ -293,6 +293,20 @@ where
         T: PartialOrd + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         T::vec_distance_sq(self, other)
+    }
+}
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    /// Version of `Vector::splat` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_splat(value: T) -> Self {
+        Vector::from_array([value; N])
     }
 }
 

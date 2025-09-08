@@ -9,29 +9,22 @@ pub fn push_fns(
 ) {
     functions.push(formatdoc! {r#"
         /// A vector with all elements set to `NaN`.
-        pub const NAN: Self = Self::splat({primitive}::NAN);
+        pub const NAN: Self = Self::const_splat({primitive}::NAN);
         /// A vector with all elements set to `Infinity`.
-        pub const INFINITY: Self = Self::splat({primitive}::INFINITY);
+        pub const INFINITY: Self = Self::const_splat({primitive}::INFINITY);
         /// A vector with all elements set to `-Infinity`.
-        pub const NEG_INFINITY: Self = Self::splat({primitive}::NEG_INFINITY);
+        pub const NEG_INFINITY: Self = Self::const_splat({primitive}::NEG_INFINITY);
         /// A vector with all elements set to `Epsilon`.
-        pub const EPSILON: Self = Self::splat({primitive}::EPSILON);
+        pub const EPSILON: Self = Self::const_splat({primitive}::EPSILON);
         /// A vector with all elements set to `Min`.
-        pub const MIN: Self = Self::splat({primitive}::MIN);
+        pub const MIN: Self = Self::const_splat({primitive}::MIN);
         /// A vector with all elements set to `Max`.
-        pub const MAX: Self = Self::splat({primitive}::MAX);
+        pub const MAX: Self = Self::const_splat({primitive}::MAX);
 
         /// Returns a vector containing the absolute value of each element of `self`.
         #[inline(always)]
-        pub const fn abs(mut self) -> Self {{
-            let mut i = 0;
-
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i].abs();
-                i += 1;
-            }}
-
-            self
+        pub fn abs(self) -> Self {{
+            self.map(|x| x.abs())
         }}
 
         /// Returns a vector containing the signum of each element of `self`.
@@ -39,82 +32,43 @@ pub fn push_fns(
         /// - `1.0` if the element is positive or `+0.0`
         /// - `-1.0` if the element is negative `-0.0`
         #[inline(always)]
-        pub const fn signum(mut self) -> Self {{
-            let mut i = 0;
-
-            while i < N {{
-                self.as_array_mut()[i] = self.as_array()[i].signum();
-                i += 1;
-            }}
-
-            self
+        pub fn signum(self) -> Self {{
+            self.map(|x| x.signum())
         }}
 
         /// Returns a vector of bools with `true` for each element that has a negative sign, including `-0.0`.
         #[inline(always)]
-        pub const fn negative_sign_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_sign_negative();
-                i += 1;
-            }}
-
-            output
+        pub fn negative_sign_mask(self) -> Vector<N, bool, A> {{
+            self.map(|x| x.is_sign_negative())
         }}
 
         /// Returns a vector of bools with `true` for each element that has a positive sign, including `+0.0`.
         #[inline(always)]
-        pub const fn positive_sign_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_sign_positive();
-                i += 1;
-            }}
-
-            output
+        pub fn positive_sign_mask(self) -> Vector<N, bool, A> {{
+            self.map(|x| x.is_sign_positive())
         }}
 
         /// Returns a vector of bools with `true` for each element that is `NaN`.
         #[inline(always)]
-        pub const fn nan_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_nan();
-                i += 1;
-            }}
-
-            output
+        pub fn nan_mask(self) -> Vector<N, bool, A> {{
+            self.map(|x| x.is_nan())
         }}
 
         /// Returns a vector of bools with `true` for each element that is finite.
         #[inline(always)]
-        pub const fn finite_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_finite();
-                i += 1;
-            }}
-
-            output
+        pub fn finite_mask(self) -> Vector<N, bool, A> {{
+            self.map(|x| x.is_finite())
         }}
 
         /// Returns `true` if any element is `NaN`.
         #[inline(always)]
-        pub const fn is_nan(self) -> bool {{
+        pub fn is_nan(self) -> bool {{
             self.nan_mask().any_true()
         }}
 
         /// Returns `true` if all elements are finite.
         #[inline(always)]
-        pub const fn is_finite(self) -> bool {{
+        pub fn is_finite(self) -> bool {{
             self.finite_mask().all_true()
         }}
     "#});
@@ -243,7 +197,7 @@ pub fn push_fns(
             self,
             other: Vector<N, {primitive}, impl VecAlignment>,
         ) -> Vector<N, bool, A> {{
-            let mut output = Vector::<N, bool, A>::splat(false);
+            let mut output = Vector::const_splat(false);
             let mut i = 0;
             while i < N {{
                 output.as_array_mut()[i] = self.as_array()[i] == other.as_array()[i];
@@ -257,7 +211,7 @@ pub fn push_fns(
             self,
             other: Vector<N, {primitive}, impl VecAlignment>,
         ) -> Vector<N, bool, A> {{
-            let mut output = Vector::<N, bool, A>::splat(false);
+            let mut output = Vector::const_splat(false);
             let mut i = 0;
             while i < N {{
                 output.as_array_mut()[i] = self.as_array()[i] != other.as_array()[i];
@@ -271,7 +225,7 @@ pub fn push_fns(
             self,
             other: Vector<N, {primitive}, impl VecAlignment>,
         ) -> Vector<N, bool, A> {{
-            let mut output = Vector::<N, bool, A>::splat(false);
+            let mut output = Vector::const_splat(false);
             let mut i = 0;
             while i < N {{
                 output.as_array_mut()[i] = self.as_array()[i] < other.as_array()[i];
@@ -285,7 +239,7 @@ pub fn push_fns(
             self,
             other: Vector<N, {primitive}, impl VecAlignment>,
         ) -> Vector<N, bool, A> {{
-            let mut output = Vector::<N, bool, A>::splat(false);
+            let mut output = Vector::const_splat(false);
             let mut i = 0;
             while i < N {{
                 output.as_array_mut()[i] = self.as_array()[i] > other.as_array()[i];
@@ -299,7 +253,7 @@ pub fn push_fns(
             self,
             other: Vector<N, {primitive}, impl VecAlignment>,
         ) -> Vector<N, bool, A> {{
-            let mut output = Vector::<N, bool, A>::splat(false);
+            let mut output = Vector::const_splat(false);
             let mut i = 0;
             while i < N {{
                 output.as_array_mut()[i] = self.as_array()[i] <= other.as_array()[i];
@@ -313,13 +267,131 @@ pub fn push_fns(
             self,
             other: Vector<N, {primitive}, impl VecAlignment>,
         ) -> Vector<N, bool, A> {{
-            let mut output = Vector::<N, bool, A>::splat(false);
+            let mut output = Vector::const_splat(false);
             let mut i = 0;
             while i < N {{
                 output.as_array_mut()[i] = self.as_array()[i] >= other.as_array()[i];
                 i += 1;
             }}
             output
+        }}
+
+        /// Version of `Vector::abs` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_abs(mut self) -> Self {{
+            let mut i = 0;
+
+            while i < N {{
+                self.as_array_mut()[i] = self.as_array()[i].abs();
+                i += 1;
+            }}
+
+            self
+        }}
+
+        /// Version of `Vector::signum` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_signum(mut self) -> Self {{
+            let mut i = 0;
+
+            while i < N {{
+                self.as_array_mut()[i] = self.as_array()[i].signum();
+                i += 1;
+            }}
+
+            self
+        }}
+
+        /// Version of `Vector::negative_sign_mask` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_negative_sign_mask(self) -> Vector<N, bool, A> {{
+            let mut output = Vector::const_splat(false);
+
+            let mut i = 0;
+            while i < N {{
+                output.as_array_mut()[i] = self.as_array()[i].is_sign_negative();
+                i += 1;
+            }}
+
+            output
+        }}
+
+        /// Version of `Vector::positive_sign_mask` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_positive_sign_mask(self) -> Vector<N, bool, A> {{
+            let mut output = Vector::const_splat(false);
+
+            let mut i = 0;
+            while i < N {{
+                output.as_array_mut()[i] = self.as_array()[i].is_sign_positive();
+                i += 1;
+            }}
+
+            output
+        }}
+
+        /// Version of `Vector::nan_mask` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_nan_mask(self) -> Vector<N, bool, A> {{
+            let mut output = Vector::const_splat(false);
+
+            let mut i = 0;
+            while i < N {{
+                output.as_array_mut()[i] = self.as_array()[i].is_nan();
+                i += 1;
+            }}
+
+            output
+        }}
+
+        /// Version of `Vector::finite_mask` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_finite_mask(self) -> Vector<N, bool, A> {{
+            let mut output = Vector::const_splat(false);
+
+            let mut i = 0;
+            while i < N {{
+                output.as_array_mut()[i] = self.as_array()[i].is_finite();
+                i += 1;
+            }}
+
+            output
+        }}
+
+        /// Version of `Vector::is_nan` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_is_nan(self) -> bool {{
+            self.const_nan_mask().const_any_true()
+        }}
+
+        /// Version of `Vector::is_finite` that can be called from const contexts.
+        /// This version may be less performant than the normal version.
+        /// 
+        /// When rust's const capabilities are expanded, this function will be removed.
+        #[inline(always)]
+        pub const fn const_is_finite(self) -> bool {{
+            self.const_finite_mask().const_all_true()
         }}
     "#});
 

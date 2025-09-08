@@ -11,6 +11,7 @@ pub fn write_mod(module: Mod) {
 
     for &n in LENGTHS {
         let mut functions = Vec::new();
+        let mut const_functions = Vec::new();
 
         for &n2 in LENGTHS {
             for combination in combinations(n, n2) {
@@ -26,6 +27,12 @@ pub fn write_mod(module: Mod) {
                     .collect::<Vec<_>>()
                     .join(", ");
 
+                let combination_generic_args = combination
+                    .iter()
+                    .map(|i| i.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+
                 let components_list =
                     join_and(combination.iter().map(|i| format!("`{}`", COMPONENTS[*i])));
 
@@ -38,7 +45,15 @@ pub fn write_mod(module: Mod) {
                 functions.push(formatdoc! {r#"
                     /// Returns a new vector with the {components_list} ({component_oridinal_list}) components of the input vector.
                     #[inline(always)]
-                    pub const fn {fn_name}(self) -> Vector<{n2}, T, A> {{
+                    pub fn {fn_name}(self) -> Vector<{n2}, T, A> {{
+                        T::vec_swizzle{n2}::<_, _, {combination_generic_args}>(self)
+                    }}
+                "#});
+
+                const_functions.push(formatdoc! {r#"
+                    /// Returns a new vector with the {components_list} ({component_oridinal_list}) components of the input vector.
+                    #[inline(always)]
+                    pub const fn const_{fn_name}(self) -> Vector<{n2}, T, A> {{
                         Vector::from_array([{combination_args}])
                     }}
                 "#});
@@ -46,10 +61,15 @@ pub fn write_mod(module: Mod) {
         }
 
         let functions = functions.join("\n").replace("\n", "\n\t");
+        let const_functions = const_functions.join("\n").replace("\n", "\n\t");
 
         vector_impls.push(formatdoc! {r#"
             impl<T: Scalar, A: VecAlignment> Vector<{n}, T, A> {{
                 {functions}
+            }}
+
+            impl<T: Scalar, A: VecAlignment> Vector<{n}, T, A> {{
+                {const_functions}
             }}
         "#});
     }

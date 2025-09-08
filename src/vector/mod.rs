@@ -194,6 +194,64 @@ pub trait Scalar: Construct {
     /// This is used to properly initialize aligned vector padding.
     const INNER_ALIGNED_VEC4_GARBAGE: Self::InnerAlignedVec4;
 
+    /// Overridable implementation of `Vector::splat`.
+    #[inline(always)]
+    fn vec_splat<const N: usize, A: VecAlignment>(value: Self) -> Vector<N, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::from_array([value; N])
+    }
+
+    /// Overridable implementation of vector swizzle functions that return a 2-component vector.
+    /// For example `vec.xz()`, `vec.yz()`, etc.
+    #[inline(always)]
+    fn vec_swizzle2<const N: usize, A: VecAlignment, const X_SRC: usize, const Y_SRC: usize>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<2, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<2, _, _>::from_array([vec[X_SRC], vec[Y_SRC]])
+    }
+
+    /// Overridable implementation of vector swizzle functions that return a 3-component vector.
+    /// For example `vec.xyz()`, `vec.yzx()`, etc.
+    #[inline(always)]
+    fn vec_swizzle3<
+        const N: usize,
+        A: VecAlignment,
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+    >(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<3, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<3, _, _>::from_array([vec[X_SRC], vec[Y_SRC], vec[Z_SRC]])
+    }
+
+    /// Overridable implementation of vector swizzle functions that return a 4-component vector.
+    /// For example `vec.xyzw()`, `vec.yzwx()`, etc.
+    #[inline(always)]
+    fn vec_swizzle4<
+        const N: usize,
+        A: VecAlignment,
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<4, Self, A>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<4, _, _>::from_array([vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC]])
+    }
+
     /// Overridable implementation of `Vector::neg`.
     #[inline(always)]
     fn vec_neg<const N: usize, A: VecAlignment>(
@@ -565,58 +623,58 @@ pub struct VecPacked;
 
 /// Creates a new vec2 where each component is the same value.
 #[inline(always)]
-pub const fn splat2<T: Scalar>(value: T) -> Vector<2, T, VecAligned> {
+pub fn splat2<T: Scalar>(value: T) -> Vector<2, T, VecAligned> {
     Vector::<2, T, VecAligned>::splat(value)
 }
 
 /// Creates a new vec3 where each component is the same value.
 #[inline(always)]
-pub const fn splat3<T: Scalar>(value: T) -> Vector<3, T, VecAligned> {
+pub fn splat3<T: Scalar>(value: T) -> Vector<3, T, VecAligned> {
     Vector::<3, T, VecAligned>::splat(value)
 }
 
 /// Creates a new vec4 where each component is the same value.
 #[inline(always)]
-pub const fn splat4<T: Scalar>(value: T) -> Vector<4, T, VecAligned> {
+pub fn splat4<T: Scalar>(value: T) -> Vector<4, T, VecAligned> {
     Vector::<4, T, VecAligned>::splat(value)
 }
 
 /// Creates a new `VecPacked` vec2 where each component is the same value.
 #[inline(always)]
-pub const fn splat2p<T: Scalar>(value: T) -> Vector<2, T, VecPacked> {
+pub fn splat2p<T: Scalar>(value: T) -> Vector<2, T, VecPacked> {
     Vector::<2, T, VecPacked>::splat(value)
 }
 
 /// Creates a new `VecPacked` vec3 where each component is the same value.
 #[inline(always)]
-pub const fn splat3p<T: Scalar>(value: T) -> Vector<3, T, VecPacked> {
+pub fn splat3p<T: Scalar>(value: T) -> Vector<3, T, VecPacked> {
     Vector::<3, T, VecPacked>::splat(value)
 }
 
 /// Creates a new `VecPacked` vec4 where each component is the same value.
 #[inline(always)]
-pub const fn splat4p<T: Scalar>(value: T) -> Vector<4, T, VecPacked> {
+pub fn splat4p<T: Scalar>(value: T) -> Vector<4, T, VecPacked> {
     Vector::<4, T, VecPacked>::splat(value)
 }
 
 /// Creates a new vec2 where each component is the same value,
 /// where type inference can be used to determine if it's aligned or packed.
 #[inline(always)]
-pub const fn splat2g<T: Scalar, A: VecAlignment>(value: T) -> Vector<2, T, A> {
+pub fn splat2g<T: Scalar, A: VecAlignment>(value: T) -> Vector<2, T, A> {
     Vector::<2, T, A>::splat(value)
 }
 
 /// Creates a new vec3 where each component is the same value,
 /// where type inference can be used to determine if it's aligned or packed.
 #[inline(always)]
-pub const fn splat3g<T: Scalar, A: VecAlignment>(value: T) -> Vector<3, T, A> {
+pub fn splat3g<T: Scalar, A: VecAlignment>(value: T) -> Vector<3, T, A> {
     Vector::<3, T, A>::splat(value)
 }
 
 /// Creates a new vec4 where each component is the same value,
 /// where type inference can be used to determine if it's aligned or packed.
 #[inline(always)]
-pub const fn splat4g<T: Scalar, A: VecAlignment>(value: T) -> Vector<4, T, A> {
+pub fn splat4g<T: Scalar, A: VecAlignment>(value: T) -> Vector<4, T, A> {
     Vector::<4, T, A>::splat(value)
 }
 

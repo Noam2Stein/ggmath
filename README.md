@@ -59,6 +59,12 @@ which is important for performance.
 All benchmarked functions are verified to match `glam` and `wide` on x86,
 and `ggmath` aims to benchmark all functions that use SIMD.
 
+## Const Contexts
+
+`ggmath` supports const contexts as much as is possible in present day Rust.
+Right now alot of functions not `const` because of optimizations which require non-`const` functions,
+but those functions have `const` variants that are slower but can be called from const contexts.
+
 ## Installation
 
 Add this to your `Cargo.toml`:

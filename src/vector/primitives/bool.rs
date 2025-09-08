@@ -20,88 +20,38 @@ where
 {
     /// Returns true if all components of the vector are true.
     #[inline(always)]
-    pub const fn all_true(self) -> bool {
-        let mut i = 0;
-        while i < N {
-            if !self.as_array()[i] {
-                return false;
-            }
-            i += 1;
-        }
-
-        true
+    pub fn all_true(self) -> bool {
+        self.all(|x| x == true)
     }
 
     /// Returns true if all components of the vector are false.
     #[inline(always)]
-    pub const fn all_false(self) -> bool {
-        let mut i = 0;
-        while i < N {
-            if self.as_array()[i] {
-                return false;
-            }
-            i += 1;
-        }
-
-        true
+    pub fn all_false(self) -> bool {
+        self.all(|x| x == false)
     }
 
     /// Returns true if any component of the vector is true.
     #[inline(always)]
-    pub const fn any_true(self) -> bool {
-        let mut i = 0;
-        while i < N {
-            if self.as_array()[i] {
-                return true;
-            }
-            i += 1;
-        }
-
-        false
+    pub fn any_true(self) -> bool {
+        self.any(|x| x == true)
     }
 
     /// Returns true if any component of the vector is false.
     #[inline(always)]
-    pub const fn any_false(self) -> bool {
-        let mut i = 0;
-        while i < N {
-            if !self.as_array()[i] {
-                return true;
-            }
-            i += 1;
-        }
-
-        false
+    pub fn any_false(self) -> bool {
+        self.any(|x| x == false)
     }
 
     /// Returns the number of true components in the vector.
     #[inline(always)]
-    pub const fn count_true(self) -> usize {
-        let mut i = 0;
-        let mut count = 0;
-        while i < N {
-            if self.as_array()[i] {
-                count += 1;
-            }
-            i += 1;
-        }
-
-        count
+    pub fn count_true(self) -> usize {
+        self.count(|x| x == true)
     }
 
     /// Returns the number of false components in the vector.
     #[inline(always)]
-    pub const fn count_false(self) -> usize {
-        let mut i = 0;
-        let mut count = 0;
-        while i < N {
-            if !self.as_array()[i] {
-                count += 1;
-            }
-            i += 1;
-        }
-
-        count
+    pub fn count_false(self) -> usize {
+        self.count(|x| x == false)
     }
 }
 
@@ -140,7 +90,7 @@ where
         self,
         other: Vector<N, bool, impl VecAlignment>,
     ) -> Vector<N, bool, A> {
-        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut output = Vector::<N, bool, A>::const_splat(false);
         let mut i = 0;
         while i < N {
             output.as_array_mut()[i] = self.as_array()[i] == other.as_array()[i];
@@ -154,7 +104,7 @@ where
         self,
         other: Vector<N, bool, impl VecAlignment>,
     ) -> Vector<N, bool, A> {
-        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut output = Vector::<N, bool, A>::const_splat(false);
         let mut i = 0;
         while i < N {
             output.as_array_mut()[i] = self.as_array()[i] != other.as_array()[i];
@@ -168,7 +118,7 @@ where
         self,
         other: Vector<N, bool, impl VecAlignment>,
     ) -> Vector<N, bool, A> {
-        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut output = Vector::<N, bool, A>::const_splat(false);
         let mut i = 0;
         while i < N {
             output.as_array_mut()[i] = self.as_array()[i] < other.as_array()[i];
@@ -182,7 +132,7 @@ where
         self,
         other: Vector<N, bool, impl VecAlignment>,
     ) -> Vector<N, bool, A> {
-        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut output = Vector::<N, bool, A>::const_splat(false);
         let mut i = 0;
         while i < N {
             output.as_array_mut()[i] = self.as_array()[i] > other.as_array()[i];
@@ -196,7 +146,7 @@ where
         self,
         other: Vector<N, bool, impl VecAlignment>,
     ) -> Vector<N, bool, A> {
-        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut output = Vector::<N, bool, A>::const_splat(false);
         let mut i = 0;
         while i < N {
             output.as_array_mut()[i] = self.as_array()[i] <= other.as_array()[i];
@@ -210,12 +160,116 @@ where
         self,
         other: Vector<N, bool, impl VecAlignment>,
     ) -> Vector<N, bool, A> {
-        let mut output = Vector::<N, bool, A>::splat(false);
+        let mut output = Vector::<N, bool, A>::const_splat(false);
         let mut i = 0;
         while i < N {
             output.as_array_mut()[i] = self.as_array()[i] >= other.as_array()[i];
             i += 1;
         }
         output
+    }
+
+    /// Version of `Vector::all_true` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_all_true(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if !self.as_array()[i] {
+                return false;
+            }
+            i += 1;
+        }
+
+        true
+    }
+
+    /// Version of `Vector::all_false` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_all_false(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if self.as_array()[i] {
+                return false;
+            }
+            i += 1;
+        }
+
+        true
+    }
+
+    /// Version of `Vector::any_true` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_any_true(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if self.as_array()[i] {
+                return true;
+            }
+            i += 1;
+        }
+
+        false
+    }
+
+    /// Version of `Vector::any_false` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_any_false(self) -> bool {
+        let mut i = 0;
+        while i < N {
+            if !self.as_array()[i] {
+                return true;
+            }
+            i += 1;
+        }
+
+        false
+    }
+
+    /// Version of `Vector::count_true` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_count_true(self) -> usize {
+        let mut i = 0;
+        let mut count = 0;
+        while i < N {
+            if self.as_array()[i] {
+                count += 1;
+            }
+            i += 1;
+        }
+
+        count
+    }
+
+    /// Version of `Vector::count_false` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_count_false(self) -> usize {
+        let mut i = 0;
+        let mut count = 0;
+        while i < N {
+            if !self.as_array()[i] {
+                count += 1;
+            }
+            i += 1;
+        }
+
+        count
     }
 }
