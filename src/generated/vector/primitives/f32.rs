@@ -310,67 +310,7 @@ impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
 where
     Usize<N>: VecLen,
 {
-    // The following items are generated for all number types
-
-    /// Returns `self + other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_add(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] + other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self - other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_sub(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] - other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self * other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_mul(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] * other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self / other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_div(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] / other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
-
-    /// Returns `self % other` and supports const contexts.
-    #[inline(always)]
-    pub const fn const_rem(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
-        let mut i = 0;
-        while i < N {
-            self.as_array_mut()[i] = self.as_array()[i] % other.as_array()[i];
-            i += 1;
-        }
-
-        self
-    }
+    // The following items are generated for all primitive types
 
     /// Returns `self == other` and supports const contexts.
     #[inline(always)]
@@ -480,6 +420,68 @@ where
             i += 1;
         }
         output
+    }
+
+    // The following items are generated for all number types
+
+    /// Returns `self + other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_add(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] + other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self - other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_sub(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] - other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self * other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_mul(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] * other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self / other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_div(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] / other.as_array()[i];
+            i += 1;
+        }
+
+        self
+    }
+
+    /// Returns `self % other` and supports const contexts.
+    #[inline(always)]
+    pub const fn const_rem(mut self, other: Vector<N, f32, impl VecAlignment>) -> Self {
+        let mut i = 0;
+        while i < N {
+            self.as_array_mut()[i] = self.as_array()[i] % other.as_array()[i];
+            i += 1;
+        }
+
+        self
     }
 
     /// Returns `self.min(other)` and supports const contexts.

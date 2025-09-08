@@ -2,9 +2,11 @@ use indoc::formatdoc;
 
 use crate::module::*;
 
+mod bool_;
 mod float;
 mod int;
 mod num;
+mod primitive;
 mod signed;
 mod sint;
 mod uint;
@@ -14,7 +16,7 @@ pub fn write_mod(module: ModDir) {
 
     for primitive in [
         "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64",
-        "u128", "usize",
+        "u128", "usize", "bool",
     ] {
         write_primitive_mod(module.submod(primitive), primitive);
 
@@ -83,6 +85,14 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
 
     let primitive_is_signed = primitive_is_float || primitive_is_sint;
 
+    primitive::push_fns(
+        primitive,
+        &mut functions,
+        &mut const_functions,
+        &mut std_functions,
+        &mut std_const_functions,
+    );
+
     if primitive_is_num {
         num::push_fns(
             primitive,
@@ -137,8 +147,14 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut std_functions,
             &mut std_const_functions,
         );
-    } else {
-        panic!("unhandled primitive in push_fns: {primitive}");
+    } else if primitive == "bool" {
+        bool_::push_fns(
+            primitive,
+            &mut functions,
+            &mut const_functions,
+            &mut std_functions,
+            &mut std_const_functions,
+        );
     }
 
     if primitive_is_float || primitive_is_sint || primitive_is_uint {
