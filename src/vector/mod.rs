@@ -24,25 +24,26 @@ pub use crate::generated::vector::*;
 /// - `T`: The type of the vector, which must implement the [`Scalar`] trait.
 /// - `A`: The "alignment" of the vector, which enables or disables SIMD memory alignment.
 ///
-/// It is usually recommended to use vector type-aliases instead of the vector type directly.
-/// `Vec{N}` type-aliases like `Vec2` are SIMD aligned and are considered the default.
-/// `Vec{N}P` type-aliases like `Vec2P` are not SIMD aligned.
+/// This type has very very useful type-aliases:
+/// - `Vec{N}<T>` like `Vec2<f32>` is for SIMD aligned vectors
+/// - `Vec{N}P<T>` like `Vec2P<f32>` is for non-SIMD aligned vectors
 ///
 /// # Alignment
 ///
-/// To understand alignment first see <https://doc.rust-lang.org/reference/type-layout.html>.
+/// The `A` generic parameter controls whether or not the vector is SIMD aligned,
+/// and can be set to either `VecAligned` or `VecPacked`.
 ///
-/// `A` must be either `VecAligned` or `VecPacked`.
-/// A `VecAligned` vector is SIMD aligned while a `VecPacked` vector is not.
+/// SIMD can improve performance of vector operations,
+/// but it can also increase the size of the vector in memory.
 ///
-/// This means that `VecAligned` vectors result in faster operations than `VecPacked` vectors,
-/// but `VecAligned` vectors have a larger size than `VecPacked` vectors.
-/// When using a vector you need to choose between `VecAligned` and `VecPacked` based on priorities.
+/// `Vector<N, T, VecAligned>` vectors are SIMD aligned if it increases performance,
+/// while `Vector<N, T, VecPacked>` vectors are not SIMD aligned and are always stored as `[T; N]`.
 ///
-/// * `VecAligned` does not guarentee any specific alignment.
-/// The alignment depends on the target architecture and the implementation of [`Scalar`].
+/// This means that `VecAligned` are for performance and `VecPacked` are for memory efficiency.
 ///
-/// * `VecPacked` guarentees that the vector has the exact same memory layout as `[T; N]`.
+/// Beware that `VecAligned` does not guarantee a specific alignment rule/pattern.
+/// For example, `Vector<3, f32, VecAligned`/`Vec3<f32>` isn't guaranteed to be aligned to a 128-bit boundary.
+/// It is up to the implementation of [`Scalar`] to determine `VecAligned` alignment.
 ///
 /// # Examples
 /// ```

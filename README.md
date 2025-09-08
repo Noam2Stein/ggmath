@@ -1,6 +1,6 @@
 Beware!
-This crate is a work in progress and is missing benchmarks.
-It does have 100% test and doc coverage though.
+This readme promises features that are not yet implemented,
+and will be implemented before uploading to crates.io.
 
 # GGMath
 
