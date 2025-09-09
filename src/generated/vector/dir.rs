@@ -231,14 +231,6 @@ pub mod forwards {
         const BACKWARD: Self = Self::NEG_ONE;
     }
 
-    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<2, T, A> {
-        const FORWARD: Self = Self::Z;
-    }
-
-    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<2, T, A> {
-        const BACKWARD: Self = Self::NEG_Z;
-    }
-
     impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveForward for Vector<3, T, A> {
         const FORWARD: Self = Self::Z;
     }
@@ -280,14 +272,6 @@ pub mod backwards {
 
     impl<T: ScalarNegOne> NegativeForward for T {
         const FORWARD: Self = Self::NEG_ONE;
-    }
-
-    impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<2, T, A> {
-        const FORWARD: Self = Self::NEG_Z;
-    }
-
-    impl<T: ScalarZero + ScalarOne, A: VecAlignment> PositiveBackward for Vector<2, T, A> {
-        const BACKWARD: Self = Self::Z;
     }
 
     impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> NegativeForward for Vector<3, T, A> {

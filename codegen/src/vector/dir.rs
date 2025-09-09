@@ -22,7 +22,7 @@ pub fn write_mod(module: Mod) {
         let mut vector_impls_a = Vec::new();
         let mut vector_impls_b = Vec::new();
 
-        for n in 2..=4 {
+        for n in 2.max(axis_idx + 1)..=4 {
             let axis_uppercase = ["X", "Y", "Z", "W"][axis_idx];
 
             vector_impls_a.push(formatdoc! {r#"
