@@ -6,6 +6,7 @@ pub fn push_fns(
     const_functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
+    _test_functions: &mut Vec<String>,
 ) {
     for primitive2 in [
         "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64", "u128", "usize",

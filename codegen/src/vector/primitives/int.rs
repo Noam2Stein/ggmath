@@ -6,6 +6,7 @@ pub fn push_fns(
     const_functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
+    test_functions: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all int types
@@ -452,4 +453,138 @@ pub fn push_fns(
             self.const_max(other).const_sub(self.const_min(other))
         }}
     "#});
+
+    for a in ["VecAligned", "VecPacked"] {
+        let a_lower = match a {
+            "VecAligned" => "aligned",
+            "VecPacked" => "packed",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+        let a_postfix = match a {
+            "VecAligned" => "",
+            "VecPacked" => "p",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+
+        test_functions.push(formatdoc! {r#"
+            // These tests are generated for all int types
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_add2_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec2{a_postfix}!({primitive}::MAX, 1) + vec2{a_postfix}!(1, 3)).to_array(),
+                    [{primitive}::MIN, 4]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_add3_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec3{a_postfix}!({primitive}::MAX, 1, 3) + vec3{a_postfix}!(1, 3, 5)).to_array(),
+                    [{primitive}::MIN, 4, 8]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_add4_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec4{a_postfix}!({primitive}::MAX, 1, 3, 5) + vec4{a_postfix}!(1, 3, 5, 7)).to_array(),
+                    [{primitive}::MIN, 4, 8, 12]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_sub2_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec2{a_postfix}!({primitive}::MIN, 5) - vec2{a_postfix}!(1, 3)).to_array(),
+                    [{primitive}::MAX, 2]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_sub3_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec3{a_postfix}!({primitive}::MIN, 5, 7) - vec3{a_postfix}!(1, 3, 5)).to_array(),
+                    [{primitive}::MAX, 2, 2]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_sub4_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec4{a_postfix}!({primitive}::MIN, 5, 7, 9) - vec4{a_postfix}!(1, 3, 5, 7)).to_array(),
+                    [{primitive}::MAX, 2, 2, 2]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_mul2_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec2{a_postfix}!({primitive}::MAX, 5) * vec2{a_postfix}!(2, 3)).to_array(),
+                    [{primitive}::MAX * 2, 15]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_mul3_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec3{a_postfix}!({primitive}::MAX, 5, 7) * vec3{a_postfix}!(2, 3, 4)).to_array(),
+                    [{primitive}::MAX * 2, 15, 28]
+                );
+            }}
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_mul4_overflow_{a_lower}() {{
+                assert_eq!(
+                    (vec4{a_postfix}!({primitive}::MAX, 5, 7, 9) * vec4{a_postfix}!(2, 3, 4, 5)).to_array(),
+                    [{primitive}::MAX * 2, 15, 28, 45]
+                );
+            }}
+
+            #[test]
+            #[should_panic]
+            fn test_div2_by_zero_{a_lower}() {{
+                println!("{{}}", vec2{a_postfix}!(3, 5) / vec2{a_postfix}!(0, 3));
+            }}
+
+            #[test]
+            #[should_panic]
+            fn test_div3_by_zero_{a_lower}() {{
+                println!("{{}}", vec3{a_postfix}!(3, 5, 7) / vec3{a_postfix}!(0, 3, 5));
+            }}
+
+            #[test]
+            #[should_panic]
+            fn test_div4_by_zero_{a_lower}() {{
+                println!("{{}}", vec4{a_postfix}!(3, 5, 7, 9) / vec4{a_postfix}!(0, 3, 5, 7));
+            }}
+
+            #[test]
+            #[should_panic]
+            fn test_rem2_by_zero_{a_lower}() {{
+                println!("{{}}", vec2{a_postfix}!(3, 5) % vec2{a_postfix}!(0, 3));
+            }}
+
+            #[test]
+            #[should_panic]
+            fn test_rem3_by_zero_{a_lower}() {{
+                println!("{{}}", vec3{a_postfix}!(3, 5, 7) % vec3{a_postfix}!(0, 3, 5));
+            }}
+            
+            #[test]
+            #[should_panic]
+            fn test_rem4_by_zero_{a_lower}() {{
+                println!("{{}}", vec4{a_postfix}!(3, 5, 7, 9) % vec4{a_postfix}!(0, 3, 5, 7));
+            }}
+        "#});
+    }
 }

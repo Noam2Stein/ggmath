@@ -4,5 +4,6 @@ pub fn push_fns(
     _const_functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
+    _test_functions: &mut Vec<String>,
 ) {
 }

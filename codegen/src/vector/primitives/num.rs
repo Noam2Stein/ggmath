@@ -6,6 +6,7 @@ pub fn push_fns(
     const_functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
+    test_functions: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all number types
@@ -199,6 +200,120 @@ pub fn push_fns(
                     i += 1;
                 }}
                 output
+            }}
+        "#});
+    }
+
+    for a in ["VecAligned", "VecPacked"] {
+        let a_lower = match a {
+            "VecAligned" => "aligned",
+            "VecPacked" => "packed",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+        let a_postfix = match a {
+            "VecAligned" => "",
+            "VecPacked" => "p",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+
+        let v0 = match primitive {
+            "f32" | "f64" => "0.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "0",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "0",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v1 = match primitive {
+            "f32" | "f64" => "1.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "1",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "1",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v2 = match primitive {
+            "f32" | "f64" => "2.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "2",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "2",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v3 = match primitive {
+            "f32" | "f64" => "3.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "3",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "3",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v4 = match primitive {
+            "f32" | "f64" => "4.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "4",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "4",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v5 = match primitive {
+            "f32" | "f64" => "5.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "5",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "5",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v6 = match primitive {
+            "f32" | "f64" => "6.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "6",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "6",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v7 = match primitive {
+            "f32" | "f64" => "7.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "7",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "7",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v8 = match primitive {
+            "f32" | "f64" => "8.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "8",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "8",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v9 = match primitive {
+            "f32" | "f64" => "9.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "9",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "9",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+        let v10 = match primitive {
+            "f32" | "f64" => "10.0",
+            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => "10",
+            "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => "10",
+            _ => panic!("Invalid primitive: {}", primitive),
+        };
+
+        test_functions.push(formatdoc! {r#"
+            // These tests are generated for all primitive number types
+
+            #[test]
+            fn test_ops_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!({v0}, {v1}) + vec2{a_postfix}!({v2}, {v3})).to_array(), [{v2}, {v4}]);
+                assert_eq!((vec2{a_postfix}!({v5}, {v3}) - vec2{a_postfix}!({v2}, {v2})).to_array(), [{v3}, {v1}]);
+                assert_eq!((vec2{a_postfix}!({v5}, {v3}) * vec2{a_postfix}!({v2}, {v3})).to_array(), [{v10}, {v9}]);
+                assert_eq!((vec2{a_postfix}!({v5}, {v3}) / vec2{a_postfix}!({v2}, {v3})).to_array(), [{v2}, {v1}]);
+                assert_eq!((vec2{a_postfix}!({v5}, {v3}) % vec2{a_postfix}!({v2}, {v3})).to_array(), [{v1}, {v0}]);
+                assert_eq!((vec2{a_postfix}!({v5}, {v3}) * {v2}).to_array(), [{v10}, {v6}]);
+                assert_eq!((vec2{a_postfix}!({v5}, {v3}) / {v2}).to_array(), [{v2}, {v1}]);
+                assert_eq!((vec2{a_postfix}!({v5}, {v3}) % {v2}).to_array(), [{v1}, {v1}]);
+
+                assert_eq!((vec3{a_postfix}!({v0}, {v1}, {v2}) + vec3{a_postfix}!({v3}, {v4}, {v5})).to_array(), [{v3}, {v5}, {v7}]);
+                assert_eq!((vec3{a_postfix}!({v5}, {v3}, {v2}) - vec3{a_postfix}!({v2}, {v2}, {v2})).to_array(), [{v3}, {v1}, {v0}]);
+                assert_eq!((vec3{a_postfix}!({v5}, {v3}, {v2}) * vec3{a_postfix}!({v2}, {v3}, {v4})).to_array(), [{v10}, {v9}, {v8}]);
+                assert_eq!((vec3{a_postfix}!({v5}, {v3}, {v2}) / vec3{a_postfix}!({v2}, {v3}, {v4})).to_array(), [{v2}, {v1}, {v0}]);
+                assert_eq!((vec3{a_postfix}!({v5}, {v3}, {v2}) % vec3{a_postfix}!({v2}, {v3}, {v4})).to_array(), [{v1}, {v0}, {v2}]);
+                assert_eq!((vec3{a_postfix}!({v5}, {v3}, {v2}) * {v2}).to_array(), [{v10}, {v6}, {v4}]);
+                assert_eq!((vec3{a_postfix}!({v5}, {v3}, {v2}) / {v2}).to_array(), [{v2}, {v1}, {v1}]);
+                assert_eq!((vec3{a_postfix}!({v5}, {v3}, {v2}) % {v2}).to_array(), [{v1}, {v1}, {v0}]);
+
+                assert_eq!((vec4{a_postfix}!({v0}, {v1}, {v2}, {v3}) + vec4{a_postfix}!({v4}, {v5}, {v6}, {v7})).to_array(), [{v4}, {v6}, {v8}, {v10}]);
+                assert_eq!((vec4{a_postfix}!({v5}, {v3}, {v2}, {v1}) - vec4{a_postfix}!({v2}, {v2}, {v2}, {v2})).to_array(), [{v3}, {v1}, {v0}, {v1}]);
+                assert_eq!((vec4{a_postfix}!({v5}, {v3}, {v2}, {v1}) * vec4{a_postfix}!({v2}, {v3}, {v4}, {v5})).to_array(), [{v10}, {v9}, {v8}, {v5}]);
+                assert_eq!((vec4{a_postfix}!({v5}, {v3}, {v2}, {v1}) / vec4{a_postfix}!({v2}, {v3}, {v4}, {v5})).to_array(), [{v2}, {v1}, {v0}, {v1}]);
+                assert_eq!((vec4{a_postfix}!({v5}, {v3}, {v2}, {v1}) % vec4{a_postfix}!({v2}, {v3}, {v4}, {v5})).to_array(), [{v1}, {v0}, {v2}, {v1}]);
+                assert_eq!((vec4{a_postfix}!({v5}, {v3}, {v2}, {v1}) * {v2}).to_array(), [{v10}, {v6}, {v4}, {v2}]);
+                assert_eq!((vec4{a_postfix}!({v5}, {v3}, {v2}, {v1}) / {v2}).to_array(), [{v2}, {v1}, {v1}, {v1}]);
+                assert_eq!((vec4{a_postfix}!({v5}, {v3}, {v2}, {v1}) % {v2}).to_array(), [{v1}, {v1}, {v0}, {v1}]);
             }}
         "#});
     }

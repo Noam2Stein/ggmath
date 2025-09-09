@@ -6,6 +6,7 @@ pub fn push_fns(
     const_functions: &mut Vec<String>,
     std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
+    _test_functions: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all float types

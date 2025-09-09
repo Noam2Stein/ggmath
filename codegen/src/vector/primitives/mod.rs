@@ -38,6 +38,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
     let mut std_functions = Vec::new();
     let mut std_const_functions = Vec::new();
     let mut trait_impls = Vec::new();
+    let mut test_functions = Vec::new();
 
     let primitive_is_num = primitive == "f32"
         || primitive == "f64"
@@ -91,6 +92,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
         &mut const_functions,
         &mut std_functions,
         &mut std_const_functions,
+        &mut test_functions,
     );
 
     if primitive_is_num {
@@ -100,6 +102,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut const_functions,
             &mut std_functions,
             &mut std_const_functions,
+            &mut test_functions,
         );
     }
 
@@ -110,6 +113,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut const_functions,
             &mut std_functions,
             &mut std_const_functions,
+            &mut test_functions,
         );
     }
 
@@ -120,6 +124,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut const_functions,
             &mut std_functions,
             &mut std_const_functions,
+            &mut test_functions,
         );
     }
 
@@ -130,6 +135,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut const_functions,
             &mut std_functions,
             &mut std_const_functions,
+            &mut test_functions,
         );
     } else if primitive_is_sint {
         sint::push_fns(
@@ -138,6 +144,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut const_functions,
             &mut std_functions,
             &mut std_const_functions,
+            &mut test_functions,
         );
     } else if primitive_is_uint {
         uint::push_fns(
@@ -146,6 +153,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut const_functions,
             &mut std_functions,
             &mut std_const_functions,
+            &mut test_functions,
         );
     } else if primitive == "bool" {
         bool_::push_fns(
@@ -154,6 +162,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
             &mut const_functions,
             &mut std_functions,
             &mut std_const_functions,
+            &mut test_functions,
         );
     }
 
@@ -182,6 +191,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
     let std_functions = std_functions.join("\n").replace("\n", "\n\t");
     let std_const_functions = std_const_functions.join("\n").replace("\n", "\n\t");
     let trait_impls = trait_impls.join("\n");
+    let test_functions = test_functions.join("\n").replace("\n", "\n\t");
 
     let function_impls = [
         (!functions.is_empty()).then(|| {
@@ -236,5 +246,12 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
         {function_impls}
 
         {trait_impls}
+
+        #[cfg(test)]
+        mod tests {{
+            use crate::*;
+
+            {test_functions}
+        }}
     "#});
 }

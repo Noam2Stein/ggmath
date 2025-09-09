@@ -1,11 +1,12 @@
 use indoc::formatdoc;
 
 pub fn push_fns(
-    _primitive: &str,
+    primitive: &str,
     functions: &mut Vec<String>,
     const_functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
+    test_functions: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all signed int types
@@ -45,4 +46,29 @@ pub fn push_fns(
             self
         }}
     "#});
+
+    for a in ["VecAligned", "VecPacked"] {
+        let a_lower = match a {
+            "VecAligned" => "aligned",
+            "VecPacked" => "packed",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+        let a_postfix = match a {
+            "VecAligned" => "",
+            "VecPacked" => "p",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+
+        test_functions.push(formatdoc! {r#"
+            // These tests are generated for all signed int types
+
+            #[test]
+            #[cfg_attr(debug_assertions, should_panic)]
+            fn test_neg_overflow_{a_lower}() {{
+                assert_eq!((-vec2{a_postfix}!({primitive}::MIN, 4)).to_array(), [-{primitive}::MIN, -4]);
+                assert_eq!((-vec3{a_postfix}!({primitive}::MIN, 4, 3)).to_array(), [-{primitive}::MIN, -4, -3]);
+                assert_eq!((-vec4{a_postfix}!({primitive}::MIN, 4, 3, 2)).to_array(), [-{primitive}::MIN, -4, -3, -2]);
+            }}
+        "#});
+    }
 }
