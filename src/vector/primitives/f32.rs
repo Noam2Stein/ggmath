@@ -7,13 +7,7 @@ impl Scalar for f32 {
     type InnerAlignedVec2 = [Self; 2];
 
     cfg_if! {
-        if #[cfg(any(
-            all(target_arch = "x86", target_feature = "sse"),
-            all(target_arch = "x86_64", target_feature = "sse"),
-            all(target_arch = "arm", target_feature = "neon"),
-            all(target_arch = "aarch64", target_feature = "neon"),
-            all(target_arch = "wasm32", target_feature = "simd128"),
-        ))] {
+        if #[cfg(f32x4_simd)] {
             type InnerAlignedVec3 = wide::f32x4;
             type InnerAlignedVec4 = wide::f32x4;
         } else {

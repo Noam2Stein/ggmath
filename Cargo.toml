@@ -1,5 +1,5 @@
 [workspace]
-members = [ ".", "bench_checker", "codegen", "prepublish" , "sandbox"]
+members = [ ".", "bench_checker", "codegen", "prepublish", "sandbox" ]
 
 [package]
 categories = [
@@ -60,7 +60,8 @@ crevice = { version = "0.18.0", optional = true }
 serde   = { version = "1.0.219", optional = true }
 
 [build-dependencies]
-codegen = { path = "codegen" }
+cfg_aliases = "0.2.1"
+codegen     = { path = "codegen" }
 
 [dev-dependencies]
 criterion = "0.7.0"

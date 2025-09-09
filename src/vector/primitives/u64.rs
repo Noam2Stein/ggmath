@@ -5,13 +5,7 @@ use crate::vector::Scalar;
 impl Scalar for u64 {
     // SSE alone doesn't provide integer instructions so SSE2 is required
     cfg_if! {
-        if #[cfg(any(
-            all(target_arch = "x86", target_feature = "sse2"),
-            all(target_arch = "x86_64", target_feature = "sse2"),
-            all(target_arch = "arm", target_feature = "neon"),
-            all(target_arch = "aarch64", target_feature = "neon"),
-            all(target_arch = "wasm32", target_feature = "simd128"),
-        ))] {
+        if #[cfg(i64x2_simd)] {
             type InnerAlignedVec2 = wide::u64x2;
         } else {
             type InnerAlignedVec2 = [Self; 2];
@@ -21,10 +15,7 @@ impl Scalar for u64 {
     // ARM and WASM don't support 256-bit SIMD
     // AVX alone doesn't provide integer instructions so AVX2 is required
     cfg_if! {
-        if #[cfg(any(
-            all(target_arch = "x86", target_feature = "avx2"),
-            all(target_arch = "x86_64", target_feature = "avx2"),
-        ))] {
+        if #[cfg(i64x4_simd)] {
             type InnerAlignedVec3 = wide::u64x4;
             type InnerAlignedVec4 = wide::u64x4;
         } else {
