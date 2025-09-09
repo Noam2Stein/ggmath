@@ -130,22 +130,28 @@ pub fn push_fns(
         _ => panic!("Invalid primitive: {}", primitive),
     };
 
+    let [vec2_value0_count, vec3_value0_count, vec4_value0_count] = match primitive {
+        "f32" | "f64" => [1, 1, 1],
+        "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => [1, 1, 1],
+        "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => [1, 1, 1],
+        "bool" => [1, 2, 2],
+        _ => panic!("Invalid primitive: {}", primitive),
+    };
+
     for a in ["VecAligned", "VecPacked"] {
         let a_lower = match a {
             "VecAligned" => "aligned",
             "VecPacked" => "packed",
             _ => panic!("Unhandled alignment: {}", a),
         };
-
-        let a_is_aligned = match a {
-            "VecAligned" => "true",
-            "VecPacked" => "false",
-            _ => panic!("Unhandled alignment: {}", a),
-        };
-
         let a_postfix = match a {
             "VecAligned" => "",
             "VecPacked" => "p",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+        let a_is_aligned = match a {
+            "VecAligned" => "true",
+            "VecPacked" => "false",
             _ => panic!("Unhandled alignment: {}", a),
         };
 
@@ -202,32 +208,6 @@ pub fn push_fns(
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).as_ptr(),
-                    [{value0}, {value1}].as_ptr()
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).as_ptr(),
-                    [{value2}, {value3}, {value0}].as_ptr()
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).as_ptr(),
-                    [{value1}, {value2}, {value3}, {value0}].as_ptr()
-                );
-
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).as_mut_ptr(),
-                    [{value0}, {value1}].as_mut_ptr()
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).as_mut_ptr(),
-                    [{value2}, {value3}, {value0}].as_mut_ptr()
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).as_mut_ptr(),
-                    [{value1}, {value2}, {value3}, {value0}].as_mut_ptr()
-                );
-
-                assert_eq!(
                     Vector::<2, {primitive}, {a}>::from_fn(|i| [{value0}, {value1}][i]).to_array(),
                     [{value0}, {value1}]
                 );
@@ -241,21 +221,21 @@ pub fn push_fns(
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).map(|x| {{
+                    vec2{a_postfix}!({value0}, {value1}).map(|x| {{
                         let idx = [{value0}, {value1}].into_iter().position(|y| y == x).unwrap();
                         [{value0}, {value1}][idx]
                     }}).to_array(),
                     [{value0}, {value1}]
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).map(|x| {{
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).map(|x| {{
                         let idx = [{value2}, {value3}, {value0}].into_iter().position(|y| y == x).unwrap();
                         [{value2}, {value3}, {value0}][idx]
                     }}).to_array(),
                     [{value2}, {value3}, {value0}]
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).map(|x| {{
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).map(|x| {{
                         let idx = [{value1}, {value2}, {value3}, {value0}].into_iter().position(|y| y == x).unwrap();
                         [{value1}, {value2}, {value3}, {value0}][idx]
                     }}).to_array(),
@@ -263,69 +243,33 @@ pub fn push_fns(
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).fold(|x, y| x {test_bin_op} y),
+                    vec2{a_postfix}!({value0}, {value1}).fold(|x, y| x {test_bin_op} y),
                     {value0} {test_bin_op} {value1}
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).fold(|x, y| x {test_bin_op} y),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).fold(|x, y| x {test_bin_op} y),
                     {value2} {test_bin_op} {value3} {test_bin_op} {value0}
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).fold(|x, y| x {test_bin_op} y),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).fold(|x, y| x {test_bin_op} y),
                     {value1} {test_bin_op} {value2} {test_bin_op} {value3} {test_bin_op} {value0}
                 );
 
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).all(|x| x == {value0}),
-                    false
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).all(|x| x == {value0}),
-                    false
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).all(|x| x == {value0}),
-                    false
-                );
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).all(|x| x == {value0}), false);
+                assert_eq!(vec3{a_postfix}!({value2}, {value3}, {value0}).all(|x| x == {value0}), false);
+                assert_eq!(vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).all(|x| x == {value0}), false);
 
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).any(|x| x == {value0}),
-                    true
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).any(|x| x == {value0}),
-                    true
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).any(|x| x == {value0}),
-                    true
-                );
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).any(|x| x == {value0}), true);
+                assert_eq!(vec3{a_postfix}!({value2}, {value3}, {value0}).any(|x| x == {value0}), true);
+                assert_eq!(vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).any(|x| x == {value0}), true);
 
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).count(|x| x == {value0}),
-                    1
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).count(|x| x == {value0}),
-                    1
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).count(|x| x == {value0}),
-                    1
-                );
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).count(|x| x == {value0}), {vec2_value0_count});
+                assert_eq!(vec3{a_postfix}!({value2}, {value3}, {value0}).count(|x| x == {value0}), {vec3_value0_count});
+                assert_eq!(vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).count(|x| x == {value0}), {vec4_value0_count});
 
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).len(),
-                    2
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).len(),
-                    3
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).len(),
-                    4
-                );
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).len(), 2);
+                assert_eq!(vec3{a_postfix}!({value2}, {value3}, {value0}).len(), 3);
+                assert_eq!(vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).len(), 4);
             }}
 
             #[test]
@@ -360,55 +304,55 @@ pub fn push_fns(
             #[test]
             fn test_storage_{a_lower}() {{
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).align(),
-                    Vector::<2, {primitive}, VecAligned>::from_array([{value0}, {value1}]),
+                    vec2{a_postfix}!({value0}, {value1}).align(),
+                    vec2{a_postfix}!({value0}, {value1}),
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).align(),
-                    Vector::<3, {primitive}, VecAligned>::from_array([{value2}, {value3}, {value0}]),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).align(),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).align(),
-                    Vector::<4, {primitive}, VecAligned>::from_array([{value1}, {value2}, {value3}, {value0}]),
-                );
-
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).pack(),
-                    Vector::<2, {primitive}, VecPacked>::from_array([{value0}, {value1}]),
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).pack(),
-                    Vector::<3, {primitive}, VecPacked>::from_array([{value2}, {value3}, {value0}]),
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).pack(),
-                    Vector::<4, {primitive}, VecPacked>::from_array([{value1}, {value2}, {value3}, {value0}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).align(),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}),
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).to_storage::<VecAligned>(),
-                    Vector::<2, {primitive}, VecAligned>::from_array([{value0}, {value1}]),
+                    vec2{a_postfix}!({value0}, {value1}).pack(),
+                    vec2{a_postfix}!({value0}, {value1}),
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).to_storage::<VecAligned>(),
-                    Vector::<3, {primitive}, VecAligned>::from_array([{value2}, {value3}, {value0}]),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).pack(),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).to_storage::<VecAligned>(),
-                    Vector::<4, {primitive}, VecAligned>::from_array([{value1}, {value2}, {value3}, {value0}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).pack(),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}),
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).to_storage::<VecPacked>(),
-                    Vector::<2, {primitive}, VecPacked>::from_array([{value0}, {value1}]),
+                    vec2{a_postfix}!({value0}, {value1}).to_storage::<VecAligned>(),
+                    vec2{a_postfix}!({value0}, {value1}),
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).to_storage::<VecPacked>(),
-                    Vector::<3, {primitive}, VecPacked>::from_array([{value2}, {value3}, {value0}]),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).to_storage::<VecAligned>(),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).to_storage::<VecPacked>(),
-                    Vector::<4, {primitive}, VecPacked>::from_array([{value1}, {value2}, {value3}, {value0}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).to_storage::<VecAligned>(),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}),
+                );
+
+                assert_eq!(
+                    vec2{a_postfix}!({value0}, {value1}).to_storage::<VecPacked>(),
+                    vec2{a_postfix}!({value0}, {value1}),
+                );
+                assert_eq!(
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).to_storage::<VecPacked>(),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}),
+                );
+                assert_eq!(
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).to_storage::<VecPacked>(),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}),
                 );
 
                 assert_eq!(
@@ -428,173 +372,170 @@ pub fn push_fns(
             #[test]
             fn test_swizzle_{a_lower}() {{
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).x(),
+                    vec2{a_postfix}!({value0}, {value1}).x(),
                     {value0}
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).y(),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).y(),
                     {value3}
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).z(),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).z(),
                     {value3}
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).yy(),
-                    Vector::<2, {primitive}, {a}>::from_array([{value1}, {value1}]),
+                    vec2{a_postfix}!({value0}, {value1}).yy(),
+                    vec2{a_postfix}!({value1}, {value1}),
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).zy(),
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value3}]),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).zy(),
+                    vec2{a_postfix}!({value0}, {value3}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).xw(),
-                    Vector::<2, {primitive}, {a}>::from_array([{value1}, {value0}]),
-                );
-
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).xyy(),
-                    Vector::<3, {primitive}, {a}>::from_array([{value0}, {value1}, {value1}]),
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).yzy(),
-                    Vector::<3, {primitive}, {a}>::from_array([{value3}, {value0}, {value3}]),
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).wxy(),
-                    Vector::<3, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).xw(),
+                    vec2{a_postfix}!({value1}, {value0}),
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).xxyy(),
-                    Vector::<4, {primitive}, {a}>::from_array([{value0}, {value0}, {value1}, {value1}]),
+                    vec2{a_postfix}!({value0}, {value1}).xyy(),
+                    vec3{a_postfix}!({value0}, {value1}, {value1}),
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).yzyz(),
-                    Vector::<4, {primitive}, {a}>::from_array([{value3}, {value0}, {value3}, {value0}]),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).yzy(),
+                    vec3{a_postfix}!({value3}, {value0}, {value3}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).wxyw(),
-                    Vector::<4, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}, {value0}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).wxy(),
+                    vec3{a_postfix}!({value0}, {value1}, {value2}),
+                );
+
+                assert_eq!(
+                    vec2{a_postfix}!({value0}, {value1}).xxyy(),
+                    vec4{a_postfix}!({value0}, {value0}, {value1}, {value1}),
+                );
+                assert_eq!(
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).yzyz(),
+                    vec4{a_postfix}!({value3}, {value0}, {value3}, {value0}),
+                );
+                assert_eq!(
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).wxyw(),
+                    vec4{a_postfix}!({value0}, {value1}, {value2}, {value0}),
                 );
             }}
 
             #[test]
             fn test_swizzle_ref_{a_lower}() {{
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).x_ref(),
+                    vec2{a_postfix}!({value0}, {value1}).x_ref(),
                     &{value0}
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).y_ref(),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).y_ref(),
                     &{value3}
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).z_ref(),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).z_ref(),
                     &{value3}
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).xy_ref(),
-                    &Vector::<2, {primitive}, VecPacked>::from_array([{value0}, {value1}]),
+                    vec2{a_postfix}!({value0}, {value1}).xy_ref(),
+                    &vec2p!({value0}, {value1}),
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}]).yz_ref(),
-                    &Vector::<2, {primitive}, VecPacked>::from_array([{value1}, {value2}]),
+                    vec3{a_postfix}!({value0}, {value1}, {value2}).yz_ref(),
+                    &vec2p!({value1}, {value2}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}, {value3}]).zw_ref(),
-                    &Vector::<2, {primitive}, VecPacked>::from_array([{value2}, {value3}]),
-                );
-
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}]).xyz_ref(),
-                    &Vector::<3, {primitive}, VecPacked>::from_array([{value0}, {value1}, {value2}]),
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}, {value3}]).yzw_ref(),
-                    &Vector::<3, {primitive}, VecPacked>::from_array([{value1}, {value2}, {value3}]),
+                    vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).zw_ref(),
+                    &vec2p!({value2}, {value3}),
                 );
 
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}, {value3}]).xyzw_ref(),
-                    &Vector::<4, {primitive}, VecPacked>::from_array([{value0}, {value1}, {value2}, {value3}]),
+                    vec3{a_postfix}!({value0}, {value1}, {value2}).xyz_ref(),
+                    &vec3p!({value0}, {value1}, {value2}),
+                );
+                assert_eq!(
+                    vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).yzw_ref(),
+                    &vec3p!({value1}, {value2}, {value3}),
+                );
+
+                assert_eq!(
+                    vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).xyzw_ref(),
+                    &vec4p!({value0}, {value1}, {value2}, {value3}),
                 );
             }}
 
             #[test]
             fn test_swizzle_mut_{a_lower}() {{
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).x_mut(),
+                    vec2{a_postfix}!({value0}, {value1}).x_mut(),
                     &mut {value0}
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).y_mut(),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).y_mut(),
                     &mut {value3}
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).z_mut(),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).z_mut(),
                     &mut {value3}
                 );
 
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).x_y_mut(),
+                    vec2{a_postfix}!({value0}, {value1}).x_y_mut(),
                     (&mut {value0}, &mut {value1})
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).xy_z_mut(),
-                    (&mut Vector::<2, {primitive}, VecPacked>::from_array([{value2}, {value3}]), &mut {value0})
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).xy_z_mut(),
+                    (&mut vec2p!({value2}, {value3}), &mut {value0})
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).xy_zw_mut(),
-                    (
-                        &mut Vector::<2, {primitive}, VecPacked>::from_array([{value1}, {value2}]),
-                        &mut Vector::<2, {primitive}, VecPacked>::from_array([{value3}, {value0}]),
-                    ),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).xy_zw_mut(),
+                    (&mut vec2p!({value1}, {value2}), &mut vec2p!({value3}, {value0})),
                 );
             }}
 
             #[test]
             fn test_swizzle_with_{a_lower}() {{
                 assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).with_x({value2}),
-                    Vector::<2, {primitive}, {a}>::from_array([{value2}, {value1}]),
+                    vec2{a_postfix}!({value0}, {value1}).with_x({value2}),
+                    vec2{a_postfix}!({value2}, {value1}),
                 );
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).with_y({value1}),
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value1}, {value0}]),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).with_y({value1}),
+                    vec3{a_postfix}!({value2}, {value1}, {value0}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).with_z({value2}),
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value2}, {value0}]),
-                );
-
-                assert_eq!(
-                    Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]).with_xy(vec2!({value2}, {value3})),
-                    Vector::<2, {primitive}, {a}>::from_array([{value2}, {value3}]),
-                );
-                assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]).with_zy(vec2!({value1}, {value2})),
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value2}, {value1}]),
-                );
-                assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).with_xw(vec2!({value2}, {value3})),
-                    Vector::<4, {primitive}, {a}>::from_array([{value2}, {value1}, {value2}, {value3}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).with_z({value2}),
+                    vec4{a_postfix}!({value1}, {value2}, {value2}, {value0}),
                 );
 
                 assert_eq!(
-                    Vector::<3, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}]).with_xzy(vec3!({value2}, {value3}, {value0})),
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value0}, {value3}]),
+                    vec2{a_postfix}!({value0}, {value1}).with_xy(vec2!({value2}, {value3})),
+                    vec2{a_postfix}!({value2}, {value3}),
                 );
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).with_ywx(vec3!({value2}, {value3}, {value0})),
-                    Vector::<4, {primitive}, {a}>::from_array([{value0}, {value2}, {value3}, {value3}]),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).with_zy(vec2!({value1}, {value2})),
+                    vec3{a_postfix}!({value2}, {value2}, {value1}),
+                );
+                assert_eq!(
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).with_xw(vec2!({value2}, {value3})),
+                    vec4{a_postfix}!({value2}, {value2}, {value3}, {value3}),
+                );
+
+                assert_eq!(
+                    vec3{a_postfix}!({value0}, {value1}, {value2}).with_xzy(vec3!({value2}, {value3}, {value0})),
+                    vec3{a_postfix}!({value2}, {value0}, {value3}),
+                );
+                assert_eq!(
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).with_ywx(vec3!({value2}, {value3}, {value0})),
+                    vec4{a_postfix}!({value0}, {value2}, {value3}, {value3}),
                 );
                 
                 assert_eq!(
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]).with_xywz(vec4!({value2}, {value3}, {value0}, {value1})),
-                    Vector::<4, {primitive}, {a}>::from_array([{value2}, {value3}, {value1}, {value0}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).with_xywz(vec4!({value2}, {value3}, {value0}, {value1})),
+                    vec4{a_postfix}!({value2}, {value3}, {value1}, {value0}),
                 );
             }}
 
@@ -602,78 +543,78 @@ pub fn push_fns(
             fn test_swizzle_set_{a_lower}() {{
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]);
+                        let mut vector = vec2{a_postfix}!({value0}, {value1});
                         vector.set_x({value2});
                         vector
                     }},
-                    Vector::<2, {primitive}, {a}>::from_array([{value2}, {value1}]),
+                    vec2{a_postfix}!({value2}, {value1}),
                 );
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]);
+                        let mut vector = vec3{a_postfix}!({value2}, {value3}, {value0});
                         vector.set_y({value1});
                         vector
                     }},
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value1}, {value0}]),
+                    vec3{a_postfix}!({value2}, {value1}, {value0}),
                 );
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]);
+                        let mut vector = vec4{a_postfix}!({value1}, {value2}, {value3}, {value0});
                         vector.set_z({value2});
                         vector
                     }},
-                    Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value2}, {value0}]),
+                    vec4{a_postfix}!({value1}, {value2}, {value2}, {value0}),
                 );
 
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<2, {primitive}, {a}>::from_array([{value0}, {value1}]);
+                        let mut vector = vec2{a_postfix}!({value0}, {value1});
                         vector.set_xy(vec2!({value2}, {value3}));
                         vector
                     }},
-                    Vector::<2, {primitive}, {a}>::from_array([{value2}, {value3}]),
+                    vec2{a_postfix}!({value2}, {value3}),
                 );
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<3, {primitive}, {a}>::from_array([{value2}, {value3}, {value0}]);
+                        let mut vector = vec3{a_postfix}!({value2}, {value3}, {value0});
                         vector.set_zy(vec2!({value1}, {value2}));
                         vector
                     }},
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value2}, {value1}]),
+                    vec3{a_postfix}!({value2}, {value2}, {value1}),
                 );
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]);
+                        let mut vector = vec4{a_postfix}!({value1}, {value2}, {value3}, {value0});
                         vector.set_xw(vec2!({value2}, {value3}));
                         vector
                     }},
-                    Vector::<4, {primitive}, {a}>::from_array([{value2}, {value1}, {value2}, {value3}]),
+                    vec4{a_postfix}!({value2}, {value2}, {value3}, {value3}),
                 );
 
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<3, {primitive}, {a}>::from_array([{value0}, {value1}, {value2}]);
+                        let mut vector = vec3{a_postfix}!({value0}, {value1}, {value2});
                         vector.set_xzy(vec3!({value2}, {value3}, {value0}));
                         vector
                     }},
-                    Vector::<3, {primitive}, {a}>::from_array([{value2}, {value0}, {value3}]),
+                    vec3{a_postfix}!({value2}, {value0}, {value3}),
                 );
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]);
+                        let mut vector = vec4{a_postfix}!({value1}, {value2}, {value3}, {value0});
                         vector.set_ywx(vec3!({value2}, {value3}, {value0}));
                         vector
                     }},
-                    Vector::<4, {primitive}, {a}>::from_array([{value0}, {value2}, {value3}, {value3}]),
+                    vec4{a_postfix}!({value0}, {value2}, {value3}, {value3}),
                 );
                 
                 assert_eq!(
                     {{
-                        let mut vector = Vector::<4, {primitive}, {a}>::from_array([{value1}, {value2}, {value3}, {value0}]);
+                        let mut vector = vec4{a_postfix}!({value1}, {value2}, {value3}, {value0});
                         vector.set_xywz(vec4!({value2}, {value3}, {value0}, {value1}));
                         vector
                     }},
-                    Vector::<4, {primitive}, {a}>::from_array([{value2}, {value3}, {value1}, {value0}]),
+                    vec4{a_postfix}!({value2}, {value3}, {value1}, {value0}),
                 );
             }}
 

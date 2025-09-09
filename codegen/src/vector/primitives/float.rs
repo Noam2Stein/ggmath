@@ -6,7 +6,7 @@ pub fn push_fns(
     const_functions: &mut Vec<String>,
     std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
-    _test_functions: &mut Vec<String>,
+    test_functions: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all float types
@@ -541,4 +541,63 @@ pub fn push_fns(
             self.distance_sq(other).sqrt()
         }}
     "#});
+
+    for a in ["VecAligned", "VecPacked"] {
+        let a_lower = match a {
+            "VecAligned" => "aligned",
+            "VecPacked" => "packed",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+        let a_postfix = match a {
+            "VecAligned" => "",
+            "VecPacked" => "p",
+            _ => panic!("Unhandled alignment: {}", a),
+        };
+
+        test_functions.push(formatdoc! {r#"
+            // These tests are generated for all float types
+
+            #[test]
+            fn test_neg_{a_lower}() {{
+                assert_eq!((-vec2{a_postfix}!(3.0, 1.0)).to_array(), [-3.0, -1.0]);
+                assert_eq!((-vec3{a_postfix}!(3.0, 1.0, -2.0)).to_array(), [-3.0, -1.0, 2.0]);
+                assert_eq!((-vec4{a_postfix}!(3.0, 1.0, 2.0, 0.0)).to_array(), [-3.0, -1.0, -2.0, 0.0]);
+            }}
+
+            #[test]
+            fn test_add_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(3.0, 1.0) + vec2{a_postfix}!(5.0, 3.0)).to_array(), [8.0, 4.0]);
+                assert_eq!((vec3{a_postfix}!(3.0, 1.0, -2.0) + vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [8.0, 4.0, 2.0]);
+                assert_eq!((vec4{a_postfix}!(3.0, 1.0, 2.0, 0.0) + vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [8.0, 4.0, 6.0, 1.0]);
+            }}
+
+            #[test]
+            fn test_sub_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(8.0, 50.0) - vec2{a_postfix}!(5.0, 3.0)).to_array(), [3.0, 47.0]);
+                assert_eq!((vec3{a_postfix}!(56.0, 12.0, 21.0) - vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [51.0, 9.0, 17.0]);
+                assert_eq!((vec4{a_postfix}!(39.0, 13.0, 21.0, 4.0) - vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [34.0, 10.0, 17.0, 3.0]);
+            }}
+
+            #[test]
+            fn test_mul_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(3.0, 1.0) * vec2{a_postfix}!(5.0, 3.0)).to_array(), [15.0, 3.0]);
+                assert_eq!((vec3{a_postfix}!(3.0, 1.0, -2.0) * vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [15.0, 3.0, -8.0]);
+                assert_eq!((vec4{a_postfix}!(3.0, 1.0, 2.0, 0.0) * vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [15.0, 3.0, 8.0, 0.0]);
+            }}
+
+            #[test]
+            fn test_div_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(8.0, 50.0) / vec2{a_postfix}!(5.0, 3.0)).to_array(), [8.0 / 5.0, 50.0 / 3.0]);
+                assert_eq!((vec3{a_postfix}!(56.0, 12.0, 21.0) / vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [56.0 / 5.0, 12.0 / 3.0, 21.0 / 4.0]);
+                assert_eq!((vec4{a_postfix}!(39.0, 13.0, 21.0, 4.0) / vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [39.0 / 5.0, 13.0 / 3.0, 21.0 / 4.0, 4.0 / 1.0]);
+            }}
+
+            #[test]
+            fn test_rem_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(8.0, 50.0) % vec2{a_postfix}!(5.0, 3.0)).to_array(), [3.0, 2.0]);
+                assert_eq!((vec3{a_postfix}!(56.0, 12.0, 21.0) % vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [1.0, 0.0, 1.0]);
+                assert_eq!((vec4{a_postfix}!(39.0, 13.0, 21.0, 4.0) % vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [4.0, 1.0, 1.0, 0.0]);
+            }}
+        "#});
+    }
 }

@@ -248,6 +248,7 @@ fn write_primitive_mod(module: Mod, primitive: &str) {
         {trait_impls}
 
         #[cfg(test)]
+        #[allow(arithmetic_overflow)]
         mod tests {{
             use crate::*;
 

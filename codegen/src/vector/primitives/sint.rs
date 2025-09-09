@@ -63,6 +63,13 @@ pub fn push_fns(
             // These tests are generated for all signed int types
 
             #[test]
+            fn test_neg_{a_lower}() {{
+                assert_eq!((-vec2{a_postfix}!(3, 1)).to_array(), [-3, -1]);
+                assert_eq!((-vec3{a_postfix}!(3, 1, -2)).to_array(), [-3, -1, 2]);
+                assert_eq!((-vec4{a_postfix}!(3, 1, 2, 0)).to_array(), [-3, -1, -2, 0]);
+            }}
+
+            #[test]
             #[cfg_attr(debug_assertions, should_panic)]
             fn test_neg_overflow_{a_lower}() {{
                 assert_eq!((-vec2{a_postfix}!({primitive}::MIN, 4)).to_array(), [-{primitive}::MIN, -4]);

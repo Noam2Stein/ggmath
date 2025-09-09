@@ -6,7 +6,7 @@ pub fn push_fns(
     const_functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _std_const_functions: &mut Vec<String>,
-    test_functions: &mut Vec<String>,
+    _test_functions: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all signed number types
@@ -65,38 +65,4 @@ pub fn push_fns(
             self
         }}
     "#});
-
-    for a in ["VecAligned", "VecPacked"] {
-        let a_lower = match a {
-            "VecAligned" => "aligned",
-            "VecPacked" => "packed",
-            _ => panic!("Unhandled alignment: {}", a),
-        };
-        let a_postfix = match a {
-            "VecAligned" => "",
-            "VecPacked" => "p",
-            _ => panic!("Unhandled alignment: {}", a),
-        };
-
-        let [vneg5, vneg4, vneg3, vneg2, vneg1, v0, v1, v2, v3, v4, v5] = match _primitive {
-            "f32" | "f64" => [
-                "-5.0", "-4.0", "-3.0", "-2.0", "-1.0", "0.0", "1.0", "2.0", "3.0", "4.0", "5.0",
-            ],
-            "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => {
-                ["-5", "-4", "-3", "-2", "-1", "0", "1", "2", "3", "4", "5"]
-            }
-            _ => panic!("Invalid primitive: {}", _primitive),
-        };
-
-        test_functions.push(formatdoc! {r#"
-            // These tests are generated for all signed number types
-
-            #[test]
-            fn test_signed_ops_{a_lower}() {{
-                assert_eq!((-vec2{a_postfix}!({v5}, {v4})).to_array(), [{vneg5}, {vneg4}]);
-                assert_eq!((-vec3{a_postfix}!({v0}, {v1}, {v3})).to_array(), [{v0}, {vneg1}, {vneg3}]);
-                assert_eq!((-vec4{a_postfix}!({v5}, {v4}, {v3}, {v2})).to_array(), [{vneg5}, {vneg4}, {vneg3}, {vneg2}]);
-            }}
-        "#});
-    }
 }

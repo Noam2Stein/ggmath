@@ -1191,6 +1191,7 @@ impl ScalarNegOne for f64 {
 }
 
 #[cfg(test)]
+#[allow(arithmetic_overflow)]
 mod tests {
     use crate::*;
 
@@ -1238,32 +1239,6 @@ mod tests {
         );
 
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).as_ptr(),
-            [1.0, 2.0].as_ptr()
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).as_ptr(),
-            [3.0, 4.0, 1.0].as_ptr()
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).as_ptr(),
-            [2.0, 3.0, 4.0, 1.0].as_ptr()
-        );
-
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).as_mut_ptr(),
-            [1.0, 2.0].as_mut_ptr()
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).as_mut_ptr(),
-            [3.0, 4.0, 1.0].as_mut_ptr()
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).as_mut_ptr(),
-            [2.0, 3.0, 4.0, 1.0].as_mut_ptr()
-        );
-
-        assert_eq!(
             Vector::<2, f64, VecAligned>::from_fn(|i| [1.0, 2.0][i]).to_array(),
             [1.0, 2.0]
         );
@@ -1277,7 +1252,7 @@ mod tests {
         );
 
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0])
+            vec2!(1.0, 2.0)
                 .map(|x| {
                     let idx = [1.0, 2.0].into_iter().position(|y| y == x).unwrap();
                     [1.0, 2.0][idx]
@@ -1286,7 +1261,7 @@ mod tests {
             [1.0, 2.0]
         );
         assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0])
+            vec3!(3.0, 4.0, 1.0)
                 .map(|x| {
                     let idx = [3.0, 4.0, 1.0].into_iter().position(|y| y == x).unwrap();
                     [3.0, 4.0, 1.0][idx]
@@ -1295,7 +1270,7 @@ mod tests {
             [3.0, 4.0, 1.0]
         );
         assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0])
+            vec4!(2.0, 3.0, 4.0, 1.0)
                 .map(|x| {
                     let idx = [2.0, 3.0, 4.0, 1.0]
                         .into_iter()
@@ -1307,70 +1282,28 @@ mod tests {
             [2.0, 3.0, 4.0, 1.0]
         );
 
+        assert_eq!(vec2!(1.0, 2.0).fold(|x, y| x + y), 1.0 + 2.0);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).fold(|x, y| x + y), 3.0 + 4.0 + 1.0);
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).fold(|x, y| x + y),
-            1.0 + 2.0
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).fold(|x, y| x + y),
-            3.0 + 4.0 + 1.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).fold(|x, y| x + y),
+            vec4!(2.0, 3.0, 4.0, 1.0).fold(|x, y| x + y),
             2.0 + 3.0 + 4.0 + 1.0
         );
 
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).all(|x| x == 1.0),
-            false
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).all(|x| x == 1.0),
-            false
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).all(|x| x == 1.0),
-            false
-        );
+        assert_eq!(vec2!(1.0, 2.0).all(|x| x == 1.0), false);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).all(|x| x == 1.0), false);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).all(|x| x == 1.0), false);
 
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).any(|x| x == 1.0),
-            true
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).any(|x| x == 1.0),
-            true
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).any(|x| x == 1.0),
-            true
-        );
+        assert_eq!(vec2!(1.0, 2.0).any(|x| x == 1.0), true);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).any(|x| x == 1.0), true);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).any(|x| x == 1.0), true);
 
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).count(|x| x == 1.0),
-            1
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).count(|x| x == 1.0),
-            1
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).count(|x| x == 1.0),
-            1
-        );
+        assert_eq!(vec2!(1.0, 2.0).count(|x| x == 1.0), 1);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).count(|x| x == 1.0), 1);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).count(|x| x == 1.0), 1);
 
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).len(),
-            2
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).len(),
-            3
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).len(),
-            4
-        );
+        assert_eq!(vec2!(1.0, 2.0).len(), 2);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).len(), 3);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).len(), 4);
     }
 
     #[test]
@@ -1404,58 +1337,32 @@ mod tests {
 
     #[test]
     fn test_storage_aligned() {
+        assert_eq!(vec2!(1.0, 2.0).align(), vec2!(1.0, 2.0),);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).align(), vec3!(3.0, 4.0, 1.0),);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).align(), vec4!(2.0, 3.0, 4.0, 1.0),);
+
+        assert_eq!(vec2!(1.0, 2.0).pack(), vec2!(1.0, 2.0),);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).pack(), vec3!(3.0, 4.0, 1.0),);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).pack(), vec4!(2.0, 3.0, 4.0, 1.0),);
+
+        assert_eq!(vec2!(1.0, 2.0).to_storage::<VecAligned>(), vec2!(1.0, 2.0),);
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).align(),
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]),
+            vec3!(3.0, 4.0, 1.0).to_storage::<VecAligned>(),
+            vec3!(3.0, 4.0, 1.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).align(),
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).align(),
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]),
+            vec4!(2.0, 3.0, 4.0, 1.0).to_storage::<VecAligned>(),
+            vec4!(2.0, 3.0, 4.0, 1.0),
         );
 
+        assert_eq!(vec2!(1.0, 2.0).to_storage::<VecPacked>(), vec2!(1.0, 2.0),);
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).pack(),
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]),
+            vec3!(3.0, 4.0, 1.0).to_storage::<VecPacked>(),
+            vec3!(3.0, 4.0, 1.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).pack(),
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).pack(),
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]),
-        );
-
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).to_storage::<VecAligned>(),
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).to_storage::<VecAligned>(),
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0])
-                .to_storage::<VecAligned>(),
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]),
-        );
-
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).to_storage::<VecPacked>(),
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).to_storage::<VecPacked>(),
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0])
-                .to_storage::<VecPacked>(),
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]),
+            vec4!(2.0, 3.0, 4.0, 1.0).to_storage::<VecPacked>(),
+            vec4!(2.0, 3.0, 4.0, 1.0),
         );
 
         assert_eq!(
@@ -1474,180 +1381,90 @@ mod tests {
 
     #[test]
     fn test_swizzle_aligned() {
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).x(),
-            1.0
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).y(),
-            4.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).z(),
-            4.0
-        );
+        assert_eq!(vec2!(1.0, 2.0).x(), 1.0);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).y(), 4.0);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).z(), 4.0);
 
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).yy(),
-            Vector::<2, f64, VecAligned>::from_array([2.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).zy(),
-            Vector::<2, f64, VecAligned>::from_array([1.0, 4.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).xw(),
-            Vector::<2, f64, VecAligned>::from_array([2.0, 1.0]),
-        );
+        assert_eq!(vec2!(1.0, 2.0).yy(), vec2!(2.0, 2.0),);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).zy(), vec2!(1.0, 4.0),);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).xw(), vec2!(2.0, 1.0),);
 
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).xyy(),
-            Vector::<3, f64, VecAligned>::from_array([1.0, 2.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).yzy(),
-            Vector::<3, f64, VecAligned>::from_array([4.0, 1.0, 4.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).wxy(),
-            Vector::<3, f64, VecAligned>::from_array([1.0, 2.0, 3.0]),
-        );
+        assert_eq!(vec2!(1.0, 2.0).xyy(), vec3!(1.0, 2.0, 2.0),);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).yzy(), vec3!(4.0, 1.0, 4.0),);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).wxy(), vec3!(1.0, 2.0, 3.0),);
 
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).xxyy(),
-            Vector::<4, f64, VecAligned>::from_array([1.0, 1.0, 2.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).yzyz(),
-            Vector::<4, f64, VecAligned>::from_array([4.0, 1.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).wxyw(),
-            Vector::<4, f64, VecAligned>::from_array([1.0, 2.0, 3.0, 1.0]),
-        );
+        assert_eq!(vec2!(1.0, 2.0).xxyy(), vec4!(1.0, 1.0, 2.0, 2.0),);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).yzyz(), vec4!(4.0, 1.0, 4.0, 1.0),);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).wxyw(), vec4!(1.0, 2.0, 3.0, 1.0),);
     }
 
     #[test]
     fn test_swizzle_ref_aligned() {
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).x_ref(),
-            &1.0
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).y_ref(),
-            &4.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).z_ref(),
-            &4.0
-        );
+        assert_eq!(vec2!(1.0, 2.0).x_ref(), &1.0);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).y_ref(), &4.0);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).z_ref(), &4.0);
+
+        assert_eq!(vec2!(1.0, 2.0).xy_ref(), &vec2p!(1.0, 2.0),);
+        assert_eq!(vec3!(1.0, 2.0, 3.0).yz_ref(), &vec2p!(2.0, 3.0),);
+        assert_eq!(vec4!(1.0, 2.0, 3.0, 4.0).zw_ref(), &vec2p!(3.0, 4.0),);
+
+        assert_eq!(vec3!(1.0, 2.0, 3.0).xyz_ref(), &vec3p!(1.0, 2.0, 3.0),);
+        assert_eq!(vec4!(1.0, 2.0, 3.0, 4.0).yzw_ref(), &vec3p!(2.0, 3.0, 4.0),);
 
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).xy_ref(),
-            &Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([1.0, 2.0, 3.0]).yz_ref(),
-            &Vector::<2, f64, VecPacked>::from_array([2.0, 3.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([1.0, 2.0, 3.0, 4.0]).zw_ref(),
-            &Vector::<2, f64, VecPacked>::from_array([3.0, 4.0]),
-        );
-
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([1.0, 2.0, 3.0]).xyz_ref(),
-            &Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 3.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([1.0, 2.0, 3.0, 4.0]).yzw_ref(),
-            &Vector::<3, f64, VecPacked>::from_array([2.0, 3.0, 4.0]),
-        );
-
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([1.0, 2.0, 3.0, 4.0]).xyzw_ref(),
-            &Vector::<4, f64, VecPacked>::from_array([1.0, 2.0, 3.0, 4.0]),
+            vec4!(1.0, 2.0, 3.0, 4.0).xyzw_ref(),
+            &vec4p!(1.0, 2.0, 3.0, 4.0),
         );
     }
 
     #[test]
     fn test_swizzle_mut_aligned() {
-        assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).x_mut(),
-            &mut 1.0
-        );
-        assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).y_mut(),
-            &mut 4.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).z_mut(),
-            &mut 4.0
-        );
+        assert_eq!(vec2!(1.0, 2.0).x_mut(), &mut 1.0);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).y_mut(), &mut 4.0);
+        assert_eq!(vec4!(2.0, 3.0, 4.0, 1.0).z_mut(), &mut 4.0);
 
+        assert_eq!(vec2!(1.0, 2.0).x_y_mut(), (&mut 1.0, &mut 2.0));
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).x_y_mut(),
-            (&mut 1.0, &mut 2.0)
+            vec3!(3.0, 4.0, 1.0).xy_z_mut(),
+            (&mut vec2p!(3.0, 4.0), &mut 1.0)
         );
         assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).xy_z_mut(),
-            (
-                &mut Vector::<2, f64, VecPacked>::from_array([3.0, 4.0]),
-                &mut 1.0
-            )
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).xy_zw_mut(),
-            (
-                &mut Vector::<2, f64, VecPacked>::from_array([2.0, 3.0]),
-                &mut Vector::<2, f64, VecPacked>::from_array([4.0, 1.0]),
-            ),
+            vec4!(2.0, 3.0, 4.0, 1.0).xy_zw_mut(),
+            (&mut vec2p!(2.0, 3.0), &mut vec2p!(4.0, 1.0)),
         );
     }
 
     #[test]
     fn test_swizzle_with_aligned() {
+        assert_eq!(vec2!(1.0, 2.0).with_x(3.0), vec2!(3.0, 2.0),);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).with_y(2.0), vec3!(3.0, 2.0, 1.0),);
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).with_x(3.0),
-            Vector::<2, f64, VecAligned>::from_array([3.0, 2.0]),
+            vec4!(2.0, 3.0, 4.0, 1.0).with_z(3.0),
+            vec4!(2.0, 3.0, 3.0, 1.0),
+        );
+
+        assert_eq!(vec2!(1.0, 2.0).with_xy(vec2!(3.0, 4.0)), vec2!(3.0, 4.0),);
+        assert_eq!(
+            vec3!(3.0, 4.0, 1.0).with_zy(vec2!(2.0, 3.0)),
+            vec3!(3.0, 3.0, 2.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).with_y(2.0),
-            Vector::<3, f64, VecAligned>::from_array([3.0, 2.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).with_z(3.0),
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 3.0, 1.0]),
+            vec4!(2.0, 3.0, 4.0, 1.0).with_xw(vec2!(3.0, 4.0)),
+            vec4!(3.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]).with_xy(vec2!(3.0, 4.0)),
-            Vector::<2, f64, VecAligned>::from_array([3.0, 4.0]),
+            vec3!(1.0, 2.0, 3.0).with_xzy(vec3!(3.0, 4.0, 1.0)),
+            vec3!(3.0, 1.0, 4.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]).with_zy(vec2!(2.0, 3.0)),
-            Vector::<3, f64, VecAligned>::from_array([3.0, 3.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]).with_xw(vec2!(3.0, 4.0)),
-            Vector::<4, f64, VecAligned>::from_array([3.0, 2.0, 3.0, 4.0]),
+            vec4!(2.0, 3.0, 4.0, 1.0).with_ywx(vec3!(3.0, 4.0, 1.0)),
+            vec4!(1.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
-            Vector::<3, f64, VecAligned>::from_array([1.0, 2.0, 3.0])
-                .with_xzy(vec3!(3.0, 4.0, 1.0)),
-            Vector::<3, f64, VecAligned>::from_array([3.0, 1.0, 4.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0])
-                .with_ywx(vec3!(3.0, 4.0, 1.0)),
-            Vector::<4, f64, VecAligned>::from_array([1.0, 3.0, 4.0, 4.0]),
-        );
-
-        assert_eq!(
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0])
-                .with_xywz(vec4!(3.0, 4.0, 1.0, 2.0)),
-            Vector::<4, f64, VecAligned>::from_array([3.0, 4.0, 2.0, 1.0]),
+            vec4!(2.0, 3.0, 4.0, 1.0).with_xywz(vec4!(3.0, 4.0, 1.0, 2.0)),
+            vec4!(3.0, 4.0, 2.0, 1.0),
         );
     }
 
@@ -1655,78 +1472,78 @@ mod tests {
     fn test_swizzle_set_aligned() {
         assert_eq!(
             {
-                let mut vector = Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]);
+                let mut vector = vec2!(1.0, 2.0);
                 vector.set_x(3.0);
                 vector
             },
-            Vector::<2, f64, VecAligned>::from_array([3.0, 2.0]),
+            vec2!(3.0, 2.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]);
+                let mut vector = vec3!(3.0, 4.0, 1.0);
                 vector.set_y(2.0);
                 vector
             },
-            Vector::<3, f64, VecAligned>::from_array([3.0, 2.0, 1.0]),
+            vec3!(3.0, 2.0, 1.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4!(2.0, 3.0, 4.0, 1.0);
                 vector.set_z(3.0);
                 vector
             },
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 3.0, 1.0]),
+            vec4!(2.0, 3.0, 3.0, 1.0),
         );
 
         assert_eq!(
             {
-                let mut vector = Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]);
+                let mut vector = vec2!(1.0, 2.0);
                 vector.set_xy(vec2!(3.0, 4.0));
                 vector
             },
-            Vector::<2, f64, VecAligned>::from_array([3.0, 4.0]),
+            vec2!(3.0, 4.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]);
+                let mut vector = vec3!(3.0, 4.0, 1.0);
                 vector.set_zy(vec2!(2.0, 3.0));
                 vector
             },
-            Vector::<3, f64, VecAligned>::from_array([3.0, 3.0, 2.0]),
+            vec3!(3.0, 3.0, 2.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4!(2.0, 3.0, 4.0, 1.0);
                 vector.set_xw(vec2!(3.0, 4.0));
                 vector
             },
-            Vector::<4, f64, VecAligned>::from_array([3.0, 2.0, 3.0, 4.0]),
+            vec4!(3.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
             {
-                let mut vector = Vector::<3, f64, VecAligned>::from_array([1.0, 2.0, 3.0]);
+                let mut vector = vec3!(1.0, 2.0, 3.0);
                 vector.set_xzy(vec3!(3.0, 4.0, 1.0));
                 vector
             },
-            Vector::<3, f64, VecAligned>::from_array([3.0, 1.0, 4.0]),
+            vec3!(3.0, 1.0, 4.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4!(2.0, 3.0, 4.0, 1.0);
                 vector.set_ywx(vec3!(3.0, 4.0, 1.0));
                 vector
             },
-            Vector::<4, f64, VecAligned>::from_array([1.0, 3.0, 4.0, 4.0]),
+            vec4!(1.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4!(2.0, 3.0, 4.0, 1.0);
                 vector.set_xywz(vec4!(3.0, 4.0, 1.0, 2.0));
                 vector
             },
-            Vector::<4, f64, VecAligned>::from_array([3.0, 4.0, 2.0, 1.0]),
+            vec4!(3.0, 4.0, 2.0, 1.0),
         );
     }
 
@@ -1815,32 +1632,6 @@ mod tests {
         );
 
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).as_ptr(),
-            [1.0, 2.0].as_ptr()
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).as_ptr(),
-            [3.0, 4.0, 1.0].as_ptr()
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).as_ptr(),
-            [2.0, 3.0, 4.0, 1.0].as_ptr()
-        );
-
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).as_mut_ptr(),
-            [1.0, 2.0].as_mut_ptr()
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).as_mut_ptr(),
-            [3.0, 4.0, 1.0].as_mut_ptr()
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).as_mut_ptr(),
-            [2.0, 3.0, 4.0, 1.0].as_mut_ptr()
-        );
-
-        assert_eq!(
             Vector::<2, f64, VecPacked>::from_fn(|i| [1.0, 2.0][i]).to_array(),
             [1.0, 2.0]
         );
@@ -1854,7 +1645,7 @@ mod tests {
         );
 
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0])
+            vec2p!(1.0, 2.0)
                 .map(|x| {
                     let idx = [1.0, 2.0].into_iter().position(|y| y == x).unwrap();
                     [1.0, 2.0][idx]
@@ -1863,7 +1654,7 @@ mod tests {
             [1.0, 2.0]
         );
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0])
+            vec3p!(3.0, 4.0, 1.0)
                 .map(|x| {
                     let idx = [3.0, 4.0, 1.0].into_iter().position(|y| y == x).unwrap();
                     [3.0, 4.0, 1.0][idx]
@@ -1872,7 +1663,7 @@ mod tests {
             [3.0, 4.0, 1.0]
         );
         assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0])
+            vec4p!(2.0, 3.0, 4.0, 1.0)
                 .map(|x| {
                     let idx = [2.0, 3.0, 4.0, 1.0]
                         .into_iter()
@@ -1884,67 +1675,28 @@ mod tests {
             [2.0, 3.0, 4.0, 1.0]
         );
 
+        assert_eq!(vec2p!(1.0, 2.0).fold(|x, y| x + y), 1.0 + 2.0);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).fold(|x, y| x + y), 3.0 + 4.0 + 1.0);
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).fold(|x, y| x + y),
-            1.0 + 2.0
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).fold(|x, y| x + y),
-            3.0 + 4.0 + 1.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).fold(|x, y| x + y),
+            vec4p!(2.0, 3.0, 4.0, 1.0).fold(|x, y| x + y),
             2.0 + 3.0 + 4.0 + 1.0
         );
 
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).all(|x| x == 1.0),
-            false
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).all(|x| x == 1.0),
-            false
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).all(|x| x == 1.0),
-            false
-        );
+        assert_eq!(vec2p!(1.0, 2.0).all(|x| x == 1.0), false);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).all(|x| x == 1.0), false);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).all(|x| x == 1.0), false);
 
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).any(|x| x == 1.0),
-            true
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).any(|x| x == 1.0),
-            true
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).any(|x| x == 1.0),
-            true
-        );
+        assert_eq!(vec2p!(1.0, 2.0).any(|x| x == 1.0), true);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).any(|x| x == 1.0), true);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).any(|x| x == 1.0), true);
 
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).count(|x| x == 1.0),
-            1
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).count(|x| x == 1.0),
-            1
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).count(|x| x == 1.0),
-            1
-        );
+        assert_eq!(vec2p!(1.0, 2.0).count(|x| x == 1.0), 1);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).count(|x| x == 1.0), 1);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).count(|x| x == 1.0), 1);
 
-        assert_eq!(Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).len(), 2);
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).len(),
-            3
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).len(),
-            4
-        );
+        assert_eq!(vec2p!(1.0, 2.0).len(), 2);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).len(), 3);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).len(), 4);
     }
 
     #[test]
@@ -1969,57 +1721,41 @@ mod tests {
 
     #[test]
     fn test_storage_packed() {
+        assert_eq!(vec2p!(1.0, 2.0).align(), vec2p!(1.0, 2.0),);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).align(), vec3p!(3.0, 4.0, 1.0),);
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).align(),
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).align(),
+            vec4p!(2.0, 3.0, 4.0, 1.0),
         );
+
+        assert_eq!(vec2p!(1.0, 2.0).pack(), vec2p!(1.0, 2.0),);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).pack(), vec3p!(3.0, 4.0, 1.0),);
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).align(),
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).align(),
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).pack(),
+            vec4p!(2.0, 3.0, 4.0, 1.0),
         );
 
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).pack(),
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]),
+            vec2p!(1.0, 2.0).to_storage::<VecAligned>(),
+            vec2p!(1.0, 2.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).pack(),
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]),
+            vec3p!(3.0, 4.0, 1.0).to_storage::<VecAligned>(),
+            vec3p!(3.0, 4.0, 1.0),
         );
         assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).pack(),
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]),
-        );
-
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).to_storage::<VecAligned>(),
-            Vector::<2, f64, VecAligned>::from_array([1.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).to_storage::<VecAligned>(),
-            Vector::<3, f64, VecAligned>::from_array([3.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0])
-                .to_storage::<VecAligned>(),
-            Vector::<4, f64, VecAligned>::from_array([2.0, 3.0, 4.0, 1.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).to_storage::<VecAligned>(),
+            vec4p!(2.0, 3.0, 4.0, 1.0),
         );
 
+        assert_eq!(vec2p!(1.0, 2.0).to_storage::<VecPacked>(), vec2p!(1.0, 2.0),);
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).to_storage::<VecPacked>(),
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]),
+            vec3p!(3.0, 4.0, 1.0).to_storage::<VecPacked>(),
+            vec3p!(3.0, 4.0, 1.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).to_storage::<VecPacked>(),
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).to_storage::<VecPacked>(),
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).to_storage::<VecPacked>(),
+            vec4p!(2.0, 3.0, 4.0, 1.0),
         );
 
         assert_eq!(
@@ -2038,176 +1774,93 @@ mod tests {
 
     #[test]
     fn test_swizzle_packed() {
-        assert_eq!(Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).x(), 1.0);
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).y(),
-            4.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).z(),
-            4.0
-        );
+        assert_eq!(vec2p!(1.0, 2.0).x(), 1.0);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).y(), 4.0);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).z(), 4.0);
 
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).yy(),
-            Vector::<2, f64, VecPacked>::from_array([2.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).zy(),
-            Vector::<2, f64, VecPacked>::from_array([1.0, 4.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).xw(),
-            Vector::<2, f64, VecPacked>::from_array([2.0, 1.0]),
-        );
+        assert_eq!(vec2p!(1.0, 2.0).yy(), vec2p!(2.0, 2.0),);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).zy(), vec2p!(1.0, 4.0),);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).xw(), vec2p!(2.0, 1.0),);
 
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).xyy(),
-            Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).yzy(),
-            Vector::<3, f64, VecPacked>::from_array([4.0, 1.0, 4.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).wxy(),
-            Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 3.0]),
-        );
+        assert_eq!(vec2p!(1.0, 2.0).xyy(), vec3p!(1.0, 2.0, 2.0),);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).yzy(), vec3p!(4.0, 1.0, 4.0),);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).wxy(), vec3p!(1.0, 2.0, 3.0),);
 
+        assert_eq!(vec2p!(1.0, 2.0).xxyy(), vec4p!(1.0, 1.0, 2.0, 2.0),);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).yzyz(), vec4p!(4.0, 1.0, 4.0, 1.0),);
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).xxyy(),
-            Vector::<4, f64, VecPacked>::from_array([1.0, 1.0, 2.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).yzyz(),
-            Vector::<4, f64, VecPacked>::from_array([4.0, 1.0, 4.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).wxyw(),
-            Vector::<4, f64, VecPacked>::from_array([1.0, 2.0, 3.0, 1.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).wxyw(),
+            vec4p!(1.0, 2.0, 3.0, 1.0),
         );
     }
 
     #[test]
     fn test_swizzle_ref_packed() {
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).x_ref(),
-            &1.0
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).y_ref(),
-            &4.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).z_ref(),
-            &4.0
-        );
+        assert_eq!(vec2p!(1.0, 2.0).x_ref(), &1.0);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).y_ref(), &4.0);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).z_ref(), &4.0);
+
+        assert_eq!(vec2p!(1.0, 2.0).xy_ref(), &vec2p!(1.0, 2.0),);
+        assert_eq!(vec3p!(1.0, 2.0, 3.0).yz_ref(), &vec2p!(2.0, 3.0),);
+        assert_eq!(vec4p!(1.0, 2.0, 3.0, 4.0).zw_ref(), &vec2p!(3.0, 4.0),);
+
+        assert_eq!(vec3p!(1.0, 2.0, 3.0).xyz_ref(), &vec3p!(1.0, 2.0, 3.0),);
+        assert_eq!(vec4p!(1.0, 2.0, 3.0, 4.0).yzw_ref(), &vec3p!(2.0, 3.0, 4.0),);
 
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).xy_ref(),
-            &Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 3.0]).yz_ref(),
-            &Vector::<2, f64, VecPacked>::from_array([2.0, 3.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([1.0, 2.0, 3.0, 4.0]).zw_ref(),
-            &Vector::<2, f64, VecPacked>::from_array([3.0, 4.0]),
-        );
-
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 3.0]).xyz_ref(),
-            &Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 3.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([1.0, 2.0, 3.0, 4.0]).yzw_ref(),
-            &Vector::<3, f64, VecPacked>::from_array([2.0, 3.0, 4.0]),
-        );
-
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([1.0, 2.0, 3.0, 4.0]).xyzw_ref(),
-            &Vector::<4, f64, VecPacked>::from_array([1.0, 2.0, 3.0, 4.0]),
+            vec4p!(1.0, 2.0, 3.0, 4.0).xyzw_ref(),
+            &vec4p!(1.0, 2.0, 3.0, 4.0),
         );
     }
 
     #[test]
     fn test_swizzle_mut_packed() {
-        assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).x_mut(),
-            &mut 1.0
-        );
-        assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).y_mut(),
-            &mut 4.0
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).z_mut(),
-            &mut 4.0
-        );
+        assert_eq!(vec2p!(1.0, 2.0).x_mut(), &mut 1.0);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).y_mut(), &mut 4.0);
+        assert_eq!(vec4p!(2.0, 3.0, 4.0, 1.0).z_mut(), &mut 4.0);
 
+        assert_eq!(vec2p!(1.0, 2.0).x_y_mut(), (&mut 1.0, &mut 2.0));
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).x_y_mut(),
-            (&mut 1.0, &mut 2.0)
+            vec3p!(3.0, 4.0, 1.0).xy_z_mut(),
+            (&mut vec2p!(3.0, 4.0), &mut 1.0)
         );
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).xy_z_mut(),
-            (
-                &mut Vector::<2, f64, VecPacked>::from_array([3.0, 4.0]),
-                &mut 1.0
-            )
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).xy_zw_mut(),
-            (
-                &mut Vector::<2, f64, VecPacked>::from_array([2.0, 3.0]),
-                &mut Vector::<2, f64, VecPacked>::from_array([4.0, 1.0]),
-            ),
+            vec4p!(2.0, 3.0, 4.0, 1.0).xy_zw_mut(),
+            (&mut vec2p!(2.0, 3.0), &mut vec2p!(4.0, 1.0)),
         );
     }
 
     #[test]
     fn test_swizzle_with_packed() {
+        assert_eq!(vec2p!(1.0, 2.0).with_x(3.0), vec2p!(3.0, 2.0),);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).with_y(2.0), vec3p!(3.0, 2.0, 1.0),);
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).with_x(3.0),
-            Vector::<2, f64, VecPacked>::from_array([3.0, 2.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).with_z(3.0),
+            vec4p!(2.0, 3.0, 3.0, 1.0),
+        );
+
+        assert_eq!(vec2p!(1.0, 2.0).with_xy(vec2!(3.0, 4.0)), vec2p!(3.0, 4.0),);
+        assert_eq!(
+            vec3p!(3.0, 4.0, 1.0).with_zy(vec2!(2.0, 3.0)),
+            vec3p!(3.0, 3.0, 2.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).with_y(2.0),
-            Vector::<3, f64, VecPacked>::from_array([3.0, 2.0, 1.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).with_z(3.0),
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 3.0, 1.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).with_xw(vec2!(3.0, 4.0)),
+            vec4p!(3.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
-            Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]).with_xy(vec2!(3.0, 4.0)),
-            Vector::<2, f64, VecPacked>::from_array([3.0, 4.0]),
+            vec3p!(1.0, 2.0, 3.0).with_xzy(vec3!(3.0, 4.0, 1.0)),
+            vec3p!(3.0, 1.0, 4.0),
         );
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]).with_zy(vec2!(2.0, 3.0)),
-            Vector::<3, f64, VecPacked>::from_array([3.0, 3.0, 2.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]).with_xw(vec2!(3.0, 4.0)),
-            Vector::<4, f64, VecPacked>::from_array([3.0, 2.0, 3.0, 4.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).with_ywx(vec3!(3.0, 4.0, 1.0)),
+            vec4p!(1.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
-            Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 3.0]).with_xzy(vec3!(3.0, 4.0, 1.0)),
-            Vector::<3, f64, VecPacked>::from_array([3.0, 1.0, 4.0]),
-        );
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0])
-                .with_ywx(vec3!(3.0, 4.0, 1.0)),
-            Vector::<4, f64, VecPacked>::from_array([1.0, 3.0, 4.0, 4.0]),
-        );
-
-        assert_eq!(
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0])
-                .with_xywz(vec4!(3.0, 4.0, 1.0, 2.0)),
-            Vector::<4, f64, VecPacked>::from_array([3.0, 4.0, 2.0, 1.0]),
+            vec4p!(2.0, 3.0, 4.0, 1.0).with_xywz(vec4!(3.0, 4.0, 1.0, 2.0)),
+            vec4p!(3.0, 4.0, 2.0, 1.0),
         );
     }
 
@@ -2215,78 +1868,78 @@ mod tests {
     fn test_swizzle_set_packed() {
         assert_eq!(
             {
-                let mut vector = Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]);
+                let mut vector = vec2p!(1.0, 2.0);
                 vector.set_x(3.0);
                 vector
             },
-            Vector::<2, f64, VecPacked>::from_array([3.0, 2.0]),
+            vec2p!(3.0, 2.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]);
+                let mut vector = vec3p!(3.0, 4.0, 1.0);
                 vector.set_y(2.0);
                 vector
             },
-            Vector::<3, f64, VecPacked>::from_array([3.0, 2.0, 1.0]),
+            vec3p!(3.0, 2.0, 1.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4p!(2.0, 3.0, 4.0, 1.0);
                 vector.set_z(3.0);
                 vector
             },
-            Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 3.0, 1.0]),
+            vec4p!(2.0, 3.0, 3.0, 1.0),
         );
 
         assert_eq!(
             {
-                let mut vector = Vector::<2, f64, VecPacked>::from_array([1.0, 2.0]);
+                let mut vector = vec2p!(1.0, 2.0);
                 vector.set_xy(vec2!(3.0, 4.0));
                 vector
             },
-            Vector::<2, f64, VecPacked>::from_array([3.0, 4.0]),
+            vec2p!(3.0, 4.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<3, f64, VecPacked>::from_array([3.0, 4.0, 1.0]);
+                let mut vector = vec3p!(3.0, 4.0, 1.0);
                 vector.set_zy(vec2!(2.0, 3.0));
                 vector
             },
-            Vector::<3, f64, VecPacked>::from_array([3.0, 3.0, 2.0]),
+            vec3p!(3.0, 3.0, 2.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4p!(2.0, 3.0, 4.0, 1.0);
                 vector.set_xw(vec2!(3.0, 4.0));
                 vector
             },
-            Vector::<4, f64, VecPacked>::from_array([3.0, 2.0, 3.0, 4.0]),
+            vec4p!(3.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
             {
-                let mut vector = Vector::<3, f64, VecPacked>::from_array([1.0, 2.0, 3.0]);
+                let mut vector = vec3p!(1.0, 2.0, 3.0);
                 vector.set_xzy(vec3!(3.0, 4.0, 1.0));
                 vector
             },
-            Vector::<3, f64, VecPacked>::from_array([3.0, 1.0, 4.0]),
+            vec3p!(3.0, 1.0, 4.0),
         );
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4p!(2.0, 3.0, 4.0, 1.0);
                 vector.set_ywx(vec3!(3.0, 4.0, 1.0));
                 vector
             },
-            Vector::<4, f64, VecPacked>::from_array([1.0, 3.0, 4.0, 4.0]),
+            vec4p!(1.0, 3.0, 4.0, 4.0),
         );
 
         assert_eq!(
             {
-                let mut vector = Vector::<4, f64, VecPacked>::from_array([2.0, 3.0, 4.0, 1.0]);
+                let mut vector = vec4p!(2.0, 3.0, 4.0, 1.0);
                 vector.set_xywz(vec4!(3.0, 4.0, 1.0, 2.0));
                 vector
             },
-            Vector::<4, f64, VecPacked>::from_array([3.0, 4.0, 2.0, 1.0]),
+            vec4p!(3.0, 4.0, 2.0, 1.0),
         );
     }
 
@@ -2331,172 +1984,172 @@ mod tests {
         );
     }
 
-    // These tests are generated for all primitive number types
+    // These tests are generated for all float types
 
     #[test]
-    fn test_ops_aligned() {
-        assert_eq!((vec2!(0.0, 1.0) + vec2!(2.0, 3.0)).to_array(), [2.0, 4.0]);
-        assert_eq!((vec2!(5.0, 3.0) - vec2!(2.0, 2.0)).to_array(), [3.0, 1.0]);
-        assert_eq!((vec2!(5.0, 3.0) * vec2!(2.0, 3.0)).to_array(), [10.0, 9.0]);
-        assert_eq!((vec2!(5.0, 3.0) / vec2!(2.0, 3.0)).to_array(), [2.0, 1.0]);
-        assert_eq!((vec2!(5.0, 3.0) % vec2!(2.0, 3.0)).to_array(), [1.0, 0.0]);
-        assert_eq!((vec2!(5.0, 3.0) * 2.0).to_array(), [10.0, 6.0]);
-        assert_eq!((vec2!(5.0, 3.0) / 2.0).to_array(), [2.0, 1.0]);
-        assert_eq!((vec2!(5.0, 3.0) % 2.0).to_array(), [1.0, 1.0]);
-
+    fn test_neg_aligned() {
+        assert_eq!((-vec2!(3.0, 1.0)).to_array(), [-3.0, -1.0]);
+        assert_eq!((-vec3!(3.0, 1.0, -2.0)).to_array(), [-3.0, -1.0, 2.0]);
         assert_eq!(
-            (vec3!(0.0, 1.0, 2.0) + vec3!(3.0, 4.0, 5.0)).to_array(),
-            [3.0, 5.0, 7.0]
-        );
-        assert_eq!(
-            (vec3!(5.0, 3.0, 2.0) - vec3!(2.0, 2.0, 2.0)).to_array(),
-            [3.0, 1.0, 0.0]
-        );
-        assert_eq!(
-            (vec3!(5.0, 3.0, 2.0) * vec3!(2.0, 3.0, 4.0)).to_array(),
-            [10.0, 9.0, 8.0]
-        );
-        assert_eq!(
-            (vec3!(5.0, 3.0, 2.0) / vec3!(2.0, 3.0, 4.0)).to_array(),
-            [2.0, 1.0, 0.0]
-        );
-        assert_eq!(
-            (vec3!(5.0, 3.0, 2.0) % vec3!(2.0, 3.0, 4.0)).to_array(),
-            [1.0, 0.0, 2.0]
-        );
-        assert_eq!((vec3!(5.0, 3.0, 2.0) * 2.0).to_array(), [10.0, 6.0, 4.0]);
-        assert_eq!((vec3!(5.0, 3.0, 2.0) / 2.0).to_array(), [2.0, 1.0, 1.0]);
-        assert_eq!((vec3!(5.0, 3.0, 2.0) % 2.0).to_array(), [1.0, 1.0, 0.0]);
-
-        assert_eq!(
-            (vec4!(0.0, 1.0, 2.0, 3.0) + vec4!(4.0, 5.0, 6.0, 7.0)).to_array(),
-            [4.0, 6.0, 8.0, 10.0]
-        );
-        assert_eq!(
-            (vec4!(5.0, 3.0, 2.0, 1.0) - vec4!(2.0, 2.0, 2.0, 2.0)).to_array(),
-            [3.0, 1.0, 0.0, 1.0]
-        );
-        assert_eq!(
-            (vec4!(5.0, 3.0, 2.0, 1.0) * vec4!(2.0, 3.0, 4.0, 5.0)).to_array(),
-            [10.0, 9.0, 8.0, 5.0]
-        );
-        assert_eq!(
-            (vec4!(5.0, 3.0, 2.0, 1.0) / vec4!(2.0, 3.0, 4.0, 5.0)).to_array(),
-            [2.0, 1.0, 0.0, 1.0]
-        );
-        assert_eq!(
-            (vec4!(5.0, 3.0, 2.0, 1.0) % vec4!(2.0, 3.0, 4.0, 5.0)).to_array(),
-            [1.0, 0.0, 2.0, 1.0]
-        );
-        assert_eq!(
-            (vec4!(5.0, 3.0, 2.0, 1.0) * 2.0).to_array(),
-            [10.0, 6.0, 4.0, 2.0]
-        );
-        assert_eq!(
-            (vec4!(5.0, 3.0, 2.0, 1.0) / 2.0).to_array(),
-            [2.0, 1.0, 1.0, 1.0]
-        );
-        assert_eq!(
-            (vec4!(5.0, 3.0, 2.0, 1.0) % 2.0).to_array(),
-            [1.0, 1.0, 0.0, 1.0]
+            (-vec4!(3.0, 1.0, 2.0, 0.0)).to_array(),
+            [-3.0, -1.0, -2.0, 0.0]
         );
     }
 
-    // These tests are generated for all primitive number types
-
     #[test]
-    fn test_ops_packed() {
-        assert_eq!((vec2p!(0.0, 1.0) + vec2p!(2.0, 3.0)).to_array(), [2.0, 4.0]);
-        assert_eq!((vec2p!(5.0, 3.0) - vec2p!(2.0, 2.0)).to_array(), [3.0, 1.0]);
+    fn test_add_aligned() {
+        assert_eq!((vec2!(3.0, 1.0) + vec2!(5.0, 3.0)).to_array(), [8.0, 4.0]);
         assert_eq!(
-            (vec2p!(5.0, 3.0) * vec2p!(2.0, 3.0)).to_array(),
-            [10.0, 9.0]
-        );
-        assert_eq!((vec2p!(5.0, 3.0) / vec2p!(2.0, 3.0)).to_array(), [2.0, 1.0]);
-        assert_eq!((vec2p!(5.0, 3.0) % vec2p!(2.0, 3.0)).to_array(), [1.0, 0.0]);
-        assert_eq!((vec2p!(5.0, 3.0) * 2.0).to_array(), [10.0, 6.0]);
-        assert_eq!((vec2p!(5.0, 3.0) / 2.0).to_array(), [2.0, 1.0]);
-        assert_eq!((vec2p!(5.0, 3.0) % 2.0).to_array(), [1.0, 1.0]);
-
-        assert_eq!(
-            (vec3p!(0.0, 1.0, 2.0) + vec3p!(3.0, 4.0, 5.0)).to_array(),
-            [3.0, 5.0, 7.0]
+            (vec3!(3.0, 1.0, -2.0) + vec3!(5.0, 3.0, 4.0)).to_array(),
+            [8.0, 4.0, 2.0]
         );
         assert_eq!(
-            (vec3p!(5.0, 3.0, 2.0) - vec3p!(2.0, 2.0, 2.0)).to_array(),
-            [3.0, 1.0, 0.0]
-        );
-        assert_eq!(
-            (vec3p!(5.0, 3.0, 2.0) * vec3p!(2.0, 3.0, 4.0)).to_array(),
-            [10.0, 9.0, 8.0]
-        );
-        assert_eq!(
-            (vec3p!(5.0, 3.0, 2.0) / vec3p!(2.0, 3.0, 4.0)).to_array(),
-            [2.0, 1.0, 0.0]
-        );
-        assert_eq!(
-            (vec3p!(5.0, 3.0, 2.0) % vec3p!(2.0, 3.0, 4.0)).to_array(),
-            [1.0, 0.0, 2.0]
-        );
-        assert_eq!((vec3p!(5.0, 3.0, 2.0) * 2.0).to_array(), [10.0, 6.0, 4.0]);
-        assert_eq!((vec3p!(5.0, 3.0, 2.0) / 2.0).to_array(), [2.0, 1.0, 1.0]);
-        assert_eq!((vec3p!(5.0, 3.0, 2.0) % 2.0).to_array(), [1.0, 1.0, 0.0]);
-
-        assert_eq!(
-            (vec4p!(0.0, 1.0, 2.0, 3.0) + vec4p!(4.0, 5.0, 6.0, 7.0)).to_array(),
-            [4.0, 6.0, 8.0, 10.0]
-        );
-        assert_eq!(
-            (vec4p!(5.0, 3.0, 2.0, 1.0) - vec4p!(2.0, 2.0, 2.0, 2.0)).to_array(),
-            [3.0, 1.0, 0.0, 1.0]
-        );
-        assert_eq!(
-            (vec4p!(5.0, 3.0, 2.0, 1.0) * vec4p!(2.0, 3.0, 4.0, 5.0)).to_array(),
-            [10.0, 9.0, 8.0, 5.0]
-        );
-        assert_eq!(
-            (vec4p!(5.0, 3.0, 2.0, 1.0) / vec4p!(2.0, 3.0, 4.0, 5.0)).to_array(),
-            [2.0, 1.0, 0.0, 1.0]
-        );
-        assert_eq!(
-            (vec4p!(5.0, 3.0, 2.0, 1.0) % vec4p!(2.0, 3.0, 4.0, 5.0)).to_array(),
-            [1.0, 0.0, 2.0, 1.0]
-        );
-        assert_eq!(
-            (vec4p!(5.0, 3.0, 2.0, 1.0) * 2.0).to_array(),
-            [10.0, 6.0, 4.0, 2.0]
-        );
-        assert_eq!(
-            (vec4p!(5.0, 3.0, 2.0, 1.0) / 2.0).to_array(),
-            [2.0, 1.0, 1.0, 1.0]
-        );
-        assert_eq!(
-            (vec4p!(5.0, 3.0, 2.0, 1.0) % 2.0).to_array(),
-            [1.0, 1.0, 0.0, 1.0]
+            (vec4!(3.0, 1.0, 2.0, 0.0) + vec4!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [8.0, 4.0, 6.0, 1.0]
         );
     }
 
-    // These tests are generated for all signed number types
-
     #[test]
-    fn test_signed_ops_aligned() {
-        assert_eq!((-vec2!(5.0, 4.0)).to_array(), [-5.0, -4.0]);
-        assert_eq!((-vec3!(0.0, 1.0, 3.0)).to_array(), [0.0, -1.0, -3.0]);
+    fn test_sub_aligned() {
+        assert_eq!((vec2!(8.0, 50.0) - vec2!(5.0, 3.0)).to_array(), [3.0, 47.0]);
         assert_eq!(
-            (-vec4!(5.0, 4.0, 3.0, 2.0)).to_array(),
-            [-5.0, -4.0, -3.0, -2.0]
+            (vec3!(56.0, 12.0, 21.0) - vec3!(5.0, 3.0, 4.0)).to_array(),
+            [51.0, 9.0, 17.0]
+        );
+        assert_eq!(
+            (vec4!(39.0, 13.0, 21.0, 4.0) - vec4!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [34.0, 10.0, 17.0, 3.0]
         );
     }
 
-    // These tests are generated for all signed number types
+    #[test]
+    fn test_mul_aligned() {
+        assert_eq!((vec2!(3.0, 1.0) * vec2!(5.0, 3.0)).to_array(), [15.0, 3.0]);
+        assert_eq!(
+            (vec3!(3.0, 1.0, -2.0) * vec3!(5.0, 3.0, 4.0)).to_array(),
+            [15.0, 3.0, -8.0]
+        );
+        assert_eq!(
+            (vec4!(3.0, 1.0, 2.0, 0.0) * vec4!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [15.0, 3.0, 8.0, 0.0]
+        );
+    }
 
     #[test]
-    fn test_signed_ops_packed() {
-        assert_eq!((-vec2p!(5.0, 4.0)).to_array(), [-5.0, -4.0]);
-        assert_eq!((-vec3p!(0.0, 1.0, 3.0)).to_array(), [0.0, -1.0, -3.0]);
+    fn test_div_aligned() {
         assert_eq!(
-            (-vec4p!(5.0, 4.0, 3.0, 2.0)).to_array(),
-            [-5.0, -4.0, -3.0, -2.0]
+            (vec2!(8.0, 50.0) / vec2!(5.0, 3.0)).to_array(),
+            [8.0 / 5.0, 50.0 / 3.0]
+        );
+        assert_eq!(
+            (vec3!(56.0, 12.0, 21.0) / vec3!(5.0, 3.0, 4.0)).to_array(),
+            [56.0 / 5.0, 12.0 / 3.0, 21.0 / 4.0]
+        );
+        assert_eq!(
+            (vec4!(39.0, 13.0, 21.0, 4.0) / vec4!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [39.0 / 5.0, 13.0 / 3.0, 21.0 / 4.0, 4.0 / 1.0]
+        );
+    }
+
+    #[test]
+    fn test_rem_aligned() {
+        assert_eq!((vec2!(8.0, 50.0) % vec2!(5.0, 3.0)).to_array(), [3.0, 2.0]);
+        assert_eq!(
+            (vec3!(56.0, 12.0, 21.0) % vec3!(5.0, 3.0, 4.0)).to_array(),
+            [1.0, 0.0, 1.0]
+        );
+        assert_eq!(
+            (vec4!(39.0, 13.0, 21.0, 4.0) % vec4!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [4.0, 1.0, 1.0, 0.0]
+        );
+    }
+
+    // These tests are generated for all float types
+
+    #[test]
+    fn test_neg_packed() {
+        assert_eq!((-vec2p!(3.0, 1.0)).to_array(), [-3.0, -1.0]);
+        assert_eq!((-vec3p!(3.0, 1.0, -2.0)).to_array(), [-3.0, -1.0, 2.0]);
+        assert_eq!(
+            (-vec4p!(3.0, 1.0, 2.0, 0.0)).to_array(),
+            [-3.0, -1.0, -2.0, 0.0]
+        );
+    }
+
+    #[test]
+    fn test_add_packed() {
+        assert_eq!((vec2p!(3.0, 1.0) + vec2p!(5.0, 3.0)).to_array(), [8.0, 4.0]);
+        assert_eq!(
+            (vec3p!(3.0, 1.0, -2.0) + vec3p!(5.0, 3.0, 4.0)).to_array(),
+            [8.0, 4.0, 2.0]
+        );
+        assert_eq!(
+            (vec4p!(3.0, 1.0, 2.0, 0.0) + vec4p!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [8.0, 4.0, 6.0, 1.0]
+        );
+    }
+
+    #[test]
+    fn test_sub_packed() {
+        assert_eq!(
+            (vec2p!(8.0, 50.0) - vec2p!(5.0, 3.0)).to_array(),
+            [3.0, 47.0]
+        );
+        assert_eq!(
+            (vec3p!(56.0, 12.0, 21.0) - vec3p!(5.0, 3.0, 4.0)).to_array(),
+            [51.0, 9.0, 17.0]
+        );
+        assert_eq!(
+            (vec4p!(39.0, 13.0, 21.0, 4.0) - vec4p!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [34.0, 10.0, 17.0, 3.0]
+        );
+    }
+
+    #[test]
+    fn test_mul_packed() {
+        assert_eq!(
+            (vec2p!(3.0, 1.0) * vec2p!(5.0, 3.0)).to_array(),
+            [15.0, 3.0]
+        );
+        assert_eq!(
+            (vec3p!(3.0, 1.0, -2.0) * vec3p!(5.0, 3.0, 4.0)).to_array(),
+            [15.0, 3.0, -8.0]
+        );
+        assert_eq!(
+            (vec4p!(3.0, 1.0, 2.0, 0.0) * vec4p!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [15.0, 3.0, 8.0, 0.0]
+        );
+    }
+
+    #[test]
+    fn test_div_packed() {
+        assert_eq!(
+            (vec2p!(8.0, 50.0) / vec2p!(5.0, 3.0)).to_array(),
+            [8.0 / 5.0, 50.0 / 3.0]
+        );
+        assert_eq!(
+            (vec3p!(56.0, 12.0, 21.0) / vec3p!(5.0, 3.0, 4.0)).to_array(),
+            [56.0 / 5.0, 12.0 / 3.0, 21.0 / 4.0]
+        );
+        assert_eq!(
+            (vec4p!(39.0, 13.0, 21.0, 4.0) / vec4p!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [39.0 / 5.0, 13.0 / 3.0, 21.0 / 4.0, 4.0 / 1.0]
+        );
+    }
+
+    #[test]
+    fn test_rem_packed() {
+        assert_eq!(
+            (vec2p!(8.0, 50.0) % vec2p!(5.0, 3.0)).to_array(),
+            [3.0, 2.0]
+        );
+        assert_eq!(
+            (vec3p!(56.0, 12.0, 21.0) % vec3p!(5.0, 3.0, 4.0)).to_array(),
+            [1.0, 0.0, 1.0]
+        );
+        assert_eq!(
+            (vec4p!(39.0, 13.0, 21.0, 4.0) % vec4p!(5.0, 3.0, 4.0, 1.0)).to_array(),
+            [4.0, 1.0, 1.0, 0.0]
         );
     }
 }

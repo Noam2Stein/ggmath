@@ -470,6 +470,41 @@ pub fn push_fns(
             // These tests are generated for all int types
 
             #[test]
+            fn test_add_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(3, 1) + vec2{a_postfix}!(5, 3)).to_array(), [8, 4]);
+                assert_eq!((vec3{a_postfix}!(3, 1, 2) + vec3{a_postfix}!(5, 3, 4)).to_array(), [8, 4, 6]);
+                assert_eq!((vec4{a_postfix}!(3, 1, 2, 0) + vec4{a_postfix}!(5, 3, 4, 1)).to_array(), [8, 4, 6, 1]);
+            }}
+
+            #[test]
+            fn test_sub_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(8, 50) - vec2{a_postfix}!(5, 3)).to_array(), [3, 47]);
+                assert_eq!((vec3{a_postfix}!(56, 12, 21) - vec3{a_postfix}!(5, 3, 4)).to_array(), [51, 9, 17]);
+                assert_eq!((vec4{a_postfix}!(39, 13, 21, 4) - vec4{a_postfix}!(5, 3, 4, 1)).to_array(), [34, 10, 17, 3]);
+            }}
+
+            #[test]
+            fn test_mul_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(3, 1) * vec2{a_postfix}!(5, 3)).to_array(), [15, 3]);
+                assert_eq!((vec3{a_postfix}!(3, 1, 2) * vec3{a_postfix}!(5, 3, 4)).to_array(), [15, 3, 8]);
+                assert_eq!((vec4{a_postfix}!(3, 1, 2, 0) * vec4{a_postfix}!(5, 3, 4, 1)).to_array(), [15, 3, 8, 0]);
+            }}
+
+            #[test]
+            fn test_div_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(8, 50) / vec2{a_postfix}!(5, 3)).to_array(), [1, 16]);
+                assert_eq!((vec3{a_postfix}!(56, 12, 21) / vec3{a_postfix}!(5, 3, 4)).to_array(), [11, 4, 5]);
+                assert_eq!((vec4{a_postfix}!(39, 13, 21, 4) / vec4{a_postfix}!(5, 3, 4, 1)).to_array(), [7, 4, 5, 4]);
+            }}
+
+            #[test]
+            fn test_rem_{a_lower}() {{
+                assert_eq!((vec2{a_postfix}!(8, 50) % vec2{a_postfix}!(5, 3)).to_array(), [3, 2]);
+                assert_eq!((vec3{a_postfix}!(56, 12, 21) % vec3{a_postfix}!(5, 3, 4)).to_array(), [1, 0, 1]);
+                assert_eq!((vec4{a_postfix}!(39, 13, 21, 4) % vec4{a_postfix}!(5, 3, 4, 1)).to_array(), [4, 1, 1, 0]);
+            }}
+
+            #[test]
             #[cfg_attr(debug_assertions, should_panic)]
             fn test_add2_overflow_{a_lower}() {{
                 assert_eq!(
