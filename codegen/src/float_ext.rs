@@ -1,12 +1,12 @@
 use indoc::formatdoc;
 
-use crate::module::Mod;
+use crate::{FLOAT_PRIMITIVES, module::Mod};
 
 pub fn write_mod(module: Mod) {
     let mut free_functions = Vec::new();
     let mut impls = Vec::new();
 
-    for primitive in ["f32", "f64"] {
+    for &primitive in FLOAT_PRIMITIVES {
         free_functions.push(formatdoc! {r#"
             /// Interpolates between `a` and `b` based on the interpolation factor `t`,
             /// which is clamped to the range `[0.0, 1.0]`.

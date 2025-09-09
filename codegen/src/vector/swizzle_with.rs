@@ -1,10 +1,6 @@
 use indoc::formatdoc;
 
-use crate::{join_and, module::*};
-
-const LENGTHS: &[usize] = &[2, 3, 4];
-const COMPONENTS: &[&str] = &["x", "y", "z", "w"];
-const COMPONENT_ORDINALS: &[&str] = &["1st", "2nd", "3rd", "4th"];
+use crate::{COMPONENT_ORDINALS, COMPONENTS, LENGTHS, join_and, module::Mod};
 
 pub fn write_mod(module: Mod) {
     let mut vector_impls = Vec::new();
@@ -21,16 +17,16 @@ pub fn write_mod(module: Mod) {
 
             let components = combination
                 .iter()
-                .map(|i| COMPONENTS[*i])
+                .map(|&i| COMPONENTS[i])
                 .collect::<String>();
 
             let components_list =
-                join_and(combination.iter().map(|i| format!("`{}`", COMPONENTS[*i])));
+                join_and(combination.iter().map(|&i| format!("`{}`", COMPONENTS[i])));
 
             let component_ordinals = join_and(
                 combination
                     .iter()
-                    .map(|i| COMPONENT_ORDINALS[*i].to_string()),
+                    .map(|&i| COMPONENT_ORDINALS[i].to_string()),
             );
 
             let documentation_lines = combination

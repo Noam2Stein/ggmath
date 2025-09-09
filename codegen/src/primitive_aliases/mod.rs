@@ -1,14 +1,11 @@
 use indoc::formatdoc;
 
-use crate::module::*;
+use crate::{PRIMITIVES, module::ModDir};
 
 pub fn write_mod(module: ModDir) {
     let mut mods = Vec::new();
 
-    for primitive in [
-        "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64",
-        "u128", "usize", "bool",
-    ] {
+    for &primitive in PRIMITIVES {
         let prefix = match primitive {
             "f32" => "F",
             "f64" => "D",

@@ -11,6 +11,15 @@ mod vector;
 const ROOT_DIR: &str = formatcp!("{}/..", env!("CARGO_MANIFEST_DIR"));
 const OUT_DIR: &str = formatcp!("{ROOT_DIR}/src/generated");
 
+const LENGTHS: &[usize] = &[2, 3, 4];
+const COMPONENTS: &[&str] = &["x", "y", "z", "w"];
+const COMPONENT_ORDINALS: &[&str] = &["1st", "2nd", "3rd", "4th"];
+const PRIMITIVES: &[&str] = &[
+    "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64", "u128",
+    "usize", "bool",
+];
+const FLOAT_PRIMITIVES: &[&str] = &["f32", "f64"];
+
 pub fn codegen() {
     std::fs::remove_dir_all(OUT_DIR).unwrap();
 
@@ -32,7 +41,6 @@ pub fn codegen() {
         mod primitive_aliases;
         #[cfg(feature = "primitive_aliases")]
         pub use primitive_aliases::*;
-
         "#,
     );
 }

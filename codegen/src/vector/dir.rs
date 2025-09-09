@@ -1,6 +1,6 @@
 use indoc::formatdoc;
 
-use crate::module::*;
+use crate::{COMPONENTS, module::*};
 
 pub fn write_mod(module: Mod) {
     let mut mods = Vec::new();
@@ -23,7 +23,7 @@ pub fn write_mod(module: Mod) {
         let mut vector_impls_b = Vec::new();
 
         for n in 2.max(axis_idx + 1)..=4 {
-            let axis_uppercase = ["X", "Y", "Z", "W"][axis_idx];
+            let axis_uppercase = COMPONENTS[axis_idx].to_uppercase();
 
             vector_impls_a.push(formatdoc! {r#"
                 impl<T: ScalarZero + ScalarOne, A: VecAlignment> Positive{dir_a_camel} for Vector<{n}, T, A> {{
