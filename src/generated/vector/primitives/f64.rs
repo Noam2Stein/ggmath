@@ -1282,10 +1282,20 @@ mod tests {
             [2.0, 3.0, 4.0, 1.0]
         );
 
-        assert_eq!(vec2!(1.0, 2.0).fold(|x, y| x + y), 1.0 + 2.0);
-        assert_eq!(vec3!(3.0, 4.0, 1.0).fold(|x, y| x + y), 3.0 + 4.0 + 1.0);
+        assert_eq!(vec2!(1.0, 2.0).fold(1.0, |x, y| x + y), 1.0 + 1.0 + 2.0);
         assert_eq!(
-            vec4!(2.0, 3.0, 4.0, 1.0).fold(|x, y| x + y),
+            vec3!(3.0, 4.0, 1.0).fold(1.0, |x, y| x + y),
+            1.0 + 3.0 + 4.0 + 1.0
+        );
+        assert_eq!(
+            vec4!(2.0, 3.0, 4.0, 1.0).fold(1.0, |x, y| x + y),
+            1.0 + 2.0 + 3.0 + 4.0 + 1.0
+        );
+
+        assert_eq!(vec2!(1.0, 2.0).reduce(|x, y| x + y), 1.0 + 2.0);
+        assert_eq!(vec3!(3.0, 4.0, 1.0).reduce(|x, y| x + y), 3.0 + 4.0 + 1.0);
+        assert_eq!(
+            vec4!(2.0, 3.0, 4.0, 1.0).reduce(|x, y| x + y),
             2.0 + 3.0 + 4.0 + 1.0
         );
 
@@ -1675,10 +1685,20 @@ mod tests {
             [2.0, 3.0, 4.0, 1.0]
         );
 
-        assert_eq!(vec2p!(1.0, 2.0).fold(|x, y| x + y), 1.0 + 2.0);
-        assert_eq!(vec3p!(3.0, 4.0, 1.0).fold(|x, y| x + y), 3.0 + 4.0 + 1.0);
+        assert_eq!(vec2p!(1.0, 2.0).fold(1.0, |x, y| x + y), 1.0 + 1.0 + 2.0);
         assert_eq!(
-            vec4p!(2.0, 3.0, 4.0, 1.0).fold(|x, y| x + y),
+            vec3p!(3.0, 4.0, 1.0).fold(1.0, |x, y| x + y),
+            1.0 + 3.0 + 4.0 + 1.0
+        );
+        assert_eq!(
+            vec4p!(2.0, 3.0, 4.0, 1.0).fold(1.0, |x, y| x + y),
+            1.0 + 2.0 + 3.0 + 4.0 + 1.0
+        );
+
+        assert_eq!(vec2p!(1.0, 2.0).reduce(|x, y| x + y), 1.0 + 2.0);
+        assert_eq!(vec3p!(3.0, 4.0, 1.0).reduce(|x, y| x + y), 3.0 + 4.0 + 1.0);
+        assert_eq!(
+            vec4p!(2.0, 3.0, 4.0, 1.0).reduce(|x, y| x + y),
             2.0 + 3.0 + 4.0 + 1.0
         );
 

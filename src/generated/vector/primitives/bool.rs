@@ -472,13 +472,26 @@ mod tests {
             [false, true, false, true]
         );
 
-        assert_eq!(vec2!(true, false).fold(|x, y| x & y), true & false);
         assert_eq!(
-            vec3!(true, false, true).fold(|x, y| x & y),
+            vec2!(true, false).fold(true, |x, y| x & y),
+            true & true & false
+        );
+        assert_eq!(
+            vec3!(true, false, true).fold(true, |x, y| x & y),
+            true & true & false & true
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).fold(true, |x, y| x & y),
+            true & false & true & false & true
+        );
+
+        assert_eq!(vec2!(true, false).reduce(|x, y| x & y), true & false);
+        assert_eq!(
+            vec3!(true, false, true).reduce(|x, y| x & y),
             true & false & true
         );
         assert_eq!(
-            vec4!(false, true, false, true).fold(|x, y| x & y),
+            vec4!(false, true, false, true).reduce(|x, y| x & y),
             false & true & false & true
         );
 
@@ -919,13 +932,26 @@ mod tests {
             [false, true, false, true]
         );
 
-        assert_eq!(vec2p!(true, false).fold(|x, y| x & y), true & false);
         assert_eq!(
-            vec3p!(true, false, true).fold(|x, y| x & y),
+            vec2p!(true, false).fold(true, |x, y| x & y),
+            true & true & false
+        );
+        assert_eq!(
+            vec3p!(true, false, true).fold(true, |x, y| x & y),
+            true & true & false & true
+        );
+        assert_eq!(
+            vec4p!(false, true, false, true).fold(true, |x, y| x & y),
+            true & false & true & false & true
+        );
+
+        assert_eq!(vec2p!(true, false).reduce(|x, y| x & y), true & false);
+        assert_eq!(
+            vec3p!(true, false, true).reduce(|x, y| x & y),
             true & false & true
         );
         assert_eq!(
-            vec4p!(false, true, false, true).fold(|x, y| x & y),
+            vec4p!(false, true, false, true).reduce(|x, y| x & y),
             false & true & false & true
         );
 

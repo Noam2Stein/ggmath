@@ -1195,9 +1195,13 @@ mod tests {
             [2, 3, 4, 1]
         );
 
-        assert_eq!(vec2!(1, 2).fold(|x, y| x + y), 1 + 2);
-        assert_eq!(vec3!(3, 4, 1).fold(|x, y| x + y), 3 + 4 + 1);
-        assert_eq!(vec4!(2, 3, 4, 1).fold(|x, y| x + y), 2 + 3 + 4 + 1);
+        assert_eq!(vec2!(1, 2).fold(1, |x, y| x + y), 1 + 1 + 2);
+        assert_eq!(vec3!(3, 4, 1).fold(1, |x, y| x + y), 1 + 3 + 4 + 1);
+        assert_eq!(vec4!(2, 3, 4, 1).fold(1, |x, y| x + y), 1 + 2 + 3 + 4 + 1);
+
+        assert_eq!(vec2!(1, 2).reduce(|x, y| x + y), 1 + 2);
+        assert_eq!(vec3!(3, 4, 1).reduce(|x, y| x + y), 3 + 4 + 1);
+        assert_eq!(vec4!(2, 3, 4, 1).reduce(|x, y| x + y), 2 + 3 + 4 + 1);
 
         assert_eq!(vec2!(1, 2).all(|x| x == 1), false);
         assert_eq!(vec3!(3, 4, 1).all(|x| x == 1), false);
@@ -1528,9 +1532,13 @@ mod tests {
             [2, 3, 4, 1]
         );
 
-        assert_eq!(vec2p!(1, 2).fold(|x, y| x + y), 1 + 2);
-        assert_eq!(vec3p!(3, 4, 1).fold(|x, y| x + y), 3 + 4 + 1);
-        assert_eq!(vec4p!(2, 3, 4, 1).fold(|x, y| x + y), 2 + 3 + 4 + 1);
+        assert_eq!(vec2p!(1, 2).fold(1, |x, y| x + y), 1 + 1 + 2);
+        assert_eq!(vec3p!(3, 4, 1).fold(1, |x, y| x + y), 1 + 3 + 4 + 1);
+        assert_eq!(vec4p!(2, 3, 4, 1).fold(1, |x, y| x + y), 1 + 2 + 3 + 4 + 1);
+
+        assert_eq!(vec2p!(1, 2).reduce(|x, y| x + y), 1 + 2);
+        assert_eq!(vec3p!(3, 4, 1).reduce(|x, y| x + y), 3 + 4 + 1);
+        assert_eq!(vec4p!(2, 3, 4, 1).reduce(|x, y| x + y), 2 + 3 + 4 + 1);
 
         assert_eq!(vec2p!(1, 2).all(|x| x == 1), false);
         assert_eq!(vec3p!(3, 4, 1).all(|x| x == 1), false);

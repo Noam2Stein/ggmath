@@ -108,10 +108,23 @@ where
         Vector::from_array(self.as_array().map(f))
     }
 
-    /// Folds the vector into a single value using the given function.
-    /// The function is applied on the output for each component in order.
+    /// Folds the vector into a single value by repeatedly applying the given function to an accumulator on the vector's elements,
+    /// using the given initial value.
     #[inline(always)]
-    pub fn fold(self, mut f: impl FnMut(T, T) -> T) -> T {
+    pub fn fold(self, init: T, mut f: impl FnMut(T, T) -> T) -> T {
+        let mut output = init;
+
+        for i in 0..N {
+            output = f(output, self[i]);
+        }
+
+        output
+    }
+
+    /// Reduces the vector into a single value by repeatedly applying the given function to an accumulator on the vector's elements,
+    /// using the first component as the initial value.
+    #[inline(always)]
+    pub fn reduce(self, mut f: impl FnMut(T, T) -> T) -> T {
         let mut output = self[0];
 
         for i in 1..N {

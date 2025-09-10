@@ -699,7 +699,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: Add<Output = Self>,
     {
-        vec.fold(|acc, x| acc + x)
+        vec.reduce(|acc, x| acc + x)
     }
 
     /// Overridable implementation of `Vector::product`.
@@ -709,7 +709,7 @@ pub trait Scalar: Construct {
         Usize<N>: VecLen,
         Self: Mul<Output = Self>,
     {
-        vec.fold(|acc, x| acc * x)
+        vec.reduce(|acc, x| acc * x)
     }
 
     /// Overridable implementation of `Vector::abs_diff`.

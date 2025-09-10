@@ -243,15 +243,28 @@ pub fn push_fns(
                 );
 
                 assert_eq!(
-                    vec2{a_postfix}!({value0}, {value1}).fold(|x, y| x {test_bin_op} y),
+                    vec2{a_postfix}!({value0}, {value1}).fold({value0}, |x, y| x {test_bin_op} y),
+                    {value0} {test_bin_op} {value0} {test_bin_op} {value1}
+                );
+                assert_eq!(
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).fold({value0}, |x, y| x {test_bin_op} y),
+                    {value0} {test_bin_op} {value2} {test_bin_op} {value3} {test_bin_op} {value0}
+                );
+                assert_eq!(
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).fold({value0}, |x, y| x {test_bin_op} y),
+                    {value0} {test_bin_op} {value1} {test_bin_op} {value2} {test_bin_op} {value3} {test_bin_op} {value0}
+                );
+
+                assert_eq!(
+                    vec2{a_postfix}!({value0}, {value1}).reduce(|x, y| x {test_bin_op} y),
                     {value0} {test_bin_op} {value1}
                 );
                 assert_eq!(
-                    vec3{a_postfix}!({value2}, {value3}, {value0}).fold(|x, y| x {test_bin_op} y),
+                    vec3{a_postfix}!({value2}, {value3}, {value0}).reduce(|x, y| x {test_bin_op} y),
                     {value2} {test_bin_op} {value3} {test_bin_op} {value0}
                 );
                 assert_eq!(
-                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).fold(|x, y| x {test_bin_op} y),
+                    vec4{a_postfix}!({value1}, {value2}, {value3}, {value0}).reduce(|x, y| x {test_bin_op} y),
                     {value1} {test_bin_op} {value2} {test_bin_op} {value3} {test_bin_op} {value0}
                 );
 
