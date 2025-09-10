@@ -8,6 +8,8 @@ use crate::{
     vector::{Scalar, VecAligned, VecAlignment, VecLen, VecLenEnum, VecPacked, Vector},
 };
 
+// Storage API
+
 impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
@@ -49,6 +51,38 @@ where
         },
     };
 
+    /// Converts the vector to an aligned vector.
+    #[inline(always)]
+    pub const fn align(self) -> Vector<N, T, VecAligned> {
+        Vector::from_array(self.to_array())
+    }
+
+    /// Converts the vector to a packed vector.
+    #[inline(always)]
+    pub const fn pack(self) -> Vector<N, T, VecPacked> {
+        Vector::from_array(self.to_array())
+    }
+
+    /// Converts the vector to the specified alignment.
+    #[inline(always)]
+    pub const fn to_storage<A2: VecAlignment>(self) -> Vector<N, T, A2> {
+        Vector::from_array(self.to_array())
+    }
+
+    /// Returns true if the vector is aligned.
+    /// The output is strictly determined by the type of the vector.
+    #[inline(always)]
+    pub const fn is_aligned(self) -> bool {
+        A::IS_ALIGNED
+    }
+}
+
+// Array API
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
     /// Creates a new vector from an array.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
@@ -162,37 +196,54 @@ where
         T::vec_splat(value)
     }
 
-    /// Converts the vector to an aligned vector.
-    #[inline(always)]
-    pub const fn align(self) -> Vector<N, T, VecAligned> {
-        Vector::from_array(self.to_array())
-    }
-
-    /// Converts the vector to a packed vector.
-    #[inline(always)]
-    pub const fn pack(self) -> Vector<N, T, VecPacked> {
-        Vector::from_array(self.to_array())
-    }
-
-    /// Converts the vector to the specified alignment.
-    #[inline(always)]
-    pub const fn to_storage<A2: VecAlignment>(self) -> Vector<N, T, A2> {
-        Vector::from_array(self.to_array())
-    }
-
     /// Returns the number of components in the vector.
     #[inline(always)]
     pub const fn len(self) -> usize {
         N
     }
+}
 
-    /// Returns true if the vector is aligned.
-    /// The output is strictly determined by the type of the vector.
+impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
+where
+    Usize<N>: VecLen,
+{
+    /// Converts an array reference to a vector reference.
+    ///
+    /// This requires `VecPacked` alignment because a SIMD aligned vector reference is incompatible with an array reference.
     #[inline(always)]
-    pub const fn is_aligned(self) -> bool {
-        A::IS_ALIGNED
+    pub const fn from_array_ref(array: &[T; N]) -> &Self {
+        unsafe { transmute::<&[T; N], &Vector<N, T, VecPacked>>(array) }
     }
 
+    /// Converts a mutable array reference to a mutable vector reference.
+    ///
+    /// This requires `VecPacked` alignment because a SIMD aligned vector reference is incompatible with an array reference.
+    #[inline(always)]
+    pub const fn from_array_mut(array: &mut [T; N]) -> &mut Self {
+        unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }
+    }
+}
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
+    /// Version of `Vector::splat` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_splat(value: T) -> Self {
+        Vector::from_array([value; N])
+    }
+}
+
+// Math API
+
+impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+where
+    Usize<N>: VecLen,
+{
     /// Compares each component of the vector to the corresponding component of another vector and returns a vector of bools indicating if the components are equal.
     #[inline(always)]
     pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
@@ -340,41 +391,6 @@ where
         T: PartialOrd + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
         T::vec_distance_sq(self, other)
-    }
-}
-
-impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    /// Version of `Vector::splat` that can be called from const contexts.
-    /// This version may be less performant than the normal version.
-    ///
-    /// When rust's const capabilities are expanded, this function will be removed.
-    #[inline(always)]
-    pub const fn const_splat(value: T) -> Self {
-        Vector::from_array([value; N])
-    }
-}
-
-impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
-where
-    Usize<N>: VecLen,
-{
-    /// Converts an array reference to a vector reference.
-    ///
-    /// This requires `VecPacked` alignment because a SIMD aligned vector reference is incompatible with an array reference.
-    #[inline(always)]
-    pub const fn from_array_ref(array: &[T; N]) -> &Self {
-        unsafe { transmute::<&[T; N], &Vector<N, T, VecPacked>>(array) }
-    }
-
-    /// Converts a mutable array reference to a mutable vector reference.
-    ///
-    /// This requires `VecPacked` alignment because a SIMD aligned vector reference is incompatible with an array reference.
-    #[inline(always)]
-    pub const fn from_array_mut(array: &mut [T; N]) -> &mut Self {
-        unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }
     }
 }
 
