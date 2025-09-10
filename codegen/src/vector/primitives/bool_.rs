@@ -1,6 +1,6 @@
 use indoc::formatdoc;
 
-use crate::NUM_PRIMITIVES;
+use crate::INT_PRIMITIVES;
 
 pub fn push_fns(
     _primitive: &str,
@@ -10,7 +10,7 @@ pub fn push_fns(
     _std_const_functions: &mut Vec<String>,
     _test_functions: &mut Vec<String>,
 ) {
-    for primitive2 in NUM_PRIMITIVES {
+    for primitive2 in INT_PRIMITIVES {
         functions.push(formatdoc! {r#"
             /// Converts `self` to a vector of `{primitive2}` elements.
             #[inline(always)]
