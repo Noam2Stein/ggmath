@@ -4,10 +4,6 @@
 mod ops;
 mod primitives;
 mod swizzle;
-mod swizzle_mut;
-mod swizzle_ref;
-mod swizzle_set;
-mod swizzle_with;
 
 #[cfg(any(
     feature = "right",
