@@ -126,7 +126,7 @@ pub fn push_fns(
         "f32" | "f64" => ["1.0", "2.0", "3.0", "4.0"],
         "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => ["1", "2", "3", "4"],
         "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => ["1", "2", "3", "4"],
-        "bool" => ["true", "false", "true", "false"],
+        "bool" => ["false", "true", "false", "true"],
         _ => panic!("Invalid primitive: {}", primitive),
     };
 
@@ -649,6 +649,49 @@ pub fn push_fns(
                 assert_eq!(vec4{a_postfix}!(vec2{a_postfix}!({value0}, {value1}), vec2{a_postfix}!({value2}, {value3})).to_array(), [{value0}, {value1}, {value2}, {value3}]);
                 assert_eq!(vec4{a_postfix}!(vec3{a_postfix}!({value0}, {value1}, {value2}), {value3}).to_array(), [{value0}, {value1}, {value2}, {value3}]);
                 assert_eq!(vec4{a_postfix}!(vec4{a_postfix}!({value0}, {value1}, {value2}, {value3})).to_array(), [{value0}, {value1}, {value2}, {value3}]);
+            }}
+
+            #[test]
+            fn test_cmp_{a_lower}() {{
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).eq(&vec2{a_postfix}!({value0}, {value1})), true);
+                assert_eq!(vec3{a_postfix}!({value0}, {value1}, {value2}).eq(&vec3{a_postfix}!({value0}, {value1}, {value2})), true);
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).eq(&vec4{a_postfix}!({value0}, {value1}, {value2}, {value3})), true);
+
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).eq(&vec2{a_postfix}!({value0}, {value0})), false);
+                assert_eq!(vec3{a_postfix}!({value0}, {value1}, {value2}).eq(&vec3{a_postfix}!({value0}, {value0}, {value2})), false);
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).eq(&vec4{a_postfix}!({value0}, {value0}, {value2}, {value3})), false);
+
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).ne(&vec2{a_postfix}!({value0}, {value1})), false);
+                assert_eq!(vec3{a_postfix}!({value0}, {value1}, {value2}).ne(&vec3{a_postfix}!({value0}, {value1}, {value2})), false);
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).ne(&vec4{a_postfix}!({value0}, {value1}, {value2}, {value3})), false);
+
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).ne(&vec2{a_postfix}!({value0}, {value0})), true);
+                assert_eq!(vec3{a_postfix}!({value0}, {value1}, {value2}).ne(&vec3{a_postfix}!({value0}, {value0}, {value2})), true);
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).ne(&vec4{a_postfix}!({value0}, {value0}, {value2}, {value3})), true);
+                
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).eq_mask(vec2{a_postfix}!({value0}, {value0})), vec2{a_postfix}!(true, false));
+                assert_eq!(vec3{a_postfix}!({value0}, {value1}, {value2}).eq_mask(vec3{a_postfix}!({value0}, {value0}, {value2})), vec3{a_postfix}!(true, false, true));
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).eq_mask(vec4{a_postfix}!({value0}, {value0}, {value2}, {value3})), vec4{a_postfix}!(true, false, true, true));
+
+                assert_eq!(vec2{a_postfix}!({value0}, {value1}).ne_mask(vec2{a_postfix}!({value0}, {value0})), vec2{a_postfix}!(false, true));
+                assert_eq!(vec3{a_postfix}!({value0}, {value1}, {value2}).ne_mask(vec3{a_postfix}!({value0}, {value0}, {value2})), vec3{a_postfix}!(false, true, false));
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value2}, {value3}).ne_mask(vec4{a_postfix}!({value0}, {value0}, {value2}, {value3})), vec4{a_postfix}!(false, true, false, false));
+
+                assert_eq!(vec2{a_postfix}!({value0}, {value0}).lt_mask(vec2{a_postfix}!({value0}, {value1})), vec2{a_postfix}!(false, true));
+                assert_eq!(vec3{a_postfix}!({value0}, {value0}, {value1}).lt_mask(vec3{a_postfix}!({value0}, {value1}, {value1})), vec3{a_postfix}!(false, true, false));
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value0}, {value0}).lt_mask(vec4{a_postfix}!({value0}, {value1}, {value1}, {value0})), vec4{a_postfix}!(false, false, true, false));
+
+                assert_eq!(vec2{a_postfix}!({value1}, {value1}).gt_mask(vec2{a_postfix}!({value1}, {value0})), vec2{a_postfix}!(false, true));
+                assert_eq!(vec3{a_postfix}!({value1}, {value1}, {value0}).gt_mask(vec3{a_postfix}!({value1}, {value0}, {value0})), vec3{a_postfix}!(false, true, false));
+                assert_eq!(vec4{a_postfix}!({value1}, {value0}, {value1}, {value1}).gt_mask(vec4{a_postfix}!({value1}, {value0}, {value0}, {value1})), vec4{a_postfix}!(false, false, true, false));
+
+                assert_eq!(vec2{a_postfix}!({value1}, {value1}).le_mask(vec2{a_postfix}!({value1}, {value0})), vec2{a_postfix}!(true, false));
+                assert_eq!(vec3{a_postfix}!({value1}, {value1}, {value0}).le_mask(vec3{a_postfix}!({value1}, {value0}, {value0})), vec3{a_postfix}!(true, false, true));
+                assert_eq!(vec4{a_postfix}!({value1}, {value0}, {value1}, {value1}).le_mask(vec4{a_postfix}!({value1}, {value0}, {value0}, {value1})), vec4{a_postfix}!(true, true, false, true));
+
+                assert_eq!(vec2{a_postfix}!({value0}, {value0}).ge_mask(vec2{a_postfix}!({value0}, {value1})), vec2{a_postfix}!(true, false));
+                assert_eq!(vec3{a_postfix}!({value0}, {value0}, {value1}).ge_mask(vec3{a_postfix}!({value0}, {value1}, {value1})), vec3{a_postfix}!(true, false, true));
+                assert_eq!(vec4{a_postfix}!({value0}, {value1}, {value0}, {value0}).ge_mask(vec4{a_postfix}!({value0}, {value1}, {value1}, {value0})), vec4{a_postfix}!(true, true, false, true));
             }}
         "#});
     }

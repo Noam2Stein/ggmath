@@ -1355,6 +1355,85 @@ mod tests {
         assert_eq!(vec4!(vec4!(1, 2, 3, 4)).to_array(), [1, 2, 3, 4]);
     }
 
+    #[test]
+    fn test_cmp_aligned() {
+        assert_eq!(vec2!(1, 2).eq(&vec2!(1, 2)), true);
+        assert_eq!(vec3!(1, 2, 3).eq(&vec3!(1, 2, 3)), true);
+        assert_eq!(vec4!(1, 2, 3, 4).eq(&vec4!(1, 2, 3, 4)), true);
+
+        assert_eq!(vec2!(1, 2).eq(&vec2!(1, 1)), false);
+        assert_eq!(vec3!(1, 2, 3).eq(&vec3!(1, 1, 3)), false);
+        assert_eq!(vec4!(1, 2, 3, 4).eq(&vec4!(1, 1, 3, 4)), false);
+
+        assert_eq!(vec2!(1, 2).ne(&vec2!(1, 2)), false);
+        assert_eq!(vec3!(1, 2, 3).ne(&vec3!(1, 2, 3)), false);
+        assert_eq!(vec4!(1, 2, 3, 4).ne(&vec4!(1, 2, 3, 4)), false);
+
+        assert_eq!(vec2!(1, 2).ne(&vec2!(1, 1)), true);
+        assert_eq!(vec3!(1, 2, 3).ne(&vec3!(1, 1, 3)), true);
+        assert_eq!(vec4!(1, 2, 3, 4).ne(&vec4!(1, 1, 3, 4)), true);
+
+        assert_eq!(vec2!(1, 2).eq_mask(vec2!(1, 1)), vec2!(true, false));
+        assert_eq!(
+            vec3!(1, 2, 3).eq_mask(vec3!(1, 1, 3)),
+            vec3!(true, false, true)
+        );
+        assert_eq!(
+            vec4!(1, 2, 3, 4).eq_mask(vec4!(1, 1, 3, 4)),
+            vec4!(true, false, true, true)
+        );
+
+        assert_eq!(vec2!(1, 2).ne_mask(vec2!(1, 1)), vec2!(false, true));
+        assert_eq!(
+            vec3!(1, 2, 3).ne_mask(vec3!(1, 1, 3)),
+            vec3!(false, true, false)
+        );
+        assert_eq!(
+            vec4!(1, 2, 3, 4).ne_mask(vec4!(1, 1, 3, 4)),
+            vec4!(false, true, false, false)
+        );
+
+        assert_eq!(vec2!(1, 1).lt_mask(vec2!(1, 2)), vec2!(false, true));
+        assert_eq!(
+            vec3!(1, 1, 2).lt_mask(vec3!(1, 2, 2)),
+            vec3!(false, true, false)
+        );
+        assert_eq!(
+            vec4!(1, 2, 1, 1).lt_mask(vec4!(1, 2, 2, 1)),
+            vec4!(false, false, true, false)
+        );
+
+        assert_eq!(vec2!(2, 2).gt_mask(vec2!(2, 1)), vec2!(false, true));
+        assert_eq!(
+            vec3!(2, 2, 1).gt_mask(vec3!(2, 1, 1)),
+            vec3!(false, true, false)
+        );
+        assert_eq!(
+            vec4!(2, 1, 2, 2).gt_mask(vec4!(2, 1, 1, 2)),
+            vec4!(false, false, true, false)
+        );
+
+        assert_eq!(vec2!(2, 2).le_mask(vec2!(2, 1)), vec2!(true, false));
+        assert_eq!(
+            vec3!(2, 2, 1).le_mask(vec3!(2, 1, 1)),
+            vec3!(true, false, true)
+        );
+        assert_eq!(
+            vec4!(2, 1, 2, 2).le_mask(vec4!(2, 1, 1, 2)),
+            vec4!(true, true, false, true)
+        );
+
+        assert_eq!(vec2!(1, 1).ge_mask(vec2!(1, 2)), vec2!(true, false));
+        assert_eq!(
+            vec3!(1, 1, 2).ge_mask(vec3!(1, 2, 2)),
+            vec3!(true, false, true)
+        );
+        assert_eq!(
+            vec4!(1, 2, 1, 1).ge_mask(vec4!(1, 2, 2, 1)),
+            vec4!(true, true, false, true)
+        );
+    }
+
     // These tests are generated for all primitive types
 
     #[test]
@@ -1690,6 +1769,85 @@ mod tests {
         assert_eq!(vec4p!(vec2p!(1, 2), vec2p!(3, 4)).to_array(), [1, 2, 3, 4]);
         assert_eq!(vec4p!(vec3p!(1, 2, 3), 4).to_array(), [1, 2, 3, 4]);
         assert_eq!(vec4p!(vec4p!(1, 2, 3, 4)).to_array(), [1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn test_cmp_packed() {
+        assert_eq!(vec2p!(1, 2).eq(&vec2p!(1, 2)), true);
+        assert_eq!(vec3p!(1, 2, 3).eq(&vec3p!(1, 2, 3)), true);
+        assert_eq!(vec4p!(1, 2, 3, 4).eq(&vec4p!(1, 2, 3, 4)), true);
+
+        assert_eq!(vec2p!(1, 2).eq(&vec2p!(1, 1)), false);
+        assert_eq!(vec3p!(1, 2, 3).eq(&vec3p!(1, 1, 3)), false);
+        assert_eq!(vec4p!(1, 2, 3, 4).eq(&vec4p!(1, 1, 3, 4)), false);
+
+        assert_eq!(vec2p!(1, 2).ne(&vec2p!(1, 2)), false);
+        assert_eq!(vec3p!(1, 2, 3).ne(&vec3p!(1, 2, 3)), false);
+        assert_eq!(vec4p!(1, 2, 3, 4).ne(&vec4p!(1, 2, 3, 4)), false);
+
+        assert_eq!(vec2p!(1, 2).ne(&vec2p!(1, 1)), true);
+        assert_eq!(vec3p!(1, 2, 3).ne(&vec3p!(1, 1, 3)), true);
+        assert_eq!(vec4p!(1, 2, 3, 4).ne(&vec4p!(1, 1, 3, 4)), true);
+
+        assert_eq!(vec2p!(1, 2).eq_mask(vec2p!(1, 1)), vec2p!(true, false));
+        assert_eq!(
+            vec3p!(1, 2, 3).eq_mask(vec3p!(1, 1, 3)),
+            vec3p!(true, false, true)
+        );
+        assert_eq!(
+            vec4p!(1, 2, 3, 4).eq_mask(vec4p!(1, 1, 3, 4)),
+            vec4p!(true, false, true, true)
+        );
+
+        assert_eq!(vec2p!(1, 2).ne_mask(vec2p!(1, 1)), vec2p!(false, true));
+        assert_eq!(
+            vec3p!(1, 2, 3).ne_mask(vec3p!(1, 1, 3)),
+            vec3p!(false, true, false)
+        );
+        assert_eq!(
+            vec4p!(1, 2, 3, 4).ne_mask(vec4p!(1, 1, 3, 4)),
+            vec4p!(false, true, false, false)
+        );
+
+        assert_eq!(vec2p!(1, 1).lt_mask(vec2p!(1, 2)), vec2p!(false, true));
+        assert_eq!(
+            vec3p!(1, 1, 2).lt_mask(vec3p!(1, 2, 2)),
+            vec3p!(false, true, false)
+        );
+        assert_eq!(
+            vec4p!(1, 2, 1, 1).lt_mask(vec4p!(1, 2, 2, 1)),
+            vec4p!(false, false, true, false)
+        );
+
+        assert_eq!(vec2p!(2, 2).gt_mask(vec2p!(2, 1)), vec2p!(false, true));
+        assert_eq!(
+            vec3p!(2, 2, 1).gt_mask(vec3p!(2, 1, 1)),
+            vec3p!(false, true, false)
+        );
+        assert_eq!(
+            vec4p!(2, 1, 2, 2).gt_mask(vec4p!(2, 1, 1, 2)),
+            vec4p!(false, false, true, false)
+        );
+
+        assert_eq!(vec2p!(2, 2).le_mask(vec2p!(2, 1)), vec2p!(true, false));
+        assert_eq!(
+            vec3p!(2, 2, 1).le_mask(vec3p!(2, 1, 1)),
+            vec3p!(true, false, true)
+        );
+        assert_eq!(
+            vec4p!(2, 1, 2, 2).le_mask(vec4p!(2, 1, 1, 2)),
+            vec4p!(true, true, false, true)
+        );
+
+        assert_eq!(vec2p!(1, 1).ge_mask(vec2p!(1, 2)), vec2p!(true, false));
+        assert_eq!(
+            vec3p!(1, 1, 2).ge_mask(vec3p!(1, 2, 2)),
+            vec3p!(true, false, true)
+        );
+        assert_eq!(
+            vec4p!(1, 2, 1, 1).ge_mask(vec4p!(1, 2, 2, 1)),
+            vec4p!(true, true, false, true)
+        );
     }
 
     // These tests are generated for all int types
