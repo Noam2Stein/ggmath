@@ -7,6 +7,18 @@ impl<const N: usize, A: VecAlignment> Vector<N, bool, A>
 where
     Usize<N>: VecLen,
 {
+    /// Converts `self` to a vector of `f32` elements.
+    #[inline(always)]
+    pub fn as_f32(self) -> Vector<N, f32, A> {
+        self.map(|x| x as f32)
+    }
+
+    /// Converts `self` to a vector of `f64` elements.
+    #[inline(always)]
+    pub fn as_f64(self) -> Vector<N, f64, A> {
+        self.map(|x| x as f64)
+    }
+
     /// Converts `self` to a vector of `i8` elements.
     #[inline(always)]
     pub fn as_i8(self) -> Vector<N, i8, A> {
@@ -191,6 +203,36 @@ where
         let mut i = 0;
         while i < N {
             output.as_array_mut()[i] = self.as_array()[i] >= other.as_array()[i];
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_f32` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_f32(self) -> Vector<N, f32, A> {
+        let mut output = Vector::<N, f32, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as f32;
+            i += 1;
+        }
+        output
+    }
+
+    /// Version of `Vector::as_f64` that can be called from const contexts.
+    /// This version may be less performant than the normal version.
+    ///
+    /// When rust's const capabilities are expanded, this function will be removed.
+    #[inline(always)]
+    pub const fn const_as_f64(self) -> Vector<N, f64, A> {
+        let mut output = Vector::<N, f64, A>::GARBAGE;
+        let mut i = 0;
+        while i < N {
+            output.as_array_mut()[i] = self.as_array()[i] as f64;
             i += 1;
         }
         output

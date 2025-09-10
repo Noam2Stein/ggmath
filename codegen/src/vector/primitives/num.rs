@@ -1,5 +1,7 @@
 use indoc::formatdoc;
 
+use crate::NUM_PRIMITIVES;
+
 pub fn push_fns(
     primitive: &str,
     functions: &mut Vec<String>,
@@ -170,10 +172,7 @@ pub fn push_fns(
         }}
     "#});
 
-    for primitive2 in [
-        "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64",
-        "u128", "usize",
-    ] {
+    for &primitive2 in NUM_PRIMITIVES {
         if primitive2 == primitive {
             continue;
         }
