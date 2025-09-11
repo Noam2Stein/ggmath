@@ -8,9 +8,6 @@ mod float_ext;
 mod primitive_aliases;
 mod vector;
 
-const ROOT_DIR: &str = formatcp!("{}/..", env!("CARGO_MANIFEST_DIR"));
-const OUT_DIR: &str = formatcp!("{ROOT_DIR}/src/generated");
-
 const LENGTHS: &[usize] = &[2, 3, 4];
 const COMPONENTS: &[&str] = &["x", "y", "z", "w"];
 const COMPONENT_ORDINALS: &[&str] = &["1st", "2nd", "3rd", "4th"];
@@ -28,10 +25,6 @@ const INT_PRIMITIVES: &[&str] = &[
 const FLOAT_PRIMITIVES: &[&str] = &["f32", "f64"];
 
 pub fn codegen() {
-    std::fs::remove_dir_all(OUT_DIR).unwrap();
-
-    let module = ModDir::root();
-
     vector::write_mod(module.submod_dir("vector"));
     primitive_aliases::write_mod(module.submod_dir("primitive_aliases"));
     float_ext::write_mod(module.submod("float_ext"));

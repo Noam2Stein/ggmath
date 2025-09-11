@@ -2,7 +2,7 @@ use indoc::formatdoc;
 
 use crate::module::*;
 
-pub fn write_mod(module: Mod) {
+pub fn write_mod(module: ModFile) {
     let mut impls = Vec::new();
 
     for op_trait in ["Neg", "Not"] {

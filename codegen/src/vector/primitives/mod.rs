@@ -32,7 +32,7 @@ pub fn write_mod(module: ModDir) {
     "#});
 }
 
-fn write_primitive_mod(module: Mod, primitive: &str) {
+fn write_primitive_mod(module: ModFile, primitive: &str) {
     let mut functions = Vec::new();
     let mut const_functions = Vec::new();
     let mut std_functions = Vec::new();

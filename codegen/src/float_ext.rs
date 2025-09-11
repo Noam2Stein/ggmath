@@ -1,8 +1,8 @@
 use indoc::formatdoc;
 
-use crate::{FLOAT_PRIMITIVES, module::Mod};
+use crate::{FLOAT_PRIMITIVES, module::ModFile};
 
-pub fn write_mod(module: Mod) {
+pub fn write_mod(module: ModFile) {
     let mut free_functions = Vec::new();
     let mut impls = Vec::new();
 

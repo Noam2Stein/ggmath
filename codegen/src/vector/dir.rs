@@ -2,7 +2,7 @@ use indoc::formatdoc;
 
 use crate::{COMPONENTS, module::*};
 
-pub fn write_mod(module: Mod) {
+pub fn write_mod(module: ModFile) {
     let mut mods = Vec::new();
 
     for (axis_idx, &axis) in ["x", "y", "z"].iter().enumerate() {
