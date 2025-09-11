@@ -1,8 +1,8 @@
 use indoc::formatdoc;
 
-use crate::{COMPONENTS, module::*};
+use crate::{COMPONENTS, gen_mod::*};
 
-pub fn write_mod(module: ModFile) {
+pub fn write_mod(module: GenModFile) {
     let mut mods = Vec::new();
 
     for (axis_idx, &axis) in ["x", "y", "z"].iter().enumerate() {

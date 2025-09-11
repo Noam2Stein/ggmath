@@ -5,26 +5,26 @@ use const_format::formatcp;
 const WORKPLACE_DIR: &str = formatcp!("{}/..", env!("CARGO_MANIFEST_DIR"));
 
 #[derive(Debug, Clone)]
-pub struct ModFile {
+pub struct GenModFile {
     name: String,
-    content: ModContent,
+    content: GenModContent,
 }
 
 #[derive(Debug, Clone)]
-pub struct ModDir {
+pub struct GenModDir {
     name: String,
-    content: ModContent,
-    submod_files: Vec<ModFile>,
-    submod_dirs: Vec<ModDir>,
+    content: GenModContent,
+    submod_files: Vec<GenModFile>,
+    submod_dirs: Vec<GenModDir>,
 }
 
 #[derive(Debug, Clone)]
-struct ModContent {
+struct GenModContent {
     content: String,
     test_content: String,
 }
 
-impl ModFile {
+impl GenModFile {
     pub fn new(
         name: impl Into<String>,
         content: impl Into<String>,
@@ -32,7 +32,7 @@ impl ModFile {
     ) -> Self {
         Self {
             name: name.into(),
-            content: ModContent {
+            content: GenModContent {
                 content: content.into(),
                 test_content: test_content.into(),
             },
@@ -44,17 +44,17 @@ impl ModFile {
     }
 }
 
-impl ModDir {
+impl GenModDir {
     pub fn new(
         name: impl Into<String>,
         content: impl Into<String>,
         test_content: impl Into<String>,
-        submod_files: Vec<ModFile>,
-        submod_dirs: Vec<ModDir>,
+        submod_files: Vec<GenModFile>,
+        submod_dirs: Vec<GenModDir>,
     ) -> Self {
         Self {
             name: name.into(),
-            content: ModContent {
+            content: GenModContent {
                 content: content.into(),
                 test_content: test_content.into(),
             },
@@ -98,7 +98,7 @@ impl ModDir {
     }
 }
 
-impl ModContent {
+impl GenModContent {
     fn write(self, local_path: impl AsRef<Path>) {
         let local_path = local_path.as_ref();
 

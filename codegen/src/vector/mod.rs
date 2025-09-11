@@ -1,13 +1,13 @@
 use indoc::formatdoc;
 
-use crate::module::*;
+use crate::gen_mod::*;
 
 mod dir;
 mod ops;
 mod primitives;
 mod swizzle;
 
-pub fn write_mod(module: ModDir) {
+pub fn write_mod(module: GenModDir) {
     swizzle::write_mod(module.submod("swizzle"));
     primitives::write_mod(module.submod_dir("primitives"));
     dir::write_mod(module.submod("dir"));

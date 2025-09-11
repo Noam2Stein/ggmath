@@ -1,8 +1,9 @@
-use const_format::formatcp;
+use indoc::formatdoc;
 
-mod module;
-use indoc::writedoc;
-use module::*;
+mod r#gen;
+mod gen_mod;
+use r#gen::*;
+use gen_mod::*;
 
 mod float_ext;
 mod primitive_aliases;
@@ -25,12 +26,9 @@ const INT_PRIMITIVES: &[&str] = &[
 const FLOAT_PRIMITIVES: &[&str] = &["f32", "f64"];
 
 pub fn codegen() {
-    vector::write_mod(module.submod_dir("vector"));
-    primitive_aliases::write_mod(module.submod_dir("primitive_aliases"));
-    float_ext::write_mod(module.submod("float_ext"));
-
-    module.finish(
-        r#"
+    GenModDir::new(
+        "lib",
+        formatdoc! {r#"
         mod float_ext;
         pub use float_ext::*;
 
@@ -41,8 +39,12 @@ pub fn codegen() {
         mod primitive_aliases;
         #[cfg(feature = "primitive_aliases")]
         pub use primitive_aliases::*;
-        "#,
-    );
+        "#},
+        "",
+        vec![],
+        vec![],
+    )
+    .write_as_root();
 }
 
 fn join_and(iter: impl Iterator<Item = String>) -> String {

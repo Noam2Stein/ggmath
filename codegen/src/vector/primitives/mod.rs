@@ -1,6 +1,6 @@
 use indoc::formatdoc;
 
-use crate::module::*;
+use crate::gen_mod::*;
 
 mod bool_;
 mod float;
@@ -11,7 +11,7 @@ mod signed;
 mod sint;
 mod uint;
 
-pub fn write_mod(module: ModDir) {
+pub fn write_mod(module: GenModDir) {
     let mut primitive_mods = Vec::new();
 
     for primitive in [
@@ -32,7 +32,7 @@ pub fn write_mod(module: ModDir) {
     "#});
 }
 
-fn write_primitive_mod(module: ModFile, primitive: &str) {
+fn write_primitive_mod(module: GenModFile, primitive: &str) {
     let mut functions = Vec::new();
     let mut const_functions = Vec::new();
     let mut std_functions = Vec::new();

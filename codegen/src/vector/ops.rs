@@ -1,8 +1,8 @@
 use indoc::formatdoc;
 
-use crate::module::*;
+use crate::gen_mod::*;
 
-pub fn write_mod(module: ModFile) {
+pub fn write_mod(module: GenModFile) {
     let mut impls = Vec::new();
 
     for op_trait in ["Neg", "Not"] {

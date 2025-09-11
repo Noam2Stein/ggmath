@@ -2,9 +2,9 @@ use std::ops::Range;
 
 use indoc::formatdoc;
 
-use crate::{COMPONENT_ORDINALS, COMPONENTS, LENGTHS, join_and, module::ModFile};
+use crate::{COMPONENT_ORDINALS, COMPONENTS, LENGTHS, gen_mod::GenModFile, join_and};
 
-pub fn write_mod(module: ModFile) {
+pub fn write_mod(module: GenModFile) {
     let mut vector_impls = Vec::new();
 
     write_swizzle(&mut vector_impls);

@@ -1,8 +1,8 @@
 use indoc::formatdoc;
 
-use crate::{PRIMITIVES, module::ModDir};
+use crate::{PRIMITIVES, gen_mod::GenModDir};
 
-pub fn write_mod(module: ModDir) {
+pub fn write_mod(module: GenModDir) {
     let mut mods = Vec::new();
 
     for &primitive in PRIMITIVES {
