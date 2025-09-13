@@ -1,103 +1,170 @@
-use std::collections::HashMap;
+use std::{
+    fs::File,
+    io::Write,
+    path::{Path, PathBuf},
+};
 
-use indoc::formatdoc;
+use indoc::writedoc;
 
-use crate::gen_mod::{GenModDir, GenModFile};
-
-#[derive(Debug, Clone)]
-pub struct GenFn {
-    content: String,
-    test_content: String,
-}
+const WORKPLACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
 
 #[derive(Debug, Clone)]
-pub struct GenImpl {
-    content: String,
-    test_content: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct GenTypeMod {
+pub struct ModFile {
     name: String,
-    declaration: String,
-    api_base_impls: Vec<GenImpl>,
-    api_ext_impls: Vec<GenImpl>,
-    api_primitive_impls: HashMap<String, Vec<GenImpl>>,
-    file_submods: Vec<GenModFile>,
-    dir_submods: Vec<GenModDir>,
+    content: ModContent,
+    test_files: Vec<TestFile>,
 }
 
-impl GenFn {
-    pub fn new(content: impl Into<String>, test_content: impl Into<String>) -> Self {
+#[derive(Debug, Clone)]
+pub struct ModDir {
+    name: String,
+    content: ModContent,
+    submod_files: Vec<ModFile>,
+    submod_dirs: Vec<ModDir>,
+    test_files: Vec<TestFile>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TestFile {
+    local_path: PathBuf,
+    content: ModContent,
+}
+
+#[derive(Debug, Clone)]
+struct ModContent {
+    content: String,
+}
+
+impl ModFile {
+    pub fn new(name: impl Into<String>, content: impl Into<String>) -> Self {
         Self {
-            content: content.into(),
-            test_content: test_content.into(),
+            name: name.into(),
+            content: ModContent {
+                content: content.into(),
+            },
+            test_files: vec![],
+        }
+    }
+
+    fn write(self, path: impl AsRef<Path>) {
+        self.content.write_in_src(path);
+
+        for test_file in self.test_files {
+            test_file.write();
         }
     }
 }
 
-impl GenImpl {
-    pub fn new(sig: impl Into<String>, fns: Vec<GenFn>) -> Self {
-        let sig = sig.into();
-
-        let src_fns = fns
-            .iter()
-            .map(|fn_| fn_.content.clone())
-            .collect::<Vec<_>>()
-            .join("\n")
-            .replace("\n", "\n\t");
-
-        let test_fns = fns
-            .iter()
-            .map(|fn_| fn_.test_content.clone())
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        Self {
-            content: formatdoc! {r#"
-                {sig} {{
-                    {src_fns}
-                }}
-            "#},
-            test_content: formatdoc! {r#"
-                {test_fns}
-            "#},
-        }
-    }
-}
-
-impl GenTypeMod {
+impl ModDir {
     pub fn new(
         name: impl Into<String>,
-        declaration: impl Into<String>,
-        api_base_impls: Vec<GenImpl>,
-        api_ext_impls: Vec<GenImpl>,
-        api_primitive_impls: HashMap<String, Vec<GenImpl>>,
-        file_submods: Vec<GenModFile>,
-        dir_submods: Vec<GenModDir>,
+        content: impl Into<String>,
+        submod_files: Vec<ModFile>,
+        submod_dirs: Vec<ModDir>,
+        test_files: Vec<TestFile>,
     ) -> Self {
         Self {
             name: name.into(),
-            declaration: declaration.into(),
-            api_base_impls,
-            api_ext_impls,
-            api_primitive_impls,
-            file_submods,
-            dir_submods,
+            content: ModContent {
+                content: content.into(),
+            },
+            submod_files,
+            submod_dirs,
+            test_files,
         }
     }
 
-    pub fn resolve(self) -> GenModDir {
-        GenModDir::new(
-            self.name,
-            formatdoc! {r#"
-        
-            "#},
-            formatdoc! {r#"
+    pub fn write_as_root(self) {
+        let dir_path = Path::new(WORKPLACE_DIR);
+
+        let librs_path = dir_path.join("lib.rs");
+        self.content.write_in_src(&librs_path);
+
+        for test_file in self.test_files {
+            test_file.write();
+        }
+
+        for submod_file in self.submod_files {
+            let submod_path = dir_path.join(&submod_file.name);
+            submod_file.write(submod_path);
+        }
+
+        for submod_dir in self.submod_dirs {
+            let submod_dir_path = dir_path.join(&submod_dir.name);
+            submod_dir.write(submod_dir_path);
+        }
+    }
+
+    fn write(self, dir_path: impl AsRef<Path>) {
+        let dir_path = dir_path.as_ref();
+
+        let modrs_path = dir_path.join("mod.rs");
+        self.content.write_in_src(&modrs_path);
+
+        for test_file in self.test_files {
+            test_file.write();
+        }
+
+        for submod_file in self.submod_files {
+            let submod_path = dir_path.join(&submod_file.name);
+            submod_file.write(submod_path);
+        }
+
+        for submod_dir in self.submod_dirs {
+            let submod_dir_path = dir_path.join(&submod_dir.name);
+            submod_dir.write(submod_dir_path);
+        }
+    }
+}
+
+impl TestFile {
+    pub fn new(local_path: impl Into<PathBuf>, content: impl Into<String>) -> Self {
+        Self {
+            local_path: local_path.into(),
+            content: ModContent {
+                content: content.into(),
+            },
+        }
+    }
+
+    fn write(self) {
+        self.content.write_in_tests(&self.local_path);
+    }
+}
+
+impl ModContent {
+    fn write_in_src(self, local_path: impl AsRef<Path>) {
+        let local_path = local_path.as_ref();
+
+        let path = Path::new(WORKPLACE_DIR).join("src").join(&local_path);
+
+        self.write_with_full_path(path);
+    }
+
+    fn write_in_tests(self, local_path: impl AsRef<Path>) {
+        let local_path = local_path.as_ref();
+
+        let path = Path::new(WORKPLACE_DIR).join("tests").join(&local_path);
+
+        self.write_with_full_path(path);
+    }
+
+    fn write_with_full_path(self, full_path: impl AsRef<Path>) {
+        if !full_path.as_ref().exists() {
+            std::fs::create_dir_all(full_path.as_ref().parent().unwrap()).unwrap();
+        }
+
+        let mut file = File::create(full_path).unwrap();
+
+        writedoc!(
+            file,
+            r#"
+            // This file was generated by an associated codegen crate.
+            // To modify this file, modify the source code of the associated codegen crate.
             
-            "#},
-            self.file_submods.into_iter().chain([self.]).collect(),
-            self.dir_submods,
-        )
+            {content}
+        "#,
+            content = self.content
+        );
     }
 }

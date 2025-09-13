@@ -1,8 +1,11 @@
 use indoc::formatdoc;
 
-use crate::{COMPONENTS, gen_mod::*};
+use crate::{
+    constants::{COMPONENTS, LENGTHS},
+    r#gen::*,
+};
 
-pub fn write_mod(module: GenModFile) {
+pub fn module() -> ModFile {
     let mut mods = Vec::new();
 
     for (axis_idx, &axis) in ["x", "y", "z"].iter().enumerate() {
@@ -127,7 +130,200 @@ pub fn write_mod(module: GenModFile) {
 
     let mods = mods.join("\n");
 
-    module.finish(formatdoc! {r#"
-        {mods}
-    "#});
+    let zero_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            formatdoc! {r#"
+                /// A vec{n} of all `0`s.
+                /// 
+                /// This is only required because `Vector::from_array` doesn't support const contexts.
+                /// When Rust's const context capabilities increase, this will be removed.
+                const VEC{n}_ZERO: Vec{n}<Self>;
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let one_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            let axis_consts = (0..n).map(|i| {
+                let axis = COMPONENTS[i];
+                formatdoc! {r#"
+                    /// A vec{n} that points to the positive `{axis}` direction with magnitude `1`.
+                    const VEC{n}_{axis}: Vec{n}<Self>;
+                "#}
+            }).collect::<Vec<_>>().join(", ");
+
+            formatdoc! {r#"
+                /// A vec{n} of all `1`s.
+                /// 
+                /// This is only required because `Vector::from_array` doesn't support const contexts.
+                /// When Rust's const context capabilities increase, this will be removed.
+                const VEC{n}_ONE: Vec{n}<Self>;
+
+                {axis_consts}
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let neg_one_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            let axis_consts = (0..n).map(|i| {
+                let axis = COMPONENTS[i];
+                formatdoc! {r#"
+                    /// A vec{n} that points to the negative `{axis}` direction with magnitude `1`.
+                    const VEC{n}_NEG_{axis}: Vec{n}<Self>;
+                "#}
+            }).collect::<Vec<_>>().join(", ");
+
+            formatdoc! {r#"
+                /// A vec{n} of all `-1`s.
+                /// 
+                /// This is only required because `Vector::from_array` doesn't support const contexts.
+                /// When Rust's const context capabilities increase, this will be removed.
+                const VEC{n}_NEG_ONE: Vec{n}<Self>;
+
+                {axis_consts}
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    ModFile::new(
+        "dir",
+        formatdoc! {r#"
+            use crate::{{
+                Usize,
+                vector::{{Scalar, VecAlignment, VecLen, Vector}},
+            }};
+
+            /// A trait for scalar types that have a `0` value.
+            ///
+            /// This trait along with `ScalarOne` and `ScalarNegOne`
+            /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
+            pub trait ScalarZero: Scalar {{
+                /// The zero value of the scalar type.
+                const ZERO: Self;
+
+                {zero_vector_consts}
+            }}
+
+            /// A trait for scalar types that have a `1` value.
+            ///
+            /// This trait along with `ScalarZero` and `ScalarNegOne`
+            /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
+            pub trait ScalarOne: Scalar {{
+                /// The one value of the scalar type.
+                const ONE: Self;
+
+                {one_vector_consts}
+            }}
+
+            /// A trait for scalar types that have a `-1` value.
+            ///
+            /// This trait along with `ScalarZero` and `ScalarOne`
+            /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
+            pub trait ScalarNegOne: Scalar {{
+                /// The negative one value of the scalar type.
+                const NEG_ONE: Self;
+
+                {neg_one_vector_consts}
+            }}
+
+            impl<const N: usize, T: ScalarZero, A: VecAlignment> Vector<N, T, A>
+            where
+                Usize<N>: VecLen,
+            {{
+                /// A vector of all `0`s.
+                pub const ZERO: Self = Self::const_splat(T::ZERO);
+            }}
+
+            impl<const N: usize, T: ScalarOne, A: VecAlignment> Vector<N, T, A>
+            where
+                Usize<N>: VecLen,
+            {{
+                /// A vector of all `1`s.
+                pub const ONE: Self = Self::const_splat(T::ONE);
+            }}
+
+            impl<const N: usize, T: ScalarNegOne, A: VecAlignment> Vector<N, T, A>
+            where
+                Usize<N>: VecLen,
+            {{
+                /// A vector of all `-1`s.
+                pub const NEG_ONE: Self = Self::const_splat(T::NEG_ONE);
+            }}
+
+            impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<2, T, A> {{
+                /// A vector that points to the positive x direction.
+                pub const X: Self = Self::from_array([T::ONE, T::ZERO]);
+
+                /// A vector that points to the positive y direction.
+                pub const Y: Self = Self::from_array([T::ZERO, T::ONE]);
+            }}
+
+            impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<3, T, A> {{
+                /// A vector that points to the positive x direction.
+                pub const X: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO]);
+
+                /// A vector that points to the positive y direction.
+                pub const Y: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO]);
+
+                /// A vector that points to the positive z direction.
+                pub const Z: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE]);
+            }}
+
+            impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<4, T, A> {{
+                /// A vector that points to the positive x direction.
+                pub const X: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO, T::ZERO]);
+
+                /// A vector that points to the positive y direction.
+                pub const Y: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO, T::ZERO]);
+
+                /// A vector that points to the positive z direction.
+                pub const Z: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE, T::ZERO]);
+
+                /// A vector that points to the positive w direction.
+                pub const W: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::ONE]);
+            }}
+
+            impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<2, T, A> {{
+                /// A vector that points to the negative x direction.
+                pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO]);
+
+                /// A vector that points to the negative y direction.
+                pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE]);
+            }}
+
+            impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<3, T, A> {{
+                /// A vector that points to the negative x direction.
+                pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO]);
+
+                /// A vector that points to the negative y direction.
+                pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO]);
+
+                /// A vector that points to the negative z direction.
+                pub const NEG_Z: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE]);
+            }}
+
+            impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<4, T, A> {{
+                /// A vector that points to the negative x direction.
+                pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO, T::ZERO]);
+
+                /// A vector that points to the negative y direction.
+                pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO, T::ZERO]);
+
+                /// A vector that points to the negative z direction.
+                pub const NEG_Z: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE, T::ZERO]);
+
+                /// A vector that points to the negative w direction.
+                pub const NEG_W: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::NEG_ONE]);
+            }}
+
+            {mods}
+        "#},
+    )
 }

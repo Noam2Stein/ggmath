@@ -20,9 +20,8 @@ version = "0.13.0"
 
 [features]
 aabb              = [ "vector" ]
-aliases           = [ "paste" ]
 matrix            = [ "vector" ]
-primitive_aliases = [ "aliases" ]
+primitive_aliases = [  ]
 quaternion        = [ "vector" ]
 vector            = [  ]
 
@@ -34,26 +33,12 @@ right     = [  ]
 std       = [  ]
 up        = [  ]
 
-default = [
-    "aliases",
-    "matrix",
-    "primitive_aliases",
-    "quaternion",
-    "std",
-    "vector",
-]
-full = [
-    "aabb",
-    "aliases",
-    "matrix",
-    "primitive_aliases",
-    "quaternion",
-    "vector",
-]
+default = [ "matrix", "primitive_aliases", "quaternion", "std", "vector" ]
+full    = [ "aabb", "matrix", "primitive_aliases", "quaternion", "vector" ]
 
 [dependencies]
 cfg-if = "1.0.3"
-paste  = { version = "1.0.14", optional = true }
+paste  = "1.0.14"
 wide   = "0.7.33"
 
 crevice = { version = "0.18.0", optional = true }
