@@ -7,6 +7,11 @@ pub const COMPONENT_ORDINALS: [&str; MAX_LENGTH] = ["1st", "2nd", "3rd", "4th"];
 
 pub const MAX_LENGTH: usize = LENGTHS[LENGTHS.len() - 1];
 
+// Directions
+
+pub const DIRECTIONS_A: &[&str] = &["Right", "Up", "Forward"];
+pub const DIRECTIONS_B: &[&str] = &["Left", "Down", "Backward"];
+
 // Primitives
 
 pub const PRIMITIVES: &[&str] = &[

@@ -1,3 +1,5 @@
+use genco::quote;
+
 use crate::{
     constants::{
         FLOAT_PRIMITIVES, INT_PRIMITIVES, NUM_PRIMITIVES, PRIMITIVES, SINT_PRIMITIVES,
@@ -20,25 +22,15 @@ pub fn mod_() -> ModDir {
         .map(|&primitive| primitive_mod(primitive))
         .collect::<Vec<_>>();
 
-    let primitive_mod_declarations = PRIMITIVES
-        .iter()
-        .map(|&primitive| {
-            formatdoc! {r#"
-                mod {primitive};
-            "#}
-        })
-        .collect::<Vec<_>>()
-        .join("");
+    quote! {
+        $(
+            for &primitive in PRIMITIVES =>
 
-    ModDir::new(
-        "primitives",
-        formatdoc! {r#"
-            {primitive_mod_declarations}
-        "#},
-        primitive_mods,
-        vec![],
-        vec![],
-    )
+            mod $primitive;
+        )
+    }
+    .to_mod_dir("primitives")
+    .with_submod_files(primitive_mods)
 }
 
 fn primitive_mod(primitive: &str) -> ModFile {
