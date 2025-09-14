@@ -1,11 +1,11 @@
-use indoc::formatdoc;
+
 
 use crate::{
     constants::{COMPONENTS, LENGTHS},
-    r#gen::*,
+    module::*,
 };
 
-pub fn module() -> ModFile {
+pub fn mod_() -> ModFile {
     let mut mods = Vec::new();
 
     for (axis_idx, &axis) in ["x", "y", "z"].iter().enumerate() {

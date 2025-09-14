@@ -1,11 +1,9 @@
-use indoc::formatdoc;
-
 use crate::{
     constants::{
         FLOAT_PRIMITIVES, INT_PRIMITIVES, NUM_PRIMITIVES, PRIMITIVES, SINT_PRIMITIVES,
         UINT_PRIMITIVES,
     },
-    r#gen::*,
+    module::*,
 };
 
 mod bool_;
@@ -16,7 +14,7 @@ mod primitive;
 mod sint;
 mod uint;
 
-pub fn module() -> ModDir {
+pub fn mod_() -> ModDir {
     let primitive_mods = PRIMITIVES
         .iter()
         .map(|&primitive| primitive_mod(primitive))

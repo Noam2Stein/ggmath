@@ -1,38 +1,34 @@
 use std::ops::Range;
 
-use indoc::formatdoc;
+use genco::quote;
 
 use crate::{
     constants::{COMPONENT_ORDINALS, COMPONENTS, LENGTHS},
-    r#gen::ModFile,
     join_and,
+    module::{ModFile, TokensExt},
 };
 
-pub fn module(scalar_fns: &mut Vec<String>) -> ModFile {
-    let mut vector_impls = Vec::new();
+pub fn mod_() -> ModFile {
+    quote! {
+        use crate::{Scalar, VecAlignment, Vector, return_for_types, $(for &n in LENGTHS => Vec$(n)P<T>,)};
 
-    write_swizzle(&mut vector_impls, scalar_fns);
-    write_swizzle_with(&mut vector_impls, scalar_fns);
-    write_swizzle_set(&mut vector_impls, scalar_fns);
-    write_swizzle_ref(&mut vector_impls, scalar_fns);
-    write_swizzle_mut(&mut vector_impls, scalar_fns);
+        $(
+            for &n in LENGTHS =>
 
-    let vector_impls = vector_impls.join("\n");
+            impl<T: Scalar, A: VecAlignment> Vector<$n, T, A> {
 
-    let use_vecs = LENGTHS
-        .iter()
-        .map(|&n| format!("Vec{n}P"))
-        .collect::<Vec<_>>()
-        .join(", ");
+            }
+        )
 
-    ModFile::new(
-        "swizzle",
-        formatdoc! {r#"
-            use crate::{{Scalar, VecAlignment, VecAligned, VecPacked, Vector, return_for_types, {use_vecs}}};
+        $(
+            for &n in LENGTHS =>
 
-            {vector_impls}
-        "#},
-    )
+            impl<T: Scalar> Vec$(n)P<T> {
+
+            }
+        )
+    }
+    .to_mod_file("swizzle")
 }
 
 fn write_swizzle(vector_impls: &mut Vec<String>, scalar_fns: &mut Vec<String>) {
@@ -41,14 +37,6 @@ fn write_swizzle(vector_impls: &mut Vec<String>, scalar_fns: &mut Vec<String>) {
 
         // n2 = 1
         {
-            scalar_fns.push(formatdoc! {r#"
-                /// Overridable implementation of aligned vec{n} getters like `Vec{n}::x`.
-                #[inline(always)]
-                fn vec{n}_swizzle1<const SRC: usize>(vec: Vec{n}<Self>) -> Self {{
-                    vec.index(SRC)
-                }}
-            "#});
-
             functions.push(formatdoc! {r#"
                 #[inline(always)]
                 fn swizzle1<const SRC: usize>(self) -> T {{
@@ -83,28 +71,6 @@ fn write_swizzle(vector_impls: &mut Vec<String>, scalar_fns: &mut Vec<String>) {
                 .map(|i| format!("const {}_SRC: usize", COMPONENTS[i].to_uppercase()))
                 .collect::<Vec<_>>()
                 .join(", ");
-
-            // scalar fn
-            {
-                let example_combination = combinations[combinations.len() / 5]
-                    .iter()
-                    .map(|i| COMPONENTS[*i])
-                    .collect::<Vec<_>>()
-                    .join("");
-
-                let dst_items = (0..n2)
-                    .map(|i| format!("vec.index({}_SRC)", COMPONENTS[i].to_uppercase()))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-
-                scalar_fns.push(formatdoc! {r#"
-                    /// Overridable implementation of aligned vec{n} swizzles that return vec{n2}s, like `Vec{n}::{example_combination}`.
-                    #[inline(always)]
-                    fn vec{n}_swizzle{n2}<{src_generic_params}>(vec: Vec{n}<Self>) -> Vec{n2}<Self> {{
-                        Vec{n2}::from_array([{dst_items}])
-                    }}
-                "#});
-            }
 
             // generic fn
             {
@@ -185,40 +151,6 @@ fn write_swizzle_with(vector_impls: &mut Vec<String>, scalar_fns: &mut Vec<Strin
                 .iter()
                 .map(|&i| COMPONENTS[i])
                 .collect::<String>();
-
-            if n2 == 1 {
-                scalar_fns.push(formatdoc! {r#"
-                    /// Overridable implementation of aligned vec{n} "with swizzles" that replaces scalars, like `Vec{n}::with_{example_combination}`.
-                    #[inline(always)]
-                    fn vec{n}_with_swizzle{n2}<const DST: usize>(vec: Vec{n}<Self>, value: Self) -> Vec{n}<Self> {{
-                        let mut output = vec;
-                        output.set(DST, value);
-
-                        output
-                    }}
-                "#});
-            } else {
-                let dst_generic_params = (0..n2)
-                    .map(|i| format!("const {}_DST: usize", COMPONENTS[i]))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-
-                let set_stmts = (0..n2)
-                    .map(|i| format!("output.set({}_DST, value.index({i}));", COMPONENTS[i]))
-                    .collect::<Vec<_>>()
-                    .join("\n\t");
-
-                scalar_fns.push(formatdoc! {r#"
-                    /// Overridable implementation of aligned vec{n} "with swizzles" that replaces vec{n2}s, like `Vec{n}::with_{example_combination}`.
-                    #[inline(always)]
-                    fn vec{n}_with_swizzle{n2}<{dst_generic_params}>(vec: Vec{n}<Self>, value: Self) -> Vec{n2}<Self> {{
-                        let mut output = vec;
-                        {set_stmts}
-
-                        output
-                    }}
-                "#});
-            }
 
             for combination in combinations {
                 let combination_len = combination.len();

@@ -1,36 +1,22 @@
-use indoc::formatdoc;
+use genco::quote;
 
 use crate::{
     constants::{PRIMITIVE_PREFIXES, PRIMITIVES},
-    r#gen::ModDir,
+    module::{ModDir, TokensExt},
 };
 
-pub fn module() -> ModDir {
-    let mods = PRIMITIVES
-        .iter()
-        .zip(PRIMITIVE_PREFIXES)
-        .map(|(primitive, prefix)| {
-            formatdoc! {r#"
-                /// A module with `{primitive}` type aliases.
-                #[cfg(feature = "primitive_aliases")]
-                pub mod {primitive}_aliases {{
-                    #[cfg(feature = "vector")]
-                    use crate::vector_aliases;
-                    #[cfg(feature = "vector")]
-                    vector_aliases!(pub {prefix} => {primitive});
-                }}
-            "#}
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
+pub fn mod_() -> ModDir {
+    quote! {
+        $(
+            for (&primitive, &prefix) in PRIMITIVES.iter().zip(PRIMITIVE_PREFIXES.iter()) =>
 
-    ModDir::new(
-        "primitive_aliases",
-        formatdoc! {r#"
-            {mods}
-        "#},
-        vec![],
-        vec![],
-        vec![],
-    )
+            $(format!("/// `{primitive}` type aliases."))
+            #[cfg(feature = "primitive_aliases")]
+            pub mod $(format!("{primitive}_aliases")) {{
+                #[cfg(feature = "vector")]
+                crate::vector_aliases!(pub $prefix => $primitive);
+            }}
+        )
+    }
+    .to_mod_dir("primitive_aliases")
 }
