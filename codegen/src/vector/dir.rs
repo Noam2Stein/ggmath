@@ -130,7 +130,7 @@ pub fn module() -> ModFile {
 
     let mods = mods.join("\n");
 
-    let zero_vector_consts = LENGTHS
+    let scalar_vector_zero_consts = LENGTHS
         .iter()
         .map(|&n| {
             formatdoc! {r#"
@@ -144,7 +144,7 @@ pub fn module() -> ModFile {
         .collect::<Vec<_>>()
         .join("\n");
 
-    let one_vector_consts = LENGTHS
+    let scalar_vector_one_consts = LENGTHS
         .iter()
         .map(|&n| {
             let axis_consts = (0..n).map(|i| {
@@ -168,7 +168,7 @@ pub fn module() -> ModFile {
         .collect::<Vec<_>>()
         .join("\n");
 
-    let neg_one_vector_consts = LENGTHS
+    let scalar_vector_neg_one_consts = LENGTHS
         .iter()
         .map(|&n| {
             let axis_consts = (0..n).map(|i| {
@@ -192,6 +192,98 @@ pub fn module() -> ModFile {
         .collect::<Vec<_>>()
         .join("\n");
 
+    let zero_vector_match_arms = LENGTHS
+        .iter()
+        .map(|&n| {
+            formatdoc! {r#"
+                {n} => transmute_copy::<Vector<{n}, T, VecAligned, Vector<N, T, A>>(T::VEC{n}_ZERO),
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("");
+
+    let one_vector_match_arms = LENGTHS
+        .iter()
+        .map(|&n| {
+            formatdoc! {r#"
+                {n} => transmute_copy::<Vector<{n}, T, VecAligned, Vector<N, T, A>>(T::VEC{n}_ONE),
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("");
+
+    let neg_one_vector_match_arms = LENGTHS
+        .iter()
+        .map(|&n| {
+            formatdoc! {r#"
+                {n} => transmute_copy::<Vector<{n}, T, VecAligned, Vector<N, T, A>>(T::VEC{n}_NEG_ONE),
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("");
+
+    let axis_vector_impls = LENGTHS
+        .iter()
+        .map(|&n| {
+            let consts = 
+
+            (0..n).map(|i| {
+                let axis_uppercase = COMPONENTS[i].to_uppercase();
+
+                formatdoc! {r#"
+                    /// A vector that points to the positive `{axis_uppercase}` direction with magnitude `1`.
+                    pub const {axis_uppercase}: Self = {{
+                        if A::IS_ALIGNED {{
+                            return transmute_copy::<Vector<{n}, T, VecAligned>, Vector<{n}, T, A>>(T::VEC{n}_{axis_uppercase});
+                        }} else {{
+                            return transmute_copy::<Vector<{n}, T, VecPacked>, Vector<{n}, T, A>>(Vector([T::{axis_uppercase}; {n}]));
+                        }}
+
+                        unreachable!("unusual vector type");
+                    }};
+                "#}
+            }).collect::<Vec<_>>().join(", ");
+
+            formatdoc! {r#"
+                impl<T: ScalarOne, A: VecAlignment> Vector<{n}, T, A> {{
+                    {consts}
+                }}
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let neg_axis_vector_impls = LENGTHS
+        .iter()
+        .map(|&n| {
+            let consts = 
+
+            (0..n).map(|i| {
+                let axis_uppercase = COMPONENTS[i].to_uppercase();
+
+                formatdoc! {r#"
+                    /// A vector that points to the negative `{axis_uppercase}` direction with magnitude `1`.
+                    pub const {axis_uppercase}: Self = {{
+                        if A::IS_ALIGNED {{
+                            return transmute_copy::<Vector<{n}, T, VecAligned>, Vector<{n}, T, A>>(T::VEC{n}_NEG_{axis_uppercase});
+                        }} else {{
+                            return transmute_copy::<Vector<{n}, T, VecPacked>, Vector<{n}, T, A>>(Vector([T::NEG_{axis_uppercase}; {n}]));
+                        }}
+
+                        unreachable!("unusual vector type");
+                    }};
+                "#}
+            }).collect::<Vec<_>>().join(", ");
+
+            formatdoc! {r#"
+                impl<T: ScalarNegOne, A: VecAlignment> Vector<{n}, T, A> {{
+                    {consts}
+                }}
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
     ModFile::new(
         "dir",
         formatdoc! {r#"
@@ -208,29 +300,29 @@ pub fn module() -> ModFile {
                 /// The zero value of the scalar type.
                 const ZERO: Self;
 
-                {zero_vector_consts}
+                {scalar_vector_zero_consts}
             }}
 
             /// A trait for scalar types that have a `1` value.
             ///
             /// This trait along with `ScalarZero` and `ScalarNegOne`
             /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
-            pub trait ScalarOne: Scalar {{
+            pub trait ScalarOne: ScalarZero {{
                 /// The one value of the scalar type.
                 const ONE: Self;
 
-                {one_vector_consts}
+                {scalar_vector_one_consts}
             }}
 
             /// A trait for scalar types that have a `-1` value.
             ///
             /// This trait along with `ScalarZero` and `ScalarOne`
             /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
-            pub trait ScalarNegOne: Scalar {{
+            pub trait ScalarNegOne: ScalarZero {{
                 /// The negative one value of the scalar type.
                 const NEG_ONE: Self;
 
-                {neg_one_vector_consts}
+                {scalar_vector_neg_one_consts}
             }}
 
             impl<const N: usize, T: ScalarZero, A: VecAlignment> Vector<N, T, A>
@@ -238,7 +330,17 @@ pub fn module() -> ModFile {
                 Usize<N>: VecLen,
             {{
                 /// A vector of all `0`s.
-                pub const ZERO: Self = Self::const_splat(T::ZERO);
+                pub const ZERO: Self = {{
+                    if A::IS_ALIGNED {{
+                        match N {{
+                            {zero_vector_match_arms}
+                        }}
+                    }} else {{
+                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ZERO; N]));
+                    }}
+                
+                    unreachable!("unusual vector type");
+                }};
             }}
 
             impl<const N: usize, T: ScalarOne, A: VecAlignment> Vector<N, T, A>
@@ -246,7 +348,17 @@ pub fn module() -> ModFile {
                 Usize<N>: VecLen,
             {{
                 /// A vector of all `1`s.
-                pub const ONE: Self = Self::const_splat(T::ONE);
+                pub const ONE: Self = {{
+                    if A::IS_ALIGNED {{
+                        match N {{
+                            {one_vector_match_arms}
+                        }}
+                    }} else {{
+                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ONE; N]));
+                    }}
+
+                    unreachable!("unusual vector type");
+                }};
             }}
 
             impl<const N: usize, T: ScalarNegOne, A: VecAlignment> Vector<N, T, A>
@@ -254,74 +366,22 @@ pub fn module() -> ModFile {
                 Usize<N>: VecLen,
             {{
                 /// A vector of all `-1`s.
-                pub const NEG_ONE: Self = Self::const_splat(T::NEG_ONE);
+                pub const NEG_ONE: Self = {{
+                    if A::IS_ALIGNED {{
+                        match N {{
+                            {neg_one_vector_match_arms}
+                        }}
+                    }} else {{
+                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::NEG_ONE; N]));
+                    }}
+
+                    unreachable!("unusual vector type");
+                }};
             }}
 
-            impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<2, T, A> {{
-                /// A vector that points to the positive x direction.
-                pub const X: Self = Self::from_array([T::ONE, T::ZERO]);
-
-                /// A vector that points to the positive y direction.
-                pub const Y: Self = Self::from_array([T::ZERO, T::ONE]);
-            }}
-
-            impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<3, T, A> {{
-                /// A vector that points to the positive x direction.
-                pub const X: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO]);
-
-                /// A vector that points to the positive y direction.
-                pub const Y: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO]);
-
-                /// A vector that points to the positive z direction.
-                pub const Z: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE]);
-            }}
-
-            impl<T: ScalarZero + ScalarOne, A: VecAlignment> Vector<4, T, A> {{
-                /// A vector that points to the positive x direction.
-                pub const X: Self = Self::from_array([T::ONE, T::ZERO, T::ZERO, T::ZERO]);
-
-                /// A vector that points to the positive y direction.
-                pub const Y: Self = Self::from_array([T::ZERO, T::ONE, T::ZERO, T::ZERO]);
-
-                /// A vector that points to the positive z direction.
-                pub const Z: Self = Self::from_array([T::ZERO, T::ZERO, T::ONE, T::ZERO]);
-
-                /// A vector that points to the positive w direction.
-                pub const W: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::ONE]);
-            }}
-
-            impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<2, T, A> {{
-                /// A vector that points to the negative x direction.
-                pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO]);
-
-                /// A vector that points to the negative y direction.
-                pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE]);
-            }}
-
-            impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<3, T, A> {{
-                /// A vector that points to the negative x direction.
-                pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO]);
-
-                /// A vector that points to the negative y direction.
-                pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO]);
-
-                /// A vector that points to the negative z direction.
-                pub const NEG_Z: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE]);
-            }}
-
-            impl<T: ScalarZero + ScalarNegOne, A: VecAlignment> Vector<4, T, A> {{
-                /// A vector that points to the negative x direction.
-                pub const NEG_X: Self = Self::from_array([T::NEG_ONE, T::ZERO, T::ZERO, T::ZERO]);
-
-                /// A vector that points to the negative y direction.
-                pub const NEG_Y: Self = Self::from_array([T::ZERO, T::NEG_ONE, T::ZERO, T::ZERO]);
-
-                /// A vector that points to the negative z direction.
-                pub const NEG_Z: Self = Self::from_array([T::ZERO, T::ZERO, T::NEG_ONE, T::ZERO]);
-
-                /// A vector that points to the negative w direction.
-                pub const NEG_W: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::NEG_ONE]);
-            }}
+            {axis_vector_impls}
+            
+            {neg_axis_vector_impls}
 
             {mods}
         "#},
