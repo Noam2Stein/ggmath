@@ -7,6 +7,7 @@ pub fn push_fns(
     functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     trait_impls: &mut Vec<String>,
+    _use_crate_items: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all primitive int types

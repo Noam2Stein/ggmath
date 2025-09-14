@@ -148,12 +148,12 @@ pub fn module() -> ModFile {
         .iter()
         .map(|&n| {
             let axis_consts = (0..n).map(|i| {
-                let axis = COMPONENTS[i];
+                let axis = COMPONENTS[i].to_uppercase();
                 formatdoc! {r#"
                     /// A vec{n} that points to the positive `{axis}` direction with magnitude `1`.
                     const VEC{n}_{axis}: Vec{n}<Self>;
                 "#}
-            }).collect::<Vec<_>>().join(", ");
+            }).collect::<Vec<_>>().join("\n");
 
             formatdoc! {r#"
                 /// A vec{n} of all `1`s.
@@ -172,12 +172,12 @@ pub fn module() -> ModFile {
         .iter()
         .map(|&n| {
             let axis_consts = (0..n).map(|i| {
-                let axis = COMPONENTS[i];
+                let axis = COMPONENTS[i].to_uppercase();
                 formatdoc! {r#"
                     /// A vec{n} that points to the negative `{axis}` direction with magnitude `1`.
                     const VEC{n}_NEG_{axis}: Vec{n}<Self>;
                 "#}
-            }).collect::<Vec<_>>().join(", ");
+            }).collect::<Vec<_>>().join("\n");
 
             formatdoc! {r#"
                 /// A vec{n} of all `-1`s.
@@ -196,7 +196,7 @@ pub fn module() -> ModFile {
         .iter()
         .map(|&n| {
             formatdoc! {r#"
-                {n} => transmute_copy::<Vector<{n}, T, VecAligned, Vector<N, T, A>>(T::VEC{n}_ZERO),
+                {n} => transmute_copy::<Vector<{n}, T, VecAligned>, Vector<N, T, A>>(T::VEC{n}_ZERO),
             "#}
         })
         .collect::<Vec<_>>()
@@ -206,7 +206,7 @@ pub fn module() -> ModFile {
         .iter()
         .map(|&n| {
             formatdoc! {r#"
-                {n} => transmute_copy::<Vector<{n}, T, VecAligned, Vector<N, T, A>>(T::VEC{n}_ONE),
+                {n} => transmute_copy::<Vector<{n}, T, VecAligned>, Vector<N, T, A>>(T::VEC{n}_ONE),
             "#}
         })
         .collect::<Vec<_>>()
@@ -216,7 +216,7 @@ pub fn module() -> ModFile {
         .iter()
         .map(|&n| {
             formatdoc! {r#"
-                {n} => transmute_copy::<Vector<{n}, T, VecAligned, Vector<N, T, A>>(T::VEC{n}_NEG_ONE),
+                {n} => transmute_copy::<Vector<{n}, T, VecAligned>, Vector<N, T, A>>(T::VEC{n}_NEG_ONE),
             "#}
         })
         .collect::<Vec<_>>()
@@ -233,16 +233,18 @@ pub fn module() -> ModFile {
                 formatdoc! {r#"
                     /// A vector that points to the positive `{axis_uppercase}` direction with magnitude `1`.
                     pub const {axis_uppercase}: Self = {{
-                        if A::IS_ALIGNED {{
-                            return transmute_copy::<Vector<{n}, T, VecAligned>, Vector<{n}, T, A>>(T::VEC{n}_{axis_uppercase});
-                        }} else {{
-                            return transmute_copy::<Vector<{n}, T, VecPacked>, Vector<{n}, T, A>>(Vector([T::{axis_uppercase}; {n}]));
+                        unsafe {{
+                            if A::IS_ALIGNED {{
+                                return transmute_copy::<Vector<{n}, T, VecAligned>, Vector<{n}, T, A>>(T::VEC{n}_{axis_uppercase});
+                            }} else {{
+                                return transmute_copy::<Vector<{n}, T, VecPacked>, Vector<{n}, T, A>>(Vector([T::{axis_uppercase}; {n}]));
+                            }}
                         }}
 
                         unreachable!("unusual vector type");
                     }};
                 "#}
-            }).collect::<Vec<_>>().join(", ");
+            }).collect::<Vec<_>>().join("\n");
 
             formatdoc! {r#"
                 impl<T: ScalarOne, A: VecAlignment> Vector<{n}, T, A> {{
@@ -264,16 +266,18 @@ pub fn module() -> ModFile {
                 formatdoc! {r#"
                     /// A vector that points to the negative `{axis_uppercase}` direction with magnitude `1`.
                     pub const {axis_uppercase}: Self = {{
-                        if A::IS_ALIGNED {{
-                            return transmute_copy::<Vector<{n}, T, VecAligned>, Vector<{n}, T, A>>(T::VEC{n}_NEG_{axis_uppercase});
-                        }} else {{
-                            return transmute_copy::<Vector<{n}, T, VecPacked>, Vector<{n}, T, A>>(Vector([T::NEG_{axis_uppercase}; {n}]));
+                        unsafe {{
+                            if A::IS_ALIGNED {{
+                                return transmute_copy::<Vector<{n}, T, VecAligned>, Vector<{n}, T, A>>(T::VEC{n}_NEG_{axis_uppercase});
+                            }} else {{
+                                return transmute_copy::<Vector<{n}, T, VecPacked>, Vector<{n}, T, A>>(Vector([T::NEG_{axis_uppercase}; {n}]));
+                            }}
                         }}
 
                         unreachable!("unusual vector type");
                     }};
                 "#}
-            }).collect::<Vec<_>>().join(", ");
+            }).collect::<Vec<_>>().join("");
 
             formatdoc! {r#"
                 impl<T: ScalarNegOne, A: VecAlignment> Vector<{n}, T, A> {{
@@ -284,12 +288,20 @@ pub fn module() -> ModFile {
         .collect::<Vec<_>>()
         .join("\n");
 
+    let use_vecs = LENGTHS
+        .iter()
+        .map(|&n| format!("Vec{n}"))
+        .collect::<Vec<_>>()
+        .join(", ");
+
     ModFile::new(
         "dir",
         formatdoc! {r#"
+            use core::mem::transmute_copy;
+
             use crate::{{
                 Usize,
-                vector::{{Scalar, VecAlignment, VecLen, Vector}},
+                vector::{{Scalar, VecAlignment, VecAligned, VecPacked, VecLen, Vector, {use_vecs}}},
             }};
 
             /// A trait for scalar types that have a `0` value.
@@ -331,14 +343,16 @@ pub fn module() -> ModFile {
             {{
                 /// A vector of all `0`s.
                 pub const ZERO: Self = {{
-                    if A::IS_ALIGNED {{
-                        match N {{
-                            {zero_vector_match_arms}
+                    unsafe {{
+                        if A::IS_ALIGNED {{
+                            match N {{
+                                {zero_vector_match_arms}
+                            }}
+                        }} else {{
+                            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ZERO; N]));
                         }}
-                    }} else {{
-                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ZERO; N]));
                     }}
-                
+
                     unreachable!("unusual vector type");
                 }};
             }}
@@ -349,12 +363,14 @@ pub fn module() -> ModFile {
             {{
                 /// A vector of all `1`s.
                 pub const ONE: Self = {{
-                    if A::IS_ALIGNED {{
-                        match N {{
-                            {one_vector_match_arms}
+                    unsafe {{
+                        if A::IS_ALIGNED {{
+                            match N {{
+                                {one_vector_match_arms}
+                            }}
+                        }} else {{
+                            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ONE; N]));
                         }}
-                    }} else {{
-                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ONE; N]));
                     }}
 
                     unreachable!("unusual vector type");
@@ -367,12 +383,14 @@ pub fn module() -> ModFile {
             {{
                 /// A vector of all `-1`s.
                 pub const NEG_ONE: Self = {{
-                    if A::IS_ALIGNED {{
-                        match N {{
-                            {neg_one_vector_match_arms}
+                    unsafe {{
+                        if A::IS_ALIGNED {{
+                            match N {{
+                                {neg_one_vector_match_arms}
+                            }}
+                        }} else {{
+                            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::NEG_ONE; N]));
                         }}
-                    }} else {{
-                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::NEG_ONE; N]));
                     }}
 
                     unreachable!("unusual vector type");

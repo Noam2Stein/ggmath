@@ -7,6 +7,7 @@ pub fn push_fns(
     functions: &mut Vec<String>,
     std_functions: &mut Vec<String>,
     trait_impls: &mut Vec<String>,
+    use_crate_items: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all float types
@@ -455,4 +456,6 @@ pub fn push_fns(
             {neg_axis_vector_consts}
         }}
     "#});
+
+    use_crate_items.push("ScalarNegOne".to_string());
 }

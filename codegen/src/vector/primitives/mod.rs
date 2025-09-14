@@ -47,6 +47,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
     let mut functions = Vec::new();
     let mut std_functions = Vec::new();
     let mut trait_impls = Vec::new();
+    let mut use_crate_items = Vec::new();
 
     let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
     let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
@@ -59,6 +60,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
         &mut functions,
         &mut std_functions,
         &mut trait_impls,
+        &mut use_crate_items,
     );
 
     if primitive_is_num {
@@ -67,6 +69,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut functions,
             &mut std_functions,
             &mut trait_impls,
+            &mut use_crate_items,
         );
     }
 
@@ -76,6 +79,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut functions,
             &mut std_functions,
             &mut trait_impls,
+            &mut use_crate_items,
         );
     }
 
@@ -85,6 +89,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut functions,
             &mut std_functions,
             &mut trait_impls,
+            &mut use_crate_items,
         );
     }
 
@@ -94,6 +99,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut functions,
             &mut std_functions,
             &mut trait_impls,
+            &mut use_crate_items,
         );
     }
 
@@ -103,6 +109,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut functions,
             &mut std_functions,
             &mut trait_impls,
+            &mut use_crate_items,
         );
     }
 
@@ -112,12 +119,14 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut functions,
             &mut std_functions,
             &mut trait_impls,
+            &mut use_crate_items,
         );
     }
 
     let functions = functions.join("\n").replace("\n", "\n\t");
     let std_functions = std_functions.join("\n").replace("\n", "\n\t");
     let trait_impls = trait_impls.join("\n");
+    let use_crate_items = use_crate_items.join(", ");
 
     let function_impls = [
         (!functions.is_empty()).then(|| {
@@ -149,6 +158,8 @@ fn primitive_mod(primitive: &str) -> ModFile {
     ModFile::new(
         primitive,
         formatdoc! {r#"
+            use crate::{{{use_crate_items}}};
+
             {function_impls}
 
             {trait_impls}

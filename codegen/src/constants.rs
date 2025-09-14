@@ -24,10 +24,15 @@ pub const INT_PRIMITIVES: &[&str] = &[
 pub const SINT_PRIMITIVES: &[&str] = &["i8", "i16", "i32", "i64", "i128", "isize"];
 pub const UINT_PRIMITIVES: &[&str] = &["u8", "u16", "u32", "u64", "u128", "usize"];
 
+pub const PRIMITIVE_PREFIXES: [&str; PRIMITIVES.len()] = [
+    "F", "D", "I8", "I16", "I", "I64", "I128", "Isize", "U8", "U16", "U", "U64", "U128", "Usize",
+    "B",
+];
+
 // Operators
 
 pub const UNARY_OPS: &[&str] = &["Neg", "Not"];
 
 pub const BINARY_OPS: &[&str] = &[
-    "Add", "Sub", "Mul", "Div", "Rem", "Shl", "Shr", "BiAnd", "BiOr", "BiXor",
+    "Add", "Sub", "Mul", "Div", "Rem", "Shl", "Shr", "BitAnd", "BitOr", "BitXor",
 ];

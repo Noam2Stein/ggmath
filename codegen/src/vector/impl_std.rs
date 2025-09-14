@@ -105,17 +105,17 @@ fn impl_eq_hash_default(scalar_override_fns: &mut Vec<String>) -> String {
             formatdoc! {r#"
                 return_for_types! {{
                     (
-                        vec: Vector<N, T, A> => Vector<{n}, T, VecAligned>,
+                        self: Vector<N, T, A> => Vector<{n}, T, VecAligned>,
                         other: Vector<N, T2, A2> => Vector<{n}, T2, VecAligned>,
                     ) -> bool => bool {{
-                        |vec, other| T::vec{n}_eq(vec, other)
+                        |(vec, other)| T::vec{n}_eq(vec, other)
                     }}
                 }}
             "#}
         })
         .collect::<Vec<_>>()
         .join("\n")
-        .replace("\n", "\n\t");
+        .replace("\n", "\n\t\t");
 
     let ne_aligned_returns = LENGTHS
         .iter()
@@ -123,17 +123,17 @@ fn impl_eq_hash_default(scalar_override_fns: &mut Vec<String>) -> String {
             formatdoc! {r#"
                 return_for_types! {{
                     (
-                        vec: Vector<N, T, A> => Vector<{n}, T, VecAligned>,
+                        self: Vector<N, T, A> => Vector<{n}, T, VecAligned>,
                         other: Vector<N, T2, A2> => Vector<{n}, T2, VecAligned>,
                     ) -> bool => bool {{
-                        |vec, other| T::vec{n}_ne(vec, other)
+                        |(vec, other)| T::vec{n}_ne(vec, other)
                     }}
                 }}
             "#}
         })
         .collect::<Vec<_>>()
         .join("\n")
-        .replace("\n", "\n\t");
+        .replace("\n", "\n\t\t");
 
     formatdoc! {r#"
         impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
@@ -230,18 +230,18 @@ fn impl_fmt(_scalar_override_fns: &mut Vec<String>) -> String {
 }
 
 fn impl_unary_ops(scalar_override_fns: &mut Vec<String>) -> String {
-    UNARY_OPS.iter().map(|&op| {
-        let op_lower = op.to_lowercase();
+    UNARY_OPS.iter().map(|&op_camelcase| {
+        let op_snakecase = op_camelcase.to_lowercase();
 
         for n in LENGTHS {
             scalar_override_fns.push(formatdoc! {r#"
-                /// Overridable implementation of `Vector::{op_lower}` for aligned vec{n}s.
+                /// Overridable implementation of `Vector::{op_snakecase}` for aligned vec{n}s.
                 #[inline(always)]
-                fn vec{n}_{op_lower}(vec: Vec{n}<Self>) -> Vec{n}<<Self as {op}>::Output>
+                fn vec{n}_{op_snakecase}(vec: Vec{n}<Self>) -> Vec{n}<<Self as {op_camelcase}>::Output>
                 where
-                    Self: {op}<Output: Scalar>,
+                    Self: {op_camelcase}<Output: Scalar>,
                 {{
-                    vec.map(|v| v.{op_lower}())
+                    vec.map(|v| v.{op_snakecase}())
                 }}
             "#});
         }
@@ -251,40 +251,40 @@ fn impl_unary_ops(scalar_override_fns: &mut Vec<String>) -> String {
             .map(|&n| {
                 formatdoc! {r#"
                     return_for_types! {{
-                        (vec: Vector<N, T, A> => Vector<{n}, T, VecAligned>) -> Vector<{n}, T::Output, VecAligned> => Vector<N, T::Output, A> {{
-                            |vec| T::vec{n}_{op_lower}(vec)
+                        (self: Vector<N, T, A> => Vector<{n}, T, VecAligned>) -> Vector<{n}, T::Output, VecAligned> => Vector<N, T::Output, A> {{
+                            |(vec,)| T::vec{n}_{op_snakecase}(vec)
                         }}
                     }}
                 "#}
             })
             .collect::<Vec<_>>()
             .join("\n")
-            .replace("\n", "\n\t");
+            .replace("\n", "\n\t\t");
 
         formatdoc! {r#"
-            impl<const N: usize, T: Scalar + {op}<Output: Scalar>, A: VecAlignment> {op} for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<Output: Scalar>, A: VecAlignment> {op_camelcase} for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn {op}(self) -> Self::Output {{
+                fn {op_snakecase}(self) -> Self::Output {{
                     {aligned_returns}
 
-                    self.map(|v| v.{op_lower}())
+                    self.map(|v| v.{op_snakecase}())
                 }}
             }}
 
-            impl<const N: usize, T: Scalar + {op}<Output: Scalar>, A: VecAlignment> {op} for &Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<Output: Scalar>, A: VecAlignment> {op_camelcase} for &Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn {op}(self) -> Self::Output {{
-                    (*self).{op_lower}()
+                fn {op_snakecase}(self) -> Self::Output {{
+                    (*self).{op_snakecase}()
                 }}
             }}
         "#}
@@ -292,18 +292,18 @@ fn impl_unary_ops(scalar_override_fns: &mut Vec<String>) -> String {
 }
 
 fn impl_binary_ops(scalar_override_fns: &mut Vec<String>) -> String {
-    BINARY_OPS.iter().map(|&op| {
-        let op_lower = op.to_lowercase();
+    BINARY_OPS.iter().map(|&op_camelcase| {
+        let op_snakecase = op_camelcase.to_lowercase();
 
         for n in LENGTHS {
             scalar_override_fns.push(formatdoc! {r#"
-                /// Overridable implementation of `Vector::{op_lower}` for aligned vec{n}s.
+                /// Overridable implementation of `Vector::{op_snakecase}` for aligned vec{n}s.
                 #[inline(always)]
-                fn vec{n}_{op_lower}<T2: Scalar>(vec: Vec{n}<Self>, other: Vec{n}<T2>) -> Vec{n}<<Self as {op}<T2>>::Output>
+                fn vec{n}_{op_snakecase}<T2: Scalar>(vec: Vec{n}<Self>, other: Vec{n}<T2>) -> Vec{n}<<Self as {op_camelcase}<T2>>::Output>
                 where
-                    Self: {op}<T2, Output: Scalar>,
+                    Self: {op_camelcase}<T2, Output: Scalar>,
                 {{
-                    Vector::from_fn(|i| vec.index(i).{op_lower}(other.index(i)))
+                    Vector::from_fn(|i| vec.index(i).{op_snakecase}(other.index(i)))
                 }}
             "#});
         }
@@ -314,70 +314,70 @@ fn impl_binary_ops(scalar_override_fns: &mut Vec<String>) -> String {
                 formatdoc! {r#"
                     return_for_types! {{
                         (
-                            vec: Vector<N, T, A> => Vector<{n}, T, VecAligned>,
-                            other: Vector<N, T2, A2> => Vector<{n}, T2, VecAligned>,
+                            self: Vector<N, T, A> => Vector<{n}, T, VecAligned>,
+                            rhs: Vector<N, T2, A2> => Vector<{n}, T2, VecAligned>,
                         ) -> Vector<{n}, T::Output, VecAligned> => Vector<N, T::Output, A> {{
-                            |vec, other| T::vec{n}_{op_lower}(vec, other)
+                            |(vec, rhs)| T::vec{n}_{op_snakecase}(vec, rhs)
                         }}
                     }}
                 "#}
             })
             .collect::<Vec<_>>()
             .join("\n")
-            .replace("\n", "\n\t");
+            .replace("\n", "\n\t\t");
 
         formatdoc! {r#"
-            impl<const N: usize, T: Scalar + {op}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                {op}<Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+                {op_camelcase}<Vector<N, T2, A2>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn {op}(self, rhs: Vector<N, T2, A2>) -> Self::Output {{
+                fn {op_snakecase}(self, rhs: Vector<N, T2, A2>) -> Self::Output {{
                     {aligned_returns}
 
-                    Vector::from_fn(|i| self.index(i).{op_lower}(rhs.index(i)))
+                    Vector::from_fn(|i| self.index(i).{op_snakecase}(rhs.index(i)))
                 }}
             }}
 
-            impl<const N: usize, T: Scalar + {op}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                {op}<Vector<N, T2, A2>> for &Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+                {op_camelcase}<Vector<N, T2, A2>> for &Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn {op}(self, rhs: Vector<N, T2, A2>) -> Self::Output {{
-                    (*self).{op_lower}(rhs)
+                fn {op_snakecase}(self, rhs: Vector<N, T2, A2>) -> Self::Output {{
+                    (*self).{op_snakecase}(rhs)
                 }}
             }}
 
-            impl<const N: usize, T: Scalar + {op}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                {op}<&Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+                {op_camelcase}<&Vector<N, T2, A2>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn {op}(self, rhs: &Vector<N, T2, A2>) -> Self::Output {{
-                    self.{op_lower}(*rhs)
+                fn {op_snakecase}(self, rhs: &Vector<N, T2, A2>) -> Self::Output {{
+                    self.{op_snakecase}(*rhs)
                 }}
             }}
 
-            impl<const N: usize, T: Scalar + {op}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                {op}<&Vector<N, T2, A2>> for &Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+                {op_camelcase}<&Vector<N, T2, A2>> for &Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn {op}(self, rhs: &Vector<N, T2, A2>) -> Self::Output {{
-                    (*self).{op_lower}(*rhs)
+                fn {op_snakecase}(self, rhs: &Vector<N, T2, A2>) -> Self::Output {{
+                    (*self).{op_snakecase}(*rhs)
                 }}
             }}
         "#}
@@ -385,29 +385,29 @@ fn impl_binary_ops(scalar_override_fns: &mut Vec<String>) -> String {
 }
 
 fn impl_assign_ops(_scalar_override_fns: &mut Vec<String>) -> String {
-    BINARY_OPS.iter().map(|&op| {
-        let op_lower = op.to_lowercase();
+    BINARY_OPS.iter().map(|&op_camelcase| {
+        let op_snakecase = op_camelcase.to_lowercase();
 
         formatdoc! {r#"
-            impl<const N: usize, T: Scalar + {op}<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                {op}Assign<Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+                {op_camelcase}Assign<Vector<N, T2, A2>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 #[inline(always)]
-                fn {op}_assign(&mut self, rhs: Vector<N, T2, A2>) {{
-                    *self = (*self).{op_lower}(rhs)
+                fn {op_snakecase}_assign(&mut self, rhs: Vector<N, T2, A2>) {{
+                    *self = (*self).{op_snakecase}(rhs)
                 }}
             }}
 
-            impl<const N: usize, T: Scalar + {op}<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                {op}Assign<&Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + {op_camelcase}<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
+                {op_camelcase}Assign<&Vector<N, T2, A2>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {{
                 #[inline(always)]
-                fn {op}_assign(&mut self, rhs: &Vector<N, T2, A2>) {{
-                    *self = (*self).{op_lower}(*rhs)
+                fn {op_snakecase}_assign(&mut self, rhs: &Vector<N, T2, A2>) {{
+                    *self = (*self).{op_snakecase}(*rhs)
                 }}
             }}
         "#}

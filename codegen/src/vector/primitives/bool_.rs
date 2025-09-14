@@ -7,6 +7,7 @@ pub fn push_fns(
     functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _trait_impls: &mut Vec<String>,
+    _use_crate_items: &mut Vec<String>,
 ) {
     for primitive2 in INT_PRIMITIVES {
         functions.push(formatdoc! {r#"

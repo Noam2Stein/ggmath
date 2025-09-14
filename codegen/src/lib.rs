@@ -11,6 +11,8 @@ pub fn codegen() {
     r#gen::ModDir::new(
         "lib",
         formatdoc! {r#"
+            use core::panic::{{RefUnwindSafe, UnwindSafe}};
+
             mod float_ext;
             pub use float_ext::*;
 
@@ -37,6 +39,7 @@ pub fn codegen() {
             pub struct Usize<const N: usize>;
 
             /// An error type for when an index is out of bounds.
+            #[derive(Debug, Clone, Copy)]
             pub struct IndexOutOfBoundsError;
             
             impl<T: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe> Construct for T {{}}
@@ -51,8 +54,7 @@ pub fn codegen() {
 
             #[doc(hidden)]
             pub mod _hidden_ {{
-                #[cfg(feature = "aliases")]
-                pub use paste;
+                pub use paste::paste;
             }}
             
             #[inline(always)]
@@ -70,7 +72,7 @@ pub fn codegen() {
             #[macro_export(local_inner_macros)]
             macro_rules! return_for_types {{
                 (
-                    ($($arg:ident: $arg_type_1:ty => $arg_type_2:ty),* $(,)?) {{
+                    ($($arg:tt: $arg_type_1:ty => $arg_type_2:ty),* $(,)?) {{
                         $closure:expr
                     }}
                 ) => {{
@@ -82,22 +84,22 @@ pub fn codegen() {
                 }};
 
                 (
-                    ($($arg:ident: $arg_type_1:ty => $arg_type_2:ty),* $(,)?) -> $ret_type_1:ty => $ret_type_2:ty {{
+                    ($($arg:tt: $arg_type_1:ty => $arg_type_2:ty),* $(,)?) -> $ret_type_1:ty => $ret_type_2:ty {{
                         $closure:expr
                     }}
                 ) => {{
-                    if $(let Some($arg) = $crate::typecheck::<$arg_type_1, $arg_type_2>($arg))&&* {{
+                    if let Some(args) = $crate::typecheck::<($($arg_type_1,)*), ($($arg_type_2,)*)>(($($arg),*)) {{
                         if core::any::TypeId::of::<$ret_type_1>() == core::any::TypeId::of::<$ret_type_2>() {{
-                            let closure: fn($($arg_type_2),*) -> $ret_type_1 = $closure;
+                            let closure: fn(($($arg_type_2,)*)) -> $ret_type_1 = $closure;
 
-                            return $crate::typecheck::<$ret_type_1, $ret_type_2>(closure($($arg),*)).unwrap();
+                            return $crate::typecheck::<$ret_type_1, $ret_type_2>(closure(args)).unwrap();
                         }}
                     }}
                 }};
             }}
         "#},
         vec![float_ext::module()],
-        vec![vector::module()],
+        vec![vector::module(), primitive_aliases::module()],
         vec![],
     )
     .write_as_root();

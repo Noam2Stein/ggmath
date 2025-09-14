@@ -23,7 +23,6 @@ pub fn module() -> ModDir {
     let impl_api = impl_api::impl_api(&mut scalar_fns);
     let impl_std = impl_std::impl_std(&mut scalar_fns);
     let swizzle = swizzle::module(&mut scalar_fns);
-    let dir = dir::module();
 
     let scalar = scalar(scalar_fns);
 
@@ -36,9 +35,11 @@ pub fn module() -> ModDir {
                 fmt::{{Debug, Display}},
                 ops::*,
                 slice::SliceIndex,
+                mem::{{transmute_copy, transmute}},
+                hash::{{Hash, Hasher}},
             }};
 
-            use crate::{{Construct, Usize}};
+            use crate::{{Construct, Usize, return_for_types, IndexOutOfBoundsError}};
 
             mod dir;
             mod primitives;
@@ -63,8 +64,8 @@ pub fn module() -> ModDir {
 
             {impl_std}
         "#},
-        vec![swizzle, dir],
-        vec![],
+        vec![swizzle, dir::module()],
+        vec![primitives::module()],
         vec![],
     )
 }
@@ -210,7 +211,7 @@ fn vector_aliases() -> String {
             }};
 
             (@($($vis:tt)*) $prefix:ident => $t:ty) => {{
-                $crate::_hidden_::paste::paste! {{
+                $crate::_hidden_::paste! {{
                     {macro_aliases}
                 }}
             }};
@@ -281,7 +282,7 @@ fn scalar(scalar_fns: Vec<String>) -> String {
         .map(|&n| {
             formatdoc! {r#"
                 /// The inner type contained inside `Vector<{n}, Self, VecAligned>` vectors.
-                type InnerAlignedVec{n} = [Self; {n}];
+                type InnerAlignedVec{n}: Construct;
             "#}
         })
         .collect::<Vec<_>>()

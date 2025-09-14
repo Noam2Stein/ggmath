@@ -7,6 +7,7 @@ pub fn push_fns(
     functions: &mut Vec<String>,
     _std_functions: &mut Vec<String>,
     _trait_impls: &mut Vec<String>,
+    use_crate_items: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all primitive number types
@@ -30,4 +31,6 @@ pub fn push_fns(
             }}
         "#});
     }
+
+    use_crate_items.push("ScalarZero, ScalarOne".to_string());
 }

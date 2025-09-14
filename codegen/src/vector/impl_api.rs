@@ -52,12 +52,12 @@ fn storage_fns(_scalar_fns: &mut Vec<String>) -> String {
         pub fn to_storage<A2: VecAlignment>(self) -> Vector<N, T, A2> {{
             match A::IS_ALIGNED {{
                 true => match A2::IS_ALIGNED {{
-                    true => transmute_copy::<Vector<N, T, A>, Vector<N, T, A2>>(&self),
+                    true => unsafe {{ transmute_copy::<Vector<N, T, A>, Vector<N, T, A2>>(&self) }},
                     false => Vector::from_array(self.to_array()),
                 }},
                 false => match A2::IS_ALIGNED {{
                     true => Vector::from_array(self.to_array()),
-                    false => transmute_copy::<Vector<N, T, A>, Vector<N, T, A2>>(&self),
+                    false => unsafe {{ transmute_copy::<Vector<N, T, A>, Vector<N, T, A2>>(&self) }},
                 }},
             }}
         }}
@@ -68,11 +68,10 @@ fn array_fns(scalar_fns: &mut Vec<String>) -> String {
     for n in LENGTHS {
         scalar_fns.push(formatdoc! {r#"
             /// Constructs an aligned vec{n} from an array.
-            #[inline(always)]
-            fn vec{n}_from_array(array: [T; {n}]) -> Vec{n}<Self>;
+            fn vec{n}_from_array(array: [Self; {n}]) -> Vec{n}<Self>;
 
             /// Converts an aligned vec{n} to an array.
-            fn vec{n}_as_array(vec: Vec{n}<Self>) -> [T; {n}];
+            fn vec{n}_as_array(vec: Vec{n}<Self>) -> [Self; {n}];
         "#});
     }
 
@@ -80,7 +79,7 @@ fn array_fns(scalar_fns: &mut Vec<String>) -> String {
         scalar_fns.push(formatdoc! {r#"
             /// Overridable implementation of `Vector::splat` for aligned vec{n}s.
             #[inline(always)]
-            fn vec{n}_splat(value: T) -> Vec{n}<Self> {{
+            fn vec{n}_splat(value: Self) -> Vec{n}<Self> {{
                 Vec{n}::from_array([value; {n}])
             }}
         "#});
@@ -121,8 +120,8 @@ fn array_fns(scalar_fns: &mut Vec<String>) -> String {
         .map(|&n| {
             formatdoc! {r#"
                 return_for_types! {{
-                    (vec: Vector<N, T, A> => Vector<{n}, T, VecAligned>) -> [T; {n}] => [T; N] {{
-                        |vec| T::vec{n}_as_array(vec)
+                    (self: Vector<N, T, A> => Vector<{n}, T, VecAligned>) -> [T; {n}] => [T; N] {{
+                        |(vec,)| T::vec{n}_as_array(vec)
                     }}
                 }}
             "#}
@@ -173,8 +172,8 @@ fn array_fns(scalar_fns: &mut Vec<String>) -> String {
             {as_array_aligned_returns}
 
             return_for_types! {{
-                (vec: Vector<N, T, A> => Vector<N, T, VecPacked>) -> [T; N] => [T; N] {{
-                    |vec| vec.0
+                (self: Vector<N, T, A> => Vector<N, T, VecPacked>) -> [T; N] => [T; N] {{
+                    |(vec,)| vec.0
                 }}
             }}
 
@@ -229,7 +228,7 @@ fn array_fns(scalar_fns: &mut Vec<String>) -> String {
         #[inline(always)]
         pub unsafe fn set_unchecked(&mut self, index: usize, value: T) {{
             let mut array = self.as_array();
-            *array.get_unchecked_mut(index) = value;
+            unsafe {{ *array.get_unchecked_mut(index) = value }};
             *self = Self::from_array(array);
         }}
 

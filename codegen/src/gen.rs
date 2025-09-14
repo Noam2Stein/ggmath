@@ -2,6 +2,7 @@ use std::{
     fs::File,
     io::Write,
     path::{Path, PathBuf},
+    process::Command,
 };
 
 use indoc::writedoc;
@@ -75,7 +76,10 @@ impl ModDir {
     }
 
     pub fn write_as_root(self) {
-        let dir_path = Path::new(WORKPLACE_DIR);
+        let dir_path = Path::new(WORKPLACE_DIR).join("src");
+
+        assert!(dir_path.ends_with("src"));
+        std::fs::remove_dir_all(&dir_path).unwrap();
 
         let librs_path = dir_path.join("lib.rs");
         self.content.write_in_src(&librs_path);
@@ -85,7 +89,7 @@ impl ModDir {
         }
 
         for submod_file in self.submod_files {
-            let submod_path = dir_path.join(&submod_file.name);
+            let submod_path = dir_path.join(&submod_file.name).with_extension("rs");
             submod_file.write(submod_path);
         }
 
@@ -93,6 +97,8 @@ impl ModDir {
             let submod_dir_path = dir_path.join(&submod_dir.name);
             submod_dir.write(submod_dir_path);
         }
+
+        Command::new("cargo").arg("fmt").output().unwrap();
     }
 
     fn write(self, dir_path: impl AsRef<Path>) {
@@ -106,7 +112,7 @@ impl ModDir {
         }
 
         for submod_file in self.submod_files {
-            let submod_path = dir_path.join(&submod_file.name);
+            let submod_path = dir_path.join(&submod_file.name).with_extension("rs");
             submod_file.write(submod_path);
         }
 
@@ -118,6 +124,7 @@ impl ModDir {
 }
 
 impl TestFile {
+    #[expect(dead_code)]
     pub fn new(local_path: impl Into<PathBuf>, content: impl Into<String>) -> Self {
         Self {
             local_path: local_path.into(),
@@ -165,6 +172,7 @@ impl ModContent {
             {content}
         "#,
             content = self.content
-        );
+        )
+        .unwrap();
     }
 }
