@@ -1,12 +1,12 @@
 use indoc::formatdoc;
 
+use crate::constants::{COMPONENTS, LENGTHS};
+
 pub fn push_fns(
     primitive: &str,
     functions: &mut Vec<String>,
-    const_functions: &mut Vec<String>,
     std_functions: &mut Vec<String>,
-    _std_const_functions: &mut Vec<String>,
-    test_functions: &mut Vec<String>,
+    trait_impls: &mut Vec<String>,
 ) {
     functions.push(formatdoc! {r#"
         // The following items are generated for all float types
@@ -232,192 +232,6 @@ pub fn push_fns(
         }}
     "#});
 
-    const_functions.push(formatdoc! {r#"
-        // The following items are generated for all float types
-
-        /// Returns `self.abs_diff(other)` and supports const contexts.
-        #[inline(always)]
-        pub const fn const_abs_diff(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            self.const_sub(other).const_abs()
-        }}
-
-        /// Version of `Vector::negative_sign_mask` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_negative_sign_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_sign_negative();
-                i += 1;
-            }}
-
-            output
-        }}
-
-        /// Version of `Vector::positive_sign_mask` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_positive_sign_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_sign_positive();
-                i += 1;
-            }}
-
-            output
-        }}
-
-        /// Version of `Vector::nan_mask` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_nan_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_nan();
-                i += 1;
-            }}
-
-            output
-        }}
-
-        /// Version of `Vector::finite_mask` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_finite_mask(self) -> Vector<N, bool, A> {{
-            let mut output = Vector::const_splat(false);
-
-            let mut i = 0;
-            while i < N {{
-                output.as_array_mut()[i] = self.as_array()[i].is_finite();
-                i += 1;
-            }}
-
-            output
-        }}
-
-        /// Version of `Vector::is_nan` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_is_nan(self) -> bool {{
-            self.const_nan_mask().const_any_true()
-        }}
-
-        /// Version of `Vector::is_finite` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_is_finite(self) -> bool {{
-            self.const_finite_mask().const_all_true()
-        }}
-
-        /// Version of `Vector::lerp` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_lerp(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
-            self.const_lerp_unclamped(other, t.clamp(0.0, 1.0))
-        }}
-
-        /// Version of `Vector::lerp_weighted` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_lerp_weighted(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
-            self.const_lerp_unclamped_weighted(other, t.clamp(0.0, 1.0))
-        }}
-
-        /// Version of `Vector::lerp_unclamped` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_lerp_unclamped(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
-            self.const_add(other.const_sub(self).const_mul(Self::const_splat(t)))
-        }}
-
-        /// Version of `Vector::lerp_unclamped_weighted` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_lerp_unclamped_weighted(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
-            self.const_mul(Self::const_splat(1.0 - t)).const_add(other.const_mul(Self::const_splat(t)))
-        }}
-
-        /// Version of `Vector::project_onto` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_project_onto(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            other.to_storage::<A>().const_mul(Self::const_splat(self.const_dot(other))).const_mul(Self::const_splat(1.0 / other.const_mag_sq()))
-        }}
-
-        /// Version of `Vector::project_onto_normalized` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_project_onto_normalized(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            #[cfg(debug_assertions)]
-            assert!(other.const_mag_sq() == 1.0, "other must be normalized");
-
-            other.to_storage::<A>().const_mul(Self::const_splat(self.const_dot(other)))
-        }}
-
-        /// Version of `Vector::reject_from` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_reject_from(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            self.const_sub(self.const_project_onto(other))
-        }}
-
-        /// Version of `Vector::reject_from_normalized` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_reject_from_normalized(self, other: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            #[cfg(debug_assertions)]
-            assert!(other.const_mag_sq() == 1.0, "other must be normalized");
-
-            self.const_sub(self.const_project_onto_normalized(other))
-        }}
-
-        /// Version of `Vector::reflect` that can be called from const contexts.
-        /// This version may be less performant than the normal version.
-        /// 
-        /// When rust's const capabilities are expanded, this function will be removed.
-        #[inline(always)]
-        pub const fn const_reflect(self, normal: Vector<N, {primitive}, impl VecAlignment>) -> Self {{
-            #[cfg(debug_assertions)]
-            assert!(normal.const_mag_sq() == 1.0, "normal must be normalized");
-
-            self.const_sub(normal.to_storage::<A>().const_mul(Self::const_splat(2.0 * self.const_dot(normal))))
-        }}
-    "#});
-
     std_functions.push(formatdoc! {r#"
         // The following items are generated for all float types
 
@@ -542,62 +356,103 @@ pub fn push_fns(
         }}
     "#});
 
-    for a in ["VecAligned", "VecPacked"] {
-        let a_lower = match a {
-            "VecAligned" => "aligned",
-            "VecPacked" => "packed",
-            _ => panic!("Unhandled alignment: {}", a),
-        };
-        let a_postfix = match a {
-            "VecAligned" => "",
-            "VecPacked" => "p",
-            _ => panic!("Unhandled alignment: {}", a),
-        };
+    let zero_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            formatdoc! {r#"
+                const VEC{n}_ZERO: Vec{n}<{primitive}> = Vec{n}::const_from_array([0.0; {n}]);
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("");
 
-        test_functions.push(formatdoc! {r#"
-            // These tests are generated for all float types
+    let one_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            formatdoc! {r#"
+                const VEC{n}_ONE: Vec{n}<{primitive}> = Vec{n}::const_from_array([1.0; {n}]);
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("");
 
-            #[test]
-            fn test_neg_{a_lower}() {{
-                assert_eq!((-vec2{a_postfix}!(3.0, 1.0)).to_array(), [-3.0, -1.0]);
-                assert_eq!((-vec3{a_postfix}!(3.0, 1.0, -2.0)).to_array(), [-3.0, -1.0, 2.0]);
-                assert_eq!((-vec4{a_postfix}!(3.0, 1.0, 2.0, 0.0)).to_array(), [-3.0, -1.0, -2.0, 0.0]);
-            }}
+    let axis_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            (0..n).map(|i| {
+                let component = COMPONENTS[i];
 
-            #[test]
-            fn test_add_{a_lower}() {{
-                assert_eq!((vec2{a_postfix}!(3.0, 1.0) + vec2{a_postfix}!(5.0, 3.0)).to_array(), [8.0, 4.0]);
-                assert_eq!((vec3{a_postfix}!(3.0, 1.0, -2.0) + vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [8.0, 4.0, 2.0]);
-                assert_eq!((vec4{a_postfix}!(3.0, 1.0, 2.0, 0.0) + vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [8.0, 4.0, 6.0, 1.0]);
-            }}
+                let array_items = (0..n).map(|i2| {
+                    if i2 == i {
+                        "1.0"
+                    } else {
+                        "0.0"
+                    }
+                }).collect::<Vec<_>>().join(", ");
 
-            #[test]
-            fn test_sub_{a_lower}() {{
-                assert_eq!((vec2{a_postfix}!(8.0, 50.0) - vec2{a_postfix}!(5.0, 3.0)).to_array(), [3.0, 47.0]);
-                assert_eq!((vec3{a_postfix}!(56.0, 12.0, 21.0) - vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [51.0, 9.0, 17.0]);
-                assert_eq!((vec4{a_postfix}!(39.0, 13.0, 21.0, 4.0) - vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [34.0, 10.0, 17.0, 3.0]);
-            }}
+                formatdoc! {r#"
+                    const VEC{n}_{component}: Vec{n}<{primitive}> = Vec{n}::const_from_array([{array_items}]);
+                "#}
+            }).collect::<Vec<_>>()
+                .join("\n")
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
 
-            #[test]
-            fn test_mul_{a_lower}() {{
-                assert_eq!((vec2{a_postfix}!(3.0, 1.0) * vec2{a_postfix}!(5.0, 3.0)).to_array(), [15.0, 3.0]);
-                assert_eq!((vec3{a_postfix}!(3.0, 1.0, -2.0) * vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [15.0, 3.0, -8.0]);
-                assert_eq!((vec4{a_postfix}!(3.0, 1.0, 2.0, 0.0) * vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [15.0, 3.0, 8.0, 0.0]);
-            }}
+    let neg_one_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            formatdoc! {r#"
+                const VEC{n}_NEG_ONE: Vec{n}<{primitive}> = Vec{n}::const_from_array([-1.0; {n}]);
+            "#}
+        })
+        .collect::<Vec<_>>()
+        .join("");
 
-            #[test]
-            fn test_div_{a_lower}() {{
-                assert_eq!((vec2{a_postfix}!(8.0, 50.0) / vec2{a_postfix}!(5.0, 3.0)).to_array(), [8.0 / 5.0, 50.0 / 3.0]);
-                assert_eq!((vec3{a_postfix}!(56.0, 12.0, 21.0) / vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [56.0 / 5.0, 12.0 / 3.0, 21.0 / 4.0]);
-                assert_eq!((vec4{a_postfix}!(39.0, 13.0, 21.0, 4.0) / vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [39.0 / 5.0, 13.0 / 3.0, 21.0 / 4.0, 4.0 / 1.0]);
-            }}
+    let neg_axis_vector_consts = LENGTHS
+        .iter()
+        .map(|&n| {
+            (0..n).map(|i| {
+                let component = COMPONENTS[i];
 
-            #[test]
-            fn test_rem_{a_lower}() {{
-                assert_eq!((vec2{a_postfix}!(8.0, 50.0) % vec2{a_postfix}!(5.0, 3.0)).to_array(), [3.0, 2.0]);
-                assert_eq!((vec3{a_postfix}!(56.0, 12.0, 21.0) % vec3{a_postfix}!(5.0, 3.0, 4.0)).to_array(), [1.0, 0.0, 1.0]);
-                assert_eq!((vec4{a_postfix}!(39.0, 13.0, 21.0, 4.0) % vec4{a_postfix}!(5.0, 3.0, 4.0, 1.0)).to_array(), [4.0, 1.0, 1.0, 0.0]);
-            }}
-        "#});
-    }
+                let array_items = (0..n).map(|i2| {
+                    if i2 == i {
+                        "-1.0"
+                    } else {
+                        "0.0"
+                    }
+                }).collect::<Vec<_>>().join(", ");
+
+                formatdoc! {r#"
+                    const VEC{n}_NEG_{component}: Vec{n}<{primitive}> = Vec{n}::const_from_array([{array_items}]);
+                "#}
+            }).collect::<Vec<_>>()
+                .join("\n")
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    trait_impls.push(formatdoc! {r#"
+        impl ScalarZero for {primitive} {{
+            const ZERO: Self = 0.0;
+
+            {zero_vector_consts}
+        }}
+
+        impl ScalarOne for {primitive} {{
+            const ONE: Self = 1.0;
+
+            {one_vector_consts}
+
+            {axis_vector_consts}
+        }}
+
+        impl ScalarNegOne for {primitive} {{
+            const NEG_ONE: Self = -1.0;
+
+            {neg_one_vector_consts}
+
+            {neg_axis_vector_consts}
+        }}
+    "#});
 }
