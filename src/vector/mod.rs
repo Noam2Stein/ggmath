@@ -199,58 +199,64 @@ pub enum VecLenEnum {
 }
 
 /// Trait for types that can be put inside [`Vector`].
-/// This trait is implemented for most primitive types, like `f32`, `f64`, `bool`, `usize`, etc.
+/// This is only implemented for actual scalar types (e.g., `f32`),
+/// not vectors, matrices, etc.
 ///
-/// # Implementing `Scalar`
+/// When implementing this trait you need to specify the inner types of [`VecAligned`] vectors.
+/// You can also override the implementation of vector functions to make optimizations.
 ///
-/// When implementing `Scalar` you need to fill:
+/// For an example of an optimized `Scalar` implementation,
+/// look at the `f32` implementation.
 ///
-/// 1.
-/// `InnerAlignedVec2`, `InnerAlignedVec3`, etc
-///
-/// These are the inner types stored inside `VecAligned` vectors,
-/// for example `Vector<3, f32, VecAligned>` is stored as `f32::InnerAlignedVec3`.
-///
-/// The reference of these types MUST be transmutable to `&[T; N]`,
-/// if its not then using that vector is undefined behavior.
-/// This means that you cannot do things like expand `Vec3<bool>` into a 128-bit SIMD register with 32-bit lanes.
-///
-/// 2.
-/// `GARBAGE`, `INNER_ALIGNED_VEC2_GARBAGE`, `INNER_ALIGNED_VEC3_GARBAGE`, etc
-///
-/// These need to be any valid value of `Self`, `Self::InnerAlignedVec2`, `Self::InnerAlignedVec3`, etc.
-/// This is used to properly initialize aligned vectors.
-///
-/// # Examples
-///
+/// ## Example
 /// ```
-/// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
-/// struct BigInt {
-///     // private fields
-/// }
+/// use ggmath::*;
 ///
-/// // impl Add, Sub... for BigInt
+/// #[derive(Clone, Copy)]
+/// struct MyInt(i32);
 ///
-/// // lets say BigInt cannot benefit from SIMD operations, or we just don't want to optimize it yet.
-/// // When not wanting SIMD we can fill `InnerAlignedVec{N}` with `[Self; N]`.
-/// impl Scalar for BigInt {
-///     {bigint_vector_types}
-/// }
+/// impl Scalar for MyInt {
+///     // If we wanted to SIMD-accelerate this scalar type,
+///     // we would use another SIMD type like from `std::arch`, `ggmath`, `glam`, etc.
+///     type InnerAlignedVec2 = [MyInt; 2];
+///     type InnerAlignedVec3 = [MyInt; 3];
+///     type InnerAlignedVec4 = [MyInt; 4];
 ///
-/// struct SmallInt(i32);
+///     #[inline(always)]
+///     fn vec2_from_array(array: [MyInt; 2]) -> Vec2<MyInt> {
+///         Vector(array)
+///     }
 ///
-/// // impl Add, Sub... for SmallInt
+///     #[inline(always)]
+///     fn vec3_from_array(array: [MyInt; 3]) -> Vec3<MyInt> {
+///         Vector(array)
+///     }
 ///
-/// // lets say SmallInt can benefit from SIMD operations.
-/// impl Scalar for SmallInt {
-///     // use i32 vector types for aligned vectors.
-///     {smallint_vector_types}
+///     #[inline(always)]
+///     fn vec4_from_array(array: [MyInt; 4]) -> Vec4<MyInt> {
+///         Vector(array)
+///     }
+///
+///     #[inline(always)]
+///     fn vec2_as_array(vec: Vec2<MyInt>) -> [MyInt; 2] {
+///         vec.0
+///     }
+///
+///     #[inline(always)]
+///     fn vec3_as_array(vec: Vec3<MyInt>) -> [MyInt; 3] {
+///         vec.0
+///     }
+///
+///     #[inline(always)]
+///     fn vec4_as_array(vec: Vec4<MyInt>) -> [MyInt; 4] {
+///         vec.0
+///     }
 /// }
 /// ```
 pub trait Scalar: Construct {
-    /// The inner type contained inside `Vector<2, Self, VecAligned>` vectors.
-    type InnerAlignedVec2: Construct;/// The inner type contained inside `Vector<3, Self, VecAligned>` vectors.
-    type InnerAlignedVec3: Construct;/// The inner type contained inside `Vector<4, Self, VecAligned>` vectors.
+    /// The inner type contained inside `Vector<2, Self, VecAligned>`.
+    type InnerAlignedVec2: Construct;/// The inner type contained inside `Vector<3, Self, VecAligned>`.
+    type InnerAlignedVec3: Construct;/// The inner type contained inside `Vector<4, Self, VecAligned>`.
     type InnerAlignedVec4: Construct;
 
     /// Constructs an aligned vec2 from an array.

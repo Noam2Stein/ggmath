@@ -196,59 +196,55 @@ pub fn mod_() -> ModDir {
         }
 
         $("/// Trait for types that can be put inside [`Vector`].")
-        $("/// This trait is implemented for most primitive types, like `f32`, `f64`, `bool`, `usize`, etc.")
+        $("/// This is only implemented for actual scalar types (e.g., `f32`),")
+        $("/// not vectors, matrices, etc.")
         $("///")
-        $("/// # Implementing `Scalar`")
+        $("/// When implementing this trait you need to specify the inner types of [`VecAligned`] vectors.")
+        $("/// You can also override the implementation of vector functions to make optimizations.")
         $("///")
-        $("/// When implementing `Scalar` you need to fill:")
+        $("/// For an example of an optimized `Scalar` implementation,")
+        $("/// look at the `f32` implementation.")
         $("///")
-        $("/// 1.")
-        $("/// `InnerAlignedVec2`, `InnerAlignedVec3`, etc")
-        $("///")
-        $("/// These are the inner types stored inside `VecAligned` vectors,")
-        $("/// for example `Vector<3, f32, VecAligned>` is stored as `f32::InnerAlignedVec3`.")
-        $("///")
-        $("/// The reference of these types MUST be transmutable to `&[T; N]`,")
-        $("/// if its not then using that vector is undefined behavior.")
-        $("/// This means that you cannot do things like expand `Vec3<bool>` into a 128-bit SIMD register with 32-bit lanes.")
-        $("///")
-        $("/// 2.")
-        $("/// `GARBAGE`, `INNER_ALIGNED_VEC2_GARBAGE`, `INNER_ALIGNED_VEC3_GARBAGE`, etc")
-        $("///")
-        $("/// These need to be any valid value of `Self`, `Self::InnerAlignedVec2`, `Self::InnerAlignedVec3`, etc.")
-        $("/// This is used to properly initialize aligned vectors.")
-        $("///")
-        $("/// # Examples")
-        $("///")
+        $("/// ## Example")
         $("/// ```")
-        $("/// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]")
-        $("/// struct BigInt {")
-        $("///     // private fields")
-        $("/// }")
+        $("/// use ggmath::*;")
         $("///")
-        $("/// // impl Add, Sub... for BigInt")
+        $("/// #[derive(Clone, Copy)]")
+        $("/// struct MyInt(i32);")
         $("///")
-        $("/// // lets say BigInt cannot benefit from SIMD operations, or we just don't want to optimize it yet.")
-        $("/// // When not wanting SIMD we can fill `InnerAlignedVec{N}` with `[Self; N]`.")
-        $("/// impl Scalar for BigInt {")
-        $("///     {bigint_vector_types}")
-        $("/// }")
+        $("/// impl Scalar for MyInt {")
+        $("///     // If we wanted to SIMD-accelerate this scalar type,")
+        $("///     // we would use another SIMD type like from `std::arch`, `ggmath`, `glam`, etc.")
+        $(
+            for &n in LENGTHS =>
+
+            $(format!("///     type InnerAlignedVec{n} = [MyInt; {n}];"))$['\r']
+        )
         $("///")
-        $("/// struct SmallInt(i32);")
+        $(
+            for &n in LENGTHS join($['\r']$("///")$['\r']) =>
+
+            $("///     #[inline(always)]")
+            $(format!("///     fn vec{n}_from_array(array: [MyInt; {n}]) -> Vec{n}<MyInt> {{"))
+            $("///         Vector(array)")
+            $("///     }")
+        )
         $("///")
-        $("/// // impl Add, Sub... for SmallInt")
-        $("///")
-        $("/// // lets say SmallInt can benefit from SIMD operations.")
-        $("/// impl Scalar for SmallInt {")
-        $("///     // use i32 vector types for aligned vectors.")
-        $("///     {smallint_vector_types}")
+        $(
+            for &n in LENGTHS join($['\r']$("///")$['\r']) =>
+
+            $("///     #[inline(always)]")
+            $(format!("///     fn vec{n}_as_array(vec: Vec{n}<MyInt>) -> [MyInt; {n}] {{"))
+            $("///         vec.0")
+            $("///     }")
+        )
         $("/// }")
         $("/// ```")
         pub trait Scalar: Construct {
             $(
                 for &n in LENGTHS =>
 
-                $(format!("/// The inner type contained inside `Vector<{n}, Self, VecAligned>` vectors."))
+                $(format!("/// The inner type contained inside `Vector<{n}, Self, VecAligned>`."))
                 type InnerAlignedVec$(n): Construct;
             )
 
