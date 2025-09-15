@@ -5,3 +5,4 @@ version = "0.1.0"
 
 [dependencies]
 genco = "0.18.1"
+indoc = "2.0.6"

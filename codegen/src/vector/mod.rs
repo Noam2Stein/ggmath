@@ -2,6 +2,7 @@ use genco::quote;
 
 use crate::{
     constants::{BINARY_OPS, COMPONENTS, LENGTH_NAMES, LENGTHS, UNARY_OPS},
+    join_or,
     module::{ModDir, TokensExt},
 };
 
@@ -11,7 +12,7 @@ mod swizzle;
 
 pub fn mod_() -> ModDir {
     quote! {
-        //! Vector related types and traits
+        $("//! Vector related types and traits")
 
         use core::{
             fmt::{Debug, Display},
@@ -21,72 +22,90 @@ pub fn mod_() -> ModDir {
             hash::{Hash, Hasher},
         };
 
-        use crate::{Construct, Usize, return_for_types, IndexOutOfBoundsError};
+        use crate::{Construct, Usize, IndexOutOfBoundsError, specialize};
 
         mod dir;
         //mod primitives;
         mod swizzle;
         pub use dir::*;
 
-        $(let length_list = LENGTHS.iter().map(|&n| n.to_string()).collect::<Vec<_>>().join(", "))
+        $(let length_list = join_or(LENGTHS.iter().map(|&n| n.to_string())))
 
-        /// A generic vector type.
-        ///
-        /// This type is generic over 3 parameters:
-        $(format!("/// - `N`: The length of the vector, which currently supports {length_list}."))
-        /// - `T`: The type of the vector, which must implement the [`Scalar`] trait.
-        /// - `A`: The "alignment" of the vector, which enables or disables SIMD memory alignment.
-        ///
-        /// This type has very very useful type-aliases:
-        /// - `Vec{N}<T>` like `Vec2<f32>` is for SIMD aligned vectors
-        /// - `Vec{N}P<T>` like `Vec2P<f32>` is for non-SIMD aligned vectors
-        ///
-        /// # Length
-        ///
-        $(format!("/// Currently only the lengths {length_list} are supported in order to specialize their inner vector type."))
-        /// In the future if rust gains more type-system features, more lengths will be supported.
-        ///
-        $(format!("/// Beware that code should never rely on the fact that {length_list} are the only supported lengths."))
-        /// Code that branches based on vector length should either properly handle all usize values or use [`VecLenEnum`].
-        ///
-        /// # Alignment
-        ///
-        /// The `A` generic parameter controls whether or not the vector is SIMD aligned,
-        /// and can be set to either `VecAligned` or `VecPacked`.
-        ///
-        /// SIMD can improve performance of vector operations,
-        /// but it can also increase the size of the vector in memory.
-        ///
-        /// `Vector<N, T, VecAligned>` vectors are SIMD aligned if it increases performance,
-        /// while `Vector<N, T, VecPacked>` vectors are not SIMD aligned and are always stored as `[T; N]`.
-        ///
-        /// This means that `VecAligned` are for performance and `VecPacked` are for memory efficiency.
-        ///
-        /// Beware that while `VecPacked` guarentees an exact memory layout of `[T; N]`, `VecAligned` does not guarantee a specific alignment rule/pattern.
-        /// For example, `Vector<3, f32, VecAligned`/`Vec3<f32>` isn't guaranteed to be aligned to a 128-bit boundary.
-        /// It is up to the implementation of [`Scalar`] to determine `VecAligned` alignment for whatever is most performant.
-        ///
-        /// # Examples
-        /// ```
-        /// use ggmath::*;
-        ///
-        /// // This is a non memory critical scenario so we should use `VecAligned`.
-        /// struct PlayerState {
-        ///     // Vector<3, f32, VecAligned>
-        ///     position: Vec3<f32>,
-        ///     // ...
-        /// }
-        ///
-        /// // This is a memory critical scenario so we should use `VecPacked`.
-        /// struct GpuVertex {
-        ///     // Vector<3, f32, VecPacked>
-        ///     position: Vec3P<f32>,
-        ///     // Vector<3, f32, VecPacked>
-        ///     normal: Vec3P<f32>,
-        ///     // Vector<2, f32, VecPacked>
-        ///     uv: Vec2P<f32>,
-        /// }
-        /// ```
+        $("/// A generic vector type.")
+        $("///")
+        $("/// This type is generic over 3 parameters:")
+        $(format!("/// - `N`: The length of the vector, which currently can be {length_list}"))
+        $("/// - `T`: The scalar type of the vector, which must implement [`Scalar`]")
+        $("/// - `A`: The \"alignment\" of the vector, which enables or disables SIMD memory-alignment")
+        $("///")
+        $("/// This type has very very useful type-aliases:")
+        $("/// - `Vec{N}<T>` like `Vec2<T>` is for SIMD vectors")
+        $("/// - `Vec{N}P<T>` like `Vec2P<T>` is for non-SIMD vectors")
+        $("///")
+        $("/// # Alignment")
+        $("///")
+        $("/// SIMD improves the performance of vector operations but increases the size of the vector in memory.")
+        $("///")
+        $("/// The `A` generic parameter controls whether or not the vector is SIMD-aligned.")
+        $("/// `Vector<N, T, VecAligned>` vectors are SIMD-aligned and `Vector<N, T, VecPacked>` vectors are not.")
+        $("///")
+        $("/// Most of the time you should use `VecAligned` vectors (e.g. `Vec3<T>`),")
+        $("/// and only use `VecPacked` vectors in memory-critical scenarios.")
+        $("///")
+        $("/// The exact alignment rules are:")
+        $("///")
+        $("/// - `VecPacked` vectors are always stored as `[T; N]`.")
+        $("///")
+        $("/// - `VecAligned` storage is specified by the [`Scalar`] implementation,")
+        $("/// and follows the rule of using whatever format is most performant.")
+        $("/// This means that if a vector doesn't benefit from SIMD it should not be SIMD-aligned.")
+        $("///")
+        $("/// # Example")
+        $("/// ```")
+        $("/// use ggmath::*;")
+        $("///")
+        $("/// // This is a non memory critical scenario so we should use `VecAligned`.")
+        $("/// struct PlayerState {{")
+        $("///     // Vector<3, f32, VecAligned>")
+        $("///     position: Vec3<f32>,")
+        $("/// }}")
+        $("///")
+        $("/// // This is a memory critical scenario so we should use `VecPacked`.")
+        $("/// struct GpuVertex {{")
+        $("///     // Vector<3, f32, VecPacked>")
+        $("///     position: Vec3P<f32>,")
+        $("///     // Vector<3, f32, VecPacked>")
+        $("///     normal: Vec3P<f32>,")
+        $("///     // Vector<2, f32, VecPacked>")
+        $("///     uv: Vec2P<f32>,")
+        $("/// }}")
+        $("///")
+        $("/// fn initial_player_state() -> PlayerState {{")
+        $("///     PlayerState {{")
+        $("///         position: vec3!(0.0, 1.0, 2.0),")
+        $("///     }}")
+        $("/// }}")
+        $("///")
+        $("/// fn triangle_vertices() -> [GpuVertex; 3] {{")
+        $("///     [")
+        $("///         GpuVertex {{")
+        $("///             position: vec3p!(-1.0, -1.0, 0.0),")
+        $("///             normal: vec3p!(0.0, 0.0, 1.0),")
+        $("///             uv: vec2p!(0.0, 0.0),")
+        $("///         }},")
+        $("///         GpuVertex {{")
+        $("///             position: vec3p!(1.0, -1.0, 0.0),")
+        $("///             normal: vec3p!(0.0, 0.0, 1.0),")
+        $("///             uv: vec2p!(1.0, 0.0),")
+        $("///         }},")
+        $("///         GpuVertex {{")
+        $("///             position: vec3p!(0.0, 1.0, 0.0),")
+        $("///             normal: vec3p!(0.0, 0.0, 1.0),")
+        $("///             uv: vec2p!(0.5, 1.0),")
+        $("///         }},")
+        $("///     ]")
+        $("/// }}")
+        $("/// ```")
         #[repr(transparent)]
         pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(pub A::InnerVector<N, T>)
         where
@@ -97,129 +116,134 @@ pub fn mod_() -> ModDir {
 
             $(format!("/// Type alias for [`Vector<{n}, T, VecAligned>`][Vector]."))
             pub type Vec$(n)<T> = Vector<$n, T, VecAligned>;
-
-            $(format!("/// Type alias for [`Vector<{n}, T, VecPacked>`][Vector]."))
-            pub type Vec$(n)P<T> = Vector<$n, T, VecPacked>;
+            $['\n']
         )
-
-        /// Macro that generates vector type aliases for a specific scalar type.
-        ///
-        /// Syntax: `vector_aliases!(<visibility> <prefix> => <scalar>)`
-        ///
-        /// # Examples
-        ///
-        /// ```
-        /// use ggmath::*;
-        /// 
-        /// vector_aliases!(pub F => f32);
-        /// ```
-        /// Generates:
-        /// ```
         $(
             for &n in LENGTHS =>
 
-            type FVec$(n) = ggmath::Vec$(n)<f32>;
-            type FVec$(n)P = ggmath::Vec$(n)P<f32>;
+            $(format!("/// Type alias for [`Vector<{n}, T, VecPacked>`][Vector]."))
+            pub type Vec$(n)P<T> = Vector<$n, T, VecPacked>;
+            $['\n']
         )
-        /// ```
+
+        $("/// Generates vector type-aliases for a specific scalar type.")
+        $("///")
+        $("/// # Example")
+        $("///")
+        $("/// ```")
+        $("/// use ggmath::*;")
+        $("///")
+        $("/// vector_aliases!(pub type F = f32);")
+        $("/// ```")
+        $("/// Generates:")
+        $("/// ```")
+        $(for &n in LENGTHS => $(format!("/// pub type FVec{n} = Vec{n}<f32>;"))$['\r'])
+        $(for &n in LENGTHS => $(format!("/// pub type FVec{n}P = Vec{n}P<f32>;"))$['\r'])
+        $("/// ```")
         #[macro_export]
         macro_rules! vector_aliases {
-            (pub($$($$vis:tt)*) $$prefix:ident => $$t:ty) => {
-                $$crate::vector_aliases!(@(pub $$($$vis)*) $$prefix => $$t);
+            ($$(#[$$($$attr:tt)*])* pub($$($$vis:tt)*) type $$prefix:ident => $$t:ty) => {
+                $$crate::vector_aliases!(@(pub type $$($$vis)*) $$(#[$$($$attr)*])* $$prefix => $$t);
             };
-            (pub $$prefix:ident => $$t:ty) => {
-                $$crate::vector_aliases!(@(pub) $$prefix => $$t);
+            ($$(#[$$($$attr:tt)*])* pub type $$prefix:ident => $$t:ty) => {
+                $$crate::vector_aliases!(@(pub) $$(#[$$($$attr)*])* type $$prefix => $$t);
             };
-            ($$prefix:ident => $$t:ty) => {
-                $$crate::vector_aliases!(@() $$prefix => $$t);
+            ($$(#[$$($$attr:tt)*])* type $$prefix:ident => $$t:ty) => {
+                $$crate::vector_aliases!(@() $$(#[$$($$attr)*])* type $$prefix => $$t);
             };
 
-            (@($$($$vis:tt)*) $$prefix:ident => $$t:ty) => {
-                $$crate::_hidden_::paste! {$(
-                    for &n in LENGTHS =>
+            (@($$($$vis:tt)*) $$(#[$$($$attr:tt)*])* type $$prefix:ident => $$t:ty) => {
+                $$crate::_hidden_::paste! {
+                    $(
+                        for &n in LENGTHS =>
 
-                    #[doc = $(format!("Type alias to [`Vector<{n}, ")) $$t ", VecAligned>`][Vector]."]
-                    $$($$vis)* type [<$$prefix Vec$(n)>] = $$crate::Vec$(n)<$$t>;
+                        #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", VecAligned>`][Vector]."]
+                        $$(#[$$($$attr)*])*
+                        $$($$vis)* type [<$$prefix Vec$(n)>] = $$crate::Vec$(n)<$$t>;
 
-                    #[doc = $(format!("Type alias to [`Vector<{n}, ")) $$t ", VecPacked>`][Vector]."]
-                    $$($$vis)* type [<$$prefix Vec$(n)P>] = $$crate::Vec$(n)P<$$t>;
-                )}
+                        #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", VecPacked>`][Vector]."]
+                        $$(#[$$($$attr)*])*
+                        $$($$vis)* type [<$$prefix Vec$(n)P>] = $$crate::Vec$(n)P<$$t>;
+
+                        $['\n']
+                    )
+                }
             };
         }
 
-        /// A trait that marks a `Usize<N>` type as a valid vector length.
-        /// See [`Vector`] for more information.
+        $("/// Marks a `Usize<N>` type as a valid vector length.")
         pub trait VecLen {
-            /// The inner type contained inside `Vector<N, T, VecAligned>`.
-            ///
-            /// This redirects to `T::InnerAlignedVec{N}`,
-            /// for example `T::InnerAlignedVec2` for `Usize<2>`.
+            $("/// The inner type contained inside `Vector<N, T, VecAligned>`.")
+            $("///")
+            $("/// This redirects to `T::InnerAlignedVec{N}`,")
+            $("/// for example `T::InnerAlignedVec2` for `Usize<2>`.`")
             type InnerAlignedVector<T: Scalar>: Construct;
 
-            /// The length value as an enum.
+            $("/// The length value as an enum.")
             const ENUM: VecLenEnum;
         }
 
-        /// An enum with all currently supported vector lengths.
-        ///
-        /// The enum value of a generic `const N: usize` value can be accessed with [`<Usize<N> as VecLen>::ENUM`][`VecLen::ENUM`].
+        $("/// An enum with all currently supported vector lengths.")
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        pub enum VecLenEnum {$(
-            for (&n, &length_name) in LENGTHS.iter().zip(LENGTH_NAMES.iter()) =>
+        pub enum VecLenEnum {
+            $(
+                for (&n, &length_name) in LENGTHS.iter().zip(LENGTH_NAMES.iter()) =>
 
-            $(format!("/// `{n}`"))
-            $length_name,
-        )*}
+                $(format!("/// `{n}`"))
+                $length_name,
+                $['\r']
+            )
+        }
 
-        /// A trait that marks a type as a valid scalar type that can be used in a vector.
-        /// This trait is implemented for most primitive types, like `f32`, `f64`, `bool`, `usize`, etc.
-        ///
-        /// # Implementing `Scalar`
-        ///
-        /// When implementing `Scalar` you need to fill:
-        ///
-        /// 1.
-        /// `InnerAlignedVec2`, `InnerAlignedVec3`, etc
-        ///
-        /// These are the inner types stored inside `VecAligned` vectors,
-        /// for example `Vector<3, f32, VecAligned>` is stored as `f32::InnerAlignedVec3`.
-        ///
-        /// The reference of these types MUST be transmutable to `&[T; N]`,
-        /// if its not then using that vector is undefined behavior.
-        /// This means that you cannot do things like expand `Vec3<bool>` into a 128-bit SIMD register with 32-bit lanes.
-        ///
-        /// 2.
-        /// `GARBAGE`, `INNER_ALIGNED_VEC2_GARBAGE`, `INNER_ALIGNED_VEC3_GARBAGE`, etc
-        ///
-        /// These need to be any valid value of `Self`, `Self::InnerAlignedVec2`, `Self::InnerAlignedVec3`, etc.
-        /// This is used to properly initialize aligned vectors.
-        ///
-        /// # Examples
-        ///
-        /// ```
-        /// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
-        /// struct BigInt {
-        ///     // private fields
-        /// }
-        ///
-        /// // impl Add, Sub... for BigInt
-        ///
-        /// // lets say BigInt cannot benefit from SIMD operations, or we just don't want to optimize it yet.
-        /// // When not wanting SIMD we can fill `InnerAlignedVec{N}` with `[Self; N]`.
-        /// impl Scalar for BigInt {
-        ///     {bigint_vector_types}
-        /// }
-        ///
-        /// struct SmallInt(i32);
-        ///
-        /// // impl Add, Sub... for SmallInt
-        ///
-        /// // lets say SmallInt can benefit from SIMD operations.
-        /// impl Scalar for SmallInt {
-        ///     // use i32 vector types for aligned vectors.
-        ///     {smallint_vector_types}
-        /// }
-        /// ```
+        $("/// Trait for types that can be put inside [`Vector`].")
+        $("/// This trait is implemented for most primitive types, like `f32`, `f64`, `bool`, `usize`, etc.")
+        $("///")
+        $("/// # Implementing `Scalar`")
+        $("///")
+        $("/// When implementing `Scalar` you need to fill:")
+        $("///")
+        $("/// 1.")
+        $("/// `InnerAlignedVec2`, `InnerAlignedVec3`, etc")
+        $("///")
+        $("/// These are the inner types stored inside `VecAligned` vectors,")
+        $("/// for example `Vector<3, f32, VecAligned>` is stored as `f32::InnerAlignedVec3`.")
+        $("///")
+        $("/// The reference of these types MUST be transmutable to `&[T; N]`,")
+        $("/// if its not then using that vector is undefined behavior.")
+        $("/// This means that you cannot do things like expand `Vec3<bool>` into a 128-bit SIMD register with 32-bit lanes.")
+        $("///")
+        $("/// 2.")
+        $("/// `GARBAGE`, `INNER_ALIGNED_VEC2_GARBAGE`, `INNER_ALIGNED_VEC3_GARBAGE`, etc")
+        $("///")
+        $("/// These need to be any valid value of `Self`, `Self::InnerAlignedVec2`, `Self::InnerAlignedVec3`, etc.")
+        $("/// This is used to properly initialize aligned vectors.")
+        $("///")
+        $("/// # Examples")
+        $("///")
+        $("/// ```")
+        $("/// #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]")
+        $("/// struct BigInt {")
+        $("///     // private fields")
+        $("/// }")
+        $("///")
+        $("/// // impl Add, Sub... for BigInt")
+        $("///")
+        $("/// // lets say BigInt cannot benefit from SIMD operations, or we just don't want to optimize it yet.")
+        $("/// // When not wanting SIMD we can fill `InnerAlignedVec{N}` with `[Self; N]`.")
+        $("/// impl Scalar for BigInt {")
+        $("///     {bigint_vector_types}")
+        $("/// }")
+        $("///")
+        $("/// struct SmallInt(i32);")
+        $("///")
+        $("/// // impl Add, Sub... for SmallInt")
+        $("///")
+        $("/// // lets say SmallInt can benefit from SIMD operations.")
+        $("/// impl Scalar for SmallInt {")
+        $("///     // use i32 vector types for aligned vectors.")
+        $("///     {smallint_vector_types}")
+        $("/// }")
+        $("/// ```")
         pub trait Scalar: Construct {
             $(
                 for &n in LENGTHS =>

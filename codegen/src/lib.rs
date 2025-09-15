@@ -26,21 +26,79 @@ pub fn codegen() {
         #[cfg(feature = "primitive_aliases")]
         pub use primitive_aliases::*;
 
-        /// An auto trait for types that can be sent anywhere anytime.
-        ///
-        /// This trait is required for all `ggmath` types,
-        /// like scalars, vectors, matrices, etc.
+        $("/// The base trait for all `ggmath` types.")
+        $("/// This is an auto trait that requires basic traits and `Copy`.")
         pub trait Construct: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe {}
 
-        /// A simple marker type that is generic over a `usize` constant.
-        ///
-        /// This is used to implement traits for specific `usize` values.
-        /// As is used in vectors with the [`VecLen`][vector::VecLen] trait.
+        $("/// Marker type that is generic over a `usize` constant,")
+        $("/// which is used to implement traits for specific `usize` values.")
         pub struct Usize<const N: usize>;
 
-        /// An error type for when an index is out of bounds.
+        $("/// An error type for when an index is out of bounds.")
         #[derive(Debug, Clone, Copy)]
         pub struct IndexOutOfBoundsError;
+
+        $("/// TODO: Document this macro.")
+        #[macro_export]
+        macro_rules! specialize {
+            (
+                ($$($$arg:tt: $$arg_type:ty),* $$(,)?):
+
+                for ($$($$first_case_arg_type:ty),* $$(,)?) { $$first_case_closure:expr }
+
+                $$(for ($$($$case_arg_type:ty),* $$(,)?) { $$case_closure:expr })*
+
+                $$(else { $$($$else_tt:tt)* })?
+            ) => {
+                $$crate::specialize! {
+                    ($$($$arg: $$arg_type),*) -> ():
+
+                    for ($$($$first_case_arg_type),*) -> () { $$first_case_closure }
+
+                    $$(for ($$($$case_arg_type),*) -> () { $$case_closure })*
+
+                    $$(else { $$($$else_tt:tt)* })?
+                }
+            };
+
+            (
+                ($$($$arg:tt: $$arg_type:ty),* $$(,)?) -> $$ret_type:ty:
+
+                for ($$($$first_case_arg_type:ty),* $$(,)?) -> $$first_case_ret_type:ty { $$first_case_closure:expr }
+
+                $$(for ($$($$case_arg_type:ty),* $$(,)?) -> $$case_ret_type:ty { $$case_closure:expr })*
+
+                $$(else { $$($$else_tt:tt)* })?
+            ) => {
+                if let Some(tuple) = $$crate::typecheck::<($$($$arg_type,)*), ($$($$first_case_arg_type,)*)>(($$($$arg,)*)) {
+                    if core::any::TypeId::of::<$$ret_type>() == core::any::TypeId::of::<$$first_case_ret_type>() {
+                        let closure: fn($$($$first_case_arg_type),*) -> $$first_case_ret_type = $$closure;
+                        let result: $$first_case_ret_type = $$crate::specialize!(@expand_tuple_into_closure closure(tuple); $$($$first_case_arg_type),*);
+
+                        return $$crate::typecheck::<$$first_case_ret_type, $$ret_type>(result).unwrap();
+                    }
+                }
+                $$(else if let Some(tuple) = $$crate::typecheck::<($$($$arg_type,)*), ($$($$case_arg_type,)*)>(($$($$arg,)*)) {
+                    if core::any::TypeId::of::<$$ret_type>() == core::any::TypeId::of::<$$case_ret_type>() {
+                        let closure: fn($$($$case_arg_type),*) -> $$case_ret_type = $$closure;
+                        let result: $$case_ret_type = $$crate::specialize!(@expand_tuple_into_closure closure(tuple); $$($$case_arg_type),*);
+
+                        return $$crate::typecheck::<$$case_ret_type, $$ret_type>(result).unwrap();
+                    }
+                })*
+                $$(else {
+                    $$($$else_tt:tt)*
+                })?
+            };
+
+            $(
+                for n in 0..8 =>
+
+                (@expand_tuple_into_closure $$closure:ident($$tuple:ident); $(for i in 0..n join(, ) => $$_type$(i):ty)) => {
+                    $$closure($(for i in 0..n join(, )=> $$tuple.$i))
+                };$['\n']
+            )
+        }
         
         impl<T: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe> Construct for T {}
 
@@ -48,7 +106,7 @@ pub fn codegen() {
 
         impl core::fmt::Display for IndexOutOfBoundsError {
             fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                write!(f, "Index out of bounds")
+                write!(f, "index out of bounds")
             }
         }
 
@@ -57,8 +115,9 @@ pub fn codegen() {
             pub use paste::paste;
         }
         
+        #[doc(hidden)]
         #[inline(always)]
-        pub(crate) fn typecheck<T1: Construct, T2: Construct>(value: T1) -> Option<T2> {
+        pub fn typecheck<T1: Construct, T2: Construct>(value: T1) -> Option<T2> {
             use core::any::TypeId;
                         
             if TypeId::of::<T1>() == TypeId::of::<T2>() {
@@ -67,35 +126,6 @@ pub fn codegen() {
             } else {
                 None
             }
-        }
-
-        #[macro_export(local_inner_macros)]
-        macro_rules! return_for_types {
-            (
-                ($$($$arg:tt: $$arg_type_1:ty => $$arg_type_2:ty),* $$(,)?) {
-                    $$closure:expr
-                }
-            ) => {
-                $$crate::return_for_types! {
-                    ($$($$arg: $$arg_type_1 => $$arg_type_2),*) -> () => () {
-                        $$closure
-                    }
-                }
-            };
-
-            (
-                ($$($$arg:tt: $$arg_type_1:ty => $$arg_type_2:ty),* $$(,)?) -> $$ret_type_1:ty => $$ret_type_2:ty {
-                    $$closure:expr
-                }
-            ) => {
-                if let Some(args) = $$crate::typecheck::<($$($$arg_type_1,)*), ($$($$arg_type_2,)*)>(($$($$arg),*)) {
-                    if core::any::TypeId::of::<$$ret_type_1>() == core::any::TypeId::of::<$$ret_type_2>() {
-                        let closure: fn(($$($$arg_type_2,)*)) -> $$ret_type_1 = $$closure;
-
-                        return $$crate::typecheck::<$$ret_type_1, $$ret_type_2>(closure(args)).unwrap();
-                    }
-                }
-            };
         }
     }
     .to_mod_dir("lib")
@@ -120,7 +150,6 @@ fn join_and(iter: impl Iterator<Item = String>) -> String {
     }
 }
 
-#[expect(unused)]
 fn join_or(iter: impl Iterator<Item = String>) -> String {
     let mut vec = iter.collect::<Vec<_>>();
     let last = vec.pop();

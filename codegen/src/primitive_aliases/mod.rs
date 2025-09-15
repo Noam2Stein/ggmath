@@ -12,10 +12,10 @@ pub fn mod_() -> ModDir {
 
             $(format!("/// `{primitive}` type aliases."))
             #[cfg(feature = "primitive_aliases")]
-            pub mod $(format!("{primitive}_aliases")) {{
+            pub mod $(format!("{primitive}_aliases")) {
                 #[cfg(feature = "vector")]
                 crate::vector_aliases!(pub $prefix => $primitive);
-            }}
+            }$['\n']
         )
     }
     .to_mod_dir("primitive_aliases")

@@ -179,7 +179,7 @@ pub fn mod_() -> ModFile {
                         $(format!("/// Returns a reference to the {} ({}) components of `self`.", join_and((start..start + n2).map(|i| format!("`{}`", COMPONENTS[i]))), join_and((start..start + n2).map(|i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
                         pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_ref(&self) -> &Vec$(n2)P<T> {
-                            Vector::from_array_ref(unsafe {{ &*(self.as_ptr().add({start}) as *const [T; {n2}]) }})
+                            Vector::from_array_ref(unsafe { &*(self.as_ptr().add({start}) as *const [T; {n2}]) })
                         }
                     )
                 )
@@ -191,7 +191,7 @@ pub fn mod_() -> ModFile {
                         $(format!("/// Returns a mutable reference to the {} ({}) components of `self`.", join_and((start..start + n2).map(|i| format!("`{}`", COMPONENTS[i]))), join_and((start..start + n2).map(|i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
                         pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_mut(&mut self) -> &mut Vec$(n2)P<T> {
-                            Vector::from_mut_array(unsafe {{ &*(self.as_mut_ptr().add({start}) as *mut [T; {n2}]) }})
+                            Vector::from_mut_array(unsafe { &*(self.as_mut_ptr().add({start}) as *mut [T; {n2}]) })
                         }
                     )
                 )
@@ -206,9 +206,9 @@ pub fn mod_() -> ModFile {
                     )
                     #[inline(always)]
                     pub const fn $(split.iter().map(|range| range.clone().into_iter().map(|i| COMPONENTS[i]).collect::<String>()).collect::<String>())_mut(&mut self) -> ($(for range in split => &mut ,)) {
-                        unsafe {{
+                        unsafe {
                             ($(for _ in split => &mut *(self.as_mut_ptr().add({range.start}) as *mut T),),)
-                        }}
+                        }
                     }
                 )
             }
