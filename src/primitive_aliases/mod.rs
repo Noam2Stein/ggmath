@@ -105,4 +105,3 @@ pub mod bool_aliases {
     #[cfg(feature = "vector")]
     crate::vector_aliases!(pub B => bool);
 }
-

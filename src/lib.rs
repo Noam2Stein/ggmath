@@ -165,4 +165,3 @@ pub fn typecheck<T1: Construct, T2: Construct>(value: T1) -> Option<T2> {
         None
     }
 }
-

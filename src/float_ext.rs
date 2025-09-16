@@ -108,4 +108,3 @@ impl FloatExt for f64 {
         target.clamp(self - max_delta, self + max_delta)
     }
 }
-

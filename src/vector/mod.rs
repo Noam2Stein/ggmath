@@ -5,13 +5,13 @@
 
 use core::{
     fmt::{Debug, Display},
+    hash::{Hash, Hasher},
+    mem::transmute,
     ops::*,
     slice::SliceIndex,
-    mem::transmute,
-    hash::{Hash, Hasher},
 };
 
-use crate::{Construct, Usize, IndexOutOfBoundsError, specialize};
+use crate::{Construct, IndexOutOfBoundsError, Usize, specialize};
 
 mod dir;
 
@@ -297,7 +297,9 @@ pub trait Scalar: Construct {
     #[inline(always)]
     unsafe fn vec2_with_unchecked(vec: Vec2<Self>, index: usize, value: Self) -> Vec2<Self> {
         let mut array = vec.as_array();
-        unsafe { *array.get_unchecked_mut(index) = value; }
+        unsafe {
+            *array.get_unchecked_mut(index) = value;
+        }
 
         Vec2::from_array(array)
     }
@@ -316,14 +318,28 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec2 swizzle functions that return vec3s.
     #[inline(always)]
-    fn vec2_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(vec: Vec2<Self>) -> Vec3<Self> {
+    fn vec2_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vec2<Self>,
+    ) -> Vec3<Self> {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
     /// Overridable implementation of aligned vec2 swizzle functions that return vec4s.
     #[inline(always)]
-    fn vec2_swizzle4<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize, const W_SRC: usize>(vec: Vec2<Self>) -> Vec4<Self> {
-        Vec4::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC), vec.index(W_SRC)])
+    fn vec2_swizzle4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vec2<Self>,
+    ) -> Vec4<Self> {
+        Vec4::from_array([
+            vec.index(X_SRC),
+            vec.index(Y_SRC),
+            vec.index(Z_SRC),
+            vec.index(W_SRC),
+        ])
     }
 
     /// Overridable implementation of aligned vec2 "with swizzle" functions that replaces scalars.
@@ -337,7 +353,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec2 "with swizzle" functions that replaces vec2s.
     #[inline(always)]
-    fn vec2_with_swizzle2<const X_DST: usize, const Y_DST: usize>(vec: Vec2<Self>, value: Vec2<Self>) -> Vec2<Self> {
+    fn vec2_with_swizzle2<const X_DST: usize, const Y_DST: usize>(
+        vec: Vec2<Self>,
+        value: Vec2<Self>,
+    ) -> Vec2<Self> {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -446,7 +465,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of `Vector::bitand` for aligned vec2s.
     #[inline(always)]
-    fn vec2_bitand<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as BitAnd<T2>>::Output>
+    fn vec2_bitand<T2: Scalar>(
+        vec: Vec2<Self>,
+        other: Vec2<T2>,
+    ) -> Vec2<<Self as BitAnd<T2>>::Output>
     where
         Self: BitAnd<T2, Output: Scalar>,
     {
@@ -464,7 +486,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of `Vector::bitxor` for aligned vec2s.
     #[inline(always)]
-    fn vec2_bitxor<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as BitXor<T2>>::Output>
+    fn vec2_bitxor<T2: Scalar>(
+        vec: Vec2<Self>,
+        other: Vec2<T2>,
+    ) -> Vec2<<Self as BitXor<T2>>::Output>
     where
         Self: BitXor<T2, Output: Scalar>,
     {
@@ -487,7 +512,9 @@ pub trait Scalar: Construct {
     #[inline(always)]
     unsafe fn vec3_with_unchecked(vec: Vec3<Self>, index: usize, value: Self) -> Vec3<Self> {
         let mut array = vec.as_array();
-        unsafe { *array.get_unchecked_mut(index) = value; }
+        unsafe {
+            *array.get_unchecked_mut(index) = value;
+        }
 
         Vec3::from_array(array)
     }
@@ -506,14 +533,28 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec3 swizzle functions that return vec3s.
     #[inline(always)]
-    fn vec3_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(vec: Vec3<Self>) -> Vec3<Self> {
+    fn vec3_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vec3<Self>,
+    ) -> Vec3<Self> {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
     /// Overridable implementation of aligned vec3 swizzle functions that return vec4s.
     #[inline(always)]
-    fn vec3_swizzle4<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize, const W_SRC: usize>(vec: Vec3<Self>) -> Vec4<Self> {
-        Vec4::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC), vec.index(W_SRC)])
+    fn vec3_swizzle4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vec3<Self>,
+    ) -> Vec4<Self> {
+        Vec4::from_array([
+            vec.index(X_SRC),
+            vec.index(Y_SRC),
+            vec.index(Z_SRC),
+            vec.index(W_SRC),
+        ])
     }
 
     /// Overridable implementation of aligned vec3 "with swizzle" functions that replaces scalars.
@@ -527,7 +568,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec3 "with swizzle" functions that replaces vec2s.
     #[inline(always)]
-    fn vec3_with_swizzle2<const X_DST: usize, const Y_DST: usize>(vec: Vec3<Self>, value: Vec2<Self>) -> Vec3<Self> {
+    fn vec3_with_swizzle2<const X_DST: usize, const Y_DST: usize>(
+        vec: Vec3<Self>,
+        value: Vec2<Self>,
+    ) -> Vec3<Self> {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -537,7 +581,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec3 "with swizzle" functions that replaces vec3s.
     #[inline(always)]
-    fn vec3_with_swizzle3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(vec: Vec3<Self>, value: Vec3<Self>) -> Vec3<Self> {
+    fn vec3_with_swizzle3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
+        vec: Vec3<Self>,
+        value: Vec3<Self>,
+    ) -> Vec3<Self> {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -647,7 +694,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of `Vector::bitand` for aligned vec3s.
     #[inline(always)]
-    fn vec3_bitand<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as BitAnd<T2>>::Output>
+    fn vec3_bitand<T2: Scalar>(
+        vec: Vec3<Self>,
+        other: Vec3<T2>,
+    ) -> Vec3<<Self as BitAnd<T2>>::Output>
     where
         Self: BitAnd<T2, Output: Scalar>,
     {
@@ -665,7 +715,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of `Vector::bitxor` for aligned vec3s.
     #[inline(always)]
-    fn vec3_bitxor<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as BitXor<T2>>::Output>
+    fn vec3_bitxor<T2: Scalar>(
+        vec: Vec3<Self>,
+        other: Vec3<T2>,
+    ) -> Vec3<<Self as BitXor<T2>>::Output>
     where
         Self: BitXor<T2, Output: Scalar>,
     {
@@ -688,7 +741,9 @@ pub trait Scalar: Construct {
     #[inline(always)]
     unsafe fn vec4_with_unchecked(vec: Vec4<Self>, index: usize, value: Self) -> Vec4<Self> {
         let mut array = vec.as_array();
-        unsafe { *array.get_unchecked_mut(index) = value; }
+        unsafe {
+            *array.get_unchecked_mut(index) = value;
+        }
 
         Vec4::from_array(array)
     }
@@ -707,14 +762,28 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec4 swizzle functions that return vec3s.
     #[inline(always)]
-    fn vec4_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(vec: Vec4<Self>) -> Vec3<Self> {
+    fn vec4_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vec4<Self>,
+    ) -> Vec3<Self> {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
     /// Overridable implementation of aligned vec4 swizzle functions that return vec4s.
     #[inline(always)]
-    fn vec4_swizzle4<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize, const W_SRC: usize>(vec: Vec4<Self>) -> Vec4<Self> {
-        Vec4::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC), vec.index(W_SRC)])
+    fn vec4_swizzle4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vec4<Self>,
+    ) -> Vec4<Self> {
+        Vec4::from_array([
+            vec.index(X_SRC),
+            vec.index(Y_SRC),
+            vec.index(Z_SRC),
+            vec.index(W_SRC),
+        ])
     }
 
     /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces scalars.
@@ -728,7 +797,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces vec2s.
     #[inline(always)]
-    fn vec4_with_swizzle2<const X_DST: usize, const Y_DST: usize>(vec: Vec4<Self>, value: Vec2<Self>) -> Vec4<Self> {
+    fn vec4_with_swizzle2<const X_DST: usize, const Y_DST: usize>(
+        vec: Vec4<Self>,
+        value: Vec2<Self>,
+    ) -> Vec4<Self> {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -738,7 +810,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces vec3s.
     #[inline(always)]
-    fn vec4_with_swizzle3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(vec: Vec4<Self>, value: Vec3<Self>) -> Vec4<Self> {
+    fn vec4_with_swizzle3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
+        vec: Vec4<Self>,
+        value: Vec3<Self>,
+    ) -> Vec4<Self> {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -749,7 +824,15 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces vec4s.
     #[inline(always)]
-    fn vec4_with_swizzle4<const X_DST: usize, const Y_DST: usize, const Z_DST: usize, const W_DST: usize>(vec: Vec4<Self>, value: Vec4<Self>) -> Vec4<Self> {
+    fn vec4_with_swizzle4<
+        const X_DST: usize,
+        const Y_DST: usize,
+        const Z_DST: usize,
+        const W_DST: usize,
+    >(
+        vec: Vec4<Self>,
+        value: Vec4<Self>,
+    ) -> Vec4<Self> {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -860,7 +943,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of `Vector::bitand` for aligned vec4s.
     #[inline(always)]
-    fn vec4_bitand<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as BitAnd<T2>>::Output>
+    fn vec4_bitand<T2: Scalar>(
+        vec: Vec4<Self>,
+        other: Vec4<T2>,
+    ) -> Vec4<<Self as BitAnd<T2>>::Output>
     where
         Self: BitAnd<T2, Output: Scalar>,
     {
@@ -878,7 +964,10 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of `Vector::bitxor` for aligned vec4s.
     #[inline(always)]
-    fn vec4_bitxor<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as BitXor<T2>>::Output>
+    fn vec4_bitxor<T2: Scalar>(
+        vec: Vec4<Self>,
+        other: Vec4<T2>,
+    ) -> Vec4<<Self as BitXor<T2>>::Output>
     where
         Self: BitXor<T2, Output: Scalar>,
     {
@@ -1063,7 +1152,6 @@ where
                 unreachable!("unusual vector type")
             }
         }
-
     }
 
     /// Returns the component at the given index or panics if the index is out of bounds.
@@ -1396,10 +1484,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Eq, A: VecAlignment> Eq for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{}
+impl<const N: usize, T: Scalar + Eq, A: VecAlignment> Eq for Vector<N, T, A> where Usize<N>: VecLen {}
 
 impl<const N: usize, T: Scalar + Hash, A: VecAlignment> Hash for Vector<N, T, A>
 where
@@ -1541,8 +1626,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Add<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1569,8 +1659,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Add<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1582,8 +1677,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Add<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1595,8 +1695,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Add<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Add<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Add<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1630,8 +1735,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Sub<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1658,8 +1768,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Sub<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1671,8 +1786,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Sub<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1684,8 +1804,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Sub<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Sub<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Sub<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1719,8 +1844,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Mul<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1747,8 +1877,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Mul<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1760,8 +1895,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Mul<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1773,8 +1913,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Mul<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Mul<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Mul<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1808,8 +1953,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Div<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1836,8 +1986,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Div<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1849,8 +2004,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Div<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1862,8 +2022,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Div<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Div<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Div<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1897,8 +2062,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Rem<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1925,8 +2095,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Rem<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1938,8 +2113,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Rem<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1951,8 +2131,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Rem<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Rem<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Rem<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -1986,8 +2171,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shl<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2014,8 +2204,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shl<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2027,8 +2222,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shl<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2040,8 +2240,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shl<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shl<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shl<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2075,8 +2280,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shr<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2103,8 +2313,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shr<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2116,8 +2331,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shr<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2129,8 +2349,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    Shr<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + Shr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> Shr<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2164,8 +2389,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitAnd<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2192,8 +2422,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitAnd<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2205,8 +2440,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitAnd<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2218,8 +2458,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitAnd<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAnd<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2231,8 +2476,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitAndAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAndAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2242,8 +2492,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitAndAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitAnd<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitAndAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2253,8 +2508,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitOr<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2281,8 +2541,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitOr<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2294,8 +2559,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitOr<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2307,8 +2577,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitOr<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOr<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2320,8 +2595,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitOrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2331,8 +2611,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitOrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitOr<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitOrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2342,8 +2627,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitXor<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2370,8 +2660,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitXor<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2383,8 +2678,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitXor<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2396,8 +2696,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitXor<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output: Scalar>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXor<&Vector<N, T2, A2>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2409,8 +2714,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitXorAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXorAssign<Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2420,8 +2730,13 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    BitXorAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<
+    const N: usize,
+    T: Scalar + BitXor<T2, Output = T>,
+    A: VecAlignment,
+    T2: Scalar,
+    A2: VecAlignment,
+> BitXorAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
@@ -2430,4 +2745,3 @@ where
         self.bitxor_assign(*rhs);
     }
 }
-

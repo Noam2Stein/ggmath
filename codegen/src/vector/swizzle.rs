@@ -10,14 +10,14 @@ use crate::{
 
 pub fn mod_() -> ModFile {
     quote! {
-        use crate::{Scalar, VecAlignment, Vector, return_for_types, $(for &n in LENGTHS => Vec$(n)P<T>,)};
+        use crate::{Scalar, VecAlignment, VecAligned, Vector, specialize, $(for &n in LENGTHS join(, ) => Vec$(n)P)};
 
         $(
-            for &n in LENGTHS =>
+            for &n in LENGTHS join($['\n']) =>
 
             impl<T: Scalar, A: VecAlignment> Vector<$n, T, A> {
                 $(
-                    for i in 0..n =>
+                    for i in 0..n join($['\n']) =>
 
                     $(format!("/// Returns the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
                     #[inline(always)]
@@ -27,19 +27,19 @@ pub fn mod_() -> ModFile {
                 )
 
                 $(
-                    for &n2 in LENGTHS => $(
-                        for combination in combinations(n, n2) =>
+                    for &n2 in LENGTHS join($['\n']) => $(
+                        for combination in combinations(n, n2) join($['\n']) =>
 
                         $(format!("/// Returns a new vector with the {} ({}) components of `self`.", join_and(combination.iter().map(|&i| format!("`{}`", COMPONENTS[i]))), join_and(combination.iter().map(|&i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
                         pub fn $(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self) -> Vector<$n2, T, A> {
-                            self.swizzle$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i])_SRC)>>()
+                            self.swizzle$(n2)::<$(for i in combination join(, ) => $i)>()
                         }
                     )
                 )
 
                 $(
-                    for i in 0..n =>
+                    for i in 0..n join($['\n']) =>
 
                     $(format!("/// Returns `self` but with the `{}` ({}) component set to `value`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
                     #[inline(always)]
@@ -49,165 +49,197 @@ pub fn mod_() -> ModFile {
                 )
 
                 $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) => $(
-                        for combination in combinations_no_duplicates(n, n2) =>
+                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) => $(
+                        for combination in combinations_no_duplicates(n, n2) join($['\n']) =>
 
-                        /// Returns `self` but with:
+                        $("/// Returns `self` but with:")
                         $(
-                            for (src, &dst) in combination.iter().enumerate() =>
+                            for (src, &dst) in combination.iter().enumerate() join($['\r']) =>
 
-                            $(format!("/// - The `{}` ({}) component set to the `{}` ({}) component of `other`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
+                            $(format!("/// - The `{}` ({}) component set to the `{}` ({}) component of `value`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
                         )
                         #[inline(always)]
                         pub fn with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self, value: Vector<$n2, T, impl VecAlignment>) -> Self {
-                            self.with_swizzle$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i])_DST)>>(value)
+                            self.with_swizzle$(n2)::<$(for &i in &combination join(, ) => $i)>(value)
                         }
                     )
                 )
-                
-                #[inline(always)]
-                fn swizzle1<const SRC: usize>(self) -> T {
-                    return_for_types! {
-                        (self: Vector<$n, T, A> => Vector<$n, T, VecAligned>) -> T => T {
-                            |(vec,)| T::vec$(n)_swizzle1::<SRC>(vec)
-                        }
-                    }
-
-                    self.index(SRC)
-                }
 
                 $(
-                    for &n2 in LENGTHS =>
+                    for i in 0..n join($['\n']) =>
 
+                    $(format!("/// Sets the `{}` ({}) component of `self` to `value`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
                     #[inline(always)]
-                    fn swizzle$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i])_SRC: usize)>>(self) -> Vector<$n2, T, A> {
-                        return_for_types! {
-                            (self: Vector<$n, T, A> => Vector<$n, T, VecAligned>) -> Vector<$n2, T, VecAligned> => Vector<$n2, T, A> {
-                                |(vec,)| T::vec$(n)_swizzle$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i])_SRC)>>(vec)
-                            }
-                        }
-
-                        Vector::<$n2, T, A>::from_array([$(for i in 0..n2 join(, ) => self.index($(COMPONENTS[i])_SRC))])
-                    }
-                )
-
-                $(
-                    for i in 0..n =>
-
-                    $(format!("/// Mutates `self` by setting the `{}` ({}) component to `value`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
-                    #[inline(always)]
-                    fn set_$(COMPONENTS[i])(&mut self, value: T) {
+                    pub fn set_$(COMPONENTS[i])(&mut self, value: T) {
                         *self = self.with_$(COMPONENTS[i])(value);
                     }
                 )
 
                 $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) => $(
-                        for combination in combinations_no_duplicates(n, n2) =>
+                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) => $(
+                        for combination in combinations_no_duplicates(n, n2) join($['\n']) =>
 
-                        /// Mutates `self` by setting:
                         $(
-                            for (src, &dst) in combination.iter().enumerate() =>
-                            $(format!("/// - The `{}` ({}) component set to the `{}` ({}) component of `other`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
+                            for (src, &dst) in combination.iter().enumerate() join($['\r']) =>
+                            $(format!("/// - Sets the `{}` ({}) component of `self` to the `{}` ({}) component of `value`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
                         )
                         #[inline(always)]
-                        fn set_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(&mut self, value: Vector<$n2, T, impl VecAlignment>) {
+                        pub fn set_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(&mut self, value: Vector<$n2, T, impl VecAlignment>) {
                             *self = self.with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(value);
                         }
                     )
                 )
 
                 #[inline(always)]
-                fn with_swizzle1<const DST: usize>(self, value: T) -> Self {
-                    return_for_types! {
-                        (self: Vector<$n, T, A> => Vector<$n, T, VecAligned>) -> Vector<$n, T, VecAligned> => Vector<$n, T, A> {
-                            |(vec,)| T::vec$(n)_with_swizzle1::<DST>(vec, value)
+                fn swizzle1<const SRC: usize>(self) -> T {
+                    specialize! {
+                        (self: Vector<$n, T, A>) -> T:
+
+                        for (Vector<$n, T, VecAligned>) -> T {
+                            |vec| T::vec$(n)_swizzle1::<SRC>(vec)
+                        }
+                        else {
+                            self.index(SRC)
                         }
                     }
-
-                    let mut output = self;
-                    output.set(DST, value);
-
-                    output
                 }
 
                 $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) =>
+                    for &n2 in LENGTHS join($['\n']) =>
 
                     #[inline(always)]
-                    fn with_swizzle$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i])_DST: usize)>>(self, value: Vector<$n2, T, impl VecAlignment>) -> Self {
-                        return_for_types! {
-                            (
-                                self: Vector<$n, T, A> => Vector<$n, T, VecAligned>,
-                                value: Vector<$n2, T, _> => Vector<$n2, T, VecAligned>,
-                            ) -> Vector<$n, T, VecAligned> => Vector<$n, T, A> {
-                                |(vec,)| T::vec$(n)_with_swizzle$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i])_DST)>>(vec, value)
+                    fn swizzle$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(self) -> Vector<$n2, T, A> {
+                        specialize! {
+                            (self: Vector<$n, T, A>) -> Vector<$n2, T, A>:
+
+                            for (Vector<$n, T, VecAligned>) -> Vector<$n2, T, VecAligned> {
+                                |vec| T::vec$(n)_swizzle$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_SRC)>(vec)
+                            }
+                            else {
+                                Vector::<$n2, T, A>::from_array([$(for i in 0..n2 join(, ) => self.index($(COMPONENTS[i].to_uppercase())_SRC))])
                             }
                         }
+                    }
+                )
 
-                        let mut output = self;
-                        $(
-                            for i in 0..n2 =>
+                #[inline(always)]
+                fn with_swizzle1<const DST: usize>(self, value: T) -> Self {
+                    specialize! {
+                        (self: Vector<$n, T, A>, value: T) -> Vector<$n, T, A>:
 
-                            output.set($(COMPONENTS[i])_DST, value.index(i));
-                        )
+                        for (Vector<$n, T, VecAligned>, T) -> Vector<$n, T, VecAligned> {
+                            |vec, value| T::vec$(n)_with_swizzle1::<DST>(vec, value)
+                        }
+                        else {
+                            let mut output = self;
+                            output.set(DST, value);
 
-                        output
+                            output
+                        }
+                    }
+                }
+
+                $(
+                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) =>
+
+                    #[inline(always)]
+                    fn with_swizzle$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(self, value: Vector<$n2, T, impl VecAlignment>) -> Self {
+                        specialize! {
+                            (self: Vector<$n, T, A>, value: Vector<$n2, T, _>) -> Vector<$n, T, A>:
+
+                            for (Vector<$n, T, VecAligned>, Vector<$n2, T, VecAligned>) -> Vector<$n, T, VecAligned> {
+                                |vec, value| T::vec$(n)_with_swizzle$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_DST)>(vec, value)
+                            }
+                            else {
+                                let mut output = self;
+                                $(
+                                    for i in 0..n2 =>
+
+                                    output.set($(COMPONENTS[i].to_uppercase())_DST, value.$(COMPONENTS[i])());
+                                    $['\r']
+                                )
+
+                                output
+                            }
+                        }
                     }
                 )
             }
         )
 
         $(
-            for &n in LENGTHS =>
+            for &n in LENGTHS join($['\n']) =>
 
             impl<T: Scalar> Vec$(n)P<T> {
                 $(
-                    for i in 0..n =>
+                    for i in 0..n join($['\n']) =>
 
                     $(format!("/// Returns a reference to the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
                     #[inline(always)]
                     pub const fn $(COMPONENTS[i])_ref(&self) -> &T {
-                        &self.0[i]
+                        &self.0[$i]
                     }
                 )
 
                 $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) => $(
-                        for start in 0..n - n2 =>
+                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) => $(
+                        for start in 0..=n - n2 =>
 
                         $(format!("/// Returns a reference to the {} ({}) components of `self`.", join_and((start..start + n2).map(|i| format!("`{}`", COMPONENTS[i]))), join_and((start..start + n2).map(|i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
                         pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_ref(&self) -> &Vec$(n2)P<T> {
-                            Vector::from_array_ref(unsafe { &*(self.as_ptr().add({start}) as *const [T; {n2}]) })
+                            Vector::from_array_ref(unsafe { &*(self.as_ptr().add($start) as *const [T; $n2]) })
                         }
                     )
                 )
 
                 $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) => $(
-                        for start in 0..n - n2 =>
+                    for i in 0..n join($['\n']) =>
+
+                    $(format!("/// Returns a mutable reference to the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    #[inline(always)]
+                    pub const fn $(COMPONENTS[i])_mut(&mut self) -> &mut T {
+                        &mut self.0[$i]
+                    }
+                )
+
+                $(
+                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) => $(
+                        for start in 0..=n - n2 join($['\n']) =>
 
                         $(format!("/// Returns a mutable reference to the {} ({}) components of `self`.", join_and((start..start + n2).map(|i| format!("`{}`", COMPONENTS[i]))), join_and((start..start + n2).map(|i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
                         pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_mut(&mut self) -> &mut Vec$(n2)P<T> {
-                            Vector::from_mut_array(unsafe { &*(self.as_mut_ptr().add({start}) as *mut [T; {n2}]) })
+                            Vector::from_mut_array(unsafe { &mut *(self.as_mut_ptr().add($start) as *mut [T; $n2]) })
                         }
                     )
                 )
 
                 $(
-                    for split in disjoint_splits(0..n).iter().filter(|split| split.len() > 1) =>
+                    for split in disjoint_splits(0..n).into_iter().filter(|split| split.len() > 1) join($['\n']) =>
 
-                    /// Returns a tuple with mutable references to:
+                    $("/// Returns a tuple with mutable references to:")
                     $(
-                        for range in split =>
-                        $(format!("/// - The {} ({}) components of `self`", join_and(range.clone().into_iter().map(|i| format!("`{}`", COMPONENTS[i]))), join_and(range.clone().into_iter().map(|i| COMPONENT_ORDINALS[i].to_string()))))
+                        for range in &split join($['\r']) => $(
+                            if range.len() == 1 {
+                                $(format!("/// - The `{}` ({}) component of `self`", COMPONENTS[range.start], COMPONENT_ORDINALS[range.start]))
+                            } else {
+                                $(format!("/// - The {} ({}) components of `self`", join_and(range.clone().into_iter().map(|i| format!("`{}`", COMPONENTS[i]))), join_and(range.clone().into_iter().map(|i| COMPONENT_ORDINALS[i].to_string()))))
+                            }
+                        )
                     )
                     #[inline(always)]
-                    pub const fn $(split.iter().map(|range| range.clone().into_iter().map(|i| COMPONENTS[i]).collect::<String>()).collect::<String>())_mut(&mut self) -> ($(for range in split => &mut ,)) {
+                    pub const fn $(for range in &split join(_) => $(for i in range.clone() => $(COMPONENTS[i])))_mut(&mut self) -> ($(for range in &split join(, ) => &mut $(if range.len() == 1 { T } else { Vec$(range.len())P<T> } ))$(if split.len() == 1 { , })) {
                         unsafe {
-                            ($(for _ in split => &mut *(self.as_mut_ptr().add({range.start}) as *mut T),),)
+                            ($(
+                                for range in &split => $(
+                                    if range.len() == 1 {
+                                        &mut *self.as_mut_ptr().add($(range.start))
+                                    } else {
+                                        Vector::from_mut_array(&mut *(self.as_mut_ptr().add($(range.start)) as *mut [T; $(range.len())]))
+                                    }
+                                ),
+                            ))
                         }
                     }
                 )

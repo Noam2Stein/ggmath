@@ -3,77 +3,95 @@
 
 use core::mem::transmute_copy;
 
-use crate::{Usize, Scalar, VecAlignment, VecAligned, VecPacked, VecLen, Vector, Vec2, Vec3, Vec4};
+use crate::{Scalar, Usize, Vec2, Vec3, Vec4, VecAligned, VecAlignment, VecLen, VecPacked, Vector};
 
-#[doc=" A trait for scalar types that have a `0` value."]
-#[doc=""]
-#[doc=" This trait along with `ScalarOne` and `ScalarNegOne`"]
-#[doc=" automatically enables direction constants like `RIGHT` if positive-direction features are enabled."]
+#[doc = " A trait for scalar types that have a `0` value."]
+#[doc = ""]
+#[doc = " This trait along with `ScalarOne` and `ScalarNegOne`"]
+#[doc = " automatically enables direction constants like `RIGHT` if positive-direction features are enabled."]
 pub trait ScalarZero: Scalar {
-    #[doc=" The zero value of the scalar type."]
+    #[doc = " The zero value of the scalar type."]
     const ZERO: Self;
 
     /// A vec2 of all `0`s.
-    const VEC2_ZERO: Vec2<Self>;/// A vec3 of all `0`s.
-    const VEC3_ZERO: Vec3<Self>;/// A vec4 of all `0`s.
+    const VEC2_ZERO: Vec2<Self>;
+    /// A vec3 of all `0`s.
+    const VEC3_ZERO: Vec3<Self>;
+    /// A vec4 of all `0`s.
     const VEC4_ZERO: Vec4<Self>;
 }
 
-#[doc=" A trait for scalar types that have a `1` value."]
-#[doc=""]
-#[doc=" This trait along with `ScalarZero` and `ScalarNegOne`"]
-#[doc=" automatically enables direction constants like `RIGHT` if positive-direction features are enabled."]
+#[doc = " A trait for scalar types that have a `1` value."]
+#[doc = ""]
+#[doc = " This trait along with `ScalarZero` and `ScalarNegOne`"]
+#[doc = " automatically enables direction constants like `RIGHT` if positive-direction features are enabled."]
 pub trait ScalarOne: ScalarZero {
-    #[doc=" The one value of the scalar type."]
+    #[doc = " The one value of the scalar type."]
     const ONE: Self;
 
     /// A vec2 of all `1`s.
     const VEC2_ONE: Vec2<Self>;
 
     /// A vec2 that points to the positive `x` direction with magnitude `1`.
-    const VEC2_X: Vec2<Self>;/// A vec2 that points to the positive `y` direction with magnitude `1`.
-    const VEC2_Y: Vec2<Self>;/// A vec3 of all `1`s.
+    const VEC2_X: Vec2<Self>;
+    /// A vec2 that points to the positive `y` direction with magnitude `1`.
+    const VEC2_Y: Vec2<Self>;
+    /// A vec3 of all `1`s.
     const VEC3_ONE: Vec3<Self>;
 
     /// A vec3 that points to the positive `x` direction with magnitude `1`.
-    const VEC3_X: Vec3<Self>;/// A vec3 that points to the positive `y` direction with magnitude `1`.
-    const VEC3_Y: Vec3<Self>;/// A vec3 that points to the positive `z` direction with magnitude `1`.
-    const VEC3_Z: Vec3<Self>;/// A vec4 of all `1`s.
+    const VEC3_X: Vec3<Self>;
+    /// A vec3 that points to the positive `y` direction with magnitude `1`.
+    const VEC3_Y: Vec3<Self>;
+    /// A vec3 that points to the positive `z` direction with magnitude `1`.
+    const VEC3_Z: Vec3<Self>;
+    /// A vec4 of all `1`s.
     const VEC4_ONE: Vec4<Self>;
 
     /// A vec4 that points to the positive `x` direction with magnitude `1`.
-    const VEC4_X: Vec4<Self>;/// A vec4 that points to the positive `y` direction with magnitude `1`.
-    const VEC4_Y: Vec4<Self>;/// A vec4 that points to the positive `z` direction with magnitude `1`.
-    const VEC4_Z: Vec4<Self>;/// A vec4 that points to the positive `w` direction with magnitude `1`.
+    const VEC4_X: Vec4<Self>;
+    /// A vec4 that points to the positive `y` direction with magnitude `1`.
+    const VEC4_Y: Vec4<Self>;
+    /// A vec4 that points to the positive `z` direction with magnitude `1`.
+    const VEC4_Z: Vec4<Self>;
+    /// A vec4 that points to the positive `w` direction with magnitude `1`.
     const VEC4_W: Vec4<Self>;
 }
 
-#[doc=" A trait for scalar types that have a `-1` value."]
-#[doc=""]
-#[doc=" This trait along with `ScalarZero` and `ScalarOne`"]
-#[doc=" automatically enables direction constants like `RIGHT` if positive-direction features are enabled."]
+#[doc = " A trait for scalar types that have a `-1` value."]
+#[doc = ""]
+#[doc = " This trait along with `ScalarZero` and `ScalarOne`"]
+#[doc = " automatically enables direction constants like `RIGHT` if positive-direction features are enabled."]
 pub trait ScalarNegOne: ScalarZero {
-    #[doc=" The negative one value of the scalar type."]
+    #[doc = " The negative one value of the scalar type."]
     const NEG_ONE: Self;
 
     /// A vec2 of all `-1`s.
     const VEC2_NEG_ONE: Vec2<Self>;
 
     /// A vec2 that points to the negative `x` direction with magnitude `1`.
-    const VEC2_NEG_X: Vec2<Self>;/// A vec2 that points to the negative `y` direction with magnitude `1`.
-    const VEC2_NEG_Y: Vec2<Self>;/// A vec3 of all `-1`s.
+    const VEC2_NEG_X: Vec2<Self>;
+    /// A vec2 that points to the negative `y` direction with magnitude `1`.
+    const VEC2_NEG_Y: Vec2<Self>;
+    /// A vec3 of all `-1`s.
     const VEC3_NEG_ONE: Vec3<Self>;
 
     /// A vec3 that points to the negative `x` direction with magnitude `1`.
-    const VEC3_NEG_X: Vec3<Self>;/// A vec3 that points to the negative `y` direction with magnitude `1`.
-    const VEC3_NEG_Y: Vec3<Self>;/// A vec3 that points to the negative `z` direction with magnitude `1`.
-    const VEC3_NEG_Z: Vec3<Self>;/// A vec4 of all `-1`s.
+    const VEC3_NEG_X: Vec3<Self>;
+    /// A vec3 that points to the negative `y` direction with magnitude `1`.
+    const VEC3_NEG_Y: Vec3<Self>;
+    /// A vec3 that points to the negative `z` direction with magnitude `1`.
+    const VEC3_NEG_Z: Vec3<Self>;
+    /// A vec4 of all `-1`s.
     const VEC4_NEG_ONE: Vec4<Self>;
 
     /// A vec4 that points to the negative `x` direction with magnitude `1`.
-    const VEC4_NEG_X: Vec4<Self>;/// A vec4 that points to the negative `y` direction with magnitude `1`.
-    const VEC4_NEG_Y: Vec4<Self>;/// A vec4 that points to the negative `z` direction with magnitude `1`.
-    const VEC4_NEG_Z: Vec4<Self>;/// A vec4 that points to the negative `w` direction with magnitude `1`.
+    const VEC4_NEG_X: Vec4<Self>;
+    /// A vec4 that points to the negative `y` direction with magnitude `1`.
+    const VEC4_NEG_Y: Vec4<Self>;
+    /// A vec4 that points to the negative `z` direction with magnitude `1`.
+    const VEC4_NEG_Z: Vec4<Self>;
+    /// A vec4 that points to the negative `w` direction with magnitude `1`.
     const VEC4_NEG_W: Vec4<Self>;
 }
 
@@ -81,13 +99,19 @@ impl<const N: usize, T: ScalarZero, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    #[doc=" A vector of all `0`s."]
+    #[doc = " A vector of all `0`s."]
     pub const ZERO: Self = {
         unsafe {
             if A::IS_ALIGNED {
-                match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_ZERO),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_ZERO),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_ZERO),}
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_ZERO),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_ZERO),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_ZERO),
+                }
             } else {
-                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ZERO; N]));
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(
+                    [T::ZERO; N],
+                ));
             }
         }
 
@@ -99,13 +123,19 @@ impl<const N: usize, T: ScalarOne, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    #[doc=" A vector of all `1`s."]
+    #[doc = " A vector of all `1`s."]
     pub const ONE: Self = {
         unsafe {
             if A::IS_ALIGNED {
-                match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_ONE),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_ONE),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_ONE),}
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_ONE),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_ONE),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_ONE),
+                }
             } else {
-                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ONE; N]));
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(
+                    [T::ONE; N],
+                ));
             }
         }
 
@@ -117,13 +147,25 @@ impl<const N: usize, T: ScalarNegOne, A: VecAlignment> Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
-    #[doc=" A vector of all `-1`s."]
+    #[doc = " A vector of all `-1`s."]
     pub const NEG_ONE: Self = {
         unsafe {
             if A::IS_ALIGNED {
-                match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_ONE),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_ONE),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_ONE),}
+                match N {
+                    2 => {
+                        transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_ONE)
+                    }
+                    3 => {
+                        transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_ONE)
+                    }
+                    4 => {
+                        transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_ONE)
+                    }
+                }
             } else {
-                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::NEG_ONE; N]));
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(
+                    [T::NEG_ONE; N],
+                ));
             }
         }
 
@@ -131,219 +173,368 @@ where
     };
 }
 
-impl<T: ScalarOne, A: VecAlignment> Vector<2, T, A> {/// A vector that points to the positive `x` direction with magnitude `1`.
-pub const X: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_X),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_X),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_X),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ONE", "T::ZERO"]));
+impl<T: ScalarOne, A: VecAlignment> Vector<2, T, A> {
+    /// A vector that points to the positive `x` direction with magnitude `1`.
+    pub const X: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_X),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_X),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_X),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ONE", "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the positive `y` direction with magnitude `1`.
-pub const Y: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Y),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Y),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Y),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ONE"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the positive `y` direction with magnitude `1`.
+    pub const Y: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Y),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Y),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Y),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO", "T::ONE",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};}impl<T: ScalarOne, A: VecAlignment> Vector<3, T, A> {/// A vector that points to the positive `x` direction with magnitude `1`.
-pub const X: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_X),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_X),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_X),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ONE", "T::ZERO", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+}
+impl<T: ScalarOne, A: VecAlignment> Vector<3, T, A> {
+    /// A vector that points to the positive `x` direction with magnitude `1`.
+    pub const X: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_X),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_X),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_X),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ONE", "T::ZERO", "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the positive `y` direction with magnitude `1`.
-pub const Y: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Y),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Y),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Y),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ONE", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the positive `y` direction with magnitude `1`.
+    pub const Y: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Y),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Y),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Y),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO", "T::ONE", "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the positive `z` direction with magnitude `1`.
-pub const Z: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Z),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Z),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Z),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ZERO", "T::ONE"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the positive `z` direction with magnitude `1`.
+    pub const Z: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Z),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Z),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Z),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO", "T::ZERO", "T::ONE",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};}impl<T: ScalarOne, A: VecAlignment> Vector<4, T, A> {/// A vector that points to the positive `x` direction with magnitude `1`.
-pub const X: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_X),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_X),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_X),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ONE", "T::ZERO", "T::ZERO", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+}
+impl<T: ScalarOne, A: VecAlignment> Vector<4, T, A> {
+    /// A vector that points to the positive `x` direction with magnitude `1`.
+    pub const X: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_X),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_X),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_X),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ONE", "T::ZERO", "T::ZERO", "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the positive `y` direction with magnitude `1`.
-pub const Y: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Y),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Y),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Y),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ONE", "T::ZERO", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the positive `y` direction with magnitude `1`.
+    pub const Y: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Y),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Y),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Y),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO", "T::ONE", "T::ZERO", "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the positive `z` direction with magnitude `1`.
-pub const Z: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Z),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Z),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Z),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ZERO", "T::ONE", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the positive `z` direction with magnitude `1`.
+    pub const Z: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_Z),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_Z),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_Z),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO", "T::ZERO", "T::ONE", "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the positive `w` direction with magnitude `1`.
-pub const W: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_W),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_W),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_W),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ZERO", "T::ZERO", "T::ONE"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the positive `w` direction with magnitude `1`.
+    pub const W: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_W),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_W),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_W),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO", "T::ZERO", "T::ZERO", "T::ONE",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};}
+        unreachable!("unusual vector type");
+    };
+}
 
-impl<T: ScalarNegOne, A: VecAlignment> Vector<2, T, A> {/// A vector that points to the negative `x` direction with magnitude `1`.
-pub const NEG_X: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_X),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_X),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_X),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::NEG_ONE", "T::ZERO"]));
+impl<T: ScalarNegOne, A: VecAlignment> Vector<2, T, A> {
+    /// A vector that points to the negative `x` direction with magnitude `1`.
+    pub const NEG_X: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_X),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_X),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_X),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::NEG_ONE",
+                    "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the negative `y` direction with magnitude `1`.
-pub const NEG_Y: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Y),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Y),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Y),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::NEG_ONE"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the negative `y` direction with magnitude `1`.
+    pub const NEG_Y: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Y),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Y),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Y),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO",
+                    "T::NEG_ONE",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};}impl<T: ScalarNegOne, A: VecAlignment> Vector<3, T, A> {/// A vector that points to the negative `x` direction with magnitude `1`.
-pub const NEG_X: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_X),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_X),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_X),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::NEG_ONE", "T::ZERO", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+}
+impl<T: ScalarNegOne, A: VecAlignment> Vector<3, T, A> {
+    /// A vector that points to the negative `x` direction with magnitude `1`.
+    pub const NEG_X: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_X),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_X),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_X),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::NEG_ONE",
+                    "T::ZERO",
+                    "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the negative `y` direction with magnitude `1`.
-pub const NEG_Y: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Y),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Y),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Y),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::NEG_ONE", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the negative `y` direction with magnitude `1`.
+    pub const NEG_Y: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Y),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Y),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Y),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO",
+                    "T::NEG_ONE",
+                    "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the negative `z` direction with magnitude `1`.
-pub const NEG_Z: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Z),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Z),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Z),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ZERO", "T::NEG_ONE"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the negative `z` direction with magnitude `1`.
+    pub const NEG_Z: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Z),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Z),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Z),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO",
+                    "T::ZERO",
+                    "T::NEG_ONE",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};}impl<T: ScalarNegOne, A: VecAlignment> Vector<4, T, A> {/// A vector that points to the negative `x` direction with magnitude `1`.
-pub const NEG_X: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_X),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_X),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_X),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::NEG_ONE", "T::ZERO", "T::ZERO", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+}
+impl<T: ScalarNegOne, A: VecAlignment> Vector<4, T, A> {
+    /// A vector that points to the negative `x` direction with magnitude `1`.
+    pub const NEG_X: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_X),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_X),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_X),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::NEG_ONE",
+                    "T::ZERO",
+                    "T::ZERO",
+                    "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the negative `y` direction with magnitude `1`.
-pub const NEG_Y: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Y),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Y),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Y),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::NEG_ONE", "T::ZERO", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the negative `y` direction with magnitude `1`.
+    pub const NEG_Y: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Y),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Y),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Y),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO",
+                    "T::NEG_ONE",
+                    "T::ZERO",
+                    "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the negative `z` direction with magnitude `1`.
-pub const NEG_Z: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Z),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Z),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Z),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ZERO", "T::NEG_ONE", "T::ZERO"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the negative `z` direction with magnitude `1`.
+    pub const NEG_Z: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_Z),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_Z),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_Z),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO",
+                    "T::ZERO",
+                    "T::NEG_ONE",
+                    "T::ZERO",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};/// A vector that points to the negative `w` direction with magnitude `1`.
-pub const NEG_W: Self = {
-    unsafe {
-        if A::IS_ALIGNED {
-            match N {2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_W),3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_W),4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_W),}
-        } else {
-            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector(["T::ZERO", "T::ZERO", "T::ZERO", "T::NEG_ONE"]));
+        unreachable!("unusual vector type");
+    };
+    /// A vector that points to the negative `w` direction with magnitude `1`.
+    pub const NEG_W: Self = {
+        unsafe {
+            if A::IS_ALIGNED {
+                match N {
+                    2 => transmute_copy::<Vector<2, T, VecAligned>, Vector<N, T, A>>(T::VEC2_NEG_W),
+                    3 => transmute_copy::<Vector<3, T, VecAligned>, Vector<N, T, A>>(T::VEC3_NEG_W),
+                    4 => transmute_copy::<Vector<4, T, VecAligned>, Vector<N, T, A>>(T::VEC4_NEG_W),
+                }
+            } else {
+                return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([
+                    "T::ZERO",
+                    "T::ZERO",
+                    "T::ZERO",
+                    "T::NEG_ONE",
+                ]));
+            }
         }
-    }
 
-    unreachable!("unusual vector type");
-};}
+        unreachable!("unusual vector type");
+    };
+}
 
 /// Traits with `RIGHT` and `LEFT constants where right is the positive direction.
 #[cfg(feature = "dir_a_lower")]
 pub mod right {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `RIGHT` constant where right is the positive direction.
     pub trait PositiveRight: Construct {
@@ -371,13 +562,15 @@ pub mod right {
 
     impl<T: ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<2, T, A> {
         const LEFT: Self = Self::NEG_X;
-    }impl<T: ScalarOne, A: VecAlignment> PositiveRight for Vector<3, T, A> {
+    }
+    impl<T: ScalarOne, A: VecAlignment> PositiveRight for Vector<3, T, A> {
         const RIGHT: Self = Self::X;
     }
 
     impl<T: ScalarNegOne, A: VecAlignment> NegativeLeft for Vector<3, T, A> {
         const LEFT: Self = Self::NEG_X;
-    }impl<T: ScalarOne, A: VecAlignment> PositiveRight for Vector<4, T, A> {
+    }
+    impl<T: ScalarOne, A: VecAlignment> PositiveRight for Vector<4, T, A> {
         const RIGHT: Self = Self::X;
     }
 
@@ -389,14 +582,7 @@ pub mod right {
 /// Traits with `RIGHT` and `LEFT constants where left is the positive direction.
 #[cfg(feature = "dir_a_lower")]
 pub mod left {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `RIGHT` constant where left is the positive direction.
     pub trait NegativeRight: Construct {
@@ -424,13 +610,15 @@ pub mod left {
 
     impl<T: ScalarOne, A: VecAlignment> PositiveLeft for Vector<2, T, A> {
         const LEFT: Self = Self::X;
-    }impl<T: ScalarNegOne, A: VecAlignment> NegativeRight for Vector<3, T, A> {
+    }
+    impl<T: ScalarNegOne, A: VecAlignment> NegativeRight for Vector<3, T, A> {
         const RIGHT: Self = Self::NEG_X;
     }
 
     impl<T: ScalarOne, A: VecAlignment> PositiveLeft for Vector<3, T, A> {
         const LEFT: Self = Self::X;
-    }impl<T: ScalarNegOne, A: VecAlignment> NegativeRight for Vector<4, T, A> {
+    }
+    impl<T: ScalarNegOne, A: VecAlignment> NegativeRight for Vector<4, T, A> {
         const RIGHT: Self = Self::NEG_X;
     }
 
@@ -442,14 +630,7 @@ pub mod left {
 /// Traits with `UP` and `DOWN constants where up is the positive direction.
 #[cfg(feature = "dir_a_lower")]
 pub mod up {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `UP` constant where up is the positive direction.
     pub trait PositiveUp: Construct {
@@ -477,13 +658,15 @@ pub mod up {
 
     impl<T: ScalarNegOne, A: VecAlignment> NegativeDown for Vector<2, T, A> {
         const DOWN: Self = Self::NEG_Y;
-    }impl<T: ScalarOne, A: VecAlignment> PositiveUp for Vector<3, T, A> {
+    }
+    impl<T: ScalarOne, A: VecAlignment> PositiveUp for Vector<3, T, A> {
         const UP: Self = Self::Y;
     }
 
     impl<T: ScalarNegOne, A: VecAlignment> NegativeDown for Vector<3, T, A> {
         const DOWN: Self = Self::NEG_Y;
-    }impl<T: ScalarOne, A: VecAlignment> PositiveUp for Vector<4, T, A> {
+    }
+    impl<T: ScalarOne, A: VecAlignment> PositiveUp for Vector<4, T, A> {
         const UP: Self = Self::Y;
     }
 
@@ -495,14 +678,7 @@ pub mod up {
 /// Traits with `UP` and `DOWN constants where down is the positive direction.
 #[cfg(feature = "dir_a_lower")]
 pub mod down {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `UP` constant where down is the positive direction.
     pub trait NegativeUp: Construct {
@@ -530,13 +706,15 @@ pub mod down {
 
     impl<T: ScalarOne, A: VecAlignment> PositiveDown for Vector<2, T, A> {
         const DOWN: Self = Self::Y;
-    }impl<T: ScalarNegOne, A: VecAlignment> NegativeUp for Vector<3, T, A> {
+    }
+    impl<T: ScalarNegOne, A: VecAlignment> NegativeUp for Vector<3, T, A> {
         const UP: Self = Self::NEG_Y;
     }
 
     impl<T: ScalarOne, A: VecAlignment> PositiveDown for Vector<3, T, A> {
         const DOWN: Self = Self::Y;
-    }impl<T: ScalarNegOne, A: VecAlignment> NegativeUp for Vector<4, T, A> {
+    }
+    impl<T: ScalarNegOne, A: VecAlignment> NegativeUp for Vector<4, T, A> {
         const UP: Self = Self::NEG_Y;
     }
 
@@ -548,14 +726,7 @@ pub mod down {
 /// Traits with `FORWARD` and `BACKWARD constants where forward is the positive direction.
 #[cfg(feature = "dir_a_lower")]
 pub mod forward {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `FORWARD` constant where forward is the positive direction.
     pub trait PositiveForward: Construct {
@@ -583,13 +754,15 @@ pub mod forward {
 
     impl<T: ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<2, T, A> {
         const BACKWARD: Self = Self::NEG_Z;
-    }impl<T: ScalarOne, A: VecAlignment> PositiveForward for Vector<3, T, A> {
+    }
+    impl<T: ScalarOne, A: VecAlignment> PositiveForward for Vector<3, T, A> {
         const FORWARD: Self = Self::Z;
     }
 
     impl<T: ScalarNegOne, A: VecAlignment> NegativeBackward for Vector<3, T, A> {
         const BACKWARD: Self = Self::NEG_Z;
-    }impl<T: ScalarOne, A: VecAlignment> PositiveForward for Vector<4, T, A> {
+    }
+    impl<T: ScalarOne, A: VecAlignment> PositiveForward for Vector<4, T, A> {
         const FORWARD: Self = Self::Z;
     }
 
@@ -601,14 +774,7 @@ pub mod forward {
 /// Traits with `FORWARD` and `BACKWARD constants where backward is the positive direction.
 #[cfg(feature = "dir_a_lower")]
 pub mod backward {
-    use crate::{
-        Construct,
-        ScalarZero,
-        ScalarOne,
-        ScalarNegOne,
-        VecAlignment,
-        Vector,
-    };
+    use crate::{Construct, ScalarNegOne, ScalarOne, ScalarZero, VecAlignment, Vector};
 
     /// A trait for a `FORWARD` constant where backward is the positive direction.
     pub trait NegativeForward: Construct {
@@ -636,13 +802,15 @@ pub mod backward {
 
     impl<T: ScalarOne, A: VecAlignment> PositiveBackward for Vector<2, T, A> {
         const BACKWARD: Self = Self::Z;
-    }impl<T: ScalarNegOne, A: VecAlignment> NegativeForward for Vector<3, T, A> {
+    }
+    impl<T: ScalarNegOne, A: VecAlignment> NegativeForward for Vector<3, T, A> {
         const FORWARD: Self = Self::NEG_Z;
     }
 
     impl<T: ScalarOne, A: VecAlignment> PositiveBackward for Vector<3, T, A> {
         const BACKWARD: Self = Self::Z;
-    }impl<T: ScalarNegOne, A: VecAlignment> NegativeForward for Vector<4, T, A> {
+    }
+    impl<T: ScalarNegOne, A: VecAlignment> NegativeForward for Vector<4, T, A> {
         const FORWARD: Self = Self::NEG_Z;
     }
 
@@ -650,4 +818,3 @@ pub mod backward {
         const BACKWARD: Self = Self::Z;
     }
 }
-
