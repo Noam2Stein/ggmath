@@ -9,8 +9,8 @@ pub const MAX_LENGTH: usize = LENGTHS[LENGTHS.len() - 1];
 
 // Directions
 
-pub const DIRECTIONS_A: &[&str] = &["Right", "Up", "Forward"];
-pub const DIRECTIONS_B: &[&str] = &["Left", "Down", "Backward"];
+pub const DIRECTIONS_A: &[&str] = &["Right", "Up", "Forwards"];
+pub const DIRECTIONS_B: &[&str] = &["Left", "Down", "Backwards"];
 
 // Primitives
 

@@ -5,103 +5,103 @@
 #[cfg(feature = "primitive_aliases")]
 pub mod f32_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub F => f32);
+    crate::vector_aliases!(pub type F => f32);
 }
 
 /// `f64` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod f64_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub D => f64);
+    crate::vector_aliases!(pub type D => f64);
 }
 
 /// `i8` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod i8_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub I8 => i8);
+    crate::vector_aliases!(pub type I8 => i8);
 }
 
 /// `i16` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod i16_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub I16 => i16);
+    crate::vector_aliases!(pub type I16 => i16);
 }
 
 /// `i32` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod i32_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub I => i32);
+    crate::vector_aliases!(pub type I => i32);
 }
 
 /// `i64` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod i64_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub I64 => i64);
+    crate::vector_aliases!(pub type I64 => i64);
 }
 
 /// `i128` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod i128_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub I128 => i128);
+    crate::vector_aliases!(pub type I128 => i128);
 }
 
 /// `isize` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod isize_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub Isize => isize);
+    crate::vector_aliases!(pub type Isize => isize);
 }
 
 /// `u8` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod u8_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub U8 => u8);
+    crate::vector_aliases!(pub type U8 => u8);
 }
 
 /// `u16` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod u16_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub U16 => u16);
+    crate::vector_aliases!(pub type U16 => u16);
 }
 
 /// `u32` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod u32_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub U => u32);
+    crate::vector_aliases!(pub type U => u32);
 }
 
 /// `u64` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod u64_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub U64 => u64);
+    crate::vector_aliases!(pub type U64 => u64);
 }
 
 /// `u128` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod u128_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub U128 => u128);
+    crate::vector_aliases!(pub type U128 => u128);
 }
 
 /// `usize` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod usize_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub Usize => usize);
+    crate::vector_aliases!(pub type Usize => usize);
 }
 
 /// `bool` type aliases.
 #[cfg(feature = "primitive_aliases")]
 pub mod bool_aliases {
     #[cfg(feature = "vector")]
-    crate::vector_aliases!(pub B => bool);
+    crate::vector_aliases!(pub type B => bool);
 }

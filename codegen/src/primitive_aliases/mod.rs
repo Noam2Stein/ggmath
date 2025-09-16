@@ -14,7 +14,7 @@ pub fn mod_() -> ModDir {
             #[cfg(feature = "primitive_aliases")]
             pub mod $(format!("{primitive}_aliases")) {
                 #[cfg(feature = "vector")]
-                crate::vector_aliases!(pub $prefix => $primitive);
+                crate::vector_aliases!(pub type $prefix => $primitive);
             }$['\n']
         )
     }

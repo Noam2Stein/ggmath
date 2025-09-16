@@ -1,4 +1,4 @@
-use genco::quote;
+use genco::{quote, tokens::quoted};
 
 use crate::{
     constants::{COMPONENTS, DIRECTIONS_A, DIRECTIONS_B, LENGTHS},
@@ -11,63 +11,68 @@ pub fn mod_() -> ModFile {
 
         use crate::{Usize, Scalar, VecAlignment, VecAligned, VecPacked, VecLen, Vector, $(for &n in LENGTHS join(, ) => Vec$(n))};
 
-        /// A trait for scalar types that have a `0` value.
-        ///
-        /// This trait along with `ScalarOne` and `ScalarNegOne`
-        /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
+        $("/// A trait for scalar types that have a `0` value.")
+        $("///")
+        $("/// This trait along with `ScalarOne` and `ScalarNegOne`")
+        $("/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.")
         pub trait ScalarZero: Scalar {
-            /// The zero value of the scalar type.
+            $("/// `0`")
             const ZERO: Self;
 
             $(
-                for &n in LENGTHS =>
+                for &n in LENGTHS join($['\r']) =>
 
                 $(format!("/// A vec{n} of all `0`s."))
+                $("/// This only exists because Rust const traits aren't stable yet.")
                 const VEC$(n)_ZERO: Vec$(n)<Self>;
             )
         }
 
-        /// A trait for scalar types that have a `1` value.
-        ///
-        /// This trait along with `ScalarZero` and `ScalarNegOne`
-        /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
+        $("/// A trait for scalar types that have a `1` value.")
+        $("///")
+        $("/// This trait along with `ScalarZero` and `ScalarNegOne`")
+        $("/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.")
         pub trait ScalarOne: ScalarZero {
-            /// The one value of the scalar type.
+            $("/// `1`")
             const ONE: Self;
 
             $(
-                for &n in LENGTHS =>
+                for &n in LENGTHS join($['\n']) =>
 
                 $(format!("/// A vec{n} of all `1`s."))
+                $("/// This only exists because Rust const traits aren't stable yet.")
                 const VEC$(n)_ONE: Vec$(n)<Self>;
 
                 $(
-                    for i in 0..n =>
+                    for i in 0..n join($['\r']) =>
 
                     $(format!("/// A vec{n} that points to the positive `{}` direction with magnitude `1`.", COMPONENTS[i]))
+                    $("/// This only exists because Rust const traits aren't stable yet.")
                     const VEC$(n)_$(COMPONENTS[i].to_uppercase()): Vec$(n)<Self>;
                 )
             )
         }
 
-        /// A trait for scalar types that have a `-1` value.
-        ///
-        /// This trait along with `ScalarZero` and `ScalarOne`
-        /// automatically enables direction constants like `RIGHT` if positive-direction features are enabled.
+        $("/// A trait for scalar types that have a `-1` value.")
+        $("///")
+        $("/// This trait along with `ScalarZero` and `ScalarOne`")
+        $("/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.")
         pub trait ScalarNegOne: ScalarZero {
-            /// The negative one value of the scalar type.
+            $("/// `-1`")
             const NEG_ONE: Self;
 
             $(
-                for &n in LENGTHS =>
+                for &n in LENGTHS join($['\n']) =>
 
                 $(format!("/// A vec{n} of all `-1`s."))
+                $("/// This only exists because Rust const traits aren't stable yet.")
                 const VEC$(n)_NEG_ONE: Vec$(n)<Self>;
 
                 $(
-                    for i in 0..n =>
+                    for i in 0..n join($['\r']) =>
 
                     $(format!("/// A vec{n} that points to the negative `{}` direction with magnitude `1`.", COMPONENTS[i]))
+                    $("/// This only exists because Rust const traits aren't stable yet.")
                     const VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase()): Vec$(n)<Self>;
                 )
             )
@@ -77,21 +82,22 @@ pub fn mod_() -> ModFile {
         where
             Usize<N>: VecLen,
         {
-            /// A vector of all `0`s.
+            $("/// All `0`.")
             pub const ZERO: Self = {
                 unsafe {
                     if A::IS_ALIGNED {
-                        match N {$(
-                            for &n in LENGTHS =>
+                        match N {
+                            $(
+                                for &n in LENGTHS join($['\r']) =>
 
-                            $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(T::VEC$(n)_ZERO),
-                        )}
+                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(&T::VEC$(n)_ZERO),
+                            )
+                            _ => panic!("unusual vector type"),
+                        }
                     } else {
-                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ZERO; N]));
+                        transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector([T::ZERO; N]))
                     }
                 }
-
-                unreachable!("unusual vector type");
             };
         }
 
@@ -99,21 +105,22 @@ pub fn mod_() -> ModFile {
         where
             Usize<N>: VecLen,
         {
-            /// A vector of all `1`s.
+            $("/// All `1`.")
             pub const ONE: Self = {
                 unsafe {
                     if A::IS_ALIGNED {
-                        match N {$(
-                            for &n in LENGTHS =>
+                        match N {
+                            $(
+                                for &n in LENGTHS join($['\r']) =>
 
-                            $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(T::VEC$(n)_ONE),
-                        )}
+                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(&T::VEC$(n)_ONE),
+                            )
+                            _ => panic!("unusual vector type"),
+                        }
                     } else {
-                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::ONE; N]));
+                        transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector([T::ONE; N]))
                     }
                 }
-
-                unreachable!("unusual vector type");
             };
         }
 
@@ -121,103 +128,93 @@ pub fn mod_() -> ModFile {
         where
             Usize<N>: VecLen,
         {
-            /// A vector of all `-1`s.
+            $("/// All `-1`.")
             pub const NEG_ONE: Self = {
                 unsafe {
                     if A::IS_ALIGNED {
-                        match N {$(
-                            for &n in LENGTHS =>
+                        match N {
+                            $(
+                                for &n in LENGTHS join($['\r']) =>
 
-                            $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(T::VEC$(n)_NEG_ONE),
-                        )}
+                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(&T::VEC$(n)_NEG_ONE),
+                            )
+                            _ => panic!("unusual vector type"),
+                        }
                     } else {
-                        return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([T::NEG_ONE; N]));
+                        transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector([T::NEG_ONE; N]))
                     }
                 }
-
-                unreachable!("unusual vector type");
             };
         }
 
         $(
-            for &n in LENGTHS =>
+            for &n in LENGTHS join($['\n']) =>
 
             impl<T: ScalarOne, A: VecAlignment> Vector<$n, T, A> {$(
-                for i in 0..n =>
+                for i in 0..n join($['\n']) =>
 
                 $(format!("/// A vector that points to the positive `{}` direction with magnitude `1`.", COMPONENTS[i]))
                 pub const $(COMPONENTS[i].to_uppercase()): Self = {
                     unsafe {
                         if A::IS_ALIGNED {
-                            match N {$(
-                                for &n in LENGTHS =>
-    
-                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(T::VEC$(n)_$(COMPONENTS[i].to_uppercase())),
-                            )}
+                            transmute_copy::<Vector<$n, T, VecAligned>, Vector<$n, T, A>>(&T::VEC$(n)_$(COMPONENTS[i].to_uppercase()))
                         } else {
-                            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { "T::ONE" } else { "T::ZERO" }))]));
+                            transmute_copy::<Vector<$n, T, VecPacked>, Vector<$n, T, A>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::ONE } else { T::ZERO }))]))
                         }
                     }
-    
-                    unreachable!("unusual vector type");
                 };
             )}
         )
         
         $(
-            for &n in LENGTHS =>
+            for &n in LENGTHS join($['\n']) =>
 
             impl<T: ScalarNegOne, A: VecAlignment> Vector<$n, T, A> {$(
-                for i in 0..n =>
+                for i in 0..n join($['\n']) =>
 
                 $(format!("/// A vector that points to the negative `{}` direction with magnitude `1`.", COMPONENTS[i]))
                 pub const NEG_$(COMPONENTS[i].to_uppercase()): Self = {
                     unsafe {
                         if A::IS_ALIGNED {
-                            match N {$(
-                                for &n in LENGTHS =>
-    
-                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(T::VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase())),
-                            )}
+                            transmute_copy::<Vector<$n, T, VecAligned>, Vector<$n, T, A>>(&T::VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase()))
                         } else {
-                            return transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { "T::NEG_ONE" } else { "T::ZERO" }))]));
+                            transmute_copy::<Vector<$n, T, VecPacked>, Vector<$n, T, A>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::NEG_ONE } else { T::ZERO }))]))
                         }
                     }
-    
-                    unreachable!("unusual vector type");
                 };
             )}
         )
 
         $(
-            for ((&dir_a_camelcase, &dir_b_camelcase), &axis) in DIRECTIONS_A.iter().zip(DIRECTIONS_B.iter()).zip(COMPONENTS.iter()) =>
+            for (((&dir_a_camelcase, &dir_b_camelcase), &axis), axis_index) in DIRECTIONS_A.iter().zip(DIRECTIONS_B.iter()).zip(COMPONENTS.iter()).zip(0..COMPONENTS.len()) join($['\n']) =>
 
             $(let dir_a_lower = &dir_a_camelcase.to_lowercase())
             $(let dir_a_upper = &dir_a_camelcase.to_uppercase())
             $(let dir_b_lower = &dir_b_camelcase.to_lowercase())
             $(let dir_b_upper = &dir_b_camelcase.to_uppercase())
 
-            $(format!("/// Traits with `{dir_a_upper}` and `{dir_b_upper} constants where {dir_a_lower} is the positive direction."))
-            #[cfg(feature = $[str](dir_a_lower))]
+            $(format!("/// `{dir_a_upper}` and `{dir_b_upper} constants where {dir_a_lower} is positive and {dir_b_lower} is negative."))
+            #[cfg(feature = $(quoted(dir_a_lower)))]
             pub mod $dir_a_lower {
                 use crate::{
                     Construct,
-                    ScalarZero,
                     ScalarOne,
                     ScalarNegOne,
                     VecAlignment,
                     Vector,
                 };
 
-                $(format!("/// A trait for a `{dir_a_upper}` constant where {dir_a_lower} is the positive direction."))
+                $(format!("/// `{dir_a_upper}` constant where {dir_a_lower} is positive and {dir_b_lower} is negative."))
                 pub trait Positive$(dir_a_camelcase): Construct {
-                    $(format!("/// A value that points {dir_a_lower} with magnitude `1` where {dir_a_lower} is the positive direction."))
+                    $(format!("/// A value that points {dir_a_lower} with a magnitude of one,"))
+                    $(format!("/// where {dir_a_lower} is positive and {dir_b_lower} is negative."))
                     const $dir_a_upper: Self;
                 }
 
-                $(format!("/// A trait for a `{dir_b_upper}` constant where {dir_a_lower} is the positive direction."))
+                $(format!("/// `{dir_b_upper}` constant where {dir_a_lower} is positive and {dir_b_lower} is negative."))
                 pub trait Negative$(dir_b_camelcase): Construct {
-                    $(format!("/// A value that points {dir_b_lower} with magnitude `1` where {dir_a_lower} is the positive direction."))
+                    $(format!("/// A value that points {dir_b_lower} with a magnitude of one,"))
+                    $(format!("/// where {dir_a_lower} is positive and {dir_b_lower} is negative."))
                     const $dir_b_upper: Self;
                 }
 
@@ -230,7 +227,7 @@ pub fn mod_() -> ModFile {
                 }
 
                 $(
-                    for &n in LENGTHS =>
+                    for &n in LENGTHS.iter().filter(|&&n| n > axis_index) join($['\n']) =>
 
                     impl<T: ScalarOne, A: VecAlignment> Positive$(dir_a_camelcase) for Vector<$n, T, A> {
                         const $dir_a_upper: Self = Self::$(axis.to_uppercase());
@@ -242,27 +239,28 @@ pub fn mod_() -> ModFile {
                 )
             }
 
-            $(format!("/// Traits with `{dir_a_upper}` and `{dir_b_upper} constants where {dir_b_lower} is the positive direction."))
-            #[cfg(feature = $[str](dir_a_lower))]
+            $(format!("/// `{dir_a_upper}` and `{dir_b_upper} constants where {dir_b_lower} is positive and {dir_a_lower} is negative."))
+            #[cfg(feature = $(quoted(dir_b_lower)))]
             pub mod $dir_b_lower {
                 use crate::{
                     Construct,
-                    ScalarZero,
                     ScalarOne,
                     ScalarNegOne,
                     VecAlignment,
                     Vector,
                 };
 
-                $(format!("/// A trait for a `{dir_a_upper}` constant where {dir_b_lower} is the positive direction."))
+                $(format!("/// `{dir_a_upper}` constant where {dir_b_lower} is positive and {dir_a_lower} is negative."))
                 pub trait Negative$(dir_a_camelcase): Construct {
-                    $(format!("/// A value that points {dir_a_lower} with magnitude `1` where {dir_b_lower} is the positive direction."))
+                    $(format!("/// A value that points {dir_a_lower} with a magnitude of one,"))
+                    $(format!("/// where {dir_b_lower} is positive and {dir_a_lower} is negative."))
                     const $dir_a_upper: Self;
                 }
 
-                $(format!("/// A trait for a `{dir_b_upper}` constant where {dir_b_lower} is the positive direction."))
+                $(format!("/// `{dir_b_upper}` constant where {dir_b_lower} is positive and {dir_a_lower} is negative."))
                 pub trait Positive$(dir_b_camelcase): Construct {
-                    $(format!("/// A value that points {dir_b_lower} with magnitude `1` where {dir_b_lower} is the positive direction."))
+                    $(format!("/// A value that points {dir_b_lower} with a magnitude of one,"))
+                    $(format!("/// where {dir_b_lower} is positive and {dir_a_lower} is negative."))
                     const $dir_b_upper: Self;
                 }
 
@@ -275,7 +273,7 @@ pub fn mod_() -> ModFile {
                 }
 
                 $(
-                    for &n in LENGTHS =>
+                    for &n in LENGTHS.iter().filter(|&&n| n > axis_index) join($['\n']) =>
 
                     impl<T: ScalarNegOne, A: VecAlignment> Negative$(dir_a_camelcase) for Vector<$n, T, A> {
                         const $dir_a_upper: Self = Self::NEG_$(axis.to_uppercase());
