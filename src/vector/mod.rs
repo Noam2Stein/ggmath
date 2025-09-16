@@ -15,6 +15,7 @@ use crate::{Construct, IndexOutOfBoundsError, Usize, specialize};
 
 mod dir;
 
+#[cfg(feature = "swizzle")]
 mod swizzle;
 pub use dir::*;
 
@@ -304,29 +305,23 @@ pub trait Scalar: Construct {
         Vec2::from_array(array)
     }
 
-    /// Overridable implementation of aligned vec2 getters.
+    /// Overridable implementation of `Vector::shuffle_2` for aligned vec2s.
     #[inline(always)]
-    fn vec2_swizzle1<const SRC: usize>(vec: Vec2<Self>) -> Self {
-        vec.index(SRC)
-    }
-
-    /// Overridable implementation of aligned vec2 swizzle functions that return vec2s.
-    #[inline(always)]
-    fn vec2_swizzle2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec2<Self>) -> Vec2<Self> {
+    fn vec2_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec2<Self>) -> Vec2<Self> {
         Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
     }
 
-    /// Overridable implementation of aligned vec2 swizzle functions that return vec3s.
+    /// Overridable implementation of `Vector::shuffle_3` for aligned vec2s.
     #[inline(always)]
-    fn vec2_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+    fn vec2_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         vec: Vec2<Self>,
     ) -> Vec3<Self> {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
-    /// Overridable implementation of aligned vec2 swizzle functions that return vec4s.
+    /// Overridable implementation of `Vector::shuffle_4` for aligned vec2s.
     #[inline(always)]
-    fn vec2_swizzle4<
+    fn vec2_shuffle_4<
         const X_SRC: usize,
         const Y_SRC: usize,
         const Z_SRC: usize,
@@ -342,18 +337,9 @@ pub trait Scalar: Construct {
         ])
     }
 
-    /// Overridable implementation of aligned vec2 "with swizzle" functions that replaces scalars.
+    /// Overridable implementation of `Vector::with_2` for aligned vec2s.
     #[inline(always)]
-    fn vec2_with_swizzle1<const DST: usize>(vec: Vec2<Self>, value: Self) -> Vec2<Self> {
-        let mut output = vec;
-        output.set(DST, value);
-
-        output
-    }
-
-    /// Overridable implementation of aligned vec2 "with swizzle" functions that replaces vec2s.
-    #[inline(always)]
-    fn vec2_with_swizzle2<const X_DST: usize, const Y_DST: usize>(
+    fn vec2_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         vec: Vec2<Self>,
         value: Vec2<Self>,
     ) -> Vec2<Self> {
@@ -519,29 +505,23 @@ pub trait Scalar: Construct {
         Vec3::from_array(array)
     }
 
-    /// Overridable implementation of aligned vec3 getters.
+    /// Overridable implementation of `Vector::shuffle_2` for aligned vec3s.
     #[inline(always)]
-    fn vec3_swizzle1<const SRC: usize>(vec: Vec3<Self>) -> Self {
-        vec.index(SRC)
-    }
-
-    /// Overridable implementation of aligned vec3 swizzle functions that return vec2s.
-    #[inline(always)]
-    fn vec3_swizzle2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec3<Self>) -> Vec2<Self> {
+    fn vec3_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec3<Self>) -> Vec2<Self> {
         Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
     }
 
-    /// Overridable implementation of aligned vec3 swizzle functions that return vec3s.
+    /// Overridable implementation of `Vector::shuffle_3` for aligned vec3s.
     #[inline(always)]
-    fn vec3_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+    fn vec3_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         vec: Vec3<Self>,
     ) -> Vec3<Self> {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
-    /// Overridable implementation of aligned vec3 swizzle functions that return vec4s.
+    /// Overridable implementation of `Vector::shuffle_4` for aligned vec3s.
     #[inline(always)]
-    fn vec3_swizzle4<
+    fn vec3_shuffle_4<
         const X_SRC: usize,
         const Y_SRC: usize,
         const Z_SRC: usize,
@@ -557,18 +537,9 @@ pub trait Scalar: Construct {
         ])
     }
 
-    /// Overridable implementation of aligned vec3 "with swizzle" functions that replaces scalars.
+    /// Overridable implementation of `Vector::with_2` for aligned vec3s.
     #[inline(always)]
-    fn vec3_with_swizzle1<const DST: usize>(vec: Vec3<Self>, value: Self) -> Vec3<Self> {
-        let mut output = vec;
-        output.set(DST, value);
-
-        output
-    }
-
-    /// Overridable implementation of aligned vec3 "with swizzle" functions that replaces vec2s.
-    #[inline(always)]
-    fn vec3_with_swizzle2<const X_DST: usize, const Y_DST: usize>(
+    fn vec3_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         vec: Vec3<Self>,
         value: Vec2<Self>,
     ) -> Vec3<Self> {
@@ -579,9 +550,9 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of aligned vec3 "with swizzle" functions that replaces vec3s.
+    /// Overridable implementation of `Vector::with_3` for aligned vec3s.
     #[inline(always)]
-    fn vec3_with_swizzle3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
+    fn vec3_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         vec: Vec3<Self>,
         value: Vec3<Self>,
     ) -> Vec3<Self> {
@@ -748,29 +719,23 @@ pub trait Scalar: Construct {
         Vec4::from_array(array)
     }
 
-    /// Overridable implementation of aligned vec4 getters.
+    /// Overridable implementation of `Vector::shuffle_2` for aligned vec4s.
     #[inline(always)]
-    fn vec4_swizzle1<const SRC: usize>(vec: Vec4<Self>) -> Self {
-        vec.index(SRC)
-    }
-
-    /// Overridable implementation of aligned vec4 swizzle functions that return vec2s.
-    #[inline(always)]
-    fn vec4_swizzle2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec4<Self>) -> Vec2<Self> {
+    fn vec4_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec4<Self>) -> Vec2<Self> {
         Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
     }
 
-    /// Overridable implementation of aligned vec4 swizzle functions that return vec3s.
+    /// Overridable implementation of `Vector::shuffle_3` for aligned vec4s.
     #[inline(always)]
-    fn vec4_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+    fn vec4_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         vec: Vec4<Self>,
     ) -> Vec3<Self> {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
-    /// Overridable implementation of aligned vec4 swizzle functions that return vec4s.
+    /// Overridable implementation of `Vector::shuffle_4` for aligned vec4s.
     #[inline(always)]
-    fn vec4_swizzle4<
+    fn vec4_shuffle_4<
         const X_SRC: usize,
         const Y_SRC: usize,
         const Z_SRC: usize,
@@ -786,18 +751,9 @@ pub trait Scalar: Construct {
         ])
     }
 
-    /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces scalars.
+    /// Overridable implementation of `Vector::with_2` for aligned vec4s.
     #[inline(always)]
-    fn vec4_with_swizzle1<const DST: usize>(vec: Vec4<Self>, value: Self) -> Vec4<Self> {
-        let mut output = vec;
-        output.set(DST, value);
-
-        output
-    }
-
-    /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces vec2s.
-    #[inline(always)]
-    fn vec4_with_swizzle2<const X_DST: usize, const Y_DST: usize>(
+    fn vec4_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         vec: Vec4<Self>,
         value: Vec2<Self>,
     ) -> Vec4<Self> {
@@ -808,9 +764,9 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces vec3s.
+    /// Overridable implementation of `Vector::with_3` for aligned vec4s.
     #[inline(always)]
-    fn vec4_with_swizzle3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
+    fn vec4_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         vec: Vec4<Self>,
         value: Vec3<Self>,
     ) -> Vec4<Self> {
@@ -822,9 +778,9 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of aligned vec4 "with swizzle" functions that replaces vec4s.
+    /// Overridable implementation of `Vector::with_4` for aligned vec4s.
     #[inline(always)]
-    fn vec4_with_swizzle4<
+    fn vec4_with_shuffle_4<
         const X_DST: usize,
         const Y_DST: usize,
         const Z_DST: usize,
@@ -1248,6 +1204,93 @@ where
         };
     }
 
+    /// Returns a vec2 where:
+    /// - The `x` (1st) component is `self[X_SRC]`
+    /// - The `y` (2nd) component is `self[Y_SRC]`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn shuffle_2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, A> {
+        specialize! {
+            (self: Vector<N, T, A>) -> Vector<2, T, A>:
+
+            for (Vector<2, T, VecAligned>) -> Vector<2, T, VecAligned> {
+                |vec| T::vec2_shuffle_2::<X_SRC, Y_SRC>(vec)
+            }
+            for (Vector<3, T, VecAligned>) -> Vector<2, T, VecAligned> {
+                |vec| T::vec3_shuffle_2::<X_SRC, Y_SRC>(vec)
+            }
+            for (Vector<4, T, VecAligned>) -> Vector<2, T, VecAligned> {
+                |vec| T::vec4_shuffle_2::<X_SRC, Y_SRC>(vec)
+            }
+            else {
+                Vector::<2, T, A>::from_array([self.index(X_SRC), self.index(Y_SRC)])
+            }
+        }
+    }
+
+    /// Returns a vec3 where:
+    /// - The `x` (1st) component is `self[X_SRC]`
+    /// - The `y` (2nd) component is `self[Y_SRC]`
+    /// - The `z` (3rd) component is `self[Z_SRC]`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        self,
+    ) -> Vector<3, T, A> {
+        specialize! {
+            (self: Vector<N, T, A>) -> Vector<3, T, A>:
+
+            for (Vector<2, T, VecAligned>) -> Vector<3, T, VecAligned> {
+                |vec| T::vec2_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
+            }
+            for (Vector<3, T, VecAligned>) -> Vector<3, T, VecAligned> {
+                |vec| T::vec3_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
+            }
+            for (Vector<4, T, VecAligned>) -> Vector<3, T, VecAligned> {
+                |vec| T::vec4_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
+            }
+            else {
+                Vector::<3, T, A>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC)])
+            }
+        }
+    }
+
+    /// Returns a vec4 where:
+    /// - The `x` (1st) component is `self[X_SRC]`
+    /// - The `y` (2nd) component is `self[Y_SRC]`
+    /// - The `z` (3rd) component is `self[Z_SRC]`
+    /// - The `w` (4th) component is `self[W_SRC]`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn shuffle_4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        self,
+    ) -> Vector<4, T, A> {
+        specialize! {
+            (self: Vector<N, T, A>) -> Vector<4, T, A>:
+
+            for (Vector<2, T, VecAligned>) -> Vector<4, T, VecAligned> {
+                |vec| T::vec2_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
+            }
+            for (Vector<3, T, VecAligned>) -> Vector<4, T, VecAligned> {
+                |vec| T::vec3_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
+            }
+            for (Vector<4, T, VecAligned>) -> Vector<4, T, VecAligned> {
+                |vec| T::vec4_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
+            }
+            else {
+                Vector::<4, T, A>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC), self.index(W_SRC)])
+            }
+        }
+    }
+
     /// Maps each component of the vector to a new value using the given function.
     #[inline(always)]
     pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, A>
@@ -1362,6 +1405,475 @@ where
     #[inline(always)]
     pub fn iter_mut(&mut self) -> <&mut [T; N] as IntoIterator>::IntoIter {
         self.into_iter()
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub fn x(self) -> T {
+        self.index(0)
+    }
+
+    /// Returns the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub fn y(self) -> T {
+        self.index(1)
+    }
+
+    /// Returns `self` but with the `x` (1st) component set to `value`.
+    #[inline(always)]
+    pub fn with_x(self, value: T) -> Self {
+        let mut output = self;
+        output.set(0, value);
+        output
+    }
+
+    /// Returns `self` but with the `y` (2nd) component set to `value`.
+    #[inline(always)]
+    pub fn with_y(self, value: T) -> Self {
+        let mut output = self;
+        output.set(1, value);
+        output
+    }
+
+    /// Sets the `x` (1st) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_x(&mut self, value: T) {
+        *self = self.with_x(value);
+    }
+
+    /// Sets the `y` (2nd) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_y(&mut self, value: T) {
+        *self = self.with_y(value);
+    }
+
+    /// Returns `self` but with:
+    /// - `self[X_DST]` set to the `x` (1st) component of `value`
+    /// - `self[Y_DST]` set to the `y` (2nd) component of `value`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
+        self,
+        value: Vector<2, T, impl VecAlignment>,
+    ) -> Self {
+        specialize! {
+            (self: Vector<2, T, A>, value: Vector<2, T, _>) -> Vector<2, T, A>:
+
+            for (Vector<2, T, VecAligned>, Vector<2, T, VecAligned>) -> Vector<2, T, VecAligned> {
+                |vec, value| T::vec2_with_shuffle_2::<X_DST, Y_DST>(vec, value)
+            }
+            else {
+                let mut output = self;
+                output.set(X_DST, value.x());
+                output.set(Y_DST, value.y());
+
+                output
+            }
+        }
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub fn x(self) -> T {
+        self.index(0)
+    }
+
+    /// Returns the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub fn y(self) -> T {
+        self.index(1)
+    }
+
+    /// Returns the `z` (3rd) component of `self`.
+    #[inline(always)]
+    pub fn z(self) -> T {
+        self.index(2)
+    }
+
+    /// Returns `self` but with the `x` (1st) component set to `value`.
+    #[inline(always)]
+    pub fn with_x(self, value: T) -> Self {
+        let mut output = self;
+        output.set(0, value);
+        output
+    }
+
+    /// Returns `self` but with the `y` (2nd) component set to `value`.
+    #[inline(always)]
+    pub fn with_y(self, value: T) -> Self {
+        let mut output = self;
+        output.set(1, value);
+        output
+    }
+
+    /// Returns `self` but with the `z` (3rd) component set to `value`.
+    #[inline(always)]
+    pub fn with_z(self, value: T) -> Self {
+        let mut output = self;
+        output.set(2, value);
+        output
+    }
+
+    /// Sets the `x` (1st) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_x(&mut self, value: T) {
+        *self = self.with_x(value);
+    }
+
+    /// Sets the `y` (2nd) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_y(&mut self, value: T) {
+        *self = self.with_y(value);
+    }
+
+    /// Sets the `z` (3rd) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_z(&mut self, value: T) {
+        *self = self.with_z(value);
+    }
+
+    /// Returns `self` but with:
+    /// - `self[X_DST]` set to the `x` (1st) component of `value`
+    /// - `self[Y_DST]` set to the `y` (2nd) component of `value`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
+        self,
+        value: Vector<2, T, impl VecAlignment>,
+    ) -> Self {
+        specialize! {
+            (self: Vector<3, T, A>, value: Vector<2, T, _>) -> Vector<3, T, A>:
+
+            for (Vector<3, T, VecAligned>, Vector<2, T, VecAligned>) -> Vector<3, T, VecAligned> {
+                |vec, value| T::vec3_with_shuffle_2::<X_DST, Y_DST>(vec, value)
+            }
+            else {
+                let mut output = self;
+                output.set(X_DST, value.x());
+                output.set(Y_DST, value.y());
+
+                output
+            }
+        }
+    }
+
+    /// Returns `self` but with:
+    /// - `self[X_DST]` set to the `x` (1st) component of `value`
+    /// - `self[Y_DST]` set to the `y` (2nd) component of `value`
+    /// - `self[Z_DST]` set to the `z` (3rd) component of `value`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
+        self,
+        value: Vector<3, T, impl VecAlignment>,
+    ) -> Self {
+        specialize! {
+            (self: Vector<3, T, A>, value: Vector<3, T, _>) -> Vector<3, T, A>:
+
+            for (Vector<3, T, VecAligned>, Vector<3, T, VecAligned>) -> Vector<3, T, VecAligned> {
+                |vec, value| T::vec3_with_shuffle_3::<X_DST, Y_DST, Z_DST>(vec, value)
+            }
+            else {
+                let mut output = self;
+                output.set(X_DST, value.x());
+                output.set(Y_DST, value.y());
+                output.set(Z_DST, value.z());
+
+                output
+            }
+        }
+    }
+}
+
+impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+    /// Returns the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub fn x(self) -> T {
+        self.index(0)
+    }
+
+    /// Returns the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub fn y(self) -> T {
+        self.index(1)
+    }
+
+    /// Returns the `z` (3rd) component of `self`.
+    #[inline(always)]
+    pub fn z(self) -> T {
+        self.index(2)
+    }
+
+    /// Returns the `w` (4th) component of `self`.
+    #[inline(always)]
+    pub fn w(self) -> T {
+        self.index(3)
+    }
+
+    /// Returns `self` but with the `x` (1st) component set to `value`.
+    #[inline(always)]
+    pub fn with_x(self, value: T) -> Self {
+        let mut output = self;
+        output.set(0, value);
+        output
+    }
+
+    /// Returns `self` but with the `y` (2nd) component set to `value`.
+    #[inline(always)]
+    pub fn with_y(self, value: T) -> Self {
+        let mut output = self;
+        output.set(1, value);
+        output
+    }
+
+    /// Returns `self` but with the `z` (3rd) component set to `value`.
+    #[inline(always)]
+    pub fn with_z(self, value: T) -> Self {
+        let mut output = self;
+        output.set(2, value);
+        output
+    }
+
+    /// Returns `self` but with the `w` (4th) component set to `value`.
+    #[inline(always)]
+    pub fn with_w(self, value: T) -> Self {
+        let mut output = self;
+        output.set(3, value);
+        output
+    }
+
+    /// Sets the `x` (1st) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_x(&mut self, value: T) {
+        *self = self.with_x(value);
+    }
+
+    /// Sets the `y` (2nd) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_y(&mut self, value: T) {
+        *self = self.with_y(value);
+    }
+
+    /// Sets the `z` (3rd) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_z(&mut self, value: T) {
+        *self = self.with_z(value);
+    }
+
+    /// Sets the `w` (4th) component of `self` to `value`.
+    #[inline(always)]
+    pub fn set_w(&mut self, value: T) {
+        *self = self.with_w(value);
+    }
+
+    /// Returns `self` but with:
+    /// - `self[X_DST]` set to the `x` (1st) component of `value`
+    /// - `self[Y_DST]` set to the `y` (2nd) component of `value`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
+        self,
+        value: Vector<2, T, impl VecAlignment>,
+    ) -> Self {
+        specialize! {
+            (self: Vector<4, T, A>, value: Vector<2, T, _>) -> Vector<4, T, A>:
+
+            for (Vector<4, T, VecAligned>, Vector<2, T, VecAligned>) -> Vector<4, T, VecAligned> {
+                |vec, value| T::vec4_with_shuffle_2::<X_DST, Y_DST>(vec, value)
+            }
+            else {
+                let mut output = self;
+                output.set(X_DST, value.x());
+                output.set(Y_DST, value.y());
+
+                output
+            }
+        }
+    }
+
+    /// Returns `self` but with:
+    /// - `self[X_DST]` set to the `x` (1st) component of `value`
+    /// - `self[Y_DST]` set to the `y` (2nd) component of `value`
+    /// - `self[Z_DST]` set to the `z` (3rd) component of `value`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
+        self,
+        value: Vector<3, T, impl VecAlignment>,
+    ) -> Self {
+        specialize! {
+            (self: Vector<4, T, A>, value: Vector<3, T, _>) -> Vector<4, T, A>:
+
+            for (Vector<4, T, VecAligned>, Vector<3, T, VecAligned>) -> Vector<4, T, VecAligned> {
+                |vec, value| T::vec4_with_shuffle_3::<X_DST, Y_DST, Z_DST>(vec, value)
+            }
+            else {
+                let mut output = self;
+                output.set(X_DST, value.x());
+                output.set(Y_DST, value.y());
+                output.set(Z_DST, value.z());
+
+                output
+            }
+        }
+    }
+
+    /// Returns `self` but with:
+    /// - `self[X_DST]` set to the `x` (1st) component of `value`
+    /// - `self[Y_DST]` set to the `y` (2nd) component of `value`
+    /// - `self[Z_DST]` set to the `z` (3rd) component of `value`
+    /// - `self[W_DST]` set to the `w` (4th) component of `value`
+    ///
+    /// Out of bounds indices are compile time errors.
+    #[inline(always)]
+    pub fn with_shuffle_4<
+        const X_DST: usize,
+        const Y_DST: usize,
+        const Z_DST: usize,
+        const W_DST: usize,
+    >(
+        self,
+        value: Vector<4, T, impl VecAlignment>,
+    ) -> Self {
+        specialize! {
+            (self: Vector<4, T, A>, value: Vector<4, T, _>) -> Vector<4, T, A>:
+
+            for (Vector<4, T, VecAligned>, Vector<4, T, VecAligned>) -> Vector<4, T, VecAligned> {
+                |vec, value| T::vec4_with_shuffle_4::<X_DST, Y_DST, Z_DST, W_DST>(vec, value)
+            }
+            else {
+                let mut output = self;
+                output.set(X_DST, value.x());
+                output.set(Y_DST, value.y());
+                output.set(Z_DST, value.z());
+                output.set(W_DST, value.w());
+
+                output
+            }
+        }
+    }
+}
+
+impl<T: Scalar> Vector<2, T, VecPacked> {
+    /// Returns a reference to the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub const fn x_ref(&self) -> &T {
+        &self.0[0]
+    }
+
+    /// Returns a reference to the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub const fn y_ref(&self) -> &T {
+        &self.0[1]
+    }
+
+    /// Returns a mutable reference to the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub const fn x_mut(&mut self) -> &mut T {
+        &mut self.0[0]
+    }
+
+    /// Returns a mutable reference to the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub const fn y_mut(&mut self) -> &mut T {
+        &mut self.0[1]
+    }
+}
+
+impl<T: Scalar> Vector<3, T, VecPacked> {
+    /// Returns a reference to the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub const fn x_ref(&self) -> &T {
+        &self.0[0]
+    }
+
+    /// Returns a reference to the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub const fn y_ref(&self) -> &T {
+        &self.0[1]
+    }
+
+    /// Returns a reference to the `z` (3rd) component of `self`.
+    #[inline(always)]
+    pub const fn z_ref(&self) -> &T {
+        &self.0[2]
+    }
+
+    /// Returns a mutable reference to the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub const fn x_mut(&mut self) -> &mut T {
+        &mut self.0[0]
+    }
+
+    /// Returns a mutable reference to the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub const fn y_mut(&mut self) -> &mut T {
+        &mut self.0[1]
+    }
+
+    /// Returns a mutable reference to the `z` (3rd) component of `self`.
+    #[inline(always)]
+    pub const fn z_mut(&mut self) -> &mut T {
+        &mut self.0[2]
+    }
+}
+
+impl<T: Scalar> Vector<4, T, VecPacked> {
+    /// Returns a reference to the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub const fn x_ref(&self) -> &T {
+        &self.0[0]
+    }
+
+    /// Returns a reference to the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub const fn y_ref(&self) -> &T {
+        &self.0[1]
+    }
+
+    /// Returns a reference to the `z` (3rd) component of `self`.
+    #[inline(always)]
+    pub const fn z_ref(&self) -> &T {
+        &self.0[2]
+    }
+
+    /// Returns a reference to the `w` (4th) component of `self`.
+    #[inline(always)]
+    pub const fn w_ref(&self) -> &T {
+        &self.0[3]
+    }
+
+    /// Returns a mutable reference to the `x` (1st) component of `self`.
+    #[inline(always)]
+    pub const fn x_mut(&mut self) -> &mut T {
+        &mut self.0[0]
+    }
+
+    /// Returns a mutable reference to the `y` (2nd) component of `self`.
+    #[inline(always)]
+    pub const fn y_mut(&mut self) -> &mut T {
+        &mut self.0[1]
+    }
+
+    /// Returns a mutable reference to the `z` (3rd) component of `self`.
+    #[inline(always)]
+    pub const fn z_mut(&mut self) -> &mut T {
+        &mut self.0[2]
+    }
+
+    /// Returns a mutable reference to the `w` (4th) component of `self`.
+    #[inline(always)]
+    pub const fn w_mut(&mut self) -> &mut T {
+        &mut self.0[3]
     }
 }
 

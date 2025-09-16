@@ -23,6 +23,7 @@ aabb              = [ "vector" ]
 matrix            = [ "vector" ]
 primitive_aliases = [  ]
 quaternion        = [ "vector" ]
+swizzle           = [  ]
 vector            = [  ]
 
 backwards = [  ]
@@ -33,8 +34,22 @@ right     = [  ]
 std       = [  ]
 up        = [  ]
 
-default = [ "matrix", "primitive_aliases", "quaternion", "std", "vector" ]
-full    = [ "aabb", "matrix", "primitive_aliases", "quaternion", "vector" ]
+default = [
+    "matrix",
+    "primitive_aliases",
+    "quaternion",
+    "std",
+    "swizzle",
+    "vector",
+]
+full = [
+    "aabb",
+    "matrix",
+    "primitive_aliases",
+    "quaternion",
+    "swizzle",
+    "vector",
+]
 
 [dependencies]
 cfg-if = "1.0.3"

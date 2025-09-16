@@ -1,7 +1,7 @@
 use genco::quote;
 
 use crate::{
-    constants::{BINARY_OPS, COMPONENTS, LENGTH_NAMES, LENGTHS, UNARY_OPS},
+    constants::{BINARY_OPS, COMPONENT_ORDINALS, COMPONENTS, LENGTH_NAMES, LENGTHS, UNARY_OPS},
     join_or,
     module::{ModDir, TokensExt},
 };
@@ -26,6 +26,7 @@ pub fn mod_() -> ModDir {
 
         mod dir;
         //mod primitives;
+        #[cfg(feature = "swizzle")]
         mod swizzle;
         pub use dir::*;
 
@@ -282,37 +283,22 @@ pub fn mod_() -> ModDir {
                     Vec$(n)::from_array(array)
                 }
 
-                $(format!("/// Overridable implementation of aligned vec{n} getters."))
-                #[inline(always)]
-                fn vec$(n)_swizzle1<const SRC: usize>(vec: Vec$(n)<Self>) -> Self {
-                    vec.index(SRC)
-                }
-
                 $(
                     for &n2 in LENGTHS join($['\n']) =>
 
-                    $(format!("/// Overridable implementation of aligned vec{n} swizzle functions that return vec{n2}s."))
+                    $(format!("/// Overridable implementation of `Vector::shuffle_{n2}` for aligned vec{n}s."))
                     #[inline(always)]
-                    fn vec$(n)_swizzle$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
+                    fn vec$(n)_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
                         Vec$(n2)::from_array([$(for i in 0..n2 join(, ) => vec.index($(COMPONENTS[i].to_uppercase())_SRC))])
                     }
                 )
 
-                $(format!("/// Overridable implementation of aligned vec{n} \"with swizzle\" functions that replaces scalars."))
-                #[inline(always)]
-                fn vec$(n)_with_swizzle1<const DST: usize>(vec: Vec$(n)<Self>, value: Self) -> Vec$(n)<Self> {
-                    let mut output = vec;
-                    output.set(DST, value);
-
-                    output
-                }
-
                 $(
                     for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) =>
 
-                    $(format!("/// Overridable implementation of aligned vec{n} \"with swizzle\" functions that replaces vec{n2}s."))
+                    $(format!("/// Overridable implementation of `Vector::with_{n2}` for aligned vec{n}s."))
                     #[inline(always)]
-                    fn vec$(n)_with_swizzle$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
+                    fn vec$(n)_with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
                         let mut output = vec;
                         $(
                             for i in 0..n2 =>
@@ -631,6 +617,37 @@ pub fn mod_() -> ModDir {
                 };
             }
 
+            $(
+                for &n2 in LENGTHS join($['\n']) =>
+
+                $(format!("/// Returns a vec{n2} where:"))
+                $(
+                    for i in 0..n2 =>
+
+                    $(format!("/// - The `{}` ({}) component is `self[{}_SRC]`", COMPONENTS[i], COMPONENT_ORDINALS[i], COMPONENTS[i].to_uppercase()))
+                    $['\r']
+                )
+                $("///")
+                $("/// Out of bounds indices are compile time errors.")
+                #[inline(always)]
+                pub fn shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(self) -> Vector<$n2, T, A> {
+                    specialize! {
+                        (self: Vector<N, T, A>) -> Vector<$n2, T, A>:
+
+                        $(
+                            for &n in LENGTHS join($['\r']) =>
+
+                            for (Vector<$n, T, VecAligned>) -> Vector<$n2, T, VecAligned> {
+                                |vec| T::vec$(n)_shuffle_$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_SRC)>(vec)
+                            }
+                        )
+                        else {
+                            Vector::<$n2, T, A>::from_array([$(for i in 0..n2 join(, ) => self.index($(COMPONENTS[i].to_uppercase())_SRC))])
+                        }
+                    }
+                }
+            )
+
             $("/// Maps each component of the vector to a new value using the given function.")
             #[inline(always)]
             pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, A>
@@ -747,6 +764,105 @@ pub fn mod_() -> ModDir {
                 self.into_iter()
             }
         }
+
+        $(
+            for &n in LENGTHS join($['\n']) =>
+
+            impl<T: Scalar, A: VecAlignment> Vector<$n, T, A> {
+                $(
+                    for i in 0..n join($['\n']) =>
+
+                    $(format!("/// Returns the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    #[inline(always)]
+                    pub fn $(COMPONENTS[i])(self) -> T {
+                        self.index($i)
+                    }
+                )
+
+                $(
+                    for i in 0..n join($['\n']) =>
+
+                    $(format!("/// Returns `self` but with the `{}` ({}) component set to `value`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    #[inline(always)]
+                    pub fn with_$(COMPONENTS[i])(self, value: T) -> Self {
+                        let mut output = self;
+                        output.set($i, value);
+                        output
+                    }
+                )
+
+                $(
+                    for i in 0..n join($['\n']) =>
+
+                    $(format!("/// Sets the `{}` ({}) component of `self` to `value`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    #[inline(always)]
+                    pub fn set_$(COMPONENTS[i])(&mut self, value: T) {
+                        *self = self.with_$(COMPONENTS[i])(value);
+                    }
+                )
+
+                $(
+                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) =>
+    
+                    $(format!("/// Returns `self` but with:"))
+                    $(
+                        for i in 0..n2 =>
+
+                        $(format!("/// - `self[{}_DST]` set to the `{}` ({}) component of `value`", COMPONENTS[i].to_uppercase(), COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                        $['\r']
+                    )
+                    $("///")
+                    $("/// Out of bounds indices are compile time errors.")
+                    #[inline(always)]
+                    pub fn with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(self, value: Vector<$n2, T, impl VecAlignment>) -> Self {
+                        specialize! {
+                            (self: Vector<$n, T, A>, value: Vector<$n2, T, _>) -> Vector<$n, T, A>:
+    
+                            for (Vector<$n, T, VecAligned>, Vector<$n2, T, VecAligned>) -> Vector<$n, T, VecAligned> {
+                                |vec, value| T::vec$(n)_with_shuffle_$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_DST)>(vec, value)
+                            }
+                            else {
+                                let mut output = self;
+                                $(
+                                    for i in 0..n2 =>
+    
+                                    output.set($(COMPONENTS[i].to_uppercase())_DST, value.$(COMPONENTS[i])());
+                                    $['\r']
+                                )
+    
+                                output
+                            }
+                        }
+                    }
+                )
+            }
+        )
+
+        $(
+            for &n in LENGTHS join($['\n']) =>
+
+            impl<T: Scalar> Vector<$n, T, VecPacked> {
+                $(
+                    for i in 0..n join($['\n']) =>
+
+                    $(format!("/// Returns a reference to the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    #[inline(always)]
+                    pub const fn $(COMPONENTS[i])_ref(&self) -> &T {
+                        &self.0[$i]
+                    }
+                )
+                
+                $(
+                    for i in 0..n join($['\n']) =>
+
+                    $(format!("/// Returns a mutable reference to the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    #[inline(always)]
+                    pub const fn $(COMPONENTS[i])_mut(&mut self) -> &mut T {
+                        &mut self.0[$i]
+                    }
+                )
+            }
+        )
 
         impl<const N: usize, T: Scalar, A: VecAlignment> Clone for Vector<N, T, A>
         where

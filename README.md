@@ -55,6 +55,7 @@ Default features:
 - `matrix`
 - `quaternion`
 - `primitive_aliases` enables primitive-specific type aliases like `FVec3`
+- `swizzle` enables functions for all swizzle combinations
 
 Optional features:
 - `aabb` enables the `Aabb` type (Axis-Aligned Bounding Box)
