@@ -60,24 +60,48 @@ macro_rules! specialize {
 
         $(else { $($else_tt:tt)* })?
     ) => {
-        if let Some(tuple) = $crate::typecheck::<($($arg_type,)*), ($($first_case_arg_type,)*)>(($($arg,)*)) {
-            if core::any::TypeId::of::<$ret_type>() == core::any::TypeId::of::<$first_case_ret_type>() {
-                let closure: fn($($first_case_arg_type),*) -> $first_case_ret_type = $closure;
-                let result: $first_case_ret_type = $crate::specialize!(@expand_tuple_into_closure closure(tuple); $($first_case_arg_type),*);
+        $crate::specialize! {
+            @with_tuple
 
-                return $crate::typecheck::<$first_case_ret_type, $ret_type>(result).unwrap();
-            }
+            (($($arg,)*): ($($arg_type,)*)) -> $ret_type:
+
+            for ($($first_case_arg_type),*) -> $first_case_ret_type { $first_case_closure }
+
+            $(for ($($case_arg_type),*) -> $case_ret_type { $case_closure })*
+
+            $(else { $($else_tt)* })?
         }
-        $(else if let Some(tuple) = $crate::typecheck::<($($arg_type,)*), ($($case_arg_type,)*)>(($($arg,)*)) {
-            if core::any::TypeId::of::<$ret_type>() == core::any::TypeId::of::<$case_ret_type>() {
-                let closure: fn($($case_arg_type),*) -> $case_ret_type = $closure;
-                let result: $case_ret_type = $crate::specialize!(@expand_tuple_into_closure closure(tuple); $($case_arg_type),*);
+    };
 
-                return $crate::typecheck::<$case_ret_type, $ret_type>(result).unwrap();
-            }
+    (
+        @with_tuple
+
+        ($args:tt: $args_type:ty) -> $ret_type:ty:
+
+        for ($($first_case_arg_type:ty),* $(,)?) -> $first_case_ret_type:ty { $first_case_closure:expr }
+
+        $(for ($($case_arg_type:ty),* $(,)?) -> $case_ret_type:ty { $case_closure:expr })*
+
+        $(else { $($else_tt:tt)* })?
+    ) => {
+        if let Some(tuple) = $crate::typecheck::<$args_type, ($($first_case_arg_type,)*)>($args)
+            && core::any::TypeId::of::<$ret_type>() == core::any::TypeId::of::<$first_case_ret_type>()
+        {
+            let closure: fn($($first_case_arg_type),*) -> $first_case_ret_type = $first_case_closure;
+            let result: $first_case_ret_type = $crate::specialize!(@expand_tuple_into_closure closure(tuple); $($first_case_arg_type),*);
+
+            $crate::typecheck::<$first_case_ret_type, $ret_type>(result).unwrap()
+        }
+        $(else if let Some(tuple) = $crate::typecheck::<$args_type, ($($case_arg_type,)*)>($args)
+            && core::any::TypeId::of::<$ret_type>() == core::any::TypeId::of::<$case_ret_type>()
+        {
+            let closure: fn($($case_arg_type),*) -> $case_ret_type = $case_closure;
+            let result: $case_ret_type = $crate::specialize!(@expand_tuple_into_closure closure(tuple); $($case_arg_type),*);
+
+            $crate::typecheck::<$case_ret_type, $ret_type>(result).unwrap()
         })*
         $(else {
-            $($else_tt:tt)*
+            $($else_tt)*
         })?
     };
 
