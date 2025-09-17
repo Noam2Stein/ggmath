@@ -1,5 +1,3 @@
-use ggmath::{f32_aliases::*, right::*};
+#![allow(unused)]
 
-fn main() {
-    println!("{}", FVec3::LEFT);
-}
+fn main() {}
