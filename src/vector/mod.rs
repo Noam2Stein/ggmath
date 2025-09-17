@@ -13,11 +13,16 @@ use core::{
 
 use crate::{Construct, IndexOutOfBoundsError, Usize, specialize};
 
+mod constructor;
 mod dir;
-
+mod ops;
+mod primitives;
+mod scalar;
 #[cfg(feature = "swizzle")]
 mod swizzle;
+pub use constructor::*;
 pub use dir::*;
+pub use scalar::*;
 
 /// A generic vector type.
 ///
@@ -197,738 +202,6 @@ pub enum VecLenEnum {
     Three,
     /// `4`
     Four,
-}
-
-/// Trait for types that can be put inside [`Vector`].
-/// This is only implemented for actual scalar types (e.g., `f32`),
-/// not vectors, matrices, etc.
-///
-/// When implementing this trait you need to specify the inner types of [`VecAligned`] vectors.
-/// You can also override the implementation of vector functions to make optimizations.
-///
-/// For an example of an optimized `Scalar` implementation,
-/// look at the `f32` implementation.
-///
-/// ## Example
-/// ```
-/// use ggmath::*;
-///
-/// #[derive(Clone, Copy)]
-/// struct MyInt(i32);
-///
-/// impl Scalar for MyInt {
-///     // If we wanted to SIMD-accelerate this scalar type,
-///     // we would use another SIMD type like from `std::arch`, `ggmath`, `glam`, etc.
-///     type InnerAlignedVec2 = [MyInt; 2];
-///     type InnerAlignedVec3 = [MyInt; 3];
-///     type InnerAlignedVec4 = [MyInt; 4];
-///
-///     #[inline(always)]
-///     fn vec2_from_array(array: [MyInt; 2]) -> Vec2<MyInt> {
-///         Vector(array)
-///     }
-///
-///     #[inline(always)]
-///     fn vec3_from_array(array: [MyInt; 3]) -> Vec3<MyInt> {
-///         Vector(array)
-///     }
-///
-///     #[inline(always)]
-///     fn vec4_from_array(array: [MyInt; 4]) -> Vec4<MyInt> {
-///         Vector(array)
-///     }
-///
-///     #[inline(always)]
-///     fn vec2_as_array(vec: Vec2<MyInt>) -> [MyInt; 2] {
-///         vec.0
-///     }
-///
-///     #[inline(always)]
-///     fn vec3_as_array(vec: Vec3<MyInt>) -> [MyInt; 3] {
-///         vec.0
-///     }
-///
-///     #[inline(always)]
-///     fn vec4_as_array(vec: Vec4<MyInt>) -> [MyInt; 4] {
-///         vec.0
-///     }
-/// }
-/// ```
-pub trait Scalar: Construct {
-    /// The inner type contained inside `Vector<2, Self, VecAligned>`.
-    type InnerAlignedVec2: Construct;
-
-    /// The inner type contained inside `Vector<3, Self, VecAligned>`.
-    type InnerAlignedVec3: Construct;
-
-    /// The inner type contained inside `Vector<4, Self, VecAligned>`.
-    type InnerAlignedVec4: Construct;
-
-    /// Constructs an aligned vec2 from an array.
-    fn vec2_from_array(array: [Self; 2]) -> Vec2<Self>;
-
-    /// Converts an aligned vec2 to an array.
-    fn vec2_as_array(vec: Vec2<Self>) -> [Self; 2];
-
-    /// Constructs an aligned vec3 from an array.
-    fn vec3_from_array(array: [Self; 3]) -> Vec3<Self>;
-
-    /// Converts an aligned vec3 to an array.
-    fn vec3_as_array(vec: Vec3<Self>) -> [Self; 3];
-
-    /// Constructs an aligned vec4 from an array.
-    fn vec4_from_array(array: [Self; 4]) -> Vec4<Self>;
-
-    /// Converts an aligned vec4 to an array.
-    fn vec4_as_array(vec: Vec4<Self>) -> [Self; 4];
-
-    /// Overridable implementation of `Vector::splat` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_splat(value: Self) -> Vec2<Self> {
-        Vec2::from_array([value; 2])
-    }
-
-    /// Overridable implementation of `Vector::get_unchecked` for aligned vec2s.
-    #[inline(always)]
-    unsafe fn vec2_get_unchecked(vec: Vec2<Self>, index: usize) -> Self {
-        unsafe { *vec.as_array().get_unchecked(index) }
-    }
-
-    /// Overridable implementation of `Vector::set_unchecked` for aligned vec2s.
-    #[inline(always)]
-    unsafe fn vec2_with_unchecked(vec: Vec2<Self>, index: usize, value: Self) -> Vec2<Self> {
-        let mut array = vec.as_array();
-        unsafe {
-            *array.get_unchecked_mut(index) = value;
-        }
-
-        Vec2::from_array(array)
-    }
-
-    /// Overridable implementation of `Vector::shuffle_2` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec2<Self>) -> Vec2<Self> {
-        Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_3` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
-        vec: Vec2<Self>,
-    ) -> Vec3<Self> {
-        Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_4` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_shuffle_4<
-        const X_SRC: usize,
-        const Y_SRC: usize,
-        const Z_SRC: usize,
-        const W_SRC: usize,
-    >(
-        vec: Vec2<Self>,
-    ) -> Vec4<Self> {
-        Vec4::from_array([
-            vec.index(X_SRC),
-            vec.index(Y_SRC),
-            vec.index(Z_SRC),
-            vec.index(W_SRC),
-        ])
-    }
-
-    /// Overridable implementation of `Vector::with_2` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
-        vec: Vec2<Self>,
-        value: Vec2<Self>,
-    ) -> Vec2<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::eq` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_eq<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..2).all(|i| vec.index(i) == other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ne` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_ne<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..2).any(|i| vec.index(i) != other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::neg` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_neg(vec: Vec2<Self>) -> Vec2<<Self as Neg>::Output>
-    where
-        Self: Neg<Output: Scalar>,
-    {
-        vec.map(|v| v.neg())
-    }
-
-    /// Overridable implementation of `Vector::not` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_not(vec: Vec2<Self>) -> Vec2<<Self as Not>::Output>
-    where
-        Self: Not<Output: Scalar>,
-    {
-        vec.map(|v| v.not())
-    }
-
-    /// Overridable implementation of `Vector::add` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_add<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Add<T2>>::Output>
-    where
-        Self: Add<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).add(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::sub` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_sub<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Sub<T2>>::Output>
-    where
-        Self: Sub<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::mul` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_mul<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Mul<T2>>::Output>
-    where
-        Self: Mul<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::div` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_div<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Div<T2>>::Output>
-    where
-        Self: Div<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).div(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::rem` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_rem<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Rem<T2>>::Output>
-    where
-        Self: Rem<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shl` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_shl<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Shl<T2>>::Output>
-    where
-        Self: Shl<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shr` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_shr<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Shr<T2>>::Output>
-    where
-        Self: Shr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitand` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_bitand<T2: Scalar>(
-        vec: Vec2<Self>,
-        other: Vec2<T2>,
-    ) -> Vec2<<Self as BitAnd<T2>>::Output>
-    where
-        Self: BitAnd<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitor` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_bitor<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as BitOr<T2>>::Output>
-    where
-        Self: BitOr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitxor` for aligned vec2s.
-    #[inline(always)]
-    fn vec2_bitxor<T2: Scalar>(
-        vec: Vec2<Self>,
-        other: Vec2<T2>,
-    ) -> Vec2<<Self as BitXor<T2>>::Output>
-    where
-        Self: BitXor<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::splat` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_splat(value: Self) -> Vec3<Self> {
-        Vec3::from_array([value; 3])
-    }
-
-    /// Overridable implementation of `Vector::get_unchecked` for aligned vec3s.
-    #[inline(always)]
-    unsafe fn vec3_get_unchecked(vec: Vec3<Self>, index: usize) -> Self {
-        unsafe { *vec.as_array().get_unchecked(index) }
-    }
-
-    /// Overridable implementation of `Vector::set_unchecked` for aligned vec3s.
-    #[inline(always)]
-    unsafe fn vec3_with_unchecked(vec: Vec3<Self>, index: usize, value: Self) -> Vec3<Self> {
-        let mut array = vec.as_array();
-        unsafe {
-            *array.get_unchecked_mut(index) = value;
-        }
-
-        Vec3::from_array(array)
-    }
-
-    /// Overridable implementation of `Vector::shuffle_2` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec3<Self>) -> Vec2<Self> {
-        Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_3` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
-        vec: Vec3<Self>,
-    ) -> Vec3<Self> {
-        Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_4` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_shuffle_4<
-        const X_SRC: usize,
-        const Y_SRC: usize,
-        const Z_SRC: usize,
-        const W_SRC: usize,
-    >(
-        vec: Vec3<Self>,
-    ) -> Vec4<Self> {
-        Vec4::from_array([
-            vec.index(X_SRC),
-            vec.index(Y_SRC),
-            vec.index(Z_SRC),
-            vec.index(W_SRC),
-        ])
-    }
-
-    /// Overridable implementation of `Vector::with_2` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
-        vec: Vec3<Self>,
-        value: Vec2<Self>,
-    ) -> Vec3<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::with_3` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
-        vec: Vec3<Self>,
-        value: Vec3<Self>,
-    ) -> Vec3<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-        output.set(Z_DST, value.index(2));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::eq` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_eq<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..3).all(|i| vec.index(i) == other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ne` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_ne<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..3).any(|i| vec.index(i) != other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::neg` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_neg(vec: Vec3<Self>) -> Vec3<<Self as Neg>::Output>
-    where
-        Self: Neg<Output: Scalar>,
-    {
-        vec.map(|v| v.neg())
-    }
-
-    /// Overridable implementation of `Vector::not` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_not(vec: Vec3<Self>) -> Vec3<<Self as Not>::Output>
-    where
-        Self: Not<Output: Scalar>,
-    {
-        vec.map(|v| v.not())
-    }
-
-    /// Overridable implementation of `Vector::add` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_add<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Add<T2>>::Output>
-    where
-        Self: Add<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).add(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::sub` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_sub<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Sub<T2>>::Output>
-    where
-        Self: Sub<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::mul` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_mul<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Mul<T2>>::Output>
-    where
-        Self: Mul<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::div` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_div<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Div<T2>>::Output>
-    where
-        Self: Div<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).div(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::rem` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_rem<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Rem<T2>>::Output>
-    where
-        Self: Rem<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shl` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_shl<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Shl<T2>>::Output>
-    where
-        Self: Shl<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shr` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_shr<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Shr<T2>>::Output>
-    where
-        Self: Shr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitand` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_bitand<T2: Scalar>(
-        vec: Vec3<Self>,
-        other: Vec3<T2>,
-    ) -> Vec3<<Self as BitAnd<T2>>::Output>
-    where
-        Self: BitAnd<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitor` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_bitor<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as BitOr<T2>>::Output>
-    where
-        Self: BitOr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitxor` for aligned vec3s.
-    #[inline(always)]
-    fn vec3_bitxor<T2: Scalar>(
-        vec: Vec3<Self>,
-        other: Vec3<T2>,
-    ) -> Vec3<<Self as BitXor<T2>>::Output>
-    where
-        Self: BitXor<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::splat` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_splat(value: Self) -> Vec4<Self> {
-        Vec4::from_array([value; 4])
-    }
-
-    /// Overridable implementation of `Vector::get_unchecked` for aligned vec4s.
-    #[inline(always)]
-    unsafe fn vec4_get_unchecked(vec: Vec4<Self>, index: usize) -> Self {
-        unsafe { *vec.as_array().get_unchecked(index) }
-    }
-
-    /// Overridable implementation of `Vector::set_unchecked` for aligned vec4s.
-    #[inline(always)]
-    unsafe fn vec4_with_unchecked(vec: Vec4<Self>, index: usize, value: Self) -> Vec4<Self> {
-        let mut array = vec.as_array();
-        unsafe {
-            *array.get_unchecked_mut(index) = value;
-        }
-
-        Vec4::from_array(array)
-    }
-
-    /// Overridable implementation of `Vector::shuffle_2` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec4<Self>) -> Vec2<Self> {
-        Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_3` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
-        vec: Vec4<Self>,
-    ) -> Vec3<Self> {
-        Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_4` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_shuffle_4<
-        const X_SRC: usize,
-        const Y_SRC: usize,
-        const Z_SRC: usize,
-        const W_SRC: usize,
-    >(
-        vec: Vec4<Self>,
-    ) -> Vec4<Self> {
-        Vec4::from_array([
-            vec.index(X_SRC),
-            vec.index(Y_SRC),
-            vec.index(Z_SRC),
-            vec.index(W_SRC),
-        ])
-    }
-
-    /// Overridable implementation of `Vector::with_2` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
-        vec: Vec4<Self>,
-        value: Vec2<Self>,
-    ) -> Vec4<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::with_3` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
-        vec: Vec4<Self>,
-        value: Vec3<Self>,
-    ) -> Vec4<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-        output.set(Z_DST, value.index(2));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::with_4` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_with_shuffle_4<
-        const X_DST: usize,
-        const Y_DST: usize,
-        const Z_DST: usize,
-        const W_DST: usize,
-    >(
-        vec: Vec4<Self>,
-        value: Vec4<Self>,
-    ) -> Vec4<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-        output.set(Z_DST, value.index(2));
-        output.set(W_DST, value.index(3));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::eq` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_eq<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..4).all(|i| vec.index(i) == other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ne` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_ne<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..4).any(|i| vec.index(i) != other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::neg` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_neg(vec: Vec4<Self>) -> Vec4<<Self as Neg>::Output>
-    where
-        Self: Neg<Output: Scalar>,
-    {
-        vec.map(|v| v.neg())
-    }
-
-    /// Overridable implementation of `Vector::not` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_not(vec: Vec4<Self>) -> Vec4<<Self as Not>::Output>
-    where
-        Self: Not<Output: Scalar>,
-    {
-        vec.map(|v| v.not())
-    }
-
-    /// Overridable implementation of `Vector::add` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_add<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Add<T2>>::Output>
-    where
-        Self: Add<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).add(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::sub` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_sub<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Sub<T2>>::Output>
-    where
-        Self: Sub<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::mul` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_mul<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Mul<T2>>::Output>
-    where
-        Self: Mul<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::div` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_div<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Div<T2>>::Output>
-    where
-        Self: Div<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).div(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::rem` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_rem<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Rem<T2>>::Output>
-    where
-        Self: Rem<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shl` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_shl<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Shl<T2>>::Output>
-    where
-        Self: Shl<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shr` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_shr<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Shr<T2>>::Output>
-    where
-        Self: Shr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitand` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_bitand<T2: Scalar>(
-        vec: Vec4<Self>,
-        other: Vec4<T2>,
-    ) -> Vec4<<Self as BitAnd<T2>>::Output>
-    where
-        Self: BitAnd<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitor` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_bitor<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as BitOr<T2>>::Output>
-    where
-        Self: BitOr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitxor` for aligned vec4s.
-    #[inline(always)]
-    fn vec4_bitxor<T2: Scalar>(
-        vec: Vec4<Self>,
-        other: Vec4<T2>,
-    ) -> Vec4<<Self as BitXor<T2>>::Output>
-    where
-        Self: BitXor<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
-    }
 }
 
 /// See [`Vector`] for information.
@@ -1353,6 +626,216 @@ where
     pub fn count(self, mut f: impl FnMut(T) -> bool) -> usize {
         self.iter().filter(|x| f(*x)).count()
     }
+
+    /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is equal to the corresponding component of `other`.
+    #[inline(always)]
+    pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    where
+        T: PartialEq<T2>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+
+            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+                |vec, other| T::vec2_eq_mask(vec, other)
+            }
+            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+                |vec, other| T::vec3_eq_mask(vec, other)
+            }
+            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+                |vec, other| T::vec4_eq_mask(vec, other)
+            }
+            else {
+                Vector::from_fn(|i| self.index(i) == other.index(i))
+            }
+        }
+    }
+
+    /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is not equal to the corresponding component of `other`.
+    #[inline(always)]
+    pub fn ne_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    where
+        T: PartialEq<T2>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+
+            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+                |vec, other| T::vec2_ne_mask(vec, other)
+            }
+            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+                |vec, other| T::vec3_ne_mask(vec, other)
+            }
+            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+                |vec, other| T::vec4_ne_mask(vec, other)
+            }
+            else {
+                Vector::from_fn(|i| self.index(i) != other.index(i))
+            }
+        }
+    }
+
+    /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is less than the corresponding component of `other`.
+    #[inline(always)]
+    pub fn lt_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+
+            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+                |vec, other| T::vec2_lt_mask(vec, other)
+            }
+            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+                |vec, other| T::vec3_lt_mask(vec, other)
+            }
+            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+                |vec, other| T::vec4_lt_mask(vec, other)
+            }
+            else {
+                Vector::from_fn(|i| self.index(i) < other.index(i))
+            }
+        }
+    }
+
+    /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is less than or equal to the corresponding component of `other`.
+    #[inline(always)]
+    pub fn le_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+
+            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+                |vec, other| T::vec2_le_mask(vec, other)
+            }
+            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+                |vec, other| T::vec3_le_mask(vec, other)
+            }
+            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+                |vec, other| T::vec4_le_mask(vec, other)
+            }
+            else {
+                Vector::from_fn(|i| self.index(i) <= other.index(i))
+            }
+        }
+    }
+
+    /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is greater than the corresponding component of `other`.
+    #[inline(always)]
+    pub fn gt_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+
+            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+                |vec, other| T::vec2_gt_mask(vec, other)
+            }
+            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+                |vec, other| T::vec3_gt_mask(vec, other)
+            }
+            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+                |vec, other| T::vec4_gt_mask(vec, other)
+            }
+            else {
+                Vector::from_fn(|i| self.index(i) > other.index(i))
+            }
+        }
+    }
+
+    /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is greater than or equal to the corresponding component of `other`.
+    #[inline(always)]
+    pub fn ge_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    where
+        T: PartialOrd<T2>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+
+            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+                |vec, other| T::vec2_ge_mask(vec, other)
+            }
+            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+                |vec, other| T::vec3_ge_mask(vec, other)
+            }
+            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+                |vec, other| T::vec4_ge_mask(vec, other)
+            }
+            else {
+                Vector::from_fn(|i| self.index(i) >= other.index(i))
+            }
+        }
+    }
+
+    /// Returns the sum of the components of the vector.
+    #[inline(always)]
+    pub fn sum(self) -> T
+    where
+        T: Add<Output = T>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>) -> T:
+
+            for (Vector<2, T, VecAligned>) -> T {
+                |vec| T::vec2_sum(vec)
+            }
+            for (Vector<3, T, VecAligned>) -> T {
+                |vec| T::vec3_sum(vec)
+            }
+            for (Vector<4, T, VecAligned>) -> T {
+                |vec| T::vec4_sum(vec)
+            }
+            else {
+                self.reduce(|a, b| a + b)
+            }
+        }
+    }
+
+    /// Returns the product of the components of the vector.
+    #[inline(always)]
+    pub fn product(self) -> T
+    where
+        T: Mul<Output = T>,
+    {
+        specialize! {
+            (self: Vector<N, T, A>) -> T:
+
+            for (Vector<2, T, VecAligned>) -> T {
+                |vec| T::vec2_product(vec)
+            }
+            for (Vector<3, T, VecAligned>) -> T {
+                |vec| T::vec3_product(vec)
+            }
+            for (Vector<4, T, VecAligned>) -> T {
+                |vec| T::vec4_product(vec)
+            }
+            else {
+                self.reduce(|a, b| a * b)
+            }
+        }
+    }
+
+    /// Returns the square of the magnitude of the vector.
+    #[inline(always)]
+    pub fn mag_sq(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        (self * self).sum()
+    }
+
+    /// Returns the dot product of `self` and `other`.
+    #[inline(always)]
+    pub fn dot(self, other: Vector<N, T, impl VecAlignment>) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        (self * other).sum()
+    }
 }
 
 impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
@@ -1409,6 +892,24 @@ where
 }
 
 impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+    /// Returns `self` rotated 90 degrees counter-clockwise.
+    #[inline(always)]
+    pub fn perp(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        vec2g!(-self.y(), self.x())
+    }
+
+    /// Returns `self` rotated 90 degrees clockwise.
+    #[inline(always)]
+    pub fn perp_cw(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        vec2g!(self.y(), -self.x())
+    }
+
     /// Returns the `x` (1st) component of `self`.
     #[inline(always)]
     pub fn x(self) -> T {
@@ -1477,6 +978,15 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
 }
 
 impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+    /// Returns the cross product of `self` and `other`.
+    #[inline(always)]
+    pub fn cross(self, other: Vector<3, T, impl VecAlignment>) -> Self
+    where
+        T: Mul<Output = T> + Sub<Output = T>,
+    {
+        self.yzx() * other.zxy() - self.zxy() * other.yzx()
+    }
+
     /// Returns the `x` (1st) component of `self`.
     #[inline(always)]
     pub fn x(self) -> T {
@@ -2057,1203 +1567,5 @@ where
         write!(f, ")")?;
 
         Ok(())
-    }
-}
-
-impl<const N: usize, T: Scalar + Neg<Output: Scalar>, A: VecAlignment> Neg for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn neg(self) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec| T::vec2_neg(vec)
-            }
-            for (Vector<3, T, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec| T::vec3_neg(vec)
-            }
-            for (Vector<4, T, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec| T::vec4_neg(vec)
-            }
-            else {
-                self.map(|v| v.neg())
-            }
-        }
-    }
-}
-
-impl<const N: usize, T: Scalar + Neg<Output: Scalar>, A: VecAlignment> Neg for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn neg(self) -> Self::Output {
-        (*self).neg()
-    }
-}
-
-impl<const N: usize, T: Scalar + Not<Output: Scalar>, A: VecAlignment> Not for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn not(self) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec| T::vec2_not(vec)
-            }
-            for (Vector<3, T, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec| T::vec3_not(vec)
-            }
-            for (Vector<4, T, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec| T::vec4_not(vec)
-            }
-            else {
-                self.map(|v| v.not())
-            }
-        }
-    }
-}
-
-impl<const N: usize, T: Scalar + Not<Output: Scalar>, A: VecAlignment> Not for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn not(self) -> Self::Output {
-        (*self).not()
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn add(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_add(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_add(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_add(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).add(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn add(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).add(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn add(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.add(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn add(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).add(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    AddAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).add(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    AddAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.add_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn sub(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_sub(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_sub(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_sub(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).sub(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn sub(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).sub(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn sub(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.sub(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn sub(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).sub(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    SubAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn sub_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).sub(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    SubAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn sub_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.sub_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn mul(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_mul(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_mul(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_mul(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).mul(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn mul(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).mul(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn mul(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.mul(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn mul(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).mul(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    MulAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn mul_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).mul(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    MulAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn mul_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.mul_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn div(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_div(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_div(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_div(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).div(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn div(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).div(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn div(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.div(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn div(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).div(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    DivAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn div_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).div(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    DivAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn div_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.div_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn rem(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_rem(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_rem(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_rem(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).rem(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn rem(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).rem(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn rem(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.rem(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn rem(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).rem(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    RemAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn rem_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).rem(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    RemAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn rem_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.rem_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shl(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_shl(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_shl(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_shl(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).shl(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shl(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).shl(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shl(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.shl(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shl(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).shl(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShlAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shl_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).shl(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShlAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shl_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.shl_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shr(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_shr(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_shr(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_shr(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).shr(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shr(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).shr(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shr(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.shr(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn shr(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).shr(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shr_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).shr(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shr_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.shr_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_bitand(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_bitand(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_bitand(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).bitand(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).bitand(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.bitand(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).bitand(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAndAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitand_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).bitand(rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAndAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitand_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.bitand_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_bitor(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_bitor(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_bitor(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).bitor(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).bitor(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.bitor(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).bitor(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitor_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).bitor(rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitor_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.bitor_assign(*rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
-                |vec, rhs| T::vec2_bitxor(vec, rhs)
-            }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, T::Output, VecAligned> {
-                |vec, rhs| T::vec3_bitxor(vec, rhs)
-            }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, T::Output, VecAligned> {
-                |vec, rhs| T::vec4_bitxor(vec, rhs)
-            }
-            else {
-                Vector::from_fn(|i| self.index(i).bitxor(rhs.index(i)))
-            }
-        }
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-        (*self).bitxor(rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        self.bitxor(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<&Vector<N, T2, A2>> for &Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, A>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-        (*self).bitxor(*rhs)
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXorAssign<Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitxor_assign(&mut self, rhs: Vector<N, T2, A2>) {
-        *self = (*self).bitxor(rhs);
-    }
-}
-
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXorAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitxor_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-        self.bitxor_assign(*rhs);
     }
 }

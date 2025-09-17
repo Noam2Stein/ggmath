@@ -50,7 +50,7 @@ fn fvec2(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("fvec2_constructor");
     group.bench_function("ggmath", |b| {
-        b.iter(|| ggmath::vec2!((ggmath1.xx() + ggmath2.xy())[0], 1.0))
+        b.iter(|| ggmath::vec2!((ggmath1.xx() + ggmath2.xy()).x(), 1.0))
     });
     group.bench_function("glam", |b| {
         b.iter(|| glam::Vec2::new((glam1.xx() + glam2.xy()).x, 1.0))
@@ -168,11 +168,6 @@ fn fvec2(c: &mut Criterion) {
     let mut group = c.benchmark_group("fvec2_dot");
     group.bench_function("ggmath", |b| b.iter(|| ggmath1.dot(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.dot(glam2)));
-    group.finish();
-
-    let mut group = c.benchmark_group("fvec2_abs_diff");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.abs_diff(ggmath2)));
-    group.bench_function("glam", |b| b.iter(|| (glam1 - glam2).abs()));
     group.finish();
 
     let mut group = c.benchmark_group("fvec2_distance_sq");

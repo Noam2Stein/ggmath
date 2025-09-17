@@ -29,32 +29,30 @@ pub fn mod_() -> ModFile {
             $("/// which is less numerically stable and usually slower than the \"delta lerp\" formula:")
             $("/// `a + (b - a) * t`.")
             $("///")
-            $("/// The weighted formula can be used by calling [`FloatExt::lerp_weighted`],")
-            $("/// and is more numerically stable when interpolating large values that are far away from each other.")
+            $("/// This weighted formula is more numerically stable when interpolating large values that are far away from each other.")
             fn lerp_weighted(self, other: Self, t: Self) -> Self;
 
             $("/// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,")
-            $("/// which is clamped to the range `[0.0, 1.0]`.")
+            $("/// or linearly extrapolates if `t` is outside the range `[0.0, 1.0]`.")
             $("///")
             $("/// This function uses the \"delta lerp\" formula:")
             $("/// `a + (b - a) * t`")
             $("/// which is more numerically stable and is usually faster than the \"weighted lerp\" formula:")
             $("/// `a * (1.0 - t) + b * t`.")
             $("///")
-            $("/// The weighted formula can be used by calling [`FloatExt::lerp_weighted`],")
+            $("/// The weighted formula can be used by calling [`FloatExt::lerp_unclamped_weighted`],")
             $("/// and is more numerically stable when interpolating large values that are far away from each other.")
             fn lerp_unclamped(self, other: Self, t: Self) -> Self;
 
             $("/// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,")
-            $("/// which is clamped to the range `[0.0, 1.0]`.")
+            $("/// or linearly extrapolates if `t` is outside the range `[0.0, 1.0]`.")
             $("///")
             $("/// This function uses the \"weighted lerp\" formula:")
             $("/// `a * (1.0 - t) + b * t`")
             $("/// which is less numerically stable and usually slower than the \"delta lerp\" formula:")
             $("/// `a + (b - a) * t`.")
             $("///")
-            $("/// The weighted formula can be used by calling [`FloatExt::lerp_weighted`],")
-            $("/// and is more numerically stable when interpolating large values that are far away from each other.")
+            $("/// This weighted formula is more numerically stable when interpolating large values that are far away from each other.")
             fn lerp_unclamped_weighted(self, other: Self, t: Self) -> Self;
 
             $("/// Moves `self` towards `target` by at most `max_delta`.")

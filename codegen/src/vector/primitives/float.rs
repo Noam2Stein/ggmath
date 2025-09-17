@@ -1,222 +1,263 @@
-
+use genco::{lang::rust::Tokens, quote};
 
 use crate::constants::{COMPONENTS, LENGTHS};
 
 pub fn push_fns(
     primitive: &str,
-    functions: &mut Vec<String>,
-    std_functions: &mut Vec<String>,
-    trait_impls: &mut Vec<String>,
-    use_crate_items: &mut Vec<String>,
+    functions: &mut Vec<Tokens>,
+    std_functions: &mut Vec<Tokens>,
+    trait_impls: &mut Vec<Tokens>,
+    use_crate_items: &mut Vec<Tokens>,
 ) {
-    functions.push(formatdoc! {r#"
-        // The following items are generated for all float types
+    use_crate_items.push(quote! { ScalarNegOne });
 
-        /// A vector with all elements set to `NaN`.
-        pub const NAN: Self = Self::const_splat({primitive}::NAN);
-        /// A vector with all elements set to `Infinity`.
-        pub const INFINITY: Self = Self::const_splat({primitive}::INFINITY);
-        /// A vector with all elements set to `-Infinity`.
-        pub const NEG_INFINITY: Self = Self::const_splat({primitive}::NEG_INFINITY);
-        /// A vector with all elements set to `Epsilon`.
-        pub const EPSILON: Self = Self::const_splat({primitive}::EPSILON);
+    functions.push(quote! {
+        $("// The following code is for all float primitives")
 
-        /// Returns a vector containing the signum of each element of `self`.
-        /// Signum for each element is:
-        /// - `1.0` if the element is positive or `+0.0`
-        /// - `-1.0` if the element is negative `-0.0`
+        $("/// A vector with all elements set to `NaN`.")
+        pub const NAN: Self = Self::const_splat($primitive::NAN);
+        $("/// A vector with all elements set to `Infinity`.")
+        pub const INFINITY: Self = Self::const_splat($primitive::INFINITY);
+        $("/// A vector with all elements set to `-Infinity`.")
+        pub const NEG_INFINITY: Self = Self::const_splat($primitive::NEG_INFINITY);
+        $("/// A vector with all elements set to `Epsilon`.")
+        pub const EPSILON: Self = Self::const_splat($primitive::EPSILON);
+
+        $("/// Returns a vector of the minimum of each element between `self` and `other`.")
         #[inline(always)]
-        pub fn signum(self) -> Self {{
+        pub fn min(self, other: Vector<N, $primitive, impl VecAlignment>) -> Self {
+            Vector::from_fn(|i| self.index(i).min(other.index(i)))
+        }
+        
+        $("/// Returns a vector of the maximum of each element between `self` and `other`.")
+        #[inline(always)]
+        pub fn max(self, other: Vector<N, $primitive, impl VecAlignment>) -> Self {
+            Vector::from_fn(|i| self.index(i).max(other.index(i)))
+        }
+        
+        $("/// Returns a vector with each element clamped between `min` and `max`.")
+        #[inline(always)]
+        pub fn clamp(self, min: Vector<N, $primitive, impl VecAlignment>, max: Vector<N, $primitive, impl VecAlignment>) -> Self {
+            self.max(min).min(max)
+        }
+
+        $("/// Returns a vector containing the signum of each element of `self`.")
+        $("/// Signum for each element is:")
+        $("/// - `1.0` if the element is positive or `+0.0`")
+        $("/// - `-1.0` if the element is negative `-0.0`")
+        #[inline(always)]
+        pub fn signum(self) -> Self {
             self.map(|x| x.signum())
-        }}
+        }
 
-        /// Returns a vector of bools with `true` for each element that has a negative sign, including `-0.0`.
+        $("/// Returns a vector containing the absolute value of each element of `self`.")
         #[inline(always)]
-        pub fn negative_sign_mask(self) -> Vector<N, bool, A> {{
+        pub fn abs(self) -> Self {
+            self.map(|x| x.abs())
+        }
+
+        $("/// Returns a vector containing the squared distance between each element of `self` and `other`.")
+        #[inline(always)]
+        pub fn distance_sq(self, other: Vector<N, $primitive, impl VecAlignment>) -> $primitive {
+            (self - other).mag_sq()
+        }
+
+        $("/// Returns a vector of bools with `true` for each element that has a negative sign, including `-0.0`.")
+        #[inline(always)]
+        pub fn negative_sign_mask(self) -> Vector<N, bool, A> {
             self.map(|x| x.is_sign_negative())
-        }}
+        }
 
-        /// Returns a vector of bools with `true` for each element that has a positive sign, including `+0.0`.
+        $("/// Returns a vector of bools with `true` for each element that has a positive sign, including `+0.0`.")
         #[inline(always)]
-        pub fn positive_sign_mask(self) -> Vector<N, bool, A> {{
+        pub fn positive_sign_mask(self) -> Vector<N, bool, A> {
             self.map(|x| x.is_sign_positive())
-        }}
+        }
 
-        /// Returns a vector of bools with `true` for each element that is `NaN`.
+        $("/// Returns a vector of bools with `true` for each element that is `NaN`.")
         #[inline(always)]
-        pub fn nan_mask(self) -> Vector<N, bool, A> {{
+        pub fn nan_mask(self) -> Vector<N, bool, A> {
             self.map(|x| x.is_nan())
-        }}
+        }
 
-        /// Returns a vector of bools with `true` for each element that is finite.
+        $("/// Returns a vector of bools with `true` for each element that is finite.")
         #[inline(always)]
-        pub fn finite_mask(self) -> Vector<N, bool, A> {{
+        pub fn finite_mask(self) -> Vector<N, bool, A> {
             self.map(|x| x.is_finite())
-        }}
+        }
 
-        /// Returns `true` if any element is `NaN`.
+        $("/// Returns `true` if any element is `NaN`.")
         #[inline(always)]
-        pub fn is_nan(self) -> bool {{
+        pub fn is_nan(self) -> bool {
             self.nan_mask().any_true()
-        }}
+        }
 
-        /// Returns `true` if all elements are finite.
+        $("/// Returns `true` if all elements are finite.")
         #[inline(always)]
-        pub fn is_finite(self) -> bool {{
+        pub fn is_finite(self) -> bool {
             self.finite_mask().all_true()
-        }}
+        }
 
-        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
+        $("/// Returns a vector with the same direction as `self`, but with a magnitude of `1`.")
         #[inline(always)]
-        pub fn normalize(self) -> Self {{
+        pub fn normalize(self) -> Self {
             #[cfg(debug_assertions)]
             assert!(self.mag_sq() > 0.0, "self must be non-zero");
 
             self / self.mag()
-        }}
+        }
 
-        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
-        /// If `self` is zero, `None` is returned.
+        $("/// Returns a vector with the same direction as `self`, but with a magnitude of `1`.")
+        $("/// If `self` is zero, `None` is returned.")
         #[inline(always)]
-        pub fn checked_normalize(self) -> Option<Self> {{
+        pub fn checked_normalize(self) -> Option<Self> {
             let normalized = self.normalize();
-            if normalized.is_finite() {{
+            if normalized.is_finite() {
                 Some(normalized)
-            }} else {{
+            } else {
                 None
-            }}
-        }}
+            }
+        }
 
-        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
+        $("/// Returns a vector with the same direction as `self`, but with a magnitude of `1`.")
         #[inline(always)]
-        pub fn normalize_or(self, default: Self) -> Self {{
+        pub fn normalize_or(self, default: Self) -> Self {
             let normalized = self.normalize();
-            if normalized.is_finite() {{
+            if normalized.is_finite() {
                 normalized
-            }} else {{
+            } else {
                 default
-            }}
-        }}
+            }
+        }
 
-        /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
-        /// If `self` is zero, zero is returned.
+        $("/// Returns a vector with the same direction as `self`, but with a magnitude of `1`.")
+        $("/// If `self` is zero, zero is returned.")
         #[inline(always)]
-        pub fn normalize_or_zero(self) -> Self {{
+        pub fn normalize_or_zero(self) -> Self {
             self.normalize_or(Self::ZERO)
-        }}
+        }
 
-        /// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,
-        /// which is clamped to the range `[0.0, 1.0]`.
-        /// 
-        /// This function uses the "delta lerp" formula which is:
-        /// `a + (b - a) * t`
-        /// 
-        /// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
-        /// `a * (1.0 - t) + b * t`
-        /// 
-        /// The other formula can be used by calling `lerp_weighted`.
-        /// It is useful when interpolating large values that are very far away from each other.
+        $("/// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,")
+        $("/// which is clamped to the range `[0.0, 1.0]`.")
+        $("///")
+        $("/// This function uses the \"delta lerp\" formula:")
+        $("/// `a + (b - a) * t`,")
+        $("/// which is more numerically stable and is usually faster than the \"weighted lerp\" formula:")
+        $("/// `a * (1.0 - t) + b * t`.")
+        $("///")
+        $("/// The weighted formula can be used by calling [`Self::lerp_weighted`],")
+        $("/// and is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+        pub fn lerp(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
             self.lerp_unclamped(other, t.clamp(0.0, 1.0))
-        }}
+        }
         
-        /// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,
-        /// which is clamped to the range `[0.0, 1.0]`.
-        /// 
-        /// This function uses the "weighted lerp" formula which is:
-        /// `a * (1.0 - t) + b * t`
-        /// 
-        /// This formula is usually worse than the "delta lerp" formula:
-        /// `a + (b - a) * t`
-        /// 
-        /// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+        $("/// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,")
+        $("/// which is clamped to the range `[0.0, 1.0]`.")
+        $("///")
+        $("/// This function uses the \"weighted lerp\" formula:")
+        $("/// `a * (1.0 - t) + b * t`")
+        $("/// which is less numerically stable and usually slower than the \"delta lerp\" formula:")
+        $("/// `a + (b - a) * t`.")
+        $("///")
+        $("/// This weighted formula is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp_weighted(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+        pub fn lerp_weighted(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
             self.lerp_unclamped_weighted(other, t.clamp(0.0, 1.0))
-        }}
+        }
 
-        /// Linearly interpolates between `self` and `other` based on the interpolation factor `t`.
-        /// If `t` is outside the range `[0.0, 1.0]`, the result is linearly extrapolated.
-        /// 
-        /// This function uses the "delta lerp" formula which is:
-        /// `a + (b - a) * t`
-        /// 
-        /// This formula is more numerically stable and is usually faster than the "weighted lerp" formula:
+        $("/// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,")
+        $("/// or linearly extrapolates if `t` is outside the range `[0.0, 1.0]`.")
+        $("///")
+        $("/// This function uses the \"delta lerp\" formula:")
+        $("/// `a + (b - a) * t`")
+        $("/// which is more numerically stable and is usually faster than the \"weighted lerp\" formula:")
+        $("/// `a * (1.0 - t) + b * t`.")
+        $("///")
+        $("/// The weighted formula can be used by calling [`FloatExt::lerp_unclamped_weighted`],")
+        $("/// and is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp_unclamped(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+        pub fn lerp_unclamped(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
             self + (other - self) * t
-        }}
+        }
         
-        /// This "weighted" formula is useful when interpolating large values that are very far away from each other.
+        $("/// Linearly interpolates between `self` and `other` based on the interpolation factor `t`,")
+        $("/// or linearly extrapolates if `t` is outside the range `[0.0, 1.0]`.")
+        $("///")
+        $("/// This function uses the \"weighted lerp\" formula:")
+        $("/// `a * (1.0 - t) + b * t`")
+        $("/// which is less numerically stable and usually slower than the \"delta lerp\" formula:")
+        $("/// `a + (b - a) * t`.")
+        $("///")
+        $("/// This weighted formula is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp_unclamped_weighted(self, other: Vector<N, {primitive}, impl VecAlignment>, t: {primitive}) -> Self {{
+        pub fn lerp_unclamped_weighted(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
             self * (1.0 - t) + other * t
-        }}
+        }
 
-        /// Moves `self` towards `target` by at most `max_delta`.
+        $("/// Moves `self` towards `target` by at most `max_delta`.")
         #[inline(always)]
-        pub fn move_towards(self, target: Vector<N, {primitive}, impl VecAlignment>, max_delta: {primitive}) -> Self {{
+        pub fn move_towards(self, target: Vector<N, $primitive, impl VecAlignment>, max_delta: $primitive) -> Self {
             let delta = target - self;
             let delta_mag = delta.mag();
-            if delta_mag <= max_delta || delta_mag <= 1e-4 {{
+            if delta_mag <= max_delta || delta_mag <= 1e-4 {
                 return target.to_storage();
-            }}
+            }
             self + delta / delta_mag * max_delta
-        }}
+        }
 
-        /// Returns the projection of `self` onto `other`.
+        $("/// Returns the projection of `self` onto `other`.")
         #[inline(always)]
-        pub fn project_onto(self, other: Self) -> Self {{
+        pub fn project_onto(self, other: Self) -> Self {
             other * self.dot(other) * (1.0 / other.mag_sq())
-        }}
+        }
 
-        /// Returns the projection of `self` onto `other`,
-        /// where `other` must be normalized.
-        /// 
-        /// This is faster than `project_onto`.
+        $("/// Returns the projection of `self` onto `other`,")
+        $("/// where `other` must be normalized.")
+        $("///")
+        $("/// This is faster than `project_onto`.")
         #[inline(always)]
-        pub fn project_onto_normalized(self, other: Self) -> Self {{
+        pub fn project_onto_normalized(self, other: Self) -> Self {
             #[cfg(debug_assertions)]
             assert!(other.mag_sq() == 1.0, "other must be normalized");
 
             other * self.dot(other)
-        }}
+        }
 
-        /// Returns the rejection of `self` from `other`.
+        $("/// Returns the rejection of `self` from `other`.")
         #[inline(always)]
-        pub fn reject_from(self, other: Self) -> Self {{
+        pub fn reject_from(self, other: Self) -> Self {
             self - self.project_onto(other)
-        }}
+        }
 
-        /// Returns the rejection of `self` from `other`,
-        /// where `other` must be normalized.
-        /// 
-        /// This is faster than `reject_from`.
+        $("/// Returns the rejection of `self` from `other`,")
+        $("/// where `other` must be normalized.")
+        $("///")
+        $("/// This is faster than `reject_from`.")
         #[inline(always)]
-        pub fn reject_from_normalized(self, other: Self) -> Self {{
+        pub fn reject_from_normalized(self, other: Self) -> Self {
             #[cfg(debug_assertions)]
             assert!(other.mag_sq() == 1.0, "other must be normalized");
 
             self - self.project_onto_normalized(other)
-        }}
+        }
 
-        /// Returns the reflection of `self` off of `normal`.
-        /// 
-        /// `normal` must be normalized.
+        $("/// Returns the reflection of `self` off of `normal`.")
+        $("///")
+        $("/// `normal` must be normalized.")
         #[inline(always)]
-        pub fn reflect(self, normal: Self) -> Self {{
+        pub fn reflect(self, normal: Self) -> Self {
             #[cfg(debug_assertions)]
             assert!(normal.mag_sq() == 1.0, "normal must be normalized");
 
             self - normal * (2.0 * self.dot(normal))
-        }}
+        }
 
-        /// Returns the refraction of `self` through `normal` for the given ratio of indices of refraction.
-        /// 
-        /// `self` and `normal` must be normalized.
+        $("/// Returns the refraction of `self` through `normal` for the given ratio of indices of refraction.")
+        $("///")
+        $("/// `self` and `normal` must be normalized.")
         #[inline(always)]
-        pub fn refract(self, normal: Self, eta: {primitive}) -> Self {{
+        pub fn refract(self, normal: Self, eta: $primitive) -> Self {
             #[cfg(debug_assertions)]
             assert!(self.mag_sq() == 1.0, "self must be normalized");
 
@@ -225,237 +266,187 @@ pub fn push_fns(
 
             let n_dot_i = normal.dot(self);
             let k = 1.0 - eta * eta * (1.0 - n_dot_i * n_dot_i);
-            if k >= 0.0 {{
+            if k >= 0.0 {
                 self * eta - normal * (eta * n_dot_i + k.sqrt())
-            }} else {{
+            } else {
                 Self::ZERO
-            }}
-        }}
-    "#});
+            }
+        }
+    });
 
-    std_functions.push(formatdoc! {r#"
-        // The following items are generated for all float types
+    std_functions.push(quote! {
+        $("// The following items are generated for all float types")
 
-        /// Returns a vector containing the square root of each element of `self`.
+        $("/// Returns a vector containing the square root of each element of `self`.")
         #[inline(always)]
-        pub fn sqrt(self) -> Self {{
+        pub fn sqrt(self) -> Self {
             self.map(|x| x.sqrt())
-        }}
+        }
 
-        /// Returns a vector containing the rounded value of each element of `self`.
+        $("/// Returns a vector containing the rounded value of each element of `self`.")
         #[inline(always)]
-        pub fn round(self) -> Self {{
+        pub fn round(self) -> Self {
             self.map(|x| x.round())
-        }}
+        }
 
-        /// Returns a vector containing the floor value of each element of `self`.
+        $("/// Returns a vector containing the floor value of each element of `self`.")
         #[inline(always)]
-        pub fn floor(self) -> Self {{
+        pub fn floor(self) -> Self {
             self.map(|x| x.floor())
-        }}
+        }
 
-        /// Returns a vector containing the ceiling value of each element of `self`.
+        $("/// Returns a vector containing the ceiling value of each element of `self`.")
         #[inline(always)]
-        pub fn ceil(self) -> Self {{
+        pub fn ceil(self) -> Self {
             self.map(|x| x.ceil())
-        }}
+        }
 
-        /// Returns a vector containing the truncated value of each element of `self`.
+        $("/// Returns a vector containing the truncated value of each element of `self`.")
         #[inline(always)]
-        pub fn trunc(self) -> Self {{
+        pub fn trunc(self) -> Self {
             self.map(|x| x.trunc())
-        }}
+        }
 
-        /// Returns a vector containing the fractional part of each element of `self` as `self - self.trunc()`.
+        $("/// Returns a vector containing the fractional part of each element of `self` as `self - self.trunc()`.")
         #[inline(always)]
-        pub fn fract(self) -> Self {{
+        pub fn fract(self) -> Self {
             self.map(|x| x.fract())
-        }}
+        }
 
-        /// Returns a vector containing the sine of each element of `self`.
+        $("/// Returns a vector containing the sine of each element of `self`.")
         #[inline(always)]
-        pub fn sin(self) -> Self {{
+        pub fn sin(self) -> Self {
             self.map(|x| x.sin())
-        }}
+        }
 
-        /// Returns a vector containing the cosine of each element of `self`.
+        $("/// Returns a vector containing the cosine of each element of `self`.")
         #[inline(always)]
-        pub fn cos(self) -> Self {{
+        pub fn cos(self) -> Self {
             self.map(|x| x.cos())
-        }}
+        }
 
-        /// Returns a vector containing the tangent of each element of `self`.
+        $("/// Returns a vector containing the tangent of each element of `self`.")
         #[inline(always)]
-        pub fn tan(self) -> Self {{
+        pub fn tan(self) -> Self {
             self.map(|x| x.tan())
-        }}
+        }
 
-        /// Returns a vector containing the arcsine of each element of `self`.
+        $("/// Returns a vector containing the arcsine of each element of `self`.")
         #[inline(always)]
-        pub fn asin(self) -> Self {{
+        pub fn asin(self) -> Self {
             self.map(|x| x.asin())
-        }}
+        }
 
-        /// Returns a vector containing the arccosine of each element of `self`.
+        $("/// Returns a vector containing the arccosine of each element of `self`.")
         #[inline(always)]
-        pub fn acos(self) -> Self {{
+        pub fn acos(self) -> Self {
             self.map(|x| x.acos())
-        }}
+        }
 
-        /// Returns a vector containing the arctangent of each element of `self`.
+        $("/// Returns a vector containing the arctangent of each element of `self`.")  
         #[inline(always)]
-        pub fn atan(self) -> Self {{
+        pub fn atan(self) -> Self {
             self.map(|x| x.atan())
-        }}
+        }
 
-        /// Returns a vector containing the hyperbolic sine of each element of `self`.
+        $("/// Returns a vector containing the hyperbolic sine of each element of `self`.")
         #[inline(always)]
-        pub fn sinh(self) -> Self {{
+        pub fn sinh(self) -> Self {
             self.map(|x| x.sinh())
-        }}
+        }
 
-        /// Returns a vector containing the hyperbolic cosine of each element of `self`.
+        $("/// Returns a vector containing the hyperbolic cosine of each element of `self`.")
         #[inline(always)]
-        pub fn cosh(self) -> Self {{
+        pub fn cosh(self) -> Self {
             self.map(|x| x.cosh())
-        }}
+        }
 
-        /// Returns a vector containing the hyperbolic tangent of each element of `self`.
+        $("/// Returns a vector containing the hyperbolic tangent of each element of `self`.")
         #[inline(always)]
-        pub fn tanh(self) -> Self {{
+        pub fn tanh(self) -> Self {
             self.map(|x| x.tanh())
-        }}
+        }
 
-        /// Returns a vector containing the hyperbolic arclength sine of each element of `self`.
+        $("/// Returns a vector containing the hyperbolic arclength sine of each element of `self`.")
         #[inline(always)]
-        pub fn asinh(self) -> Self {{
+        pub fn asinh(self) -> Self {
             self.map(|x| x.asinh())
-        }}
+        }
 
-        /// Returns a vector containing the hyperbolic arclength cosine of each element of `self`.
+        $("/// Returns a vector containing the hyperbolic arclength cosine of each element of `self`.")
         #[inline(always)]
-        pub fn acosh(self) -> Self {{
+        pub fn acosh(self) -> Self {
             self.map(|x| x.acosh())
-        }}
+        }
 
-        /// Returns a vector containing the hyperbolic arclength tangent of each element of `self`.
+        $("/// Returns a vector containing the hyperbolic arclength tangent of each element of `self`.")
         #[inline(always)]
-        pub fn atanh(self) -> Self {{
+        pub fn atanh(self) -> Self {
             self.map(|x| x.atanh())
-        }}
+        }
 
-        /// Returns the magnitude of `self`.
+        $("/// Returns the magnitude of `self`.")
         #[inline(always)]
-        pub fn mag(self) -> {primitive} {{
+        pub fn mag(self) -> $primitive {
             self.mag_sq().sqrt()
-        }}
+        }
 
-        /// Returns the Euclidean distance between `self` and `other`.
+        $("/// Returns the Euclidean distance between `self` and `other`.")
         #[inline(always)]
-        pub fn distance(self, other: Self) -> {primitive} {{
+        pub fn distance(self, other: Self) -> $primitive {
             self.distance_sq(other).sqrt()
-        }}
-    "#});
+        }
+    });
 
-    let zero_vector_consts = LENGTHS
-        .iter()
-        .map(|&n| {
-            formatdoc! {r#"
-                const VEC{n}_ZERO: Vec{n}<{primitive}> = Vec{n}::const_from_array([0.0; {n}]);
-            "#}
-        })
-        .collect::<Vec<_>>()
-        .join("");
-
-    let one_vector_consts = LENGTHS
-        .iter()
-        .map(|&n| {
-            formatdoc! {r#"
-                const VEC{n}_ONE: Vec{n}<{primitive}> = Vec{n}::const_from_array([1.0; {n}]);
-            "#}
-        })
-        .collect::<Vec<_>>()
-        .join("");
-
-    let axis_vector_consts = LENGTHS
-        .iter()
-        .map(|&n| {
-            (0..n).map(|i| {
-                let component = COMPONENTS[i];
-
-                let array_items = (0..n).map(|i2| {
-                    if i2 == i {
-                        "1.0"
-                    } else {
-                        "0.0"
-                    }
-                }).collect::<Vec<_>>().join(", ");
-
-                formatdoc! {r#"
-                    const VEC{n}_{component}: Vec{n}<{primitive}> = Vec{n}::const_from_array([{array_items}]);
-                "#}
-            }).collect::<Vec<_>>()
-                .join("\n")
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    let neg_one_vector_consts = LENGTHS
-        .iter()
-        .map(|&n| {
-            formatdoc! {r#"
-                const VEC{n}_NEG_ONE: Vec{n}<{primitive}> = Vec{n}::const_from_array([-1.0; {n}]);
-            "#}
-        })
-        .collect::<Vec<_>>()
-        .join("");
-
-    let neg_axis_vector_consts = LENGTHS
-        .iter()
-        .map(|&n| {
-            (0..n).map(|i| {
-                let component = COMPONENTS[i];
-
-                let array_items = (0..n).map(|i2| {
-                    if i2 == i {
-                        "-1.0"
-                    } else {
-                        "0.0"
-                    }
-                }).collect::<Vec<_>>().join(", ");
-
-                formatdoc! {r#"
-                    const VEC{n}_NEG_{component}: Vec{n}<{primitive}> = Vec{n}::const_from_array([{array_items}]);
-                "#}
-            }).collect::<Vec<_>>()
-                .join("\n")
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    trait_impls.push(formatdoc! {r#"
-        impl ScalarZero for {primitive} {{
+    trait_impls.push(quote! {
+        impl ScalarZero for $primitive {
             const ZERO: Self = 0.0;
 
-            {zero_vector_consts}
-        }}
+            $(
+                for &n in LENGTHS join($['\r']) =>
 
-        impl ScalarOne for {primitive} {{
+                const VEC$(n)_ZERO: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([0.0; $n]);
+            )
+        }
+
+        impl ScalarOne for $primitive {
             const ONE: Self = 1.0;
 
-            {one_vector_consts}
+            $(
+                for &n in LENGTHS join($['\r']) =>
 
-            {axis_vector_consts}
-        }}
+                const VEC$(n)_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([1.0; $n]);
+            )
 
-        impl ScalarNegOne for {primitive} {{
+            $(
+                for &n in LENGTHS join($['\n']) => $(
+                    for i in 0..n join($['\r']) =>
+
+                    const VEC$(n)_$(COMPONENTS[i].to_uppercase()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
+                        for i2 in 0..n join(, ) => $(if i2 == i { 1.0 } else { 0.0 })
+                    )]);
+                )
+            )
+        }
+
+        impl ScalarNegOne for $primitive {
             const NEG_ONE: Self = -1.0;
 
-            {neg_one_vector_consts}
+            $(
+                for &n in LENGTHS join($['\r']) =>
 
-            {neg_axis_vector_consts}
-        }}
-    "#});
+                const VEC$(n)_NEG_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([-1.0; $n]);
+            )
 
-    use_crate_items.push("ScalarNegOne".to_string());
+            $(
+                for &n in LENGTHS join($['\n']) => $(
+                    for i in 0..n join($['\r']) =>
+
+                    const VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
+                        for i2 in 0..n join(, ) => $(if i2 == i { -1.0 } else { 0.0 })
+                    )]);
+                )
+            )
+        }
+    });
 }

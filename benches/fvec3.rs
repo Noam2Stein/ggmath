@@ -170,11 +170,6 @@ fn fvec3(c: &mut Criterion) {
     group.bench_function("glam", |b| b.iter(|| glam1.dot(glam2)));
     group.finish();
 
-    let mut group = c.benchmark_group("fvec3_abs_diff");
-    group.bench_function("ggmath", |b| b.iter(|| ggmath1.abs_diff(ggmath2)));
-    group.bench_function("glam", |b| b.iter(|| (glam1 - glam2).abs()));
-    group.finish();
-
     let mut group = c.benchmark_group("fvec3_distance_sq");
     group.bench_function("ggmath", |b| b.iter(|| ggmath1.distance_sq(ggmath2)));
     group.bench_function("glam", |b| b.iter(|| glam1.distance_squared(glam2)));

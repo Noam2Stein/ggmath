@@ -1,8 +1,10 @@
+use genco::lang::rust::Tokens;
+
 pub fn push_fns(
     _primitive: &str,
-    _functions: &mut Vec<String>,
-    _std_functions: &mut Vec<String>,
-    _trait_impls: &mut Vec<String>,
-    _use_crate_items: &mut Vec<String>,
+    _functions: &mut Vec<Tokens>,
+    _std_functions: &mut Vec<Tokens>,
+    _trait_impls: &mut Vec<Tokens>,
+    _use_crate_items: &mut Vec<Tokens>,
 ) {
 }

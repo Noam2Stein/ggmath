@@ -12,6 +12,7 @@ mod bool_;
 mod float;
 mod int;
 mod num;
+mod option;
 mod primitive;
 mod sint;
 mod uint;
@@ -23,14 +24,12 @@ pub fn mod_() -> ModDir {
         .collect::<Vec<_>>();
 
     quote! {
-        $(
-            for &primitive in PRIMITIVES =>
-
-            mod $primitive;
-        )
+        $(for &primitive in PRIMITIVES join($['\r']) => mod $primitive;)
+        mod option;
     }
     .to_mod_dir("primitives")
     .with_submod_files(primitive_mods)
+    .with_submod_file(option::mod_())
 }
 
 fn primitive_mod(primitive: &str) -> ModFile {
@@ -44,6 +43,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
     let primitive_is_float = FLOAT_PRIMITIVES.contains(&primitive);
     let primitive_is_sint = SINT_PRIMITIVES.contains(&primitive);
     let primitive_is_uint = UINT_PRIMITIVES.contains(&primitive);
+    let primitive_is_bool = primitive == "bool";
 
     primitive::push_fns(
         primitive,
@@ -103,7 +103,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
         );
     }
 
-    if primitive == "bool" {
+    if primitive_is_bool {
         bool_::push_fns(
             primitive,
             &mut functions,
@@ -113,46 +113,33 @@ fn primitive_mod(primitive: &str) -> ModFile {
         );
     }
 
-    let functions = functions.join("\n").replace("\n", "\n\t");
-    let std_functions = std_functions.join("\n").replace("\n", "\n\t");
-    let trait_impls = trait_impls.join("\n");
-    let use_crate_items = use_crate_items.join(", ");
+    quote! {
+        use crate::{$(for item in use_crate_items join(, ) => $item)};
 
-    let function_impls = [
-        (!functions.is_empty()).then(|| {
-            formatdoc! {r#"
-            impl<const N: usize, A: VecAlignment> Vector<N, {primitive}, A>
+        $(
+            if !functions.is_empty() =>
+
+            impl<const N: usize, A: VecAlignment> Vector<N, $primitive, A>
             where
                 Usize<N>: VecLen,
-            {{
-                {functions}
-            }}
-        "#}
-        }),
-        (!std_functions.is_empty()).then(|| {
-            formatdoc! {r#"
-            impl<const N: usize, A: VecAlignment> Vector<N, {primitive}, A>
+            {
+                $(for function in functions join($['\n']) => $function)
+            }
+        )
+
+        $(
+            if !std_functions.is_empty() =>
+
+            #[cfg(feature = "std")]
+            impl<const N: usize, A: VecAlignment> Vector<N, $primitive, A>
             where
                 Usize<N>: VecLen,
-            {{
-                {std_functions}
-            }}
-        "#}
-        }),
-    ]
-    .into_iter()
-    .flatten()
-    .collect::<Vec<_>>()
-    .join("\n");
+            {
+                $(for function in std_functions join($['\n']) => $function)
+            }
+        )
 
-    ModFile::new(
-        primitive,
-        formatdoc! {r#"
-            use crate::{{{use_crate_items}}};
-
-            {function_impls}
-
-            {trait_impls}
-        "#},
-    )
+        $(for trait_impl in trait_impls join($['\n']) => $trait_impl)
+    }
+    .to_mod_file(primitive)
 }

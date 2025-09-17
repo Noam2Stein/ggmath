@@ -1,13 +1,19 @@
 use genco::quote;
 
 use crate::{
-    constants::{BINARY_OPS, COMPONENT_ORDINALS, COMPONENTS, LENGTH_NAMES, LENGTHS, UNARY_OPS},
+    constants::{
+        COMPARISON_OP_DOCS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPARISON_OPS,
+        COMPONENT_ORDINALS, COMPONENTS, LENGTH_NAMES, LENGTHS,
+    },
     join_or,
     module::{ModDir, TokensExt},
 };
 
+mod constructor;
 mod dir;
-//mod primitives;
+mod ops;
+mod primitives;
+mod scalar;
 mod swizzle;
 
 pub fn mod_() -> ModDir {
@@ -24,10 +30,15 @@ pub fn mod_() -> ModDir {
 
         use crate::{Construct, Usize, IndexOutOfBoundsError, specialize};
 
+        mod constructor;
         mod dir;
-        //mod primitives;
+        mod primitives;
+        mod ops;
+        mod scalar;
         #[cfg(feature = "swizzle")]
         mod swizzle;
+        pub use scalar::*;
+        pub use constructor::*;
         pub use dir::*;
 
         $(let length_list = join_or(LENGTHS.iter().map(|&n| n.to_string())))
@@ -193,171 +204,6 @@ pub fn mod_() -> ModDir {
                 $(format!("/// `{n}`"))
                 $length_name,
                 $['\r']
-            )
-        }
-
-        $("/// Trait for types that can be put inside [`Vector`].")
-        $("/// This is only implemented for actual scalar types (e.g., `f32`),")
-        $("/// not vectors, matrices, etc.")
-        $("///")
-        $("/// When implementing this trait you need to specify the inner types of [`VecAligned`] vectors.")
-        $("/// You can also override the implementation of vector functions to make optimizations.")
-        $("///")
-        $("/// For an example of an optimized `Scalar` implementation,")
-        $("/// look at the `f32` implementation.")
-        $("///")
-        $("/// ## Example")
-        $("/// ```")
-        $("/// use ggmath::*;")
-        $("///")
-        $("/// #[derive(Clone, Copy)]")
-        $("/// struct MyInt(i32);")
-        $("///")
-        $("/// impl Scalar for MyInt {")
-        $("///     // If we wanted to SIMD-accelerate this scalar type,")
-        $("///     // we would use another SIMD type like from `std::arch`, `ggmath`, `glam`, etc.")
-        $(
-            for &n in LENGTHS =>
-
-            $(format!("///     type InnerAlignedVec{n} = [MyInt; {n}];"))$['\r']
-        )
-        $("///")
-        $(
-            for &n in LENGTHS join($['\r']$("///")$['\r']) =>
-
-            $("///     #[inline(always)]")
-            $(format!("///     fn vec{n}_from_array(array: [MyInt; {n}]) -> Vec{n}<MyInt> {{"))
-            $("///         Vector(array)")
-            $("///     }")
-        )
-        $("///")
-        $(
-            for &n in LENGTHS join($['\r']$("///")$['\r']) =>
-
-            $("///     #[inline(always)]")
-            $(format!("///     fn vec{n}_as_array(vec: Vec{n}<MyInt>) -> [MyInt; {n}] {{"))
-            $("///         vec.0")
-            $("///     }")
-        )
-        $("/// }")
-        $("/// ```")
-        pub trait Scalar: Construct {
-            $(
-                for &n in LENGTHS join($['\n']) =>
-
-                $(format!("/// The inner type contained inside `Vector<{n}, Self, VecAligned>`."))
-                type InnerAlignedVec$(n): Construct;
-            )
-
-            $(
-                for &n in LENGTHS join($['\n']) =>
-
-                $(format!("/// Constructs an aligned vec{n} from an array."))
-                fn vec$(n)_from_array(array: [Self; $n]) -> Vec$(n)<Self>;
-
-                $(format!("/// Converts an aligned vec{n} to an array."))
-                fn vec$(n)_as_array(vec: Vec$(n)<Self>) -> [Self; $n];
-            )
-
-            $(
-                for &n in LENGTHS join($['\n']) =>
-
-                $(format!("/// Overridable implementation of `Vector::splat` for aligned vec{n}s."))
-                #[inline(always)]
-                fn vec$(n)_splat(value: Self) -> Vec$(n)<Self> {
-                    Vec$(n)::from_array([value; $n])
-                }
-
-                $(format!("/// Overridable implementation of `Vector::get_unchecked` for aligned vec{n}s."))
-                #[inline(always)]
-                unsafe fn vec$(n)_get_unchecked(vec: Vec$(n)<Self>, index: usize) -> Self {
-                    unsafe { *vec.as_array().get_unchecked(index) }
-                }
-
-                $(format!("/// Overridable implementation of `Vector::set_unchecked` for aligned vec{n}s."))
-                #[inline(always)]
-                unsafe fn vec$(n)_with_unchecked(vec: Vec$(n)<Self>, index: usize, value: Self) -> Vec$(n)<Self> {
-                    let mut array = vec.as_array();
-                    unsafe { *array.get_unchecked_mut(index) = value; }
-
-                    Vec$(n)::from_array(array)
-                }
-
-                $(
-                    for &n2 in LENGTHS join($['\n']) =>
-
-                    $(format!("/// Overridable implementation of `Vector::shuffle_{n2}` for aligned vec{n}s."))
-                    #[inline(always)]
-                    fn vec$(n)_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
-                        Vec$(n2)::from_array([$(for i in 0..n2 join(, ) => vec.index($(COMPONENTS[i].to_uppercase())_SRC))])
-                    }
-                )
-
-                $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) =>
-
-                    $(format!("/// Overridable implementation of `Vector::with_{n2}` for aligned vec{n}s."))
-                    #[inline(always)]
-                    fn vec$(n)_with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
-                        let mut output = vec;
-                        $(
-                            for i in 0..n2 =>
-
-                            output.set($(COMPONENTS[i].to_uppercase())_DST, value.index($i));
-                            $['\r']
-                        )
-
-                        output
-                    }
-                )
-
-                $(format!("/// Overridable implementation of `Vector::eq` for aligned vec{n}s."))
-                #[inline(always)]
-                fn vec$(n)_eq<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> bool
-                where
-                    Self: PartialEq<T2>,
-                {
-                    (0..$n).all(|i| vec.index(i) == other.index(i))
-                }
-        
-                $(format!("/// Overridable implementation of `Vector::ne` for aligned vec{n}s."))
-                #[inline(always)]
-                fn vec$(n)_ne<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> bool
-                where
-                    Self: PartialEq<T2>,
-                {
-                    (0..$n).any(|i| vec.index(i) != other.index(i))
-                }
-
-                $(
-                    for &op_camelcase in UNARY_OPS join($['\n']) =>
-
-                    $(let op_snakecase = &op_camelcase.to_lowercase())
-
-                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for aligned vec{n}s."))
-                    #[inline(always)]
-                    fn vec$(n)_$(op_snakecase)(vec: Vec$(n)<Self>) -> Vec$(n)<<Self as $op_camelcase>::Output>
-                    where
-                        Self: $op_camelcase<Output: Scalar>,
-                    {
-                        vec.map(|v| v.$op_snakecase())
-                    }
-                )
-
-                $(
-                    for &op_camelcase in BINARY_OPS join($['\n']) =>
-
-                    $(let op_snakecase = &op_camelcase.to_lowercase())
-
-                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for aligned vec{n}s."))
-                    #[inline(always)]
-                    fn vec$(n)_$(op_snakecase)<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> Vec$(n)<<Self as $op_camelcase<T2>>::Output>
-                    where
-                        Self: $op_camelcase<T2, Output: Scalar>,
-                    {
-                        Vector::from_fn(|i| vec.index(i).$op_snakecase(other.index(i)))
-                    }
-                )
             )
         }
 
@@ -710,6 +556,99 @@ pub fn mod_() -> ModDir {
             pub fn count(self, mut f: impl FnMut(T) -> bool) -> usize {
                 self.iter().filter(|x| f(*x)).count()
             }
+
+            $(
+                for cmp_op_idx in 0..COMPARISON_OPS.len() join($['\n']) =>
+
+                $(let cmp_lower = COMPARISON_OPS[cmp_op_idx])
+                $(let cmp_tt = COMPARISON_OP_TOKENS[cmp_op_idx])
+                $(let cmp_trait = COMPARISON_OP_TRAITS[cmp_op_idx])
+                $(let cmp_doc = COMPARISON_OP_DOCS[cmp_op_idx])
+
+                $(format!("/// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is {cmp_doc} the corresponding component of `other`."))
+                #[inline(always)]
+                pub fn $(cmp_lower)_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+                where
+                    T: $cmp_trait<T2>,
+                {
+                    specialize! {
+                        (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+    
+                        $(
+                            for &n in LENGTHS join($['\r']) =>
+    
+                            for (Vector<$n, T, VecAligned>, Vector<$n, T2, VecAligned>) -> Vector<$n, bool, VecAligned> {
+                                |vec, other| T::vec$(n)_$(cmp_lower)_mask(vec, other)
+                            }
+                        )
+                        else {
+                            Vector::from_fn(|i| self.index(i) $cmp_tt other.index(i))
+                        }
+                    }
+                }
+            )
+
+            $("/// Returns the sum of the components of the vector.")
+            #[inline(always)]
+            pub fn sum(self) -> T
+            where
+                T: Add<Output = T>,
+            {
+                specialize! {
+                    (self: Vector<N, T, A>) -> T:
+
+                    $(
+                        for &n in LENGTHS join($['\r']) =>
+
+                        for (Vector<$n, T, VecAligned>) -> T {
+                            |vec| T::vec$(n)_sum(vec)
+                        }
+                    )
+                    else {
+                        self.reduce(|a, b| a + b)
+                    }
+                }
+            }
+
+            $("/// Returns the product of the components of the vector.")
+            #[inline(always)]
+            pub fn product(self) -> T
+            where
+                T: Mul<Output = T>,
+            {
+                specialize! {
+                    (self: Vector<N, T, A>) -> T:
+
+                    $(
+                        for &n in LENGTHS join($['\r']) =>
+
+                        for (Vector<$n, T, VecAligned>) -> T {
+                            |vec| T::vec$(n)_product(vec)
+                        }
+                    )
+                    else {
+                        self.reduce(|a, b| a * b)
+                    }
+                }
+            }
+
+            $("/// Returns the square of the magnitude of the vector.")
+            #[inline(always)]
+            pub fn mag_sq(self) -> T
+            where
+                T: Add<Output = T> + Mul<Output = T>,
+            {
+                (self * self).sum()
+            }
+
+            $("/// Returns the dot product of `self` and `other`.")
+            #[inline(always)]
+            pub fn dot(self, other: Vector<N, T, impl VecAlignment>) -> T
+            where
+                T: Add<Output = T> + Mul<Output = T>,
+            {
+                (self * other).sum()
+            }
         }
 
         impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
@@ -769,6 +708,41 @@ pub fn mod_() -> ModDir {
             for &n in LENGTHS join($['\n']) =>
 
             impl<T: Scalar, A: VecAlignment> Vector<$n, T, A> {
+                $(
+                    if n == 2 =>
+
+                    $(format!("/// Returns `self` rotated 90 degrees counter-clockwise."))
+                    #[inline(always)]
+                    pub fn perp(self) -> Self
+                    where
+                        T: Neg<Output = T>,
+                    {
+                        vec2g!(-self.y(), self.x())
+                    }
+
+                    $(format!("/// Returns `self` rotated 90 degrees clockwise."))
+                    #[inline(always)]
+                    pub fn perp_cw(self) -> Self
+                    where
+                        T: Neg<Output = T>,
+                    {
+                        vec2g!(self.y(), -self.x())
+                    }
+                )
+
+                $(
+                    if n == 3 =>
+
+                    $(format!("/// Returns the cross product of `self` and `other`."))
+                    #[inline(always)]
+                    pub fn cross(self, other: Vector<3, T, impl VecAlignment>) -> Self
+                    where
+                        T: Mul<Output = T> + Sub<Output = T>,
+                    {
+                        self.yzx() * other.zxy() - self.zxy() * other.yzx()
+                    }
+                )
+
                 $(
                     for i in 0..n join($['\n']) =>
 
@@ -1045,145 +1019,12 @@ pub fn mod_() -> ModDir {
                 Ok(())
             }
         }
-
-        $(
-            for &op_camelcase in UNARY_OPS =>
-
-            $(let op_snakecase = &op_camelcase.to_lowercase())
-
-            impl<const N: usize, T: Scalar + $op_camelcase<Output: Scalar>, A: VecAlignment> $op_camelcase for Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                type Output = Vector<N, T::Output, A>;
-
-                #[inline(always)]
-                fn $op_snakecase(self) -> Self::Output {
-                    specialize! {
-                        (self: Vector<N, T, A>) -> Vector<N, T::Output, A>:
-
-                        $(
-                            for &n in LENGTHS join($['\r']) =>
-
-                            for (Vector<$n, T, VecAligned>) -> Vector<$n, T::Output, VecAligned> {
-                                |vec| T::vec$(n)_$(op_snakecase)(vec)
-                            }
-                        )
-                        else {
-                            self.map(|v| v.$op_snakecase())
-                        }
-                    }                    
-                }
-            }
-
-            impl<const N: usize, T: Scalar + $op_camelcase<Output: Scalar>, A: VecAlignment> $op_camelcase for &Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                type Output = Vector<N, T::Output, A>;
-
-                #[inline(always)]
-                fn $op_snakecase(self) -> Self::Output {
-                    (*self).$op_snakecase()
-                }
-            }
-        )
-
-        $(
-            for &op_camelcase in BINARY_OPS =>
-
-            $(let op_snakecase = &op_camelcase.to_lowercase())
-
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<Vector<N, T2, A2>> for Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                type Output = Vector<N, T::Output, A>;
-
-                #[inline(always)]
-                fn $op_snakecase(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-                    specialize! {
-                        (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
-                        
-                        $(
-                            for &n in LENGTHS join($['\r']) =>
-                            
-                            for (Vector<$n, T, VecAligned>, Vector<$n, T2, VecAligned>) -> Vector<$n, T::Output, VecAligned> {
-                                |vec, rhs| T::vec$(n)_$(op_snakecase)(vec, rhs)
-                            }
-                        )
-                        else {
-                            Vector::from_fn(|i| self.index(i).$op_snakecase(rhs.index(i)))
-                        }
-                    }
-                }
-            }
-
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<Vector<N, T2, A2>> for &Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                type Output = Vector<N, T::Output, A>;
-
-                #[inline(always)]
-                fn $op_snakecase(self, rhs: Vector<N, T2, A2>) -> Self::Output {
-                    (*self).$op_snakecase(rhs)
-                }
-            }
-
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<&Vector<N, T2, A2>> for Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                type Output = Vector<N, T::Output, A>;
-
-                #[inline(always)]
-                fn $op_snakecase(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-                    self.$op_snakecase(*rhs)
-                }
-            }
-
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<&Vector<N, T2, A2>> for &Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                type Output = Vector<N, T::Output, A>;
-
-                #[inline(always)]
-                fn $op_snakecase(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
-                    (*self).$op_snakecase(*rhs)
-                }
-            }
-
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $(op_camelcase)Assign<Vector<N, T2, A2>> for Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                #[inline(always)]
-                fn $(op_snakecase)_assign(&mut self, rhs: Vector<N, T2, A2>) {
-                    *self = (*self).$op_snakecase(rhs);
-                }
-            }
-
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $(op_camelcase)Assign<&Vector<N, T2, A2>> for Vector<N, T, A>
-            where
-                Usize<N>: VecLen,
-            {
-                #[inline(always)]
-                fn $(op_snakecase)_assign(&mut self, rhs: &Vector<N, T2, A2>) {
-                    self.$(op_snakecase)_assign(*rhs);
-                }
-            }
-        )
     }
     .to_mod_dir("vector")
-    //.with_submod_dir(primitives::mod_())
+    .with_submod_dir(primitives::mod_())
+    .with_submod_file(constructor::mod_())
     .with_submod_file(swizzle::mod_())
+    .with_submod_file(scalar::mod_())
+    .with_submod_file(ops::mod_())
     .with_submod_file(dir::mod_())
 }
