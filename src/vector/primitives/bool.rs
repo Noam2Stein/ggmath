@@ -90,6 +90,22 @@ where
         self.count(|x| !x)
     }
 
+    /// Returns a vector of `T2` elements where each element is `if_true` if the corresponding element in `self` is `true` and `if_false` if the corresponding element in `self` is `false`.
+    #[inline(always)]
+    pub fn select<T2: Scalar>(
+        self,
+        if_true: Vector<N, T2, impl VecAlignment>,
+        if_false: Vector<N, T2, impl VecAlignment>,
+    ) -> Vector<N, T2, A> {
+        Vector::from_fn(|i| {
+            if self.index(i) {
+                if_true.index(i)
+            } else {
+                if_false.index(i)
+            }
+        })
+    }
+
     /// Converts `self` to a vector of `i8` elements.
     #[inline(always)]
     pub fn as_i8(self) -> Vector<N, i8, A> {
