@@ -728,6 +728,15 @@ pub fn mod_() -> ModDir {
                     {
                         vec2g!(self.y(), -self.x())
                     }
+
+                    $("/// Returns the perpendicular dot product of `self` and `other`.")
+                    #[inline(always)]
+                    pub fn perp_dot(self, other: Vector<2, T, impl VecAlignment>) -> T
+                    where
+                        T: Mul<Output = T> + Sub<Output = T>,
+                    {
+                        self.x() * other.y() - self.y() * other.x()
+                    }
                 )
 
                 $(
