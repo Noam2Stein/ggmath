@@ -11,6 +11,9 @@ mod vector;
 
 pub fn codegen() {
     quote! {
+        #![deny(missing_docs)]
+        #![doc = include_str!("../README.md")]
+
         use core::panic::{RefUnwindSafe, UnwindSafe};
 
         mod float_ext;
@@ -27,7 +30,10 @@ pub fn codegen() {
         pub use primitive_aliases::*;
 
         $("/// The base trait for all `ggmath` types.")
-        $("/// This is an auto trait that requires basic traits and `Copy`.")
+        $("/// This is an auto trait that requires basic traits,")
+        $("/// and most importantly `Copy + 'static`.")
+        $("///")
+        $("/// This does mean that `ggmath` does not support references or heap-based types as scalars.")
         pub trait Construct: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe {}
 
         $("/// Marker type that is generic over a `usize` constant,")

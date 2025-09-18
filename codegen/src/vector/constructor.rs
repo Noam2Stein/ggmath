@@ -18,6 +18,23 @@ pub fn mod_() -> ModFile {
         $(
             for &n in LENGTHS join($['\n']) =>
 
+            $(format!("/// Creates a `Vec{n}<_>` from the given components and vectors."))
+            $("///")
+            $("/// # Example")
+            $("/// ```")
+            $("/// use ggmath::*;")
+            $("///")
+            $(format!("/// fn example() -> Vec{n}<f32> {{"))
+            $(
+                match n {
+                    2 => $("///     vec2!(1.0, 2.0)"),
+                    3 => $("///     vec3!(1.0, vec2!(2.0, 3.0))"),
+                    4 => $("///     vec4!(1.0, vec2!(2.0, 3.0), 4.0)"),
+                    n => $(format!("///     vec{n}!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
+                }
+            )
+            $("/// }")
+            $("/// ```")
             #[macro_export]
             macro_rules! vec$(n) {
                 ($$($$field:expr),* $$(,)?) => {
@@ -29,6 +46,23 @@ pub fn mod_() -> ModFile {
         $(
             for &n in LENGTHS join($['\n']) =>
 
+            $(format!("/// Creates a `Vec{n}P<_>` from the given components and vectors."))
+            $("///")
+            $("/// # Example")
+            $("/// ```")
+            $("/// use ggmath::*;")
+            $("///")
+            $(format!("/// fn example() -> Vec{n}P<f32> {{"))
+            $(
+                match n {
+                    2 => $("///     vec2p!(1.0, 2.0)"),
+                    3 => $("///     vec3p!(1.0, vec2p!(2.0, 3.0))"),
+                    4 => $("///     vec4p!(1.0, vec2p!(2.0, 3.0), 4.0)"),
+                    n => $(format!("///     vec{n}p!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
+                }
+            )
+            $("/// }")
+            $("/// ```")
             #[macro_export]
             macro_rules! vec$(n)p {
                 ($$($$field:expr),* $$(,)?) => {
@@ -40,6 +74,24 @@ pub fn mod_() -> ModFile {
         $(
             for &n in LENGTHS join($['\n']) =>
 
+            $(format!("/// Creates a `Vector<{n}, _, _>` from the given components and vectors."))
+            $("/// This macro needs type inference to decide the alignment of the vector.")
+            $("///")
+            $("/// # Example")
+            $("/// ```")
+            $("/// use ggmath::*;")
+            $("///")
+            $(format!("/// fn example<A: VecAlignment>() -> Vector<{n}, f32, A> {{"))
+            $(
+                match n {
+                    2 => $("///     vec2g!(1.0, 2.0)"),
+                    3 => $("///     vec3g!(1.0, vec2g!(2.0, 3.0))"),
+                    4 => $("///     vec4g!(1.0, vec2g!(2.0, 3.0), 4.0)"),
+                    n => $(format!("///     vec{n}g!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
+                }
+            )
+            $("/// }")
+            $("/// ```")
             #[macro_export]
             macro_rules! vec$(n)g {
                 ($$($$field:expr),* $$(,)?) => {

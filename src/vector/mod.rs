@@ -40,7 +40,7 @@ pub use scalar::*;
 /// SIMD improves the performance of vector operations but increases the size of the vector in memory.
 ///
 /// The `A` generic parameter controls whether or not the vector is SIMD-aligned.
-/// `Vector<N, T, VecAligned>` vectors are SIMD-aligned and `Vector<N, T, VecPacked>` vectors are not.
+/// `A = VecAligned` vectors are SIMD-aligned and `A = VecPacked` vectors are not.
 ///
 /// Most of the time you should use `VecAligned` vectors (e.g. `Vec3<T>`),
 /// and only use `VecPacked` vectors in memory-critical scenarios.
@@ -49,55 +49,56 @@ pub use scalar::*;
 ///
 /// - `VecPacked` vectors are always stored as `[T; N]`.
 ///
-/// - `VecAligned` storage is specified by the [`Scalar`] implementation,
-/// and follows the rule of using whatever format is most performant.
-/// This means that if a vector doesn't benefit from SIMD it should not be SIMD-aligned.
+/// - `VecAligned` storage is decided upon by the [`Scalar`] implementation,
+/// and follows the rule of using whatever format makes vector operations most performant.
+/// This means that if vector operations don't benefit from SIMD,
+/// the `VecAligned` vector should not be SIMD-aligned.
 ///
 /// # Example
 /// ```
 /// use ggmath::*;
 ///
 /// // This is a non memory critical scenario so we should use `VecAligned`.
-/// struct PlayerState {{
+/// struct PlayerState {
 ///     // Vector<3, f32, VecAligned>
 ///     position: Vec3<f32>,
-/// }}
+/// }
 ///
 /// // This is a memory critical scenario so we should use `VecPacked`.
-/// struct GpuVertex {{
+/// struct GpuVertex {
 ///     // Vector<3, f32, VecPacked>
 ///     position: Vec3P<f32>,
 ///     // Vector<3, f32, VecPacked>
 ///     normal: Vec3P<f32>,
 ///     // Vector<2, f32, VecPacked>
 ///     uv: Vec2P<f32>,
-/// }}
+/// }
 ///
-/// fn initial_player_state() -> PlayerState {{
-///     PlayerState {{
+/// fn initial_player_state() -> PlayerState {
+///     PlayerState {
 ///         position: vec3!(0.0, 1.0, 2.0),
-///     }}
-/// }}
+///     }
+/// }
 ///
-/// fn triangle_vertices() -> [GpuVertex; 3] {{
+/// fn triangle_vertices() -> [GpuVertex; 3] {
 ///     [
-///         GpuVertex {{
+///         GpuVertex {
 ///             position: vec3p!(-1.0, -1.0, 0.0),
 ///             normal: vec3p!(0.0, 0.0, 1.0),
 ///             uv: vec2p!(0.0, 0.0),
-///         }},
-///         GpuVertex {{
+///         },
+///         GpuVertex {
 ///             position: vec3p!(1.0, -1.0, 0.0),
 ///             normal: vec3p!(0.0, 0.0, 1.0),
 ///             uv: vec2p!(1.0, 0.0),
-///         }},
-///         GpuVertex {{
+///         },
+///         GpuVertex {
 ///             position: vec3p!(0.0, 1.0, 0.0),
 ///             normal: vec3p!(0.0, 0.0, 1.0),
 ///             uv: vec2p!(0.5, 1.0),
-///         }},
+///         },
 ///     ]
-/// }}
+/// }
 /// ```
 #[repr(transparent)]
 pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(pub A::InnerVector<N, T>)
@@ -217,7 +218,7 @@ pub trait VecAlignment: 'static {
     where
         Usize<N>: VecLen;
 
-    /// Whether or not the vector is SIMD aligned.
+    /// Whether or not the vector is VecAligned.
     const IS_ALIGNED: bool;
 }
 
@@ -268,19 +269,19 @@ where
     Usize<N>: VecLen,
 {
     /// Returns true if the vector is aligned.
-    /// The output is strictly determined by the type of the vector.
+    /// The output only depends on `A` and does not rely on runtime values.
     #[inline(always)]
     pub const fn is_aligned(self) -> bool {
         A::IS_ALIGNED
     }
 
-    /// Converts the vector to an aligned vector.
+    /// Converts the vector to a `VecAligned` vector.
     #[inline(always)]
     pub fn align(self) -> Vector<N, T, VecAligned> {
         self.to_storage()
     }
 
-    /// Converts the vector to a packed vector.
+    /// Converts the vector to a `VecPacked` vector.
     #[inline(always)]
     pub fn pack(self) -> Vector<N, T, VecPacked> {
         self.to_storage()

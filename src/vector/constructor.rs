@@ -13,6 +13,16 @@ pub use crate::vec4;
 pub use crate::vec4g;
 pub use crate::vec4p;
 
+/// Creates a `Vec2<_>` from the given components and vectors.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example() -> Vec2<f32> {
+///     vec2!(1.0, 2.0)
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec2 {
     ($($field:expr),* $(,)?) => {
@@ -20,6 +30,16 @@ macro_rules! vec2 {
     }
 }
 
+/// Creates a `Vec3<_>` from the given components and vectors.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example() -> Vec3<f32> {
+///     vec3!(1.0, vec2!(2.0, 3.0))
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec3 {
     ($($field:expr),* $(,)?) => {
@@ -27,6 +47,16 @@ macro_rules! vec3 {
     }
 }
 
+/// Creates a `Vec4<_>` from the given components and vectors.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example() -> Vec4<f32> {
+///     vec4!(1.0, vec2!(2.0, 3.0), 4.0)
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec4 {
     ($($field:expr),* $(,)?) => {
@@ -34,6 +64,16 @@ macro_rules! vec4 {
     }
 }
 
+/// Creates a `Vec2P<_>` from the given components and vectors.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example() -> Vec2P<f32> {
+///     vec2p!(1.0, 2.0)
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec2p {
     ($($field:expr),* $(,)?) => {
@@ -41,6 +81,16 @@ macro_rules! vec2p {
     }
 }
 
+/// Creates a `Vec3P<_>` from the given components and vectors.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example() -> Vec3P<f32> {
+///     vec3p!(1.0, vec2p!(2.0, 3.0))
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec3p {
     ($($field:expr),* $(,)?) => {
@@ -48,6 +98,16 @@ macro_rules! vec3p {
     }
 }
 
+/// Creates a `Vec4P<_>` from the given components and vectors.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example() -> Vec4P<f32> {
+///     vec4p!(1.0, vec2p!(2.0, 3.0), 4.0)
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec4p {
     ($($field:expr),* $(,)?) => {
@@ -55,6 +115,17 @@ macro_rules! vec4p {
     }
 }
 
+/// Creates a `Vector<2, _, _>` from the given components and vectors.
+/// This macro needs type inference to decide the alignment of the vector.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example<A: VecAlignment>() -> Vector<2, f32, A> {
+///     vec2g!(1.0, 2.0)
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec2g {
     ($($field:expr),* $(,)?) => {
@@ -62,6 +133,17 @@ macro_rules! vec2g {
     }
 }
 
+/// Creates a `Vector<3, _, _>` from the given components and vectors.
+/// This macro needs type inference to decide the alignment of the vector.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example<A: VecAlignment>() -> Vector<3, f32, A> {
+///     vec3g!(1.0, vec2g!(2.0, 3.0))
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec3g {
     ($($field:expr),* $(,)?) => {
@@ -69,6 +151,17 @@ macro_rules! vec3g {
     }
 }
 
+/// Creates a `Vector<4, _, _>` from the given components and vectors.
+/// This macro needs type inference to decide the alignment of the vector.
+///
+/// # Example
+/// ```
+/// use ggmath::*;
+///
+/// fn example<A: VecAlignment>() -> Vector<4, f32, A> {
+///     vec4g!(1.0, vec2g!(2.0, 3.0), 4.0)
+/// }
+/// ```
 #[macro_export]
 macro_rules! vec4g {
     ($($field:expr),* $(,)?) => {

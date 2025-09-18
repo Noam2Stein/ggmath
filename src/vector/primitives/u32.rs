@@ -14,6 +14,10 @@ where
 {
     // The following code is for all primitives
 
+    /// Variation of `Vector::from_array` that is `const`.
+    /// This may be slower than `Vector::from_array`.
+    ///
+    /// When rust stabilizes const traits, this will be deleted.
     #[inline(always)]
     pub const fn const_from_array(array: [u32; N]) -> Self {
         unsafe {
@@ -45,6 +49,10 @@ where
         }
     }
 
+    /// Variation of `Vector::splat` that is `const`.
+    /// This may be slower than `Vector::splat`.
+    ///
+    /// When rust stabilizes const traits, this will be deleted.
     #[inline(always)]
     pub const fn const_splat(value: u32) -> Self {
         Self::const_from_array([value; N])
