@@ -146,6 +146,18 @@ where
     /// A vector with all elements set to `Epsilon`.
     pub const EPSILON: Self = Self::const_splat(f64::EPSILON);
 
+    /// Returns a vector of the Euclidean division of each element by `other`.
+    #[inline(always)]
+    pub fn div_euclid(self, other: Vector<N, f64, impl VecAlignment>) -> Self {
+        Vector::from_fn(|i| self.index(i).div_euclid(other.index(i)))
+    }
+
+    /// Returns a vector of the remainder of the Euclidean division of each element by `other`.
+    #[inline(always)]
+    pub fn rem_euclid(self, other: Vector<N, f64, impl VecAlignment>) -> Self {
+        Vector::from_fn(|i| self.index(i).rem_euclid(other.index(i)))
+    }
+
     /// Returns a vector of the minimum of each element between `self` and `other`.
     #[inline(always)]
     pub fn min(self, other: Vector<N, f64, impl VecAlignment>) -> Self {
