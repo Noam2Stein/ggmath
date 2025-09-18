@@ -528,10 +528,19 @@ where
         self.distance_sq(other).sqrt()
     }
 
-    /// Returns the angle between `self` and `other` in the range `[0.0, π]`.
+    /// Returns the angle in radians between `self` and `other` in the range `[0.0, π]`.
     #[inline(always)]
     pub fn angle(self, other: Vector<N, f64, impl VecAlignment>) -> f64 {
         (self.dot(other) / (self.mag_sq() * other.mag_sq()).sqrt()).acos()
+    }
+}
+
+#[cfg(feature = "std")]
+impl<A: VecAlignment> Vector<2, f64, A> {
+    /// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.
+    #[inline(always)]
+    pub fn signed_angle(self, other: Vector<2, f64, impl VecAlignment>) -> f64 {
+        self.angle(other) * self.perp_dot(other).signum()
     }
 }
 

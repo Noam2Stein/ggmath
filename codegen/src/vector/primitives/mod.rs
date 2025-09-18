@@ -4,7 +4,7 @@ use genco::quote;
 
 use crate::{
     constants::{
-        FLOAT_PRIMITIVES, INT_PRIMITIVES, NUM_PRIMITIVES, PRIMITIVES, SINT_PRIMITIVES,
+        FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, NUM_PRIMITIVES, PRIMITIVES, SINT_PRIMITIVES,
         UINT_PRIMITIVES,
     },
     module::*,
@@ -146,6 +146,15 @@ fn primitive_mod(primitive: &str) -> ModFile {
         )
 
         $(
+            for (n, n_functions) in LENGTHS.iter().filter_map(|&n| len_functions.get(&n).map(|functions| (n, functions)))
+                join($['\n']) =>
+
+            impl<A: VecAlignment> Vector<$n, $primitive, A> {
+                $(for function in n_functions join($['\n']) => $function)
+            }
+        )
+
+        $(
             if !std_functions.is_empty() =>
 
             #[cfg(feature = "std")]
@@ -154,6 +163,16 @@ fn primitive_mod(primitive: &str) -> ModFile {
                 Usize<N>: VecLen,
             {
                 $(for function in std_functions join($['\n']) => $function)
+            }
+        )
+
+        $(
+            for (n, n_functions) in LENGTHS.iter().filter_map(|&n| std_len_functions.get(&n).map(|functions| (n, functions)))
+                join($['\n']) =>
+
+            #[cfg(feature = "std")]
+            impl<A: VecAlignment> Vector<$n, $primitive, A> {
+                $(for function in n_functions join($['\n']) => $function)
             }
         )
 

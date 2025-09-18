@@ -10,7 +10,7 @@ pub fn push_fns(
     functions: &mut Vec<Tokens>,
     _len_functions: &mut HashMap<usize, Vec<Tokens>>,
     std_functions: &mut Vec<Tokens>,
-    _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
+    std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
     trait_impls: &mut Vec<Tokens>,
 ) {
     use_crate_items.push(quote! { ScalarNegOne });
@@ -401,10 +401,18 @@ pub fn push_fns(
             self.distance_sq(other).sqrt()
         }
 
-        $("/// Returns the angle between `self` and `other` in the range `[0.0, π]`.")
+        $("/// Returns the angle in radians between `self` and `other` in the range `[0.0, π]`.")
         #[inline(always)]
         pub fn angle(self, other: Vector<N, $primitive, impl VecAlignment>) -> $primitive {
             (self.dot(other) / (self.mag_sq() * other.mag_sq()).sqrt()).acos()
+        }
+    });
+
+    std_len_functions.entry(2).or_default().push(quote! {
+        $("/// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.")
+        #[inline(always)]
+        pub fn signed_angle(self, other: Vector<2, $primitive, impl VecAlignment>) -> $primitive {
+            self.angle(other) * self.perp_dot(other).signum()
         }
     });
 
