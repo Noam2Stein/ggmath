@@ -527,6 +527,12 @@ where
     pub fn distance(self, other: Self) -> f32 {
         self.distance_sq(other).sqrt()
     }
+
+    /// Returns the angle between `self` and `other` in the range `[0.0, π]`.
+    #[inline(always)]
+    pub fn angle(self, other: Vector<N, f32, impl VecAlignment>) -> f32 {
+        (self.dot(other) / (self.mag_sq() * other.mag_sq()).sqrt()).acos()
+    }
 }
 
 impl Scalar for f32 {

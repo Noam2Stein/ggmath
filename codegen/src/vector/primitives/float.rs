@@ -1,13 +1,17 @@
+use std::collections::HashMap;
+
 use genco::{lang::rust::Tokens, quote};
 
 use crate::constants::{COMPONENTS, LENGTHS};
 
 pub fn push_fns(
     primitive: &str,
-    functions: &mut Vec<Tokens>,
-    std_functions: &mut Vec<Tokens>,
-    trait_impls: &mut Vec<Tokens>,
     use_crate_items: &mut Vec<Tokens>,
+    functions: &mut Vec<Tokens>,
+    _len_functions: &mut HashMap<usize, Vec<Tokens>>,
+    std_functions: &mut Vec<Tokens>,
+    _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
+    trait_impls: &mut Vec<Tokens>,
 ) {
     use_crate_items.push(quote! { ScalarNegOne });
 
@@ -395,6 +399,12 @@ pub fn push_fns(
         #[inline(always)]
         pub fn distance(self, other: Self) -> $primitive {
             self.distance_sq(other).sqrt()
+        }
+
+        $("/// Returns the angle between `self` and `other` in the range `[0.0, π]`.")
+        #[inline(always)]
+        pub fn angle(self, other: Vector<N, $primitive, impl VecAlignment>) -> $primitive {
+            (self.dot(other) / (self.mag_sq() * other.mag_sq()).sqrt()).acos()
         }
     });
 

@@ -1,13 +1,17 @@
+use std::collections::HashMap;
+
 use genco::{lang::rust::Tokens, quote};
 
 use crate::constants::{COMPONENTS, LENGTHS};
 
 pub fn push_fns(
     primitive: &str,
-    functions: &mut Vec<Tokens>,
-    _std_functions: &mut Vec<Tokens>,
-    trait_impls: &mut Vec<Tokens>,
     use_crate_items: &mut Vec<Tokens>,
+    functions: &mut Vec<Tokens>,
+    _len_functions: &mut HashMap<usize, Vec<Tokens>>,
+    _std_functions: &mut Vec<Tokens>,
+    _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
+    trait_impls: &mut Vec<Tokens>,
 ) {
     let unsigned_primitive = &"u"
         .chars()

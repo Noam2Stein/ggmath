@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use genco::quote;
 
 use crate::{
@@ -33,10 +35,12 @@ pub fn mod_() -> ModDir {
 }
 
 fn primitive_mod(primitive: &str) -> ModFile {
-    let mut functions = Vec::new();
-    let mut std_functions = Vec::new();
-    let mut trait_impls = Vec::new();
     let mut use_crate_items = Vec::new();
+    let mut functions = Vec::new();
+    let mut len_functions = HashMap::new();
+    let mut std_functions = Vec::new();
+    let mut std_len_functions = HashMap::new();
+    let mut trait_impls = Vec::new();
 
     let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
     let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
@@ -47,69 +51,83 @@ fn primitive_mod(primitive: &str) -> ModFile {
 
     primitive::push_fns(
         primitive,
-        &mut functions,
-        &mut std_functions,
-        &mut trait_impls,
         &mut use_crate_items,
+        &mut functions,
+        &mut len_functions,
+        &mut std_functions,
+        &mut std_len_functions,
+        &mut trait_impls,
     );
 
     if primitive_is_num {
         num::push_fns(
             primitive,
-            &mut functions,
-            &mut std_functions,
-            &mut trait_impls,
             &mut use_crate_items,
+            &mut functions,
+            &mut len_functions,
+            &mut std_functions,
+            &mut std_len_functions,
+            &mut trait_impls,
         );
     }
 
     if primitive_is_int {
         int::push_fns(
             primitive,
-            &mut functions,
-            &mut std_functions,
-            &mut trait_impls,
             &mut use_crate_items,
+            &mut functions,
+            &mut len_functions,
+            &mut std_functions,
+            &mut std_len_functions,
+            &mut trait_impls,
         );
     }
 
     if primitive_is_float {
         float::push_fns(
             primitive,
-            &mut functions,
-            &mut std_functions,
-            &mut trait_impls,
             &mut use_crate_items,
+            &mut functions,
+            &mut len_functions,
+            &mut std_functions,
+            &mut std_len_functions,
+            &mut trait_impls,
         );
     }
 
     if primitive_is_sint {
         sint::push_fns(
             primitive,
-            &mut functions,
-            &mut std_functions,
-            &mut trait_impls,
             &mut use_crate_items,
+            &mut functions,
+            &mut len_functions,
+            &mut std_functions,
+            &mut std_len_functions,
+            &mut trait_impls,
         );
     }
 
     if primitive_is_uint {
         uint::push_fns(
             primitive,
-            &mut functions,
-            &mut std_functions,
-            &mut trait_impls,
             &mut use_crate_items,
+            &mut functions,
+            &mut len_functions,
+            &mut std_functions,
+            &mut std_len_functions,
+            &mut trait_impls,
         );
     }
 
     if primitive_is_bool {
         bool_::push_fns(
             primitive,
-            &mut functions,
-            &mut std_functions,
-            &mut trait_impls,
             &mut use_crate_items,
+            &mut functions,
+            &mut len_functions,
+            &mut std_functions,
+            &mut std_len_functions,
+            &mut trait_impls,
         );
     }
 
