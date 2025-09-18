@@ -254,6 +254,18 @@ where
     ) -> Self {
         self.max(min).min(max)
     }
+
+    /// Returns the minimum element in the vector.
+    #[inline(always)]
+    pub fn min_element(self) -> u128 {
+        self.reduce(|a, b| a.min(b))
+    }
+
+    /// Returns the maximum element in the vector.
+    #[inline(always)]
+    pub fn max_element(self) -> u128 {
+        self.reduce(|a, b| a.max(b))
+    }
 }
 
 impl Scalar for u128 {

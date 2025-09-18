@@ -168,6 +168,18 @@ where
         self.max(min).min(max)
     }
 
+    /// Returns the minimum element in the vector.
+    #[inline(always)]
+    pub fn min_element(self) -> f64 {
+        self.reduce(|a, b| a.min(b))
+    }
+
+    /// Returns the maximum element in the vector.
+    #[inline(always)]
+    pub fn max_element(self) -> f64 {
+        self.reduce(|a, b| a.max(b))
+    }
+
     /// Returns a vector containing the signum of each element of `self`.
     /// Signum for each element is:
     /// - `1.0` if the element is positive or `+0.0`

@@ -129,6 +129,18 @@ pub fn push_fns(
         pub fn clamp(self, min: Vector<N, $primitive, impl VecAlignment>, max: Vector<N, $primitive, impl VecAlignment>) -> Self {
             self.max(min).min(max)
         }
+
+        $("/// Returns the minimum element in the vector.")
+        #[inline(always)]
+        pub fn min_element(self) -> $primitive {
+            self.reduce(|a, b| a.min(b))
+        }
+
+        $("/// Returns the maximum element in the vector.")
+        #[inline(always)]
+        pub fn max_element(self) -> $primitive {
+            self.reduce(|a, b| a.max(b))
+        }
     });
 
     trait_impls.push(quote! {
