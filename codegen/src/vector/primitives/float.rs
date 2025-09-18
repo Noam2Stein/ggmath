@@ -12,6 +12,7 @@ pub fn push_fns(
     std_functions: &mut Vec<Tokens>,
     std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
     trait_impls: &mut Vec<Tokens>,
+    _test_functions: &mut Vec<Tokens>,
 ) {
     use_crate_items.push(quote! { ScalarNegOne });
 

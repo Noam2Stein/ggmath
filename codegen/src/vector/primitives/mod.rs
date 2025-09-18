@@ -41,6 +41,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
     let mut std_functions = Vec::new();
     let mut std_len_functions = HashMap::new();
     let mut trait_impls = Vec::new();
+    let mut test_functions = Vec::new();
 
     let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
     let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
@@ -57,6 +58,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
         &mut std_functions,
         &mut std_len_functions,
         &mut trait_impls,
+        &mut test_functions,
     );
 
     if primitive_is_num {
@@ -68,6 +70,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
+            &mut test_functions,
         );
     }
 
@@ -80,6 +83,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
+            &mut test_functions,
         );
     }
 
@@ -92,6 +96,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
+            &mut test_functions,
         );
     }
 
@@ -104,6 +109,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
+            &mut test_functions,
         );
     }
 
@@ -116,6 +122,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
+            &mut test_functions,
         );
     }
 
@@ -128,6 +135,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
+            &mut test_functions,
         );
     }
 
@@ -179,4 +187,12 @@ fn primitive_mod(primitive: &str) -> ModFile {
         $(for trait_impl in trait_impls join($['\n']) => $trait_impl)
     }
     .to_mod_file(primitive)
+    .with_test_file(
+        quote! {
+            use ggmath::*;
+            
+            $(for function in test_functions join($['\n']) => $function)
+        }
+        .to_test_file(primitive)
+    )
 }

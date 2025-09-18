@@ -15,6 +15,7 @@ pub fn push_fns(
     _std_functions: &mut Vec<Tokens>,
     _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
     trait_impls: &mut Vec<Tokens>,
+    test_functions: &mut Vec<Tokens>,
 ) {
     use_crate_items
         .push(quote! { Vector, VecAlignment, VecAligned, VecPacked, Usize, VecLen, Scalar });
@@ -86,5 +87,13 @@ pub fn push_fns(
                 }
             )
         }
+    });
+
+    test_functions.push(quote! {
+        $(
+            for &n in LENGTHS join($['\r']) =>
+
+            const _: () = assert!(size_of::<Vec$(n)P<$primitive>>() == size_of::<[$primitive; $n]>());
+        )
     });
 }

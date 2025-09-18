@@ -12,6 +12,7 @@ pub fn push_fns(
     _std_functions: &mut Vec<Tokens>,
     _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
     _trait_impls: &mut Vec<Tokens>,
+    _test_functions: &mut Vec<Tokens>,
 ) {
     use_crate_items.push(quote! { ScalarZero, ScalarOne });
 

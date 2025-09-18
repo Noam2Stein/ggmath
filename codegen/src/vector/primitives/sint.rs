@@ -12,6 +12,7 @@ pub fn push_fns(
     _std_functions: &mut Vec<Tokens>,
     _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
     trait_impls: &mut Vec<Tokens>,
+    _test_functions: &mut Vec<Tokens>,
 ) {
     let unsigned_primitive = &"u"
         .chars()

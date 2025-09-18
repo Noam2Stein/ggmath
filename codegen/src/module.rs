@@ -12,7 +12,6 @@ const WORKPLACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
 pub trait TokensExt {
     fn to_mod_file(self, name: impl Into<String>) -> ModFile;
     fn to_mod_dir(self, name: impl Into<String>) -> ModDir;
-    #[expect(dead_code)]
     fn to_test_file(self, local_path: impl Into<PathBuf>) -> TestFile;
 }
 
@@ -64,7 +63,7 @@ impl TokensExt for Tokens {
 
     fn to_test_file(self, local_path: impl Into<PathBuf>) -> TestFile {
         TestFile {
-            local_path: local_path.into(),
+            local_path: local_path.into().with_extension("rs"),
             content: ModContent { content: self },
         }
     }
@@ -130,12 +129,16 @@ impl ModDir {
     }
 
     pub fn write_as_root(self) {
-        let dir_path = Path::new(WORKPLACE_DIR).join("src");
+        let src_dir_path = Path::new(WORKPLACE_DIR).join("src");
+        let tests_dir_path = Path::new(WORKPLACE_DIR).join("tests");
 
-        assert!(dir_path.ends_with("src"));
-        std::fs::remove_dir_all(&dir_path).unwrap();
+        assert!(src_dir_path.ends_with("src"));
+        std::fs::remove_dir_all(&src_dir_path).unwrap();
 
-        let librs_path = dir_path.join("lib.rs");
+        assert!(tests_dir_path.ends_with("tests"));
+        std::fs::remove_dir_all(&tests_dir_path).unwrap();
+
+        let librs_path = src_dir_path.join("lib.rs");
         self.content.write_in_src(&librs_path);
 
         for test_file in self.test_files {
@@ -143,12 +146,12 @@ impl ModDir {
         }
 
         for submod_file in self.submod_files {
-            let submod_path = dir_path.join(&submod_file.name).with_extension("rs");
+            let submod_path = src_dir_path.join(&submod_file.name).with_extension("rs");
             submod_file.write(submod_path);
         }
 
         for submod_dir in self.submod_dirs {
-            let submod_dir_path = dir_path.join(&submod_dir.name);
+            let submod_dir_path = src_dir_path.join(&submod_dir.name);
             submod_dir.write(submod_dir_path);
         }
 
