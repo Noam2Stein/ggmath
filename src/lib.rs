@@ -28,7 +28,28 @@ pub struct Usize<const N: usize>;
 #[derive(Debug, Clone, Copy)]
 pub struct IndexOutOfBoundsError;
 
-/// TODO: Document this macro.
+/// A macro for type specialization.
+/// Takes a generic signature and a set of cases,
+/// and picks the appropriate case based on the types of the arguments.
+///
+/// # Example
+///
+/// ```
+/// use ggmath::{specialize, Construct};
+///
+/// fn mul_by_int_size<T: Construct>(value: T) -> T {
+///     specialize! {
+///         (value: T) -> T:
+///
+///         for (i32) -> i32 { |value| value * 32 }
+///         for (i64) -> i64 { |value| value * 64 }
+///         else {
+///             // If the type is not an integer, return the original value
+///             value
+///         }
+///     }
+/// }
+/// ```
 #[macro_export]
 macro_rules! specialize {
     (
