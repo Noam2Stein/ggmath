@@ -48,13 +48,6 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
     let mut std_len_functions = HashMap::new();
     let mut trait_impls = Vec::new();
 
-    let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
-    let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
-    let primitive_is_float = FLOAT_PRIMITIVES.contains(&primitive);
-    let primitive_is_sint = SINT_PRIMITIVES.contains(&primitive);
-    let primitive_is_uint = UINT_PRIMITIVES.contains(&primitive);
-    let primitive_is_bool = primitive == "bool";
-
     primitive::push_src(
         primitive,
         &mut use_crate_items,
@@ -65,7 +58,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         &mut trait_impls,
     );
 
-    if primitive_is_num {
+    if NUM_PRIMITIVES.contains(&primitive) {
         num::push_src(
             primitive,
             &mut use_crate_items,
@@ -77,7 +70,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         );
     }
 
-    if primitive_is_int {
+    if INT_PRIMITIVES.contains(&primitive) {
         int::push_src(
             primitive,
             &mut use_crate_items,
@@ -89,7 +82,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         );
     }
 
-    if primitive_is_float {
+    if FLOAT_PRIMITIVES.contains(&primitive) {
         float::push_src(
             primitive,
             &mut use_crate_items,
@@ -101,7 +94,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         );
     }
 
-    if primitive_is_sint {
+    if SINT_PRIMITIVES.contains(&primitive) {
         sint::push_src(
             primitive,
             &mut use_crate_items,
@@ -113,7 +106,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         );
     }
 
-    if primitive_is_uint {
+    if UINT_PRIMITIVES.contains(&primitive) {
         uint::push_src(
             primitive,
             &mut use_crate_items,
@@ -125,7 +118,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         );
     }
 
-    if primitive_is_bool {
+    if primitive == "bool" {
         bool_::push_src(
             primitive,
             &mut use_crate_items,
