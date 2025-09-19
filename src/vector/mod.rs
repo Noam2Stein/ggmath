@@ -130,7 +130,7 @@ pub type Vec4P<T> = Vector<4, T, VecPacked>;
 /// ```
 /// use ggmath::*;
 ///
-/// vector_aliases!(pub type F = f32);
+/// vector_aliases!(pub type F => f32);
 /// ```
 /// Generates:
 /// ```

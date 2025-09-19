@@ -145,7 +145,7 @@ pub fn src_mod() -> SrcDir {
         $("/// ```")
         $("/// use ggmath::*;")
         $("///")
-        $("/// vector_aliases!(pub type F = f32);")
+        $("/// vector_aliases!(pub type F => f32);")
         $("/// ```")
         $("/// Generates:")
         $("/// ```")
