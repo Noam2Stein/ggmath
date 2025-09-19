@@ -90,10 +90,58 @@ pub fn push_fns(
     });
 
     test_functions.push(quote! {
+        fn assert_typed_eq<T: PartialEq>(a: T, b: T) {
+            assert_eq!(a, b);
+        }
+
         $(
             for &n in LENGTHS join($['\r']) =>
 
+            $(let n_values = match primitive {
+                "bool" => ["false".to_string(), "true".to_string()].into_iter().cycle().take(n).collect::<Vec<String>>(),
+
+                "f32" | "f64" => (0..n).map(|i| format!("{i}.0")).collect::<Vec<String>>(),
+
+                "u8"
+                    | "u16"
+                    | "u32"
+                    | "u64"
+                    | "u128"
+                    | "usize"
+                    | "i8"
+                    | "i16"
+                    | "i32"
+                    | "i64"
+                    | "i128"
+                    | "isize"
+                    => (0..n).map(|i| i.to_string()).collect::<Vec<String>>(),
+
+                _ => unreachable!(),
+            })
+
+            $(let n_values_str = &n_values.join(", "))
+
             const _: () = assert!(size_of::<Vec$(n)P<$primitive>>() == size_of::<[$primitive; $n]>());
+
+            $(
+                for a in ["VecAligned", "VecPacked"] join($['\r']) =>
+
+                $(let a_postfix_lowercase = match a {
+                    "VecAligned" => "",
+                    "VecPacked" => "p",
+                    _ => unreachable!(),
+                })
+
+                #[test]
+                fn test_vec$(n)$(a_postfix_lowercase)_align() {
+                    assert_typed_eq(vec$(n)$(a_postfix_lowercase)!($n_values_str).align(), vec$(n)!($n_values_str));
+                }
+
+                #[test]
+                fn test_vec$(n)$(a_postfix_lowercase)_pack() {
+                    assert_typed_eq(vec$(n)$(a_postfix_lowercase)!($n_values_str).pack(), vec$(n)p!($n_values_str));
+                }
+            )
         )
     });
 }

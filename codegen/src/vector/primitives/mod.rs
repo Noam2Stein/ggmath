@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 use genco::quote;
 
@@ -193,6 +193,6 @@ fn primitive_mod(primitive: &str) -> ModFile {
             
             $(for function in test_functions join($['\n']) => $function)
         }
-        .to_test_file(primitive)
+        .to_test_file(Path::new("vector").join(primitive))
     )
 }
