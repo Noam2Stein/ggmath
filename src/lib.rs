@@ -31,7 +31,7 @@ pub trait Construct: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwi
 pub struct Usize<const N: usize>;
 
 /// An error type for when an index is out of bounds.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IndexOutOfBoundsError;
 
 /// A macro for type specialization.
