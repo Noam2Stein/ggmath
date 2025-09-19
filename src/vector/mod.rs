@@ -134,6 +134,8 @@ pub type Vec4P<T> = Vector<4, T, VecPacked>;
 /// ```
 /// Generates:
 /// ```
+/// use ggmath::*;
+///
 /// pub type FVec2 = Vec2<f32>;
 /// pub type FVec3 = Vec3<f32>;
 /// pub type FVec4 = Vec4<f32>;

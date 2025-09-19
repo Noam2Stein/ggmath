@@ -149,6 +149,8 @@ pub fn src_mod() -> SrcDir {
         $("/// ```")
         $("/// Generates:")
         $("/// ```")
+        $("/// use ggmath::*;")
+        $("///")
         $(for &n in LENGTHS => $(format!("/// pub type FVec{n} = Vec{n}<f32>;"))$['\r'])
         $(for &n in LENGTHS => $(format!("/// pub type FVec{n}P = Vec{n}P<f32>;"))$['\r'])
         $("/// ```")
