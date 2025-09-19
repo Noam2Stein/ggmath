@@ -7,7 +7,7 @@ use genco::{
 
 use crate::constants::LENGTHS;
 
-pub fn push_fns(
+pub fn push_src(
     primitive: &str,
     use_crate_items: &mut Vec<Tokens>,
     functions: &mut Vec<Tokens>,
@@ -15,7 +15,6 @@ pub fn push_fns(
     _std_functions: &mut Vec<Tokens>,
     _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
     trait_impls: &mut Vec<Tokens>,
-    test_functions: &mut Vec<Tokens>,
 ) {
     use_crate_items
         .push(quote! { Vector, VecAlignment, VecAligned, VecPacked, Usize, VecLen, Scalar });
@@ -88,9 +87,17 @@ pub fn push_fns(
             )
         }
     });
+}
 
-    test_functions.push(quote! {
-        fn assert_typed_eq<T: PartialEq>(a: T, b: T) {
+pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut Vec<Tokens>) {
+    use_stmts.push(quote! {
+        use core::{fmt::Debug, mem::size_of};
+
+        use ggmath::*;
+    });
+
+    functions.push(quote! {
+        fn assert_typed_eq<T: PartialEq + Debug>(a: T, b: T) {
             assert_eq!(a, b);
         }
 

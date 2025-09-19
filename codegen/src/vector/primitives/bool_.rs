@@ -4,7 +4,7 @@ use genco::{lang::rust::Tokens, quote};
 
 use crate::constants::INT_PRIMITIVES;
 
-pub fn push_fns(
+pub fn push_src(
     _primitive: &str,
     _use_crate_items: &mut Vec<Tokens>,
     functions: &mut Vec<Tokens>,
@@ -12,7 +12,6 @@ pub fn push_fns(
     _std_functions: &mut Vec<Tokens>,
     _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
     _trait_impls: &mut Vec<Tokens>,
-    _test_functions: &mut Vec<Tokens>,
 ) {
     functions.push(quote! {
         $("// The following code is only for bool")
@@ -75,3 +74,5 @@ pub fn push_fns(
         )
     });
 }
+
+pub fn push_test(_primitive: &str, _use_stmts: &mut Vec<Tokens>, _functions: &mut Vec<Tokens>) {}

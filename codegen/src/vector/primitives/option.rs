@@ -5,7 +5,7 @@ use crate::{
     module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> SrcFile {
+pub fn src_mod() -> SrcFile {
     quote! {
         use crate::{Scalar, Vector, $(for &n in LENGTHS join(, )=> Vec$(n)), VecAlignment, VecLen, Usize};
 

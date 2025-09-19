@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
 
 use genco::quote;
 
@@ -31,24 +31,14 @@ pub fn src_mod() -> SrcDir {
     }
     .to_src_dir("primitives")
     .with_submod_files(primitive_mods)
-    .with_submod_file(option::mod_())
+    .with_submod_file(option::src_mod())
 }
 
-pub fn test_mod() -> TestDir {
-    let primitive_mods = PRIMITIVES
+pub fn test_mods() -> impl Iterator<Item = TestFile> {
+    PRIMITIVES
         .iter()
         .map(|&primitive| primitive_test_mod(primitive))
-        .collect::<Vec<_>>();
-
-    quote! {
-        $(for &primitive in PRIMITIVES join($['\r']) => mod $primitive;)
-        mod option;
-    }
-    .to_test_dir("primitives")
-    .with_submod_files(primitive_mods)
-    .with_submod_file(option::test_mod())
 }
-
 
 fn primitive_src_mod(primitive: &str) -> SrcFile {
     let mut use_crate_items = Vec::new();
@@ -57,7 +47,6 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
     let mut std_functions = Vec::new();
     let mut std_len_functions = HashMap::new();
     let mut trait_impls = Vec::new();
-    let mut test_functions = Vec::new();
 
     let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
     let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
@@ -66,7 +55,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
     let primitive_is_uint = UINT_PRIMITIVES.contains(&primitive);
     let primitive_is_bool = primitive == "bool";
 
-    primitive::push_fns(
+    primitive::push_src(
         primitive,
         &mut use_crate_items,
         &mut functions,
@@ -74,11 +63,10 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         &mut std_functions,
         &mut std_len_functions,
         &mut trait_impls,
-        &mut test_functions,
     );
 
     if primitive_is_num {
-        num::push_fns(
+        num::push_src(
             primitive,
             &mut use_crate_items,
             &mut functions,
@@ -86,12 +74,11 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
-            &mut test_functions,
         );
     }
 
     if primitive_is_int {
-        int::push_fns(
+        int::push_src(
             primitive,
             &mut use_crate_items,
             &mut functions,
@@ -99,12 +86,11 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
-            &mut test_functions,
         );
     }
 
     if primitive_is_float {
-        float::push_fns(
+        float::push_src(
             primitive,
             &mut use_crate_items,
             &mut functions,
@@ -112,12 +98,11 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
-            &mut test_functions,
         );
     }
 
     if primitive_is_sint {
-        sint::push_fns(
+        sint::push_src(
             primitive,
             &mut use_crate_items,
             &mut functions,
@@ -125,12 +110,11 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
-            &mut test_functions,
         );
     }
 
     if primitive_is_uint {
-        uint::push_fns(
+        uint::push_src(
             primitive,
             &mut use_crate_items,
             &mut functions,
@@ -138,12 +122,11 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
-            &mut test_functions,
         );
     }
 
     if primitive_is_bool {
-        bool_::push_fns(
+        bool_::push_src(
             primitive,
             &mut use_crate_items,
             &mut functions,
@@ -151,7 +134,6 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             &mut std_functions,
             &mut std_len_functions,
             &mut trait_impls,
-            &mut test_functions,
         );
     }
 
@@ -203,12 +185,49 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         $(for trait_impl in trait_impls join($['\n']) => $trait_impl)
     }
     .to_src_file(primitive)
-    .with_test_file(
-        quote! {
-            use ggmath::*;
-            
-            $(for function in test_functions join($['\n']) => $function)
-        }
-        .to_test_file(Path::new("vector").join(primitive))
-    )
+}
+
+fn primitive_test_mod(primitive: &str) -> TestFile {
+    let mut use_stmts = Vec::new();
+    let mut functions = Vec::new();
+
+    let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
+    let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
+    let primitive_is_float = FLOAT_PRIMITIVES.contains(&primitive);
+    let primitive_is_sint = SINT_PRIMITIVES.contains(&primitive);
+    let primitive_is_uint = UINT_PRIMITIVES.contains(&primitive);
+    let primitive_is_bool = primitive == "bool";
+
+    primitive::push_test(primitive, &mut use_stmts, &mut functions);
+
+    if primitive_is_num {
+        num::push_test(primitive, &mut use_stmts, &mut functions);
+    }
+
+    if primitive_is_int {
+        int::push_test(primitive, &mut use_stmts, &mut functions);
+    }
+
+    if primitive_is_float {
+        float::push_test(primitive, &mut use_stmts, &mut functions);
+    }
+
+    if primitive_is_sint {
+        sint::push_test(primitive, &mut use_stmts, &mut functions);
+    }
+
+    if primitive_is_uint {
+        uint::push_test(primitive, &mut use_stmts, &mut functions);
+    }
+
+    if primitive_is_bool {
+        bool_::push_test(primitive, &mut use_stmts, &mut functions);
+    }
+
+    quote! {
+        $(for stmt in use_stmts join($['\n']) => $stmt)
+
+        $(for function in functions join($['\n']) => $function)
+    }
+    .to_test_file(primitive)
 }

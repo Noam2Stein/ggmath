@@ -187,7 +187,10 @@ pub fn codegen() {
 
     quote! {
         mod vector;
-    }.to_test_dir("").with_submod_dir(vector::test_mod()).write_as_root();
+    }
+    .to_test_dir("")
+    .with_submod_dir(vector::test_mod())
+    .write_as_root();
 }
 
 fn join_and(iter: impl Iterator<Item = String>) -> String {

@@ -2,7 +2,7 @@ use genco::quote;
 
 use crate::{
     constants::{
-        COMPARISON_OPS, COMPARISON_OP_DOCS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPONENTS, COMPONENT_ORDINALS, LENGTHS, LENGTH_NAMES
+        COMPARISON_OPS, COMPARISON_OP_DOCS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPONENTS, COMPONENT_ORDINALS, LENGTHS, LENGTH_NAMES, PRIMITIVES
     },
     join_or,
     module::{SrcDir, TestDir, TokensExt},
@@ -1038,5 +1038,9 @@ pub fn src_mod() -> SrcDir {
 }
 
 pub fn test_mod() -> TestDir {
-    primitives::test_mod()
+    quote!{
+        $(
+            for &primitive in PRIMITIVES join($['\r']) => mod $primitive;
+        )
+    }.to_test_dir("vector").with_submod_files(primitives::test_mods())
 }
