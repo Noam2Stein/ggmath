@@ -19,22 +19,38 @@ mod primitive;
 mod sint;
 mod uint;
 
-pub fn mod_() -> ModDir {
+pub fn src_mod() -> SrcDir {
     let primitive_mods = PRIMITIVES
         .iter()
-        .map(|&primitive| primitive_mod(primitive))
+        .map(|&primitive| primitive_src_mod(primitive))
         .collect::<Vec<_>>();
 
     quote! {
         $(for &primitive in PRIMITIVES join($['\r']) => mod $primitive;)
         mod option;
     }
-    .to_mod_dir("primitives")
+    .to_src_dir("primitives")
     .with_submod_files(primitive_mods)
     .with_submod_file(option::mod_())
 }
 
-fn primitive_mod(primitive: &str) -> ModFile {
+pub fn test_mod() -> TestDir {
+    let primitive_mods = PRIMITIVES
+        .iter()
+        .map(|&primitive| primitive_test_mod(primitive))
+        .collect::<Vec<_>>();
+
+    quote! {
+        $(for &primitive in PRIMITIVES join($['\r']) => mod $primitive;)
+        mod option;
+    }
+    .to_test_dir("primitives")
+    .with_submod_files(primitive_mods)
+    .with_submod_file(option::test_mod())
+}
+
+
+fn primitive_src_mod(primitive: &str) -> SrcFile {
     let mut use_crate_items = Vec::new();
     let mut functions = Vec::new();
     let mut len_functions = HashMap::new();
@@ -186,7 +202,7 @@ fn primitive_mod(primitive: &str) -> ModFile {
 
         $(for trait_impl in trait_impls join($['\n']) => $trait_impl)
     }
-    .to_mod_file(primitive)
+    .to_src_file(primitive)
     .with_test_file(
         quote! {
             use ggmath::*;

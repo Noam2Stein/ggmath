@@ -2,10 +2,10 @@ use genco::quote;
 
 use crate::{
     constants::FLOAT_PRIMITIVES,
-    module::{ModFile, TokensExt},
+    module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> ModFile {
+pub fn src_mod() -> SrcFile {
     quote! {
         $("/// A trait to extend the functionality of primitive float types.")
         pub trait FloatExt {
@@ -92,5 +92,5 @@ pub fn mod_() -> ModFile {
             $['\n']
         )
     }
-    .to_mod_file("float_ext")
+    .to_src_file("float_ext")
 }

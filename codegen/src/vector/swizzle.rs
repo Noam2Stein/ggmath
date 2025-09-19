@@ -5,10 +5,10 @@ use genco::quote;
 use crate::{
     constants::{COMPONENT_ORDINALS, COMPONENTS, LENGTHS},
     join_and,
-    module::{ModFile, TokensExt},
+    module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> ModFile {
+pub fn src_mod() -> SrcFile {
     quote! {
         use crate::{Scalar, VecAlignment, Vector, $(for &n in LENGTHS join(, ) => Vec$(n)P)};
 
@@ -121,7 +121,7 @@ pub fn mod_() -> ModFile {
             }
         )
     }
-    .to_mod_file("swizzle")
+    .to_src_file("swizzle")
 }
 
 fn combinations(max: usize, len: usize) -> Vec<Vec<usize>> {

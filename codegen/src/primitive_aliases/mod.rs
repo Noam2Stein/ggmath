@@ -2,10 +2,10 @@ use genco::quote;
 
 use crate::{
     constants::{PRIMITIVE_PREFIXES, PRIMITIVES},
-    module::{ModDir, TokensExt},
+    module::{SrcDir, TokensExt},
 };
 
-pub fn mod_() -> ModDir {
+pub fn src_mod() -> SrcDir {
     quote! {
         $(
             for (&primitive, &prefix) in PRIMITIVES.iter().zip(PRIMITIVE_PREFIXES.iter()) =>
@@ -18,5 +18,5 @@ pub fn mod_() -> ModDir {
             }$['\n']
         )
     }
-    .to_mod_dir("primitive_aliases")
+    .to_src_dir("primitive_aliases")
 }

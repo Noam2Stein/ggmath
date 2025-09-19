@@ -2,10 +2,10 @@ use genco::{quote, tokens::quoted};
 
 use crate::{
     constants::{COMPONENTS, DIRECTIONS_A, DIRECTIONS_B, LENGTHS},
-    module::{ModFile, TokensExt},
+    module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> ModFile {
+pub fn src_mod() -> SrcFile {
     quote! {
         use core::mem::transmute_copy;
 
@@ -286,5 +286,5 @@ pub fn mod_() -> ModFile {
             }
         )
     }
-    .to_mod_file("dir")
+    .to_src_file("dir")
 }

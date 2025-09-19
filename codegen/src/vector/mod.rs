@@ -2,11 +2,10 @@ use genco::quote;
 
 use crate::{
     constants::{
-        COMPARISON_OP_DOCS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPARISON_OPS,
-        COMPONENT_ORDINALS, COMPONENTS, LENGTH_NAMES, LENGTHS,
+        COMPARISON_OPS, COMPARISON_OP_DOCS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPONENTS, COMPONENT_ORDINALS, LENGTHS, LENGTH_NAMES
     },
     join_or,
-    module::{ModDir, TokensExt},
+    module::{SrcDir, TestDir, TokensExt},
 };
 
 mod constructor;
@@ -16,7 +15,7 @@ mod primitives;
 mod scalar;
 mod swizzle;
 
-pub fn mod_() -> ModDir {
+pub fn src_mod() -> SrcDir {
     quote! {
         $("//! Vector related types and traits")
 
@@ -1029,11 +1028,15 @@ pub fn mod_() -> ModDir {
             }
         }
     }
-    .to_mod_dir("vector")
-    .with_submod_dir(primitives::mod_())
-    .with_submod_file(constructor::mod_())
-    .with_submod_file(swizzle::mod_())
-    .with_submod_file(scalar::mod_())
-    .with_submod_file(ops::mod_())
-    .with_submod_file(dir::mod_())
+    .to_src_dir("vector")
+    .with_submod_dir(primitives::src_mod())
+    .with_submod_file(constructor::src_mod())
+    .with_submod_file(swizzle::src_mod())
+    .with_submod_file(scalar::src_mod())
+    .with_submod_file(ops::src_mod())
+    .with_submod_file(dir::src_mod())
+}
+
+pub fn test_mod() -> TestDir {
+    primitives::test_mod()
 }

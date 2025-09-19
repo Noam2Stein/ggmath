@@ -5,10 +5,10 @@ use crate::{
         BINARY_OPS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPARISON_OPS, COMPONENTS,
         LENGTHS, UNARY_OPS,
     },
-    module::{ModFile, TokensExt},
+    module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> ModFile {
+pub fn src_mod() -> SrcFile {
     quote! {
         use std::ops::*;
 
@@ -214,5 +214,5 @@ pub fn mod_() -> ModFile {
             )
         }
     }
-    .to_mod_file("scalar")
+    .to_src_file("scalar")
 }

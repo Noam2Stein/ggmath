@@ -179,11 +179,15 @@ pub fn codegen() {
             }
         }
     }
-    .to_mod_dir("lib")
-    .with_submod_dir(vector::mod_())
-    .with_submod_dir(primitive_aliases::mod_())
-    .with_submod_file(float_ext::mod_())
+    .to_src_dir("")
+    .with_submod_dir(vector::src_mod())
+    .with_submod_dir(primitive_aliases::src_mod())
+    .with_submod_file(float_ext::src_mod())
     .write_as_root();
+
+    quote! {
+        mod vector;
+    }.to_test_dir("").with_submod_dir(vector::test_mod()).write_as_root();
 }
 
 fn join_and(iter: impl Iterator<Item = String>) -> String {

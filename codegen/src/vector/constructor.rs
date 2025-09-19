@@ -4,10 +4,10 @@ use genco::quote;
 
 use crate::{
     constants::{COMPONENTS, LENGTHS},
-    module::{ModFile, TokensExt},
+    module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> ModFile {
+pub fn src_mod() -> SrcFile {
     quote! {
         use crate::{Scalar, VecAlignment, Vector};
 
@@ -148,7 +148,7 @@ pub fn mod_() -> ModFile {
                 }
             )
         )
-    }.to_mod_file("constructor")
+    }.to_src_file("constructor")
 }
 
 fn splits(n: usize) -> Vec<Vec<Range<usize>>> {

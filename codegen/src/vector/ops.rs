@@ -2,10 +2,10 @@ use genco::quote;
 
 use crate::{
     constants::{BINARY_OPS, LENGTHS, UNARY_OPS},
-    module::{ModFile, TokensExt},
+    module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> ModFile {
+pub fn src_mod() -> SrcFile {
     quote! {
         use std::ops::*;
 
@@ -183,5 +183,5 @@ pub fn mod_() -> ModFile {
                 }
             }
         )
-    }.to_mod_file("ops")
+    }.to_src_file("ops")
 }

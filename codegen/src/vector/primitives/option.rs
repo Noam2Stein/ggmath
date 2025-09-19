@@ -2,10 +2,10 @@ use genco::quote;
 
 use crate::{
     constants::LENGTHS,
-    module::{ModFile, TokensExt},
+    module::{SrcFile, TokensExt},
 };
 
-pub fn mod_() -> ModFile {
+pub fn mod_() -> SrcFile {
     quote! {
         use crate::{Scalar, Vector, $(for &n in LENGTHS join(, )=> Vec$(n)), VecAlignment, VecLen, Usize};
 
@@ -54,5 +54,5 @@ pub fn mod_() -> ModFile {
             }
         }
     }
-    .to_mod_file("option")
+    .to_src_file("option")
 }
