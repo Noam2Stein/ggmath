@@ -5,7 +5,7 @@ use genco::{
     quote, tokens::quoted,
 };
 
-use crate::constants::{FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS};
+use crate::constants::{FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, SINT_PRIMITIVES, UINT_PRIMITIVES};
 
 pub fn push_src(
     primitive: &str,
@@ -90,6 +90,14 @@ pub fn push_src(
 }
 
 pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut Vec<Tokens>) {
+    let is_primary_primitive = match primitive {
+        _ if FLOAT_PRIMITIVES.contains(&primitive) => primitive == "f32",
+        _ if SINT_PRIMITIVES.contains(&primitive) => primitive == "i32",
+        _ if UINT_PRIMITIVES.contains(&primitive) => primitive == "u32",
+        "bool" => true,
+        _ => unreachable!(),
+    };
+
     use_stmts.push(quote! {
         use core::mem::size_of;
 
@@ -122,7 +130,7 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
             const _: () = assert!(size_of::<Vec$(n)P<$primitive>>() == size_of::<[$primitive; $n]>());
 
             $(
-                for a in ["VecAligned", "VecPacked"] join($['\r']) =>
+                for &a in ["VecAligned", "VecPacked"].iter().filter(|&&a| a != "VecPacked" || is_primary_primitive) join($['\r']) =>
 
                 $(let a_postfix_lowercase = match a {
                     "VecAligned" => "",
