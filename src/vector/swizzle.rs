@@ -176,7 +176,7 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
     /// - The `x` (1st) component set to the `x` (1st) component of `value`
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_xy(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_xy(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<0, 1>(value)
     }
 
@@ -184,21 +184,21 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
     /// - The `y` (2nd) component set to the `x` (1st) component of `value`
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_yx(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_yx(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<1, 0>(value)
     }
 
     /// - Sets the `x` (1st) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_xy(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_xy(&mut self, value: Vector<2, T, A>) {
         *self = self.with_xy(value);
     }
 
     /// - Sets the `y` (2nd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_yx(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_yx(&mut self, value: Vector<2, T, A>) {
         *self = self.with_yx(value);
     }
 }
@@ -910,7 +910,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `x` (1st) component set to the `x` (1st) component of `value`
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_xy(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_xy(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<0, 1>(value)
     }
 
@@ -918,7 +918,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `x` (1st) component set to the `x` (1st) component of `value`
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_xz(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_xz(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<0, 2>(value)
     }
 
@@ -926,7 +926,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `y` (2nd) component set to the `x` (1st) component of `value`
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_yx(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_yx(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<1, 0>(value)
     }
 
@@ -934,7 +934,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `y` (2nd) component set to the `x` (1st) component of `value`
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_yz(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_yz(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<1, 2>(value)
     }
 
@@ -942,7 +942,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `z` (3rd) component set to the `x` (1st) component of `value`
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_zx(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_zx(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<2, 0>(value)
     }
 
@@ -950,7 +950,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `z` (3rd) component set to the `x` (1st) component of `value`
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_zy(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_zy(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<2, 1>(value)
     }
 
@@ -959,7 +959,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xyz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xyz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 1, 2>(value)
     }
 
@@ -968,7 +968,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xzy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xzy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 2, 1>(value)
     }
 
@@ -977,7 +977,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_yxz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_yxz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 0, 2>(value)
     }
 
@@ -986,7 +986,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_yzx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_yzx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 2, 0>(value)
     }
 
@@ -995,7 +995,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zxy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zxy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 0, 1>(value)
     }
 
@@ -1004,49 +1004,49 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zyx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zyx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 1, 0>(value)
     }
 
     /// - Sets the `x` (1st) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_xy(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_xy(&mut self, value: Vector<2, T, A>) {
         *self = self.with_xy(value);
     }
 
     /// - Sets the `x` (1st) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_xz(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_xz(&mut self, value: Vector<2, T, A>) {
         *self = self.with_xz(value);
     }
 
     /// - Sets the `y` (2nd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_yx(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_yx(&mut self, value: Vector<2, T, A>) {
         *self = self.with_yx(value);
     }
 
     /// - Sets the `y` (2nd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_yz(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_yz(&mut self, value: Vector<2, T, A>) {
         *self = self.with_yz(value);
     }
 
     /// - Sets the `z` (3rd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_zx(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_zx(&mut self, value: Vector<2, T, A>) {
         *self = self.with_zx(value);
     }
 
     /// - Sets the `z` (3rd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_zy(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_zy(&mut self, value: Vector<2, T, A>) {
         *self = self.with_zy(value);
     }
 
@@ -1054,7 +1054,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xyz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xyz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xyz(value);
     }
 
@@ -1062,7 +1062,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xzy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xzy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xzy(value);
     }
 
@@ -1070,7 +1070,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_yxz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_yxz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_yxz(value);
     }
 
@@ -1078,7 +1078,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_yzx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_yzx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_yzx(value);
     }
 
@@ -1086,7 +1086,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zxy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zxy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zxy(value);
     }
 
@@ -1094,7 +1094,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zyx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zyx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zyx(value);
     }
 }
@@ -3120,7 +3120,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `x` (1st) component of `value`
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_xy(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_xy(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<0, 1>(value)
     }
 
@@ -3128,7 +3128,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `x` (1st) component of `value`
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_xz(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_xz(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<0, 2>(value)
     }
 
@@ -3136,7 +3136,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `x` (1st) component of `value`
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_xw(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_xw(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<0, 3>(value)
     }
 
@@ -3144,7 +3144,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `x` (1st) component of `value`
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_yx(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_yx(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<1, 0>(value)
     }
 
@@ -3152,7 +3152,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `x` (1st) component of `value`
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_yz(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_yz(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<1, 2>(value)
     }
 
@@ -3160,7 +3160,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `x` (1st) component of `value`
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_yw(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_yw(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<1, 3>(value)
     }
 
@@ -3168,7 +3168,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `x` (1st) component of `value`
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_zx(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_zx(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<2, 0>(value)
     }
 
@@ -3176,7 +3176,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `x` (1st) component of `value`
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_zy(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_zy(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<2, 1>(value)
     }
 
@@ -3184,7 +3184,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `x` (1st) component of `value`
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_zw(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_zw(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<2, 3>(value)
     }
 
@@ -3192,7 +3192,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `x` (1st) component of `value`
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_wx(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_wx(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<3, 0>(value)
     }
 
@@ -3200,7 +3200,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `x` (1st) component of `value`
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_wy(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_wy(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<3, 1>(value)
     }
 
@@ -3208,7 +3208,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `x` (1st) component of `value`
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn with_wz(self, value: Vector<2, T, impl VecAlignment>) -> Self {
+    pub fn with_wz(self, value: Vector<2, T, A>) -> Self {
         self.with_shuffle_2::<3, 2>(value)
     }
 
@@ -3217,7 +3217,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xyz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xyz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 1, 2>(value)
     }
 
@@ -3226,7 +3226,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xyw(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xyw(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 1, 3>(value)
     }
 
@@ -3235,7 +3235,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xzy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xzy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 2, 1>(value)
     }
 
@@ -3244,7 +3244,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xzw(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xzw(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 2, 3>(value)
     }
 
@@ -3253,7 +3253,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xwy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xwy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 3, 1>(value)
     }
 
@@ -3262,7 +3262,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_xwz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_xwz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<0, 3, 2>(value)
     }
 
@@ -3271,7 +3271,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_yxz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_yxz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 0, 2>(value)
     }
 
@@ -3280,7 +3280,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_yxw(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_yxw(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 0, 3>(value)
     }
 
@@ -3289,7 +3289,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_yzx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_yzx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 2, 0>(value)
     }
 
@@ -3298,7 +3298,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_yzw(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_yzw(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 2, 3>(value)
     }
 
@@ -3307,7 +3307,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_ywx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_ywx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 3, 0>(value)
     }
 
@@ -3316,7 +3316,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_ywz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_ywz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<1, 3, 2>(value)
     }
 
@@ -3325,7 +3325,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zxy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zxy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 0, 1>(value)
     }
 
@@ -3334,7 +3334,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zxw(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zxw(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 0, 3>(value)
     }
 
@@ -3343,7 +3343,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zyx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zyx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 1, 0>(value)
     }
 
@@ -3352,7 +3352,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zyw(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zyw(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 1, 3>(value)
     }
 
@@ -3361,7 +3361,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zwx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zwx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 3, 0>(value)
     }
 
@@ -3370,7 +3370,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_zwy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_zwy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<2, 3, 1>(value)
     }
 
@@ -3379,7 +3379,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_wxy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_wxy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<3, 0, 1>(value)
     }
 
@@ -3388,7 +3388,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_wxz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_wxz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<3, 0, 2>(value)
     }
 
@@ -3397,7 +3397,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_wyx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_wyx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<3, 1, 0>(value)
     }
 
@@ -3406,7 +3406,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `y` (2nd) component of `value`
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_wyz(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_wyz(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<3, 1, 2>(value)
     }
 
@@ -3415,7 +3415,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_wzx(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_wzx(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<3, 2, 0>(value)
     }
 
@@ -3424,7 +3424,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `y` (2nd) component of `value`
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn with_wzy(self, value: Vector<3, T, impl VecAlignment>) -> Self {
+    pub fn with_wzy(self, value: Vector<3, T, A>) -> Self {
         self.with_shuffle_3::<3, 2, 1>(value)
     }
 
@@ -3434,7 +3434,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     /// - The `w` (4th) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_xyzw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_xyzw(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<0, 1, 2, 3>(value)
     }
 
@@ -3444,7 +3444,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     /// - The `z` (3rd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_xywz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_xywz(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<0, 1, 3, 2>(value)
     }
 
@@ -3454,7 +3454,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     /// - The `w` (4th) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_xzyw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_xzyw(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<0, 2, 1, 3>(value)
     }
 
@@ -3464,7 +3464,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     /// - The `y` (2nd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_xzwy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_xzwy(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<0, 2, 3, 1>(value)
     }
 
@@ -3474,7 +3474,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     /// - The `z` (3rd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_xwyz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_xwyz(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<0, 3, 1, 2>(value)
     }
 
@@ -3484,7 +3484,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     /// - The `y` (2nd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_xwzy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_xwzy(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<0, 3, 2, 1>(value)
     }
 
@@ -3494,7 +3494,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     /// - The `w` (4th) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_yxzw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_yxzw(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<1, 0, 2, 3>(value)
     }
 
@@ -3504,7 +3504,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     /// - The `z` (3rd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_yxwz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_yxwz(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<1, 0, 3, 2>(value)
     }
 
@@ -3514,7 +3514,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     /// - The `w` (4th) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_yzxw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_yzxw(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<1, 2, 0, 3>(value)
     }
 
@@ -3524,7 +3524,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     /// - The `x` (1st) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_yzwx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_yzwx(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<1, 2, 3, 0>(value)
     }
 
@@ -3534,7 +3534,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     /// - The `z` (3rd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_ywxz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_ywxz(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<1, 3, 0, 2>(value)
     }
 
@@ -3544,7 +3544,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     /// - The `x` (1st) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_ywzx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_ywzx(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<1, 3, 2, 0>(value)
     }
 
@@ -3554,7 +3554,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     /// - The `w` (4th) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_zxyw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_zxyw(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<2, 0, 1, 3>(value)
     }
 
@@ -3564,7 +3564,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     /// - The `y` (2nd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_zxwy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_zxwy(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<2, 0, 3, 1>(value)
     }
 
@@ -3574,7 +3574,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     /// - The `w` (4th) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_zyxw(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_zyxw(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<2, 1, 0, 3>(value)
     }
 
@@ -3584,7 +3584,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `w` (4th) component set to the `z` (3rd) component of `value`
     /// - The `x` (1st) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_zywx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_zywx(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<2, 1, 3, 0>(value)
     }
 
@@ -3594,7 +3594,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     /// - The `y` (2nd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_zwxy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_zwxy(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<2, 3, 0, 1>(value)
     }
 
@@ -3604,7 +3604,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     /// - The `x` (1st) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_zwyx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_zwyx(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<2, 3, 1, 0>(value)
     }
 
@@ -3614,7 +3614,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     /// - The `z` (3rd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_wxyz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_wxyz(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<3, 0, 1, 2>(value)
     }
 
@@ -3624,7 +3624,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     /// - The `y` (2nd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_wxzy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_wxzy(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<3, 0, 2, 1>(value)
     }
 
@@ -3634,7 +3634,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     /// - The `z` (3rd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_wyxz(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_wyxz(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<3, 1, 0, 2>(value)
     }
 
@@ -3644,7 +3644,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `z` (3rd) component set to the `z` (3rd) component of `value`
     /// - The `x` (1st) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_wyzx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_wyzx(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<3, 1, 2, 0>(value)
     }
 
@@ -3654,7 +3654,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `x` (1st) component set to the `z` (3rd) component of `value`
     /// - The `y` (2nd) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_wzxy(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_wzxy(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<3, 2, 0, 1>(value)
     }
 
@@ -3664,91 +3664,91 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - The `y` (2nd) component set to the `z` (3rd) component of `value`
     /// - The `x` (1st) component set to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn with_wzyx(self, value: Vector<4, T, impl VecAlignment>) -> Self {
+    pub fn with_wzyx(self, value: Vector<4, T, A>) -> Self {
         self.with_shuffle_4::<3, 2, 1, 0>(value)
     }
 
     /// - Sets the `x` (1st) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_xy(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_xy(&mut self, value: Vector<2, T, A>) {
         *self = self.with_xy(value);
     }
 
     /// - Sets the `x` (1st) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_xz(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_xz(&mut self, value: Vector<2, T, A>) {
         *self = self.with_xz(value);
     }
 
     /// - Sets the `x` (1st) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_xw(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_xw(&mut self, value: Vector<2, T, A>) {
         *self = self.with_xw(value);
     }
 
     /// - Sets the `y` (2nd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_yx(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_yx(&mut self, value: Vector<2, T, A>) {
         *self = self.with_yx(value);
     }
 
     /// - Sets the `y` (2nd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_yz(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_yz(&mut self, value: Vector<2, T, A>) {
         *self = self.with_yz(value);
     }
 
     /// - Sets the `y` (2nd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_yw(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_yw(&mut self, value: Vector<2, T, A>) {
         *self = self.with_yw(value);
     }
 
     /// - Sets the `z` (3rd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_zx(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_zx(&mut self, value: Vector<2, T, A>) {
         *self = self.with_zx(value);
     }
 
     /// - Sets the `z` (3rd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_zy(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_zy(&mut self, value: Vector<2, T, A>) {
         *self = self.with_zy(value);
     }
 
     /// - Sets the `z` (3rd) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_zw(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_zw(&mut self, value: Vector<2, T, A>) {
         *self = self.with_zw(value);
     }
 
     /// - Sets the `w` (4th) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_wx(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_wx(&mut self, value: Vector<2, T, A>) {
         *self = self.with_wx(value);
     }
 
     /// - Sets the `w` (4th) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_wy(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_wy(&mut self, value: Vector<2, T, A>) {
         *self = self.with_wy(value);
     }
 
     /// - Sets the `w` (4th) component of `self` to the `x` (1st) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     #[inline(always)]
-    pub fn set_wz(&mut self, value: Vector<2, T, impl VecAlignment>) {
+    pub fn set_wz(&mut self, value: Vector<2, T, A>) {
         *self = self.with_wz(value);
     }
 
@@ -3756,7 +3756,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xyz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xyz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xyz(value);
     }
 
@@ -3764,7 +3764,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xyw(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xyw(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xyw(value);
     }
 
@@ -3772,7 +3772,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xzy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xzy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xzy(value);
     }
 
@@ -3780,7 +3780,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xzw(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xzw(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xzw(value);
     }
 
@@ -3788,7 +3788,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xwy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xwy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xwy(value);
     }
 
@@ -3796,7 +3796,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_xwz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_xwz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_xwz(value);
     }
 
@@ -3804,7 +3804,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_yxz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_yxz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_yxz(value);
     }
 
@@ -3812,7 +3812,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_yxw(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_yxw(&mut self, value: Vector<3, T, A>) {
         *self = self.with_yxw(value);
     }
 
@@ -3820,7 +3820,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_yzx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_yzx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_yzx(value);
     }
 
@@ -3828,7 +3828,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_yzw(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_yzw(&mut self, value: Vector<3, T, A>) {
         *self = self.with_yzw(value);
     }
 
@@ -3836,7 +3836,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_ywx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_ywx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_ywx(value);
     }
 
@@ -3844,7 +3844,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_ywz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_ywz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_ywz(value);
     }
 
@@ -3852,7 +3852,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zxy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zxy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zxy(value);
     }
 
@@ -3860,7 +3860,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zxw(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zxw(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zxw(value);
     }
 
@@ -3868,7 +3868,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zyx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zyx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zyx(value);
     }
 
@@ -3876,7 +3876,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zyw(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zyw(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zyw(value);
     }
 
@@ -3884,7 +3884,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zwx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zwx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zwx(value);
     }
 
@@ -3892,7 +3892,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_zwy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_zwy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_zwy(value);
     }
 
@@ -3900,7 +3900,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_wxy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_wxy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_wxy(value);
     }
 
@@ -3908,7 +3908,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_wxz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_wxz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_wxz(value);
     }
 
@@ -3916,7 +3916,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_wyx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_wyx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_wyx(value);
     }
 
@@ -3924,7 +3924,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_wyz(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_wyz(&mut self, value: Vector<3, T, A>) {
         *self = self.with_wyz(value);
     }
 
@@ -3932,7 +3932,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_wzx(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_wzx(&mut self, value: Vector<3, T, A>) {
         *self = self.with_wzx(value);
     }
 
@@ -3940,7 +3940,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `y` (2nd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     #[inline(always)]
-    pub fn set_wzy(&mut self, value: Vector<3, T, impl VecAlignment>) {
+    pub fn set_wzy(&mut self, value: Vector<3, T, A>) {
         *self = self.with_wzy(value);
     }
 
@@ -3949,7 +3949,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_xyzw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_xyzw(&mut self, value: Vector<4, T, A>) {
         *self = self.with_xyzw(value);
     }
 
@@ -3958,7 +3958,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_xywz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_xywz(&mut self, value: Vector<4, T, A>) {
         *self = self.with_xywz(value);
     }
 
@@ -3967,7 +3967,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_xzyw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_xzyw(&mut self, value: Vector<4, T, A>) {
         *self = self.with_xzyw(value);
     }
 
@@ -3976,7 +3976,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_xzwy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_xzwy(&mut self, value: Vector<4, T, A>) {
         *self = self.with_xzwy(value);
     }
 
@@ -3985,7 +3985,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_xwyz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_xwyz(&mut self, value: Vector<4, T, A>) {
         *self = self.with_xwyz(value);
     }
 
@@ -3994,7 +3994,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_xwzy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_xwzy(&mut self, value: Vector<4, T, A>) {
         *self = self.with_xwzy(value);
     }
 
@@ -4003,7 +4003,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_yxzw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_yxzw(&mut self, value: Vector<4, T, A>) {
         *self = self.with_yxzw(value);
     }
 
@@ -4012,7 +4012,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_yxwz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_yxwz(&mut self, value: Vector<4, T, A>) {
         *self = self.with_yxwz(value);
     }
 
@@ -4021,7 +4021,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_yzxw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_yzxw(&mut self, value: Vector<4, T, A>) {
         *self = self.with_yzxw(value);
     }
 
@@ -4030,7 +4030,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_yzwx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_yzwx(&mut self, value: Vector<4, T, A>) {
         *self = self.with_yzwx(value);
     }
 
@@ -4039,7 +4039,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_ywxz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_ywxz(&mut self, value: Vector<4, T, A>) {
         *self = self.with_ywxz(value);
     }
 
@@ -4048,7 +4048,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_ywzx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_ywzx(&mut self, value: Vector<4, T, A>) {
         *self = self.with_ywzx(value);
     }
 
@@ -4057,7 +4057,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_zxyw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_zxyw(&mut self, value: Vector<4, T, A>) {
         *self = self.with_zxyw(value);
     }
 
@@ -4066,7 +4066,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_zxwy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_zxwy(&mut self, value: Vector<4, T, A>) {
         *self = self.with_zxwy(value);
     }
 
@@ -4075,7 +4075,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `w` (4th) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_zyxw(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_zyxw(&mut self, value: Vector<4, T, A>) {
         *self = self.with_zyxw(value);
     }
 
@@ -4084,7 +4084,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `w` (4th) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_zywx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_zywx(&mut self, value: Vector<4, T, A>) {
         *self = self.with_zywx(value);
     }
 
@@ -4093,7 +4093,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_zwxy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_zwxy(&mut self, value: Vector<4, T, A>) {
         *self = self.with_zwxy(value);
     }
 
@@ -4102,7 +4102,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_zwyx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_zwyx(&mut self, value: Vector<4, T, A>) {
         *self = self.with_zwyx(value);
     }
 
@@ -4111,7 +4111,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_wxyz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_wxyz(&mut self, value: Vector<4, T, A>) {
         *self = self.with_wxyz(value);
     }
 
@@ -4120,7 +4120,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_wxzy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_wxzy(&mut self, value: Vector<4, T, A>) {
         *self = self.with_wxzy(value);
     }
 
@@ -4129,7 +4129,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `z` (3rd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_wyxz(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_wyxz(&mut self, value: Vector<4, T, A>) {
         *self = self.with_wyxz(value);
     }
 
@@ -4138,7 +4138,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `z` (3rd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_wyzx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_wyzx(&mut self, value: Vector<4, T, A>) {
         *self = self.with_wyzx(value);
     }
 
@@ -4147,7 +4147,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `x` (1st) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `y` (2nd) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_wzxy(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_wzxy(&mut self, value: Vector<4, T, A>) {
         *self = self.with_wzxy(value);
     }
 
@@ -4156,7 +4156,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     /// - Sets the `y` (2nd) component of `self` to the `z` (3rd) component of `value`
     /// - Sets the `x` (1st) component of `self` to the `w` (4th) component of `value`
     #[inline(always)]
-    pub fn set_wzyx(&mut self, value: Vector<4, T, impl VecAlignment>) {
+    pub fn set_wzyx(&mut self, value: Vector<4, T, A>) {
         *self = self.with_wzyx(value);
     }
 }

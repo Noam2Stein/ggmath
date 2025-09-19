@@ -102,8 +102,8 @@ where
     #[inline(always)]
     pub fn select<T2: Scalar>(
         self,
-        if_true: Vector<N, T2, impl VecAlignment>,
-        if_false: Vector<N, T2, impl VecAlignment>,
+        if_true: Vector<N, T2, A>,
+        if_false: Vector<N, T2, A>,
     ) -> Vector<N, T2, A> {
         Vector::from_fn(|i| {
             if self.index(i) {

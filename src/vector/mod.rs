@@ -632,12 +632,12 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
     where
         T: PartialEq<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
                 |vec, other| T::vec2_eq_mask(vec, other)
@@ -656,12 +656,12 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is not equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn ne_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    pub fn ne_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
     where
         T: PartialEq<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
                 |vec, other| T::vec2_ne_mask(vec, other)
@@ -680,12 +680,12 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is less than the corresponding component of `other`.
     #[inline(always)]
-    pub fn lt_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    pub fn lt_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
                 |vec, other| T::vec2_lt_mask(vec, other)
@@ -704,12 +704,12 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is less than or equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn le_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    pub fn le_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
                 |vec, other| T::vec2_le_mask(vec, other)
@@ -728,12 +728,12 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is greater than the corresponding component of `other`.
     #[inline(always)]
-    pub fn gt_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    pub fn gt_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
                 |vec, other| T::vec2_gt_mask(vec, other)
@@ -752,12 +752,12 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is greater than or equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn ge_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+    pub fn ge_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
                 |vec, other| T::vec2_ge_mask(vec, other)
@@ -833,7 +833,7 @@ where
 
     /// Returns the dot product of `self` and `other`.
     #[inline(always)]
-    pub fn dot(self, other: Vector<N, T, impl VecAlignment>) -> T
+    pub fn dot(self, other: Self) -> T
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
@@ -915,7 +915,7 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
 
     /// Returns the perpendicular dot product of `self` and `other`.
     #[inline(always)]
-    pub fn perp_dot(self, other: Vector<2, T, impl VecAlignment>) -> T
+    pub fn perp_dot(self, other: Self) -> T
     where
         T: Mul<Output = T> + Sub<Output = T>,
     {
@@ -970,7 +970,7 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
     #[inline(always)]
     pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         self,
-        value: Vector<2, T, impl VecAlignment>,
+        value: Vector<2, T, A>,
     ) -> Self {
         specialize! {
             (self: Vector<2, T, A>, value: Vector<2, T, _>) -> Vector<2, T, A>:
@@ -992,7 +992,7 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
 impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     /// Returns the cross product of `self` and `other`.
     #[inline(always)]
-    pub fn cross(self, other: Vector<3, T, impl VecAlignment>) -> Self
+    pub fn cross(self, other: Self) -> Self
     where
         T: Mul<Output = T> + Sub<Output = T>,
     {
@@ -1067,7 +1067,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     #[inline(always)]
     pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         self,
-        value: Vector<2, T, impl VecAlignment>,
+        value: Vector<2, T, A>,
     ) -> Self {
         specialize! {
             (self: Vector<3, T, A>, value: Vector<2, T, _>) -> Vector<3, T, A>:
@@ -1094,7 +1094,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     #[inline(always)]
     pub fn with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         self,
-        value: Vector<3, T, impl VecAlignment>,
+        value: Vector<3, T, A>,
     ) -> Self {
         specialize! {
             (self: Vector<3, T, A>, value: Vector<3, T, _>) -> Vector<3, T, A>:
@@ -1203,7 +1203,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     #[inline(always)]
     pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         self,
-        value: Vector<2, T, impl VecAlignment>,
+        value: Vector<2, T, A>,
     ) -> Self {
         specialize! {
             (self: Vector<4, T, A>, value: Vector<2, T, _>) -> Vector<4, T, A>:
@@ -1230,7 +1230,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     #[inline(always)]
     pub fn with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         self,
-        value: Vector<3, T, impl VecAlignment>,
+        value: Vector<3, T, A>,
     ) -> Self {
         specialize! {
             (self: Vector<4, T, A>, value: Vector<3, T, _>) -> Vector<4, T, A>:
@@ -1264,7 +1264,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         const W_DST: usize,
     >(
         self,
-        value: Vector<4, T, impl VecAlignment>,
+        value: Vector<4, T, A>,
     ) -> Self {
         specialize! {
             (self: Vector<4, T, A>, value: Vector<4, T, _>) -> Vector<4, T, A>:
@@ -1472,15 +1472,15 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    PartialEq<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar>
+    PartialEq<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn eq(&self, other: &Vector<N, T2, A2>) -> bool {
+    fn eq(&self, other: &Vector<N, T2, A>) -> bool {
         specialize! {
-            ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A2>) -> bool:
+            ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> bool {
                 |vec, other| T::vec2_eq(vec, other)
@@ -1498,9 +1498,9 @@ where
     }
 
     #[inline(always)]
-    fn ne(&self, other: &Vector<N, T2, A2>) -> bool {
+    fn ne(&self, other: &Vector<N, T2, A>) -> bool {
         specialize! {
-            ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A2>) -> bool:
+            ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> bool {
                 |vec, other| T::vec2_ne(vec, other)

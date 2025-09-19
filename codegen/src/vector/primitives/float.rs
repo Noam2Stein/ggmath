@@ -29,31 +29,31 @@ pub fn push_src(
 
         $("/// Returns a vector of the Euclidean division of each element by `other`.")
         #[inline(always)]
-        pub fn div_euclid(self, other: Vector<N, $primitive, impl VecAlignment>) -> Self {
+        pub fn div_euclid(self, other: Self) -> Self {
             Vector::from_fn(|i| self.index(i).div_euclid(other.index(i)))
         }
 
         $("/// Returns a vector of the remainder of the Euclidean division of each element by `other`.")
         #[inline(always)]
-        pub fn rem_euclid(self, other: Vector<N, $primitive, impl VecAlignment>) -> Self {
+        pub fn rem_euclid(self, other: Self) -> Self {
             Vector::from_fn(|i| self.index(i).rem_euclid(other.index(i)))
         }
 
         $("/// Returns a vector of the minimum of each element between `self` and `other`.")
         #[inline(always)]
-        pub fn min(self, other: Vector<N, $primitive, impl VecAlignment>) -> Self {
+        pub fn min(self, other: Self) -> Self {
             Vector::from_fn(|i| self.index(i).min(other.index(i)))
         }
         
         $("/// Returns a vector of the maximum of each element between `self` and `other`.")
         #[inline(always)]
-        pub fn max(self, other: Vector<N, $primitive, impl VecAlignment>) -> Self {
+        pub fn max(self, other: Self) -> Self {
             Vector::from_fn(|i| self.index(i).max(other.index(i)))
         }
         
         $("/// Returns a vector with each element clamped between `min` and `max`.")
         #[inline(always)]
-        pub fn clamp(self, min: Vector<N, $primitive, impl VecAlignment>, max: Vector<N, $primitive, impl VecAlignment>) -> Self {
+        pub fn clamp(self, min: Self, max: Self) -> Self {
             self.max(min).min(max)
         }
 
@@ -86,7 +86,7 @@ pub fn push_src(
 
         $("/// Returns a vector containing the squared distance between each element of `self` and `other`.")
         #[inline(always)]
-        pub fn distance_sq(self, other: Vector<N, $primitive, impl VecAlignment>) -> $primitive {
+        pub fn distance_sq(self, other: Self) -> $primitive {
             (self - other).mag_sq()
         }
 
@@ -176,7 +176,7 @@ pub fn push_src(
         $("/// The weighted formula can be used by calling [`Self::lerp_weighted`],")
         $("/// and is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
+        pub fn lerp(self, other: Self, t: $primitive) -> Self {
             self.lerp_unclamped(other, t.clamp(0.0, 1.0))
         }
         
@@ -190,7 +190,7 @@ pub fn push_src(
         $("///")
         $("/// This weighted formula is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp_weighted(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
+        pub fn lerp_weighted(self, other: Self, t: $primitive) -> Self {
             self.lerp_unclamped_weighted(other, t.clamp(0.0, 1.0))
         }
 
@@ -205,7 +205,7 @@ pub fn push_src(
         $("/// The weighted formula can be used by calling [`FloatExt::lerp_unclamped_weighted`],")
         $("/// and is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp_unclamped(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
+        pub fn lerp_unclamped(self, other: Self, t: $primitive) -> Self {
             self + (other - self) * t
         }
         
@@ -219,17 +219,17 @@ pub fn push_src(
         $("///")
         $("/// This weighted formula is more numerically stable when interpolating large values that are far away from each other.")
         #[inline(always)]
-        pub fn lerp_unclamped_weighted(self, other: Vector<N, $primitive, impl VecAlignment>, t: $primitive) -> Self {
+        pub fn lerp_unclamped_weighted(self, other: Self, t: $primitive) -> Self {
             self * (1.0 - t) + other * t
         }
 
         $("/// Moves `self` towards `target` by at most `max_delta`.")
         #[inline(always)]
-        pub fn move_towards(self, target: Vector<N, $primitive, impl VecAlignment>, max_delta: $primitive) -> Self {
+        pub fn move_towards(self, target: Self, max_delta: $primitive) -> Self {
             let delta = target - self;
             let delta_mag = delta.mag();
             if delta_mag <= max_delta || delta_mag <= 1e-4 {
-                return target.to_storage();
+                return target;
             }
             self + delta / delta_mag * max_delta
         }
@@ -427,7 +427,7 @@ pub fn push_src(
 
         $("/// Returns the angle in radians between `self` and `other` in the range `[0.0, π]`.")
         #[inline(always)]
-        pub fn angle(self, other: Vector<N, $primitive, impl VecAlignment>) -> $primitive {
+        pub fn angle(self, other: Self) -> $primitive {
             (self.dot(other) / (self.mag_sq() * other.mag_sq()).sqrt()).acos()
         }
     });
@@ -435,7 +435,7 @@ pub fn push_src(
     std_len_functions.entry(2).or_default().push(quote! {
         $("/// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.")
         #[inline(always)]
-        pub fn signed_angle(self, other: Vector<2, $primitive, impl VecAlignment>) -> $primitive {
+        pub fn signed_angle(self, other: Self) -> $primitive {
             self.angle(other) * self.perp_dot(other).signum()
         }
     });

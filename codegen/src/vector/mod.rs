@@ -568,12 +568,12 @@ pub fn src_mod() -> SrcDir {
 
                 $(format!("/// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is {cmp_doc} the corresponding component of `other`."))
                 #[inline(always)]
-                pub fn $(cmp_lower)_mask<T2: Scalar>(self, other: Vector<N, T2, impl VecAlignment>) -> Vector<N, bool, A>
+                pub fn $(cmp_lower)_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
                 where
                     T: $cmp_trait<T2>,
                 {
                     specialize! {
-                        (self: Vector<N, T, A>, other: Vector<N, T2, _>) -> Vector<N, bool, A>:
+                        (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
     
                         $(
                             for &n in LENGTHS join($['\r']) =>
@@ -644,7 +644,7 @@ pub fn src_mod() -> SrcDir {
 
             $("/// Returns the dot product of `self` and `other`.")
             #[inline(always)]
-            pub fn dot(self, other: Vector<N, T, impl VecAlignment>) -> T
+            pub fn dot(self, other: Self) -> T
             where
                 T: Add<Output = T> + Mul<Output = T>,
             {
@@ -732,7 +732,7 @@ pub fn src_mod() -> SrcDir {
 
                     $("/// Returns the perpendicular dot product of `self` and `other`.")
                     #[inline(always)]
-                    pub fn perp_dot(self, other: Vector<2, T, impl VecAlignment>) -> T
+                    pub fn perp_dot(self, other: Self) -> T
                     where
                         T: Mul<Output = T> + Sub<Output = T>,
                     {
@@ -745,7 +745,7 @@ pub fn src_mod() -> SrcDir {
 
                     $(format!("/// Returns the cross product of `self` and `other`."))
                     #[inline(always)]
-                    pub fn cross(self, other: Vector<3, T, impl VecAlignment>) -> Self
+                    pub fn cross(self, other: Self) -> Self
                     where
                         T: Mul<Output = T> + Sub<Output = T>,
                     {
@@ -798,7 +798,7 @@ pub fn src_mod() -> SrcDir {
                     $("///")
                     $("/// Out of bounds indices are compile time errors.")
                     #[inline(always)]
-                    pub fn with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(self, value: Vector<$n2, T, impl VecAlignment>) -> Self {
+                    pub fn with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(self, value: Vector<$n2, T, A>) -> Self {
                         specialize! {
                             (self: Vector<$n, T, A>, value: Vector<$n2, T, _>) -> Vector<$n, T, A>:
     
@@ -921,15 +921,15 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-            PartialEq<Vector<N, T2, A2>> for Vector<N, T, A>
+        impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar>
+            PartialEq<Vector<N, T2, A>> for Vector<N, T, A>
         where
             Usize<N>: VecLen,
         {
             #[inline(always)]
-            fn eq(&self, other: &Vector<N, T2, A2>) -> bool {
+            fn eq(&self, other: &Vector<N, T2, A>) -> bool {
                 specialize! {
-                    ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A2>) -> bool:
+                    ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
@@ -945,9 +945,9 @@ pub fn src_mod() -> SrcDir {
             }
 
             #[inline(always)]
-            fn ne(&self, other: &Vector<N, T2, A2>) -> bool {
+            fn ne(&self, other: &Vector<N, T2, A>) -> bool {
                 specialize! {
-                    ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A2>) -> bool:
+                    ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>

@@ -59,17 +59,17 @@ pub fn src_mod() -> SrcFile {
 
             $(let op_snakecase = &op_camelcase.to_lowercase())
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+                $op_camelcase<Vector<N, T2, A>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+                fn $op_snakecase(self, rhs: Vector<N, T2, A>) -> Self::Output {
                     specialize! {
-                        (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+                        (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
                         
                         $(
                             for &n in LENGTHS join($['\r']) =>
@@ -85,63 +85,63 @@ pub fn src_mod() -> SrcFile {
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<Vector<N, T2, A2>> for &Vector<N, T, A>
+            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+                $op_camelcase<Vector<N, T2, A>> for &Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+                fn $op_snakecase(self, rhs: Vector<N, T2, A>) -> Self::Output {
                     (*self).$op_snakecase(rhs)
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<&Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+                $op_camelcase<&Vector<N, T2, A>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+                fn $op_snakecase(self, rhs: &Vector<N, T2, A>) -> Self::Output {
                     self.$op_snakecase(*rhs)
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $op_camelcase<&Vector<N, T2, A2>> for &Vector<N, T, A>
+            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+                $op_camelcase<&Vector<N, T2, A>> for &Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, A>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+                fn $op_snakecase(self, rhs: &Vector<N, T2, A>) -> Self::Output {
                     (*self).$op_snakecase(*rhs)
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $(op_camelcase)Assign<Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, A: VecAlignment, T2: Scalar>
+                $(op_camelcase)Assign<Vector<N, T2, A>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {
                 #[inline(always)]
-                fn $(op_snakecase)_assign(&mut self, rhs: Vector<N, T2, A2>) {
+                fn $(op_snakecase)_assign(&mut self, rhs: Vector<N, T2, A>) {
                     *self = (*self).$op_snakecase(rhs);
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-                $(op_camelcase)Assign<&Vector<N, T2, A2>> for Vector<N, T, A>
+            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, A: VecAlignment, T2: Scalar>
+                $(op_camelcase)Assign<&Vector<N, T2, A>> for Vector<N, T, A>
             where
                 Usize<N>: VecLen,
             {
                 #[inline(always)]
-                fn $(op_snakecase)_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+                fn $(op_snakecase)_assign(&mut self, rhs: &Vector<N, T2, A>) {
                     self.$(op_snakecase)_assign(*rhs);
                 }
             }

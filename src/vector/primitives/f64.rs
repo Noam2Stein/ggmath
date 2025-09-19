@@ -156,35 +156,31 @@ where
 
     /// Returns a vector of the Euclidean division of each element by `other`.
     #[inline(always)]
-    pub fn div_euclid(self, other: Vector<N, f64, impl VecAlignment>) -> Self {
+    pub fn div_euclid(self, other: Self) -> Self {
         Vector::from_fn(|i| self.index(i).div_euclid(other.index(i)))
     }
 
     /// Returns a vector of the remainder of the Euclidean division of each element by `other`.
     #[inline(always)]
-    pub fn rem_euclid(self, other: Vector<N, f64, impl VecAlignment>) -> Self {
+    pub fn rem_euclid(self, other: Self) -> Self {
         Vector::from_fn(|i| self.index(i).rem_euclid(other.index(i)))
     }
 
     /// Returns a vector of the minimum of each element between `self` and `other`.
     #[inline(always)]
-    pub fn min(self, other: Vector<N, f64, impl VecAlignment>) -> Self {
+    pub fn min(self, other: Self) -> Self {
         Vector::from_fn(|i| self.index(i).min(other.index(i)))
     }
 
     /// Returns a vector of the maximum of each element between `self` and `other`.
     #[inline(always)]
-    pub fn max(self, other: Vector<N, f64, impl VecAlignment>) -> Self {
+    pub fn max(self, other: Self) -> Self {
         Vector::from_fn(|i| self.index(i).max(other.index(i)))
     }
 
     /// Returns a vector with each element clamped between `min` and `max`.
     #[inline(always)]
-    pub fn clamp(
-        self,
-        min: Vector<N, f64, impl VecAlignment>,
-        max: Vector<N, f64, impl VecAlignment>,
-    ) -> Self {
+    pub fn clamp(self, min: Self, max: Self) -> Self {
         self.max(min).min(max)
     }
 
@@ -217,7 +213,7 @@ where
 
     /// Returns a vector containing the squared distance between each element of `self` and `other`.
     #[inline(always)]
-    pub fn distance_sq(self, other: Vector<N, f64, impl VecAlignment>) -> f64 {
+    pub fn distance_sq(self, other: Self) -> f64 {
         (self - other).mag_sq()
     }
 
@@ -307,7 +303,7 @@ where
     /// The weighted formula can be used by calling [`Self::lerp_weighted`],
     /// and is more numerically stable when interpolating large values that are far away from each other.
     #[inline(always)]
-    pub fn lerp(self, other: Vector<N, f64, impl VecAlignment>, t: f64) -> Self {
+    pub fn lerp(self, other: Self, t: f64) -> Self {
         self.lerp_unclamped(other, t.clamp(0.0, 1.0))
     }
 
@@ -321,7 +317,7 @@ where
     ///
     /// This weighted formula is more numerically stable when interpolating large values that are far away from each other.
     #[inline(always)]
-    pub fn lerp_weighted(self, other: Vector<N, f64, impl VecAlignment>, t: f64) -> Self {
+    pub fn lerp_weighted(self, other: Self, t: f64) -> Self {
         self.lerp_unclamped_weighted(other, t.clamp(0.0, 1.0))
     }
 
@@ -336,7 +332,7 @@ where
     /// The weighted formula can be used by calling [`FloatExt::lerp_unclamped_weighted`],
     /// and is more numerically stable when interpolating large values that are far away from each other.
     #[inline(always)]
-    pub fn lerp_unclamped(self, other: Vector<N, f64, impl VecAlignment>, t: f64) -> Self {
+    pub fn lerp_unclamped(self, other: Self, t: f64) -> Self {
         self + (other - self) * t
     }
 
@@ -350,17 +346,17 @@ where
     ///
     /// This weighted formula is more numerically stable when interpolating large values that are far away from each other.
     #[inline(always)]
-    pub fn lerp_unclamped_weighted(self, other: Vector<N, f64, impl VecAlignment>, t: f64) -> Self {
+    pub fn lerp_unclamped_weighted(self, other: Self, t: f64) -> Self {
         self * (1.0 - t) + other * t
     }
 
     /// Moves `self` towards `target` by at most `max_delta`.
     #[inline(always)]
-    pub fn move_towards(self, target: Vector<N, f64, impl VecAlignment>, max_delta: f64) -> Self {
+    pub fn move_towards(self, target: Self, max_delta: f64) -> Self {
         let delta = target - self;
         let delta_mag = delta.mag();
         if delta_mag <= max_delta || delta_mag <= 1e-4 {
-            return target.to_storage();
+            return target;
         }
         self + delta / delta_mag * max_delta
     }
@@ -562,7 +558,7 @@ where
 
     /// Returns the angle in radians between `self` and `other` in the range `[0.0, π]`.
     #[inline(always)]
-    pub fn angle(self, other: Vector<N, f64, impl VecAlignment>) -> f64 {
+    pub fn angle(self, other: Self) -> f64 {
         (self.dot(other) / (self.mag_sq() * other.mag_sq()).sqrt()).acos()
     }
 }
@@ -571,7 +567,7 @@ where
 impl<A: VecAlignment> Vector<2, f64, A> {
     /// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.
     #[inline(always)]
-    pub fn signed_angle(self, other: Vector<2, f64, impl VecAlignment>) -> f64 {
+    pub fn signed_angle(self, other: Self) -> f64 {
         self.angle(other) * self.perp_dot(other).signum()
     }
 }

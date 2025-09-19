@@ -105,24 +105,13 @@ pub fn src_mod() -> SrcFile {
                 for split in splits(n) join($['\n']) =>
 
                 $(
-                    let alignment_generic_params = split
-                        .iter()
-                        .enumerate()
-                        .filter(|(_, range)| range.len() > 1)
-                        .map(|(range_idx, _)| format!("A{}: VecAlignment", range_idx))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )
-
-                $(
                     let input_type = &format!(
                         "({})",
                         split
                             .iter()
-                            .enumerate()
-                            .map(|(range_idx, range)|
+                            .map(|range|
                                 if range.len() > 1 {
-                                    format!("Vector<{}, T, A{range_idx}>,", range.len())
+                                    format!("Vector<{}, T, A>,", range.len())
                                 } else {
                                     format!("T,")
                                 }
@@ -131,7 +120,7 @@ pub fn src_mod() -> SrcFile {
                     )
                 )
 
-                impl<T: Scalar, A: VecAlignment, $alignment_generic_params> From<$input_type> for Vector<$n, T, A> {
+                impl<T: Scalar, A: VecAlignment> From<$input_type> for Vector<$n, T, A> {
                     fn from(value: $input_type) -> Self {
                         Self::from_array([$(
                             for (range_idx, range) in split.iter().enumerate() join(, ) => $(

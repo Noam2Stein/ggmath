@@ -169,8 +169,8 @@ macro_rules! vec4g {
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>,)> for Vector<2, T, A> {
-    fn from(value: (Vector<2, T, A0>,)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(Vector<2, T, A>,)> for Vector<2, T, A> {
+    fn from(value: (Vector<2, T, A>,)) -> Self {
         Self::from_array([value.0.x(), value.0.y()])
     }
 }
@@ -181,20 +181,20 @@ impl<T: Scalar, A: VecAlignment> From<(T, T)> for Vector<2, T, A> {
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<3, T, A0>,)> for Vector<3, T, A> {
-    fn from(value: (Vector<3, T, A0>,)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(Vector<3, T, A>,)> for Vector<3, T, A> {
+    fn from(value: (Vector<3, T, A>,)) -> Self {
         Self::from_array([value.0.x(), value.0.y(), value.0.z()])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A1: VecAlignment> From<(T, Vector<2, T, A1>)> for Vector<3, T, A> {
-    fn from(value: (T, Vector<2, T, A1>)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(T, Vector<2, T, A>)> for Vector<3, T, A> {
+    fn from(value: (T, Vector<2, T, A>)) -> Self {
         Self::from_array([value.0, value.1.x(), value.1.y()])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, T)> for Vector<3, T, A> {
-    fn from(value: (Vector<2, T, A0>, T)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(Vector<2, T, A>, T)> for Vector<3, T, A> {
+    fn from(value: (Vector<2, T, A>, T)) -> Self {
         Self::from_array([value.0.x(), value.0.y(), value.1])
     }
 }
@@ -205,52 +205,44 @@ impl<T: Scalar, A: VecAlignment> From<(T, T, T)> for Vector<3, T, A> {
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<4, T, A0>,)> for Vector<4, T, A> {
-    fn from(value: (Vector<4, T, A0>,)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(Vector<4, T, A>,)> for Vector<4, T, A> {
+    fn from(value: (Vector<4, T, A>,)) -> Self {
         Self::from_array([value.0.x(), value.0.y(), value.0.z(), value.0.w()])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A1: VecAlignment> From<(T, Vector<3, T, A1>)> for Vector<4, T, A> {
-    fn from(value: (T, Vector<3, T, A1>)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(T, Vector<3, T, A>)> for Vector<4, T, A> {
+    fn from(value: (T, Vector<3, T, A>)) -> Self {
         Self::from_array([value.0, value.1.x(), value.1.y(), value.1.z()])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment, A1: VecAlignment>
-    From<(Vector<2, T, A0>, Vector<2, T, A1>)> for Vector<4, T, A>
-{
-    fn from(value: (Vector<2, T, A0>, Vector<2, T, A1>)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(Vector<2, T, A>, Vector<2, T, A>)> for Vector<4, T, A> {
+    fn from(value: (Vector<2, T, A>, Vector<2, T, A>)) -> Self {
         Self::from_array([value.0.x(), value.0.y(), value.1.x(), value.1.y()])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A2: VecAlignment> From<(T, T, Vector<2, T, A2>)>
-    for Vector<4, T, A>
-{
-    fn from(value: (T, T, Vector<2, T, A2>)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(T, T, Vector<2, T, A>)> for Vector<4, T, A> {
+    fn from(value: (T, T, Vector<2, T, A>)) -> Self {
         Self::from_array([value.0, value.1, value.2.x(), value.2.y()])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<3, T, A0>, T)> for Vector<4, T, A> {
-    fn from(value: (Vector<3, T, A0>, T)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(Vector<3, T, A>, T)> for Vector<4, T, A> {
+    fn from(value: (Vector<3, T, A>, T)) -> Self {
         Self::from_array([value.0.x(), value.0.y(), value.0.z(), value.1])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A1: VecAlignment> From<(T, Vector<2, T, A1>, T)>
-    for Vector<4, T, A>
-{
-    fn from(value: (T, Vector<2, T, A1>, T)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(T, Vector<2, T, A>, T)> for Vector<4, T, A> {
+    fn from(value: (T, Vector<2, T, A>, T)) -> Self {
         Self::from_array([value.0, value.1.x(), value.1.y(), value.2])
     }
 }
 
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, T, T)>
-    for Vector<4, T, A>
-{
-    fn from(value: (Vector<2, T, A0>, T, T)) -> Self {
+impl<T: Scalar, A: VecAlignment> From<(Vector<2, T, A>, T, T)> for Vector<4, T, A> {
+    fn from(value: (Vector<2, T, A>, T, T)) -> Self {
         Self::from_array([value.0.x(), value.0.y(), value.1, value.2])
     }
 }

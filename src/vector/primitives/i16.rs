@@ -243,23 +243,19 @@ where
 
     /// Returns a vector of the minimum of each element between `self` and `other`.
     #[inline(always)]
-    pub fn min(self, other: Vector<N, i16, impl VecAlignment>) -> Self {
+    pub fn min(self, other: Self) -> Self {
         Vector::from_fn(|i| self.index(i).min(other.index(i)))
     }
 
     /// Returns a vector of the maximum of each element between `self` and `other`.
     #[inline(always)]
-    pub fn max(self, other: Vector<N, i16, impl VecAlignment>) -> Self {
+    pub fn max(self, other: Self) -> Self {
         Vector::from_fn(|i| self.index(i).max(other.index(i)))
     }
 
     /// Returns a vector with each element clamped between `min` and `max`.
     #[inline(always)]
-    pub fn clamp(
-        self,
-        min: Vector<N, i16, impl VecAlignment>,
-        max: Vector<N, i16, impl VecAlignment>,
-    ) -> Self {
+    pub fn clamp(self, min: Self, max: Self) -> Self {
         self.max(min).min(max)
     }
 
@@ -301,13 +297,13 @@ where
 
     /// Returns a vector containing the absolute difference between each element of `self` and `other`.
     #[inline(always)]
-    pub fn abs_diff(self, other: Vector<N, i16, impl VecAlignment>) -> Vector<N, u16, A> {
+    pub fn abs_diff(self, other: Self) -> Vector<N, u16, A> {
         Vector::from_fn(|i| self.index(i).abs_diff(other.index(i)))
     }
 
     /// Returns a vector containing the squared distance between each element of `self` and `other`.
     #[inline(always)]
-    pub fn distance_sq(self, other: Vector<N, i16, impl VecAlignment>) -> u16 {
+    pub fn distance_sq(self, other: Self) -> u16 {
         self.abs_diff(other).mag_sq()
     }
 }

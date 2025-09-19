@@ -83,22 +83,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Add<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn add(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn add(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_add(vec, rhs)
@@ -116,78 +111,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Add<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn add(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn add(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).add(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Add<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn add(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn add(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.add(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Add<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Add<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Add<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn add(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn add(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).add(*rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    AddAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    AddAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn add_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn add_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).add(rhs);
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    AddAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Add<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    AddAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn add_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn add_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.add_assign(*rhs);
     }
 }
@@ -229,22 +209,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Sub<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn sub(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn sub(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_sub(vec, rhs)
@@ -262,78 +237,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Sub<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn sub(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn sub(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).sub(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Sub<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn sub(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn sub(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.sub(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Sub<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Sub<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Sub<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn sub(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn sub(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).sub(*rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    SubAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    SubAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn sub_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn sub_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).sub(rhs);
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    SubAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Sub<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    SubAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn sub_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn sub_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.sub_assign(*rhs);
     }
 }
@@ -375,22 +335,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Mul<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn mul(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn mul(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_mul(vec, rhs)
@@ -408,78 +363,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Mul<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn mul(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn mul(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).mul(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Mul<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn mul(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn mul(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.mul(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Mul<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Mul<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Mul<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn mul(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn mul(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).mul(*rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    MulAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    MulAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn mul_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn mul_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).mul(rhs);
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    MulAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Mul<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    MulAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn mul_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn mul_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.mul_assign(*rhs);
     }
 }
@@ -521,22 +461,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Div<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn div(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn div(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_div(vec, rhs)
@@ -554,78 +489,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Div<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn div(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn div(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).div(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Div<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn div(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn div(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.div(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Div<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Div<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Div<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn div(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn div(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).div(*rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    DivAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    DivAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn div_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn div_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).div(rhs);
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    DivAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Div<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    DivAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn div_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn div_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.div_assign(*rhs);
     }
 }
@@ -667,22 +587,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Rem<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn rem(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn rem(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_rem(vec, rhs)
@@ -700,78 +615,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Rem<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn rem(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn rem(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).rem(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Rem<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn rem(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn rem(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.rem(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Rem<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Rem<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Rem<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn rem(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn rem(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).rem(*rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    RemAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    RemAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn rem_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn rem_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).rem(rhs);
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    RemAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Rem<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    RemAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn rem_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn rem_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.rem_assign(*rhs);
     }
 }
@@ -813,22 +713,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shl<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shl(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn shl(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_shl(vec, rhs)
@@ -846,78 +741,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shl<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shl(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn shl(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).shl(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shl<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shl(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn shl(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.shl(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shl<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shl<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shl<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shl(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn shl(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).shl(*rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShlAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    ShlAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn shl_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn shl_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).shl(rhs);
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShlAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shl<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    ShlAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn shl_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn shl_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.shl_assign(*rhs);
     }
 }
@@ -959,22 +839,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shr<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shr(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn shr(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_shr(vec, rhs)
@@ -992,78 +867,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shr<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shr(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn shr(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).shr(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shr<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shr(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn shr(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.shr(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + Shr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> Shr<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    Shr<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn shr(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn shr(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).shr(*rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    ShrAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn shr_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn shr_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).shr(rhs);
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar, A2: VecAlignment>
-    ShrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Shr<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    ShrAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn shr_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn shr_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.shr_assign(*rhs);
     }
 }
@@ -1105,22 +965,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitAnd<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitand(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn bitand(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_bitand(vec, rhs)
@@ -1138,88 +993,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitAnd<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitand(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn bitand(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).bitand(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitAnd<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitand(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn bitand(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.bitand(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAnd<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitAnd<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitand(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn bitand(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).bitand(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAndAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    BitAndAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitand_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn bitand_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).bitand(rhs);
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitAnd<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitAndAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    BitAndAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitand_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn bitand_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.bitand_assign(*rhs);
     }
 }
@@ -1261,22 +1091,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitOr<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn bitor(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_bitor(vec, rhs)
@@ -1294,88 +1119,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitOr<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn bitor(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).bitor(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitOr<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn bitor(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.bitor(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOr<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitOr<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn bitor(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).bitor(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOrAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    BitOrAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitor_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn bitor_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).bitor(rhs);
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitOr<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitOrAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    BitOrAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitor_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn bitor_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.bitor_assign(*rhs);
     }
 }
@@ -1417,22 +1217,17 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitXor<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitxor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn bitxor(self, rhs: Vector<N, T2, A>) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, A>, rhs: Vector<N, T2, A2>) -> Vector<N, T::Output, A>:
+            (self: Vector<N, T, A>, rhs: Vector<N, T2, A>) -> Vector<N, T::Output, A>:
 
             for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, T::Output, VecAligned> {
                 |vec, rhs| T::vec2_bitxor(vec, rhs)
@@ -1450,88 +1245,63 @@ where
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitXor<Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitxor(self, rhs: Vector<N, T2, A2>) -> Self::Output {
+    fn bitxor(self, rhs: Vector<N, T2, A>) -> Self::Output {
         (*self).bitxor(rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitXor<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitxor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn bitxor(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         self.bitxor(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output: Scalar>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXor<&Vector<N, T2, A2>> for &Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, A: VecAlignment, T2: Scalar>
+    BitXor<&Vector<N, T2, A>> for &Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     type Output = Vector<N, T::Output, A>;
 
     #[inline(always)]
-    fn bitxor(self, rhs: &Vector<N, T2, A2>) -> Self::Output {
+    fn bitxor(self, rhs: &Vector<N, T2, A>) -> Self::Output {
         (*self).bitxor(*rhs)
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXorAssign<Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    BitXorAssign<Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitxor_assign(&mut self, rhs: Vector<N, T2, A2>) {
+    fn bitxor_assign(&mut self, rhs: Vector<N, T2, A>) {
         *self = (*self).bitxor(rhs);
     }
 }
 
-impl<
-    const N: usize,
-    T: Scalar + BitXor<T2, Output = T>,
-    A: VecAlignment,
-    T2: Scalar,
-    A2: VecAlignment,
-> BitXorAssign<&Vector<N, T2, A2>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, A: VecAlignment, T2: Scalar>
+    BitXorAssign<&Vector<N, T2, A>> for Vector<N, T, A>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitxor_assign(&mut self, rhs: &Vector<N, T2, A2>) {
+    fn bitxor_assign(&mut self, rhs: &Vector<N, T2, A>) {
         self.bitxor_assign(*rhs);
     }
 }

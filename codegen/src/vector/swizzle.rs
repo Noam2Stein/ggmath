@@ -39,7 +39,7 @@ pub fn src_mod() -> SrcFile {
                             $(format!("/// - The `{}` ({}) component set to the `{}` ({}) component of `value`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
                         )
                         #[inline(always)]
-                        pub fn with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self, value: Vector<$n2, T, impl VecAlignment>) -> Self {
+                        pub fn with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self, value: Vector<$n2, T, A>) -> Self {
                             self.with_shuffle_$(n2)::<$(for &i in &combination join(, ) => $i)>(value)
                         }
                     )
@@ -54,7 +54,7 @@ pub fn src_mod() -> SrcFile {
                             $(format!("/// - Sets the `{}` ({}) component of `self` to the `{}` ({}) component of `value`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
                         )
                         #[inline(always)]
-                        pub fn set_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(&mut self, value: Vector<$n2, T, impl VecAlignment>) {
+                        pub fn set_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(&mut self, value: Vector<$n2, T, A>) {
                             *self = self.with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(value);
                         }
                     )
