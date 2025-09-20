@@ -155,10 +155,14 @@ fn test_vec2_eq_mask() {
     );
     assert_eq!(
         vec2!(0.0f32, 1.0f32).eq_mask(vec2!(0.0f32, 0.0f32)),
-        vec2!(true, false)
+        vec2!(true, false),
     );
     assert_eq!(
         vec2!(0.0f32, 1.0f32).eq_mask(vec2!(2.0f32, 3.0f32)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(f32::NAN, f32::NAN).eq_mask(vec2!(f32::NAN, f32::NAN)),
         vec2!(false, false)
     );
 }
@@ -171,10 +175,94 @@ fn test_vec2_ne_mask() {
     );
     assert_eq!(
         vec2!(0.0f32, 1.0f32).ne_mask(vec2!(0.0f32, 0.0f32)),
-        vec2!(false, true)
+        vec2!(false, true),
     );
     assert_eq!(
         vec2!(0.0f32, 1.0f32).ne_mask(vec2!(2.0f32, 3.0f32)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(f32::NAN, f32::NAN).ne_mask(vec2!(f32::NAN, f32::NAN)),
+        vec2!(true, true)
+    );
+}
+
+#[test]
+fn test_vec2_lt_mask() {
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).lt_mask(vec2!(0.0f32, 1.0f32)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).lt_mask(vec2!(1.0f32, 0.0f32)),
+        vec2!(true, false),
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).lt_mask(vec2!(2.0f32, 3.0f32)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(2.0f32, 3.0f32).lt_mask(vec2!(0.0f32, 1.0f32)),
+        vec2!(false, false)
+    );
+}
+
+#[test]
+fn test_vec2_gt_mask() {
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).gt_mask(vec2!(0.0f32, 1.0f32)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).gt_mask(vec2!(1.0f32, 0.0f32)),
+        vec2!(false, true),
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).gt_mask(vec2!(2.0f32, 3.0f32)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(2.0f32, 3.0f32).gt_mask(vec2!(0.0f32, 1.0f32)),
+        vec2!(true, true)
+    );
+}
+
+#[test]
+fn test_vec2_le_mask() {
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).le_mask(vec2!(0.0f32, 1.0f32)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).le_mask(vec2!(1.0f32, 0.0f32)),
+        vec2!(true, false),
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).le_mask(vec2!(2.0f32, 3.0f32)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(2.0f32, 3.0f32).le_mask(vec2!(0.0f32, 1.0f32)),
+        vec2!(false, false)
+    );
+}
+
+#[test]
+fn test_vec2_ge_mask() {
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).ge_mask(vec2!(0.0f32, 1.0f32)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).ge_mask(vec2!(1.0f32, 0.0f32)),
+        vec2!(false, true),
+    );
+    assert_eq!(
+        vec2!(0.0f32, 1.0f32).ge_mask(vec2!(2.0f32, 3.0f32)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(2.0f32, 3.0f32).ge_mask(vec2!(0.0f32, 1.0f32)),
         vec2!(true, true)
     );
 }
@@ -351,10 +439,14 @@ fn test_vec2p_eq_mask() {
     );
     assert_eq!(
         vec2p!(0.0f32, 1.0f32).eq_mask(vec2p!(0.0f32, 0.0f32)),
-        vec2p!(true, false)
+        vec2p!(true, false),
     );
     assert_eq!(
         vec2p!(0.0f32, 1.0f32).eq_mask(vec2p!(2.0f32, 3.0f32)),
+        vec2p!(false, false)
+    );
+    assert_eq!(
+        vec2p!(f32::NAN, f32::NAN).eq_mask(vec2p!(f32::NAN, f32::NAN)),
         vec2p!(false, false)
     );
 }
@@ -367,10 +459,94 @@ fn test_vec2p_ne_mask() {
     );
     assert_eq!(
         vec2p!(0.0f32, 1.0f32).ne_mask(vec2p!(0.0f32, 0.0f32)),
-        vec2p!(false, true)
+        vec2p!(false, true),
     );
     assert_eq!(
         vec2p!(0.0f32, 1.0f32).ne_mask(vec2p!(2.0f32, 3.0f32)),
+        vec2p!(true, true)
+    );
+    assert_eq!(
+        vec2p!(f32::NAN, f32::NAN).ne_mask(vec2p!(f32::NAN, f32::NAN)),
+        vec2p!(true, true)
+    );
+}
+
+#[test]
+fn test_vec2p_lt_mask() {
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).lt_mask(vec2p!(0.0f32, 1.0f32)),
+        vec2p!(false, false)
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).lt_mask(vec2p!(1.0f32, 0.0f32)),
+        vec2p!(true, false),
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).lt_mask(vec2p!(2.0f32, 3.0f32)),
+        vec2p!(true, true)
+    );
+    assert_eq!(
+        vec2p!(2.0f32, 3.0f32).lt_mask(vec2p!(0.0f32, 1.0f32)),
+        vec2p!(false, false)
+    );
+}
+
+#[test]
+fn test_vec2p_gt_mask() {
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).gt_mask(vec2p!(0.0f32, 1.0f32)),
+        vec2p!(false, false)
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).gt_mask(vec2p!(1.0f32, 0.0f32)),
+        vec2p!(false, true),
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).gt_mask(vec2p!(2.0f32, 3.0f32)),
+        vec2p!(false, false)
+    );
+    assert_eq!(
+        vec2p!(2.0f32, 3.0f32).gt_mask(vec2p!(0.0f32, 1.0f32)),
+        vec2p!(true, true)
+    );
+}
+
+#[test]
+fn test_vec2p_le_mask() {
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).le_mask(vec2p!(0.0f32, 1.0f32)),
+        vec2p!(true, true)
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).le_mask(vec2p!(1.0f32, 0.0f32)),
+        vec2p!(true, false),
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).le_mask(vec2p!(2.0f32, 3.0f32)),
+        vec2p!(true, true)
+    );
+    assert_eq!(
+        vec2p!(2.0f32, 3.0f32).le_mask(vec2p!(0.0f32, 1.0f32)),
+        vec2p!(false, false)
+    );
+}
+
+#[test]
+fn test_vec2p_ge_mask() {
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).ge_mask(vec2p!(0.0f32, 1.0f32)),
+        vec2p!(true, true)
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).ge_mask(vec2p!(1.0f32, 0.0f32)),
+        vec2p!(false, true),
+    );
+    assert_eq!(
+        vec2p!(0.0f32, 1.0f32).ge_mask(vec2p!(2.0f32, 3.0f32)),
+        vec2p!(false, false)
+    );
+    assert_eq!(
+        vec2p!(2.0f32, 3.0f32).ge_mask(vec2p!(0.0f32, 1.0f32)),
         vec2p!(true, true)
     );
 }
@@ -579,10 +755,14 @@ fn test_vec3_eq_mask() {
     );
     assert_eq!(
         vec3!(0.0f32, 1.0f32, 2.0f32).eq_mask(vec3!(0.0f32, 0.0f32, 2.0f32)),
-        vec3!(true, false, true)
+        vec3!(true, false, true),
     );
     assert_eq!(
         vec3!(0.0f32, 1.0f32, 2.0f32).eq_mask(vec3!(3.0f32, 4.0f32, 5.0f32)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(f32::NAN, f32::NAN, f32::NAN).eq_mask(vec3!(f32::NAN, f32::NAN, f32::NAN)),
         vec3!(false, false, false)
     );
 }
@@ -595,10 +775,94 @@ fn test_vec3_ne_mask() {
     );
     assert_eq!(
         vec3!(0.0f32, 1.0f32, 2.0f32).ne_mask(vec3!(0.0f32, 0.0f32, 2.0f32)),
-        vec3!(false, true, false)
+        vec3!(false, true, false),
     );
     assert_eq!(
         vec3!(0.0f32, 1.0f32, 2.0f32).ne_mask(vec3!(3.0f32, 4.0f32, 5.0f32)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(f32::NAN, f32::NAN, f32::NAN).ne_mask(vec3!(f32::NAN, f32::NAN, f32::NAN)),
+        vec3!(true, true, true)
+    );
+}
+
+#[test]
+fn test_vec3_lt_mask() {
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).lt_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).lt_mask(vec3!(1.0f32, 0.0f32, 2.0f32)),
+        vec3!(true, false, false),
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).lt_mask(vec3!(3.0f32, 4.0f32, 5.0f32)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(3.0f32, 4.0f32, 5.0f32).lt_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        vec3!(false, false, false)
+    );
+}
+
+#[test]
+fn test_vec3_gt_mask() {
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).gt_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).gt_mask(vec3!(1.0f32, 0.0f32, 2.0f32)),
+        vec3!(false, true, false),
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).gt_mask(vec3!(3.0f32, 4.0f32, 5.0f32)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(3.0f32, 4.0f32, 5.0f32).gt_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        vec3!(true, true, true)
+    );
+}
+
+#[test]
+fn test_vec3_le_mask() {
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).le_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).le_mask(vec3!(1.0f32, 0.0f32, 2.0f32)),
+        vec3!(true, false, true),
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).le_mask(vec3!(3.0f32, 4.0f32, 5.0f32)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(3.0f32, 4.0f32, 5.0f32).le_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        vec3!(false, false, false)
+    );
+}
+
+#[test]
+fn test_vec3_ge_mask() {
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).ge_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).ge_mask(vec3!(1.0f32, 0.0f32, 2.0f32)),
+        vec3!(false, true, true),
+    );
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32).ge_mask(vec3!(3.0f32, 4.0f32, 5.0f32)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(3.0f32, 4.0f32, 5.0f32).ge_mask(vec3!(0.0f32, 1.0f32, 2.0f32)),
         vec3!(true, true, true)
     );
 }
@@ -826,10 +1090,14 @@ fn test_vec3p_eq_mask() {
     );
     assert_eq!(
         vec3p!(0.0f32, 1.0f32, 2.0f32).eq_mask(vec3p!(0.0f32, 0.0f32, 2.0f32)),
-        vec3p!(true, false, true)
+        vec3p!(true, false, true),
     );
     assert_eq!(
         vec3p!(0.0f32, 1.0f32, 2.0f32).eq_mask(vec3p!(3.0f32, 4.0f32, 5.0f32)),
+        vec3p!(false, false, false)
+    );
+    assert_eq!(
+        vec3p!(f32::NAN, f32::NAN, f32::NAN).eq_mask(vec3p!(f32::NAN, f32::NAN, f32::NAN)),
         vec3p!(false, false, false)
     );
 }
@@ -842,10 +1110,94 @@ fn test_vec3p_ne_mask() {
     );
     assert_eq!(
         vec3p!(0.0f32, 1.0f32, 2.0f32).ne_mask(vec3p!(0.0f32, 0.0f32, 2.0f32)),
-        vec3p!(false, true, false)
+        vec3p!(false, true, false),
     );
     assert_eq!(
         vec3p!(0.0f32, 1.0f32, 2.0f32).ne_mask(vec3p!(3.0f32, 4.0f32, 5.0f32)),
+        vec3p!(true, true, true)
+    );
+    assert_eq!(
+        vec3p!(f32::NAN, f32::NAN, f32::NAN).ne_mask(vec3p!(f32::NAN, f32::NAN, f32::NAN)),
+        vec3p!(true, true, true)
+    );
+}
+
+#[test]
+fn test_vec3p_lt_mask() {
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).lt_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        vec3p!(false, false, false)
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).lt_mask(vec3p!(1.0f32, 0.0f32, 2.0f32)),
+        vec3p!(true, false, false),
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).lt_mask(vec3p!(3.0f32, 4.0f32, 5.0f32)),
+        vec3p!(true, true, true)
+    );
+    assert_eq!(
+        vec3p!(3.0f32, 4.0f32, 5.0f32).lt_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        vec3p!(false, false, false)
+    );
+}
+
+#[test]
+fn test_vec3p_gt_mask() {
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).gt_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        vec3p!(false, false, false)
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).gt_mask(vec3p!(1.0f32, 0.0f32, 2.0f32)),
+        vec3p!(false, true, false),
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).gt_mask(vec3p!(3.0f32, 4.0f32, 5.0f32)),
+        vec3p!(false, false, false)
+    );
+    assert_eq!(
+        vec3p!(3.0f32, 4.0f32, 5.0f32).gt_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        vec3p!(true, true, true)
+    );
+}
+
+#[test]
+fn test_vec3p_le_mask() {
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).le_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        vec3p!(true, true, true)
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).le_mask(vec3p!(1.0f32, 0.0f32, 2.0f32)),
+        vec3p!(true, false, true),
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).le_mask(vec3p!(3.0f32, 4.0f32, 5.0f32)),
+        vec3p!(true, true, true)
+    );
+    assert_eq!(
+        vec3p!(3.0f32, 4.0f32, 5.0f32).le_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        vec3p!(false, false, false)
+    );
+}
+
+#[test]
+fn test_vec3p_ge_mask() {
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).ge_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        vec3p!(true, true, true)
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).ge_mask(vec3p!(1.0f32, 0.0f32, 2.0f32)),
+        vec3p!(false, true, true),
+    );
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32).ge_mask(vec3p!(3.0f32, 4.0f32, 5.0f32)),
+        vec3p!(false, false, false)
+    );
+    assert_eq!(
+        vec3p!(3.0f32, 4.0f32, 5.0f32).ge_mask(vec3p!(0.0f32, 1.0f32, 2.0f32)),
         vec3p!(true, true, true)
     );
 }
@@ -1111,10 +1463,19 @@ fn test_vec4_eq_mask() {
     );
     assert_eq!(
         vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).eq_mask(vec4!(0.0f32, 0.0f32, 2.0f32, 3.0f32)),
-        vec4!(true, false, true, true)
+        vec4!(true, false, true, true),
     );
     assert_eq!(
         vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).eq_mask(vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(f32::NAN, f32::NAN, f32::NAN, f32::NAN).eq_mask(vec4!(
+            f32::NAN,
+            f32::NAN,
+            f32::NAN,
+            f32::NAN
+        )),
         vec4!(false, false, false, false)
     );
 }
@@ -1127,10 +1488,99 @@ fn test_vec4_ne_mask() {
     );
     assert_eq!(
         vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ne_mask(vec4!(0.0f32, 0.0f32, 2.0f32, 3.0f32)),
-        vec4!(false, true, false, false)
+        vec4!(false, true, false, false),
     );
     assert_eq!(
         vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ne_mask(vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(f32::NAN, f32::NAN, f32::NAN, f32::NAN).ne_mask(vec4!(
+            f32::NAN,
+            f32::NAN,
+            f32::NAN,
+            f32::NAN
+        )),
+        vec4!(true, true, true, true)
+    );
+}
+
+#[test]
+fn test_vec4_lt_mask() {
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).lt_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).lt_mask(vec4!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4!(true, false, false, false),
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).lt_mask(vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32).lt_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_vec4_gt_mask() {
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).gt_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).gt_mask(vec4!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4!(false, true, false, false),
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).gt_mask(vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32).gt_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4!(true, true, true, true)
+    );
+}
+
+#[test]
+fn test_vec4_le_mask() {
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).le_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).le_mask(vec4!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4!(true, false, true, true),
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).le_mask(vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32).le_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_vec4_ge_mask() {
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ge_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ge_mask(vec4!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4!(false, true, true, true),
+    );
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ge_mask(vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(4.0f32, 5.0f32, 6.0f32, 7.0f32).ge_mask(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
         vec4!(true, true, true, true)
     );
 }
@@ -1397,10 +1847,19 @@ fn test_vec4p_eq_mask() {
     );
     assert_eq!(
         vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).eq_mask(vec4p!(0.0f32, 0.0f32, 2.0f32, 3.0f32)),
-        vec4p!(true, false, true, true)
+        vec4p!(true, false, true, true),
     );
     assert_eq!(
         vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).eq_mask(vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4p!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4p!(f32::NAN, f32::NAN, f32::NAN, f32::NAN).eq_mask(vec4p!(
+            f32::NAN,
+            f32::NAN,
+            f32::NAN,
+            f32::NAN
+        )),
         vec4p!(false, false, false, false)
     );
 }
@@ -1413,10 +1872,99 @@ fn test_vec4p_ne_mask() {
     );
     assert_eq!(
         vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ne_mask(vec4p!(0.0f32, 0.0f32, 2.0f32, 3.0f32)),
-        vec4p!(false, true, false, false)
+        vec4p!(false, true, false, false),
     );
     assert_eq!(
         vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ne_mask(vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4p!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4p!(f32::NAN, f32::NAN, f32::NAN, f32::NAN).ne_mask(vec4p!(
+            f32::NAN,
+            f32::NAN,
+            f32::NAN,
+            f32::NAN
+        )),
+        vec4p!(true, true, true, true)
+    );
+}
+
+#[test]
+fn test_vec4p_lt_mask() {
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).lt_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4p!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).lt_mask(vec4p!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4p!(true, false, false, false),
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).lt_mask(vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4p!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32).lt_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4p!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_vec4p_gt_mask() {
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).gt_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4p!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).gt_mask(vec4p!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4p!(false, true, false, false),
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).gt_mask(vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4p!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32).gt_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4p!(true, true, true, true)
+    );
+}
+
+#[test]
+fn test_vec4p_le_mask() {
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).le_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4p!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).le_mask(vec4p!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4p!(true, false, true, true),
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).le_mask(vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4p!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32).le_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4p!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_vec4p_ge_mask() {
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ge_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        vec4p!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ge_mask(vec4p!(1.0f32, 0.0f32, 2.0f32, 3.0f32)),
+        vec4p!(false, true, true, true),
+    );
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32).ge_mask(vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32)),
+        vec4p!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4p!(4.0f32, 5.0f32, 6.0f32, 7.0f32).ge_mask(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
         vec4p!(true, true, true, true)
     );
 }

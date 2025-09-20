@@ -5,7 +5,7 @@ use genco::{
     quote, tokens::quoted,
 };
 
-use crate::constants::{FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, SINT_PRIMITIVES, UINT_PRIMITIVES};
+use crate::constants::{FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, NUM_PRIMITIVES, SINT_PRIMITIVES, UINT_PRIMITIVES};
 
 pub fn push_src(
     primitive: &str,
@@ -123,9 +123,6 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                 _ => unreachable!(),
             })
             $(let values2_str = &values2.join(", "))
-
-            $(let values_diff_y = (0..n).map(|i| if i == 1 { values[0].clone() } else { values[i].clone() }).collect::<Vec<_>>())
-            $(let values_diff_y_str = &values_diff_y.join(", "))
 
             const _: () = assert!(size_of::<Vec$(n)P<$primitive>>() == size_of::<[$primitive; $n]>());
 
@@ -334,32 +331,158 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                 #[test]
                 fn test_$(vec_lowercase)_eq_mask() {
                     assert_eq!($vec_lowercase!($values_str).eq_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
-                    assert_eq!($vec_lowercase!($values_str).eq_mask($vec_lowercase!($values_diff_y_str)), $vec_lowercase!($(
-                        for i in 0..n join(, ) => $(if i == 1 { false } else { true })
-                    )));
+                    assert_eq!(
+                        $vec_lowercase!($values_str).eq_mask($vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
+                        )),
+                        $vec_lowercase!($(
+                            for i in 0..n join(, ) => $(if i == 1 { false } else { true })
+                        )),
+                    );
                     assert_eq!($vec_lowercase!($values_str).eq_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+
+                    $(
+                        if FLOAT_PRIMITIVES.contains(&primitive) {
+                            $(let nan_values_str = &(0..n).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
+                            assert_eq!($vec_lowercase!($nan_values_str).eq_mask($vec_lowercase!($nan_values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                        }
+                    )
                 }
 
                 #[test]
                 fn test_$(vec_lowercase)_ne_mask() {
                     assert_eq!($vec_lowercase!($values_str).ne_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
-                    assert_eq!($vec_lowercase!($values_str).ne_mask($vec_lowercase!($values_diff_y_str)), $vec_lowercase!($(
-                        for i in 0..n join(, ) => $(if i == 1 { true } else { false })
-                    )));
+                    assert_eq!(
+                        $vec_lowercase!($values_str).ne_mask($vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
+                        )),
+                        $vec_lowercase!($(
+                            for i in 0..n join(, ) => $(if i == 1 { true } else { false })
+                        )),
+                    );
                     assert_eq!($vec_lowercase!($values_str).ne_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+
+                    $(
+                        if FLOAT_PRIMITIVES.contains(&primitive) {
+                            $(let nan_values_str = &(0..n).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
+                            assert_eq!($vec_lowercase!($nan_values_str).ne_mask($vec_lowercase!($nan_values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                        }
+                    )
+                }
+
+                #[test]
+                fn test_$(vec_lowercase)_lt_mask() {
+                    assert_eq!($vec_lowercase!($values_str).lt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                    assert_eq!(
+                        $vec_lowercase!($values_str).lt_mask($vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(match i {
+                                0 => $(&values[1]),
+                                1 => $(&values[0]),
+                                i => $(&values[i]),
+                            }))
+                        )),
+                        $vec_lowercase!($(
+                            for i in 0..n join(, ) => $(if i == 0 { true } else { false })
+                        )),
+                    );
+                    $(
+                        if NUM_PRIMITIVES.contains(&primitive) {
+                            assert_eq!($vec_lowercase!($values_str).lt_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                            assert_eq!($vec_lowercase!($values2_str).lt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                        }
+                    )
+                }
+
+                #[test]
+                fn test_$(vec_lowercase)_gt_mask() {
+                    assert_eq!($vec_lowercase!($values_str).gt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                    assert_eq!(
+                        $vec_lowercase!($values_str).gt_mask($vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(match i {
+                                0 => $(&values[1]),
+                                1 => $(&values[0]),
+                                i => $(&values[i]),
+                            }))
+                        )),
+                        $vec_lowercase!($(
+                            for i in 0..n join(, ) => $(if i == 1 { true } else { false })
+                        )),
+                    );
+                    $(
+                        if NUM_PRIMITIVES.contains(&primitive) {
+                            assert_eq!($vec_lowercase!($values_str).gt_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                            assert_eq!($vec_lowercase!($values2_str).gt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                        }
+                    )
+                }
+
+                #[test]
+                fn test_$(vec_lowercase)_le_mask() {
+                    assert_eq!($vec_lowercase!($values_str).le_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                    assert_eq!(
+                        $vec_lowercase!($values_str).le_mask($vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(match i {
+                                0 => $(&values[1]),
+                                1 => $(&values[0]),
+                                i => $(&values[i]),
+                            }))
+                        )),
+                        $vec_lowercase!($(
+                            for i in 0..n join(, ) => $(if i == 1 { false } else { true })
+                        )),
+                    );
+                    $(
+                        if NUM_PRIMITIVES.contains(&primitive) {
+                            assert_eq!($vec_lowercase!($values_str).le_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                            assert_eq!($vec_lowercase!($values2_str).le_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                        }
+                    )
+                }
+
+                #[test]
+                fn test_$(vec_lowercase)_ge_mask() {
+                    assert_eq!($vec_lowercase!($values_str).ge_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                    assert_eq!(
+                        $vec_lowercase!($values_str).ge_mask($vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(match i {
+                                0 => $(&values[1]),
+                                1 => $(&values[0]),
+                                i => $(&values[i]),
+                            }))
+                        )),
+                        $vec_lowercase!($(
+                            for i in 0..n join(, ) => $(if i == 0 { false } else { true })
+                        )),
+                    );
+                    $(
+                        if NUM_PRIMITIVES.contains(&primitive) {
+                            assert_eq!($vec_lowercase!($values_str).ge_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                            assert_eq!($vec_lowercase!($values2_str).ge_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                        }
+                    )
                 }
 
                 #[test]
                 fn test_$(vec_lowercase)_eq() {
                     assert_eq!($vec_lowercase!($values_str) == $vec_lowercase!($values_str), true);
-                    assert_eq!($vec_lowercase!($values_str) == $vec_lowercase!($values_diff_y_str), false);
+                    assert_eq!(
+                        $vec_lowercase!($values_str) == $vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
+                        ),
+                        false
+                    );
                     assert_eq!($vec_lowercase!($values_str) == $vec_lowercase!($values2_str), false);
                 }
                 
                 #[test]
                 fn test_$(vec_lowercase)_ne() {
                     assert_eq!($vec_lowercase!($values_str) != $vec_lowercase!($values_str), false);
-                    assert_eq!($vec_lowercase!($values_str) != $vec_lowercase!($values_diff_y_str), true);
+                    assert_eq!(
+                        $vec_lowercase!($values_str) != $vec_lowercase!(
+                            $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
+                        ),
+                        true
+                    );
                     assert_eq!($vec_lowercase!($values_str) != $vec_lowercase!($values2_str), true);
                 }
 
