@@ -255,6 +255,14 @@ fn test_vec2_display() {
 }
 
 #[test]
+fn test_vec2_const_from_array() {
+    assert_eq!(
+        Vec2::<bool>::const_from_array([false, true]),
+        Vec2::from_array([false, true])
+    );
+}
+
+#[test]
 fn test_vec2p_constructor() {
     assert_eq!(vec2p!(false, true), Vec2P::from_array([false, true]));
     assert_eq!(
@@ -516,6 +524,14 @@ fn test_vec2p_debug() {
 #[test]
 fn test_vec2p_display() {
     assert_eq!(format!("{}", vec2p!(false, true)), "(false, true)");
+}
+
+#[test]
+fn test_vec2p_const_from_array() {
+    assert_eq!(
+        Vec2P::<bool>::const_from_array([false, true]),
+        Vec2P::from_array([false, true])
+    );
 }
 
 const _: () = assert!(size_of::<Vec3P<bool>>() == size_of::<[bool; 3]>());
@@ -826,6 +842,14 @@ fn test_vec3_display() {
     assert_eq!(
         format!("{}", vec3!(false, true, false)),
         "(false, true, false)"
+    );
+}
+
+#[test]
+fn test_vec3_const_from_array() {
+    assert_eq!(
+        Vec3::<bool>::const_from_array([false, true, false]),
+        Vec3::from_array([false, true, false])
     );
 }
 
@@ -1178,6 +1202,14 @@ fn test_vec3p_display() {
     assert_eq!(
         format!("{}", vec3p!(false, true, false)),
         "(false, true, false)"
+    );
+}
+
+#[test]
+fn test_vec3p_const_from_array() {
+    assert_eq!(
+        Vec3P::<bool>::const_from_array([false, true, false]),
+        Vec3P::from_array([false, true, false])
     );
 }
 
@@ -1535,6 +1567,14 @@ fn test_vec4_display() {
     assert_eq!(
         format!("{}", vec4!(false, true, false, true)),
         "(false, true, false, true)"
+    );
+}
+
+#[test]
+fn test_vec4_const_from_array() {
+    assert_eq!(
+        Vec4::<bool>::const_from_array([false, true, false, true]),
+        Vec4::from_array([false, true, false, true])
     );
 }
 
@@ -1937,5 +1977,13 @@ fn test_vec4p_display() {
     assert_eq!(
         format!("{}", vec4p!(false, true, false, true)),
         "(false, true, false, true)"
+    );
+}
+
+#[test]
+fn test_vec4p_const_from_array() {
+    assert_eq!(
+        Vec4P::<bool>::const_from_array([false, true, false, true]),
+        Vec4P::from_array([false, true, false, true])
     );
 }

@@ -534,6 +534,14 @@ fn test_vec4_display() {
 }
 
 #[test]
+fn test_vec4_const_from_array() {
+    assert_eq!(
+        Vec4::<f64>::const_from_array([0.0f64, 1.0f64, 2.0f64, 3.0f64]),
+        Vec4::from_array([0.0f64, 1.0f64, 2.0f64, 3.0f64])
+    );
+}
+
+#[test]
 fn test_vec4p_constructor() {
     assert_eq!(
         vec4p!(0.0f64, 1.0f64, 2.0f64, 3.0f64),

@@ -310,6 +310,14 @@ fn test_vec2_display() {
 }
 
 #[test]
+fn test_vec2_const_from_array() {
+    assert_eq!(
+        Vec2::<f32>::const_from_array([0.0f32, 1.0f32]),
+        Vec2::from_array([0.0f32, 1.0f32])
+    );
+}
+
+#[test]
 fn test_vec2p_constructor() {
     assert_eq!(vec2p!(0.0f32, 1.0f32), Vec2P::from_array([0.0f32, 1.0f32]));
     assert_eq!(
@@ -626,6 +634,14 @@ fn test_vec2p_debug() {
 #[test]
 fn test_vec2p_display() {
     assert_eq!(format!("{}", vec2p!(0.0f32, 1.0f32)), "(0, 1)");
+}
+
+#[test]
+fn test_vec2p_const_from_array() {
+    assert_eq!(
+        Vec2P::<f32>::const_from_array([0.0f32, 1.0f32]),
+        Vec2P::from_array([0.0f32, 1.0f32])
+    );
 }
 
 const _: () = assert!(size_of::<Vec3P<f32>>() == size_of::<[f32; 3]>());
@@ -995,6 +1011,14 @@ fn test_vec3_debug() {
 #[test]
 fn test_vec3_display() {
     assert_eq!(format!("{}", vec3!(0.0f32, 1.0f32, 2.0f32)), "(0, 1, 2)");
+}
+
+#[test]
+fn test_vec3_const_from_array() {
+    assert_eq!(
+        Vec3::<f32>::const_from_array([0.0f32, 1.0f32, 2.0f32]),
+        Vec3::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
 }
 
 #[test]
@@ -1393,6 +1417,14 @@ fn test_vec3p_debug() {
 #[test]
 fn test_vec3p_display() {
     assert_eq!(format!("{}", vec3p!(0.0f32, 1.0f32, 2.0f32)), "(0, 1, 2)");
+}
+
+#[test]
+fn test_vec3p_const_from_array() {
+    assert_eq!(
+        Vec3P::<f32>::const_from_array([0.0f32, 1.0f32, 2.0f32]),
+        Vec3P::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
 }
 
 const _: () = assert!(size_of::<Vec4P<f32>>() == size_of::<[f32; 4]>());
@@ -1814,6 +1846,14 @@ fn test_vec4_display() {
     assert_eq!(
         format!("{}", vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
         "(0, 1, 2, 3)"
+    );
+}
+
+#[test]
+fn test_vec4_const_from_array() {
+    assert_eq!(
+        Vec4::<f32>::const_from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32]),
+        Vec4::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
     );
 }
 
@@ -2281,5 +2321,13 @@ fn test_vec4p_display() {
     assert_eq!(
         format!("{}", vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
         "(0, 1, 2, 3)"
+    );
+}
+
+#[test]
+fn test_vec4p_const_from_array() {
+    assert_eq!(
+        Vec4P::<f32>::const_from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32]),
+        Vec4P::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
     );
 }

@@ -450,6 +450,14 @@ fn test_vec4_display() {
 }
 
 #[test]
+fn test_vec4_const_from_array() {
+    assert_eq!(
+        Vec4::<i8>::const_from_array([0i8, 1i8, 2i8, 3i8]),
+        Vec4::from_array([0i8, 1i8, 2i8, 3i8])
+    );
+}
+
+#[test]
 fn test_vec4p_constructor() {
     assert_eq!(
         vec4p!(0i8, 1i8, 2i8, 3i8),

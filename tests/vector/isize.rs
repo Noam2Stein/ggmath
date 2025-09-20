@@ -516,6 +516,14 @@ fn test_vec4_display() {
 }
 
 #[test]
+fn test_vec4_const_from_array() {
+    assert_eq!(
+        Vec4::<isize>::const_from_array([0isize, 1isize, 2isize, 3isize]),
+        Vec4::from_array([0isize, 1isize, 2isize, 3isize])
+    );
+}
+
+#[test]
 fn test_vec4p_constructor() {
     assert_eq!(
         vec4p!(0isize, 1isize, 2isize, 3isize),

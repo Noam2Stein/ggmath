@@ -477,6 +477,14 @@ fn test_vec4_display() {
 }
 
 #[test]
+fn test_vec4_const_from_array() {
+    assert_eq!(
+        Vec4::<u16>::const_from_array([0u16, 1u16, 2u16, 3u16]),
+        Vec4::from_array([0u16, 1u16, 2u16, 3u16])
+    );
+}
+
+#[test]
 fn test_vec4p_constructor() {
     assert_eq!(
         vec4p!(0u16, 1u16, 2u16, 3u16),

@@ -676,6 +676,11 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                         $(let expected_str = quoted(format!("({})", expected_value_strs.join(", "))));
                         assert_eq!(format!("{}", $vec_lowercase!($values_str)), $expected_str);
                     }
+
+                    #[test]
+                    fn test_$(vec_lowercase)_const_from_array() {
+                        assert_eq!($vec_camelcase::<$primitive>::const_from_array([$values_str]), $vec_camelcase::from_array([$values_str]));
+                    }
                 )
             )
         )
