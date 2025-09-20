@@ -297,6 +297,83 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                 }
 
                 #[test]
+                fn test_$(vec_lowercase)_with_swizzle() {
+                    $(match n {
+                        2 => {
+                            assert_eq!($vec_lowercase!($values_str).with_y($(&values[0])), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                            assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(a_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    0 => $(&values[1]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                        }
+                        3 => {
+                            assert_eq!($vec_lowercase!($values_str).with_y($(&values[0])), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                            assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(a_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    0 => $(&values[1]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                            assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    0 => $(&values[2]),
+                                    2 => $(&values[1]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                        }
+                        4 => {
+                            assert_eq!($vec_lowercase!($values_str).with_y($(&values[0])), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                            assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(a_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    0 => $(&values[1]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                            assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    0 => $(&values[2]),
+                                    2 => $(&values[1]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                            assert_eq!($vec_lowercase!($values_str).with_yxzw(vec4$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]), $(&values[0]))), $vec_lowercase!($(
+                                for i in 0..n join(, ) => $(match i {
+                                    1 => $(&values[0]),
+                                    0 => $(&values[2]),
+                                    2 => $(&values[1]),
+                                    3 => $(&values[0]),
+                                    i => $(&values[i]),
+                                })
+                            )));
+                        }
+                        _ => unreachable!("unhandled vector length"),
+                    })
+                }
+
+                #[test]
                 fn test_$(vec_lowercase)_fold() {
                     $(match primitive {
                         _ if INT_PRIMITIVES.contains(&primitive) => {

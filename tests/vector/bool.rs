@@ -126,6 +126,15 @@ fn test_vec2_swizzle() {
 }
 
 #[test]
+fn test_vec2_with_swizzle() {
+    assert_eq!(vec2!(false, true).with_y(false), vec2!(false, false));
+    assert_eq!(
+        vec2!(false, true).with_yx(vec2!(false, true)),
+        vec2!(true, false)
+    );
+}
+
+#[test]
 fn test_vec2_fold() {
     assert_eq!(vec2!(false, true).fold(false, |acc, x| acc | x), true);
 }
@@ -355,6 +364,15 @@ fn test_vec2p_swizzle() {
     assert_eq!(vec2p!(false, true).yx(), vec2p!(true, false));
     assert_eq!(vec2p!(false, true).yxy(), vec3p!(true, false, true));
     assert_eq!(vec2p!(false, true).yxyy(), vec4p!(true, false, true, true));
+}
+
+#[test]
+fn test_vec2p_with_swizzle() {
+    assert_eq!(vec2p!(false, true).with_y(false), vec2p!(false, false));
+    assert_eq!(
+        vec2p!(false, true).with_yx(vec2p!(false, true)),
+        vec2p!(true, false)
+    );
 }
 
 #[test]
@@ -615,6 +633,22 @@ fn test_vec3_swizzle() {
     assert_eq!(
         vec3!(false, true, false).zxyz(),
         vec4!(false, false, true, false)
+    );
+}
+
+#[test]
+fn test_vec3_with_swizzle() {
+    assert_eq!(
+        vec3!(false, true, false).with_y(false),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(false, true, false).with_yx(vec2!(false, true)),
+        vec3!(true, false, false)
+    );
+    assert_eq!(
+        vec3!(false, true, false).with_yxz(vec3!(false, false, true)),
+        vec3!(false, false, true)
     );
 }
 
@@ -898,6 +932,22 @@ fn test_vec3p_swizzle() {
     assert_eq!(
         vec3p!(false, true, false).zxyz(),
         vec4p!(false, false, true, false)
+    );
+}
+
+#[test]
+fn test_vec3p_with_swizzle() {
+    assert_eq!(
+        vec3p!(false, true, false).with_y(false),
+        vec3p!(false, false, false)
+    );
+    assert_eq!(
+        vec3p!(false, true, false).with_yx(vec2p!(false, true)),
+        vec3p!(true, false, false)
+    );
+    assert_eq!(
+        vec3p!(false, true, false).with_yxz(vec3p!(false, false, true)),
+        vec3p!(false, false, true)
     );
 }
 
@@ -1220,6 +1270,26 @@ fn test_vec4_swizzle() {
 }
 
 #[test]
+fn test_vec4_with_swizzle() {
+    assert_eq!(
+        vec4!(false, true, false, true).with_y(false),
+        vec4!(false, false, false, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).with_yx(vec2!(false, true)),
+        vec4!(true, false, false, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).with_yxz(vec3!(false, false, true)),
+        vec4!(false, false, true, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).with_yxzw(vec4!(false, false, true, false)),
+        vec4!(false, false, true, false)
+    );
+}
+
+#[test]
 fn test_vec4_fold() {
     assert_eq!(
         vec4!(false, true, false, true).fold(false, |acc, x| acc | x),
@@ -1535,6 +1605,26 @@ fn test_vec4p_swizzle() {
     assert_eq!(
         vec4p!(false, true, false, true).zwyz(),
         vec4p!(false, true, true, false)
+    );
+}
+
+#[test]
+fn test_vec4p_with_swizzle() {
+    assert_eq!(
+        vec4p!(false, true, false, true).with_y(false),
+        vec4p!(false, false, false, true)
+    );
+    assert_eq!(
+        vec4p!(false, true, false, true).with_yx(vec2p!(false, true)),
+        vec4p!(true, false, false, true)
+    );
+    assert_eq!(
+        vec4p!(false, true, false, true).with_yxz(vec3p!(false, false, true)),
+        vec4p!(false, false, true, true)
+    );
+    assert_eq!(
+        vec4p!(false, true, false, true).with_yxzw(vec4p!(false, false, true, false)),
+        vec4p!(false, false, true, false)
     );
 }
 
