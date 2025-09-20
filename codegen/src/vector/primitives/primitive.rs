@@ -148,7 +148,6 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                 $(
                     if n == 4 && a != "VecPacked" || PRIMARY_PRIMITIVES.contains(&primitive) =>
 
-
                     #[test]
                     fn test_$(vec_lowercase)_from_array_as_array() {
                         assert_eq!($vec_camelcase::from_array([$values_str]).as_array(), [$values_str]);
@@ -368,6 +367,80 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                             _ => unreachable!("unhandled vector length"),
                         })
                     }
+
+
+                    $(
+                        if n == 4 && a != "VecAligned" =>
+
+                        #[test]
+                        fn test_$(vec_lowercase)_swizzle_set() {
+                            let mut vec = $vec_lowercase!($values_str);
+                            vec.set_yxz(vec3$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1])));
+
+                            assert_eq!(vec, $vec_lowercase!($(for i in 0..n join(, ) => $(
+                                match i {
+                                    1 => $(&values[0]),
+                                    0 => $(&values[2]),
+                                    2 => $(&values[1]),
+                                    i => $(&values[i]),
+                                }
+                            ))));
+                        }
+                    )
+
+                    $(
+                        if a != "VecAligned" =>
+
+                        #[test]
+                        fn test_$(vec_lowercase)_swizzle_ref() {
+                            $(match n {
+                                2 => {
+                                    assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
+                                    assert_eq!($vec_lowercase!($values_str).xy_ref(), &vec2p!($values_str));
+                                }
+                                3 => {
+                                    assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
+                                    assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3p!($values_str));
+                                }
+                                4 => {
+                                    assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
+                                    assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3p!($(for i in 0..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyzw_ref(), &vec4p!($values_str));
+                                }
+                                _ => unreachable!("unhandled vector length"),
+                            })
+                        }
+
+                        #[test]
+                        fn test_$(vec_lowercase)_swizzle_mut() {
+                            $(match n {
+                                2 => {
+                                    assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
+                                    assert_eq!($vec_lowercase!($values_str).xy_mut(), &mut vec2p!($values_str));
+
+                                    assert_eq!($vec_lowercase!($values_str).x_y_mut(), (&mut $(&values[0]), &mut $(&values[1])));
+                                }
+                                3 => {
+                                    assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
+                                    assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3p!($values_str));
+
+                                    assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i])))));
+                                }
+                                4 => {
+                                    assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
+                                    assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3p!($(for i in 0..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyzw_mut(), &mut vec4p!($values_str));
+
+                                    assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i])))));
+                                }
+                                _ => unreachable!("unhandled vector length"),
+                            })
+                        }
+                    )
     
                     #[test]
                     fn test_$(vec_lowercase)_fold() {

@@ -411,6 +411,20 @@ fn test_vec2p_with_swizzle() {
 }
 
 #[test]
+fn test_vec2p_swizzle_ref() {
+    assert_eq!(vec2p!(0i32, 1i32).y_ref(), &1i32);
+    assert_eq!(vec2p!(0i32, 1i32).xy_ref(), &vec2p!(0i32, 1i32));
+}
+
+#[test]
+fn test_vec2p_swizzle_mut() {
+    assert_eq!(vec2p!(0i32, 1i32).y_mut(), &mut 1i32);
+    assert_eq!(vec2p!(0i32, 1i32).xy_mut(), &mut vec2p!(0i32, 1i32));
+
+    assert_eq!(vec2p!(0i32, 1i32).x_y_mut(), (&mut 0i32, &mut 1i32));
+}
+
+#[test]
 fn test_vec2p_fold() {
     assert_eq!(
         vec2p!(0i32, 1i32).fold(13, |acc, x| acc + x),
@@ -1032,6 +1046,31 @@ fn test_vec3p_with_swizzle() {
     assert_eq!(
         vec3p!(0i32, 1i32, 2i32).with_yxz(vec3p!(0i32, 2i32, 1i32)),
         vec3p!(2i32, 0i32, 1i32)
+    );
+}
+
+#[test]
+fn test_vec3p_swizzle_ref() {
+    assert_eq!(vec3p!(0i32, 1i32, 2i32).y_ref(), &1i32);
+    assert_eq!(vec3p!(0i32, 1i32, 2i32).yz_ref(), &vec2p!(1i32, 2i32));
+    assert_eq!(
+        vec3p!(0i32, 1i32, 2i32).xyz_ref(),
+        &vec3p!(0i32, 1i32, 2i32)
+    );
+}
+
+#[test]
+fn test_vec3p_swizzle_mut() {
+    assert_eq!(vec3p!(0i32, 1i32, 2i32).y_mut(), &mut 1i32);
+    assert_eq!(vec3p!(0i32, 1i32, 2i32).yz_mut(), &mut vec2p!(1i32, 2i32));
+    assert_eq!(
+        vec3p!(0i32, 1i32, 2i32).xyz_mut(),
+        &mut vec3p!(0i32, 1i32, 2i32)
+    );
+
+    assert_eq!(
+        vec3p!(0i32, 1i32, 2i32).x_yz_mut(),
+        (&mut 0i32, &mut vec2p!(1i32, 2i32))
     );
 }
 
@@ -1746,6 +1785,50 @@ fn test_vec4p_with_swizzle() {
     assert_eq!(
         vec4p!(0i32, 1i32, 2i32, 3i32).with_yxzw(vec4p!(0i32, 2i32, 1i32, 0i32)),
         vec4p!(2i32, 0i32, 1i32, 0i32)
+    );
+}
+
+#[test]
+fn test_vec4p_swizzle_set() {
+    let mut vec = vec4p!(0i32, 1i32, 2i32, 3i32);
+    vec.set_yxz(vec3p!(0i32, 2i32, 1i32));
+
+    assert_eq!(vec, vec4p!(2i32, 0i32, 1i32, 3i32));
+}
+
+#[test]
+fn test_vec4p_swizzle_ref() {
+    assert_eq!(vec4p!(0i32, 1i32, 2i32, 3i32).y_ref(), &1i32);
+    assert_eq!(vec4p!(0i32, 1i32, 2i32, 3i32).yz_ref(), &vec2p!(1i32, 2i32));
+    assert_eq!(
+        vec4p!(0i32, 1i32, 2i32, 3i32).xyz_ref(),
+        &vec3p!(0i32, 1i32, 2i32)
+    );
+    assert_eq!(
+        vec4p!(0i32, 1i32, 2i32, 3i32).xyzw_ref(),
+        &vec4p!(0i32, 1i32, 2i32, 3i32)
+    );
+}
+
+#[test]
+fn test_vec4p_swizzle_mut() {
+    assert_eq!(vec4p!(0i32, 1i32, 2i32, 3i32).y_mut(), &mut 1i32);
+    assert_eq!(
+        vec4p!(0i32, 1i32, 2i32, 3i32).yz_mut(),
+        &mut vec2p!(1i32, 2i32)
+    );
+    assert_eq!(
+        vec4p!(0i32, 1i32, 2i32, 3i32).xyz_mut(),
+        &mut vec3p!(0i32, 1i32, 2i32)
+    );
+    assert_eq!(
+        vec4p!(0i32, 1i32, 2i32, 3i32).xyzw_mut(),
+        &mut vec4p!(0i32, 1i32, 2i32, 3i32)
+    );
+
+    assert_eq!(
+        vec4p!(0i32, 1i32, 2i32, 3i32).x_yz_mut(),
+        (&mut 0i32, &mut vec2p!(1i32, 2i32))
     );
 }
 

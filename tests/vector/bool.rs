@@ -376,6 +376,20 @@ fn test_vec2p_with_swizzle() {
 }
 
 #[test]
+fn test_vec2p_swizzle_ref() {
+    assert_eq!(vec2p!(false, true).y_ref(), &true);
+    assert_eq!(vec2p!(false, true).xy_ref(), &vec2p!(false, true));
+}
+
+#[test]
+fn test_vec2p_swizzle_mut() {
+    assert_eq!(vec2p!(false, true).y_mut(), &mut true);
+    assert_eq!(vec2p!(false, true).xy_mut(), &mut vec2p!(false, true));
+
+    assert_eq!(vec2p!(false, true).x_y_mut(), (&mut false, &mut true));
+}
+
+#[test]
 fn test_vec2p_fold() {
     assert_eq!(vec2p!(false, true).fold(false, |acc, x| acc | x), true);
 }
@@ -948,6 +962,34 @@ fn test_vec3p_with_swizzle() {
     assert_eq!(
         vec3p!(false, true, false).with_yxz(vec3p!(false, false, true)),
         vec3p!(false, false, true)
+    );
+}
+
+#[test]
+fn test_vec3p_swizzle_ref() {
+    assert_eq!(vec3p!(false, true, false).y_ref(), &true);
+    assert_eq!(vec3p!(false, true, false).yz_ref(), &vec2p!(true, false));
+    assert_eq!(
+        vec3p!(false, true, false).xyz_ref(),
+        &vec3p!(false, true, false)
+    );
+}
+
+#[test]
+fn test_vec3p_swizzle_mut() {
+    assert_eq!(vec3p!(false, true, false).y_mut(), &mut true);
+    assert_eq!(
+        vec3p!(false, true, false).yz_mut(),
+        &mut vec2p!(true, false)
+    );
+    assert_eq!(
+        vec3p!(false, true, false).xyz_mut(),
+        &mut vec3p!(false, true, false)
+    );
+
+    assert_eq!(
+        vec3p!(false, true, false).x_yz_mut(),
+        (&mut false, &mut vec2p!(true, false))
     );
 }
 
@@ -1625,6 +1667,53 @@ fn test_vec4p_with_swizzle() {
     assert_eq!(
         vec4p!(false, true, false, true).with_yxzw(vec4p!(false, false, true, false)),
         vec4p!(false, false, true, false)
+    );
+}
+
+#[test]
+fn test_vec4p_swizzle_set() {
+    let mut vec = vec4p!(false, true, false, true);
+    vec.set_yxz(vec3p!(false, false, true));
+
+    assert_eq!(vec, vec4p!(false, false, true, true));
+}
+
+#[test]
+fn test_vec4p_swizzle_ref() {
+    assert_eq!(vec4p!(false, true, false, true).y_ref(), &true);
+    assert_eq!(
+        vec4p!(false, true, false, true).yz_ref(),
+        &vec2p!(true, false)
+    );
+    assert_eq!(
+        vec4p!(false, true, false, true).xyz_ref(),
+        &vec3p!(false, true, false)
+    );
+    assert_eq!(
+        vec4p!(false, true, false, true).xyzw_ref(),
+        &vec4p!(false, true, false, true)
+    );
+}
+
+#[test]
+fn test_vec4p_swizzle_mut() {
+    assert_eq!(vec4p!(false, true, false, true).y_mut(), &mut true);
+    assert_eq!(
+        vec4p!(false, true, false, true).yz_mut(),
+        &mut vec2p!(true, false)
+    );
+    assert_eq!(
+        vec4p!(false, true, false, true).xyz_mut(),
+        &mut vec3p!(false, true, false)
+    );
+    assert_eq!(
+        vec4p!(false, true, false, true).xyzw_mut(),
+        &mut vec4p!(false, true, false, true)
+    );
+
+    assert_eq!(
+        vec4p!(false, true, false, true).x_yz_mut(),
+        (&mut false, &mut vec2p!(true, false))
     );
 }
 
