@@ -8,6 +8,12 @@ use ggmath::*;
 const _: () = assert!(size_of::<Vec2P<bool>>() == size_of::<[bool; 2]>());
 
 #[test]
+fn test_vec2_constructor() {
+    assert_eq!(vec2!(false, true), Vec2::from_array([false, true]));
+    assert_eq!(vec2!(vec2!(false, true)), Vec2::from_array([false, true]));
+}
+
+#[test]
 fn test_vec2_align() {
     assert_eq!(vec2!(false, true).align(), vec2!(false, true));
 }
@@ -246,6 +252,15 @@ fn test_vec2_debug() {
 #[test]
 fn test_vec2_display() {
     assert_eq!(format!("{}", vec2!(false, true)), "(false, true)");
+}
+
+#[test]
+fn test_vec2p_constructor() {
+    assert_eq!(vec2p!(false, true), Vec2P::from_array([false, true]));
+    assert_eq!(
+        vec2p!(vec2p!(false, true)),
+        Vec2P::from_array([false, true])
+    );
 }
 
 #[test]
@@ -504,6 +519,22 @@ fn test_vec2p_display() {
 }
 
 const _: () = assert!(size_of::<Vec3P<bool>>() == size_of::<[bool; 3]>());
+
+#[test]
+fn test_vec3_constructor() {
+    assert_eq!(
+        vec3!(false, true, false),
+        Vec3::from_array([false, true, false])
+    );
+    assert_eq!(
+        vec3!(false, vec2!(true, false)),
+        Vec3::from_array([false, true, false])
+    );
+    assert_eq!(
+        vec3!(vec3!(false, true, false)),
+        Vec3::from_array([false, true, false])
+    );
+}
 
 #[test]
 fn test_vec3_align() {
@@ -795,6 +826,22 @@ fn test_vec3_display() {
     assert_eq!(
         format!("{}", vec3!(false, true, false)),
         "(false, true, false)"
+    );
+}
+
+#[test]
+fn test_vec3p_constructor() {
+    assert_eq!(
+        vec3p!(false, true, false),
+        Vec3P::from_array([false, true, false])
+    );
+    assert_eq!(
+        vec3p!(false, vec2p!(true, false)),
+        Vec3P::from_array([false, true, false])
+    );
+    assert_eq!(
+        vec3p!(vec3p!(false, true, false)),
+        Vec3P::from_array([false, true, false])
     );
 }
 
@@ -1137,6 +1184,22 @@ fn test_vec3p_display() {
 const _: () = assert!(size_of::<Vec4P<bool>>() == size_of::<[bool; 4]>());
 
 #[test]
+fn test_vec4_constructor() {
+    assert_eq!(
+        vec4!(false, true, false, true),
+        Vec4::from_array([false, true, false, true])
+    );
+    assert_eq!(
+        vec4!(false, vec2!(true, false), true),
+        Vec4::from_array([false, true, false, true])
+    );
+    assert_eq!(
+        vec4!(vec4!(false, true, false, true)),
+        Vec4::from_array([false, true, false, true])
+    );
+}
+
+#[test]
 fn test_vec4_align() {
     assert_eq!(
         vec4!(false, true, false, true).align(),
@@ -1472,6 +1535,22 @@ fn test_vec4_display() {
     assert_eq!(
         format!("{}", vec4!(false, true, false, true)),
         "(false, true, false, true)"
+    );
+}
+
+#[test]
+fn test_vec4p_constructor() {
+    assert_eq!(
+        vec4p!(false, true, false, true),
+        Vec4P::from_array([false, true, false, true])
+    );
+    assert_eq!(
+        vec4p!(false, vec2p!(true, false), true),
+        Vec4P::from_array([false, true, false, true])
+    );
+    assert_eq!(
+        vec4p!(vec4p!(false, true, false, true)),
+        Vec4P::from_array([false, true, false, true])
     );
 }
 

@@ -8,6 +8,12 @@ use ggmath::*;
 const _: () = assert!(size_of::<Vec2P<i32>>() == size_of::<[i32; 2]>());
 
 #[test]
+fn test_vec2_constructor() {
+    assert_eq!(vec2!(0i32, 1i32), Vec2::from_array([0i32, 1i32]));
+    assert_eq!(vec2!(vec2!(0i32, 1i32)), Vec2::from_array([0i32, 1i32]));
+}
+
+#[test]
 fn test_vec2_align() {
     assert_eq!(vec2!(0i32, 1i32).align(), vec2!(0i32, 1i32));
 }
@@ -281,6 +287,12 @@ fn test_vec2_debug() {
 #[test]
 fn test_vec2_display() {
     assert_eq!(format!("{}", vec2!(0i32, 1i32)), "(0, 1)");
+}
+
+#[test]
+fn test_vec2p_constructor() {
+    assert_eq!(vec2p!(0i32, 1i32), Vec2P::from_array([0i32, 1i32]));
+    assert_eq!(vec2p!(vec2p!(0i32, 1i32)), Vec2P::from_array([0i32, 1i32]));
 }
 
 #[test]
@@ -574,6 +586,22 @@ fn test_vec2p_display() {
 }
 
 const _: () = assert!(size_of::<Vec3P<i32>>() == size_of::<[i32; 3]>());
+
+#[test]
+fn test_vec3_constructor() {
+    assert_eq!(
+        vec3!(0i32, 1i32, 2i32),
+        Vec3::from_array([0i32, 1i32, 2i32])
+    );
+    assert_eq!(
+        vec3!(0i32, vec2!(1i32, 2i32)),
+        Vec3::from_array([0i32, 1i32, 2i32])
+    );
+    assert_eq!(
+        vec3!(vec3!(0i32, 1i32, 2i32)),
+        Vec3::from_array([0i32, 1i32, 2i32])
+    );
+}
 
 #[test]
 fn test_vec3_align() {
@@ -886,6 +914,22 @@ fn test_vec3_debug() {
 #[test]
 fn test_vec3_display() {
     assert_eq!(format!("{}", vec3!(0i32, 1i32, 2i32)), "(0, 1, 2)");
+}
+
+#[test]
+fn test_vec3p_constructor() {
+    assert_eq!(
+        vec3p!(0i32, 1i32, 2i32),
+        Vec3P::from_array([0i32, 1i32, 2i32])
+    );
+    assert_eq!(
+        vec3p!(0i32, vec2p!(1i32, 2i32)),
+        Vec3P::from_array([0i32, 1i32, 2i32])
+    );
+    assert_eq!(
+        vec3p!(vec3p!(0i32, 1i32, 2i32)),
+        Vec3P::from_array([0i32, 1i32, 2i32])
+    );
 }
 
 #[test]
@@ -1227,6 +1271,22 @@ fn test_vec3p_display() {
 }
 
 const _: () = assert!(size_of::<Vec4P<i32>>() == size_of::<[i32; 4]>());
+
+#[test]
+fn test_vec4_constructor() {
+    assert_eq!(
+        vec4!(0i32, 1i32, 2i32, 3i32),
+        Vec4::from_array([0i32, 1i32, 2i32, 3i32])
+    );
+    assert_eq!(
+        vec4!(0i32, vec2!(1i32, 2i32), 3i32),
+        Vec4::from_array([0i32, 1i32, 2i32, 3i32])
+    );
+    assert_eq!(
+        vec4!(vec4!(0i32, 1i32, 2i32, 3i32)),
+        Vec4::from_array([0i32, 1i32, 2i32, 3i32])
+    );
+}
 
 #[test]
 fn test_vec4_align() {
@@ -1591,6 +1651,22 @@ fn test_vec4_debug() {
 #[test]
 fn test_vec4_display() {
     assert_eq!(format!("{}", vec4!(0i32, 1i32, 2i32, 3i32)), "(0, 1, 2, 3)");
+}
+
+#[test]
+fn test_vec4p_constructor() {
+    assert_eq!(
+        vec4p!(0i32, 1i32, 2i32, 3i32),
+        Vec4P::from_array([0i32, 1i32, 2i32, 3i32])
+    );
+    assert_eq!(
+        vec4p!(0i32, vec2p!(1i32, 2i32), 3i32),
+        Vec4P::from_array([0i32, 1i32, 2i32, 3i32])
+    );
+    assert_eq!(
+        vec4p!(vec4p!(0i32, 1i32, 2i32, 3i32)),
+        Vec4P::from_array([0i32, 1i32, 2i32, 3i32])
+    );
 }
 
 #[test]

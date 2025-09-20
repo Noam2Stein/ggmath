@@ -8,6 +8,15 @@ use ggmath::*;
 const _: () = assert!(size_of::<Vec2P<f32>>() == size_of::<[f32; 2]>());
 
 #[test]
+fn test_vec2_constructor() {
+    assert_eq!(vec2!(0.0f32, 1.0f32), Vec2::from_array([0.0f32, 1.0f32]));
+    assert_eq!(
+        vec2!(vec2!(0.0f32, 1.0f32)),
+        Vec2::from_array([0.0f32, 1.0f32])
+    );
+}
+
+#[test]
 fn test_vec2_align() {
     assert_eq!(vec2!(0.0f32, 1.0f32).align(), vec2!(0.0f32, 1.0f32));
 }
@@ -298,6 +307,15 @@ fn test_vec2_debug() {
 #[test]
 fn test_vec2_display() {
     assert_eq!(format!("{}", vec2!(0.0f32, 1.0f32)), "(0, 1)");
+}
+
+#[test]
+fn test_vec2p_constructor() {
+    assert_eq!(vec2p!(0.0f32, 1.0f32), Vec2P::from_array([0.0f32, 1.0f32]));
+    assert_eq!(
+        vec2p!(vec2p!(0.0f32, 1.0f32)),
+        Vec2P::from_array([0.0f32, 1.0f32])
+    );
 }
 
 #[test]
@@ -611,6 +629,22 @@ fn test_vec2p_display() {
 }
 
 const _: () = assert!(size_of::<Vec3P<f32>>() == size_of::<[f32; 3]>());
+
+#[test]
+fn test_vec3_constructor() {
+    assert_eq!(
+        vec3!(0.0f32, 1.0f32, 2.0f32),
+        Vec3::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
+    assert_eq!(
+        vec3!(0.0f32, vec2!(1.0f32, 2.0f32)),
+        Vec3::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
+    assert_eq!(
+        vec3!(vec3!(0.0f32, 1.0f32, 2.0f32)),
+        Vec3::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
+}
 
 #[test]
 fn test_vec3_align() {
@@ -961,6 +995,22 @@ fn test_vec3_debug() {
 #[test]
 fn test_vec3_display() {
     assert_eq!(format!("{}", vec3!(0.0f32, 1.0f32, 2.0f32)), "(0, 1, 2)");
+}
+
+#[test]
+fn test_vec3p_constructor() {
+    assert_eq!(
+        vec3p!(0.0f32, 1.0f32, 2.0f32),
+        Vec3P::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
+    assert_eq!(
+        vec3p!(0.0f32, vec2p!(1.0f32, 2.0f32)),
+        Vec3P::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
+    assert_eq!(
+        vec3p!(vec3p!(0.0f32, 1.0f32, 2.0f32)),
+        Vec3P::from_array([0.0f32, 1.0f32, 2.0f32])
+    );
 }
 
 #[test]
@@ -1346,6 +1396,22 @@ fn test_vec3p_display() {
 }
 
 const _: () = assert!(size_of::<Vec4P<f32>>() == size_of::<[f32; 4]>());
+
+#[test]
+fn test_vec4_constructor() {
+    assert_eq!(
+        vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32),
+        Vec4::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
+    );
+    assert_eq!(
+        vec4!(0.0f32, vec2!(1.0f32, 2.0f32), 3.0f32),
+        Vec4::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
+    );
+    assert_eq!(
+        vec4!(vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        Vec4::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
+    );
+}
 
 #[test]
 fn test_vec4_align() {
@@ -1748,6 +1814,22 @@ fn test_vec4_display() {
     assert_eq!(
         format!("{}", vec4!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
         "(0, 1, 2, 3)"
+    );
+}
+
+#[test]
+fn test_vec4p_constructor() {
+    assert_eq!(
+        vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32),
+        Vec4P::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
+    );
+    assert_eq!(
+        vec4p!(0.0f32, vec2p!(1.0f32, 2.0f32), 3.0f32),
+        Vec4P::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
+    );
+    assert_eq!(
+        vec4p!(vec4p!(0.0f32, 1.0f32, 2.0f32, 3.0f32)),
+        Vec4P::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
     );
 }
 

@@ -136,6 +136,27 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                 $(let vec_camelcase = &format!("Vec{n}{a_postfix_camelcase}"))
 
                 #[test]
+                fn test_$(vec_lowercase)_constructor() {
+                    $(match n {
+                        2 => {
+                            assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
+                            assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
+                        }
+                        3 => {
+                            assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
+                            assert_eq!($vec_lowercase!($(&values[0]), vec2$(a_postfix_lowercase)!($(&values[1]), $(&values[2]))), $vec_camelcase::from_array([$values_str]));
+                            assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
+                        }
+                        4 => {
+                            assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
+                            assert_eq!($vec_lowercase!($(&values[0]), vec2$(a_postfix_lowercase)!($(&values[1]), $(&values[2])), $(&values[3])), $vec_camelcase::from_array([$values_str]));
+                            assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
+                        }
+                        _ => compile_error!("unhandled vector length"),
+                    })
+                }
+
+                #[test]
                 fn test_$(vec_lowercase)_align() {
                     assert_eq!($vec_lowercase!($values_str).align(), vec$(n)!($values_str));
                 }
@@ -287,7 +308,7 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                                 assert_eq!($vec_lowercase!($values_str).zwy(), vec3$(a_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1])));
                                 assert_eq!($vec_lowercase!($values_str).zwyz(), vec4$(a_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1]), $(&values[2])));
                             }
-                            _ => unreachable!("unhandled vector length"),
+                            _ => compile_error!("unhandled vector length"),
                         })
                     }
     
@@ -364,7 +385,7 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                                     })
                                 )));
                             }
-                            _ => unreachable!("unhandled vector length"),
+                            _ => compile_error!("unhandled vector length"),
                         })
                     }
 
@@ -409,7 +430,7 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                                     assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3p!($(for i in 0..3 join(, ) => $(&values[i]))));
                                     assert_eq!($vec_lowercase!($values_str).xyzw_ref(), &vec4p!($values_str));
                                 }
-                                _ => unreachable!("unhandled vector length"),
+                                _ => compile_error!("unhandled vector length"),
                             })
                         }
 
@@ -437,7 +458,7 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
 
                                     assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i])))));
                                 }
-                                _ => unreachable!("unhandled vector length"),
+                                _ => compile_error!("unhandled vector length"),
                             })
                         }
                     )
