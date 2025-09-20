@@ -18,6 +18,7 @@ pub const PRIMITIVES: &[&str] = &[
     "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64", "u128",
     "usize", "bool",
 ];
+pub const PRIMARY_PRIMITIVES: &[&str] = &["f32", "i32", "u32", "bool"];
 pub const NUM_PRIMITIVES: &[&str] = &[
     "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64", "u128",
     "usize",
