@@ -33,7 +33,7 @@ pub use scalar::*;
 ///
 /// This type has very very useful type-aliases:
 /// - `Vec{N}<T>` like `Vec2<T>` is for SIMD vectors
-/// - `Vec{N}S<T>` like `Vec2S<T>` is for non-SIMD vectors (stands for "scalar")
+/// - `Vec{N}S<T>` like `Vec2S<T>` is for non-SIMD vectors ("s" stands for "scalar")
 ///
 /// # Simdness
 ///
@@ -50,7 +50,7 @@ pub use scalar::*;
 /// - `NonSimd` vectors are always stored as `[T; N]`.
 ///
 /// - `Simd` just means that the layout is optimized for performance, and not for size.
-/// - No exact layout is guarenteed and the exact layout is decided upon by the [`Scalar`] implementation.
+/// - A `Simd` vector may not actually be SIMD if it doesn't improve performance.
 ///
 /// # Example
 /// ```
@@ -288,7 +288,7 @@ where
 
     /// Converts the vector to the specified simdness.
     #[inline(always)]
-    pub fn to_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
+    pub fn as_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
         specialize! {
             (self: Vector<N, T, S>) -> Vector<N, T, S2>:
 
@@ -410,7 +410,7 @@ where
     #[inline(always)]
     pub unsafe fn get_unchecked(self, index: usize) -> T {
         specialize! {
-            (self: Vector<N, T, A>, index: usize) -> T:
+            (self: Vector<N, T, S>, index: usize) -> T:
 
             for (Vector<2, T, Simd>, usize) -> T {
                 |vec, index| unsafe { T::vec2_get_unchecked(vec, index) }
@@ -487,17 +487,17 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<2, T, S>:
 
-            for (Vector<2, T, VecAligned>) -> Vector<2, T, VecAligned> {
+            for (Vector<2, T, Simd>) -> Vector<2, T, Simd> {
                 |vec| T::vec2_shuffle_2::<X_SRC, Y_SRC>(vec)
             }
-            for (Vector<3, T, VecAligned>) -> Vector<2, T, VecAligned> {
+            for (Vector<3, T, Simd>) -> Vector<2, T, Simd> {
                 |vec| T::vec3_shuffle_2::<X_SRC, Y_SRC>(vec)
             }
-            for (Vector<4, T, VecAligned>) -> Vector<2, T, VecAligned> {
+            for (Vector<4, T, Simd>) -> Vector<2, T, Simd> {
                 |vec| T::vec4_shuffle_2::<X_SRC, Y_SRC>(vec)
             }
             else {
-                Vector::<2, T, A>::from_array([self.index(X_SRC), self.index(Y_SRC)])
+                Vector::<2, T, S>::from_array([self.index(X_SRC), self.index(Y_SRC)])
             }
         }
     }
@@ -515,17 +515,17 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<3, T, S>:
 
-            for (Vector<2, T, VecAligned>) -> Vector<3, T, VecAligned> {
+            for (Vector<2, T, Simd>) -> Vector<3, T, Simd> {
                 |vec| T::vec2_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
             }
-            for (Vector<3, T, VecAligned>) -> Vector<3, T, VecAligned> {
+            for (Vector<3, T, Simd>) -> Vector<3, T, Simd> {
                 |vec| T::vec3_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
             }
-            for (Vector<4, T, VecAligned>) -> Vector<3, T, VecAligned> {
+            for (Vector<4, T, Simd>) -> Vector<3, T, Simd> {
                 |vec| T::vec4_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
             }
             else {
-                Vector::<3, T, A>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC)])
+                Vector::<3, T, S>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC)])
             }
         }
     }
@@ -549,24 +549,24 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<4, T, S>:
 
-            for (Vector<2, T, VecAligned>) -> Vector<4, T, VecAligned> {
+            for (Vector<2, T, Simd>) -> Vector<4, T, Simd> {
                 |vec| T::vec2_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
             }
-            for (Vector<3, T, VecAligned>) -> Vector<4, T, VecAligned> {
+            for (Vector<3, T, Simd>) -> Vector<4, T, Simd> {
                 |vec| T::vec3_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
             }
-            for (Vector<4, T, VecAligned>) -> Vector<4, T, VecAligned> {
+            for (Vector<4, T, Simd>) -> Vector<4, T, Simd> {
                 |vec| T::vec4_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
             }
             else {
-                Vector::<4, T, A>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC), self.index(W_SRC)])
+                Vector::<4, T, S>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC), self.index(W_SRC)])
             }
         }
     }
 
     /// Maps each component of the vector to a new value using the given function.
     #[inline(always)]
-    pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, A>
+    pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, S>
     where
         Usize<N>: VecLen,
     {
@@ -629,20 +629,20 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
+    pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
         T: PartialEq<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
                 |vec, other| T::vec2_eq_mask(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
                 |vec, other| T::vec3_eq_mask(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
                 |vec, other| T::vec4_eq_mask(vec, other)
             }
             else {
@@ -653,20 +653,20 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is not equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn ne_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
+    pub fn ne_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
         T: PartialEq<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
                 |vec, other| T::vec2_ne_mask(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
                 |vec, other| T::vec3_ne_mask(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
                 |vec, other| T::vec4_ne_mask(vec, other)
             }
             else {
@@ -677,20 +677,20 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is less than the corresponding component of `other`.
     #[inline(always)]
-    pub fn lt_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
+    pub fn lt_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
                 |vec, other| T::vec2_lt_mask(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
                 |vec, other| T::vec3_lt_mask(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
                 |vec, other| T::vec4_lt_mask(vec, other)
             }
             else {
@@ -701,20 +701,20 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is less than or equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn le_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
+    pub fn le_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
                 |vec, other| T::vec2_le_mask(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
                 |vec, other| T::vec3_le_mask(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
                 |vec, other| T::vec4_le_mask(vec, other)
             }
             else {
@@ -725,20 +725,20 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is greater than the corresponding component of `other`.
     #[inline(always)]
-    pub fn gt_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
+    pub fn gt_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
                 |vec, other| T::vec2_gt_mask(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
                 |vec, other| T::vec3_gt_mask(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
                 |vec, other| T::vec4_gt_mask(vec, other)
             }
             else {
@@ -749,20 +749,20 @@ where
 
     /// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is greater than or equal to the corresponding component of `other`.
     #[inline(always)]
-    pub fn ge_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
+    pub fn ge_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
         T: PartialOrd<T2>,
     {
         specialize! {
-            (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
+            (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> Vector<2, bool, VecAligned> {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
                 |vec, other| T::vec2_ge_mask(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> Vector<3, bool, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
                 |vec, other| T::vec3_ge_mask(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> Vector<4, bool, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
                 |vec, other| T::vec4_ge_mask(vec, other)
             }
             else {
@@ -778,15 +778,15 @@ where
         T: Add<Output = T>,
     {
         specialize! {
-            (self: Vector<N, T, A>) -> T:
+            (self: Vector<N, T, S>) -> T:
 
-            for (Vector<2, T, VecAligned>) -> T {
+            for (Vector<2, T, Simd>) -> T {
                 |vec| T::vec2_sum(vec)
             }
-            for (Vector<3, T, VecAligned>) -> T {
+            for (Vector<3, T, Simd>) -> T {
                 |vec| T::vec3_sum(vec)
             }
-            for (Vector<4, T, VecAligned>) -> T {
+            for (Vector<4, T, Simd>) -> T {
                 |vec| T::vec4_sum(vec)
             }
             else {
@@ -802,15 +802,15 @@ where
         T: Mul<Output = T>,
     {
         specialize! {
-            (self: Vector<N, T, A>) -> T:
+            (self: Vector<N, T, S>) -> T:
 
-            for (Vector<2, T, VecAligned>) -> T {
+            for (Vector<2, T, Simd>) -> T {
                 |vec| T::vec2_product(vec)
             }
-            for (Vector<3, T, VecAligned>) -> T {
+            for (Vector<3, T, Simd>) -> T {
                 |vec| T::vec3_product(vec)
             }
-            for (Vector<4, T, VecAligned>) -> T {
+            for (Vector<4, T, Simd>) -> T {
                 |vec| T::vec4_product(vec)
             }
             else {
@@ -838,20 +838,20 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
+impl<const N: usize, T: Scalar> Vector<N, T, NonSimd>
 where
     Usize<N>: VecLen,
 {
     /// Converts an array reference to a vector reference.
     #[inline(always)]
     pub const fn from_array_ref(array: &[T; N]) -> &Self {
-        unsafe { transmute::<&[T; N], &Vector<N, T, VecPacked>>(array) }
+        unsafe { transmute::<&[T; N], &Vector<N, T, NonSimd>>(array) }
     }
 
     /// Converts a mutable array reference to a mutable vector reference.
     #[inline(always)]
     pub const fn from_mut_array(array: &mut [T; N]) -> &mut Self {
-        unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }
+        unsafe { transmute::<&mut [T; N], &mut Vector<N, T, NonSimd>>(array) }
     }
 
     /// Converts a vector reference to an array reference.
@@ -891,7 +891,7 @@ where
     }
 }
 
-impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
+impl<T: Scalar, S: Simdness> Vector<2, T, S> {
     /// Returns `self` rotated 90 degrees counter-clockwise.
     #[inline(always)]
     pub fn perp(self) -> Self
@@ -967,12 +967,12 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
     #[inline(always)]
     pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         self,
-        value: Vector<2, T, A>,
+        value: Vector<2, T, S>,
     ) -> Self {
         specialize! {
-            (self: Vector<2, T, A>, value: Vector<2, T, _>) -> Vector<2, T, A>:
+            (self: Vector<2, T, S>, value: Vector<2, T, _>) -> Vector<2, T, S>:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T, VecAligned>) -> Vector<2, T, VecAligned> {
+            for (Vector<2, T, Simd>, Vector<2, T, Simd>) -> Vector<2, T, Simd> {
                 |vec, value| T::vec2_with_shuffle_2::<X_DST, Y_DST>(vec, value)
             }
             else {
@@ -986,7 +986,7 @@ impl<T: Scalar, A: VecAlignment> Vector<2, T, A> {
     }
 }
 
-impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
+impl<T: Scalar, S: Simdness> Vector<3, T, S> {
     /// Returns the cross product of `self` and `other`.
     #[inline(always)]
     pub fn cross(self, other: Self) -> Self
@@ -1064,12 +1064,12 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     #[inline(always)]
     pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         self,
-        value: Vector<2, T, A>,
+        value: Vector<2, T, S>,
     ) -> Self {
         specialize! {
-            (self: Vector<3, T, A>, value: Vector<2, T, _>) -> Vector<3, T, A>:
+            (self: Vector<3, T, S>, value: Vector<2, T, _>) -> Vector<3, T, S>:
 
-            for (Vector<3, T, VecAligned>, Vector<2, T, VecAligned>) -> Vector<3, T, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<2, T, Simd>) -> Vector<3, T, Simd> {
                 |vec, value| T::vec3_with_shuffle_2::<X_DST, Y_DST>(vec, value)
             }
             else {
@@ -1091,12 +1091,12 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     #[inline(always)]
     pub fn with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         self,
-        value: Vector<3, T, A>,
+        value: Vector<3, T, S>,
     ) -> Self {
         specialize! {
-            (self: Vector<3, T, A>, value: Vector<3, T, _>) -> Vector<3, T, A>:
+            (self: Vector<3, T, S>, value: Vector<3, T, _>) -> Vector<3, T, S>:
 
-            for (Vector<3, T, VecAligned>, Vector<3, T, VecAligned>) -> Vector<3, T, VecAligned> {
+            for (Vector<3, T, Simd>, Vector<3, T, Simd>) -> Vector<3, T, Simd> {
                 |vec, value| T::vec3_with_shuffle_3::<X_DST, Y_DST, Z_DST>(vec, value)
             }
             else {
@@ -1111,7 +1111,7 @@ impl<T: Scalar, A: VecAlignment> Vector<3, T, A> {
     }
 }
 
-impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
+impl<T: Scalar, S: Simdness> Vector<4, T, S> {
     /// Returns the `x` (1st) component of `self`.
     #[inline(always)]
     pub fn x(self) -> T {
@@ -1200,12 +1200,12 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     #[inline(always)]
     pub fn with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         self,
-        value: Vector<2, T, A>,
+        value: Vector<2, T, S>,
     ) -> Self {
         specialize! {
-            (self: Vector<4, T, A>, value: Vector<2, T, _>) -> Vector<4, T, A>:
+            (self: Vector<4, T, S>, value: Vector<2, T, _>) -> Vector<4, T, S>:
 
-            for (Vector<4, T, VecAligned>, Vector<2, T, VecAligned>) -> Vector<4, T, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<2, T, Simd>) -> Vector<4, T, Simd> {
                 |vec, value| T::vec4_with_shuffle_2::<X_DST, Y_DST>(vec, value)
             }
             else {
@@ -1227,12 +1227,12 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     #[inline(always)]
     pub fn with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         self,
-        value: Vector<3, T, A>,
+        value: Vector<3, T, S>,
     ) -> Self {
         specialize! {
-            (self: Vector<4, T, A>, value: Vector<3, T, _>) -> Vector<4, T, A>:
+            (self: Vector<4, T, S>, value: Vector<3, T, _>) -> Vector<4, T, S>:
 
-            for (Vector<4, T, VecAligned>, Vector<3, T, VecAligned>) -> Vector<4, T, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<3, T, Simd>) -> Vector<4, T, Simd> {
                 |vec, value| T::vec4_with_shuffle_3::<X_DST, Y_DST, Z_DST>(vec, value)
             }
             else {
@@ -1261,12 +1261,12 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
         const W_DST: usize,
     >(
         self,
-        value: Vector<4, T, A>,
+        value: Vector<4, T, S>,
     ) -> Self {
         specialize! {
-            (self: Vector<4, T, A>, value: Vector<4, T, _>) -> Vector<4, T, A>:
+            (self: Vector<4, T, S>, value: Vector<4, T, _>) -> Vector<4, T, S>:
 
-            for (Vector<4, T, VecAligned>, Vector<4, T, VecAligned>) -> Vector<4, T, VecAligned> {
+            for (Vector<4, T, Simd>, Vector<4, T, Simd>) -> Vector<4, T, Simd> {
                 |vec, value| T::vec4_with_shuffle_4::<X_DST, Y_DST, Z_DST, W_DST>(vec, value)
             }
             else {
@@ -1282,7 +1282,7 @@ impl<T: Scalar, A: VecAlignment> Vector<4, T, A> {
     }
 }
 
-impl<T: Scalar> Vector<2, T, VecPacked> {
+impl<T: Scalar> Vector<2, T, NonSimd> {
     /// Returns a reference to the `x` (1st) component of `self`.
     #[inline(always)]
     pub const fn x_ref(&self) -> &T {
@@ -1308,7 +1308,7 @@ impl<T: Scalar> Vector<2, T, VecPacked> {
     }
 }
 
-impl<T: Scalar> Vector<3, T, VecPacked> {
+impl<T: Scalar> Vector<3, T, NonSimd> {
     /// Returns a reference to the `x` (1st) component of `self`.
     #[inline(always)]
     pub const fn x_ref(&self) -> &T {
@@ -1346,7 +1346,7 @@ impl<T: Scalar> Vector<3, T, VecPacked> {
     }
 }
 
-impl<T: Scalar> Vector<4, T, VecPacked> {
+impl<T: Scalar> Vector<4, T, NonSimd> {
     /// Returns a reference to the `x` (1st) component of `self`.
     #[inline(always)]
     pub const fn x_ref(&self) -> &T {
@@ -1396,7 +1396,7 @@ impl<T: Scalar> Vector<4, T, VecPacked> {
     }
 }
 
-impl<const N: usize, T: Scalar, A: VecAlignment> Clone for Vector<N, T, A>
+impl<const N: usize, T: Scalar, S: Simdness> Clone for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
@@ -1406,9 +1406,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar, A: VecAlignment> Copy for Vector<N, T, A> where Usize<N>: VecLen {}
+impl<const N: usize, T: Scalar, S: Simdness> Copy for Vector<N, T, S> where Usize<N>: VecLen {}
 
-impl<const N: usize, T: Scalar, A: VecAlignment> IntoIterator for Vector<N, T, A>
+impl<const N: usize, T: Scalar, S: Simdness> IntoIterator for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
@@ -1421,7 +1421,7 @@ where
     }
 }
 
-impl<'a, const N: usize, T: Scalar> IntoIterator for &'a Vector<N, T, VecPacked>
+impl<'a, const N: usize, T: Scalar> IntoIterator for &'a Vector<N, T, NonSimd>
 where
     Usize<N>: VecLen,
 {
@@ -1434,7 +1434,7 @@ where
     }
 }
 
-impl<'a, const N: usize, T: Scalar> IntoIterator for &'a mut Vector<N, T, VecPacked>
+impl<'a, const N: usize, T: Scalar> IntoIterator for &'a mut Vector<N, T, NonSimd>
 where
     Usize<N>: VecLen,
 {
@@ -1447,7 +1447,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> Index<I> for Vector<N, T, VecPacked>
+impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> Index<I> for Vector<N, T, NonSimd>
 where
     Usize<N>: VecLen,
 {
@@ -1459,7 +1459,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> IndexMut<I> for Vector<N, T, VecPacked>
+impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> IndexMut<I> for Vector<N, T, NonSimd>
 where
     Usize<N>: VecLen,
 {
@@ -1469,23 +1469,23 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar>
-    PartialEq<Vector<N, T2, A>> for Vector<N, T, A>
+impl<const N: usize, T: Scalar + PartialEq<T2>, S: Simdness, T2: Scalar> PartialEq<Vector<N, T2, S>>
+    for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn eq(&self, other: &Vector<N, T2, A>) -> bool {
+    fn eq(&self, other: &Vector<N, T2, S>) -> bool {
         specialize! {
-            ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
+            ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> bool {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> bool {
                 |vec, other| T::vec2_eq(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> bool {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> bool {
                 |vec, other| T::vec3_eq(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> bool {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> bool {
                 |vec, other| T::vec4_eq(vec, other)
             }
             else {
@@ -1495,17 +1495,17 @@ where
     }
 
     #[inline(always)]
-    fn ne(&self, other: &Vector<N, T2, A>) -> bool {
+    fn ne(&self, other: &Vector<N, T2, S>) -> bool {
         specialize! {
-            ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
+            ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
-            for (Vector<2, T, VecAligned>, Vector<2, T2, VecAligned>) -> bool {
+            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> bool {
                 |vec, other| T::vec2_ne(vec, other)
             }
-            for (Vector<3, T, VecAligned>, Vector<3, T2, VecAligned>) -> bool {
+            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> bool {
                 |vec, other| T::vec3_ne(vec, other)
             }
-            for (Vector<4, T, VecAligned>, Vector<4, T2, VecAligned>) -> bool {
+            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> bool {
                 |vec, other| T::vec4_ne(vec, other)
             }
             else {
@@ -1515,9 +1515,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Eq, A: VecAlignment> Eq for Vector<N, T, A> where Usize<N>: VecLen {}
+impl<const N: usize, T: Scalar + Eq, S: Simdness> Eq for Vector<N, T, S> where Usize<N>: VecLen {}
 
-impl<const N: usize, T: Scalar + Hash, A: VecAlignment> Hash for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Hash, S: Simdness> Hash for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
@@ -1527,7 +1527,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Default, A: VecAlignment> Default for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Default, S: Simdness> Default for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
@@ -1537,7 +1537,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Debug, S: Simdness> Debug for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
@@ -1558,7 +1558,7 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N, T, A>
+impl<const N: usize, T: Scalar + Display, S: Simdness> Display for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {

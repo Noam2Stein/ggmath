@@ -47,7 +47,7 @@ pub fn push_src(
 
         $("/// Returns a vector containing the absolute difference between each element of `self` and `other`.")
         #[inline(always)]
-        pub fn abs_diff(self, other: Self) -> Vector<N, $unsigned_primitive, A> {
+        pub fn abs_diff(self, other: Self) -> Vector<N, $unsigned_primitive, S> {
             Vector::from_fn(|i| self.index(i).abs_diff(other.index(i)))
         }
 

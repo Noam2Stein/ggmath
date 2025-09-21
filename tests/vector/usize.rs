@@ -5,7 +5,7 @@ use core::mem::size_of;
 
 use ggmath::*;
 
-const _: () = assert!(size_of::<Vec2P<usize>>() == size_of::<[usize; 2]>());
+const _: () = assert!(size_of::<Vec2S<usize>>() == size_of::<[usize; 2]>());
 
 #[test]
 fn test_vec2_constructor() {
@@ -17,35 +17,35 @@ fn test_vec2_constructor() {
 }
 
 #[test]
-fn test_vec2_align() {
-    assert_eq!(vec2!(0usize, 1usize).align(), vec2!(0usize, 1usize));
+fn test_vec2_as_simd() {
+    assert_eq!(vec2!(0usize, 1usize).as_simd(), vec2!(0usize, 1usize));
 }
 
 #[test]
-fn test_vec2_pack() {
-    assert_eq!(vec2!(0usize, 1usize).pack(), vec2p!(0usize, 1usize));
+fn test_vec2_as_non_simd() {
+    assert_eq!(vec2!(0usize, 1usize).as_non_simd(), vec2s!(0usize, 1usize));
 }
 
 #[test]
-fn test_vec2p_constructor() {
-    assert_eq!(vec2p!(0usize, 1usize), Vec2P::from_array([0usize, 1usize]));
+fn test_vec2s_constructor() {
+    assert_eq!(vec2s!(0usize, 1usize), Vec2S::from_array([0usize, 1usize]));
     assert_eq!(
-        vec2p!(vec2p!(0usize, 1usize)),
-        Vec2P::from_array([0usize, 1usize])
+        vec2s!(vec2s!(0usize, 1usize)),
+        Vec2S::from_array([0usize, 1usize])
     );
 }
 
 #[test]
-fn test_vec2p_align() {
-    assert_eq!(vec2p!(0usize, 1usize).align(), vec2!(0usize, 1usize));
+fn test_vec2s_as_simd() {
+    assert_eq!(vec2s!(0usize, 1usize).as_simd(), vec2!(0usize, 1usize));
 }
 
 #[test]
-fn test_vec2p_pack() {
-    assert_eq!(vec2p!(0usize, 1usize).pack(), vec2p!(0usize, 1usize));
+fn test_vec2s_as_non_simd() {
+    assert_eq!(vec2s!(0usize, 1usize).as_non_simd(), vec2s!(0usize, 1usize));
 }
 
-const _: () = assert!(size_of::<Vec3P<usize>>() == size_of::<[usize; 3]>());
+const _: () = assert!(size_of::<Vec3S<usize>>() == size_of::<[usize; 3]>());
 
 #[test]
 fn test_vec3_constructor() {
@@ -64,54 +64,54 @@ fn test_vec3_constructor() {
 }
 
 #[test]
-fn test_vec3_align() {
+fn test_vec3_as_simd() {
     assert_eq!(
-        vec3!(0usize, 1usize, 2usize).align(),
+        vec3!(0usize, 1usize, 2usize).as_simd(),
         vec3!(0usize, 1usize, 2usize)
     );
 }
 
 #[test]
-fn test_vec3_pack() {
+fn test_vec3_as_non_simd() {
     assert_eq!(
-        vec3!(0usize, 1usize, 2usize).pack(),
-        vec3p!(0usize, 1usize, 2usize)
+        vec3!(0usize, 1usize, 2usize).as_non_simd(),
+        vec3s!(0usize, 1usize, 2usize)
     );
 }
 
 #[test]
-fn test_vec3p_constructor() {
+fn test_vec3s_constructor() {
     assert_eq!(
-        vec3p!(0usize, 1usize, 2usize),
-        Vec3P::from_array([0usize, 1usize, 2usize])
+        vec3s!(0usize, 1usize, 2usize),
+        Vec3S::from_array([0usize, 1usize, 2usize])
     );
     assert_eq!(
-        vec3p!(0usize, vec2p!(1usize, 2usize)),
-        Vec3P::from_array([0usize, 1usize, 2usize])
+        vec3s!(0usize, vec2s!(1usize, 2usize)),
+        Vec3S::from_array([0usize, 1usize, 2usize])
     );
     assert_eq!(
-        vec3p!(vec3p!(0usize, 1usize, 2usize)),
-        Vec3P::from_array([0usize, 1usize, 2usize])
+        vec3s!(vec3s!(0usize, 1usize, 2usize)),
+        Vec3S::from_array([0usize, 1usize, 2usize])
     );
 }
 
 #[test]
-fn test_vec3p_align() {
+fn test_vec3s_as_simd() {
     assert_eq!(
-        vec3p!(0usize, 1usize, 2usize).align(),
+        vec3s!(0usize, 1usize, 2usize).as_simd(),
         vec3!(0usize, 1usize, 2usize)
     );
 }
 
 #[test]
-fn test_vec3p_pack() {
+fn test_vec3s_as_non_simd() {
     assert_eq!(
-        vec3p!(0usize, 1usize, 2usize).pack(),
-        vec3p!(0usize, 1usize, 2usize)
+        vec3s!(0usize, 1usize, 2usize).as_non_simd(),
+        vec3s!(0usize, 1usize, 2usize)
     );
 }
 
-const _: () = assert!(size_of::<Vec4P<usize>>() == size_of::<[usize; 4]>());
+const _: () = assert!(size_of::<Vec4S<usize>>() == size_of::<[usize; 4]>());
 
 #[test]
 fn test_vec4_constructor() {
@@ -130,18 +130,18 @@ fn test_vec4_constructor() {
 }
 
 #[test]
-fn test_vec4_align() {
+fn test_vec4_as_simd() {
     assert_eq!(
-        vec4!(0usize, 1usize, 2usize, 3usize).align(),
+        vec4!(0usize, 1usize, 2usize, 3usize).as_simd(),
         vec4!(0usize, 1usize, 2usize, 3usize)
     );
 }
 
 #[test]
-fn test_vec4_pack() {
+fn test_vec4_as_non_simd() {
     assert_eq!(
-        vec4!(0usize, 1usize, 2usize, 3usize).pack(),
-        vec4p!(0usize, 1usize, 2usize, 3usize)
+        vec4!(0usize, 1usize, 2usize, 3usize).as_non_simd(),
+        vec4s!(0usize, 1usize, 2usize, 3usize)
     );
 }
 
@@ -524,33 +524,33 @@ fn test_vec4_const_from_array() {
 }
 
 #[test]
-fn test_vec4p_constructor() {
+fn test_vec4s_constructor() {
     assert_eq!(
-        vec4p!(0usize, 1usize, 2usize, 3usize),
-        Vec4P::from_array([0usize, 1usize, 2usize, 3usize])
+        vec4s!(0usize, 1usize, 2usize, 3usize),
+        Vec4S::from_array([0usize, 1usize, 2usize, 3usize])
     );
     assert_eq!(
-        vec4p!(0usize, vec2p!(1usize, 2usize), 3usize),
-        Vec4P::from_array([0usize, 1usize, 2usize, 3usize])
+        vec4s!(0usize, vec2s!(1usize, 2usize), 3usize),
+        Vec4S::from_array([0usize, 1usize, 2usize, 3usize])
     );
     assert_eq!(
-        vec4p!(vec4p!(0usize, 1usize, 2usize, 3usize)),
-        Vec4P::from_array([0usize, 1usize, 2usize, 3usize])
+        vec4s!(vec4s!(0usize, 1usize, 2usize, 3usize)),
+        Vec4S::from_array([0usize, 1usize, 2usize, 3usize])
     );
 }
 
 #[test]
-fn test_vec4p_align() {
+fn test_vec4s_as_simd() {
     assert_eq!(
-        vec4p!(0usize, 1usize, 2usize, 3usize).align(),
+        vec4s!(0usize, 1usize, 2usize, 3usize).as_simd(),
         vec4!(0usize, 1usize, 2usize, 3usize)
     );
 }
 
 #[test]
-fn test_vec4p_pack() {
+fn test_vec4s_as_non_simd() {
     assert_eq!(
-        vec4p!(0usize, 1usize, 2usize, 3usize).pack(),
-        vec4p!(0usize, 1usize, 2usize, 3usize)
+        vec4s!(0usize, 1usize, 2usize, 3usize).as_non_simd(),
+        vec4s!(0usize, 1usize, 2usize, 3usize)
     );
 }

@@ -14,10 +14,8 @@ criterion_group! {
 }
 
 fn fvec4(c: &mut Criterion) {
-    let ggmath1: ggmath::Vector<4, f32, ggmath::VecAligned> =
-        ggmath::vec4!(1.0, 40.5, 499.0, 500.0);
-    let ggmath2: ggmath::Vector<4, f32, ggmath::VecAligned> =
-        ggmath::vec4!(2.0, 21.5, 534.0, 501.0);
+    let ggmath1: ggmath::Vector<4, f32, ggmath::Simd> = ggmath::vec4!(1.0, 40.5, 499.0, 500.0);
+    let ggmath2: ggmath::Vector<4, f32, ggmath::Simd> = ggmath::vec4!(2.0, 21.5, 534.0, 501.0);
 
     let glam1: glam::Vec4 = glam::Vec4::new(1.0, 40.5, 499.0, 500.0);
     let glam2: glam::Vec4 = glam::Vec4::new(2.0, 21.5, 534.0, 501.0);
@@ -28,7 +26,7 @@ fn fvec4(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("fvec4_splat");
     group.bench_function("ggmath", |b| {
-        b.iter(|| ggmath::Vector::<4, f32, ggmath::VecAligned>::splat(1.0))
+        b.iter(|| ggmath::Vector::<4, f32, ggmath::Simd>::splat(1.0))
     });
     group.bench_function("glam", |b| b.iter(|| glam::Vec4::splat(1.0)));
     group.finish();

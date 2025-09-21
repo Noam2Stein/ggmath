@@ -59,7 +59,7 @@ pub fn push_src(
 
         $("/// Returns a vector of `T2` elements where each element is `if_true` if the corresponding element in `self` is `true` and `if_false` if the corresponding element in `self` is `false`.")
         #[inline(always)]
-        pub fn select<T2: Scalar>(self, if_true: Vector<N, T2, A>, if_false: Vector<N, T2, A>) -> Vector<N, T2, A> {
+        pub fn select<T2: Scalar>(self, if_true: Vector<N, T2, S>, if_false: Vector<N, T2, S>) -> Vector<N, T2, S> {
             Vector::from_fn(|i| if self.index(i) { if_true.index(i) } else { if_false.index(i) })
         }
 
@@ -68,7 +68,7 @@ pub fn push_src(
 
             $(format!("/// Converts `self` to a vector of `{primitive2}` elements."))
             #[inline(always)]
-            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, A> {
+            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, S> {
                 self.map(|x| x as $primitive2)
             }
         )

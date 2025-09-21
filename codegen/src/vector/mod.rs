@@ -51,7 +51,7 @@ pub fn src_mod() -> SrcDir {
         $("///")
         $("/// This type has very very useful type-aliases:")
         $("/// - `Vec{N}<T>` like `Vec2<T>` is for SIMD vectors")
-        $("/// - `Vec{N}S<T>` like `Vec2S<T>` is for non-SIMD vectors (stands for \"scalar\")")
+        $("/// - `Vec{N}S<T>` like `Vec2S<T>` is for non-SIMD vectors (\"s\" stands for \"scalar\")")
         $("///")
         $("/// # Simdness")
         $("///")
@@ -68,7 +68,7 @@ pub fn src_mod() -> SrcDir {
         $("/// - `NonSimd` vectors are always stored as `[T; N]`.")
         $("///")
         $("/// - `Simd` just means that the layout is optimized for performance, and not for size.")
-        $("/// - No exact layout is guarenteed and the exact layout is decided upon by the [`Scalar`] implementation.")
+        $("/// - A `Simd` vector may not actually be SIMD if it doesn't improve performance.")
         $("///")
         $("/// # Example")
         $("/// ```")
@@ -278,7 +278,7 @@ pub fn src_mod() -> SrcDir {
 
             $("/// Converts the vector to the specified simdness.")
             #[inline(always)]
-            pub fn to_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
+            pub fn as_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
                 specialize! {
                     (self: Vector<N, T, S>) -> Vector<N, T, S2>:
 
@@ -394,7 +394,7 @@ pub fn src_mod() -> SrcDir {
             #[inline(always)]
             pub unsafe fn get_unchecked(self, index: usize) -> T {
                 specialize! {
-                    (self: Vector<N, T, A>, index: usize) -> T:
+                    (self: Vector<N, T, S>, index: usize) -> T:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
@@ -477,12 +477,12 @@ pub fn src_mod() -> SrcDir {
                         $(
                             for &n in LENGTHS join($['\r']) =>
 
-                            for (Vector<$n, T, VecAligned>) -> Vector<$n2, T, VecAligned> {
+                            for (Vector<$n, T, Simd>) -> Vector<$n2, T, Simd> {
                                 |vec| T::vec$(n)_shuffle_$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_SRC)>(vec)
                             }
                         )
                         else {
-                            Vector::<$n2, T, A>::from_array([$(for i in 0..n2 join(, ) => self.index($(COMPONENTS[i].to_uppercase())_SRC))])
+                            Vector::<$n2, T, S>::from_array([$(for i in 0..n2 join(, ) => self.index($(COMPONENTS[i].to_uppercase())_SRC))])
                         }
                     }
                 }
@@ -490,7 +490,7 @@ pub fn src_mod() -> SrcDir {
 
             $("/// Maps each component of the vector to a new value using the given function.")
             #[inline(always)]
-            pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, A>
+            pub fn map<T2: Scalar, F: Fn(T) -> T2>(self, f: F) -> Vector<N, T2, S>
             where
                 Usize<N>: VecLen,
             {
@@ -561,17 +561,17 @@ pub fn src_mod() -> SrcDir {
 
                 $(format!("/// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is {cmp_doc} the corresponding component of `other`."))
                 #[inline(always)]
-                pub fn $(cmp_lower)_mask<T2: Scalar>(self, other: Vector<N, T2, A>) -> Vector<N, bool, A>
+                pub fn $(cmp_lower)_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
                 where
                     T: $cmp_trait<T2>,
                 {
                     specialize! {
-                        (self: Vector<N, T, A>, other: Vector<N, T2, A>) -> Vector<N, bool, A>:
+                        (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
     
                         $(
                             for &n in LENGTHS join($['\r']) =>
     
-                            for (Vector<$n, T, VecAligned>, Vector<$n, T2, VecAligned>) -> Vector<$n, bool, VecAligned> {
+                            for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> Vector<$n, bool, Simd> {
                                 |vec, other| T::vec$(n)_$(cmp_lower)_mask(vec, other)
                             }
                         )
@@ -589,12 +589,12 @@ pub fn src_mod() -> SrcDir {
                 T: Add<Output = T>,
             {
                 specialize! {
-                    (self: Vector<N, T, A>) -> T:
+                    (self: Vector<N, T, S>) -> T:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
 
-                        for (Vector<$n, T, VecAligned>) -> T {
+                        for (Vector<$n, T, Simd>) -> T {
                             |vec| T::vec$(n)_sum(vec)
                         }
                     )
@@ -611,12 +611,12 @@ pub fn src_mod() -> SrcDir {
                 T: Mul<Output = T>,
             {
                 specialize! {
-                    (self: Vector<N, T, A>) -> T:
+                    (self: Vector<N, T, S>) -> T:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
 
-                        for (Vector<$n, T, VecAligned>) -> T {
+                        for (Vector<$n, T, Simd>) -> T {
                             |vec| T::vec$(n)_product(vec)
                         }
                     )
@@ -645,20 +645,20 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar> Vector<N, T, VecPacked>
+        impl<const N: usize, T: Scalar> Vector<N, T, NonSimd>
         where
             Usize<N>: VecLen,
         {
             $("/// Converts an array reference to a vector reference.")
             #[inline(always)]
             pub const fn from_array_ref(array: &[T; N]) -> &Self {
-                unsafe { transmute::<&[T; N], &Vector<N, T, VecPacked>>(array) }
+                unsafe { transmute::<&[T; N], &Vector<N, T, NonSimd>>(array) }
             }
 
             $("/// Converts a mutable array reference to a mutable vector reference.")
             #[inline(always)]
             pub const fn from_mut_array(array: &mut [T; N]) -> &mut Self {
-                unsafe { transmute::<&mut [T; N], &mut Vector<N, T, VecPacked>>(array) }
+                unsafe { transmute::<&mut [T; N], &mut Vector<N, T, NonSimd>>(array) }
             }
 
             $("/// Converts a vector reference to an array reference.")
@@ -701,7 +701,7 @@ pub fn src_mod() -> SrcDir {
         $(
             for &n in LENGTHS join($['\n']) =>
 
-            impl<T: Scalar, A: VecAlignment> Vector<$n, T, A> {
+            impl<T: Scalar, S: Simdness> Vector<$n, T, S> {
                 $(
                     if n == 2 =>
 
@@ -791,11 +791,11 @@ pub fn src_mod() -> SrcDir {
                     $("///")
                     $("/// Out of bounds indices are compile time errors.")
                     #[inline(always)]
-                    pub fn with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(self, value: Vector<$n2, T, A>) -> Self {
+                    pub fn with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(self, value: Vector<$n2, T, S>) -> Self {
                         specialize! {
-                            (self: Vector<$n, T, A>, value: Vector<$n2, T, _>) -> Vector<$n, T, A>:
+                            (self: Vector<$n, T, S>, value: Vector<$n2, T, _>) -> Vector<$n, T, S>:
     
-                            for (Vector<$n, T, VecAligned>, Vector<$n2, T, VecAligned>) -> Vector<$n, T, VecAligned> {
+                            for (Vector<$n, T, Simd>, Vector<$n2, T, Simd>) -> Vector<$n, T, Simd> {
                                 |vec, value| T::vec$(n)_with_shuffle_$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_DST)>(vec, value)
                             }
                             else {
@@ -818,7 +818,7 @@ pub fn src_mod() -> SrcDir {
         $(
             for &n in LENGTHS join($['\n']) =>
 
-            impl<T: Scalar> Vector<$n, T, VecPacked> {
+            impl<T: Scalar> Vector<$n, T, NonSimd> {
                 $(
                     for i in 0..n join($['\n']) =>
 
@@ -841,7 +841,7 @@ pub fn src_mod() -> SrcDir {
             }
         )
 
-        impl<const N: usize, T: Scalar, A: VecAlignment> Clone for Vector<N, T, A>
+        impl<const N: usize, T: Scalar, S: Simdness> Clone for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
@@ -851,9 +851,9 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar, A: VecAlignment> Copy for Vector<N, T, A> where Usize<N>: VecLen {}
+        impl<const N: usize, T: Scalar, S: Simdness> Copy for Vector<N, T, S> where Usize<N>: VecLen {}
 
-        impl<const N: usize, T: Scalar, A: VecAlignment> IntoIterator for Vector<N, T, A>
+        impl<const N: usize, T: Scalar, S: Simdness> IntoIterator for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
@@ -866,7 +866,7 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<'a, const N: usize, T: Scalar> IntoIterator for &'a Vector<N, T, VecPacked>
+        impl<'a, const N: usize, T: Scalar> IntoIterator for &'a Vector<N, T, NonSimd>
         where
             Usize<N>: VecLen,
         {
@@ -879,7 +879,7 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<'a, const N: usize, T: Scalar> IntoIterator for &'a mut Vector<N, T, VecPacked>
+        impl<'a, const N: usize, T: Scalar> IntoIterator for &'a mut Vector<N, T, NonSimd>
         where
             Usize<N>: VecLen,
         {
@@ -892,7 +892,7 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> Index<I> for Vector<N, T, VecPacked>
+        impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> Index<I> for Vector<N, T, NonSimd>
         where
             Usize<N>: VecLen,
         {
@@ -904,7 +904,7 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> IndexMut<I> for Vector<N, T, VecPacked>
+        impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> IndexMut<I> for Vector<N, T, NonSimd>
         where
             Usize<N>: VecLen,
         {
@@ -914,20 +914,20 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar + PartialEq<T2>, A: VecAlignment, T2: Scalar>
-            PartialEq<Vector<N, T2, A>> for Vector<N, T, A>
+        impl<const N: usize, T: Scalar + PartialEq<T2>, S: Simdness, T2: Scalar>
+            PartialEq<Vector<N, T2, S>> for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
             #[inline(always)]
-            fn eq(&self, other: &Vector<N, T2, A>) -> bool {
+            fn eq(&self, other: &Vector<N, T2, S>) -> bool {
                 specialize! {
-                    ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
+                    ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
                         
-                        for (Vector<$n, T, VecAligned>, Vector<$n, T2, VecAligned>) -> bool {
+                        for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> bool {
                             |vec, other| T::vec$(n)_eq(vec, other)
                         }
                     )
@@ -938,14 +938,14 @@ pub fn src_mod() -> SrcDir {
             }
 
             #[inline(always)]
-            fn ne(&self, other: &Vector<N, T2, A>) -> bool {
+            fn ne(&self, other: &Vector<N, T2, S>) -> bool {
                 specialize! {
-                    ((*self): Vector<N, T, A>, (*other): Vector<N, T2, A>) -> bool:
+                    ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
 
-                        for (Vector<$n, T, VecAligned>, Vector<$n, T2, VecAligned>) -> bool {
+                        for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> bool {
                             |vec, other| T::vec$(n)_ne(vec, other)
                         }
                     )
@@ -956,12 +956,12 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar + Eq, A: VecAlignment> Eq for Vector<N, T, A>
+        impl<const N: usize, T: Scalar + Eq, S: Simdness> Eq for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {}
 
-        impl<const N: usize, T: Scalar + Hash, A: VecAlignment> Hash for Vector<N, T, A>
+        impl<const N: usize, T: Scalar + Hash, S: Simdness> Hash for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
@@ -971,7 +971,7 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar + Default, A: VecAlignment> Default for Vector<N, T, A>
+        impl<const N: usize, T: Scalar + Default, S: Simdness> Default for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
@@ -981,7 +981,7 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar + Debug, A: VecAlignment> Debug for Vector<N, T, A>
+        impl<const N: usize, T: Scalar + Debug, S: Simdness> Debug for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
@@ -1002,7 +1002,7 @@ pub fn src_mod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar + Display, A: VecAlignment> Display for Vector<N, T, A>
+        impl<const N: usize, T: Scalar + Display, S: Simdness> Display for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {

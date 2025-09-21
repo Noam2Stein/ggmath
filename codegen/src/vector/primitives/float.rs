@@ -92,25 +92,25 @@ pub fn push_src(
 
         $("/// Returns a vector of bools with `true` for each element that has a negative sign, including `-0.0`.")
         #[inline(always)]
-        pub fn negative_sign_mask(self) -> Vector<N, bool, A> {
+        pub fn negative_sign_mask(self) -> Vector<N, bool, S> {
             self.map(|x| x.is_sign_negative())
         }
 
         $("/// Returns a vector of bools with `true` for each element that has a positive sign, including `+0.0`.")
         #[inline(always)]
-        pub fn positive_sign_mask(self) -> Vector<N, bool, A> {
+        pub fn positive_sign_mask(self) -> Vector<N, bool, S> {
             self.map(|x| x.is_sign_positive())
         }
 
         $("/// Returns a vector of bools with `true` for each element that is `NaN`.")
         #[inline(always)]
-        pub fn nan_mask(self) -> Vector<N, bool, A> {
+        pub fn nan_mask(self) -> Vector<N, bool, S> {
             self.map(|x| x.is_nan())
         }
 
         $("/// Returns a vector of bools with `true` for each element that is finite.")
         #[inline(always)]
-        pub fn finite_mask(self) -> Vector<N, bool, A> {
+        pub fn finite_mask(self) -> Vector<N, bool, S> {
             self.map(|x| x.is_finite())
         }
 

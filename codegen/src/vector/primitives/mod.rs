@@ -136,7 +136,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
         $(
             if !functions.is_empty() =>
 
-            impl<const N: usize, A: VecAlignment> Vector<N, $primitive, A>
+            impl<const N: usize, S: Simdness> Vector<N, $primitive, S>
             where
                 Usize<N>: VecLen,
             {
@@ -148,7 +148,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             for (n, n_functions) in LENGTHS.iter().filter_map(|&n| len_functions.get(&n).map(|functions| (n, functions)))
                 join($['\n']) =>
 
-            impl<A: VecAlignment> Vector<$n, $primitive, A> {
+            impl<S: Simdness> Vector<$n, $primitive, S> {
                 $(for function in n_functions join($['\n']) => $function)
             }
         )
@@ -157,7 +157,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
             if !std_functions.is_empty() =>
 
             #[cfg(feature = "std")]
-            impl<const N: usize, A: VecAlignment> Vector<N, $primitive, A>
+            impl<const N: usize, S: Simdness> Vector<N, $primitive, S>
             where
                 Usize<N>: VecLen,
             {
@@ -170,7 +170,7 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
                 join($['\n']) =>
 
             #[cfg(feature = "std")]
-            impl<A: VecAlignment> Vector<$n, $primitive, A> {
+            impl<S: Simdness> Vector<$n, $primitive, S> {
                 $(for function in n_functions join($['\n']) => $function)
             }
         )

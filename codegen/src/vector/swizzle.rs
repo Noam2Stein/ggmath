@@ -10,19 +10,19 @@ use crate::{
 
 pub fn src_mod() -> SrcFile {
     quote! {
-        use crate::{Scalar, VecAlignment, Vector, $(for &n in LENGTHS join(, ) => Vec$(n)P)};
+        use crate::{Scalar, Simdness, Vector, $(for &n in LENGTHS join(, ) => Vec$(n)S)};
 
         $(
             for &n in LENGTHS join($['\n']) =>
 
-            impl<T: Scalar, A: VecAlignment> Vector<$n, T, A> {
+            impl<T: Scalar, S: Simdness> Vector<$n, T, S> {
                 $(
                     for &n2 in LENGTHS join($['\n']) => $(
                         for combination in combinations(n, n2) join($['\n']) =>
 
                         $(format!("/// Returns a new vector with the {} ({}) components of `self`.", join_and(combination.iter().map(|&i| format!("`{}`", COMPONENTS[i]))), join_and(combination.iter().map(|&i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
-                        pub fn $(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self) -> Vector<$n2, T, A> {
+                        pub fn $(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self) -> Vector<$n2, T, S> {
                             self.shuffle_$(n2)::<$(for i in combination join(, ) => $i)>()
                         }
                     )
@@ -39,7 +39,7 @@ pub fn src_mod() -> SrcFile {
                             $(format!("/// - The `{}` ({}) component set to the `{}` ({}) component of `value`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
                         )
                         #[inline(always)]
-                        pub fn with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self, value: Vector<$n2, T, A>) -> Self {
+                        pub fn with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(self, value: Vector<$n2, T, S>) -> Self {
                             self.with_shuffle_$(n2)::<$(for &i in &combination join(, ) => $i)>(value)
                         }
                     )
@@ -54,7 +54,7 @@ pub fn src_mod() -> SrcFile {
                             $(format!("/// - Sets the `{}` ({}) component of `self` to the `{}` ({}) component of `value`", COMPONENTS[dst], COMPONENT_ORDINALS[dst], COMPONENTS[src], COMPONENT_ORDINALS[src]))
                         )
                         #[inline(always)]
-                        pub fn set_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(&mut self, value: Vector<$n2, T, A>) {
+                        pub fn set_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(&mut self, value: Vector<$n2, T, S>) {
                             *self = self.with_$(combination.iter().map(|&i| COMPONENTS[i]).collect::<String>())(value);
                         }
                     )
@@ -65,14 +65,14 @@ pub fn src_mod() -> SrcFile {
         $(
             for &n in LENGTHS join($['\n']) =>
 
-            impl<T: Scalar> Vec$(n)P<T> {
+            impl<T: Scalar> Vec$(n)S<T> {
                 $(
                     for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) => $(
                         for start in 0..=n - n2 =>
 
                         $(format!("/// Returns a reference to the {} ({}) components of `self`.", join_and((start..start + n2).map(|i| format!("`{}`", COMPONENTS[i]))), join_and((start..start + n2).map(|i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
-                        pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_ref(&self) -> &Vec$(n2)P<T> {
+                        pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_ref(&self) -> &Vec$(n2)S<T> {
                             Vector::from_array_ref(unsafe { &*(self.as_ptr().add($start) as *const [T; $n2]) })
                         }
                     )
@@ -84,7 +84,7 @@ pub fn src_mod() -> SrcFile {
 
                         $(format!("/// Returns a mutable reference to the {} ({}) components of `self`.", join_and((start..start + n2).map(|i| format!("`{}`", COMPONENTS[i]))), join_and((start..start + n2).map(|i| COMPONENT_ORDINALS[i].to_string()))))
                         #[inline(always)]
-                        pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_mut(&mut self) -> &mut Vec$(n2)P<T> {
+                        pub const fn $((start..start + n2).map(|i| COMPONENTS[i]).collect::<String>())_mut(&mut self) -> &mut Vec$(n2)S<T> {
                             Vector::from_mut_array(unsafe { &mut *(self.as_mut_ptr().add($start) as *mut [T; $n2]) })
                         }
                     )
@@ -104,7 +104,7 @@ pub fn src_mod() -> SrcFile {
                         )
                     )
                     #[inline(always)]
-                    pub const fn $(for range in &split join(_) => $(for i in range.clone() => $(COMPONENTS[i])))_mut(&mut self) -> ($(for range in &split join(, ) => &mut $(if range.len() == 1 { T } else { Vec$(range.len())P<T> } ))$(if split.len() == 1 { , })) {
+                    pub const fn $(for range in &split join(_) => $(for i in range.clone() => $(COMPONENTS[i])))_mut(&mut self) -> ($(for range in &split join(, ) => &mut $(if range.len() == 1 { T } else { Vec$(range.len())S<T> } ))$(if split.len() == 1 { , })) {
                         unsafe {
                             ($(
                                 for range in &split => $(

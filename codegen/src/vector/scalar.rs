@@ -18,7 +18,7 @@ pub fn src_mod() -> SrcFile {
         $("/// This is only implemented for actual scalar types (e.g., `f32`),")
         $("/// not vectors, matrices, etc.")
         $("///")
-        $("/// When implementing this trait you need to specify the inner types of [`VecAligned`] vectors.")
+        $("/// When implementing this trait you need to specify the inner types of [`Simd`] vectors.")
         $("/// You can also override the implementation of vector functions to make optimizations.")
         $("///")
         $("/// For an example of an optimized `Scalar` implementation,")
@@ -37,7 +37,7 @@ pub fn src_mod() -> SrcFile {
         $(
             for &n in LENGTHS =>
 
-            $(format!("///     type InnerAlignedVec{n} = [MyInt; {n}];"))$['\r']
+            $(format!("///     type InnerSimdVec{n} = [MyInt; {n}];"))$['\r']
         )
         $("///")
         $(
@@ -63,36 +63,36 @@ pub fn src_mod() -> SrcFile {
             $(
                 for &n in LENGTHS join($['\n']) =>
 
-                $(format!("/// The inner type contained inside `Vector<{n}, Self, VecAligned>`."))
-                type InnerAlignedVec$(n): Construct;
+                $(format!("/// The inner type contained inside `Vector<{n}, Self, Simd>`."))
+                type InnerSimdVec$(n): Construct;
             )
 
             $(
                 for &n in LENGTHS join($['\n']) =>
 
-                $(format!("/// Constructs an aligned vec{n} from an array."))
+                $(format!("/// Constructs a simd vec{n} from an array."))
                 fn vec$(n)_from_array(array: [Self; $n]) -> Vec$(n)<Self>;
 
-                $(format!("/// Converts an aligned vec{n} to an array."))
+                $(format!("/// Converts a simd vec{n} to an array."))
                 fn vec$(n)_as_array(vec: Vec$(n)<Self>) -> [Self; $n];
             )
 
             $(
                 for &n in LENGTHS join($['\n']) =>
 
-                $(format!("/// Overridable implementation of `Vector::splat` for aligned vec{n}s."))
+                $(format!("/// Overridable implementation of `Vector::splat` for simd vec{n}s."))
                 #[inline(always)]
                 fn vec$(n)_splat(value: Self) -> Vec$(n)<Self> {
                     Vec$(n)::from_array([value; $n])
                 }
 
-                $(format!("/// Overridable implementation of `Vector::get_unchecked` for aligned vec{n}s."))
+                $(format!("/// Overridable implementation of `Vector::get_unchecked` for simd vec{n}s."))
                 #[inline(always)]
                 unsafe fn vec$(n)_get_unchecked(vec: Vec$(n)<Self>, index: usize) -> Self {
                     unsafe { *vec.as_array().get_unchecked(index) }
                 }
 
-                $(format!("/// Overridable implementation of `Vector::set_unchecked` for aligned vec{n}s."))
+                $(format!("/// Overridable implementation of `Vector::set_unchecked` for simd vec{n}s."))
                 #[inline(always)]
                 unsafe fn vec$(n)_with_unchecked(vec: Vec$(n)<Self>, index: usize, value: Self) -> Vec$(n)<Self> {
                     let mut array = vec.as_array();
@@ -104,7 +104,7 @@ pub fn src_mod() -> SrcFile {
                 $(
                     for &n2 in LENGTHS join($['\n']) =>
 
-                    $(format!("/// Overridable implementation of `Vector::shuffle_{n2}` for aligned vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::shuffle_{n2}` for simd vec{n}s."))
                     #[inline(always)]
                     fn vec$(n)_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
                         Vec$(n2)::from_array([$(for i in 0..n2 join(, ) => vec.index($(COMPONENTS[i].to_uppercase())_SRC))])
@@ -114,7 +114,7 @@ pub fn src_mod() -> SrcFile {
                 $(
                     for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) =>
 
-                    $(format!("/// Overridable implementation of `Vector::with_{n2}` for aligned vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::with_{n2}` for simd vec{n}s."))
                     #[inline(always)]
                     fn vec$(n)_with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
                         let mut output = vec;
@@ -129,7 +129,7 @@ pub fn src_mod() -> SrcFile {
                     }
                 )
 
-                $(format!("/// Overridable implementation of `Vector::eq` for aligned vec{n}s."))
+                $(format!("/// Overridable implementation of `Vector::eq` for simd vec{n}s."))
                 #[inline(always)]
                 fn vec$(n)_eq<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> bool
                 where
@@ -138,7 +138,7 @@ pub fn src_mod() -> SrcFile {
                     (0..$n).all(|i| vec.index(i) == other.index(i))
                 }
         
-                $(format!("/// Overridable implementation of `Vector::ne` for aligned vec{n}s."))
+                $(format!("/// Overridable implementation of `Vector::ne` for simd vec{n}s."))
                 #[inline(always)]
                 fn vec$(n)_ne<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> bool
                 where
@@ -152,7 +152,7 @@ pub fn src_mod() -> SrcFile {
 
                     $(let op_snakecase = &op_camelcase.to_lowercase())
 
-                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for aligned vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for simd vec{n}s."))
                     #[inline(always)]
                     fn vec$(n)_$(op_snakecase)(vec: Vec$(n)<Self>) -> Vec$(n)<<Self as $op_camelcase>::Output>
                     where
@@ -167,7 +167,7 @@ pub fn src_mod() -> SrcFile {
 
                     $(let op_snakecase = &op_camelcase.to_lowercase())
 
-                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for aligned vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for simd vec{n}s."))
                     #[inline(always)]
                     fn vec$(n)_$(op_snakecase)<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> Vec$(n)<<Self as $op_camelcase<T2>>::Output>
                     where
@@ -184,7 +184,7 @@ pub fn src_mod() -> SrcFile {
                     $(let cmp_tt = COMPARISON_OP_TOKENS[cmp_op_idx])
                     $(let cmp_trait = COMPARISON_OP_TRAITS[cmp_op_idx])
 
-                    $(format!("/// Overridable implementation of `Vector::{cmp_lower}_mask` for aligned vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::{cmp_lower}_mask` for simd vec{n}s."))
                     #[inline(always)]
                     fn vec$(n)_$(cmp_lower)_mask<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> Vec$(n)<bool>
                     where
@@ -194,7 +194,7 @@ pub fn src_mod() -> SrcFile {
                     }
                 )
 
-                $(format!("/// Overridable implementation of `Vector::sum` for aligned vec{n}s."))
+                $(format!("/// Overridable implementation of `Vector::sum` for simd vec{n}s."))
                 #[inline(always)]
                 fn vec$(n)_sum(vec: Vec$(n)<Self>) -> Self
                 where
@@ -203,7 +203,7 @@ pub fn src_mod() -> SrcFile {
                     vec.reduce(|a, b| a + b)
                 }
 
-                $(format!("/// Overridable implementation of `Vector::product` for aligned vec{n}s."))
+                $(format!("/// Overridable implementation of `Vector::product` for simd vec{n}s."))
                 #[inline(always)]
                 fn vec$(n)_product(vec: Vec$(n)<Self>) -> Self
                 where

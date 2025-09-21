@@ -28,7 +28,7 @@ pub fn push_src(
 
             $(format!("/// Converts `self` to a vector of `{primitive2}` elements."))
             #[inline(always)]
-            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, A> {
+            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, S> {
                 self.map(|x| x as $primitive2)
             }
         )

@@ -9,7 +9,7 @@ use crate::{Construct, Vec2, Vec3, Vec4, Vector};
 /// This is only implemented for actual scalar types (e.g., `f32`),
 /// not vectors, matrices, etc.
 ///
-/// When implementing this trait you need to specify the inner types of [`VecAligned`] vectors.
+/// When implementing this trait you need to specify the inner types of [`Simd`] vectors.
 /// You can also override the implementation of vector functions to make optimizations.
 ///
 /// For an example of an optimized `Scalar` implementation,
@@ -25,9 +25,9 @@ use crate::{Construct, Vec2, Vec3, Vec4, Vector};
 /// impl Scalar for MyInt {
 ///     // If we wanted to SIMD-accelerate this scalar type,
 ///     // we would use another SIMD type like from `std::arch`, `ggmath`, `glam`, etc.
-///     type InnerAlignedVec2 = [MyInt; 2];
-///     type InnerAlignedVec3 = [MyInt; 3];
-///     type InnerAlignedVec4 = [MyInt; 4];
+///     type InnerSimdVec2 = [MyInt; 2];
+///     type InnerSimdVec3 = [MyInt; 3];
+///     type InnerSimdVec4 = [MyInt; 4];
 ///
 ///     #[inline(always)]
 ///     fn vec2_from_array(array: [MyInt; 2]) -> Vec2<MyInt> {
@@ -61,46 +61,46 @@ use crate::{Construct, Vec2, Vec3, Vec4, Vector};
 /// }
 /// ```
 pub trait Scalar: Construct {
-    /// The inner type contained inside `Vector<2, Self, VecAligned>`.
-    type InnerAlignedVec2: Construct;
+    /// The inner type contained inside `Vector<2, Self, Simd>`.
+    type InnerSimdVec2: Construct;
 
-    /// The inner type contained inside `Vector<3, Self, VecAligned>`.
-    type InnerAlignedVec3: Construct;
+    /// The inner type contained inside `Vector<3, Self, Simd>`.
+    type InnerSimdVec3: Construct;
 
-    /// The inner type contained inside `Vector<4, Self, VecAligned>`.
-    type InnerAlignedVec4: Construct;
+    /// The inner type contained inside `Vector<4, Self, Simd>`.
+    type InnerSimdVec4: Construct;
 
-    /// Constructs an aligned vec2 from an array.
+    /// Constructs a simd vec2 from an array.
     fn vec2_from_array(array: [Self; 2]) -> Vec2<Self>;
 
-    /// Converts an aligned vec2 to an array.
+    /// Converts a simd vec2 to an array.
     fn vec2_as_array(vec: Vec2<Self>) -> [Self; 2];
 
-    /// Constructs an aligned vec3 from an array.
+    /// Constructs a simd vec3 from an array.
     fn vec3_from_array(array: [Self; 3]) -> Vec3<Self>;
 
-    /// Converts an aligned vec3 to an array.
+    /// Converts a simd vec3 to an array.
     fn vec3_as_array(vec: Vec3<Self>) -> [Self; 3];
 
-    /// Constructs an aligned vec4 from an array.
+    /// Constructs a simd vec4 from an array.
     fn vec4_from_array(array: [Self; 4]) -> Vec4<Self>;
 
-    /// Converts an aligned vec4 to an array.
+    /// Converts a simd vec4 to an array.
     fn vec4_as_array(vec: Vec4<Self>) -> [Self; 4];
 
-    /// Overridable implementation of `Vector::splat` for aligned vec2s.
+    /// Overridable implementation of `Vector::splat` for simd vec2s.
     #[inline(always)]
     fn vec2_splat(value: Self) -> Vec2<Self> {
         Vec2::from_array([value; 2])
     }
 
-    /// Overridable implementation of `Vector::get_unchecked` for aligned vec2s.
+    /// Overridable implementation of `Vector::get_unchecked` for simd vec2s.
     #[inline(always)]
     unsafe fn vec2_get_unchecked(vec: Vec2<Self>, index: usize) -> Self {
         unsafe { *vec.as_array().get_unchecked(index) }
     }
 
-    /// Overridable implementation of `Vector::set_unchecked` for aligned vec2s.
+    /// Overridable implementation of `Vector::set_unchecked` for simd vec2s.
     #[inline(always)]
     unsafe fn vec2_with_unchecked(vec: Vec2<Self>, index: usize, value: Self) -> Vec2<Self> {
         let mut array = vec.as_array();
@@ -111,13 +111,13 @@ pub trait Scalar: Construct {
         Vec2::from_array(array)
     }
 
-    /// Overridable implementation of `Vector::shuffle_2` for aligned vec2s.
+    /// Overridable implementation of `Vector::shuffle_2` for simd vec2s.
     #[inline(always)]
     fn vec2_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec2<Self>) -> Vec2<Self> {
         Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_3` for aligned vec2s.
+    /// Overridable implementation of `Vector::shuffle_3` for simd vec2s.
     #[inline(always)]
     fn vec2_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         vec: Vec2<Self>,
@@ -125,7 +125,7 @@ pub trait Scalar: Construct {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_4` for aligned vec2s.
+    /// Overridable implementation of `Vector::shuffle_4` for simd vec2s.
     #[inline(always)]
     fn vec2_shuffle_4<
         const X_SRC: usize,
@@ -143,7 +143,7 @@ pub trait Scalar: Construct {
         ])
     }
 
-    /// Overridable implementation of `Vector::with_2` for aligned vec2s.
+    /// Overridable implementation of `Vector::with_2` for simd vec2s.
     #[inline(always)]
     fn vec2_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         vec: Vec2<Self>,
@@ -156,7 +156,7 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::eq` for aligned vec2s.
+    /// Overridable implementation of `Vector::eq` for simd vec2s.
     #[inline(always)]
     fn vec2_eq<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> bool
     where
@@ -165,7 +165,7 @@ pub trait Scalar: Construct {
         (0..2).all(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne` for aligned vec2s.
+    /// Overridable implementation of `Vector::ne` for simd vec2s.
     #[inline(always)]
     fn vec2_ne<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> bool
     where
@@ -174,7 +174,7 @@ pub trait Scalar: Construct {
         (0..2).any(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::neg` for aligned vec2s.
+    /// Overridable implementation of `Vector::neg` for simd vec2s.
     #[inline(always)]
     fn vec2_neg(vec: Vec2<Self>) -> Vec2<<Self as Neg>::Output>
     where
@@ -183,7 +183,7 @@ pub trait Scalar: Construct {
         vec.map(|v| v.neg())
     }
 
-    /// Overridable implementation of `Vector::not` for aligned vec2s.
+    /// Overridable implementation of `Vector::not` for simd vec2s.
     #[inline(always)]
     fn vec2_not(vec: Vec2<Self>) -> Vec2<<Self as Not>::Output>
     where
@@ -192,7 +192,7 @@ pub trait Scalar: Construct {
         vec.map(|v| v.not())
     }
 
-    /// Overridable implementation of `Vector::add` for aligned vec2s.
+    /// Overridable implementation of `Vector::add` for simd vec2s.
     #[inline(always)]
     fn vec2_add<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Add<T2>>::Output>
     where
@@ -201,7 +201,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).add(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::sub` for aligned vec2s.
+    /// Overridable implementation of `Vector::sub` for simd vec2s.
     #[inline(always)]
     fn vec2_sub<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Sub<T2>>::Output>
     where
@@ -210,7 +210,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::mul` for aligned vec2s.
+    /// Overridable implementation of `Vector::mul` for simd vec2s.
     #[inline(always)]
     fn vec2_mul<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Mul<T2>>::Output>
     where
@@ -219,7 +219,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::div` for aligned vec2s.
+    /// Overridable implementation of `Vector::div` for simd vec2s.
     #[inline(always)]
     fn vec2_div<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Div<T2>>::Output>
     where
@@ -228,7 +228,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).div(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::rem` for aligned vec2s.
+    /// Overridable implementation of `Vector::rem` for simd vec2s.
     #[inline(always)]
     fn vec2_rem<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Rem<T2>>::Output>
     where
@@ -237,7 +237,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shl` for aligned vec2s.
+    /// Overridable implementation of `Vector::shl` for simd vec2s.
     #[inline(always)]
     fn vec2_shl<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Shl<T2>>::Output>
     where
@@ -246,7 +246,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shr` for aligned vec2s.
+    /// Overridable implementation of `Vector::shr` for simd vec2s.
     #[inline(always)]
     fn vec2_shr<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Shr<T2>>::Output>
     where
@@ -255,7 +255,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitand` for aligned vec2s.
+    /// Overridable implementation of `Vector::bitand` for simd vec2s.
     #[inline(always)]
     fn vec2_bitand<T2: Scalar>(
         vec: Vec2<Self>,
@@ -267,7 +267,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitor` for aligned vec2s.
+    /// Overridable implementation of `Vector::bitor` for simd vec2s.
     #[inline(always)]
     fn vec2_bitor<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as BitOr<T2>>::Output>
     where
@@ -276,7 +276,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitxor` for aligned vec2s.
+    /// Overridable implementation of `Vector::bitxor` for simd vec2s.
     #[inline(always)]
     fn vec2_bitxor<T2: Scalar>(
         vec: Vec2<Self>,
@@ -288,7 +288,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::eq_mask` for aligned vec2s.
+    /// Overridable implementation of `Vector::eq_mask` for simd vec2s.
     #[inline(always)]
     fn vec2_eq_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
     where
@@ -297,7 +297,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne_mask` for aligned vec2s.
+    /// Overridable implementation of `Vector::ne_mask` for simd vec2s.
     #[inline(always)]
     fn vec2_ne_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
     where
@@ -306,7 +306,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::lt_mask` for aligned vec2s.
+    /// Overridable implementation of `Vector::lt_mask` for simd vec2s.
     #[inline(always)]
     fn vec2_lt_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
     where
@@ -315,7 +315,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) < other.index(i))
     }
 
-    /// Overridable implementation of `Vector::le_mask` for aligned vec2s.
+    /// Overridable implementation of `Vector::le_mask` for simd vec2s.
     #[inline(always)]
     fn vec2_le_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
     where
@@ -324,7 +324,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) <= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::gt_mask` for aligned vec2s.
+    /// Overridable implementation of `Vector::gt_mask` for simd vec2s.
     #[inline(always)]
     fn vec2_gt_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
     where
@@ -333,7 +333,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) > other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ge_mask` for aligned vec2s.
+    /// Overridable implementation of `Vector::ge_mask` for simd vec2s.
     #[inline(always)]
     fn vec2_ge_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
     where
@@ -342,7 +342,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) >= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::sum` for aligned vec2s.
+    /// Overridable implementation of `Vector::sum` for simd vec2s.
     #[inline(always)]
     fn vec2_sum(vec: Vec2<Self>) -> Self
     where
@@ -351,7 +351,7 @@ pub trait Scalar: Construct {
         vec.reduce(|a, b| a + b)
     }
 
-    /// Overridable implementation of `Vector::product` for aligned vec2s.
+    /// Overridable implementation of `Vector::product` for simd vec2s.
     #[inline(always)]
     fn vec2_product(vec: Vec2<Self>) -> Self
     where
@@ -360,19 +360,19 @@ pub trait Scalar: Construct {
         vec.reduce(|a, b| a * b)
     }
 
-    /// Overridable implementation of `Vector::splat` for aligned vec3s.
+    /// Overridable implementation of `Vector::splat` for simd vec3s.
     #[inline(always)]
     fn vec3_splat(value: Self) -> Vec3<Self> {
         Vec3::from_array([value; 3])
     }
 
-    /// Overridable implementation of `Vector::get_unchecked` for aligned vec3s.
+    /// Overridable implementation of `Vector::get_unchecked` for simd vec3s.
     #[inline(always)]
     unsafe fn vec3_get_unchecked(vec: Vec3<Self>, index: usize) -> Self {
         unsafe { *vec.as_array().get_unchecked(index) }
     }
 
-    /// Overridable implementation of `Vector::set_unchecked` for aligned vec3s.
+    /// Overridable implementation of `Vector::set_unchecked` for simd vec3s.
     #[inline(always)]
     unsafe fn vec3_with_unchecked(vec: Vec3<Self>, index: usize, value: Self) -> Vec3<Self> {
         let mut array = vec.as_array();
@@ -383,13 +383,13 @@ pub trait Scalar: Construct {
         Vec3::from_array(array)
     }
 
-    /// Overridable implementation of `Vector::shuffle_2` for aligned vec3s.
+    /// Overridable implementation of `Vector::shuffle_2` for simd vec3s.
     #[inline(always)]
     fn vec3_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec3<Self>) -> Vec2<Self> {
         Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_3` for aligned vec3s.
+    /// Overridable implementation of `Vector::shuffle_3` for simd vec3s.
     #[inline(always)]
     fn vec3_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         vec: Vec3<Self>,
@@ -397,7 +397,7 @@ pub trait Scalar: Construct {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_4` for aligned vec3s.
+    /// Overridable implementation of `Vector::shuffle_4` for simd vec3s.
     #[inline(always)]
     fn vec3_shuffle_4<
         const X_SRC: usize,
@@ -415,7 +415,7 @@ pub trait Scalar: Construct {
         ])
     }
 
-    /// Overridable implementation of `Vector::with_2` for aligned vec3s.
+    /// Overridable implementation of `Vector::with_2` for simd vec3s.
     #[inline(always)]
     fn vec3_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         vec: Vec3<Self>,
@@ -428,7 +428,7 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::with_3` for aligned vec3s.
+    /// Overridable implementation of `Vector::with_3` for simd vec3s.
     #[inline(always)]
     fn vec3_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         vec: Vec3<Self>,
@@ -442,7 +442,7 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::eq` for aligned vec3s.
+    /// Overridable implementation of `Vector::eq` for simd vec3s.
     #[inline(always)]
     fn vec3_eq<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> bool
     where
@@ -451,7 +451,7 @@ pub trait Scalar: Construct {
         (0..3).all(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne` for aligned vec3s.
+    /// Overridable implementation of `Vector::ne` for simd vec3s.
     #[inline(always)]
     fn vec3_ne<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> bool
     where
@@ -460,7 +460,7 @@ pub trait Scalar: Construct {
         (0..3).any(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::neg` for aligned vec3s.
+    /// Overridable implementation of `Vector::neg` for simd vec3s.
     #[inline(always)]
     fn vec3_neg(vec: Vec3<Self>) -> Vec3<<Self as Neg>::Output>
     where
@@ -469,7 +469,7 @@ pub trait Scalar: Construct {
         vec.map(|v| v.neg())
     }
 
-    /// Overridable implementation of `Vector::not` for aligned vec3s.
+    /// Overridable implementation of `Vector::not` for simd vec3s.
     #[inline(always)]
     fn vec3_not(vec: Vec3<Self>) -> Vec3<<Self as Not>::Output>
     where
@@ -478,7 +478,7 @@ pub trait Scalar: Construct {
         vec.map(|v| v.not())
     }
 
-    /// Overridable implementation of `Vector::add` for aligned vec3s.
+    /// Overridable implementation of `Vector::add` for simd vec3s.
     #[inline(always)]
     fn vec3_add<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Add<T2>>::Output>
     where
@@ -487,7 +487,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).add(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::sub` for aligned vec3s.
+    /// Overridable implementation of `Vector::sub` for simd vec3s.
     #[inline(always)]
     fn vec3_sub<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Sub<T2>>::Output>
     where
@@ -496,7 +496,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::mul` for aligned vec3s.
+    /// Overridable implementation of `Vector::mul` for simd vec3s.
     #[inline(always)]
     fn vec3_mul<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Mul<T2>>::Output>
     where
@@ -505,7 +505,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::div` for aligned vec3s.
+    /// Overridable implementation of `Vector::div` for simd vec3s.
     #[inline(always)]
     fn vec3_div<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Div<T2>>::Output>
     where
@@ -514,7 +514,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).div(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::rem` for aligned vec3s.
+    /// Overridable implementation of `Vector::rem` for simd vec3s.
     #[inline(always)]
     fn vec3_rem<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Rem<T2>>::Output>
     where
@@ -523,7 +523,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shl` for aligned vec3s.
+    /// Overridable implementation of `Vector::shl` for simd vec3s.
     #[inline(always)]
     fn vec3_shl<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Shl<T2>>::Output>
     where
@@ -532,7 +532,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shr` for aligned vec3s.
+    /// Overridable implementation of `Vector::shr` for simd vec3s.
     #[inline(always)]
     fn vec3_shr<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Shr<T2>>::Output>
     where
@@ -541,7 +541,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitand` for aligned vec3s.
+    /// Overridable implementation of `Vector::bitand` for simd vec3s.
     #[inline(always)]
     fn vec3_bitand<T2: Scalar>(
         vec: Vec3<Self>,
@@ -553,7 +553,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitor` for aligned vec3s.
+    /// Overridable implementation of `Vector::bitor` for simd vec3s.
     #[inline(always)]
     fn vec3_bitor<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as BitOr<T2>>::Output>
     where
@@ -562,7 +562,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitxor` for aligned vec3s.
+    /// Overridable implementation of `Vector::bitxor` for simd vec3s.
     #[inline(always)]
     fn vec3_bitxor<T2: Scalar>(
         vec: Vec3<Self>,
@@ -574,7 +574,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::eq_mask` for aligned vec3s.
+    /// Overridable implementation of `Vector::eq_mask` for simd vec3s.
     #[inline(always)]
     fn vec3_eq_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
     where
@@ -583,7 +583,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne_mask` for aligned vec3s.
+    /// Overridable implementation of `Vector::ne_mask` for simd vec3s.
     #[inline(always)]
     fn vec3_ne_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
     where
@@ -592,7 +592,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::lt_mask` for aligned vec3s.
+    /// Overridable implementation of `Vector::lt_mask` for simd vec3s.
     #[inline(always)]
     fn vec3_lt_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
     where
@@ -601,7 +601,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) < other.index(i))
     }
 
-    /// Overridable implementation of `Vector::le_mask` for aligned vec3s.
+    /// Overridable implementation of `Vector::le_mask` for simd vec3s.
     #[inline(always)]
     fn vec3_le_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
     where
@@ -610,7 +610,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) <= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::gt_mask` for aligned vec3s.
+    /// Overridable implementation of `Vector::gt_mask` for simd vec3s.
     #[inline(always)]
     fn vec3_gt_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
     where
@@ -619,7 +619,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) > other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ge_mask` for aligned vec3s.
+    /// Overridable implementation of `Vector::ge_mask` for simd vec3s.
     #[inline(always)]
     fn vec3_ge_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
     where
@@ -628,7 +628,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) >= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::sum` for aligned vec3s.
+    /// Overridable implementation of `Vector::sum` for simd vec3s.
     #[inline(always)]
     fn vec3_sum(vec: Vec3<Self>) -> Self
     where
@@ -637,7 +637,7 @@ pub trait Scalar: Construct {
         vec.reduce(|a, b| a + b)
     }
 
-    /// Overridable implementation of `Vector::product` for aligned vec3s.
+    /// Overridable implementation of `Vector::product` for simd vec3s.
     #[inline(always)]
     fn vec3_product(vec: Vec3<Self>) -> Self
     where
@@ -646,19 +646,19 @@ pub trait Scalar: Construct {
         vec.reduce(|a, b| a * b)
     }
 
-    /// Overridable implementation of `Vector::splat` for aligned vec4s.
+    /// Overridable implementation of `Vector::splat` for simd vec4s.
     #[inline(always)]
     fn vec4_splat(value: Self) -> Vec4<Self> {
         Vec4::from_array([value; 4])
     }
 
-    /// Overridable implementation of `Vector::get_unchecked` for aligned vec4s.
+    /// Overridable implementation of `Vector::get_unchecked` for simd vec4s.
     #[inline(always)]
     unsafe fn vec4_get_unchecked(vec: Vec4<Self>, index: usize) -> Self {
         unsafe { *vec.as_array().get_unchecked(index) }
     }
 
-    /// Overridable implementation of `Vector::set_unchecked` for aligned vec4s.
+    /// Overridable implementation of `Vector::set_unchecked` for simd vec4s.
     #[inline(always)]
     unsafe fn vec4_with_unchecked(vec: Vec4<Self>, index: usize, value: Self) -> Vec4<Self> {
         let mut array = vec.as_array();
@@ -669,13 +669,13 @@ pub trait Scalar: Construct {
         Vec4::from_array(array)
     }
 
-    /// Overridable implementation of `Vector::shuffle_2` for aligned vec4s.
+    /// Overridable implementation of `Vector::shuffle_2` for simd vec4s.
     #[inline(always)]
     fn vec4_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec4<Self>) -> Vec2<Self> {
         Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_3` for aligned vec4s.
+    /// Overridable implementation of `Vector::shuffle_3` for simd vec4s.
     #[inline(always)]
     fn vec4_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         vec: Vec4<Self>,
@@ -683,7 +683,7 @@ pub trait Scalar: Construct {
         Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_4` for aligned vec4s.
+    /// Overridable implementation of `Vector::shuffle_4` for simd vec4s.
     #[inline(always)]
     fn vec4_shuffle_4<
         const X_SRC: usize,
@@ -701,7 +701,7 @@ pub trait Scalar: Construct {
         ])
     }
 
-    /// Overridable implementation of `Vector::with_2` for aligned vec4s.
+    /// Overridable implementation of `Vector::with_2` for simd vec4s.
     #[inline(always)]
     fn vec4_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
         vec: Vec4<Self>,
@@ -714,7 +714,7 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::with_3` for aligned vec4s.
+    /// Overridable implementation of `Vector::with_3` for simd vec4s.
     #[inline(always)]
     fn vec4_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
         vec: Vec4<Self>,
@@ -728,7 +728,7 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::with_4` for aligned vec4s.
+    /// Overridable implementation of `Vector::with_4` for simd vec4s.
     #[inline(always)]
     fn vec4_with_shuffle_4<
         const X_DST: usize,
@@ -748,7 +748,7 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::eq` for aligned vec4s.
+    /// Overridable implementation of `Vector::eq` for simd vec4s.
     #[inline(always)]
     fn vec4_eq<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> bool
     where
@@ -757,7 +757,7 @@ pub trait Scalar: Construct {
         (0..4).all(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne` for aligned vec4s.
+    /// Overridable implementation of `Vector::ne` for simd vec4s.
     #[inline(always)]
     fn vec4_ne<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> bool
     where
@@ -766,7 +766,7 @@ pub trait Scalar: Construct {
         (0..4).any(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::neg` for aligned vec4s.
+    /// Overridable implementation of `Vector::neg` for simd vec4s.
     #[inline(always)]
     fn vec4_neg(vec: Vec4<Self>) -> Vec4<<Self as Neg>::Output>
     where
@@ -775,7 +775,7 @@ pub trait Scalar: Construct {
         vec.map(|v| v.neg())
     }
 
-    /// Overridable implementation of `Vector::not` for aligned vec4s.
+    /// Overridable implementation of `Vector::not` for simd vec4s.
     #[inline(always)]
     fn vec4_not(vec: Vec4<Self>) -> Vec4<<Self as Not>::Output>
     where
@@ -784,7 +784,7 @@ pub trait Scalar: Construct {
         vec.map(|v| v.not())
     }
 
-    /// Overridable implementation of `Vector::add` for aligned vec4s.
+    /// Overridable implementation of `Vector::add` for simd vec4s.
     #[inline(always)]
     fn vec4_add<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Add<T2>>::Output>
     where
@@ -793,7 +793,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).add(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::sub` for aligned vec4s.
+    /// Overridable implementation of `Vector::sub` for simd vec4s.
     #[inline(always)]
     fn vec4_sub<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Sub<T2>>::Output>
     where
@@ -802,7 +802,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::mul` for aligned vec4s.
+    /// Overridable implementation of `Vector::mul` for simd vec4s.
     #[inline(always)]
     fn vec4_mul<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Mul<T2>>::Output>
     where
@@ -811,7 +811,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::div` for aligned vec4s.
+    /// Overridable implementation of `Vector::div` for simd vec4s.
     #[inline(always)]
     fn vec4_div<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Div<T2>>::Output>
     where
@@ -820,7 +820,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).div(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::rem` for aligned vec4s.
+    /// Overridable implementation of `Vector::rem` for simd vec4s.
     #[inline(always)]
     fn vec4_rem<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Rem<T2>>::Output>
     where
@@ -829,7 +829,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shl` for aligned vec4s.
+    /// Overridable implementation of `Vector::shl` for simd vec4s.
     #[inline(always)]
     fn vec4_shl<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Shl<T2>>::Output>
     where
@@ -838,7 +838,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shr` for aligned vec4s.
+    /// Overridable implementation of `Vector::shr` for simd vec4s.
     #[inline(always)]
     fn vec4_shr<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Shr<T2>>::Output>
     where
@@ -847,7 +847,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitand` for aligned vec4s.
+    /// Overridable implementation of `Vector::bitand` for simd vec4s.
     #[inline(always)]
     fn vec4_bitand<T2: Scalar>(
         vec: Vec4<Self>,
@@ -859,7 +859,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitor` for aligned vec4s.
+    /// Overridable implementation of `Vector::bitor` for simd vec4s.
     #[inline(always)]
     fn vec4_bitor<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as BitOr<T2>>::Output>
     where
@@ -868,7 +868,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitxor` for aligned vec4s.
+    /// Overridable implementation of `Vector::bitxor` for simd vec4s.
     #[inline(always)]
     fn vec4_bitxor<T2: Scalar>(
         vec: Vec4<Self>,
@@ -880,7 +880,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::eq_mask` for aligned vec4s.
+    /// Overridable implementation of `Vector::eq_mask` for simd vec4s.
     #[inline(always)]
     fn vec4_eq_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
     where
@@ -889,7 +889,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne_mask` for aligned vec4s.
+    /// Overridable implementation of `Vector::ne_mask` for simd vec4s.
     #[inline(always)]
     fn vec4_ne_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
     where
@@ -898,7 +898,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::lt_mask` for aligned vec4s.
+    /// Overridable implementation of `Vector::lt_mask` for simd vec4s.
     #[inline(always)]
     fn vec4_lt_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
     where
@@ -907,7 +907,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) < other.index(i))
     }
 
-    /// Overridable implementation of `Vector::le_mask` for aligned vec4s.
+    /// Overridable implementation of `Vector::le_mask` for simd vec4s.
     #[inline(always)]
     fn vec4_le_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
     where
@@ -916,7 +916,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) <= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::gt_mask` for aligned vec4s.
+    /// Overridable implementation of `Vector::gt_mask` for simd vec4s.
     #[inline(always)]
     fn vec4_gt_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
     where
@@ -925,7 +925,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) > other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ge_mask` for aligned vec4s.
+    /// Overridable implementation of `Vector::ge_mask` for simd vec4s.
     #[inline(always)]
     fn vec4_ge_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
     where
@@ -934,7 +934,7 @@ pub trait Scalar: Construct {
         Vector::from_fn(|i| vec.index(i) >= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::sum` for aligned vec4s.
+    /// Overridable implementation of `Vector::sum` for simd vec4s.
     #[inline(always)]
     fn vec4_sum(vec: Vec4<Self>) -> Self
     where
@@ -943,7 +943,7 @@ pub trait Scalar: Construct {
         vec.reduce(|a, b| a + b)
     }
 
-    /// Overridable implementation of `Vector::product` for aligned vec4s.
+    /// Overridable implementation of `Vector::product` for simd vec4s.
     #[inline(always)]
     fn vec4_product(vec: Vec4<Self>) -> Self
     where

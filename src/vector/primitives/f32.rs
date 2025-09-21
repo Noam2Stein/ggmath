@@ -4,11 +4,11 @@
 use core::mem::transmute_copy;
 
 use crate::{
-    Scalar, ScalarNegOne, ScalarOne, ScalarZero, Usize, Vec2, Vec3, Vec4, VecAligned, VecAlignment,
-    VecLen, VecPacked, Vector,
+    NonSimd, Scalar, ScalarNegOne, ScalarOne, ScalarZero, Simd, Simdness, Usize, Vec2, Vec3, Vec4,
+    VecLen, Vector,
 };
 
-impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
+impl<const N: usize, S: Simdness> Vector<N, f32, S>
 where
     Usize<N>: VecLen,
 {
@@ -21,30 +21,30 @@ where
     #[inline(always)]
     pub const fn const_from_array(array: [f32; N]) -> Self {
         unsafe {
-            if A::IS_ALIGNED {
+            if S::IS_SIMD {
                 match N {
                     2 => {
                         let array = transmute_copy::<[f32; N], [f32; 2]>(&array);
                         let vec = Vector::<2, _, _>(array);
 
-                        transmute_copy::<Vector<2, f32, VecAligned>, Vector<N, f32, A>>(&vec)
+                        transmute_copy::<Vector<2, f32, Simd>, Vector<N, f32, S>>(&vec)
                     }
                     3 => {
                         let array = transmute_copy::<[f32; N], [f32; 3]>(&array);
                         let vec = Vector::<3, _, _>(array);
 
-                        transmute_copy::<Vector<3, f32, VecAligned>, Vector<N, f32, A>>(&vec)
+                        transmute_copy::<Vector<3, f32, Simd>, Vector<N, f32, S>>(&vec)
                     }
                     4 => {
                         let array = transmute_copy::<[f32; N], [f32; 4]>(&array);
                         let vec = Vector::<4, _, _>(array);
 
-                        transmute_copy::<Vector<4, f32, VecAligned>, Vector<N, f32, A>>(&vec)
+                        transmute_copy::<Vector<4, f32, Simd>, Vector<N, f32, S>>(&vec)
                     }
                     _ => panic!("unusual vector type"),
                 }
             } else {
-                transmute_copy::<Vector<N, f32, VecPacked>, Vector<N, f32, A>>(&Vector(array))
+                transmute_copy::<Vector<N, f32, NonSimd>, Vector<N, f32, S>>(&Vector(array))
             }
         }
     }
@@ -67,79 +67,79 @@ where
 
     /// Converts `self` to a vector of `f64` elements.
     #[inline(always)]
-    pub fn as_f64(self) -> Vector<N, f64, A> {
+    pub fn as_f64(self) -> Vector<N, f64, S> {
         self.map(|x| x as f64)
     }
 
     /// Converts `self` to a vector of `i8` elements.
     #[inline(always)]
-    pub fn as_i8(self) -> Vector<N, i8, A> {
+    pub fn as_i8(self) -> Vector<N, i8, S> {
         self.map(|x| x as i8)
     }
 
     /// Converts `self` to a vector of `i16` elements.
     #[inline(always)]
-    pub fn as_i16(self) -> Vector<N, i16, A> {
+    pub fn as_i16(self) -> Vector<N, i16, S> {
         self.map(|x| x as i16)
     }
 
     /// Converts `self` to a vector of `i32` elements.
     #[inline(always)]
-    pub fn as_i32(self) -> Vector<N, i32, A> {
+    pub fn as_i32(self) -> Vector<N, i32, S> {
         self.map(|x| x as i32)
     }
 
     /// Converts `self` to a vector of `i64` elements.
     #[inline(always)]
-    pub fn as_i64(self) -> Vector<N, i64, A> {
+    pub fn as_i64(self) -> Vector<N, i64, S> {
         self.map(|x| x as i64)
     }
 
     /// Converts `self` to a vector of `i128` elements.
     #[inline(always)]
-    pub fn as_i128(self) -> Vector<N, i128, A> {
+    pub fn as_i128(self) -> Vector<N, i128, S> {
         self.map(|x| x as i128)
     }
 
     /// Converts `self` to a vector of `isize` elements.
     #[inline(always)]
-    pub fn as_isize(self) -> Vector<N, isize, A> {
+    pub fn as_isize(self) -> Vector<N, isize, S> {
         self.map(|x| x as isize)
     }
 
     /// Converts `self` to a vector of `u8` elements.
     #[inline(always)]
-    pub fn as_u8(self) -> Vector<N, u8, A> {
+    pub fn as_u8(self) -> Vector<N, u8, S> {
         self.map(|x| x as u8)
     }
 
     /// Converts `self` to a vector of `u16` elements.
     #[inline(always)]
-    pub fn as_u16(self) -> Vector<N, u16, A> {
+    pub fn as_u16(self) -> Vector<N, u16, S> {
         self.map(|x| x as u16)
     }
 
     /// Converts `self` to a vector of `u32` elements.
     #[inline(always)]
-    pub fn as_u32(self) -> Vector<N, u32, A> {
+    pub fn as_u32(self) -> Vector<N, u32, S> {
         self.map(|x| x as u32)
     }
 
     /// Converts `self` to a vector of `u64` elements.
     #[inline(always)]
-    pub fn as_u64(self) -> Vector<N, u64, A> {
+    pub fn as_u64(self) -> Vector<N, u64, S> {
         self.map(|x| x as u64)
     }
 
     /// Converts `self` to a vector of `u128` elements.
     #[inline(always)]
-    pub fn as_u128(self) -> Vector<N, u128, A> {
+    pub fn as_u128(self) -> Vector<N, u128, S> {
         self.map(|x| x as u128)
     }
 
     /// Converts `self` to a vector of `usize` elements.
     #[inline(always)]
-    pub fn as_usize(self) -> Vector<N, usize, A> {
+    pub fn as_usize(self) -> Vector<N, usize, S> {
         self.map(|x| x as usize)
     }
 
@@ -219,25 +219,25 @@ where
 
     /// Returns a vector of bools with `true` for each element that has a negative sign, including `-0.0`.
     #[inline(always)]
-    pub fn negative_sign_mask(self) -> Vector<N, bool, A> {
+    pub fn negative_sign_mask(self) -> Vector<N, bool, S> {
         self.map(|x| x.is_sign_negative())
     }
 
     /// Returns a vector of bools with `true` for each element that has a positive sign, including `+0.0`.
     #[inline(always)]
-    pub fn positive_sign_mask(self) -> Vector<N, bool, A> {
+    pub fn positive_sign_mask(self) -> Vector<N, bool, S> {
         self.map(|x| x.is_sign_positive())
     }
 
     /// Returns a vector of bools with `true` for each element that is `NaN`.
     #[inline(always)]
-    pub fn nan_mask(self) -> Vector<N, bool, A> {
+    pub fn nan_mask(self) -> Vector<N, bool, S> {
         self.map(|x| x.is_nan())
     }
 
     /// Returns a vector of bools with `true` for each element that is finite.
     #[inline(always)]
-    pub fn finite_mask(self) -> Vector<N, bool, A> {
+    pub fn finite_mask(self) -> Vector<N, bool, S> {
         self.map(|x| x.is_finite())
     }
 
@@ -430,7 +430,7 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<const N: usize, A: VecAlignment> Vector<N, f32, A>
+impl<const N: usize, S: Simdness> Vector<N, f32, S>
 where
     Usize<N>: VecLen,
 {
@@ -564,7 +564,7 @@ where
 }
 
 #[cfg(feature = "std")]
-impl<A: VecAlignment> Vector<2, f32, A> {
+impl<S: Simdness> Vector<2, f32, S> {
     /// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.
     #[inline(always)]
     pub fn signed_angle(self, other: Self) -> f32 {
@@ -573,9 +573,9 @@ impl<A: VecAlignment> Vector<2, f32, A> {
 }
 
 impl Scalar for f32 {
-    type InnerAlignedVec2 = [f32; 2];
-    type InnerAlignedVec3 = [f32; 3];
-    type InnerAlignedVec4 = [f32; 4];
+    type InnerSimdVec2 = [f32; 2];
+    type InnerSimdVec3 = [f32; 3];
+    type InnerSimdVec4 = [f32; 4];
 
     #[inline(always)]
     fn vec2_from_array(array: [f32; 2]) -> Vec2<f32> {

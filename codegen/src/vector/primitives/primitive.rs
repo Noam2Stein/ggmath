@@ -17,7 +17,7 @@ pub fn push_src(
     trait_impls: &mut Vec<Tokens>,
 ) {
     use_crate_items
-        .push(quote! { Vector, VecAlignment, VecAligned, VecPacked, Usize, VecLen, Scalar });
+        .push(quote! { Vector, Simdness, Simd, NonSimd, Usize, VecLen, Scalar });
     use_crate_items.push(quote! { $(for &n in LENGTHS join(, ) => Vec$(n)) });
 
     functions.push(quote! {
@@ -32,7 +32,7 @@ pub fn push_src(
         #[inline(always)]
         pub const fn const_from_array(array: [$primitive; N]) -> Self {
             unsafe {
-                if A::IS_ALIGNED {
+                if S::IS_SIMD {
                     match N {
                         $(
                             for &n in LENGTHS join($['\r']) =>
@@ -42,8 +42,8 @@ pub fn push_src(
                                 let vec = Vector::<$n, _, _>(array);
 
                                 $transmute_copy::<
-                                    Vector<$n, $primitive, VecAligned>,
-                                    Vector<N, $primitive, A>,
+                                    Vector<$n, $primitive, Simd>,
+                                    Vector<N, $primitive, S>,
                                 >(&vec)
                             },
                         )
@@ -51,8 +51,8 @@ pub fn push_src(
                     }
                 } else {
                     $transmute_copy::<
-                        Vector<N, $primitive, VecPacked>,
-                        Vector<N, $primitive, A>,
+                        Vector<N, $primitive, NonSimd>,
+                        Vector<N, $primitive, S>,
                     >(&Vector(array))
                 }
             }
@@ -70,7 +70,7 @@ pub fn push_src(
 
     trait_impls.push(quote! {
         impl Scalar for $primitive {
-            $(for &n in LENGTHS join($['\r']) => type InnerAlignedVec$(n) = [$primitive; $n];)
+            $(for &n in LENGTHS join($['\r']) => type InnerSimdVec$(n) = [$primitive; $n];)
 
             $(
                 for &n in LENGTHS join($['\n']) =>
@@ -116,24 +116,29 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
             })
             $(let values2_str = &values2.join(", "))
 
-            const _: () = assert!(size_of::<Vec$(n)P<$primitive>>() == size_of::<[$primitive; $n]>());
+            const _: () = assert!(size_of::<Vec$(n)S<$primitive>>() == size_of::<[$primitive; $n]>());
 
             $(
-                for a in ["VecAligned", "VecPacked"] =>
+                for is_simd in [true, false] =>
 
-                $(let a_postfix_lowercase = match a {
-                    "VecAligned" => "",
-                    "VecPacked" => "p",
-                    _ => unreachable!(),
-                })
-                $(let a_postfix_camelcase = match a {
-                    "VecAligned" => "",
-                    "VecPacked" => "P",
-                    _ => unreachable!(),
+                $(let s = match is_simd {
+                    true => "Simd",
+                    false => "NonSimd",
                 })
 
-                $(let vec_lowercase = &format!("vec{n}{a_postfix_lowercase}"))
-                $(let vec_camelcase = &format!("Vec{n}{a_postfix_camelcase}"))
+                $(let s_postfix_lowercase = match s {
+                    "Simd" => "",
+                    "NonSimd" => "s",
+                    _ => unreachable!(),
+                })
+                $(let s_postfix_camelcase = match s {
+                    "Simd" => "",
+                    "NonSimd" => "S",
+                    _ => unreachable!(),
+                })
+
+                $(let vec_lowercase = &format!("vec{n}{s_postfix_lowercase}"))
+                $(let vec_camelcase = &format!("Vec{n}{s_postfix_camelcase}"))
 
                 #[test]
                 fn test_$(vec_lowercase)_constructor() {
@@ -144,12 +149,12 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                         }
                         3 => {
                             assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
-                            assert_eq!($vec_lowercase!($(&values[0]), vec2$(a_postfix_lowercase)!($(&values[1]), $(&values[2]))), $vec_camelcase::from_array([$values_str]));
+                            assert_eq!($vec_lowercase!($(&values[0]), vec2$(s_postfix_lowercase)!($(&values[1]), $(&values[2]))), $vec_camelcase::from_array([$values_str]));
                             assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
                         }
                         4 => {
                             assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
-                            assert_eq!($vec_lowercase!($(&values[0]), vec2$(a_postfix_lowercase)!($(&values[1]), $(&values[2])), $(&values[3])), $vec_camelcase::from_array([$values_str]));
+                            assert_eq!($vec_lowercase!($(&values[0]), vec2$(s_postfix_lowercase)!($(&values[1]), $(&values[2])), $(&values[3])), $vec_camelcase::from_array([$values_str]));
                             assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
                         }
                         _ => compile_error!("unhandled vector length"),
@@ -157,17 +162,17 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                 }
 
                 #[test]
-                fn test_$(vec_lowercase)_align() {
-                    assert_eq!($vec_lowercase!($values_str).align(), vec$(n)!($values_str));
+                fn test_$(vec_lowercase)_as_simd() {
+                    assert_eq!($vec_lowercase!($values_str).as_simd(), vec$(n)!($values_str));
                 }
 
                 #[test]
-                fn test_$(vec_lowercase)_pack() {
-                    assert_eq!($vec_lowercase!($values_str).pack(), vec$(n)p!($values_str));
+                fn test_$(vec_lowercase)_as_non_simd() {
+                    assert_eq!($vec_lowercase!($values_str).as_non_simd(), vec$(n)s!($values_str));
                 }
 
                 $(
-                    if n == 4 && a != "VecPacked" || PRIMARY_PRIMITIVES.contains(&primitive) =>
+                    if n == 4 && is_simd || PRIMARY_PRIMITIVES.contains(&primitive) =>
 
                     #[test]
                     fn test_$(vec_lowercase)_from_array_as_array() {
@@ -292,21 +297,21 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                         $(match n {
                             2 => {
                                 assert_eq!($vec_lowercase!($values_str).y(), $(&values[1]));
-                                assert_eq!($vec_lowercase!($values_str).yx(), vec2$(a_postfix_lowercase)!($(&values[1]), $(&values[0])));
-                                assert_eq!($vec_lowercase!($values_str).yxy(), vec3$(a_postfix_lowercase)!($(&values[1]), $(&values[0]), $(&values[1])));
-                                assert_eq!($vec_lowercase!($values_str).yxyy(), vec4$(a_postfix_lowercase)!($(&values[1]), $(&values[0]), $(&values[1]), $(&values[1])));
+                                assert_eq!($vec_lowercase!($values_str).yx(), vec2$(s_postfix_lowercase)!($(&values[1]), $(&values[0])));
+                                assert_eq!($vec_lowercase!($values_str).yxy(), vec3$(s_postfix_lowercase)!($(&values[1]), $(&values[0]), $(&values[1])));
+                                assert_eq!($vec_lowercase!($values_str).yxyy(), vec4$(s_postfix_lowercase)!($(&values[1]), $(&values[0]), $(&values[1]), $(&values[1])));
                             }
                             3 => {
                                 assert_eq!($vec_lowercase!($values_str).z(), $(&values[2]));
-                                assert_eq!($vec_lowercase!($values_str).zx(), vec2$(a_postfix_lowercase)!($(&values[2]), $(&values[0])));
-                                assert_eq!($vec_lowercase!($values_str).zxy(), vec3$(a_postfix_lowercase)!($(&values[2]), $(&values[0]), $(&values[1])));
-                                assert_eq!($vec_lowercase!($values_str).zxyz(), vec4$(a_postfix_lowercase)!($(&values[2]), $(&values[0]), $(&values[1]), $(&values[2])));
+                                assert_eq!($vec_lowercase!($values_str).zx(), vec2$(s_postfix_lowercase)!($(&values[2]), $(&values[0])));
+                                assert_eq!($vec_lowercase!($values_str).zxy(), vec3$(s_postfix_lowercase)!($(&values[2]), $(&values[0]), $(&values[1])));
+                                assert_eq!($vec_lowercase!($values_str).zxyz(), vec4$(s_postfix_lowercase)!($(&values[2]), $(&values[0]), $(&values[1]), $(&values[2])));
                             }
                             4 => {
                                 assert_eq!($vec_lowercase!($values_str).z(), $(&values[2]));
-                                assert_eq!($vec_lowercase!($values_str).zw(), vec2$(a_postfix_lowercase)!($(&values[2]), $(&values[3])));
-                                assert_eq!($vec_lowercase!($values_str).zwy(), vec3$(a_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1])));
-                                assert_eq!($vec_lowercase!($values_str).zwyz(), vec4$(a_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1]), $(&values[2])));
+                                assert_eq!($vec_lowercase!($values_str).zw(), vec2$(s_postfix_lowercase)!($(&values[2]), $(&values[3])));
+                                assert_eq!($vec_lowercase!($values_str).zwy(), vec3$(s_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1])));
+                                assert_eq!($vec_lowercase!($values_str).zwyz(), vec4$(s_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1]), $(&values[2])));
                             }
                             _ => compile_error!("unhandled vector length"),
                         })
@@ -322,7 +327,7 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                                         i => $(&values[i]),
                                     })
                                 )));
-                                assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(a_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
+                                assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(s_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
                                     for i in 0..n join(, ) => $(match i {
                                         1 => $(&values[0]),
                                         0 => $(&values[1]),
@@ -337,14 +342,14 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                                         i => $(&values[i]),
                                     })
                                 )));
-                                assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(a_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
+                                assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(s_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
                                     for i in 0..n join(, ) => $(match i {
                                         1 => $(&values[0]),
                                         0 => $(&values[1]),
                                         i => $(&values[i]),
                                     })
                                 )));
-                                assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
+                                assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
                                     for i in 0..n join(, ) => $(match i {
                                         1 => $(&values[0]),
                                         0 => $(&values[2]),
@@ -360,14 +365,14 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                                         i => $(&values[i]),
                                     })
                                 )));
-                                assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(a_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
+                                assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(s_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
                                     for i in 0..n join(, ) => $(match i {
                                         1 => $(&values[0]),
                                         0 => $(&values[1]),
                                         i => $(&values[i]),
                                     })
                                 )));
-                                assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
+                                assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
                                     for i in 0..n join(, ) => $(match i {
                                         1 => $(&values[0]),
                                         0 => $(&values[2]),
@@ -375,7 +380,7 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                                         i => $(&values[i]),
                                     })
                                 )));
-                                assert_eq!($vec_lowercase!($values_str).with_yxzw(vec4$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]), $(&values[0]))), $vec_lowercase!($(
+                                assert_eq!($vec_lowercase!($values_str).with_yxzw(vec4$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]), $(&values[0]))), $vec_lowercase!($(
                                     for i in 0..n join(, ) => $(match i {
                                         1 => $(&values[0]),
                                         0 => $(&values[2]),
@@ -391,12 +396,12 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
 
 
                     $(
-                        if n == 4 && a != "VecAligned" =>
+                        if n == 4 && !is_simd =>
 
                         #[test]
                         fn test_$(vec_lowercase)_swizzle_set() {
                             let mut vec = $vec_lowercase!($values_str);
-                            vec.set_yxz(vec3$(a_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1])));
+                            vec.set_yxz(vec3$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1])));
 
                             assert_eq!(vec, $vec_lowercase!($(for i in 0..n join(, ) => $(
                                 match i {
@@ -410,25 +415,25 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                     )
 
                     $(
-                        if a != "VecAligned" =>
+                        if !is_simd =>
 
                         #[test]
                         fn test_$(vec_lowercase)_swizzle_ref() {
                             $(match n {
                                 2 => {
                                     assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
-                                    assert_eq!($vec_lowercase!($values_str).xy_ref(), &vec2p!($values_str));
+                                    assert_eq!($vec_lowercase!($values_str).xy_ref(), &vec2s!($values_str));
                                 }
                                 3 => {
                                     assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
-                                    assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
-                                    assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3p!($values_str));
+                                    assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3s!($values_str));
                                 }
                                 4 => {
                                     assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
-                                    assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
-                                    assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3p!($(for i in 0..3 join(, ) => $(&values[i]))));
-                                    assert_eq!($vec_lowercase!($values_str).xyzw_ref(), &vec4p!($values_str));
+                                    assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyzw_ref(), &vec4s!($values_str));
                                 }
                                 _ => compile_error!("unhandled vector length"),
                             })
@@ -439,24 +444,24 @@ pub fn push_test(primitive: &str, use_stmts: &mut Vec<Tokens>, functions: &mut V
                             $(match n {
                                 2 => {
                                     assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
-                                    assert_eq!($vec_lowercase!($values_str).xy_mut(), &mut vec2p!($values_str));
+                                    assert_eq!($vec_lowercase!($values_str).xy_mut(), &mut vec2s!($values_str));
 
                                     assert_eq!($vec_lowercase!($values_str).x_y_mut(), (&mut $(&values[0]), &mut $(&values[1])));
                                 }
                                 3 => {
                                     assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
-                                    assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
-                                    assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3p!($values_str));
+                                    assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3s!($values_str));
 
-                                    assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i])))));
+                                    assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i])))));
                                 }
                                 4 => {
                                     assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
-                                    assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i]))));
-                                    assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3p!($(for i in 0..3 join(, ) => $(&values[i]))));
-                                    assert_eq!($vec_lowercase!($values_str).xyzw_mut(), &mut vec4p!($values_str));
+                                    assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));
+                                    assert_eq!($vec_lowercase!($values_str).xyzw_mut(), &mut vec4s!($values_str));
 
-                                    assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2p!($(for i in 1..3 join(, ) => $(&values[i])))));
+                                    assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i])))));
                                 }
                                 _ => compile_error!("unhandled vector length"),
                             })

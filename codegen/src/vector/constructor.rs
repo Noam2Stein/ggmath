@@ -9,10 +9,10 @@ use crate::{
 
 pub fn src_mod() -> SrcFile {
     quote! {
-        use crate::{Scalar, VecAlignment, Vector};
+        use crate::{Scalar, Simdness, Vector};
 
         $(for &n in LENGTHS join($['\r']) => pub use crate::vec$(n);)
-        $(for &n in LENGTHS join($['\r']) => pub use crate::vec$(n)p;)
+        $(for &n in LENGTHS join($['\r']) => pub use crate::vec$(n)s;)
         $(for &n in LENGTHS join($['\r']) => pub use crate::vec$(n)g;)
 
         $(
@@ -46,27 +46,27 @@ pub fn src_mod() -> SrcFile {
         $(
             for &n in LENGTHS join($['\n']) =>
 
-            $(format!("/// Creates a `Vec{n}P<_>` from the given components and vectors."))
+            $(format!("/// Creates a `Vec{n}S<_>` from the given components and vectors."))
             $("///")
             $("/// # Example")
             $("/// ```")
             $("/// use ggmath::*;")
             $("///")
-            $(format!("/// fn example() -> Vec{n}P<f32> {{"))
+            $(format!("/// fn example() -> Vec{n}S<f32> {{"))
             $(
                 match n {
-                    2 => $("///     vec2p!(1.0, 2.0)"),
-                    3 => $("///     vec3p!(1.0, vec2p!(2.0, 3.0))"),
-                    4 => $("///     vec4p!(1.0, vec2p!(2.0, 3.0), 4.0)"),
-                    n => $(format!("///     vec{n}p!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
+                    2 => $("///     vec2s!(1.0, 2.0)"),
+                    3 => $("///     vec3s!(1.0, vec2s!(2.0, 3.0))"),
+                    4 => $("///     vec4s!(1.0, vec2s!(2.0, 3.0), 4.0)"),
+                    n => $(format!("///     vec{n}s!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
                 }
             )
             $("/// }")
             $("/// ```")
             #[macro_export]
-            macro_rules! vec$(n)p {
+            macro_rules! vec$(n)s {
                 ($$($$field:expr),* $$(,)?) => {
-                    $crate::Vec$(n)P::from(($$($$field,)*))
+                    $crate::Vec$(n)S::from(($$($$field,)*))
                 }
             }
         )
@@ -75,13 +75,13 @@ pub fn src_mod() -> SrcFile {
             for &n in LENGTHS join($['\n']) =>
 
             $(format!("/// Creates a `Vector<{n}, _, _>` from the given components and vectors."))
-            $("/// This macro needs type inference to decide the alignment of the vector.")
+            $("/// This macro needs type inference to decide if the vector is SIMD or not.")
             $("///")
             $("/// # Example")
             $("/// ```")
             $("/// use ggmath::*;")
             $("///")
-            $(format!("/// fn example<A: VecAlignment>() -> Vector<{n}, f32, A> {{"))
+            $(format!("/// fn example<S: Simdness>() -> Vector<{n}, f32, S> {{"))
             $(
                 match n {
                     2 => $("///     vec2g!(1.0, 2.0)"),
@@ -111,7 +111,7 @@ pub fn src_mod() -> SrcFile {
                             .iter()
                             .map(|range|
                                 if range.len() > 1 {
-                                    format!("Vector<{}, T, A>,", range.len())
+                                    format!("Vector<{}, T, S>,", range.len())
                                 } else {
                                     format!("T,")
                                 }
@@ -120,7 +120,7 @@ pub fn src_mod() -> SrcFile {
                     )
                 )
 
-                impl<T: Scalar, A: VecAlignment> From<$input_type> for Vector<$n, T, A> {
+                impl<T: Scalar, S: Simdness> From<$input_type> for Vector<$n, T, S> {
                     fn from(value: $input_type) -> Self {
                         Self::from_array([$(
                             for (range_idx, range) in split.iter().enumerate() join(, ) => $(

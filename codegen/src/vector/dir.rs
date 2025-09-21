@@ -9,7 +9,7 @@ pub fn src_mod() -> SrcFile {
     quote! {
         use core::mem::transmute_copy;
 
-        use crate::{Usize, Scalar, VecAlignment, VecAligned, VecPacked, VecLen, Vector, $(for &n in LENGTHS join(, ) => Vec$(n))};
+        use crate::{Usize, Scalar, Simdness, Simd, NonSimd, VecLen, Vector, $(for &n in LENGTHS join(, ) => Vec$(n))};
 
         $("/// A trait for scalar types that have a `0` value.")
         $("///")
@@ -78,70 +78,70 @@ pub fn src_mod() -> SrcFile {
             )
         }
 
-        impl<const N: usize, T: ScalarZero, A: VecAlignment> Vector<N, T, A>
+        impl<const N: usize, T: ScalarZero, S: Simdness> Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
             $("/// All `0`.")
             pub const ZERO: Self = {
                 unsafe {
-                    if A::IS_ALIGNED {
+                    if S::IS_SIMD {
                         match N {
                             $(
                                 for &n in LENGTHS join($['\r']) =>
 
-                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(&T::VEC$(n)_ZERO),
+                                $n => transmute_copy::<Vector<$n, T, Simd>, Vector<N, T, S>>(&T::VEC$(n)_ZERO),
                             )
                             _ => panic!("unusual vector type"),
                         }
                     } else {
-                        transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector([T::ZERO; N]))
+                        transmute_copy::<Vector<N, T, NonSimd>, Vector<N, T, S>>(&Vector([T::ZERO; N]))
                     }
                 }
             };
         }
 
-        impl<const N: usize, T: ScalarOne, A: VecAlignment> Vector<N, T, A>
+        impl<const N: usize, T: ScalarOne, S: Simdness> Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
             $("/// All `1`.")
             pub const ONE: Self = {
                 unsafe {
-                    if A::IS_ALIGNED {
+                    if S::IS_SIMD {
                         match N {
                             $(
                                 for &n in LENGTHS join($['\r']) =>
 
-                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(&T::VEC$(n)_ONE),
+                                $n => transmute_copy::<Vector<$n, T, Simd>, Vector<N, T, S>>(&T::VEC$(n)_ONE),
                             )
                             _ => panic!("unusual vector type"),
                         }
                     } else {
-                        transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector([T::ONE; N]))
+                        transmute_copy::<Vector<N, T, NonSimd>, Vector<N, T, S>>(&Vector([T::ONE; N]))
                     }
                 }
             };
         }
 
-        impl<const N: usize, T: ScalarNegOne, A: VecAlignment> Vector<N, T, A>
+        impl<const N: usize, T: ScalarNegOne, S: Simdness> Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
             $("/// All `-1`.")
             pub const NEG_ONE: Self = {
                 unsafe {
-                    if A::IS_ALIGNED {
+                    if S::IS_SIMD {
                         match N {
                             $(
                                 for &n in LENGTHS join($['\r']) =>
 
-                                $n => transmute_copy::<Vector<$n, T, VecAligned>, Vector<N, T, A>>(&T::VEC$(n)_NEG_ONE),
+                                $n => transmute_copy::<Vector<$n, T, Simd>, Vector<N, T, S>>(&T::VEC$(n)_NEG_ONE),
                             )
                             _ => panic!("unusual vector type"),
                         }
                     } else {
-                        transmute_copy::<Vector<N, T, VecPacked>, Vector<N, T, A>>(&Vector([T::NEG_ONE; N]))
+                        transmute_copy::<Vector<N, T, NonSimd>, Vector<N, T, S>>(&Vector([T::NEG_ONE; N]))
                     }
                 }
             };
@@ -150,16 +150,16 @@ pub fn src_mod() -> SrcFile {
         $(
             for &n in LENGTHS join($['\n']) =>
 
-            impl<T: ScalarOne, A: VecAlignment> Vector<$n, T, A> {$(
+            impl<T: ScalarOne, S: Simdness> Vector<$n, T, S> {$(
                 for i in 0..n join($['\n']) =>
 
                 $(format!("/// A vector that points to the positive `{}` direction with magnitude `1`.", COMPONENTS[i]))
                 pub const $(COMPONENTS[i].to_uppercase()): Self = {
                     unsafe {
-                        if A::IS_ALIGNED {
-                            transmute_copy::<Vector<$n, T, VecAligned>, Vector<$n, T, A>>(&T::VEC$(n)_$(COMPONENTS[i].to_uppercase()))
+                        if S::IS_SIMD {
+                            transmute_copy::<Vector<$n, T, Simd>, Vector<$n, T, S>>(&T::VEC$(n)_$(COMPONENTS[i].to_uppercase()))
                         } else {
-                            transmute_copy::<Vector<$n, T, VecPacked>, Vector<$n, T, A>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::ONE } else { T::ZERO }))]))
+                            transmute_copy::<Vector<$n, T, NonSimd>, Vector<$n, T, S>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::ONE } else { T::ZERO }))]))
                         }
                     }
                 };
@@ -169,16 +169,16 @@ pub fn src_mod() -> SrcFile {
         $(
             for &n in LENGTHS join($['\n']) =>
 
-            impl<T: ScalarNegOne, A: VecAlignment> Vector<$n, T, A> {$(
+            impl<T: ScalarNegOne, S: Simdness> Vector<$n, T, S> {$(
                 for i in 0..n join($['\n']) =>
 
                 $(format!("/// A vector that points to the negative `{}` direction with magnitude `1`.", COMPONENTS[i]))
                 pub const NEG_$(COMPONENTS[i].to_uppercase()): Self = {
                     unsafe {
-                        if A::IS_ALIGNED {
-                            transmute_copy::<Vector<$n, T, VecAligned>, Vector<$n, T, A>>(&T::VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase()))
+                        if S::IS_SIMD {
+                            transmute_copy::<Vector<$n, T, Simd>, Vector<$n, T, S>>(&T::VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase()))
                         } else {
-                            transmute_copy::<Vector<$n, T, VecPacked>, Vector<$n, T, A>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::NEG_ONE } else { T::ZERO }))]))
+                            transmute_copy::<Vector<$n, T, NonSimd>, Vector<$n, T, S>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::NEG_ONE } else { T::ZERO }))]))
                         }
                     }
                 };
@@ -200,7 +200,7 @@ pub fn src_mod() -> SrcFile {
                     Construct,
                     ScalarOne,
                     ScalarNegOne,
-                    VecAlignment,
+                    Simdness,
                     Vector,
                 };
 
@@ -229,11 +229,11 @@ pub fn src_mod() -> SrcFile {
                 $(
                     for &n in LENGTHS.iter().filter(|&&n| n > axis_index) join($['\n']) =>
 
-                    impl<T: ScalarOne, A: VecAlignment> Positive$(dir_a_camelcase) for Vector<$n, T, A> {
+                    impl<T: ScalarOne, S: Simdness> Positive$(dir_a_camelcase) for Vector<$n, T, S> {
                         const $dir_a_upper: Self = Self::$(axis.to_uppercase());
                     }
 
-                    impl<T: ScalarNegOne, A: VecAlignment> Negative$(dir_b_camelcase) for Vector<$n, T, A> {
+                    impl<T: ScalarNegOne, S: Simdness> Negative$(dir_b_camelcase) for Vector<$n, T, S> {
                         const $dir_b_upper: Self = Self::NEG_$(axis.to_uppercase());
                     }
                 )
@@ -246,7 +246,7 @@ pub fn src_mod() -> SrcFile {
                     Construct,
                     ScalarOne,
                     ScalarNegOne,
-                    VecAlignment,
+                    Simdness,
                     Vector,
                 };
 
@@ -275,11 +275,11 @@ pub fn src_mod() -> SrcFile {
                 $(
                     for &n in LENGTHS.iter().filter(|&&n| n > axis_index) join($['\n']) =>
 
-                    impl<T: ScalarNegOne, A: VecAlignment> Negative$(dir_a_camelcase) for Vector<$n, T, A> {
+                    impl<T: ScalarNegOne, S: Simdness> Negative$(dir_a_camelcase) for Vector<$n, T, S> {
                         const $dir_a_upper: Self = Self::NEG_$(axis.to_uppercase());
                     }
 
-                    impl<T: ScalarOne, A: VecAlignment> Positive$(dir_b_camelcase) for Vector<$n, T, A> {
+                    impl<T: ScalarOne, S: Simdness> Positive$(dir_b_camelcase) for Vector<$n, T, S> {
                         const $dir_b_upper: Self = Self::$(axis.to_uppercase());
                     }
                 )
