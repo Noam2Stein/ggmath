@@ -29,49 +29,47 @@ pub use scalar::*;
 /// This type is generic over 3 parameters:
 /// - `N`: The length of the vector, which currently can be 2, 3 or 4
 /// - `T`: The scalar type of the vector, which must implement [`Scalar`]
-/// - `A`: The "alignment" of the vector, which enables or disables SIMD memory-alignment
+/// - `S`: The "simdness" of the vector, which must be either [`Simd`] or [`NonSimd`]
 ///
 /// This type has very very useful type-aliases:
 /// - `Vec{N}<T>` like `Vec2<T>` is for SIMD vectors
-/// - `Vec{N}P<T>` like `Vec2P<T>` is for non-SIMD vectors
+/// - `Vec{N}S<T>` like `Vec2S<T>` is for non-SIMD vectors (stands for "scalar")
 ///
-/// # Alignment
+/// # Simdness
 ///
 /// SIMD improves the performance of vector operations but increases the size of the vector in memory.
 ///
-/// The `A` generic parameter controls whether or not the vector is SIMD-aligned.
-/// `A = VecAligned` vectors are SIMD-aligned and `A = VecPacked` vectors are not.
+/// The `S` generic parameter controls whether or not the vector is SIMD.
+/// `S = Simd` vectors are SIMD and `S = NonSimd` vectors are not.
 ///
-/// Most of the time you should use `VecAligned` vectors (e.g. `Vec3<T>`),
-/// and only use `VecPacked` vectors in memory-critical scenarios.
+/// Most of the time you should use SIMD vectors (e.g. `Vec3<T>`),
+/// and only use non-SIMD vectors in memory-critical scenarios.
 ///
-/// The exact alignment rules are:
+/// The exact vector layout rules are:
 ///
-/// - `VecPacked` vectors are always stored as `[T; N]`.
+/// - `NonSimd` vectors are always stored as `[T; N]`.
 ///
-/// - `VecAligned` storage is decided upon by the [`Scalar`] implementation,
-/// and follows the rule of using whatever format makes vector operations most performant.
-/// This means that if vector operations don't benefit from SIMD,
-/// the `VecAligned` vector should not be SIMD-aligned.
+/// - `Simd` just means that the layout is optimized for performance, and not for size.
+/// - No exact layout is guarenteed and the exact layout is decided upon by the [`Scalar`] implementation.
 ///
 /// # Example
 /// ```
 /// use ggmath::*;
 ///
-/// // This is a non memory critical scenario so we should use `VecAligned`.
+/// // This is a non memory critical scenario so we should use SIMD vectors.
 /// struct PlayerState {
-///     // Vector<3, f32, VecAligned>
+///     // Vector<3, f32, Simd>
 ///     position: Vec3<f32>,
 /// }
 ///
-/// // This is a memory critical scenario so we should use `VecPacked`.
+/// // This is a memory critical scenario so we should use non-SIMD vectors.
 /// struct GpuVertex {
-///     // Vector<3, f32, VecPacked>
-///     position: Vec3P<f32>,
-///     // Vector<3, f32, VecPacked>
-///     normal: Vec3P<f32>,
-///     // Vector<2, f32, VecPacked>
-///     uv: Vec2P<f32>,
+///     // Vector<3, f32, NonSimd>
+///     position: Vec3S<f32>,
+///     // Vector<3, f32, NonSimd>
+///     normal: Vec3S<f32>,
+///     // Vector<2, f32, NonSimd>
+///     uv: Vec2S<f32>,
 /// }
 ///
 /// fn initial_player_state() -> PlayerState {
@@ -83,45 +81,48 @@ pub use scalar::*;
 /// fn triangle_vertices() -> [GpuVertex; 3] {
 ///     [
 ///         GpuVertex {
-///             position: vec3p!(-1.0, -1.0, 0.0),
-///             normal: vec3p!(0.0, 0.0, 1.0),
-///             uv: vec2p!(0.0, 0.0),
+///             position: vec3s!(-1.0, -1.0, 0.0),
+///             normal: vec3s!(0.0, 0.0, 1.0),
+///             uv: vec2s!(0.0, 0.0),
 ///         },
 ///         GpuVertex {
-///             position: vec3p!(1.0, -1.0, 0.0),
-///             normal: vec3p!(0.0, 0.0, 1.0),
-///             uv: vec2p!(1.0, 0.0),
+///             position: vec3s!(1.0, -1.0, 0.0),
+///             normal: vec3s!(0.0, 0.0, 1.0),
+///             uv: vec2s!(1.0, 0.0),
 ///         },
 ///         GpuVertex {
-///             position: vec3p!(0.0, 1.0, 0.0),
-///             normal: vec3p!(0.0, 0.0, 1.0),
-///             uv: vec2p!(0.5, 1.0),
+///             position: vec3s!(0.0, 1.0, 0.0),
+///             normal: vec3s!(0.0, 0.0, 1.0),
+///             uv: vec2s!(0.5, 1.0),
 ///         },
 ///     ]
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(pub A::InnerVector<N, T>)
+pub struct Vector<const N: usize, T: Scalar, S: Simdness>(pub S::InnerVector<N, T>)
 where
     Usize<N>: VecLen;
 
-/// Type alias for [`Vector<2, T, VecAligned>`][Vector].
-pub type Vec2<T> = Vector<2, T, VecAligned>;
+/// Type alias for [`Vector<2, T, Simd>`][Vector].
+pub type Vec2<T> = Vector<2, T, Simd>;
 
-/// Type alias for [`Vector<3, T, VecAligned>`][Vector].
-pub type Vec3<T> = Vector<3, T, VecAligned>;
+/// Type alias for [`Vector<3, T, Simd>`][Vector].
+pub type Vec3<T> = Vector<3, T, Simd>;
 
-/// Type alias for [`Vector<4, T, VecAligned>`][Vector].
-pub type Vec4<T> = Vector<4, T, VecAligned>;
+/// Type alias for [`Vector<4, T, Simd>`][Vector].
+pub type Vec4<T> = Vector<4, T, Simd>;
 
-/// Type alias for [`Vector<2, T, VecPacked>`][Vector].
-pub type Vec2P<T> = Vector<2, T, VecPacked>;
+/// Type alias for [`Vector<2, T, NonSimd>`][Vector].
+/// "S" stands for "scalar"
+pub type Vec2S<T> = Vector<2, T, NonSimd>;
 
-/// Type alias for [`Vector<3, T, VecPacked>`][Vector].
-pub type Vec3P<T> = Vector<3, T, VecPacked>;
+/// Type alias for [`Vector<3, T, NonSimd>`][Vector].
+/// "S" stands for "scalar"
+pub type Vec3S<T> = Vector<3, T, NonSimd>;
 
-/// Type alias for [`Vector<4, T, VecPacked>`][Vector].
-pub type Vec4P<T> = Vector<4, T, VecPacked>;
+/// Type alias for [`Vector<4, T, NonSimd>`][Vector].
+/// "S" stands for "scalar"
+pub type Vec4S<T> = Vector<4, T, NonSimd>;
 
 /// Generates vector type-aliases for a specific scalar type.
 ///
@@ -139,9 +140,9 @@ pub type Vec4P<T> = Vector<4, T, VecPacked>;
 /// pub type FVec2 = Vec2<f32>;
 /// pub type FVec3 = Vec3<f32>;
 /// pub type FVec4 = Vec4<f32>;
-/// pub type FVec2P = Vec2P<f32>;
-/// pub type FVec3P = Vec3P<f32>;
-/// pub type FVec4P = Vec4P<f32>;
+/// pub type FVec2S = Vec2S<f32>;
+/// pub type FVec3S = Vec3S<f32>;
+/// pub type FVec4S = Vec4S<f32>;
 /// ```
 #[macro_export]
 macro_rules! vector_aliases {
@@ -157,40 +158,40 @@ macro_rules! vector_aliases {
 
     (@($($vis:tt)*) $(#[$($attr:tt)*])* type $prefix:ident => $t:ty) => {
         $crate::_hidden_::paste! {
-            #[doc = "Type alias to [`Vector<2, " $t ", VecAligned>`][Vector]."]
+            #[doc = "Type alias to [`Vector<2, " $t ", Simd>`][Vector]."]
             $(#[$($attr)*])*
             $($vis)* type [<$prefix Vec2>] = $crate::Vec2<$t>;
 
-            #[doc = "Type alias to [`Vector<2, " $t ", VecPacked>`][Vector]."]
+            #[doc = "Type alias to [`Vector<2, " $t ", NonSimd>`][Vector]."]
+            #[doc = "\"S\" stands for \"scalar\""]
             $(#[$($attr)*])*
-            $($vis)* type [<$prefix Vec2P>] = $crate::Vec2P<$t>;
+            $($vis)* type [<$prefix Vec2S>] = $crate::Vec2S<$t>;
 
-            #[doc = "Type alias to [`Vector<3, " $t ", VecAligned>`][Vector]."]
+            #[doc = "Type alias to [`Vector<3, " $t ", Simd>`][Vector]."]
             $(#[$($attr)*])*
             $($vis)* type [<$prefix Vec3>] = $crate::Vec3<$t>;
 
-            #[doc = "Type alias to [`Vector<3, " $t ", VecPacked>`][Vector]."]
+            #[doc = "Type alias to [`Vector<3, " $t ", NonSimd>`][Vector]."]
+            #[doc = "\"S\" stands for \"scalar\""]
             $(#[$($attr)*])*
-            $($vis)* type [<$prefix Vec3P>] = $crate::Vec3P<$t>;
+            $($vis)* type [<$prefix Vec3S>] = $crate::Vec3S<$t>;
 
-            #[doc = "Type alias to [`Vector<4, " $t ", VecAligned>`][Vector]."]
+            #[doc = "Type alias to [`Vector<4, " $t ", Simd>`][Vector]."]
             $(#[$($attr)*])*
             $($vis)* type [<$prefix Vec4>] = $crate::Vec4<$t>;
 
-            #[doc = "Type alias to [`Vector<4, " $t ", VecPacked>`][Vector]."]
+            #[doc = "Type alias to [`Vector<4, " $t ", NonSimd>`][Vector]."]
+            #[doc = "\"S\" stands for \"scalar\""]
             $(#[$($attr)*])*
-            $($vis)* type [<$prefix Vec4P>] = $crate::Vec4P<$t>;
+            $($vis)* type [<$prefix Vec4S>] = $crate::Vec4S<$t>;
         }
     };
 }
 
 /// Marks a `Usize<N>` type as a valid vector length.
 pub trait VecLen {
-    /// The inner type contained inside `Vector<N, T, VecAligned>`.
-    ///
-    /// This redirects to `T::InnerAlignedVec{N}`,
-    /// for example `T::InnerAlignedVec2` for `Usize<2>`.`
-    type InnerAlignedVector<T: Scalar>: Construct;
+    /// The inner type contained inside `Vector<N, T, Simd>`.
+    type InnerSimdVector<T: Scalar>: Construct;
 
     /// The length value as an enum.
     const ENUM: VecLenEnum;
@@ -208,94 +209,90 @@ pub enum VecLenEnum {
 }
 
 /// See [`Vector`] for information.
-pub trait VecAlignment: 'static {
+pub trait Simdness: 'static {
     /// The inner type contained inside [`Vector`].
-    ///
-    /// For `VecAligned` vectors this is `T::InnerAlignedVec{N}`,
-    /// for example `T::InnerAlignedVec2` for `Vec2`.
-    ///
-    /// For `VecPacked` vectors this is `[T; N]`,
-    /// for example `[T; 2]` for `Vec2`.
     type InnerVector<const N: usize, T: Scalar>: Construct
     where
         Usize<N>: VecLen;
 
-    /// Whether or not the vector is VecAligned.
-    const IS_ALIGNED: bool;
+    /// Whether or not the vector is SIMD.
+    /// This does not guarentee an actual SIMD layout,
+    /// it only means that the layout is optimized for performance, not for size.
+    const IS_SIMD: bool;
 }
 
 /// See [`Vector`] for information.
-pub struct VecAligned;
+pub struct Simd;
 
 /// See [`Vector`] for information.
-pub struct VecPacked;
+pub struct NonSimd;
 
 impl VecLen for Usize<2> {
-    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec2;
+    type InnerSimdVector<T: Scalar> = T::InnerSimdVec2;
 
     const ENUM: VecLenEnum = VecLenEnum::Two;
 }
 
 impl VecLen for Usize<3> {
-    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec3;
+    type InnerSimdVector<T: Scalar> = T::InnerSimdVec3;
 
     const ENUM: VecLenEnum = VecLenEnum::Three;
 }
 
 impl VecLen for Usize<4> {
-    type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec4;
+    type InnerSimdVector<T: Scalar> = T::InnerSimdVec4;
 
     const ENUM: VecLenEnum = VecLenEnum::Four;
 }
 
-impl VecAlignment for VecAligned {
+impl Simdness for Simd {
     type InnerVector<const N: usize, T: Scalar>
-        = <Usize<N> as VecLen>::InnerAlignedVector<T>
+        = <Usize<N> as VecLen>::InnerSimdVector<T>
     where
         Usize<N>: VecLen;
 
-    const IS_ALIGNED: bool = true;
+    const IS_SIMD: bool = true;
 }
 
-impl VecAlignment for VecPacked {
+impl Simdness for NonSimd {
     type InnerVector<const N: usize, T: Scalar>
         = [T; N]
     where
         Usize<N>: VecLen;
 
-    const IS_ALIGNED: bool = false;
+    const IS_SIMD: bool = false;
 }
 
-impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    /// Returns true if the vector is aligned.
-    /// The output only depends on `A` and does not rely on runtime values.
+    /// Returns true if the vector is `S = Simd`.
+    /// The output only depends on `S` and does not rely on runtime values.
     #[inline(always)]
-    pub const fn is_aligned(self) -> bool {
-        A::IS_ALIGNED
+    pub const fn is_simd(self) -> bool {
+        S::IS_SIMD
     }
 
-    /// Converts the vector to a `VecAligned` vector.
+    /// Converts the vector to a `S = Simd` vector.
     #[inline(always)]
-    pub fn align(self) -> Vector<N, T, VecAligned> {
-        self.to_storage()
+    pub fn as_simd(self) -> Vector<N, T, Simd> {
+        self.as_storage()
     }
 
-    /// Converts the vector to a `VecPacked` vector.
+    /// Converts the vector to a `S = NonSimd` vector.
     #[inline(always)]
-    pub fn pack(self) -> Vector<N, T, VecPacked> {
-        self.to_storage()
+    pub fn as_non_simd(self) -> Vector<N, T, NonSimd> {
+        self.as_storage()
     }
 
-    /// Converts the vector to the specified alignment.
+    /// Converts the vector to the specified simdness.
     #[inline(always)]
-    pub fn to_storage<A2: VecAlignment>(self) -> Vector<N, T, A2> {
+    pub fn to_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
         specialize! {
-            (self: Vector<N, T, A>) -> Vector<N, T, A2>:
+            (self: Vector<N, T, S>) -> Vector<N, T, S2>:
 
-            for (Vector<N, T, A>) -> Vector<N, T, A> {
+            for (Vector<N, T, S>) -> Vector<N, T, S> {
                 |vec| vec
             }
             else {
@@ -308,18 +305,18 @@ where
     #[inline(always)]
     pub fn from_array(array: [T; N]) -> Self {
         specialize! {
-            (array: [T; N]) -> Vector<N, T, A>:
+            (array: [T; N]) -> Vector<N, T, S>:
 
-            for ([T; 2]) -> Vector<2, T, VecAligned> {
+            for ([T; 2]) -> Vector<2, T, Simd> {
                 |array| T::vec2_from_array(array)
             }
-            for ([T; 3]) -> Vector<3, T, VecAligned> {
+            for ([T; 3]) -> Vector<3, T, Simd> {
                 |array| T::vec3_from_array(array)
             }
-            for ([T; 4]) -> Vector<4, T, VecAligned> {
+            for ([T; 4]) -> Vector<4, T, Simd> {
                 |array| T::vec4_from_array(array)
             }
-            for ([T; N]) -> Vector<N, T, VecPacked> {
+            for ([T; N]) -> Vector<N, T, NonSimd> {
                 |array| Vector(array)
             }
             else {
@@ -332,15 +329,15 @@ where
     #[inline(always)]
     pub fn splat(value: T) -> Self {
         specialize! {
-            (value: T) -> Vector<N, T, A>:
+            (value: T) -> Vector<N, T, S>:
 
-            for (T) -> Vector<2, T, VecAligned> {
+            for (T) -> Vector<2, T, Simd> {
                 |value| T::vec2_splat(value)
             }
-            for (T) -> Vector<3, T, VecAligned> {
+            for (T) -> Vector<3, T, Simd> {
                 |value| T::vec3_splat(value)
             }
-            for (T) -> Vector<4, T, VecAligned> {
+            for (T) -> Vector<4, T, Simd> {
                 |value| T::vec4_splat(value)
             }
             else {
@@ -366,18 +363,18 @@ where
     #[inline(always)]
     pub fn as_array(self) -> [T; N] {
         specialize! {
-            (self: Vector<N, T, A>) -> [T; N]:
+            (self: Vector<N, T, S>) -> [T; N]:
 
-            for (Vector<2, T, VecAligned>) -> [T; 2] {
+            for (Vector<2, T, Simd>) -> [T; 2] {
                 |vec| T::vec2_as_array(vec)
             }
-            for (Vector<3, T, VecAligned>) -> [T; 3] {
+            for (Vector<3, T, Simd>) -> [T; 3] {
                 |vec| T::vec3_as_array(vec)
             }
-            for (Vector<4, T, VecAligned>) -> [T; 4] {
+            for (Vector<4, T, Simd>) -> [T; 4] {
                 |vec| T::vec4_as_array(vec)
             }
-            for (Vector<N, T, VecPacked>) -> [T; N] {
+            for (Vector<N, T, NonSimd>) -> [T; N] {
                 |vec| vec.0
             }
             else {
@@ -415,13 +412,13 @@ where
         specialize! {
             (self: Vector<N, T, A>, index: usize) -> T:
 
-            for (Vector<2, T, VecAligned>, usize) -> T {
+            for (Vector<2, T, Simd>, usize) -> T {
                 |vec, index| unsafe { T::vec2_get_unchecked(vec, index) }
             }
-            for (Vector<3, T, VecAligned>, usize) -> T {
+            for (Vector<3, T, Simd>, usize) -> T {
                 |vec, index| unsafe { T::vec3_get_unchecked(vec, index) }
             }
-            for (Vector<4, T, VecAligned>, usize) -> T {
+            for (Vector<4, T, Simd>, usize) -> T {
                 |vec, index| unsafe { T::vec4_get_unchecked(vec, index) }
             }
             else {
@@ -459,15 +456,15 @@ where
     #[inline(always)]
     pub unsafe fn set_unchecked(&mut self, index: usize, value: T) {
         *self = specialize! {
-            ((*self): Vector<N, T, A>, index: usize, value: T) -> Vector<N, T, A>:
+            ((*self): Vector<N, T, S>, index: usize, value: T) -> Vector<N, T, S>:
 
-            for (Vector<2, T, VecAligned>, usize, T) -> Vector<2, T, VecAligned> {
+            for (Vector<2, T, Simd>, usize, T) -> Vector<2, T, Simd> {
                 |vec, index, value| unsafe { T::vec2_with_unchecked(vec, index, value) }
             }
-            for (Vector<3, T, VecAligned>, usize, T) -> Vector<3, T, VecAligned> {
+            for (Vector<3, T, Simd>, usize, T) -> Vector<3, T, Simd> {
                 |vec, index, value| unsafe { T::vec3_with_unchecked(vec, index, value) }
             }
-            for (Vector<4, T, VecAligned>, usize, T) -> Vector<4, T, VecAligned> {
+            for (Vector<4, T, Simd>, usize, T) -> Vector<4, T, Simd> {
                 |vec, index, value| unsafe { T::vec4_with_unchecked(vec, index, value) }
             }
             else {
@@ -486,9 +483,9 @@ where
     ///
     /// Out of bounds indices are compile time errors.
     #[inline(always)]
-    pub fn shuffle_2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, A> {
+    pub fn shuffle_2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, S> {
         specialize! {
-            (self: Vector<N, T, A>) -> Vector<2, T, A>:
+            (self: Vector<N, T, S>) -> Vector<2, T, S>:
 
             for (Vector<2, T, VecAligned>) -> Vector<2, T, VecAligned> {
                 |vec| T::vec2_shuffle_2::<X_SRC, Y_SRC>(vec)
@@ -514,9 +511,9 @@ where
     #[inline(always)]
     pub fn shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         self,
-    ) -> Vector<3, T, A> {
+    ) -> Vector<3, T, S> {
         specialize! {
-            (self: Vector<N, T, A>) -> Vector<3, T, A>:
+            (self: Vector<N, T, S>) -> Vector<3, T, S>:
 
             for (Vector<2, T, VecAligned>) -> Vector<3, T, VecAligned> {
                 |vec| T::vec2_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
@@ -548,9 +545,9 @@ where
         const W_SRC: usize,
     >(
         self,
-    ) -> Vector<4, T, A> {
+    ) -> Vector<4, T, S> {
         specialize! {
-            (self: Vector<N, T, A>) -> Vector<4, T, A>:
+            (self: Vector<N, T, S>) -> Vector<4, T, S>:
 
             for (Vector<2, T, VecAligned>) -> Vector<4, T, VecAligned> {
                 |vec| T::vec2_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)

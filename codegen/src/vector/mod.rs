@@ -47,49 +47,47 @@ pub fn src_mod() -> SrcDir {
         $("/// This type is generic over 3 parameters:")
         $(format!("/// - `N`: The length of the vector, which currently can be {length_list}"))
         $("/// - `T`: The scalar type of the vector, which must implement [`Scalar`]")
-        $("/// - `A`: The \"alignment\" of the vector, which enables or disables SIMD memory-alignment")
+        $("/// - `S`: The \"simdness\" of the vector, which must be either [`Simd`] or [`NonSimd`]")
         $("///")
         $("/// This type has very very useful type-aliases:")
         $("/// - `Vec{N}<T>` like `Vec2<T>` is for SIMD vectors")
-        $("/// - `Vec{N}P<T>` like `Vec2P<T>` is for non-SIMD vectors")
+        $("/// - `Vec{N}S<T>` like `Vec2S<T>` is for non-SIMD vectors (stands for \"scalar\")")
         $("///")
-        $("/// # Alignment")
+        $("/// # Simdness")
         $("///")
         $("/// SIMD improves the performance of vector operations but increases the size of the vector in memory.")
         $("///")
-        $("/// The `A` generic parameter controls whether or not the vector is SIMD-aligned.")
-        $("/// `A = VecAligned` vectors are SIMD-aligned and `A = VecPacked` vectors are not.")
+        $("/// The `S` generic parameter controls whether or not the vector is SIMD.")
+        $("/// `S = Simd` vectors are SIMD and `S = NonSimd` vectors are not.")
         $("///")
-        $("/// Most of the time you should use `VecAligned` vectors (e.g. `Vec3<T>`),")
-        $("/// and only use `VecPacked` vectors in memory-critical scenarios.")
+        $("/// Most of the time you should use SIMD vectors (e.g. `Vec3<T>`),")
+        $("/// and only use non-SIMD vectors in memory-critical scenarios.")
         $("///")
-        $("/// The exact alignment rules are:")
+        $("/// The exact vector layout rules are:")
         $("///")
-        $("/// - `VecPacked` vectors are always stored as `[T; N]`.")
+        $("/// - `NonSimd` vectors are always stored as `[T; N]`.")
         $("///")
-        $("/// - `VecAligned` storage is decided upon by the [`Scalar`] implementation,")
-        $("/// and follows the rule of using whatever format makes vector operations most performant.")
-        $("/// This means that if vector operations don't benefit from SIMD,")
-        $("/// the `VecAligned` vector should not be SIMD-aligned.")
+        $("/// - `Simd` just means that the layout is optimized for performance, and not for size.")
+        $("/// - No exact layout is guarenteed and the exact layout is decided upon by the [`Scalar`] implementation.")
         $("///")
         $("/// # Example")
         $("/// ```")
         $("/// use ggmath::*;")
         $("///")
-        $("/// // This is a non memory critical scenario so we should use `VecAligned`.")
+        $("/// // This is a non memory critical scenario so we should use SIMD vectors.")
         $("/// struct PlayerState {")
-        $("///     // Vector<3, f32, VecAligned>")
+        $("///     // Vector<3, f32, Simd>")
         $("///     position: Vec3<f32>,")
         $("/// }")
         $("///")
-        $("/// // This is a memory critical scenario so we should use `VecPacked`.")
+        $("/// // This is a memory critical scenario so we should use non-SIMD vectors.")
         $("/// struct GpuVertex {")
-        $("///     // Vector<3, f32, VecPacked>")
-        $("///     position: Vec3P<f32>,")
-        $("///     // Vector<3, f32, VecPacked>")
-        $("///     normal: Vec3P<f32>,")
-        $("///     // Vector<2, f32, VecPacked>")
-        $("///     uv: Vec2P<f32>,")
+        $("///     // Vector<3, f32, NonSimd>")
+        $("///     position: Vec3S<f32>,")
+        $("///     // Vector<3, f32, NonSimd>")
+        $("///     normal: Vec3S<f32>,")
+        $("///     // Vector<2, f32, NonSimd>")
+        $("///     uv: Vec2S<f32>,")
         $("/// }")
         $("///")
         $("/// fn initial_player_state() -> PlayerState {")
@@ -101,40 +99,41 @@ pub fn src_mod() -> SrcDir {
         $("/// fn triangle_vertices() -> [GpuVertex; 3] {")
         $("///     [")
         $("///         GpuVertex {")
-        $("///             position: vec3p!(-1.0, -1.0, 0.0),")
-        $("///             normal: vec3p!(0.0, 0.0, 1.0),")
-        $("///             uv: vec2p!(0.0, 0.0),")
+        $("///             position: vec3s!(-1.0, -1.0, 0.0),")
+        $("///             normal: vec3s!(0.0, 0.0, 1.0),")
+        $("///             uv: vec2s!(0.0, 0.0),")
         $("///         },")
         $("///         GpuVertex {")
-        $("///             position: vec3p!(1.0, -1.0, 0.0),")
-        $("///             normal: vec3p!(0.0, 0.0, 1.0),")
-        $("///             uv: vec2p!(1.0, 0.0),")
+        $("///             position: vec3s!(1.0, -1.0, 0.0),")
+        $("///             normal: vec3s!(0.0, 0.0, 1.0),")
+        $("///             uv: vec2s!(1.0, 0.0),")
         $("///         },")
         $("///         GpuVertex {")
-        $("///             position: vec3p!(0.0, 1.0, 0.0),")
-        $("///             normal: vec3p!(0.0, 0.0, 1.0),")
-        $("///             uv: vec2p!(0.5, 1.0),")
+        $("///             position: vec3s!(0.0, 1.0, 0.0),")
+        $("///             normal: vec3s!(0.0, 0.0, 1.0),")
+        $("///             uv: vec2s!(0.5, 1.0),")
         $("///         },")
         $("///     ]")
         $("/// }")
         $("/// ```")
         #[repr(transparent)]
-        pub struct Vector<const N: usize, T: Scalar, A: VecAlignment>(pub A::InnerVector<N, T>)
+        pub struct Vector<const N: usize, T: Scalar, S: Simdness>(pub S::InnerVector<N, T>)
         where
             Usize<N>: VecLen;
 
         $(
             for &n in LENGTHS =>
 
-            $(format!("/// Type alias for [`Vector<{n}, T, VecAligned>`][Vector]."))
-            pub type Vec$(n)<T> = Vector<$n, T, VecAligned>;
+            $(format!("/// Type alias for [`Vector<{n}, T, Simd>`][Vector]."))
+            pub type Vec$(n)<T> = Vector<$n, T, Simd>;
             $['\n']
         )
         $(
             for &n in LENGTHS =>
 
-            $(format!("/// Type alias for [`Vector<{n}, T, VecPacked>`][Vector]."))
-            pub type Vec$(n)P<T> = Vector<$n, T, VecPacked>;
+            $(format!("/// Type alias for [`Vector<{n}, T, NonSimd>`][Vector]."))
+            $(r#"/// "S" stands for "scalar""#)
+            pub type Vec$(n)S<T> = Vector<$n, T, NonSimd>;
             $['\n']
         )
 
@@ -152,7 +151,7 @@ pub fn src_mod() -> SrcDir {
         $("/// use ggmath::*;")
         $("///")
         $(for &n in LENGTHS => $(format!("/// pub type FVec{n} = Vec{n}<f32>;"))$['\r'])
-        $(for &n in LENGTHS => $(format!("/// pub type FVec{n}P = Vec{n}P<f32>;"))$['\r'])
+        $(for &n in LENGTHS => $(format!("/// pub type FVec{n}S = Vec{n}S<f32>;"))$['\r'])
         $("/// ```")
         #[macro_export]
         macro_rules! vector_aliases {
@@ -171,13 +170,14 @@ pub fn src_mod() -> SrcDir {
                     $(
                         for &n in LENGTHS =>
 
-                        #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", VecAligned>`][Vector]."]
+                        #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", Simd>`][Vector]."]
                         $$(#[$$($$attr)*])*
                         $$($$vis)* type [<$$prefix Vec$(n)>] = $$crate::Vec$(n)<$$t>;
 
-                        #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", VecPacked>`][Vector]."]
+                        #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", NonSimd>`][Vector]."]
+                        #[doc = r#""S" stands for "scalar""#]
                         $$(#[$$($$attr)*])*
-                        $$($$vis)* type [<$$prefix Vec$(n)P>] = $$crate::Vec$(n)P<$$t>;
+                        $$($$vis)* type [<$$prefix Vec$(n)S>] = $$crate::Vec$(n)S<$$t>;
 
                         $['\n']
                     )
@@ -187,11 +187,8 @@ pub fn src_mod() -> SrcDir {
 
         $("/// Marks a `Usize<N>` type as a valid vector length.")
         pub trait VecLen {
-            $("/// The inner type contained inside `Vector<N, T, VecAligned>`.")
-            $("///")
-            $("/// This redirects to `T::InnerAlignedVec{N}`,")
-            $("/// for example `T::InnerAlignedVec2` for `Usize<2>`.`")
-            type InnerAlignedVector<T: Scalar>: Construct;
+            $("/// The inner type contained inside `Vector<N, T, Simd>`.")
+            type InnerSimdVector<T: Scalar>: Construct;
 
             $("/// The length value as an enum.")
             const ENUM: VecLenEnum;
@@ -210,86 +207,82 @@ pub fn src_mod() -> SrcDir {
         }
 
         $("/// See [`Vector`] for information.")
-        pub trait VecAlignment: 'static {
+        pub trait Simdness: 'static {
             $("/// The inner type contained inside [`Vector`].")
-            $("///")
-            $("/// For `VecAligned` vectors this is `T::InnerAlignedVec{N}`,")
-            $("/// for example `T::InnerAlignedVec2` for `Vec2`.")
-            $("///")
-            $("/// For `VecPacked` vectors this is `[T; N]`,")
-            $("/// for example `[T; 2]` for `Vec2`.")
             type InnerVector<const N: usize, T: Scalar>: Construct
             where
                 Usize<N>: VecLen;
 
-            $("/// Whether or not the vector is VecAligned.")
-            const IS_ALIGNED: bool;
+            $("/// Whether or not the vector is SIMD.")
+            $("/// This does not guarentee an actual SIMD layout,")
+            $("/// it only means that the layout is optimized for performance, not for size.")
+            const IS_SIMD: bool;
         }
 
         $("/// See [`Vector`] for information.")
-        pub struct VecAligned;
+        pub struct Simd;
 
         $("/// See [`Vector`] for information.")
-        pub struct VecPacked;
+        pub struct NonSimd;
 
         $(
             for (&n, &length_name) in LENGTHS.iter().zip(LENGTH_NAMES.iter()) join($['\n'])=>
 
             impl VecLen for Usize<$n> {
-                type InnerAlignedVector<T: Scalar> = T::InnerAlignedVec$(n);
+                type InnerSimdVector<T: Scalar> = T::InnerSimdVec$(n);
 
                 const ENUM: VecLenEnum = VecLenEnum::$length_name;
             }
         )
 
-        impl VecAlignment for VecAligned {
+        impl Simdness for Simd {
             type InnerVector<const N: usize, T: Scalar>
-                = <Usize<N> as VecLen>::InnerAlignedVector<T>
+                = <Usize<N> as VecLen>::InnerSimdVector<T>
             where
                 Usize<N>: VecLen;
 
-            const IS_ALIGNED: bool = true;
+            const IS_SIMD: bool = true;
         }
 
-        impl VecAlignment for VecPacked {
+        impl Simdness for NonSimd {
             type InnerVector<const N: usize, T: Scalar>
                 = [T; N]
             where
                 Usize<N>: VecLen;
                 
-            const IS_ALIGNED: bool = false;
+            const IS_SIMD: bool = false;
         }
 
-        impl<const N: usize, T: Scalar, A: VecAlignment> Vector<N, T, A>
+        impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
-            $("/// Returns true if the vector is aligned.")
-            $("/// The output only depends on `A` and does not rely on runtime values.")
+            $("/// Returns true if the vector is `S = Simd`.")
+            $("/// The output only depends on `S` and does not rely on runtime values.")
             #[inline(always)]
-            pub const fn is_aligned(self) -> bool {
-                A::IS_ALIGNED
+            pub const fn is_simd(self) -> bool {
+                S::IS_SIMD
             }
 
-            $("/// Converts the vector to a `VecAligned` vector.")
+            $("/// Converts the vector to a `S = Simd` vector.")
             #[inline(always)]
-            pub fn align(self) -> Vector<N, T, VecAligned> {
-                self.to_storage()
+            pub fn as_simd(self) -> Vector<N, T, Simd> {
+                self.as_storage()
             }
 
-            $("/// Converts the vector to a `VecPacked` vector.")
+            $("/// Converts the vector to a `S = NonSimd` vector.")
             #[inline(always)]
-            pub fn pack(self) -> Vector<N, T, VecPacked> {
-                self.to_storage()
+            pub fn as_non_simd(self) -> Vector<N, T, NonSimd> {
+                self.as_storage()
             }
 
-            $("/// Converts the vector to the specified alignment.")
+            $("/// Converts the vector to the specified simdness.")
             #[inline(always)]
-            pub fn to_storage<A2: VecAlignment>(self) -> Vector<N, T, A2> {
+            pub fn to_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
                 specialize! {
-                    (self: Vector<N, T, A>) -> Vector<N, T, A2>:
+                    (self: Vector<N, T, S>) -> Vector<N, T, S2>:
 
-                    for (Vector<N, T, A>) -> Vector<N, T, A> {
+                    for (Vector<N, T, S>) -> Vector<N, T, S> {
                         |vec| vec
                     }
                     else {
@@ -302,16 +295,16 @@ pub fn src_mod() -> SrcDir {
             #[inline(always)]
             pub fn from_array(array: [T; N]) -> Self {
                 specialize! {
-                    (array: [T; N]) -> Vector<N, T, A>:
+                    (array: [T; N]) -> Vector<N, T, S>:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
 
-                        for ([T; $n]) -> Vector<$n, T, VecAligned> {
+                        for ([T; $n]) -> Vector<$n, T, Simd> {
                             |array| T::vec$(n)_from_array(array)
                         }
                     )
-                    for ([T; N]) -> Vector<N, T, VecPacked> {
+                    for ([T; N]) -> Vector<N, T, NonSimd> {
                         |array| Vector(array)
                     }
                     else {
@@ -324,12 +317,12 @@ pub fn src_mod() -> SrcDir {
             #[inline(always)]
             pub fn splat(value: T) -> Self {
                 specialize! {
-                    (value: T) -> Vector<N, T, A>:
+                    (value: T) -> Vector<N, T, S>:
    
                     $(
                         for &n in LENGTHS join($['\r']) =>
     
-                        for (T) -> Vector<$n, T, VecAligned> {
+                        for (T) -> Vector<$n, T, Simd> {
                             |value| T::vec$(n)_splat(value)
                         }
                     )
@@ -356,16 +349,16 @@ pub fn src_mod() -> SrcDir {
             #[inline(always)]
             pub fn as_array(self) -> [T; N] {
                 specialize! {
-                    (self: Vector<N, T, A>) -> [T; N]:
+                    (self: Vector<N, T, S>) -> [T; N]:
 
                     $(
                         for &n in LENGTHS join($['\r']) =>
     
-                        for (Vector<$n, T, VecAligned>) -> [T; $n] {
+                        for (Vector<$n, T, Simd>) -> [T; $n] {
                             |vec| T::vec$(n)_as_array(vec)
                         }
                     )
-                    for (Vector<N, T, VecPacked>) -> [T; N] {
+                    for (Vector<N, T, NonSimd>) -> [T; N] {
                         |vec| vec.0
                     }
                     else {
@@ -406,7 +399,7 @@ pub fn src_mod() -> SrcDir {
                     $(
                         for &n in LENGTHS join($['\r']) =>
 
-                        for (Vector<$n, T, VecAligned>, usize) -> T {
+                        for (Vector<$n, T, Simd>, usize) -> T {
                             |vec, index| unsafe { T::vec$(n)_get_unchecked(vec, index) }
                         }
                     )
@@ -445,12 +438,12 @@ pub fn src_mod() -> SrcDir {
             #[inline(always)]
             pub unsafe fn set_unchecked(&mut self, index: usize, value: T) {
                 *self = specialize! {
-                    ((*self): Vector<N, T, A>, index: usize, value: T) -> Vector<N, T, A>:
+                    ((*self): Vector<N, T, S>, index: usize, value: T) -> Vector<N, T, S>:
                     
                     $(
                         for &n in LENGTHS join($['\r']) =>
 
-                        for (Vector<$n, T, VecAligned>, usize, T) -> Vector<$n, T, VecAligned> {
+                        for (Vector<$n, T, Simd>, usize, T) -> Vector<$n, T, Simd> {
                             |vec, index, value| unsafe { T::vec$(n)_with_unchecked(vec, index, value) }
                         }
                     )
@@ -477,9 +470,9 @@ pub fn src_mod() -> SrcDir {
                 $("///")
                 $("/// Out of bounds indices are compile time errors.")
                 #[inline(always)]
-                pub fn shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(self) -> Vector<$n2, T, A> {
+                pub fn shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(self) -> Vector<$n2, T, S> {
                     specialize! {
-                        (self: Vector<N, T, A>) -> Vector<$n2, T, A>:
+                        (self: Vector<N, T, S>) -> Vector<$n2, T, S>:
 
                         $(
                             for &n in LENGTHS join($['\r']) =>
