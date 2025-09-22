@@ -178,4 +178,4 @@ pub fn push_src(
     });
 }
 
-pub fn push_test(_primitive: &str, _use_stmts: &mut Vec<Tokens>, _functions: &mut Vec<Tokens>) {}
+pub fn push_tests(_n: usize, _primitive: &str, _is_simd: bool, _tests: &mut Vec<Tokens>) {}

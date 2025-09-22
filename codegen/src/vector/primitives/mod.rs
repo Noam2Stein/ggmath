@@ -4,8 +4,8 @@ use genco::quote;
 
 use crate::{
     constants::{
-        FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, NUM_PRIMITIVES, PRIMITIVES, SINT_PRIMITIVES,
-        UINT_PRIMITIVES,
+        FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, NUM_PRIMITIVES, PRIMARY_PRIMITIVES, PRIMITIVES,
+        SINT_PRIMITIVES, UINT_PRIMITIVES,
     },
     module::*,
 };
@@ -181,9 +181,6 @@ fn primitive_src_mod(primitive: &str) -> SrcFile {
 }
 
 fn primitive_test_mod(primitive: &str) -> TestFile {
-    let mut use_stmts = Vec::new();
-    let mut functions = Vec::new();
-
     let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
     let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
     let primitive_is_float = FLOAT_PRIMITIVES.contains(&primitive);
@@ -191,36 +188,54 @@ fn primitive_test_mod(primitive: &str) -> TestFile {
     let primitive_is_uint = UINT_PRIMITIVES.contains(&primitive);
     let primitive_is_bool = primitive == "bool";
 
-    primitive::push_test(primitive, &mut use_stmts, &mut functions);
-
-    if primitive_is_num {
-        num::push_test(primitive, &mut use_stmts, &mut functions);
-    }
-
-    if primitive_is_int {
-        int::push_test(primitive, &mut use_stmts, &mut functions);
-    }
-
-    if primitive_is_float {
-        float::push_test(primitive, &mut use_stmts, &mut functions);
-    }
-
-    if primitive_is_sint {
-        sint::push_test(primitive, &mut use_stmts, &mut functions);
-    }
-
-    if primitive_is_uint {
-        uint::push_test(primitive, &mut use_stmts, &mut functions);
-    }
-
-    if primitive_is_bool {
-        bool_::push_test(primitive, &mut use_stmts, &mut functions);
-    }
-
     quote! {
-        $(for stmt in use_stmts join($['\n']) => $stmt)
+        $(
+            if PRIMARY_PRIMITIVES.contains(&primitive) =>
 
-        $(for function in functions join($['\n']) => $function)
+            use core::mem::size_of;
+        )
+
+        use ggmath::*;
+
+        $(
+            for &n in LENGTHS join($['\n']) =>
+
+            $(
+                for is_simd in [true, false] join($['\r']) =>
+
+                $(
+                    if n == 4 && is_simd || PRIMARY_PRIMITIVES.contains(&primitive) =>
+
+                    $(let tests = {
+                        let mut tests = Vec::new();
+
+                        primitive::push_tests(n, primitive, is_simd, &mut tests);
+                        if primitive_is_num {
+                            num::push_tests(n, primitive, is_simd, &mut tests);
+                        }
+                        if primitive_is_int {
+                            int::push_tests(n, primitive, is_simd, &mut tests);
+                        }
+                        if primitive_is_float {
+                            float::push_tests(n, primitive, is_simd, &mut tests);
+                        }
+                        if primitive_is_sint {
+                            sint::push_tests(n, primitive, is_simd, &mut tests);
+                        }
+                        if primitive_is_uint {
+                            uint::push_tests(n, primitive, is_simd, &mut tests);
+                        }
+                        if primitive_is_bool {
+                            bool_::push_tests(n, primitive, is_simd, &mut tests);
+                        }
+
+                        tests
+                    })
+
+                    $(for test in tests join($['\n']) => $test)
+                )
+            )
+        )
     }
     .to_test_file(primitive)
 }

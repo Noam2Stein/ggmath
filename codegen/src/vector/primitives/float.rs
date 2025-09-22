@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use genco::{lang::rust::Tokens, quote};
 
-use crate::constants::{COMPONENTS, LENGTHS, PRIMARY_PRIMITIVES};
+use crate::constants::{COMPONENTS, LENGTHS};
 
 pub fn push_src(
     primitive: &str,
@@ -493,36 +493,24 @@ pub fn push_src(
     });
 }
 
-pub fn push_test(primitive: &str, _use_stmts: &mut Vec<Tokens>, functions: &mut Vec<Tokens>) {
-    functions.push(quote! {
-        // The following tests are generated for all float primitive types
+pub fn push_tests(n: usize, primitive: &str, is_simd: bool, tests: &mut Vec<Tokens>) {
+    let s_postfix_lowercase = if is_simd { "" } else { "s" };
 
-        $(
-            for &n in LENGTHS join($['\n']) =>
+    let vec_snakecase = &format!("vec{n}{s_postfix_lowercase}");
 
-            $(let values = (0..n).map(|i| (i as f64) * 1.3).collect::<Vec<f64>>())
-            $(let values_str = &values.iter().map(|&x| format!("{:?}{primitive}", x)).collect::<Vec<String>>().join(", "))
+    tests.push(quote! {
+        $(let values = (0..n).map(|i| (i as f64) * 1.3).collect::<Vec<f64>>())
+        $(let values_str = &values.iter().map(|&x| format!("{:?}{primitive}", x)).collect::<Vec<String>>().join(", "))
 
-            $(let values2 = (n..n * 2).map(|i| (i as f64) * 5.4).collect::<Vec<f64>>())
-            $(let values2_str = &values2.iter().map(|&x| format!("{:?}{primitive}", x)).collect::<Vec<String>>().join(", "))
+        $(let values2 = (n..n * 2).map(|i| (i as f64) * 5.4).collect::<Vec<f64>>())
+        $(let values2_str = &values2.iter().map(|&x| format!("{:?}{primitive}", x)).collect::<Vec<String>>().join(", "))
 
-            $(
-                for is_simd in [true, false] join($['\r']) =>
-
-                $(let vec_snakecase = &format!("vec{n}{}", if is_simd { "s" } else { "" }))
-
-                $(
-                    if n == 4 && is_simd || PRIMARY_PRIMITIVES.contains(&primitive) =>
-
-                    #[test]
-                    fn test_$(vec_snakecase)_add() {
-                        assert_eq!(
-                            $vec_snakecase!($values_str) + $vec_snakecase!($values2_str),
-                            $vec_snakecase!($(for i in 0..n join(, ) => $(format!("{:?}{primitive}", values[i] + values2[i]))))
-                        );
-                    }
-                )
-            )
-        )
+        #[test]
+        fn test_$(vec_snakecase)_add() {
+            assert_eq!(
+                $vec_snakecase!($values_str) + $vec_snakecase!($values2_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(format!("{:?}{primitive}", values[i] + values2[i]))))
+            );
+        }
     });
 }

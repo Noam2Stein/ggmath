@@ -5,8 +5,6 @@ use core::mem::size_of;
 
 use ggmath::*;
 
-const _: () = assert!(size_of::<Vec2S<f32>>() == size_of::<[f32; 2]>());
-
 #[test]
 fn test_vec2_constructor() {
     assert_eq!(vec2!(0.0f32, 1.0f32), Vec2::from_array([0.0f32, 1.0f32]));
@@ -316,6 +314,16 @@ fn test_vec2_const_from_array() {
         Vec2::from_array([0.0f32, 1.0f32])
     );
 }
+
+#[test]
+fn test_vec2_add() {
+    assert_eq!(
+        vec2!(0.0f32, 1.3f32) + vec2!(10.8f32, 16.200000000000003f32),
+        vec2!(10.8f32, 17.500000000000004f32)
+    );
+}
+
+const _: () = assert!(size_of::<Vec2S<f32>>() == size_of::<[f32; 2]>());
 
 #[test]
 fn test_vec2s_constructor() {
@@ -644,7 +652,13 @@ fn test_vec2s_const_from_array() {
     );
 }
 
-const _: () = assert!(size_of::<Vec3S<f32>>() == size_of::<[f32; 3]>());
+#[test]
+fn test_vec2s_add() {
+    assert_eq!(
+        vec2s!(0.0f32, 1.3f32) + vec2s!(10.8f32, 16.200000000000003f32),
+        vec2s!(10.8f32, 17.500000000000004f32)
+    );
+}
 
 #[test]
 fn test_vec3_constructor() {
@@ -1020,6 +1034,16 @@ fn test_vec3_const_from_array() {
         Vec3::from_array([0.0f32, 1.0f32, 2.0f32])
     );
 }
+
+#[test]
+fn test_vec3_add() {
+    assert_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) + vec3!(16.200000000000003f32, 21.6f32, 27.0f32),
+        vec3!(16.200000000000003f32, 22.900000000000002f32, 29.6f32)
+    );
+}
+
+const _: () = assert!(size_of::<Vec3S<f32>>() == size_of::<[f32; 3]>());
 
 #[test]
 fn test_vec3s_constructor() {
@@ -1427,7 +1451,13 @@ fn test_vec3s_const_from_array() {
     );
 }
 
-const _: () = assert!(size_of::<Vec4S<f32>>() == size_of::<[f32; 4]>());
+#[test]
+fn test_vec3s_add() {
+    assert_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) + vec3s!(16.200000000000003f32, 21.6f32, 27.0f32),
+        vec3s!(16.200000000000003f32, 22.900000000000002f32, 29.6f32)
+    );
+}
 
 #[test]
 fn test_vec4_constructor() {
@@ -1856,6 +1886,22 @@ fn test_vec4_const_from_array() {
         Vec4::from_array([0.0f32, 1.0f32, 2.0f32, 3.0f32])
     );
 }
+
+#[test]
+fn test_vec4_add() {
+    assert_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9000000000000004f32)
+            + vec4!(
+                21.6f32,
+                27.0f32,
+                32.400000000000006f32,
+                37.800000000000004f32
+            ),
+        vec4!(21.6f32, 28.3f32, 35.00000000000001f32, 41.7f32)
+    );
+}
+
+const _: () = assert!(size_of::<Vec4S<f32>>() == size_of::<[f32; 4]>());
 
 #[test]
 fn test_vec4s_constructor() {
@@ -2333,38 +2379,6 @@ fn test_vec4s_const_from_array() {
 }
 
 #[test]
-fn test_vec2s_add() {
-    assert_eq!(
-        vec2s!(0.0f32, 1.3f32) + vec2s!(10.8f32, 16.200000000000003f32),
-        vec2s!(10.8f32, 17.500000000000004f32)
-    );
-}
-
-#[test]
-fn test_vec2_add() {
-    assert_eq!(
-        vec2!(0.0f32, 1.3f32) + vec2!(10.8f32, 16.200000000000003f32),
-        vec2!(10.8f32, 17.500000000000004f32)
-    );
-}
-
-#[test]
-fn test_vec3s_add() {
-    assert_eq!(
-        vec3s!(0.0f32, 1.3f32, 2.6f32) + vec3s!(16.200000000000003f32, 21.6f32, 27.0f32),
-        vec3s!(16.200000000000003f32, 22.900000000000002f32, 29.6f32)
-    );
-}
-
-#[test]
-fn test_vec3_add() {
-    assert_eq!(
-        vec3!(0.0f32, 1.3f32, 2.6f32) + vec3!(16.200000000000003f32, 21.6f32, 27.0f32),
-        vec3!(16.200000000000003f32, 22.900000000000002f32, 29.6f32)
-    );
-}
-
-#[test]
 fn test_vec4s_add() {
     assert_eq!(
         vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9000000000000004f32)
@@ -2375,19 +2389,5 @@ fn test_vec4s_add() {
                 37.800000000000004f32
             ),
         vec4s!(21.6f32, 28.3f32, 35.00000000000001f32, 41.7f32)
-    );
-}
-
-#[test]
-fn test_vec4_add() {
-    assert_eq!(
-        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9000000000000004f32)
-            + vec4!(
-                21.6f32,
-                27.0f32,
-                32.400000000000006f32,
-                37.800000000000004f32
-            ),
-        vec4!(21.6f32, 28.3f32, 35.00000000000001f32, 41.7f32)
     );
 }

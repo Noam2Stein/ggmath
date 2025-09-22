@@ -5,8 +5,6 @@ use core::mem::size_of;
 
 use ggmath::*;
 
-const _: () = assert!(size_of::<Vec2S<i32>>() == size_of::<[i32; 2]>());
-
 #[test]
 fn test_vec2_constructor() {
     assert_eq!(vec2!(0i32, 1i32), Vec2::from_array([0i32, 1i32]));
@@ -296,6 +294,8 @@ fn test_vec2_const_from_array() {
         Vec2::from_array([0i32, 1i32])
     );
 }
+
+const _: () = assert!(size_of::<Vec2S<i32>>() == size_of::<[i32; 2]>());
 
 #[test]
 fn test_vec2s_constructor() {
@@ -600,8 +600,6 @@ fn test_vec2s_const_from_array() {
         Vec2S::from_array([0i32, 1i32])
     );
 }
-
-const _: () = assert!(size_of::<Vec3S<i32>>() == size_of::<[i32; 3]>());
 
 #[test]
 fn test_vec3_constructor() {
@@ -942,6 +940,8 @@ fn test_vec3_const_from_array() {
         Vec3::from_array([0i32, 1i32, 2i32])
     );
 }
+
+const _: () = assert!(size_of::<Vec3S<i32>>() == size_of::<[i32; 3]>());
 
 #[test]
 fn test_vec3s_constructor() {
@@ -1307,8 +1307,6 @@ fn test_vec3s_const_from_array() {
         Vec3S::from_array([0i32, 1i32, 2i32])
     );
 }
-
-const _: () = assert!(size_of::<Vec4S<i32>>() == size_of::<[i32; 4]>());
 
 #[test]
 fn test_vec4_constructor() {
@@ -1698,6 +1696,8 @@ fn test_vec4_const_from_array() {
         Vec4::from_array([0i32, 1i32, 2i32, 3i32])
     );
 }
+
+const _: () = assert!(size_of::<Vec4S<i32>>() == size_of::<[i32; 4]>());
 
 #[test]
 fn test_vec4s_constructor() {

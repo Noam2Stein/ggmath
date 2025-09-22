@@ -5,8 +5,6 @@ use core::mem::size_of;
 
 use ggmath::*;
 
-const _: () = assert!(size_of::<Vec2S<bool>>() == size_of::<[bool; 2]>());
-
 #[test]
 fn test_vec2_constructor() {
     assert_eq!(vec2!(false, true), Vec2::from_array([false, true]));
@@ -261,6 +259,8 @@ fn test_vec2_const_from_array() {
         Vec2::from_array([false, true])
     );
 }
+
+const _: () = assert!(size_of::<Vec2S<bool>>() == size_of::<[bool; 2]>());
 
 #[test]
 fn test_vec2s_constructor() {
@@ -533,8 +533,6 @@ fn test_vec2s_const_from_array() {
         Vec2S::from_array([false, true])
     );
 }
-
-const _: () = assert!(size_of::<Vec3S<bool>>() == size_of::<[bool; 3]>());
 
 #[test]
 fn test_vec3_constructor() {
@@ -858,6 +856,8 @@ fn test_vec3_const_from_array() {
         Vec3::from_array([false, true, false])
     );
 }
+
+const _: () = assert!(size_of::<Vec3S<bool>>() == size_of::<[bool; 3]>());
 
 #[test]
 fn test_vec3s_constructor() {
@@ -1218,8 +1218,6 @@ fn test_vec3s_const_from_array() {
         Vec3S::from_array([false, true, false])
     );
 }
-
-const _: () = assert!(size_of::<Vec4S<bool>>() == size_of::<[bool; 4]>());
 
 #[test]
 fn test_vec4_constructor() {
@@ -1583,6 +1581,8 @@ fn test_vec4_const_from_array() {
         Vec4::from_array([false, true, false, true])
     );
 }
+
+const _: () = assert!(size_of::<Vec4S<bool>>() == size_of::<[bool; 4]>());
 
 #[test]
 fn test_vec4s_constructor() {
