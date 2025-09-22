@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use genco::{lang::rust::Tokens, quote};
 
-use crate::constants::{COMPONENTS, LENGTHS};
+use crate::{constants::{COMPONENTS, LENGTHS}};
 
 pub fn push_src(
     primitive: &str,
@@ -500,17 +500,215 @@ pub fn push_tests(n: usize, primitive: &str, is_simd: bool, tests: &mut Vec<Toke
 
     tests.push(quote! {
         $(let values = (0..n).map(|i| (i as f64) * 1.3).collect::<Vec<f64>>())
-        $(let values_str = &values.iter().map(|&x| format!("{:?}{primitive}", x)).collect::<Vec<String>>().join(", "))
+        $(let values_str = &values.iter().map(|&x| float_lit(x, primitive)).collect::<Vec<String>>().join(", "))
 
-        $(let values2 = (n..n * 2).map(|i| (i as f64) * 5.4).collect::<Vec<f64>>())
-        $(let values2_str = &values2.iter().map(|&x| format!("{:?}{primitive}", x)).collect::<Vec<String>>().join(", "))
+        $(let values2 = (0..n).map(|i| ((i + n) as f64) * 5.4).collect::<Vec<f64>>())
+        $(let values2_str = &values2.iter().map(|&x| float_lit(x, primitive)).collect::<Vec<String>>().join(", "))
+
+        $(let values2_with_nan = (0..n).map(|i| if i == 1 { f64::NAN } else { ((i + n) as f64) * 5.4 }).collect::<Vec<f64>>())
+        $(let values2_with_nan_str = &values2_with_nan.iter().map(|&x| float_lit(x, primitive)).collect::<Vec<String>>().join(", "))
+
+        #[test]
+        fn test_$(vec_snakecase)_neg() {
+            assert_approx_vec_eq!(
+                -$vec_snakecase!($values_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(-values[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                -$vec_snakecase!($values2_with_nan_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(-values2_with_nan[i], primitive))))
+            );
+        }
 
         #[test]
         fn test_$(vec_snakecase)_add() {
-            assert_eq!(
+            assert_approx_vec_eq!(
                 $vec_snakecase!($values_str) + $vec_snakecase!($values2_str),
-                $vec_snakecase!($(for i in 0..n join(, ) => $(format!("{:?}{primitive}", values[i] + values2[i]))))
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) + $vec_snakecase!($values2_with_nan_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + values2_with_nan[i], primitive))))
             );
         }
+
+        #[test]
+        fn test_$(vec_snakecase)_sub() {
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) - $vec_snakecase!($values2_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] - values2[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) - $vec_snakecase!($values2_with_nan_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] - values2_with_nan[i], primitive))))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_snakecase)_mul() {
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) * $vec_snakecase!($values2_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] * values2[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) * $vec_snakecase!($values2_with_nan_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] * values2_with_nan[i], primitive))))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_snakecase)_div() {
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) / $vec_snakecase!($values2_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] / values2[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) / $vec_snakecase!($values2_with_nan_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] / values2_with_nan[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) / $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values2[i] * (i as f64 - 1.0), primitive)))),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] / (values2[i] * (i as f64 - 1.0)), primitive))))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_snakecase)_rem() {
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) % $vec_snakecase!($values2_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] % values2[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_snakecase!($values_str) % $vec_snakecase!($values2_with_nan_str),
+                $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] % values2_with_nan[i], primitive))))
+            );
+        }
+
+        $(
+            if n == 4 && !is_simd =>
+
+            #[test]
+            fn test_$(vec_snakecase)_add_assign() {
+                let mut vec = $vec_snakecase!($values_str);
+                vec += $vec_snakecase!($values2_str);
+                assert_approx_vec_eq!(
+                    vec,
+                    $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                );
+            }
+
+            #[test]
+            fn test_$(vec_snakecase)_neg_ref() {
+                assert_approx_vec_eq!(
+                    -&$vec_snakecase!($values_str),
+                    $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(-values[i], primitive))))
+                );
+            }
+
+            #[test]
+            fn test_$(vec_snakecase)_add_ref() {
+                assert_approx_vec_eq!(
+                    $vec_snakecase!($values_str) + &$vec_snakecase!($values2_str),
+                    $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                );
+                assert_approx_vec_eq!(
+                    &$vec_snakecase!($values_str) + $vec_snakecase!($values2_str),
+                    $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                );
+                assert_approx_vec_eq!(
+                    &$vec_snakecase!($values_str) + &$vec_snakecase!($values2_str),
+                    $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                );
+            }
+
+            #[test]
+            fn test_$(vec_snakecase)_add_assign_ref() {
+                let mut vec = $vec_snakecase!($values_str);
+                vec += &$vec_snakecase!($values2_str);
+                assert_approx_vec_eq!(
+                    vec,
+                    $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                );
+            }
+
+            #[test]
+            fn test_$(vec_snakecase)_add_scalar() {
+                assert_approx_vec_eq!(
+                    $vec_snakecase!($values_str) + 1.0,
+                    $vec_snakecase!($(for i in 0..n join(, ) => $(float_lit(values[i] + 1.0, primitive))))
+                );
+            }
+        )
+
+        #[test]
+        fn test_$(vec_snakecase)_sum() {
+            assert_approx_eq!(
+                $vec_snakecase!($values_str).sum(),
+                $(float_lit(values.iter().sum::<f64>(), primitive))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_snakecase)_product() {
+            assert_approx_eq!(
+                $vec_snakecase!($values2_str).product(),
+                $(float_lit(values2.iter().product::<f64>(), primitive))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_snakecase)_mag_sq() {
+            assert_approx_eq!(
+                $vec_snakecase!($values_str).mag_sq(),
+                $(float_lit(values.iter().map(|&x| x * x).sum::<f64>(), primitive))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_snakecase)_dot() {
+            assert_approx_eq!(
+                $vec_snakecase!($values_str).dot($vec_snakecase!($values2_str)),
+                $(float_lit(values.iter().zip(values2.iter()).map(|(&x, &y)| x * y).sum::<f64>(), primitive))
+            );
+        }
+
+        $(
+            if n == 2 =>
+
+            #[test]
+            fn test_$(vec_snakecase)_perp() {
+                assert_approx_vec_eq!(
+                    $vec_snakecase!(1.0$primitive, 0.0$primitive).perp(),
+                    $vec_snakecase!(0.0$primitive, 1.0$primitive),
+                );
+            }
+
+            #[test]
+            fn test_$(vec_snakecase)_perp_cw() {
+                assert_approx_vec_eq!(
+                    $vec_snakecase!(1.0$primitive, 0.0$primitive).perp_cw(),
+                    $vec_snakecase!(0.0$primitive, -1.0$primitive),
+                );
+            }
+        )
     });
+}
+
+fn float_lit(value: f64, primitive: &str) -> String {
+    if value.is_nan() {
+        format!("{primitive}::NAN")
+    } else if value.is_infinite() {
+        if value.is_sign_positive() {
+            format!("{primitive}::INFINITY")
+        } else {
+            format!("{primitive}::NEG_INFINITY")
+        }
+    } else {
+        let mut lit = format!("{value:.4}").trim_end_matches("0").to_string();
+        if lit.ends_with(".") {
+            lit += "0";
+        }
+
+        format!("{}{primitive}", lit)
+    }
 }

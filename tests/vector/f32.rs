@@ -5,6 +5,45 @@ use core::mem::size_of;
 
 use ggmath::*;
 
+fn approx_eq(a: f32, b: f32) -> bool {
+    if a.is_nan() && b.is_nan() {
+        true
+    } else if a.is_infinite() && b.is_infinite() {
+        a.is_sign_positive() == b.is_sign_positive()
+    } else {
+        (a - b).abs() < 0.1
+    }
+}
+
+fn approx_vec_eq<const N: usize, S: Simdness>(a: Vector<N, f32, S>, b: Vector<N, f32, S>) -> bool
+where
+    Usize<N>: VecLen,
+{
+    (0..N).all(|i| approx_eq(a.index(i), b.index(i)))
+}
+
+macro_rules! assert_approx_eq {
+    ($a:expr, $b:expr $(,)?) => {
+        let a = $a;
+        let b = $b;
+
+        if !approx_eq(a, b) {
+            panic!("approx_eq failed: {a:?} != {b:?}");
+        }
+    };
+}
+
+macro_rules! assert_approx_vec_eq {
+    ($a:expr, $b:expr $(,)?) => {
+        let a = $a;
+        let b = $b;
+
+        if !approx_vec_eq(a, b) {
+            panic!("approx_vec_eq failed: {a:?} != {b:?}");
+        }
+    };
+}
+
 #[test]
 fn test_vec2_constructor() {
     assert_eq!(vec2!(0.0f32, 1.0f32), Vec2::from_array([0.0f32, 1.0f32]));
@@ -316,11 +355,103 @@ fn test_vec2_const_from_array() {
 }
 
 #[test]
+fn test_vec2_neg() {
+    assert_approx_vec_eq!(-vec2!(0.0f32, 1.3f32), vec2!(-0.0f32, -1.3f32));
+    assert_approx_vec_eq!(-vec2!(10.8f32, f32::NAN), vec2!(-10.8f32, f32::NAN));
+}
+
+#[test]
 fn test_vec2_add() {
-    assert_eq!(
-        vec2!(0.0f32, 1.3f32) + vec2!(10.8f32, 16.200000000000003f32),
-        vec2!(10.8f32, 17.500000000000004f32)
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) + vec2!(10.8f32, 16.2f32),
+        vec2!(10.8f32, 17.5f32)
     );
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) + vec2!(10.8f32, f32::NAN),
+        vec2!(10.8f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2_sub() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) - vec2!(10.8f32, 16.2f32),
+        vec2!(-10.8f32, -14.9f32)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) - vec2!(10.8f32, f32::NAN),
+        vec2!(-10.8f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2_mul() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) * vec2!(10.8f32, 16.2f32),
+        vec2!(0.0f32, 21.06f32)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) * vec2!(10.8f32, f32::NAN),
+        vec2!(0.0f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2_div() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) / vec2!(10.8f32, 16.2f32),
+        vec2!(0.0f32, 0.0802f32)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) / vec2!(10.8f32, f32::NAN),
+        vec2!(0.0f32, f32::NAN)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) / vec2!(-10.8f32, 0.0f32),
+        vec2!(-0.0f32, f32::INFINITY)
+    );
+}
+
+#[test]
+fn test_vec2_rem() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) % vec2!(10.8f32, 16.2f32),
+        vec2!(0.0f32, 1.3f32)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f32, 1.3f32) % vec2!(10.8f32, f32::NAN),
+        vec2!(0.0f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2_sum() {
+    assert_approx_eq!(vec2!(0.0f32, 1.3f32).sum(), 1.3f32);
+}
+
+#[test]
+fn test_vec2_product() {
+    assert_approx_eq!(vec2!(10.8f32, 16.2f32).product(), 174.96f32);
+}
+
+#[test]
+fn test_vec2_mag_sq() {
+    assert_approx_eq!(vec2!(0.0f32, 1.3f32).mag_sq(), 1.69f32);
+}
+
+#[test]
+fn test_vec2_dot() {
+    assert_approx_eq!(vec2!(0.0f32, 1.3f32).dot(vec2!(10.8f32, 16.2f32)), 21.06f32);
+}
+
+#[test]
+fn test_vec2_perp() {
+    assert_approx_vec_eq!(vec2!(1.0f32, 0.0f32).perp(), vec2!(0.0f32, 1.0f32),);
+}
+
+#[test]
+fn test_vec2_perp_cw() {
+    assert_approx_vec_eq!(vec2!(1.0f32, 0.0f32).perp_cw(), vec2!(0.0f32, -1.0f32),);
 }
 
 const _: () = assert!(size_of::<Vec2S<f32>>() == size_of::<[f32; 2]>());
@@ -653,11 +784,106 @@ fn test_vec2s_const_from_array() {
 }
 
 #[test]
+fn test_vec2s_neg() {
+    assert_approx_vec_eq!(-vec2s!(0.0f32, 1.3f32), vec2s!(-0.0f32, -1.3f32));
+    assert_approx_vec_eq!(-vec2s!(10.8f32, f32::NAN), vec2s!(-10.8f32, f32::NAN));
+}
+
+#[test]
 fn test_vec2s_add() {
-    assert_eq!(
-        vec2s!(0.0f32, 1.3f32) + vec2s!(10.8f32, 16.200000000000003f32),
-        vec2s!(10.8f32, 17.500000000000004f32)
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) + vec2s!(10.8f32, 16.2f32),
+        vec2s!(10.8f32, 17.5f32)
     );
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) + vec2s!(10.8f32, f32::NAN),
+        vec2s!(10.8f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2s_sub() {
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) - vec2s!(10.8f32, 16.2f32),
+        vec2s!(-10.8f32, -14.9f32)
+    );
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) - vec2s!(10.8f32, f32::NAN),
+        vec2s!(-10.8f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2s_mul() {
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) * vec2s!(10.8f32, 16.2f32),
+        vec2s!(0.0f32, 21.06f32)
+    );
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) * vec2s!(10.8f32, f32::NAN),
+        vec2s!(0.0f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2s_div() {
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) / vec2s!(10.8f32, 16.2f32),
+        vec2s!(0.0f32, 0.0802f32)
+    );
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) / vec2s!(10.8f32, f32::NAN),
+        vec2s!(0.0f32, f32::NAN)
+    );
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) / vec2s!(-10.8f32, 0.0f32),
+        vec2s!(-0.0f32, f32::INFINITY)
+    );
+}
+
+#[test]
+fn test_vec2s_rem() {
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) % vec2s!(10.8f32, 16.2f32),
+        vec2s!(0.0f32, 1.3f32)
+    );
+    assert_approx_vec_eq!(
+        vec2s!(0.0f32, 1.3f32) % vec2s!(10.8f32, f32::NAN),
+        vec2s!(0.0f32, f32::NAN)
+    );
+}
+
+#[test]
+fn test_vec2s_sum() {
+    assert_approx_eq!(vec2s!(0.0f32, 1.3f32).sum(), 1.3f32);
+}
+
+#[test]
+fn test_vec2s_product() {
+    assert_approx_eq!(vec2s!(10.8f32, 16.2f32).product(), 174.96f32);
+}
+
+#[test]
+fn test_vec2s_mag_sq() {
+    assert_approx_eq!(vec2s!(0.0f32, 1.3f32).mag_sq(), 1.69f32);
+}
+
+#[test]
+fn test_vec2s_dot() {
+    assert_approx_eq!(
+        vec2s!(0.0f32, 1.3f32).dot(vec2s!(10.8f32, 16.2f32)),
+        21.06f32
+    );
+}
+
+#[test]
+fn test_vec2s_perp() {
+    assert_approx_vec_eq!(vec2s!(1.0f32, 0.0f32).perp(), vec2s!(0.0f32, 1.0f32),);
+}
+
+#[test]
+fn test_vec2s_perp_cw() {
+    assert_approx_vec_eq!(vec2s!(1.0f32, 0.0f32).perp_cw(), vec2s!(0.0f32, -1.0f32),);
 }
 
 #[test]
@@ -1036,10 +1262,101 @@ fn test_vec3_const_from_array() {
 }
 
 #[test]
+fn test_vec3_neg() {
+    assert_approx_vec_eq!(
+        -vec3!(0.0f32, 1.3f32, 2.6f32),
+        vec3!(-0.0f32, -1.3f32, -2.6f32)
+    );
+    assert_approx_vec_eq!(
+        -vec3!(16.2f32, f32::NAN, 27.0f32),
+        vec3!(-16.2f32, f32::NAN, -27.0f32)
+    );
+}
+
+#[test]
 fn test_vec3_add() {
-    assert_eq!(
-        vec3!(0.0f32, 1.3f32, 2.6f32) + vec3!(16.200000000000003f32, 21.6f32, 27.0f32),
-        vec3!(16.200000000000003f32, 22.900000000000002f32, 29.6f32)
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) + vec3!(16.2f32, 21.6f32, 27.0f32),
+        vec3!(16.2f32, 22.9f32, 29.6f32)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) + vec3!(16.2f32, f32::NAN, 27.0f32),
+        vec3!(16.2f32, f32::NAN, 29.6f32)
+    );
+}
+
+#[test]
+fn test_vec3_sub() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) - vec3!(16.2f32, 21.6f32, 27.0f32),
+        vec3!(-16.2f32, -20.3f32, -24.4f32)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) - vec3!(16.2f32, f32::NAN, 27.0f32),
+        vec3!(-16.2f32, f32::NAN, -24.4f32)
+    );
+}
+
+#[test]
+fn test_vec3_mul() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) * vec3!(16.2f32, 21.6f32, 27.0f32),
+        vec3!(0.0f32, 28.08f32, 70.2f32)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) * vec3!(16.2f32, f32::NAN, 27.0f32),
+        vec3!(0.0f32, f32::NAN, 70.2f32)
+    );
+}
+
+#[test]
+fn test_vec3_div() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) / vec3!(16.2f32, 21.6f32, 27.0f32),
+        vec3!(0.0f32, 0.0602f32, 0.0963f32)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) / vec3!(16.2f32, f32::NAN, 27.0f32),
+        vec3!(0.0f32, f32::NAN, 0.0963f32)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) / vec3!(-16.2f32, 0.0f32, 27.0f32),
+        vec3!(-0.0f32, f32::INFINITY, 0.0963f32)
+    );
+}
+
+#[test]
+fn test_vec3_rem() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) % vec3!(16.2f32, 21.6f32, 27.0f32),
+        vec3!(0.0f32, 1.3f32, 2.6f32)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32) % vec3!(16.2f32, f32::NAN, 27.0f32),
+        vec3!(0.0f32, f32::NAN, 2.6f32)
+    );
+}
+
+#[test]
+fn test_vec3_sum() {
+    assert_approx_eq!(vec3!(0.0f32, 1.3f32, 2.6f32).sum(), 3.9f32);
+}
+
+#[test]
+fn test_vec3_product() {
+    assert_approx_eq!(vec3!(16.2f32, 21.6f32, 27.0f32).product(), 9447.84f32);
+}
+
+#[test]
+fn test_vec3_mag_sq() {
+    assert_approx_eq!(vec3!(0.0f32, 1.3f32, 2.6f32).mag_sq(), 8.45f32);
+}
+
+#[test]
+fn test_vec3_dot() {
+    assert_approx_eq!(
+        vec3!(0.0f32, 1.3f32, 2.6f32).dot(vec3!(16.2f32, 21.6f32, 27.0f32)),
+        98.28f32
     );
 }
 
@@ -1452,10 +1769,101 @@ fn test_vec3s_const_from_array() {
 }
 
 #[test]
+fn test_vec3s_neg() {
+    assert_approx_vec_eq!(
+        -vec3s!(0.0f32, 1.3f32, 2.6f32),
+        vec3s!(-0.0f32, -1.3f32, -2.6f32)
+    );
+    assert_approx_vec_eq!(
+        -vec3s!(16.2f32, f32::NAN, 27.0f32),
+        vec3s!(-16.2f32, f32::NAN, -27.0f32)
+    );
+}
+
+#[test]
 fn test_vec3s_add() {
-    assert_eq!(
-        vec3s!(0.0f32, 1.3f32, 2.6f32) + vec3s!(16.200000000000003f32, 21.6f32, 27.0f32),
-        vec3s!(16.200000000000003f32, 22.900000000000002f32, 29.6f32)
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) + vec3s!(16.2f32, 21.6f32, 27.0f32),
+        vec3s!(16.2f32, 22.9f32, 29.6f32)
+    );
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) + vec3s!(16.2f32, f32::NAN, 27.0f32),
+        vec3s!(16.2f32, f32::NAN, 29.6f32)
+    );
+}
+
+#[test]
+fn test_vec3s_sub() {
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) - vec3s!(16.2f32, 21.6f32, 27.0f32),
+        vec3s!(-16.2f32, -20.3f32, -24.4f32)
+    );
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) - vec3s!(16.2f32, f32::NAN, 27.0f32),
+        vec3s!(-16.2f32, f32::NAN, -24.4f32)
+    );
+}
+
+#[test]
+fn test_vec3s_mul() {
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) * vec3s!(16.2f32, 21.6f32, 27.0f32),
+        vec3s!(0.0f32, 28.08f32, 70.2f32)
+    );
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) * vec3s!(16.2f32, f32::NAN, 27.0f32),
+        vec3s!(0.0f32, f32::NAN, 70.2f32)
+    );
+}
+
+#[test]
+fn test_vec3s_div() {
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) / vec3s!(16.2f32, 21.6f32, 27.0f32),
+        vec3s!(0.0f32, 0.0602f32, 0.0963f32)
+    );
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) / vec3s!(16.2f32, f32::NAN, 27.0f32),
+        vec3s!(0.0f32, f32::NAN, 0.0963f32)
+    );
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) / vec3s!(-16.2f32, 0.0f32, 27.0f32),
+        vec3s!(-0.0f32, f32::INFINITY, 0.0963f32)
+    );
+}
+
+#[test]
+fn test_vec3s_rem() {
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) % vec3s!(16.2f32, 21.6f32, 27.0f32),
+        vec3s!(0.0f32, 1.3f32, 2.6f32)
+    );
+    assert_approx_vec_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32) % vec3s!(16.2f32, f32::NAN, 27.0f32),
+        vec3s!(0.0f32, f32::NAN, 2.6f32)
+    );
+}
+
+#[test]
+fn test_vec3s_sum() {
+    assert_approx_eq!(vec3s!(0.0f32, 1.3f32, 2.6f32).sum(), 3.9f32);
+}
+
+#[test]
+fn test_vec3s_product() {
+    assert_approx_eq!(vec3s!(16.2f32, 21.6f32, 27.0f32).product(), 9447.84f32);
+}
+
+#[test]
+fn test_vec3s_mag_sq() {
+    assert_approx_eq!(vec3s!(0.0f32, 1.3f32, 2.6f32).mag_sq(), 8.45f32);
+}
+
+#[test]
+fn test_vec3s_dot() {
+    assert_approx_eq!(
+        vec3s!(0.0f32, 1.3f32, 2.6f32).dot(vec3s!(16.2f32, 21.6f32, 27.0f32)),
+        98.28f32
     );
 }
 
@@ -1888,16 +2296,104 @@ fn test_vec4_const_from_array() {
 }
 
 #[test]
+fn test_vec4_neg() {
+    assert_approx_vec_eq!(
+        -vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32),
+        vec4!(-0.0f32, -1.3f32, -2.6f32, -3.9f32)
+    );
+    assert_approx_vec_eq!(
+        -vec4!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4!(-21.6f32, f32::NAN, -32.4f32, -37.8f32)
+    );
+}
+
+#[test]
 fn test_vec4_add() {
-    assert_eq!(
-        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9000000000000004f32)
-            + vec4!(
-                21.6f32,
-                27.0f32,
-                32.400000000000006f32,
-                37.800000000000004f32
-            ),
-        vec4!(21.6f32, 28.3f32, 35.00000000000001f32, 41.7f32)
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + vec4!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4!(21.6f32, 28.3f32, 35.0f32, 41.7f32)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + vec4!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4!(21.6f32, f32::NAN, 35.0f32, 41.7f32)
+    );
+}
+
+#[test]
+fn test_vec4_sub() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) - vec4!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4!(-21.6f32, -25.7f32, -29.8f32, -33.9f32)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) - vec4!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4!(-21.6f32, f32::NAN, -29.8f32, -33.9f32)
+    );
+}
+
+#[test]
+fn test_vec4_mul() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) * vec4!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4!(0.0f32, 35.1f32, 84.24f32, 147.42f32)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) * vec4!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4!(0.0f32, f32::NAN, 84.24f32, 147.42f32)
+    );
+}
+
+#[test]
+fn test_vec4_div() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) / vec4!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4!(0.0f32, 0.0481f32, 0.0802f32, 0.1032f32)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) / vec4!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4!(0.0f32, f32::NAN, 0.0802f32, 0.1032f32)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) / vec4!(-21.6f32, 0.0f32, 32.4f32, 75.6f32),
+        vec4!(-0.0f32, f32::INFINITY, 0.0802f32, 0.0516f32)
+    );
+}
+
+#[test]
+fn test_vec4_rem() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) % vec4!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32) % vec4!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4!(0.0f32, f32::NAN, 2.6f32, 3.9f32)
+    );
+}
+
+#[test]
+fn test_vec4_sum() {
+    assert_approx_eq!(vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32).sum(), 7.8f32);
+}
+
+#[test]
+fn test_vec4_product() {
+    assert_approx_eq!(
+        vec4!(21.6f32, 27.0f32, 32.4f32, 37.8f32).product(),
+        714256.704f32
+    );
+}
+
+#[test]
+fn test_vec4_mag_sq() {
+    assert_approx_eq!(vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32).mag_sq(), 23.66f32);
+}
+
+#[test]
+fn test_vec4_dot() {
+    assert_approx_eq!(
+        vec4!(0.0f32, 1.3f32, 2.6f32, 3.9f32).dot(vec4!(21.6f32, 27.0f32, 32.4f32, 37.8f32)),
+        266.76f32
     );
 }
 
@@ -2379,15 +2875,149 @@ fn test_vec4s_const_from_array() {
 }
 
 #[test]
+fn test_vec4s_neg() {
+    assert_approx_vec_eq!(
+        -vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32),
+        vec4s!(-0.0f32, -1.3f32, -2.6f32, -3.9f32)
+    );
+    assert_approx_vec_eq!(
+        -vec4s!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4s!(-21.6f32, f32::NAN, -32.4f32, -37.8f32)
+    );
+}
+
+#[test]
 fn test_vec4s_add() {
-    assert_eq!(
-        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9000000000000004f32)
-            + vec4s!(
-                21.6f32,
-                27.0f32,
-                32.400000000000006f32,
-                37.800000000000004f32
-            ),
-        vec4s!(21.6f32, 28.3f32, 35.00000000000001f32, 41.7f32)
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(21.6f32, 28.3f32, 35.0f32, 41.7f32)
+    );
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + vec4s!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4s!(21.6f32, f32::NAN, 35.0f32, 41.7f32)
+    );
+}
+
+#[test]
+fn test_vec4s_sub() {
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) - vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(-21.6f32, -25.7f32, -29.8f32, -33.9f32)
+    );
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) - vec4s!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4s!(-21.6f32, f32::NAN, -29.8f32, -33.9f32)
+    );
+}
+
+#[test]
+fn test_vec4s_mul() {
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) * vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(0.0f32, 35.1f32, 84.24f32, 147.42f32)
+    );
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) * vec4s!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4s!(0.0f32, f32::NAN, 84.24f32, 147.42f32)
+    );
+}
+
+#[test]
+fn test_vec4s_div() {
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) / vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(0.0f32, 0.0481f32, 0.0802f32, 0.1032f32)
+    );
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) / vec4s!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4s!(0.0f32, f32::NAN, 0.0802f32, 0.1032f32)
+    );
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) / vec4s!(-21.6f32, 0.0f32, 32.4f32, 75.6f32),
+        vec4s!(-0.0f32, f32::INFINITY, 0.0802f32, 0.0516f32)
+    );
+}
+
+#[test]
+fn test_vec4s_rem() {
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) % vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32)
+    );
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) % vec4s!(21.6f32, f32::NAN, 32.4f32, 37.8f32),
+        vec4s!(0.0f32, f32::NAN, 2.6f32, 3.9f32)
+    );
+}
+
+#[test]
+fn test_vec4s_add_assign() {
+    let mut vec = vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32);
+    vec += vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32);
+    assert_approx_vec_eq!(vec, vec4s!(21.6f32, 28.3f32, 35.0f32, 41.7f32));
+}
+
+#[test]
+fn test_vec4s_neg_ref() {
+    assert_approx_vec_eq!(
+        -&vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32),
+        vec4s!(-0.0f32, -1.3f32, -2.6f32, -3.9f32)
+    );
+}
+
+#[test]
+fn test_vec4s_add_ref() {
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + &vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(21.6f32, 28.3f32, 35.0f32, 41.7f32)
+    );
+    assert_approx_vec_eq!(
+        &vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(21.6f32, 28.3f32, 35.0f32, 41.7f32)
+    );
+    assert_approx_vec_eq!(
+        &vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + &vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32),
+        vec4s!(21.6f32, 28.3f32, 35.0f32, 41.7f32)
+    );
+}
+
+#[test]
+fn test_vec4s_add_assign_ref() {
+    let mut vec = vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32);
+    vec += &vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32);
+    assert_approx_vec_eq!(vec, vec4s!(21.6f32, 28.3f32, 35.0f32, 41.7f32));
+}
+
+#[test]
+fn test_vec4s_add_scalar() {
+    assert_approx_vec_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32) + 1.0,
+        vec4s!(1.0f32, 2.3f32, 3.6f32, 4.9f32)
+    );
+}
+
+#[test]
+fn test_vec4s_sum() {
+    assert_approx_eq!(vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32).sum(), 7.8f32);
+}
+
+#[test]
+fn test_vec4s_product() {
+    assert_approx_eq!(
+        vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32).product(),
+        714256.704f32
+    );
+}
+
+#[test]
+fn test_vec4s_mag_sq() {
+    assert_approx_eq!(vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32).mag_sq(), 23.66f32);
+}
+
+#[test]
+fn test_vec4s_dot() {
+    assert_approx_eq!(
+        vec4s!(0.0f32, 1.3f32, 2.6f32, 3.9f32).dot(vec4s!(21.6f32, 27.0f32, 32.4f32, 37.8f32)),
+        266.76f32
     );
 }

@@ -198,13 +198,56 @@ fn primitive_test_mod(primitive: &str) -> TestFile {
         use ggmath::*;
 
         $(
+            if FLOAT_PRIMITIVES.contains(&primitive) =>
+
+            fn approx_eq(a: $primitive, b: $primitive) -> bool {
+                if a.is_nan() && b.is_nan() {
+                    true
+                } else if a.is_infinite() && b.is_infinite() {
+                    a.is_sign_positive() == b.is_sign_positive()
+                } else {
+                    (a - b).abs() < 0.1
+                }
+            }
+
+            fn approx_vec_eq<const N: usize, S: Simdness>(a: Vector<N, $primitive, S>, b: Vector<N, $primitive, S>) -> bool
+            where
+                Usize<N>: VecLen,
+            {
+                (0..N).all(|i| approx_eq(a.index(i), b.index(i)))
+            }
+
+            macro_rules! assert_approx_eq {
+                ($$a:expr, $$b:expr $$(,)?) => {
+                    let a = $$a;
+                    let b = $$b;
+                    
+                    if !approx_eq(a, b) {
+                        panic!("approx_eq failed: {a:?} != {b:?}");
+                    }
+                };
+            }
+
+            macro_rules! assert_approx_vec_eq {
+                ($$a:expr, $$b:expr $$(,)?) => {
+                    let a = $$a;
+                    let b = $$b;
+                    
+                    if !approx_vec_eq(a, b) {
+                        panic!("approx_vec_eq failed: {a:?} != {b:?}");
+                    }
+                };
+            }
+        )
+
+        $(
             for &n in LENGTHS join($['\n']) =>
 
             $(
                 for is_simd in [true, false] join($['\r']) =>
 
                 $(
-                    if n == 4 && is_simd || PRIMARY_PRIMITIVES.contains(&primitive) =>
+                    if is_simd || PRIMARY_PRIMITIVES.contains(&primitive) =>
 
                     $(let tests = {
                         let mut tests = Vec::new();
