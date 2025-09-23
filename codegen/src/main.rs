@@ -9,7 +9,7 @@ mod float_ext;
 mod primitive_aliases;
 mod vector;
 
-pub fn codegen() {
+fn main() {
     quote! {
         #![deny(missing_docs)]
         #![doc = include_str!("../README.md")]

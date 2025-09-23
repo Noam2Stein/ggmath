@@ -11,7 +11,7 @@ use core::{
     slice::SliceIndex,
 };
 
-use crate::{Construct, IndexOutOfBoundsError, Usize, specialize};
+use crate::{specialize, Construct, IndexOutOfBoundsError, Usize};
 
 mod constructor;
 mod dir;

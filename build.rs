@@ -1,17 +1,6 @@
-use std::process::Command;
-
 use cfg_aliases::cfg_aliases;
 
 fn main() {
-    codegen::codegen();
-
-    Command::new("cargo")
-        .arg("fmt")
-        .arg("-p")
-        .arg("ggmath")
-        .status()
-        .unwrap();
-
     cfg_aliases! {
         f32x4_simd: {
             any(

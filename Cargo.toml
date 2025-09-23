@@ -61,7 +61,6 @@ serde   = { version = "1.0.219", optional = true }
 
 [build-dependencies]
 cfg_aliases = "0.2.1"
-codegen     = { path = "codegen" }
 
 [dev-dependencies]
 criterion = "0.7.0"
