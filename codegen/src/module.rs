@@ -235,6 +235,8 @@ fn format_rust_code(unformatted: &str) -> String {
     let mut child = Command::new("rustfmt")
         .arg("--emit")
         .arg("stdout")
+        .arg("--edition")
+        .arg("2024")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()

@@ -3,7 +3,7 @@
 
 use std::ops::*;
 
-use crate::{specialize, Scalar, Simd, Simdness, Usize, VecLen, Vector};
+use crate::{Scalar, Simd, Simdness, Usize, VecLen, Vector, specialize};
 
 impl<const N: usize, T: Scalar + Neg<Output: Scalar>, S: Simdness> Neg for Vector<N, T, S>
 where
