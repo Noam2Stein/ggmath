@@ -1,9 +1,9 @@
 [workspace]
 members = [
     ".",
-    "codegen",
     "sandbox",
     "tools/bench_checker",
+    "tools/codegen",
     "tools/prepublish",
 ]
 

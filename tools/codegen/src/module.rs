@@ -8,7 +8,7 @@ use std::{
 use genco::lang::rust::Tokens;
 use indoc::formatdoc;
 
-const WORKPLACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
+const WORKPLACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../..");
 
 pub trait TokensExt {
     fn to_src_file(self, name: impl Into<String>) -> SrcFile;
