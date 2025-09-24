@@ -14,7 +14,7 @@ pub fn push_src(
     _trait_impls: &mut Vec<Tokens>,
 ) {
     functions.push(quote! {
-        $("// The following code is only for bool")
+        $("// The following code is generated for `bool`")
 
         $("/// All `true`.")
         pub const TRUE: Self = Self::const_splat(true);

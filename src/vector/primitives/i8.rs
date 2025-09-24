@@ -12,7 +12,7 @@ impl<const N: usize, S: Simdness> Vector<N, i8, S>
 where
     Usize<N>: VecLen,
 {
-    // The following code is for all primitives
+    // The following code is generated for all primitives
 
     /// Variation of `Vector::from_array` that is `const`.
     /// This may be slower than `Vector::from_array`.
@@ -58,7 +58,7 @@ where
         Self::const_from_array([value; N])
     }
 
-    // The following code is for all number primitives
+    // The following code is generated for all number primitives
 
     /// A vector of all minimum values.
     pub const MIN: Self = Self::const_splat(i8::MIN);
@@ -143,7 +143,7 @@ where
         self.map(|x| x as usize)
     }
 
-    // The following code is for all int primitives
+    // The following code is generated for all int primitives
 
     /// Returns `-self` or `None` if there is an overflow.
     #[inline(always)]
@@ -271,7 +271,7 @@ where
         self.reduce(|a, b| a.max(b))
     }
 
-    // The following code is for all signed int primitives
+    // The following code is generated for all signed int primitives
 
     /// Returns `-self` with saturating arithmetic.
     #[inline(always)]

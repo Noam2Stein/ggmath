@@ -42,6 +42,8 @@ macro_rules! assert_approx_vec_eq {
     };
 }
 
+// The following code is generated for all primitives
+
 #[test]
 fn test_vec2_constructor() {
     assert_eq!(vec2!(0.0f64, 1.0f64), Vec2::from_array([0.0f64, 1.0f64]));
@@ -352,6 +354,8 @@ fn test_vec2_const_from_array() {
     );
 }
 
+// The following code is generated for all float primitives
+
 #[test]
 fn test_vec2_neg() {
     assert_approx_vec_eq!(-vec2!(0.0f64, 1.3f64), vec2!(-0.0f64, -1.3f64));
@@ -658,6 +662,8 @@ fn test_vec2_normalize_or_zero() {
     );
     assert_approx_vec_eq!(Vec2::<f64>::ZERO.normalize_or_zero(), Vec2::<f64>::ZERO);
 }
+
+// The following code is generated for all primitives
 
 #[test]
 fn test_vec3_constructor() {
@@ -1034,6 +1040,8 @@ fn test_vec3_const_from_array() {
     );
 }
 
+// The following code is generated for all float primitives
+
 #[test]
 fn test_vec3_neg() {
     assert_approx_vec_eq!(
@@ -1375,6 +1383,8 @@ fn test_vec3_normalize_or_zero() {
     );
     assert_approx_vec_eq!(Vec3::<f64>::ZERO.normalize_or_zero(), Vec3::<f64>::ZERO);
 }
+
+// The following code is generated for all primitives
 
 #[test]
 fn test_vec4_constructor() {
@@ -1803,6 +1813,8 @@ fn test_vec4_const_from_array() {
         Vec4::from_array([0.0f64, 1.0f64, 2.0f64, 3.0f64])
     );
 }
+
+// The following code is generated for all float primitives
 
 #[test]
 fn test_vec4_neg() {

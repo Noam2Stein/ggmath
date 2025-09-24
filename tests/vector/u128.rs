@@ -3,6 +3,8 @@
 
 use ggmath::*;
 
+// The following code is generated for all primitives
+
 #[test]
 fn test_vec2_constructor() {
     assert_eq!(vec2!(0u128, 1u128), Vec2::from_array([0u128, 1u128]));
@@ -295,6 +297,8 @@ fn test_vec2_const_from_array() {
         Vec2::from_array([0u128, 1u128])
     );
 }
+
+// The following code is generated for all primitives
 
 #[test]
 fn test_vec3_constructor() {
@@ -656,6 +660,8 @@ fn test_vec3_const_from_array() {
         Vec3::from_array([0u128, 1u128, 2u128])
     );
 }
+
+// The following code is generated for all primitives
 
 #[test]
 fn test_vec4_constructor() {

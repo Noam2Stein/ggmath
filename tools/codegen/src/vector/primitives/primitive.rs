@@ -21,7 +21,7 @@ pub fn push_src(
     use_crate_items.push(quote! { $(for &n in LENGTHS join(, ) => Vec$(n)) });
 
     functions.push(quote! {
-        $("// The following code is for all primitives")
+        $("// The following code is generated for all primitives")
 
         $(let transmute_copy = &import("core::mem", "transmute_copy"))
 
@@ -113,6 +113,8 @@ pub fn push_tests(n: usize, primitive: &str, is_simd: bool, tests: &mut Vec<Toke
     let values2_str = &values2.join(", ");
 
     tests.push(quote! {
+        $("// The following code is generated for all primitives")
+
         $(
             if !is_simd =>
 

@@ -21,7 +21,7 @@ pub fn push_src(
     use_crate_items.push(quote! { ScalarNegOne });
 
     functions.push(quote! {
-        $("// The following code is for all signed int primitives")
+        $("// The following code is generated for all signed int primitives")
 
         $("/// Returns `-self` with saturating arithmetic.")
         #[inline(always)]

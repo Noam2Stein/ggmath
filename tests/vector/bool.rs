@@ -5,6 +5,8 @@ use core::mem::size_of;
 
 use ggmath::*;
 
+// The following code is generated for all primitives
+
 #[test]
 fn test_vec2_constructor() {
     assert_eq!(vec2!(false, true), Vec2::from_array([false, true]));
@@ -259,6 +261,8 @@ fn test_vec2_const_from_array() {
         Vec2::from_array([false, true])
     );
 }
+
+// The following code is generated for all primitives
 
 const _: () = assert!(size_of::<Vec2S<bool>>() == size_of::<[bool; 2]>());
 
@@ -533,6 +537,8 @@ fn test_vec2s_const_from_array() {
         Vec2S::from_array([false, true])
     );
 }
+
+// The following code is generated for all primitives
 
 #[test]
 fn test_vec3_constructor() {
@@ -856,6 +862,8 @@ fn test_vec3_const_from_array() {
         Vec3::from_array([false, true, false])
     );
 }
+
+// The following code is generated for all primitives
 
 const _: () = assert!(size_of::<Vec3S<bool>>() == size_of::<[bool; 3]>());
 
@@ -1219,6 +1227,8 @@ fn test_vec3s_const_from_array() {
     );
 }
 
+// The following code is generated for all primitives
+
 #[test]
 fn test_vec4_constructor() {
     assert_eq!(
@@ -1581,6 +1591,8 @@ fn test_vec4_const_from_array() {
         Vec4::from_array([false, true, false, true])
     );
 }
+
+// The following code is generated for all primitives
 
 const _: () = assert!(size_of::<Vec4S<bool>>() == size_of::<[bool; 4]>());
 

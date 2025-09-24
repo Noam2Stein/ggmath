@@ -14,7 +14,7 @@ pub fn push_src(
     trait_impls: &mut Vec<Tokens>,
 ) {
     functions.push(quote! {
-        $("// The following code is for all int primitives")
+        $("// The following code is generated for all int primitives")
 
         $("/// Returns `-self` or `None` if there is an overflow.")
         #[inline(always)]

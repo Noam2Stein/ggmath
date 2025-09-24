@@ -12,7 +12,7 @@ impl<const N: usize, S: Simdness> Vector<N, f64, S>
 where
     Usize<N>: VecLen,
 {
-    // The following code is for all primitives
+    // The following code is generated for all primitives
 
     /// Variation of `Vector::from_array` that is `const`.
     /// This may be slower than `Vector::from_array`.
@@ -58,7 +58,7 @@ where
         Self::const_from_array([value; N])
     }
 
-    // The following code is for all number primitives
+    // The following code is generated for all number primitives
 
     /// A vector of all minimum values.
     pub const MIN: Self = Self::const_splat(f64::MIN);
@@ -143,7 +143,7 @@ where
         self.map(|x| x as usize)
     }
 
-    // The following code is for all float primitives
+    // The following code is generated for all float primitives
 
     /// A vector with all elements set to `NaN`.
     pub const NAN: Self = Self::const_splat(f64::NAN);
@@ -432,7 +432,7 @@ impl<const N: usize, S: Simdness> Vector<N, f64, S>
 where
     Usize<N>: VecLen,
 {
-    // The following items are generated for all float types
+    // The following code is generated for all float primitives
 
     /// Returns a vector containing the square root of each element of `self`.
     #[inline(always)]

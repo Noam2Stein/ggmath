@@ -16,7 +16,7 @@ pub fn push_src(
     use_crate_items.push(quote! { ScalarZero, ScalarOne });
 
     functions.push(quote! {
-        $("// The following code is for all number primitives")
+        $("// The following code is generated for all number primitives")
 
         $("/// A vector of all minimum values.")
         pub const MIN: Self = Self::const_splat($primitive::MIN);

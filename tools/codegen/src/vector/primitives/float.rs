@@ -16,7 +16,7 @@ pub fn push_src(
     use_crate_items.push(quote! { ScalarNegOne });
 
     functions.push(quote! {
-        $("// The following code is for all float primitives")
+        $("// The following code is generated for all float primitives")
 
         $("/// A vector with all elements set to `NaN`.")
         pub const NAN: Self = Self::const_splat($primitive::NAN);
@@ -301,7 +301,7 @@ pub fn push_src(
     });
 
     std_functions.push(quote! {
-        $("// The following items are generated for all float types")
+        $("// The following code is generated for all float primitives")
 
         $("/// Returns a vector containing the square root of each element of `self`.")
         #[inline(always)]
@@ -431,6 +431,8 @@ pub fn push_src(
     });
 
     std_len_functions.entry(2).or_default().push(quote! {
+        // The following code is generated for all float primitives
+
         $("/// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.")
         #[inline(always)]
         pub fn signed_angle(self, other: Self) -> $primitive {
@@ -520,6 +522,8 @@ pub fn push_tests(n: usize, primitive: &str, is_simd: bool, tests: &mut Vec<Toke
         
         $(let values2_with_zero_and_neg_zero = (0..n).map(|i| if i == 0 { -0.0 } else if i == 1 { 0.0 } else { ((i + n) as f64) * 5.4 }).collect::<Vec<f64>>())
         $(let values2_with_zero_and_neg_zero_str = &values2_with_zero_and_neg_zero.iter().map(|&x| float_lit(x, primitive)).collect::<Vec<String>>().join(", "))
+
+        $("// The following code is generated for all float primitives")
 
         #[test]
         fn test_$(vec_snakecase)_neg() {

@@ -9,7 +9,7 @@ impl<const N: usize, S: Simdness> Vector<N, bool, S>
 where
     Usize<N>: VecLen,
 {
-    // The following code is for all primitives
+    // The following code is generated for all primitives
 
     /// Variation of `Vector::from_array` that is `const`.
     /// This may be slower than `Vector::from_array`.
@@ -55,7 +55,7 @@ where
         Self::const_from_array([value; N])
     }
 
-    // The following code is only for bool
+    // The following code is generated for `bool`
 
     /// All `true`.
     pub const TRUE: Self = Self::const_splat(true);
