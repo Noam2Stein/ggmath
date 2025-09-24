@@ -453,6 +453,213 @@ fn test_vec2_perp_cw() {
 }
 
 #[test]
+fn test_vec2_div_euclid() {
+    assert_approx_vec_eq!(
+        vec2!(10.8f64, 16.2f64).div_euclid(vec2!(0.0f64, 1.3f64)),
+        vec2!(f64::INFINITY, 12.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).div_euclid(vec2!(10.8f64, f64::NAN)),
+        vec2!(0.0f64, f64::NAN)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).div_euclid(vec2!(-0.0f64, 0.0f64)),
+        vec2!(f64::NAN, f64::INFINITY)
+    );
+}
+
+#[test]
+fn test_vec2_rem_euclid() {
+    assert_approx_vec_eq!(
+        vec2!(10.8f64, 16.2f64).rem_euclid(vec2!(0.0f64, 1.3f64)),
+        vec2!(f64::NAN, 0.6f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).rem_euclid(vec2!(10.8f64, f64::NAN)),
+        vec2!(0.0f64, f64::NAN)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).rem_euclid(vec2!(-0.0f64, 0.0f64)),
+        vec2!(f64::NAN, f64::NAN)
+    );
+}
+
+#[test]
+fn test_vec2_min() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).min(vec2!(10.8f64, 16.2f64)),
+        vec2!(0.0f64, 1.3f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).min(vec2!(10.8f64, f64::NAN)),
+        vec2!(0.0f64, 1.3f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(10.8f64, 0.0f64).min(vec2!(10.8f64, -0.0f64)),
+        vec2!(10.8f64, 0.0f64)
+    );
+}
+
+#[test]
+fn test_vec2_max() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).max(vec2!(10.8f64, 16.2f64)),
+        vec2!(10.8f64, 16.2f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).max(vec2!(10.8f64, f64::NAN)),
+        vec2!(10.8f64, 1.3f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(10.8f64, 0.0f64).max(vec2!(10.8f64, -0.0f64)),
+        vec2!(10.8f64, 0.0f64)
+    );
+}
+
+#[test]
+fn test_vec2_min_element() {
+    assert_approx_eq!(vec2!(0.0f64, 1.3f64).min_element(), 0.0f64);
+    assert_approx_eq!(vec2!(10.8f64, f64::NAN).min_element(), 10.8f64);
+    assert_approx_eq!(vec2!(-0.0f64, 0.0f64).min_element(), -0.0f64);
+}
+
+#[test]
+fn test_vec2_max_element() {
+    assert_approx_eq!(vec2!(0.0f64, 1.3f64).max_element(), 1.3f64);
+    assert_approx_eq!(vec2!(10.8f64, f64::NAN).max_element(), 10.8f64);
+    assert_approx_eq!(vec2!(-0.0f64, 0.0f64).max_element(), -0.0f64);
+}
+
+#[test]
+fn test_vec2_signum() {
+    assert_approx_vec_eq!(vec2!(0.0f64, 1.3f64).signum(), vec2!(1.0f64, 1.0f64));
+    assert_approx_vec_eq!(vec2!(10.8f64, f64::NAN).signum(), vec2!(1.0f64, f64::NAN));
+    assert_approx_vec_eq!(vec2!(-0.0f64, 0.0f64).signum(), vec2!(-1.0f64, 1.0f64));
+}
+
+#[test]
+fn test_vec2_abs() {
+    assert_approx_vec_eq!(vec2!(0.0f64, 1.3f64).abs(), vec2!(0.0f64, 1.3f64));
+    assert_approx_vec_eq!(vec2!(10.8f64, f64::NAN).abs(), vec2!(10.8f64, f64::NAN));
+    assert_approx_vec_eq!(vec2!(-0.0f64, 0.0f64).abs(), vec2!(0.0f64, 0.0f64));
+}
+
+#[test]
+fn test_vec2_positive_sign_mask() {
+    assert_eq!(
+        vec2!(0.0f64, 1.3f64).positive_sign_mask(),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(10.8f64, f64::NAN).positive_sign_mask(),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(-0.0f64, 0.0f64).positive_sign_mask(),
+        vec2!(false, true)
+    );
+}
+
+#[test]
+fn test_vec2_negative_sign_mask() {
+    assert_eq!(
+        vec2!(0.0f64, 1.3f64).negative_sign_mask(),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(10.8f64, f64::NAN).negative_sign_mask(),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(-0.0f64, 0.0f64).negative_sign_mask(),
+        vec2!(true, false)
+    );
+}
+
+#[test]
+fn test_vec2_nan_mask() {
+    assert_eq!(vec2!(0.0f64, 1.3f64).nan_mask(), vec2!(false, false));
+    assert_eq!(vec2!(10.8f64, f64::NAN).nan_mask(), vec2!(false, true));
+    assert_eq!(
+        vec2!(10.8f64, f64::INFINITY).nan_mask(),
+        vec2!(false, false)
+    );
+}
+
+#[test]
+fn test_vec2_finite_mask() {
+    assert_eq!(vec2!(0.0f64, 1.3f64).finite_mask(), vec2!(true, true));
+    assert_eq!(vec2!(10.8f64, f64::NAN).finite_mask(), vec2!(true, false));
+    assert_eq!(
+        vec2!(10.8f64, f64::INFINITY).finite_mask(),
+        vec2!(true, false)
+    );
+}
+
+#[test]
+fn test_vec2_is_nan() {
+    assert_eq!(vec2!(0.0f64, 1.3f64).is_nan(), false);
+    assert_eq!(vec2!(10.8f64, f64::NAN).is_nan(), true);
+    assert_eq!(vec2!(10.8f64, f64::INFINITY).is_nan(), false);
+}
+
+#[test]
+fn test_vec2_is_finite() {
+    assert_eq!(vec2!(0.0f64, 1.3f64).is_finite(), true);
+    assert_eq!(vec2!(10.8f64, f64::NAN).is_finite(), false);
+    assert_eq!(vec2!(10.8f64, f64::INFINITY).is_finite(), false);
+}
+
+#[test]
+fn test_vec2_normalize() {
+    assert_approx_vec_eq!(vec2!(0.0f64, 1.3f64).normalize(), vec2!(0.0f64, 1.0f64));
+    assert_approx_vec_eq!(
+        vec2!(10.8f64, f64::NAN).normalize(),
+        vec2!(f64::NAN, f64::NAN)
+    );
+    assert_approx_vec_eq!(Vec2::<f64>::ZERO.normalize(), vec2!(f64::NAN, f64::NAN));
+}
+
+#[test]
+fn test_vec2_checked_normalize() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).checked_normalize().unwrap(),
+        vec2!(0.0f64, 1.0f64)
+    );
+    assert_eq!(vec2!(10.8f64, f64::NAN).checked_normalize(), None);
+    assert_eq!(Vec2::<f64>::ZERO.checked_normalize(), None);
+}
+
+#[test]
+fn test_vec2_normalize_or() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).normalize_or(Vec2::<f64>::MAX),
+        vec2!(0.0f64, 1.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(10.8f64, f64::NAN).normalize_or(Vec2::<f64>::MAX),
+        Vec2::<f64>::MAX
+    );
+    assert_approx_vec_eq!(
+        Vec2::<f64>::ZERO.normalize_or(Vec2::<f64>::MAX),
+        Vec2::<f64>::MAX
+    );
+}
+
+#[test]
+fn test_vec2_normalize_or_zero() {
+    assert_approx_vec_eq!(
+        vec2!(0.0f64, 1.3f64).normalize_or_zero(),
+        vec2!(0.0f64, 1.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec2!(10.8f64, f64::NAN).normalize_or_zero(),
+        Vec2::<f64>::ZERO
+    );
+    assert_approx_vec_eq!(Vec2::<f64>::ZERO.normalize_or_zero(), Vec2::<f64>::ZERO);
+}
+
+#[test]
 fn test_vec3_constructor() {
     assert_eq!(
         vec3!(0.0f64, 1.0f64, 2.0f64),
@@ -924,6 +1131,249 @@ fn test_vec3_dot() {
         vec3!(0.0f64, 1.3f64, 2.6f64).dot(vec3!(16.2f64, 21.6f64, 27.0f64)),
         98.28f64
     );
+}
+
+#[test]
+fn test_vec3_div_euclid() {
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, 21.6f64, 27.0f64).div_euclid(vec3!(0.0f64, 1.3f64, 2.6f64)),
+        vec3!(f64::INFINITY, 16.0f64, 10.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).div_euclid(vec3!(16.2f64, f64::NAN, 27.0f64)),
+        vec3!(0.0f64, f64::NAN, 0.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).div_euclid(vec3!(-0.0f64, 0.0f64, 27.0f64)),
+        vec3!(f64::NAN, f64::INFINITY, 0.0f64)
+    );
+}
+
+#[test]
+fn test_vec3_rem_euclid() {
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, 21.6f64, 27.0f64).rem_euclid(vec3!(0.0f64, 1.3f64, 2.6f64)),
+        vec3!(f64::NAN, 0.8f64, 1.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).rem_euclid(vec3!(16.2f64, f64::NAN, 27.0f64)),
+        vec3!(0.0f64, f64::NAN, 2.6f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).rem_euclid(vec3!(-0.0f64, 0.0f64, 27.0f64)),
+        vec3!(f64::NAN, f64::NAN, 2.6f64)
+    );
+}
+
+#[test]
+fn test_vec3_min() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).min(vec3!(16.2f64, 21.6f64, 27.0f64)),
+        vec3!(0.0f64, 1.3f64, 2.6f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).min(vec3!(16.2f64, f64::NAN, 27.0f64)),
+        vec3!(0.0f64, 1.3f64, 2.6f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, 0.0f64, 27.0f64).min(vec3!(16.2f64, -0.0f64, 27.0f64)),
+        vec3!(16.2f64, 0.0f64, 27.0f64)
+    );
+}
+
+#[test]
+fn test_vec3_max() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).max(vec3!(16.2f64, 21.6f64, 27.0f64)),
+        vec3!(16.2f64, 21.6f64, 27.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).max(vec3!(16.2f64, f64::NAN, 27.0f64)),
+        vec3!(16.2f64, 1.3f64, 27.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, 0.0f64, 27.0f64).max(vec3!(16.2f64, -0.0f64, 27.0f64)),
+        vec3!(16.2f64, 0.0f64, 27.0f64)
+    );
+}
+
+#[test]
+fn test_vec3_min_element() {
+    assert_approx_eq!(vec3!(0.0f64, 1.3f64, 2.6f64).min_element(), 0.0f64);
+    assert_approx_eq!(vec3!(16.2f64, f64::NAN, 27.0f64).min_element(), 16.2f64);
+    assert_approx_eq!(vec3!(-0.0f64, 0.0f64, 27.0f64).min_element(), -0.0f64);
+}
+
+#[test]
+fn test_vec3_max_element() {
+    assert_approx_eq!(vec3!(0.0f64, 1.3f64, 2.6f64).max_element(), 2.6f64);
+    assert_approx_eq!(vec3!(16.2f64, f64::NAN, 27.0f64).max_element(), 27.0f64);
+    assert_approx_eq!(vec3!(-0.0f64, 0.0f64, 27.0f64).max_element(), 27.0f64);
+}
+
+#[test]
+fn test_vec3_signum() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).signum(),
+        vec3!(1.0f64, 1.0f64, 1.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).signum(),
+        vec3!(1.0f64, f64::NAN, 1.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(-0.0f64, 0.0f64, 27.0f64).signum(),
+        vec3!(-1.0f64, 1.0f64, 1.0f64)
+    );
+}
+
+#[test]
+fn test_vec3_abs() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).abs(),
+        vec3!(0.0f64, 1.3f64, 2.6f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).abs(),
+        vec3!(16.2f64, f64::NAN, 27.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(-0.0f64, 0.0f64, 27.0f64).abs(),
+        vec3!(0.0f64, 0.0f64, 27.0f64)
+    );
+}
+
+#[test]
+fn test_vec3_positive_sign_mask() {
+    assert_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).positive_sign_mask(),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).positive_sign_mask(),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(-0.0f64, 0.0f64, 27.0f64).positive_sign_mask(),
+        vec3!(false, true, true)
+    );
+}
+
+#[test]
+fn test_vec3_negative_sign_mask() {
+    assert_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).negative_sign_mask(),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).negative_sign_mask(),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(-0.0f64, 0.0f64, 27.0f64).negative_sign_mask(),
+        vec3!(true, false, false)
+    );
+}
+
+#[test]
+fn test_vec3_nan_mask() {
+    assert_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).nan_mask(),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).nan_mask(),
+        vec3!(false, true, false)
+    );
+    assert_eq!(
+        vec3!(16.2f64, f64::INFINITY, 27.0f64).nan_mask(),
+        vec3!(false, false, false)
+    );
+}
+
+#[test]
+fn test_vec3_finite_mask() {
+    assert_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).finite_mask(),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).finite_mask(),
+        vec3!(true, false, true)
+    );
+    assert_eq!(
+        vec3!(16.2f64, f64::INFINITY, 27.0f64).finite_mask(),
+        vec3!(true, false, true)
+    );
+}
+
+#[test]
+fn test_vec3_is_nan() {
+    assert_eq!(vec3!(0.0f64, 1.3f64, 2.6f64).is_nan(), false);
+    assert_eq!(vec3!(16.2f64, f64::NAN, 27.0f64).is_nan(), true);
+    assert_eq!(vec3!(16.2f64, f64::INFINITY, 27.0f64).is_nan(), false);
+}
+
+#[test]
+fn test_vec3_is_finite() {
+    assert_eq!(vec3!(0.0f64, 1.3f64, 2.6f64).is_finite(), true);
+    assert_eq!(vec3!(16.2f64, f64::NAN, 27.0f64).is_finite(), false);
+    assert_eq!(vec3!(16.2f64, f64::INFINITY, 27.0f64).is_finite(), false);
+}
+
+#[test]
+fn test_vec3_normalize() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).normalize(),
+        vec3!(0.0f64, 0.4472f64, 0.8944f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).normalize(),
+        vec3!(f64::NAN, f64::NAN, f64::NAN)
+    );
+    assert_approx_vec_eq!(
+        Vec3::<f64>::ZERO.normalize(),
+        vec3!(f64::NAN, f64::NAN, f64::NAN)
+    );
+}
+
+#[test]
+fn test_vec3_checked_normalize() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).checked_normalize().unwrap(),
+        vec3!(0.0f64, 0.4472f64, 0.8944f64)
+    );
+    assert_eq!(vec3!(16.2f64, f64::NAN, 27.0f64).checked_normalize(), None);
+    assert_eq!(Vec3::<f64>::ZERO.checked_normalize(), None);
+}
+
+#[test]
+fn test_vec3_normalize_or() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).normalize_or(Vec3::<f64>::MAX),
+        vec3!(0.0f64, 0.4472f64, 0.8944f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).normalize_or(Vec3::<f64>::MAX),
+        Vec3::<f64>::MAX
+    );
+    assert_approx_vec_eq!(
+        Vec3::<f64>::ZERO.normalize_or(Vec3::<f64>::MAX),
+        Vec3::<f64>::MAX
+    );
+}
+
+#[test]
+fn test_vec3_normalize_or_zero() {
+    assert_approx_vec_eq!(
+        vec3!(0.0f64, 1.3f64, 2.6f64).normalize_or_zero(),
+        vec3!(0.0f64, 0.4472f64, 0.8944f64)
+    );
+    assert_approx_vec_eq!(
+        vec3!(16.2f64, f64::NAN, 27.0f64).normalize_or_zero(),
+        Vec3::<f64>::ZERO
+    );
+    assert_approx_vec_eq!(Vec3::<f64>::ZERO.normalize_or_zero(), Vec3::<f64>::ZERO);
 }
 
 #[test]
@@ -1454,4 +1904,283 @@ fn test_vec4_dot() {
         vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).dot(vec4!(21.6f64, 27.0f64, 32.4f64, 37.8f64)),
         266.76f64
     );
+}
+
+#[test]
+fn test_vec4_div_euclid() {
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, 27.0f64, 32.4f64, 37.8f64).div_euclid(vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64)),
+        vec4!(f64::INFINITY, 20.0f64, 12.0f64, 9.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).div_euclid(vec4!(
+            21.6f64,
+            f64::NAN,
+            32.4f64,
+            37.8f64
+        )),
+        vec4!(0.0f64, f64::NAN, 0.0f64, 0.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).div_euclid(vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64)),
+        vec4!(f64::NAN, f64::INFINITY, 0.0f64, 0.0f64)
+    );
+}
+
+#[test]
+fn test_vec4_rem_euclid() {
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, 27.0f64, 32.4f64, 37.8f64).rem_euclid(vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64)),
+        vec4!(f64::NAN, 1.0f64, 1.2f64, 2.7f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).rem_euclid(vec4!(
+            21.6f64,
+            f64::NAN,
+            32.4f64,
+            37.8f64
+        )),
+        vec4!(0.0f64, f64::NAN, 2.6f64, 3.9f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).rem_euclid(vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64)),
+        vec4!(f64::NAN, f64::NAN, 2.6f64, 3.9f64)
+    );
+}
+
+#[test]
+fn test_vec4_min() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).min(vec4!(21.6f64, 27.0f64, 32.4f64, 37.8f64)),
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).min(vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64)),
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, 0.0f64, 32.4f64, 37.8f64).min(vec4!(21.6f64, -0.0f64, 32.4f64, 37.8f64)),
+        vec4!(21.6f64, 0.0f64, 32.4f64, 37.8f64)
+    );
+}
+
+#[test]
+fn test_vec4_max() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).max(vec4!(21.6f64, 27.0f64, 32.4f64, 37.8f64)),
+        vec4!(21.6f64, 27.0f64, 32.4f64, 37.8f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).max(vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64)),
+        vec4!(21.6f64, 1.3f64, 32.4f64, 37.8f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, 0.0f64, 32.4f64, 37.8f64).max(vec4!(21.6f64, -0.0f64, 32.4f64, 37.8f64)),
+        vec4!(21.6f64, 0.0f64, 32.4f64, 37.8f64)
+    );
+}
+
+#[test]
+fn test_vec4_min_element() {
+    assert_approx_eq!(vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).min_element(), 0.0f64);
+    assert_approx_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).min_element(),
+        21.6f64
+    );
+    assert_approx_eq!(
+        vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64).min_element(),
+        -0.0f64
+    );
+}
+
+#[test]
+fn test_vec4_max_element() {
+    assert_approx_eq!(vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).max_element(), 3.9f64);
+    assert_approx_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).max_element(),
+        37.8f64
+    );
+    assert_approx_eq!(
+        vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64).max_element(),
+        37.8f64
+    );
+}
+
+#[test]
+fn test_vec4_signum() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).signum(),
+        vec4!(1.0f64, 1.0f64, 1.0f64, 1.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).signum(),
+        vec4!(1.0f64, f64::NAN, 1.0f64, 1.0f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64).signum(),
+        vec4!(-1.0f64, 1.0f64, 1.0f64, 1.0f64)
+    );
+}
+
+#[test]
+fn test_vec4_abs() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).abs(),
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).abs(),
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64).abs(),
+        vec4!(0.0f64, 0.0f64, 32.4f64, 37.8f64)
+    );
+}
+
+#[test]
+fn test_vec4_positive_sign_mask() {
+    assert_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).positive_sign_mask(),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).positive_sign_mask(),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64).positive_sign_mask(),
+        vec4!(false, true, true, true)
+    );
+}
+
+#[test]
+fn test_vec4_negative_sign_mask() {
+    assert_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).negative_sign_mask(),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).negative_sign_mask(),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(-0.0f64, 0.0f64, 32.4f64, 37.8f64).negative_sign_mask(),
+        vec4!(true, false, false, false)
+    );
+}
+
+#[test]
+fn test_vec4_nan_mask() {
+    assert_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).nan_mask(),
+        vec4!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).nan_mask(),
+        vec4!(false, true, false, false)
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::INFINITY, 32.4f64, 37.8f64).nan_mask(),
+        vec4!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_vec4_finite_mask() {
+    assert_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).finite_mask(),
+        vec4!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).finite_mask(),
+        vec4!(true, false, true, true)
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::INFINITY, 32.4f64, 37.8f64).finite_mask(),
+        vec4!(true, false, true, true)
+    );
+}
+
+#[test]
+fn test_vec4_is_nan() {
+    assert_eq!(vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).is_nan(), false);
+    assert_eq!(vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).is_nan(), true);
+    assert_eq!(
+        vec4!(21.6f64, f64::INFINITY, 32.4f64, 37.8f64).is_nan(),
+        false
+    );
+}
+
+#[test]
+fn test_vec4_is_finite() {
+    assert_eq!(vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).is_finite(), true);
+    assert_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).is_finite(),
+        false
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::INFINITY, 32.4f64, 37.8f64).is_finite(),
+        false
+    );
+}
+
+#[test]
+fn test_vec4_normalize() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).normalize(),
+        vec4!(0.0f64, 0.2673f64, 0.5345f64, 0.8018f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).normalize(),
+        vec4!(f64::NAN, f64::NAN, f64::NAN, f64::NAN)
+    );
+    assert_approx_vec_eq!(
+        Vec4::<f64>::ZERO.normalize(),
+        vec4!(f64::NAN, f64::NAN, f64::NAN, f64::NAN)
+    );
+}
+
+#[test]
+fn test_vec4_checked_normalize() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64)
+            .checked_normalize()
+            .unwrap(),
+        vec4!(0.0f64, 0.2673f64, 0.5345f64, 0.8018f64)
+    );
+    assert_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).checked_normalize(),
+        None
+    );
+    assert_eq!(Vec4::<f64>::ZERO.checked_normalize(), None);
+}
+
+#[test]
+fn test_vec4_normalize_or() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).normalize_or(Vec4::<f64>::MAX),
+        vec4!(0.0f64, 0.2673f64, 0.5345f64, 0.8018f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).normalize_or(Vec4::<f64>::MAX),
+        Vec4::<f64>::MAX
+    );
+    assert_approx_vec_eq!(
+        Vec4::<f64>::ZERO.normalize_or(Vec4::<f64>::MAX),
+        Vec4::<f64>::MAX
+    );
+}
+
+#[test]
+fn test_vec4_normalize_or_zero() {
+    assert_approx_vec_eq!(
+        vec4!(0.0f64, 1.3f64, 2.6f64, 3.9f64).normalize_or_zero(),
+        vec4!(0.0f64, 0.2673f64, 0.5345f64, 0.8018f64)
+    );
+    assert_approx_vec_eq!(
+        vec4!(21.6f64, f64::NAN, 32.4f64, 37.8f64).normalize_or_zero(),
+        Vec4::<f64>::ZERO
+    );
+    assert_approx_vec_eq!(Vec4::<f64>::ZERO.normalize_or_zero(), Vec4::<f64>::ZERO);
 }

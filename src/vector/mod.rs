@@ -11,7 +11,7 @@ use core::{
     slice::SliceIndex,
 };
 
-use crate::{Construct, IndexOutOfBoundsError, Usize, specialize};
+use crate::{Construct, IndexOutOfBoundsError, Sealed, Usize, specialize};
 
 mod constructor;
 mod dir;
@@ -215,8 +215,7 @@ pub trait Simdness: Sealed + 'static {
         Usize<N>: VecLen;
 
     /// Whether or not the vector is SIMD.
-    /// This does not guarentee an actual SIMD layout,
-    /// it only means that the layout is optimized for performance, not for size.
+    /// Is `true` for `Simd` and `false` for `NonSimd`.
     const IS_SIMD: bool;
 }
 
@@ -275,20 +274,19 @@ impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    /// Returns true if the vector is `S = Simd`.
-    /// The output only depends on `S` and does not rely on runtime values.
+    /// Returns `true` for `Simd` vectors and `false` for `NonSimd` vectors.
     #[inline(always)]
     pub const fn is_simd(self) -> bool {
         S::IS_SIMD
     }
 
-    /// Converts the vector to a `S = Simd` vector.
+    /// Converts the vector to a `Simd` vector.
     #[inline(always)]
     pub fn as_simd(self) -> Vector<N, T, Simd> {
         self.as_storage()
     }
 
-    /// Converts the vector to a `S = NonSimd` vector.
+    /// Converts the vector to a `NonSimd` vector.
     #[inline(always)]
     pub fn as_non_simd(self) -> Vector<N, T, NonSimd> {
         self.as_storage()

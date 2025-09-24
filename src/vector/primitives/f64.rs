@@ -254,11 +254,9 @@ where
     }
 
     /// Returns a vector with the same direction as `self`, but with a magnitude of `1`.
+    /// If `self` is zero, `NaN` is returned.
     #[inline(always)]
     pub fn normalize(self) -> Self {
-        #[cfg(debug_assertions)]
-        assert!(self.mag_sq() > 0.0, "self must be non-zero");
-
         self / self.mag()
     }
 
