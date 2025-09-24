@@ -185,7 +185,7 @@ pub fn src_mod() -> SrcDir {
         }
 
         $("/// Marks a `Usize<N>` type as a valid vector length.")
-        pub trait VecLen {
+        pub trait VecLen: Sealed {
             $("/// The inner type contained inside `Vector<N, T, Simd>`.")
             type InnerSimdVector<T: Scalar>: Construct;
 
@@ -206,7 +206,7 @@ pub fn src_mod() -> SrcDir {
         }
 
         $("/// See [`Vector`] for information.")
-        pub trait Simdness: 'static {
+        pub trait Simdness: Sealed + 'static {
             $("/// The inner type contained inside [`Vector`].")
             type InnerVector<const N: usize, T: Scalar>: Construct
             where
@@ -234,6 +234,12 @@ pub fn src_mod() -> SrcDir {
             }
         )
 
+        $(
+            for &n in LENGTHS join($['\n'])=>
+
+            impl Sealed for Usize<$n> {}
+        )
+
         impl Simdness for Simd {
             type InnerVector<const N: usize, T: Scalar>
                 = <Usize<N> as VecLen>::InnerSimdVector<T>
@@ -242,15 +248,18 @@ pub fn src_mod() -> SrcDir {
 
             const IS_SIMD: bool = true;
         }
-
+        
         impl Simdness for NonSimd {
             type InnerVector<const N: usize, T: Scalar>
-                = [T; N]
+            = [T; N]
             where
-                Usize<N>: VecLen;
-                
+            Usize<N>: VecLen;
+            
             const IS_SIMD: bool = false;
         }
+        
+        impl Sealed for Simd {}
+        impl Sealed for NonSimd {}
 
         impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
         where

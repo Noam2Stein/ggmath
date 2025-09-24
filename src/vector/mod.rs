@@ -188,7 +188,7 @@ macro_rules! vector_aliases {
 }
 
 /// Marks a `Usize<N>` type as a valid vector length.
-pub trait VecLen {
+pub trait VecLen: Sealed {
     /// The inner type contained inside `Vector<N, T, Simd>`.
     type InnerSimdVector<T: Scalar>: Construct;
 
@@ -208,7 +208,7 @@ pub enum VecLenEnum {
 }
 
 /// See [`Vector`] for information.
-pub trait Simdness: 'static {
+pub trait Simdness: Sealed + 'static {
     /// The inner type contained inside [`Vector`].
     type InnerVector<const N: usize, T: Scalar>: Construct
     where
@@ -244,6 +244,12 @@ impl VecLen for Usize<4> {
     const ENUM: VecLenEnum = VecLenEnum::Four;
 }
 
+impl Sealed for Usize<2> {}
+
+impl Sealed for Usize<3> {}
+
+impl Sealed for Usize<4> {}
+
 impl Simdness for Simd {
     type InnerVector<const N: usize, T: Scalar>
         = <Usize<N> as VecLen>::InnerSimdVector<T>
@@ -261,6 +267,9 @@ impl Simdness for NonSimd {
 
     const IS_SIMD: bool = false;
 }
+
+impl Sealed for Simd {}
+impl Sealed for NonSimd {}
 
 impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
 where

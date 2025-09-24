@@ -178,6 +178,12 @@ fn main() {
                 None
             }
         }
+
+        use sealed::Sealed;
+
+        mod sealed {
+            pub trait Sealed {}
+        }
     }
     .to_src_dir("")
     .with_submod_dir(vector::src_mod())
