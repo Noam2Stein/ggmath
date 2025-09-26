@@ -1,26 +1,21 @@
-use std::collections::HashMap;
-
 use genco::{lang::rust::Tokens, quote};
 
-use crate::constants::{COMPONENTS, LENGTHS};
+use crate::{
+    constants::{COMPONENTS, LENGTHS},
+    vector::primitives::{PrimitiveSint, PrimitiveSrcMod, PrimitiveUint},
+};
 
-pub fn push_src(
-    primitive: &str,
-    use_crate_items: &mut Vec<Tokens>,
-    functions: &mut Vec<Tokens>,
-    _len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    _std_functions: &mut Vec<Tokens>,
-    _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    trait_impls: &mut Vec<Tokens>,
-) {
-    let unsigned_primitive = &"u"
-        .chars()
-        .chain(primitive.chars().skip(1))
-        .collect::<String>();
+pub fn push_src(primitive: PrimitiveSint, output: &mut PrimitiveSrcMod) {
+    let unsigned_primitive = match primitive {
+        PrimitiveSint::I8 => PrimitiveUint::U8,
+        PrimitiveSint::I16 => PrimitiveUint::U16,
+        PrimitiveSint::I32 => PrimitiveUint::U32,
+        PrimitiveSint::I64 => PrimitiveUint::U64,
+        PrimitiveSint::I128 => PrimitiveUint::U128,
+        PrimitiveSint::Isize => PrimitiveUint::Usize,
+    };
 
-    use_crate_items.push(quote! { ScalarNegOne });
-
-    functions.push(quote! {
+    output.impl_items.push(quote! {
         $("// The following code is generated for all signed int primitives")
 
         $("/// Returns `-self` with saturating arithmetic.")
@@ -58,7 +53,7 @@ pub fn push_src(
         }
     });
 
-    trait_impls.push(quote! {
+    output.trait_impls.push(quote! {
         impl ScalarNegOne for $primitive {
             const NEG_ONE: Self = -1;
 

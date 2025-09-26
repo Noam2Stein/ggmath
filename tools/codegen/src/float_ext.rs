@@ -1,8 +1,8 @@
 use genco::quote;
 
 use crate::{
-    constants::FLOAT_PRIMITIVES,
     module::{SrcFile, TokensExt},
+    primitives::PrimitiveFloat,
 };
 
 pub fn src_mod() -> SrcFile {
@@ -60,7 +60,7 @@ pub fn src_mod() -> SrcFile {
         }
 
         $(
-            for &primitive in FLOAT_PRIMITIVES =>
+            for primitive in PrimitiveFloat::iter() =>
 
             impl FloatExt for $primitive {
                 #[inline(always)]

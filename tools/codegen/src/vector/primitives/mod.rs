@@ -1,196 +1,133 @@
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
-use genco::quote;
+use genco::{lang::{rust::Tokens}, quote};
 
 use crate::{
-    constants::{
-        FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, NUM_PRIMITIVES, PRIMARY_PRIMITIVES, PRIMITIVES,
-        SINT_PRIMITIVES, UINT_PRIMITIVES,
-    },
-    module::*,
+    constants::LENGTHS,
+    module::{SrcDir, TestFile, TokensExt}, primitives::{Primitive, PrimitiveInt},
 };
 
 mod bool_;
 mod float;
 mod int;
-mod num;
 mod option;
 mod primitive;
 mod sint;
 mod uint;
 
 pub fn src_mod() -> SrcDir {
-    let primitive_mods = PRIMITIVES
-        .iter()
-        .map(|&primitive| primitive_src_mod(primitive))
-        .collect::<Vec<_>>();
-
     quote! {
-        $(for &primitive in PRIMITIVES join($['\r']) => mod $primitive;)
+        $(for primitive in Primitive::iter() join($['\r']) => mod $primitive;)
         mod option;
     }
     .to_src_dir("primitives")
-    .with_submod_files(primitive_mods)
+    .with_submod_dirs(Primitive::iter().map(primitive_src_mod))
     .with_submod_file(option::src_mod())
 }
 
 pub fn test_mods() -> impl Iterator<Item = TestFile> {
-    PRIMITIVES
-        .iter()
-        .map(|&primitive| primitive_test_mod(primitive))
+    Primitive::iter()
+        .map(primitive_test_mod)
 }
 
-fn primitive_src_mod(primitive: &str) -> SrcFile {
-    let mut use_crate_items = Vec::new();
-    let mut functions = Vec::new();
-    let mut len_functions = HashMap::new();
-    let mut std_functions = Vec::new();
-    let mut std_len_functions = HashMap::new();
-    let mut trait_impls = Vec::new();
+#[expect(dead_code)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum SimdBackend {
+    X86,
+    Arm,
+    Wasm,
+    Scalar,
+}
 
-    primitive::push_src(
-        primitive,
-        &mut use_crate_items,
-        &mut functions,
-        &mut len_functions,
-        &mut std_functions,
-        &mut std_len_functions,
-        &mut trait_impls,
-    );
+#[derive(Default)]
+struct PrimitiveSrcMod {
+    impl_items: Vec<Tokens>,
+    std_impl_items: Vec<Tokens>,
+    len_impl_items: HashMap<usize, Vec<Tokens>>,
+    std_len_impl_items: HashMap<usize, Vec<Tokens>>,
+    trait_impls: Vec<Tokens>,
+}
 
-    if NUM_PRIMITIVES.contains(&primitive) {
-        num::push_src(
-            primitive,
-            &mut use_crate_items,
-            &mut functions,
-            &mut len_functions,
-            &mut std_functions,
-            &mut std_len_functions,
-            &mut trait_impls,
-        );
-    }
+fn primitive_src_mod(primitive: Primitive) -> SrcDir {
+    let mut output = PrimitiveSrcMod::default();
 
-    if INT_PRIMITIVES.contains(&primitive) {
-        int::push_src(
-            primitive,
-            &mut use_crate_items,
-            &mut functions,
-            &mut len_functions,
-            &mut std_functions,
-            &mut std_len_functions,
-            &mut trait_impls,
-        );
-    }
+    primitive::push_src(primitive, &mut output);
 
-    if FLOAT_PRIMITIVES.contains(&primitive) {
-        float::push_src(
-            primitive,
-            &mut use_crate_items,
-            &mut functions,
-            &mut len_functions,
-            &mut std_functions,
-            &mut std_len_functions,
-            &mut trait_impls,
-        );
-    }
-
-    if SINT_PRIMITIVES.contains(&primitive) {
-        sint::push_src(
-            primitive,
-            &mut use_crate_items,
-            &mut functions,
-            &mut len_functions,
-            &mut std_functions,
-            &mut std_len_functions,
-            &mut trait_impls,
-        );
-    }
-
-    if UINT_PRIMITIVES.contains(&primitive) {
-        uint::push_src(
-            primitive,
-            &mut use_crate_items,
-            &mut functions,
-            &mut len_functions,
-            &mut std_functions,
-            &mut std_len_functions,
-            &mut trait_impls,
-        );
-    }
-
-    if primitive == "bool" {
-        bool_::push_src(
-            primitive,
-            &mut use_crate_items,
-            &mut functions,
-            &mut len_functions,
-            &mut std_functions,
-            &mut std_len_functions,
-            &mut trait_impls,
-        );
+    match primitive {
+        Primitive::Float(primitive) => {
+            float::push_src(primitive, &mut output);
+        }
+        Primitive::Int(primitive) => {
+            int::push_src(primitive, &mut output);
+            
+            match primitive {
+                PrimitiveInt::Sint(primitive) => {
+                    sint::push_src(primitive, &mut output);
+                }
+                PrimitiveInt::Uint(primitive) => {
+                    uint::push_src(primitive, &mut output);
+                }
+            }
+        }
+        Primitive::Bool => {
+            bool_::push_src(&mut output);
+        }
     }
 
     quote! {
-        use crate::{$(for item in use_crate_items join(, ) => $item)};
+        use crate::{Vector, Simdness, Simd, NonSimd, Usize, VecLen, Scalar, $(for &n in LENGTHS join(, ) => Vec$(n))};
 
         $(
-            if !functions.is_empty() =>
+            if !output.impl_items.is_empty() =>
 
             impl<const N: usize, S: Simdness> Vector<N, $primitive, S>
             where
                 Usize<N>: VecLen,
             {
-                $(for function in functions join($['\n']) => $function)
+                $(for impl_item in output.impl_items join($['\n']) => $impl_item)
             }
         )
 
         $(
-            for (n, n_functions) in LENGTHS.iter().filter_map(|&n| len_functions.get(&n).map(|functions| (n, functions)))
+            for (n, impl_items) in LENGTHS.iter().filter_map(|&n| output.len_impl_items.get(&n).map(|impl_items| (n, impl_items)))
                 join($['\n']) =>
 
             impl<S: Simdness> Vector<$n, $primitive, S> {
-                $(for function in n_functions join($['\n']) => $function)
+                $(for impl_item in impl_items join($['\n']) => $impl_item)
             }
         )
 
         $(
-            if !std_functions.is_empty() =>
+            if !output.std_impl_items.is_empty() =>
 
             #[cfg(feature = "std")]
             impl<const N: usize, S: Simdness> Vector<N, $primitive, S>
             where
                 Usize<N>: VecLen,
             {
-                $(for function in std_functions join($['\n']) => $function)
+                $(for impl_item in output.std_impl_items join($['\n']) => $impl_item)
             }
         )
 
         $(
-            for (n, n_functions) in LENGTHS.iter().filter_map(|&n| std_len_functions.get(&n).map(|functions| (n, functions)))
+            for (n, impl_items) in LENGTHS.iter().filter_map(|&n| output.std_len_impl_items.get(&n).map(|impl_items| (n, impl_items)))
                 join($['\n']) =>
 
             #[cfg(feature = "std")]
             impl<S: Simdness> Vector<$n, $primitive, S> {
-                $(for function in n_functions join($['\n']) => $function)
+                $(for impl_item in impl_items join($['\n']) => $impl_item)
             }
         )
 
-        $(for trait_impl in trait_impls join($['\n']) => $trait_impl)
+        $(for trait_impl in output.trait_impls join($['\n']) => $trait_impl)
     }
-    .to_src_file(primitive)
+    .to_src_dir(primitive.to_string())
 }
 
-fn primitive_test_mod(primitive: &str) -> TestFile {
-    let primitive_is_num = NUM_PRIMITIVES.contains(&primitive);
-    let primitive_is_int = INT_PRIMITIVES.contains(&primitive);
-    let primitive_is_float = FLOAT_PRIMITIVES.contains(&primitive);
-    let primitive_is_sint = SINT_PRIMITIVES.contains(&primitive);
-    let primitive_is_uint = UINT_PRIMITIVES.contains(&primitive);
-    let primitive_is_bool = primitive == "bool";
-
+fn primitive_test_mod(primitive: Primitive) -> TestFile {
     quote! {
         $(
-            if PRIMARY_PRIMITIVES.contains(&primitive) =>
+            if primitive.is_float() =>
 
             use core::mem::size_of;
         )
@@ -198,7 +135,7 @@ fn primitive_test_mod(primitive: &str) -> TestFile {
         use ggmath::*;
 
         $(
-            if FLOAT_PRIMITIVES.contains(&primitive) =>
+            if primitive.is_float() =>
 
             fn approx_eq(a: $primitive, b: $primitive) -> bool {
                 if a.is_nan() && b.is_nan() {
@@ -247,7 +184,7 @@ fn primitive_test_mod(primitive: &str) -> TestFile {
                 for is_simd in [true, false] join($['\r']) =>
 
                 $(
-                    if is_simd || PRIMARY_PRIMITIVES.contains(&primitive) =>
+                    if is_simd || primitive.is_primary() =>
 
                     $(let tests = {
                         let mut tests = Vec::new();
@@ -282,3 +219,4 @@ fn primitive_test_mod(primitive: &str) -> TestFile {
     }
     .to_test_file(primitive)
 }
+

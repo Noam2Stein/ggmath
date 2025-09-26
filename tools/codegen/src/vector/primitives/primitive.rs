@@ -1,26 +1,15 @@
-use std::collections::HashMap;
-
 use genco::{
     lang::rust::{import, Tokens},
     quote, tokens::quoted,
 };
 
-use crate::constants::{FLOAT_PRIMITIVES, INT_PRIMITIVES, LENGTHS, NUM_PRIMITIVES};
+use crate::{constants::LENGTHS, primitives::{Primitive, PrimitiveFloat, PrimitiveInt}, vector::primitives::PrimitiveSrcMod};
 
 pub fn push_src(
-    primitive: &str,
-    use_crate_items: &mut Vec<Tokens>,
-    functions: &mut Vec<Tokens>,
-    _len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    _std_functions: &mut Vec<Tokens>,
-    _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    trait_impls: &mut Vec<Tokens>,
+    primitive: Primitive,
+    output: &mut PrimitiveSrcMod,
 ) {
-    use_crate_items
-        .push(quote! { Vector, Simdness, Simd, NonSimd, Usize, VecLen, Scalar });
-    use_crate_items.push(quote! { $(for &n in LENGTHS join(, ) => Vec$(n)) });
-
-    functions.push(quote! {
+    output.impl_items.push(quote! {
         $("// The following code is generated for all primitives")
 
         $(let transmute_copy = &import("core::mem", "transmute_copy"))
@@ -68,7 +57,7 @@ pub fn push_src(
         }
     });
 
-    trait_impls.push(quote! {
+    output.trait_impls.push(quote! {
         impl Scalar for $primitive {
             $(for &n in LENGTHS join($['\r']) => type InnerSimdVec$(n) = [$primitive; $n];)
 
@@ -89,7 +78,7 @@ pub fn push_src(
     });
 }
 
-pub fn push_tests(n: usize, primitive: &str, is_simd: bool, tests: &mut Vec<Tokens>) {
+pub fn push_tests(n: usize, primitive: Primitive, is_simd: bool, tests: &mut Vec<Tokens>) {
     let s_postfix_lowercase = if is_simd { "" } else { "s" };
     let s_postfix_camelcase = if is_simd { "" } else { "S" };
 
@@ -97,10 +86,9 @@ pub fn push_tests(n: usize, primitive: &str, is_simd: bool, tests: &mut Vec<Toke
     let vec_camelcase = &format!("Vec{n}{s_postfix_camelcase}");
 
     let values = match primitive {
-        _ if FLOAT_PRIMITIVES.contains(&primitive) => (0..n).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
-        _ if INT_PRIMITIVES.contains(&primitive) => (0..n).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
-        "bool" => ["false".to_string(), "true".to_string()].into_iter().cycle().take(n).collect::<Vec<String>>(),
-        _ => (0..n).map(|_| "compile_error!(\"unhandled primitive\")".to_string()).collect::<Vec<String>>(),
+        Primitive::Float(primitive) => (0..n).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
+        Primitive::Int(primitive) => (0..n).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
+        Primitive::Bool => ["false".to_string(), "true".to_string()].into_iter().cycle().take(n).collect::<Vec<String>>(),
     };
     let values_str = &values.join(", ");
 

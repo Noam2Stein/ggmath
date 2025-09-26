@@ -1,19 +1,9 @@
-use std::collections::HashMap;
-
 use genco::{lang::rust::Tokens, quote};
 
-use crate::constants::INT_PRIMITIVES;
+use crate::{primitives::PrimitiveInt, vector::primitives::PrimitiveSrcMod};
 
-pub fn push_src(
-    _primitive: &str,
-    _use_crate_items: &mut Vec<Tokens>,
-    functions: &mut Vec<Tokens>,
-    _len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    _std_functions: &mut Vec<Tokens>,
-    _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    _trait_impls: &mut Vec<Tokens>,
-) {
-    functions.push(quote! {
+pub fn push_src(output: &mut PrimitiveSrcMod) {
+    output.impl_items.push(quote! {
         $("// The following code is generated for `bool`")
 
         $("/// All `true`.")
@@ -64,7 +54,7 @@ pub fn push_src(
         }
 
         $(
-            for &primitive2 in INT_PRIMITIVES join($['\n']) =>
+            for primitive2 in PrimitiveInt::iter() join($['\n']) =>
 
             $(format!("/// Converts `self` to a vector of `{primitive2}` elements."))
             #[inline(always)]

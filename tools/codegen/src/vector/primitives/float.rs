@@ -1,23 +1,15 @@
-use std::collections::HashMap;
-
 use genco::{lang::rust::Tokens, quote};
 
-use crate::{constants::{COMPONENTS, LENGTHS}};
+use crate::{constants::{COMPONENTS, LENGTHS}, primitives::{PrimitiveFloat, PrimitiveInt}, vector::primitives::PrimitiveSrcMod};
 
-pub fn push_src(
-    primitive: &str,
-    use_crate_items: &mut Vec<Tokens>,
-    functions: &mut Vec<Tokens>,
-    _len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    std_functions: &mut Vec<Tokens>,
-    std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    trait_impls: &mut Vec<Tokens>,
-) {
-    use_crate_items.push(quote! { ScalarNegOne });
-
-    functions.push(quote! {
+pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
+    output.impl_items.push(quote! {
         $("// The following code is generated for all float primitives")
 
+        $("/// A vector of all minimum values.")
+        pub const MIN: Self = Self::const_splat($primitive::MIN);
+        $("/// A vector of all maximum values.")
+        pub const MAX: Self = Self::const_splat($primitive::MAX);
         $("/// A vector with all elements set to `NaN`.")
         pub const NAN: Self = Self::const_splat($primitive::NAN);
         $("/// A vector with all elements set to `Infinity`.")
@@ -26,6 +18,26 @@ pub fn push_src(
         pub const NEG_INFINITY: Self = Self::const_splat($primitive::NEG_INFINITY);
         $("/// A vector with all elements set to `Epsilon`.")
         pub const EPSILON: Self = Self::const_splat($primitive::EPSILON);
+
+        $(
+            for primitive2 in PrimitiveFloat::iter().filter(|&primitive2| primitive2 != primitive) join($['\n']) =>
+
+            $(format!("/// Converts `self` to a vector of `{primitive2}` elements."))
+            #[inline(always)]
+            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, S> {
+                self.map(|x| x as $primitive2)
+            }
+        )
+
+        $(
+            for primitive2 in PrimitiveInt::iter() join($['\n']) =>
+
+            $(format!("/// Converts `self` to a vector of `{primitive2}` elements."))
+            #[inline(always)]
+            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, S> {
+                self.map(|x| x as $primitive2)
+            }
+        )
 
         $("/// Returns a vector of the Euclidean division of each element by `other`.")
         #[inline(always)]
@@ -300,7 +312,7 @@ pub fn push_src(
         }
     });
 
-    std_functions.push(quote! {
+    output.std_impl_items.push(quote! {
         $("// The following code is generated for all float primitives")
 
         $("/// Returns a vector containing the square root of each element of `self`.")
@@ -430,7 +442,7 @@ pub fn push_src(
         }
     });
 
-    std_len_functions.entry(2).or_default().push(quote! {
+    output.std_len_impl_items.entry(2).or_default().push(quote! {
         // The following code is generated for all float primitives
 
         $("/// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.")
@@ -440,7 +452,7 @@ pub fn push_src(
         }
     });
 
-    trait_impls.push(quote! {
+    output.trait_impls.push(quote! {
         impl ScalarZero for $primitive {
             const ZERO: Self = 0.0;
 

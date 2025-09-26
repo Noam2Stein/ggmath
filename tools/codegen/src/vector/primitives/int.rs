@@ -1,20 +1,39 @@
-use std::collections::HashMap;
-
 use genco::{lang::rust::Tokens, quote};
 
-use crate::constants::{COMPONENTS, LENGTHS};
+use crate::{
+    constants::{COMPONENTS, LENGTHS},
+    primitives::PrimitiveFloat,
+    vector::primitives::{PrimitiveInt, PrimitiveSrcMod},
+};
 
-pub fn push_src(
-    primitive: &str,
-    _use_crate_items: &mut Vec<Tokens>,
-    functions: &mut Vec<Tokens>,
-    _len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    _std_functions: &mut Vec<Tokens>,
-    _std_len_functions: &mut HashMap<usize, Vec<Tokens>>,
-    trait_impls: &mut Vec<Tokens>,
-) {
-    functions.push(quote! {
+pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
+    output.impl_items.push(quote! {
         $("// The following code is generated for all int primitives")
+
+        $("/// A vector of all minimum values.")
+        pub const MIN: Self = Self::const_splat($primitive::MIN);
+        $("/// A vector of all maximum values.")
+        pub const MAX: Self = Self::const_splat($primitive::MAX);
+
+        $(
+            for primitive2 in PrimitiveFloat::iter() join($['\n']) =>
+
+            $(format!("/// Converts `self` to a vector of `{primitive2}` elements."))
+            #[inline(always)]
+            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, S> {
+                self.map(|x| x as $primitive2)
+            }
+        )
+
+        $(
+            for primitive2 in PrimitiveInt::iter().filter(|&primitive2| primitive2 != primitive) join($['\n']) =>
+
+            $(format!("/// Converts `self` to a vector of `{primitive2}` elements."))
+            #[inline(always)]
+            pub fn as_$(primitive2)(self) -> Vector<N, $primitive2, S> {
+                self.map(|x| x as $primitive2)
+            }
+        )
 
         $("/// Returns `-self` or `None` if there is an overflow.")
         #[inline(always)]
@@ -143,7 +162,7 @@ pub fn push_src(
         }
     });
 
-    trait_impls.push(quote! {
+    output.trait_impls.push(quote! {
         impl ScalarZero for $primitive {
             const ZERO: Self = 0;
 
