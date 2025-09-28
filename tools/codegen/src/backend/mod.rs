@@ -61,7 +61,6 @@ impl TokensExt for Tokens {
 }
 
 impl SrcDir {
-    #[expect(dead_code)]
     pub fn with_submod_file(mut self, submod_file: SrcFile) -> Self {
         self.0.submod_files.push(submod_file.0);
         self
@@ -75,13 +74,11 @@ impl SrcDir {
         self
     }
 
-    #[expect(dead_code)]
     pub fn with_submod_dir(mut self, submod_dir: SrcDir) -> Self {
         self.0.submod_dirs.push(submod_dir.0);
         self
     }
 
-    #[expect(dead_code)]
     pub fn with_submod_dirs(mut self, submod_dirs: impl IntoIterator<Item = SrcDir>) -> Self {
         self.0
             .submod_dirs
@@ -104,7 +101,6 @@ impl TestDir {
         self
     }
 
-    #[expect(dead_code)]
     pub fn with_submod_files(mut self, submod_files: impl IntoIterator<Item = TestFile>) -> Self {
         self.0
             .submod_files
@@ -112,7 +108,6 @@ impl TestDir {
         self
     }
 
-    #[expect(dead_code)]
     pub fn with_submod_dir(mut self, submod_dir: TestDir) -> Self {
         self.0.submod_dirs.push(submod_dir.0);
         self

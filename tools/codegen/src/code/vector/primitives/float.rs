@@ -1,7 +1,7 @@
 use genco::{ quote};
 use strum::IntoEnumIterator;
 
-use crate::{code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod}, iter::{Length, PrimitiveFloat, PrimitiveInt, Simdness}};
+use crate::{code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod}, iter::{Axis, Length, PrimitiveFloat, PrimitiveInt, Simdness}};
 
 
 
@@ -445,7 +445,7 @@ pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
         }
     });
 
-    output.std_len_impl_items.entry(Length::Two).or_default().push(quote! {
+    output.std_len_impl_items.entry(Length::N2).or_default().push(quote! {
         // The following code is generated for all float primitives
 
         $("/// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.")
@@ -477,10 +477,10 @@ pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
 
             $(
                 for n in Length::iter() join($['\n']) => $(
-                    for axis in n.axes() join($['\r']) =>
+                    for i in 0..n.as_usize() join($['\r']) =>
 
-                    const VEC$(n)_$(axis.uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for axis2 in n.axes() join(, ) => $(if axis2 == axis { 1.0 } else { 0.0 })
+                    const VEC$(n)_$(Axis(i).uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
+                        for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { 1.0 } else { 0.0 })
                     )]);
                 )
             )
@@ -497,10 +497,10 @@ pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
 
             $(
                 for n in Length::iter() join($['\n']) => $(
-                    for axis in n.axes() join($['\r']) =>
+                    for i in 0..n.as_usize() join($['\r']) =>
 
-                    const VEC$(n)_NEG_$(axis.uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for axis2 in n.axes() join(, ) => $(if axis2 == axis { -1.0 } else { 0.0 })
+                    const VEC$(n)_NEG_$(Axis(i).uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
+                        for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { -1.0 } else { 0.0 })
                     )]);
                 )
             )
@@ -613,7 +613,7 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
         }
 
         $(
-            if n == Length::Four && s == Simdness::NonSimd =>
+            if n == Length::N4 && s == Simdness::NonSimd =>
 
             #[test]
             fn test_$(vec_lowercase)_add_assign() {
@@ -701,7 +701,7 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
         }
 
         $(
-            if n == Length::Two =>
+            if n == Length::N2 =>
 
             #[test]
             fn test_$(vec_lowercase)_perp() {

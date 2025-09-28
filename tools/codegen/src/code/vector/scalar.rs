@@ -1,7 +1,7 @@
 use genco::quote;
 use strum::IntoEnumIterator;
 
-use crate::{backend::{SrcFile, TokensExt}, iter::{BinOp, CmpOp, Length, UnOp}};
+use crate::{backend::{SrcFile, TokensExt}, iter::{Axis, BinOp, CmpOp, Length, UnOp}};
 
 pub fn srcmod() -> SrcFile {
     quote! {
@@ -97,8 +97,8 @@ pub fn srcmod() -> SrcFile {
 
                     $(format!("/// Overridable implementation of `Vector::shuffle_{n2}` for simd vec{n}s."))
                     #[inline(always)]
-                    fn vec$(n)_shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
-                        Vec$(n2)::from_array([$(for axis in n2.axes() join(, ) => vec.index($(axis.uppercase_str())_SRC))])
+                    fn vec$(n)_shuffle_$(n2)<$(for i in 0..n2.as_usize() join(, ) => const $(Axis(i).uppercase_str())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
+                        Vec$(n2)::from_array([$(for i in 0..n2.as_usize() join(, ) => vec.index($(Axis(i).uppercase_str())_SRC))])
                     }
                 )
 
@@ -107,12 +107,12 @@ pub fn srcmod() -> SrcFile {
 
                     $(format!("/// Overridable implementation of `Vector::with_{n2}` for simd vec{n}s."))
                     #[inline(always)]
-                    fn vec$(n)_with_shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
+                    fn vec$(n)_with_shuffle_$(n2)<$(for i in 0..n2.as_usize() join(, ) => const $(Axis(i).uppercase_str())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
                         let mut output = vec;
                         $(
-                            for axis in n2.axes() =>
+                            for i in 0..n2.as_usize() =>
 
-                            output.set($(axis.uppercase_str())_DST, value.index($(axis.as_usize())));
+                            output.set($(Axis(i).uppercase_str())_DST, value.index($i));
                             $['\r']
                         )
 

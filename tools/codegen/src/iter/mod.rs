@@ -1,10 +1,12 @@
-mod axes;
-mod lengths;
+mod axis;
+mod direction;
+mod length;
 mod operators;
 mod primitives;
 mod simdness;
-pub use axes::*;
-pub use lengths::*;
+pub use axis::*;
+pub use direction::*;
+pub use length::*;
 pub use operators::*;
 pub use primitives::*;
 pub use simdness::*;

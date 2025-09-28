@@ -3,7 +3,7 @@ use strum::IntoEnumIterator;
 
 use crate::{
     code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod},
-    iter::{Length, PrimitiveFloat, PrimitiveInt},
+    iter::{Axis, Length, PrimitiveFloat, PrimitiveInt},
 };
 
 pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
@@ -184,10 +184,10 @@ pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
 
             $(
                 for n in Length::iter() join($['\n']) => $(
-                    for axis in n.axes() join($['\r']) =>
+                    for i in 0..n.as_usize() join($['\r']) =>
 
-                    const VEC$(n)_$(axis.uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for axis2 in n.axes() join(, ) => $(if axis2 == axis { 1 } else { 0 })
+                    const VEC$(n)_$(Axis(i).uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
+                        for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { 1 } else { 0 })
                     )]);
                 )
             )

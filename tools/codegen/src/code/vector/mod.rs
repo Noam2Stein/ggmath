@@ -1,7 +1,7 @@
 use genco::quote;
 use strum::IntoEnumIterator;
 
-use crate::{backend::{SrcDir, TestDir, TokensExt}, code::join_or, iter::{CmpOp, Length, Primitive}};
+use crate::{backend::{SrcDir, TestDir, TokensExt}, code::join_or, iter::{Axis, CmpOp, Length, Primitive}};
 
 mod constructor;
 mod dir;
@@ -461,15 +461,15 @@ pub fn srcmod() -> SrcDir {
 
                 $(format!("/// Returns a vec{n2} where:"))
                 $(
-                    for axis in n2.axes() =>
+                    for i in 0..n2.as_usize() =>
 
-                    $(format!("/// - The `{}` ({}) component is `self[{}_SRC]`", axis.lowercase_str(), axis.ordinal_str(), axis.uppercase_str()))
+                    $(format!("/// - The `{}` ({}) component is `self[{}_SRC]`", Axis(i).lowercase_str(), Axis(i).ordinal_str(), Axis(i).uppercase_str()))
                     $['\r']
                 )
                 $("///")
                 $("/// Out of bounds indices are compile time errors.")
                 #[inline(always)]
-                pub fn shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_SRC: usize)>(self) -> Vector<$n2, T, S> {
+                pub fn shuffle_$(n2)<$(for i in 0..n2.as_usize() join(, ) => const $(Axis(i).uppercase_str())_SRC: usize)>(self) -> Vector<$n2, T, S> {
                     specialize! {
                         (self: Vector<N, T, S>) -> Vector<$n2, T, S>:
 
@@ -477,11 +477,11 @@ pub fn srcmod() -> SrcDir {
                             for n in Length::iter() join($['\r']) =>
 
                             for (Vector<$n, T, Simd>) -> Vector<$n2, T, Simd> {
-                                |vec| T::vec$(n)_shuffle_$(n2)::<$(for axis in n2.axes() join(, ) => $(axis.uppercase_str())_SRC)>(vec)
+                                |vec| T::vec$(n)_shuffle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_SRC)>(vec)
                             }
                         )
                         else {
-                            Vector::<$n2, T, S>::from_array([$(for axis in n2.axes() join(, ) => self.index($(axis.uppercase_str())_SRC))])
+                            Vector::<$n2, T, S>::from_array([$(for i in 0..n2.as_usize() join(, ) => self.index($(Axis(i).uppercase_str())_SRC))])
                         }
                     }
                 }
@@ -697,7 +697,7 @@ pub fn srcmod() -> SrcDir {
 
             impl<T: Scalar, S: Simdness> Vector<$n, T, S> {
                 $(
-                    if n == Length::Two =>
+                    if n == Length::N2 =>
 
                     $(format!("/// Returns `self` rotated 90 degrees counter-clockwise."))
                     #[inline(always)]
@@ -728,7 +728,7 @@ pub fn srcmod() -> SrcDir {
                 )
 
                 $(
-                    if n == Length::Three =>
+                    if n == Length::N3 =>
 
                     $(format!("/// Returns the cross product of `self` and `other`."))
                     #[inline(always)]
@@ -741,34 +741,34 @@ pub fn srcmod() -> SrcDir {
                 )
 
                 $(
-                    for axis in n.axes() join($['\n']) =>
+                    for i in 0..n.as_usize() join($['\n']) =>
 
-                    $(format!("/// Returns the `{}` ({}) component of `self`.", axis.lowercase_str(), axis.ordinal_str()))
+                    $(format!("/// Returns the `{}` ({}) component of `self`.", Axis(i).lowercase_str(), Axis(i).ordinal_str()))
                     #[inline(always)]
-                    pub fn $(axis.lowercase_str())(self) -> T {
-                        self.index($(axis.as_usize()))
+                    pub fn $(Axis(i).lowercase_str())(self) -> T {
+                        self.index($i)
                     }
                 )
 
                 $(
-                    for axis in n.axes() join($['\n']) =>
+                    for i in 0..n.as_usize() join($['\n']) =>
 
-                    $(format!("/// Returns `self` but with the `{}` ({}) component set to `value`.", axis.lowercase_str(), axis.ordinal_str()))
+                    $(format!("/// Returns `self` but with the `{}` ({}) component set to `value`.", Axis(i).lowercase_str(), Axis(i).ordinal_str()))
                     #[inline(always)]
-                    pub fn with_$(axis.lowercase_str())(self, value: T) -> Self {
+                    pub fn with_$(Axis(i).lowercase_str())(self, value: T) -> Self {
                         let mut output = self;
-                        output.set($(axis.as_usize()), value);
+                        output.set($i, value);
                         output
                     }
                 )
 
                 $(
-                    for axis in n.axes() join($['\n']) =>
+                    for i in 0..n.as_usize() join($['\n']) =>
 
-                    $(format!("/// Sets the `{}` ({}) component of `self` to `value`.", axis.lowercase_str(), axis.ordinal_str()))
+                    $(format!("/// Sets the `{}` ({}) component of `self` to `value`.", Axis(i).lowercase_str(), Axis(i).ordinal_str()))
                     #[inline(always)]
-                    pub fn set_$(axis.lowercase_str())(&mut self, value: T) {
-                        *self = self.with_$(axis.lowercase_str())(value);
+                    pub fn set_$(Axis(i).lowercase_str())(&mut self, value: T) {
+                        *self = self.with_$(Axis(i).lowercase_str())(value);
                     }
                 )
 
@@ -777,27 +777,27 @@ pub fn srcmod() -> SrcDir {
     
                     $(format!("/// Returns `self` but with:"))
                     $(
-                        for axis in n2.axes() =>
+                        for i in 0..n2.as_usize() =>
 
-                        $(format!("/// - `self[{}_DST]` set to the `{}` ({}) component of `value`", axis.uppercase_str(), axis.lowercase_str(), axis.ordinal_str()))
+                        $(format!("/// - `self[{}_DST]` set to the `{}` ({}) component of `value`", Axis(i).uppercase_str(), Axis(i).lowercase_str(), Axis(i).ordinal_str()))
                         $['\r']
                     )
                     $("///")
                     $("/// Out of bounds indices are compile time errors.")
                     #[inline(always)]
-                    pub fn with_shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_DST: usize)>(self, value: Vector<$n2, T, S>) -> Self {
+                    pub fn with_shuffle_$(n2)<$(for i in 0..n2.as_usize() join(, ) => const $(Axis(i).uppercase_str())_DST: usize)>(self, value: Vector<$n2, T, S>) -> Self {
                         specialize! {
                             (self: Vector<$n, T, S>, value: Vector<$n2, T, _>) -> Vector<$n, T, S>:
     
                             for (Vector<$n, T, Simd>, Vector<$n2, T, Simd>) -> Vector<$n, T, Simd> {
-                                |vec, value| T::vec$(n)_with_shuffle_$(n2)::<$(for axis in n2.axes() join(, ) => $(axis.uppercase_str())_DST)>(vec, value)
+                                |vec, value| T::vec$(n)_with_shuffle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_DST)>(vec, value)
                             }
                             else {
                                 let mut output = self;
                                 $(
-                                    for axis in n2.axes() =>
+                                    for i in 0..n2.as_usize() =>
     
-                                    output.set($(axis.uppercase_str())_DST, value.$(axis.lowercase_str())());
+                                    output.set($(Axis(i).uppercase_str())_DST, value.$(Axis(i).lowercase_str())());
                                     $['\r']
                                 )
     
@@ -814,22 +814,22 @@ pub fn srcmod() -> SrcDir {
 
             impl<T: Scalar> Vector<$n, T, NonSimd> {
                 $(
-                    for axis in n.axes() join($['\n']) =>
+                    for i in 0..n.as_usize() join($['\n']) =>
 
-                    $(format!("/// Returns a reference to the `{}` ({}) component of `self`.", axis.lowercase_str(), axis.ordinal_str()))
+                    $(format!("/// Returns a reference to the `{}` ({}) component of `self`.", Axis(i).lowercase_str(), Axis(i).ordinal_str()))
                     #[inline(always)]
-                    pub const fn $(axis.lowercase_str())_ref(&self) -> &T {
-                        &self.0[$(axis.as_usize())]
+                    pub const fn $(Axis(i).lowercase_str())_ref(&self) -> &T {
+                        &self.0[$i]
                     }
                 )
                 
                 $(
-                    for axis in n.axes() join($['\n']) =>
+                    for i in 0..n.as_usize() join($['\n']) =>
 
-                    $(format!("/// Returns a mutable reference to the `{}` ({}) component of `self`.", axis.lowercase_str(), axis.ordinal_str()))
+                    $(format!("/// Returns a mutable reference to the `{}` ({}) component of `self`.", Axis(i).lowercase_str(), Axis(i).ordinal_str()))
                     #[inline(always)]
-                    pub const fn $(axis.lowercase_str())_mut(&mut self) -> &mut T {
-                        &mut self.0[$(axis.as_usize())]
+                    pub const fn $(Axis(i).lowercase_str())_mut(&mut self) -> &mut T {
+                        &mut self.0[$i]
                     }
                 )
             }
