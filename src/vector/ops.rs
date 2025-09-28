@@ -43,7 +43,6 @@ where
         (*self).neg()
     }
 }
-
 impl<const N: usize, T: Scalar + Not<Output: Scalar>, S: Simdness> Not for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -208,7 +207,6 @@ where
         *self = (*self).add(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     Sub<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -334,7 +332,6 @@ where
         *self = (*self).sub(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     Mul<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -460,7 +457,6 @@ where
         *self = (*self).mul(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     Div<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -586,7 +582,6 @@ where
         *self = (*self).div(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     Rem<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -712,7 +707,6 @@ where
         *self = (*self).rem(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     Shl<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -838,7 +832,6 @@ where
         *self = (*self).shl(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     Shr<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -964,7 +957,6 @@ where
         *self = (*self).shr(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     BitAnd<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -1090,7 +1082,6 @@ where
         *self = (*self).bitand(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     BitOr<Vector<N, T2, S>> for Vector<N, T, S>
 where
@@ -1216,7 +1207,6 @@ where
         *self = (*self).bitor(rhs);
     }
 }
-
 impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, S: Simdness, T2: Scalar>
     BitXor<Vector<N, T2, S>> for Vector<N, T, S>
 where

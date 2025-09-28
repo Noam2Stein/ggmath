@@ -41,7 +41,11 @@ impl RawDir {
         let dir_path = parent_path.join(&self.name);
         let modrs_path = dir_path.join(file_name.into()).with_extension("rs");
 
-        for entry in read_dir(&dir_path).unwrap().map(|entry| entry.unwrap()) {
+        for entry in read_dir(&dir_path)
+            .into_iter()
+            .flatten()
+            .map(|entry| entry.unwrap())
+        {
             if entry.path() == modrs_path {
                 continue;
             }
@@ -81,7 +85,7 @@ impl ModContent {
         let path = path.as_ref();
 
         assert!(path.is_absolute());
-        assert!(path.ends_with(".rs"));
+        assert!(path.extension().unwrap() == "rs");
         assert!(path.starts_with(Path::new(WORKPLACE_DIR)));
 
         if !path.exists() {

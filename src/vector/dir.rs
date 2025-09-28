@@ -497,41 +497,34 @@ pub mod right {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveRight for Vector<2, T, S> {
-        const RIGHT: Self = Self::X;
+        const RIGHT: Self = Self::RIGHT;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeLeft for Vector<2, T, S> {
-        const LEFT: Self = Self::NEG_X;
+        const LEFT: Self = Self::NEG_RIGHT;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveRight for Vector<3, T, S> {
-        const RIGHT: Self = Self::X;
+        const RIGHT: Self = Self::RIGHT;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeLeft for Vector<3, T, S> {
-        const LEFT: Self = Self::NEG_X;
+        const LEFT: Self = Self::NEG_RIGHT;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveRight for Vector<4, T, S> {
-        const RIGHT: Self = Self::X;
+        const RIGHT: Self = Self::RIGHT;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeLeft for Vector<4, T, S> {
-        const LEFT: Self = Self::NEG_X;
+        const LEFT: Self = Self::NEG_RIGHT;
     }
 }
 
-/// `RIGHT` and `LEFT constants where left is positive and right is negative.
+/// `LEFT` and `RIGHT constants where left is positive and right is negative.
 #[cfg(feature = "left")]
 pub mod left {
     use crate::{Construct, ScalarNegOne, ScalarOne, Simdness, Vector};
-
-    /// `RIGHT` constant where left is positive and right is negative.
-    pub trait NegativeRight: Construct {
-        /// A value that points right with a magnitude of one,
-        /// where left is positive and right is negative.
-        const RIGHT: Self;
-    }
 
     /// `LEFT` constant where left is positive and right is negative.
     pub trait PositiveLeft: Construct {
@@ -540,36 +533,43 @@ pub mod left {
         const LEFT: Self;
     }
 
-    impl<T: ScalarNegOne> NegativeRight for T {
-        const RIGHT: Self = Self::NEG_ONE;
+    /// `RIGHT` constant where left is positive and right is negative.
+    pub trait NegativeRight: Construct {
+        /// A value that points right with a magnitude of one,
+        /// where left is positive and right is negative.
+        const RIGHT: Self;
     }
 
     impl<T: ScalarOne> PositiveLeft for T {
         const LEFT: Self = Self::ONE;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<2, T, S> {
-        const RIGHT: Self = Self::NEG_X;
+    impl<T: ScalarNegOne> NegativeRight for T {
+        const RIGHT: Self = Self::NEG_ONE;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveLeft for Vector<2, T, S> {
-        const LEFT: Self = Self::X;
+        const LEFT: Self = Self::LEFT;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<3, T, S> {
-        const RIGHT: Self = Self::NEG_X;
+    impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<2, T, S> {
+        const RIGHT: Self = Self::NEG_LEFT;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveLeft for Vector<3, T, S> {
-        const LEFT: Self = Self::X;
+        const LEFT: Self = Self::LEFT;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<4, T, S> {
-        const RIGHT: Self = Self::NEG_X;
+    impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<3, T, S> {
+        const RIGHT: Self = Self::NEG_LEFT;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveLeft for Vector<4, T, S> {
-        const LEFT: Self = Self::X;
+        const LEFT: Self = Self::LEFT;
+    }
+
+    impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<4, T, S> {
+        const RIGHT: Self = Self::NEG_LEFT;
     }
 }
 
@@ -601,41 +601,34 @@ pub mod up {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveUp for Vector<2, T, S> {
-        const UP: Self = Self::Y;
+        const UP: Self = Self::UP;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeDown for Vector<2, T, S> {
-        const DOWN: Self = Self::NEG_Y;
+        const DOWN: Self = Self::NEG_UP;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveUp for Vector<3, T, S> {
-        const UP: Self = Self::Y;
+        const UP: Self = Self::UP;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeDown for Vector<3, T, S> {
-        const DOWN: Self = Self::NEG_Y;
+        const DOWN: Self = Self::NEG_UP;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveUp for Vector<4, T, S> {
-        const UP: Self = Self::Y;
+        const UP: Self = Self::UP;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeDown for Vector<4, T, S> {
-        const DOWN: Self = Self::NEG_Y;
+        const DOWN: Self = Self::NEG_UP;
     }
 }
 
-/// `UP` and `DOWN constants where down is positive and up is negative.
+/// `DOWN` and `UP constants where down is positive and up is negative.
 #[cfg(feature = "down")]
 pub mod down {
     use crate::{Construct, ScalarNegOne, ScalarOne, Simdness, Vector};
-
-    /// `UP` constant where down is positive and up is negative.
-    pub trait NegativeUp: Construct {
-        /// A value that points up with a magnitude of one,
-        /// where down is positive and up is negative.
-        const UP: Self;
-    }
 
     /// `DOWN` constant where down is positive and up is negative.
     pub trait PositiveDown: Construct {
@@ -644,36 +637,43 @@ pub mod down {
         const DOWN: Self;
     }
 
-    impl<T: ScalarNegOne> NegativeUp for T {
-        const UP: Self = Self::NEG_ONE;
+    /// `UP` constant where down is positive and up is negative.
+    pub trait NegativeUp: Construct {
+        /// A value that points up with a magnitude of one,
+        /// where down is positive and up is negative.
+        const UP: Self;
     }
 
     impl<T: ScalarOne> PositiveDown for T {
         const DOWN: Self = Self::ONE;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<2, T, S> {
-        const UP: Self = Self::NEG_Y;
+    impl<T: ScalarNegOne> NegativeUp for T {
+        const UP: Self = Self::NEG_ONE;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveDown for Vector<2, T, S> {
-        const DOWN: Self = Self::Y;
+        const DOWN: Self = Self::DOWN;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<3, T, S> {
-        const UP: Self = Self::NEG_Y;
+    impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<2, T, S> {
+        const UP: Self = Self::NEG_DOWN;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveDown for Vector<3, T, S> {
-        const DOWN: Self = Self::Y;
+        const DOWN: Self = Self::DOWN;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<4, T, S> {
-        const UP: Self = Self::NEG_Y;
+    impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<3, T, S> {
+        const UP: Self = Self::NEG_DOWN;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveDown for Vector<4, T, S> {
-        const DOWN: Self = Self::Y;
+        const DOWN: Self = Self::DOWN;
+    }
+
+    impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<4, T, S> {
+        const UP: Self = Self::NEG_DOWN;
     }
 }
 
@@ -705,33 +705,26 @@ pub mod forwards {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveForwards for Vector<3, T, S> {
-        const FORWARDS: Self = Self::Z;
+        const FORWARDS: Self = Self::FORWARDS;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeBackwards for Vector<3, T, S> {
-        const BACKWARDS: Self = Self::NEG_Z;
+        const BACKWARDS: Self = Self::NEG_FORWARDS;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveForwards for Vector<4, T, S> {
-        const FORWARDS: Self = Self::Z;
+        const FORWARDS: Self = Self::FORWARDS;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeBackwards for Vector<4, T, S> {
-        const BACKWARDS: Self = Self::NEG_Z;
+        const BACKWARDS: Self = Self::NEG_FORWARDS;
     }
 }
 
-/// `FORWARDS` and `BACKWARDS constants where backwards is positive and forwards is negative.
+/// `BACKWARDS` and `FORWARDS constants where backwards is positive and forwards is negative.
 #[cfg(feature = "backwards")]
 pub mod backwards {
     use crate::{Construct, ScalarNegOne, ScalarOne, Simdness, Vector};
-
-    /// `FORWARDS` constant where backwards is positive and forwards is negative.
-    pub trait NegativeForwards: Construct {
-        /// A value that points forwards with a magnitude of one,
-        /// where backwards is positive and forwards is negative.
-        const FORWARDS: Self;
-    }
 
     /// `BACKWARDS` constant where backwards is positive and forwards is negative.
     pub trait PositiveBackwards: Construct {
@@ -740,27 +733,34 @@ pub mod backwards {
         const BACKWARDS: Self;
     }
 
-    impl<T: ScalarNegOne> NegativeForwards for T {
-        const FORWARDS: Self = Self::NEG_ONE;
+    /// `FORWARDS` constant where backwards is positive and forwards is negative.
+    pub trait NegativeForwards: Construct {
+        /// A value that points forwards with a magnitude of one,
+        /// where backwards is positive and forwards is negative.
+        const FORWARDS: Self;
     }
 
     impl<T: ScalarOne> PositiveBackwards for T {
         const BACKWARDS: Self = Self::ONE;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeForwards for Vector<3, T, S> {
-        const FORWARDS: Self = Self::NEG_Z;
+    impl<T: ScalarNegOne> NegativeForwards for T {
+        const FORWARDS: Self = Self::NEG_ONE;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveBackwards for Vector<3, T, S> {
-        const BACKWARDS: Self = Self::Z;
+        const BACKWARDS: Self = Self::BACKWARDS;
     }
 
-    impl<T: ScalarNegOne, S: Simdness> NegativeForwards for Vector<4, T, S> {
-        const FORWARDS: Self = Self::NEG_Z;
+    impl<T: ScalarNegOne, S: Simdness> NegativeForwards for Vector<3, T, S> {
+        const FORWARDS: Self = Self::NEG_BACKWARDS;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveBackwards for Vector<4, T, S> {
-        const BACKWARDS: Self = Self::Z;
+        const BACKWARDS: Self = Self::BACKWARDS;
+    }
+
+    impl<T: ScalarNegOne, S: Simdness> NegativeForwards for Vector<4, T, S> {
+        const FORWARDS: Self = Self::NEG_BACKWARDS;
     }
 }

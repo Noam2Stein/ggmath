@@ -3,7 +3,7 @@ use std::{collections::HashMap};
 use genco::{lang::{rust::Tokens}, quote};
 use strum::IntoEnumIterator;
 
-use crate::{backend::{SrcDir, TestFile, TokensExt}, iter::{Length, Primitive, PrimitiveInt, Simdness}};
+use crate::{backend::{SrcDir, SrcFile, TestFile, TokensExt}, iter::{Length, Primitive, PrimitiveInt, Simdness}};
 
 mod bool_;
 mod float;
@@ -19,7 +19,7 @@ pub fn srcmod() -> SrcDir {
         mod option;
     }
     .to_srcdir("primitives")
-    .with_submod_dirs(Primitive::iter().map(primitive_srcmod))
+    .with_submod_files(Primitive::iter().map(primitive_srcmod))
     .with_submod_file(option::srcmod())
 }
 
@@ -43,7 +43,7 @@ struct PrimitiveTestMod {
     tests: Vec<Tokens>,
 }
 
-fn primitive_srcmod(primitive: Primitive) -> SrcDir {
+fn primitive_srcmod(primitive: Primitive) -> SrcFile {
     let mut output = PrimitiveSrcMod::default();
 
     primitive::push_src(primitive, &mut output);
@@ -114,7 +114,7 @@ fn primitive_srcmod(primitive: Primitive) -> SrcDir {
 
         $(for trait_impl in output.trait_impls join($['\n']) => $trait_impl)
     }
-    .to_srcdir(primitive.to_string())
+    .to_srcfile(primitive.to_string())
 }
 
 fn primitive_testmod(primitive: Primitive) -> TestFile {

@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{fs::remove_dir_all, path::Path};
 
 use genco::lang::rust::Tokens;
 
@@ -66,7 +66,6 @@ impl SrcDir {
         self
     }
 
-    #[expect(dead_code)]
     pub fn with_submod_files(mut self, submod_files: impl IntoIterator<Item = SrcFile>) -> Self {
         self.0
             .submod_files
@@ -79,6 +78,7 @@ impl SrcDir {
         self
     }
 
+    #[expect(dead_code)]
     pub fn with_submod_dirs(mut self, submod_dirs: impl IntoIterator<Item = SrcDir>) -> Self {
         self.0
             .submod_dirs
@@ -90,6 +90,8 @@ impl SrcDir {
         let root_dir_path = Path::new(WORKPLACE_DIR).join("src");
 
         assert!(root_dir_path.ends_with("src"));
+
+        remove_dir_all(&root_dir_path).unwrap();
         self.0.export(&root_dir_path, "lib");
     }
 }
@@ -125,6 +127,8 @@ impl TestDir {
         let root_dir_path = Path::new(WORKPLACE_DIR).join("tests");
 
         assert!(root_dir_path.ends_with("tests"));
+
+        remove_dir_all(&root_dir_path).unwrap();
         self.0.export(&root_dir_path, "mod");
     }
 }
