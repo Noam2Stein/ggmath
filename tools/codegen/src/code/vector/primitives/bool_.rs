@@ -1,6 +1,9 @@
-use genco::{lang::rust::Tokens, quote};
+use genco::quote;
 
-use crate::{primitives::PrimitiveInt, vector::primitives::PrimitiveSrcMod};
+use crate::{
+    code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod},
+    iter::PrimitiveInt,
+};
 
 pub fn push_src(output: &mut PrimitiveSrcMod) {
     output.impl_items.push(quote! {
@@ -65,4 +68,4 @@ pub fn push_src(output: &mut PrimitiveSrcMod) {
     });
 }
 
-pub fn push_tests(_n: usize, _primitive: &str, _is_simd: bool, _tests: &mut Vec<Tokens>) {}
+pub fn push_tests(_output: &mut PrimitiveTestMod) {}

@@ -1,11 +1,6 @@
 use genco::quote;
 
-use crate::{backend::SrcDir, module::TokensExt};
-
-mod constants;
-mod module;
-mod primitives;
-mod lengths;
+use crate::backend::{SrcDir, TestDir, TokensExt};
 
 mod float_ext;
 mod primitive_aliases;
@@ -187,22 +182,22 @@ pub fn srcmod() -> SrcDir {
             pub trait Sealed {}
         }
     }
-    .to_src_dir("")
-    .with_submod_dir(vector::src_mod())
-    .with_submod_dir(primitive_aliases::src_mod())
-    .with_submod_file(float_ext::src_mod())
-    .write_as_root();
+    .to_srcdir("")
+    .with_submod_dir(vector::srcmod())
+    .with_submod_dir(primitive_aliases::srcmod())
+    .with_submod_file(float_ext::srcmod())    
+}
 
+pub fn testmod() -> TestDir {
     quote! {
         mod vector;
     }
-    .to_test_dir("")
-    .with_submod_dir(vector::test_mod())
-    .write_as_root();
+    .to_testdir("")
+    .with_submod_dir(vector::testmod())
 }
 
-fn join_and(iter: impl Iterator<Item = String>) -> String {
-    let mut vec = iter.collect::<Vec<_>>();
+fn join_and<T: Into<String>>(iter: impl Iterator<Item = T>) -> String {
+    let mut vec = iter.map(|item| item.into()).collect::<Vec<String>>();
     let last = vec.pop();
 
     if let Some(last) = last {
@@ -216,8 +211,8 @@ fn join_and(iter: impl Iterator<Item = String>) -> String {
     }
 }
 
-fn join_or(iter: impl Iterator<Item = String>) -> String {
-    let mut vec = iter.collect::<Vec<_>>();
+fn join_or<T: Into<String>>(iter: impl Iterator<Item = T>) -> String {
+    let mut vec = iter.map(|item| item.into()).collect::<Vec<String>>();
     let last = vec.pop();
 
     if let Some(last) = last {

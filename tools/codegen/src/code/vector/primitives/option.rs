@@ -1,19 +1,17 @@
 use genco::quote;
+use strum::IntoEnumIterator;
 
-use crate::{
-    constants::LENGTHS,
-    module::{SrcFile, TokensExt},
-};
+use crate::{backend::{SrcFile, TokensExt}, iter::Length};
 
-pub fn src_mod() -> SrcFile {
+pub fn srcmod() -> SrcFile {
     quote! {
-        use crate::{Scalar, Vector, $(for &n in LENGTHS join(, )=> Vec$(n)), Simdness, VecLen, Usize};
+        use crate::{Scalar, Vector, $(for n in Length::iter() join(, ) => Vec$(n)), Simdness, VecLen, Usize};
 
         impl<T: Scalar> Scalar for Option<T> {
-            $(for &n in LENGTHS join($['\r']) => type InnerSimdVec$(n) = [Option<T>; $n];)
+            $(for n in Length::iter() join($['\r']) => type InnerSimdVec$(n) = [Option<T>; $n];)
 
             $(
-                for &n in LENGTHS join($['\n']) =>
+                for n in Length::iter() join($['\n']) =>
 
                 #[inline(always)]
                 fn vec$(n)_from_array(array: [Option<T>; $n]) -> Vec$(n)<Option<T>> {
@@ -54,5 +52,5 @@ pub fn src_mod() -> SrcFile {
             }
         }
     }
-    .to_src_file("option")
+    .to_srcfile("option")
 }

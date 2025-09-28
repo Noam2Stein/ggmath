@@ -1,22 +1,20 @@
 use std::ops::Range;
 
 use genco::quote;
+use strum::IntoEnumIterator;
 
-use crate::{
-    constants::{COMPONENTS, LENGTHS},
-    module::{SrcFile, TokensExt},
-};
+use crate::{backend::{SrcFile, TokensExt}, iter::Length};
 
-pub fn src_mod() -> SrcFile {
+pub fn srcmod() -> SrcFile {
     quote! {
         use crate::{Scalar, Simdness, Vector};
 
-        $(for &n in LENGTHS join($['\r']) => pub use crate::vec$(n);)
-        $(for &n in LENGTHS join($['\r']) => pub use crate::vec$(n)s;)
-        $(for &n in LENGTHS join($['\r']) => pub use crate::vec$(n)g;)
+        $(for n in Length::iter() join($['\r']) => pub use crate::vec$(n);)
+        $(for n in Length::iter() join($['\r']) => pub use crate::vec$(n)s;)
+        $(for n in Length::iter() join($['\r']) => pub use crate::vec$(n)g;)
 
         $(
-            for &n in LENGTHS join($['\n']) =>
+            for n in Length::iter() join($['\n']) =>
 
             $(format!("/// Creates a `Vec{n}<_>` from the given components and vectors."))
             $("///")
@@ -27,10 +25,9 @@ pub fn src_mod() -> SrcFile {
             $(format!("/// fn example() -> Vec{n}<f32> {{"))
             $(
                 match n {
-                    2 => $("///     vec2!(1.0, 2.0)"),
-                    3 => $("///     vec3!(1.0, vec2!(2.0, 3.0))"),
-                    4 => $("///     vec4!(1.0, vec2!(2.0, 3.0), 4.0)"),
-                    n => $(format!("///     vec{n}!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
+                    Length::Two => $("///     vec2!(1.0, 2.0)"),
+                    Length::Three => $("///     vec3!(1.0, vec2!(2.0, 3.0))"),
+                    Length::Four => $("///     vec4!(1.0, vec2!(2.0, 3.0), 4.0)"),
                 }
             )
             $("/// }")
@@ -44,7 +41,7 @@ pub fn src_mod() -> SrcFile {
         )
 
         $(
-            for &n in LENGTHS join($['\n']) =>
+            for n in Length::iter() join($['\n']) =>
 
             $(format!("/// Creates a `Vec{n}S<_>` from the given components and vectors."))
             $("///")
@@ -55,10 +52,9 @@ pub fn src_mod() -> SrcFile {
             $(format!("/// fn example() -> Vec{n}S<f32> {{"))
             $(
                 match n {
-                    2 => $("///     vec2s!(1.0, 2.0)"),
-                    3 => $("///     vec3s!(1.0, vec2s!(2.0, 3.0))"),
-                    4 => $("///     vec4s!(1.0, vec2s!(2.0, 3.0), 4.0)"),
-                    n => $(format!("///     vec{n}s!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
+                    Length::Two => $("///     vec2s!(1.0, 2.0)"),
+                    Length::Three => $("///     vec3s!(1.0, vec2s!(2.0, 3.0))"),
+                    Length::Four => $("///     vec4s!(1.0, vec2s!(2.0, 3.0), 4.0)"),
                 }
             )
             $("/// }")
@@ -72,7 +68,7 @@ pub fn src_mod() -> SrcFile {
         )
 
         $(
-            for &n in LENGTHS join($['\n']) =>
+            for n in Length::iter() join($['\n']) =>
 
             $(format!("/// Creates a `Vector<{n}, _, _>` from the given components and vectors."))
             $("/// This macro needs type inference to decide if the vector is SIMD or not.")
@@ -84,10 +80,9 @@ pub fn src_mod() -> SrcFile {
             $(format!("/// fn example<S: Simdness>() -> Vector<{n}, f32, S> {{"))
             $(
                 match n {
-                    2 => $("///     vec2g!(1.0, 2.0)"),
-                    3 => $("///     vec3g!(1.0, vec2g!(2.0, 3.0))"),
-                    4 => $("///     vec4g!(1.0, vec2g!(2.0, 3.0), 4.0)"),
-                    n => $(format!("///     vec{n}g!({})", (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>().join(", "))),
+                    Length::Two => $("///     vec2g!(1.0, 2.0)"),
+                    Length::Three => $("///     vec3g!(1.0, vec2g!(2.0, 3.0))"),
+                    Length::Four => $("///     vec4g!(1.0, vec2g!(2.0, 3.0), 4.0)"),
                 }
             )
             $("/// }")
@@ -101,8 +96,8 @@ pub fn src_mod() -> SrcFile {
         )
 
         $(
-            for &n in LENGTHS join($['\n']) => $(
-                for split in splits(n) join($['\n']) =>
+            for n in Length::iter() join($['\n']) => $(
+                for split in splits(n.as_usize()) join($['\n']) =>
 
                 $(
                     let input_type = &format!(
@@ -124,20 +119,23 @@ pub fn src_mod() -> SrcFile {
                     fn from(value: $input_type) -> Self {
                         Self::from_array([$(
                             for (range_idx, range) in split.iter().enumerate() join(, ) => $(
-                                for i in 0..range.len() join(, ) => $(
-                                    if range.len() > 1 {
-                                        value.$range_idx.$(COMPONENTS[i])()
-                                    } else {
-                                        value.$range_idx
-                                    }
-                                )
+                                if range.len() > 1 {
+                                    $(
+                                        for axis in Length::from_usize(range.len()).unwrap().axes() join(, ) =>
+                                        
+                                        value.$range_idx.$(axis.lowercase_str())()
+                                    )
+                                } else {
+                                    value.$range_idx
+                                }
                             )
                         )])
                     }
                 }
             )
         )
-    }.to_src_file("constructor")
+    }
+    .to_srcfile("constructor")
 }
 
 fn splits(n: usize) -> Vec<Vec<Range<usize>>> {

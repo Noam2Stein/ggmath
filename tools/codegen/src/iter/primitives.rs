@@ -108,6 +108,22 @@ impl Primitive {
             .chain(std::iter::once(Primitive::Bool))
     }
 
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Primitive::Float(primitive) => primitive.as_str(),
+            Primitive::Int(primitive) => primitive.as_str(),
+            Primitive::Bool => "bool",
+        }
+    }
+
+    pub fn prefix_lowercase(&self) -> &'static str {
+        match self {
+            Primitive::Float(primitive) => primitive.prefix_lowercase(),
+            Primitive::Int(primitive) => primitive.prefix_lowercase(),
+            Primitive::Bool => "b",
+        }
+    }
+
     pub fn prefix_uppercase(&self) -> &'static str {
         match self {
             Primitive::Float(primitive) => primitive.prefix_uppercase(),
@@ -120,6 +136,20 @@ impl Primitive {
 impl PrimitiveFloat {
     pub fn iter() -> impl Iterator<Item = Self> {
         <Self as IntoEnumIterator>::iter()
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PrimitiveFloat::F32 => "f32",
+            PrimitiveFloat::F64 => "f64",
+        }
+    }
+
+    pub fn prefix_lowercase(&self) -> &'static str {
+        match self {
+            PrimitiveFloat::F32 => "f",
+            PrimitiveFloat::F64 => "d",
+        }
     }
 
     pub fn prefix_uppercase(&self) -> &'static str {
@@ -167,6 +197,20 @@ impl PrimitiveInt {
             .chain(PrimitiveUint::iter().map(PrimitiveInt::Uint))
     }
 
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PrimitiveInt::Sint(primitive) => primitive.as_str(),
+            PrimitiveInt::Uint(primitive) => primitive.as_str(),
+        }
+    }
+
+    pub fn prefix_lowercase(&self) -> &'static str {
+        match self {
+            PrimitiveInt::Sint(primitive) => primitive.prefix_lowercase(),
+            PrimitiveInt::Uint(primitive) => primitive.prefix_lowercase(),
+        }
+    }
+
     pub fn prefix_uppercase(&self) -> &'static str {
         match self {
             PrimitiveInt::Sint(primitive) => primitive.prefix_uppercase(),
@@ -178,6 +222,28 @@ impl PrimitiveInt {
 impl PrimitiveSint {
     pub fn iter() -> impl Iterator<Item = Self> {
         <Self as IntoEnumIterator>::iter()
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PrimitiveSint::I8 => "i8",
+            PrimitiveSint::I16 => "i16",
+            PrimitiveSint::I32 => "i32",
+            PrimitiveSint::I64 => "i64",
+            PrimitiveSint::I128 => "i128",
+            PrimitiveSint::Isize => "isize",
+        }
+    }
+
+    pub fn prefix_lowercase(&self) -> &'static str {
+        match self {
+            PrimitiveSint::I8 => "i8",
+            PrimitiveSint::I16 => "i16",
+            PrimitiveSint::I32 => "i",
+            PrimitiveSint::I64 => "i64",
+            PrimitiveSint::I128 => "i128",
+            PrimitiveSint::Isize => "isize",
+        }
     }
 
     pub fn prefix_uppercase(&self) -> &'static str {
@@ -197,6 +263,28 @@ impl PrimitiveUint {
         <Self as IntoEnumIterator>::iter()
     }
 
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PrimitiveUint::U8 => "u8",
+            PrimitiveUint::U16 => "u16",
+            PrimitiveUint::U32 => "u32",
+            PrimitiveUint::U64 => "u64",
+            PrimitiveUint::U128 => "u128",
+            PrimitiveUint::Usize => "usize",
+        }
+    }
+
+    pub fn prefix_lowercase(&self) -> &'static str {
+        match self {
+            PrimitiveUint::U8 => "u8",
+            PrimitiveUint::U16 => "u16",
+            PrimitiveUint::U32 => "u",
+            PrimitiveUint::U64 => "u64",
+            PrimitiveUint::U128 => "u128",
+            PrimitiveUint::Usize => "usize",
+        }
+    }
+
     pub fn prefix_uppercase(&self) -> &'static str {
         match self {
             PrimitiveUint::U8 => "U8",
@@ -211,55 +299,31 @@ impl PrimitiveUint {
 
 impl Display for Primitive {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Primitive::Float(primitive) => write!(f, "{primitive}"),
-            Primitive::Int(primitive) => write!(f, "{primitive}"),
-            Primitive::Bool => write!(f, "bool"),
-        }
+        write!(f, "{}", self.as_str())
     }
 }
 
 impl Display for PrimitiveFloat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PrimitiveFloat::F32 => write!(f, "f32"),
-            PrimitiveFloat::F64 => write!(f, "f64"),
-        }
+        write!(f, "{}", self.as_str())
     }
 }
 
 impl Display for PrimitiveInt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PrimitiveInt::Sint(primitive) => write!(f, "{primitive}"),
-            PrimitiveInt::Uint(primitive) => write!(f, "{primitive}"),
-        }
+        write!(f, "{}", self.as_str())
     }
 }
 
 impl Display for PrimitiveSint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PrimitiveSint::I8 => write!(f, "i8"),
-            PrimitiveSint::I16 => write!(f, "i16"),
-            PrimitiveSint::I32 => write!(f, "i32"),
-            PrimitiveSint::I64 => write!(f, "i64"),
-            PrimitiveSint::I128 => write!(f, "i128"),
-            PrimitiveSint::Isize => write!(f, "isize"),
-        }
+        write!(f, "{}", self.as_str())
     }
 }
 
 impl Display for PrimitiveUint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PrimitiveUint::U8 => write!(f, "u8"),
-            PrimitiveUint::U16 => write!(f, "u16"),
-            PrimitiveUint::U32 => write!(f, "u32"),
-            PrimitiveUint::U64 => write!(f, "u64"),
-            PrimitiveUint::U128 => write!(f, "u128"),
-            PrimitiveUint::Usize => write!(f, "usize"),
-        }
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -290,5 +354,41 @@ impl<L: Lang> FormatInto<L> for PrimitiveSint {
 impl<L: Lang> FormatInto<L> for PrimitiveUint {
     fn format_into(self, tokens: &mut Tokens<L>) {
         self.to_string().format_into(tokens);
+    }
+}
+
+impl From<PrimitiveFloat> for Primitive {
+    fn from(value: PrimitiveFloat) -> Self {
+        Primitive::Float(value)
+    }
+}
+
+impl From<PrimitiveInt> for Primitive {
+    fn from(value: PrimitiveInt) -> Self {
+        Primitive::Int(value)
+    }
+}
+
+impl From<PrimitiveSint> for Primitive {
+    fn from(value: PrimitiveSint) -> Self {
+        Primitive::Int(PrimitiveInt::Sint(value))
+    }
+}
+
+impl From<PrimitiveUint> for Primitive {
+    fn from(value: PrimitiveUint) -> Self {
+        Primitive::Int(PrimitiveInt::Uint(value))
+    }
+}
+
+impl From<PrimitiveSint> for PrimitiveInt {
+    fn from(value: PrimitiveSint) -> Self {
+        PrimitiveInt::Sint(value)
+    }
+}
+
+impl From<PrimitiveUint> for PrimitiveInt {
+    fn from(value: PrimitiveUint) -> Self {
+        PrimitiveInt::Uint(value)
     }
 }

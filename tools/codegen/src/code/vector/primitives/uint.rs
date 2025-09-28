@@ -1,7 +1,8 @@
-use genco::lang::rust::Tokens;
-
-use crate::vector::primitives::{PrimitiveSrcMod, PrimitiveUint};
+use crate::{
+    code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod},
+    iter::PrimitiveUint,
+};
 
 pub fn push_src(_primitive: PrimitiveUint, _output: &mut PrimitiveSrcMod) {}
 
-pub fn push_tests(_n: usize, _primitive: &str, _is_simd: bool, _tests: &mut Vec<Tokens>) {}
+pub fn push_tests(_primitive: PrimitiveUint, _output: &mut PrimitiveTestMod) {}

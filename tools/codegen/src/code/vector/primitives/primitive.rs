@@ -3,7 +3,7 @@ use genco::{
     quote, tokens::quoted,
 };
 
-use crate::{constants::LENGTHS, primitives::{Primitive, PrimitiveFloat, PrimitiveInt}, vector::primitives::PrimitiveSrcMod};
+use crate::{code::vector::primitives::PrimitiveTestMod, constants::LENGTHS, primitives::{Primitive, PrimitiveFloat, PrimitiveInt}, vector::primitives::PrimitiveSrcMod};
 
 pub fn push_src(
     primitive: Primitive,
@@ -78,29 +78,27 @@ pub fn push_src(
     });
 }
 
-pub fn push_tests(n: usize, primitive: Primitive, is_simd: bool, tests: &mut Vec<Tokens>) {
-    let s_postfix_lowercase = if is_simd { "" } else { "s" };
-    let s_postfix_camelcase = if is_simd { "" } else { "S" };
+pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
+    output.push_tests_for_vector(primitive, |n, s| quote! {
+        $(let vec_lowercase = &format!("{t_prefix}vec{n}{s_postfix}", t_prefix = primitive.prefix_lowercase(), s_postfix = s.postfix_lowercase()))
+        $(let vec_camelcase = &format!("{t_prefix}Vec{n}{s_postfix}", t_prefix = primitive.prefix_uppercase(), s_postfix = s.postfix_uppercase()))
 
-    let vec_snakecase = &format!("vec{n}{s_postfix_lowercase}");
-    let vec_camelcase = &format!("Vec{n}{s_postfix_camelcase}");
+        $(let values = match primitive {
+            Primitive::Float(primitive) => (0..n.as_usize()).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
+            Primitive::Int(primitive) => (0..n.as_usize()).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
+            Primitive::Bool => ["false".to_string(), "true".to_string()].into_iter().cycle().take(n.as_usize()).collect::<Vec<String>>(),
+        })
+        $(let values_str = &values.join(", "))
+        
+        $(let values2 = match primitive {
+            Primitive::Float(primitive) => (n.as_usize()..n.as_usize() * 2).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
+            Primitive::Int(primitive) => (n.as_usize()..n.as_usize() * 2).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
+            Primitive::Bool => ["true".to_string(), "false".to_string()].into_iter().cycle().take(n.as_usize()).collect::<Vec<String>>(),
+        })
+        $(let values2_str = &values2.join(", "))
+    });
 
-    let values = match primitive {
-        Primitive::Float(primitive) => (0..n).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
-        Primitive::Int(primitive) => (0..n).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
-        Primitive::Bool => ["false".to_string(), "true".to_string()].into_iter().cycle().take(n).collect::<Vec<String>>(),
-    };
-    let values_str = &values.join(", ");
-
-    let values2 = match primitive {
-        _ if FLOAT_PRIMITIVES.contains(&primitive) => (n..n * 2).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
-        _ if INT_PRIMITIVES.contains(&primitive) => (n..n * 2).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
-        "bool" => ["true".to_string(), "false".to_string()].into_iter().cycle().take(n).collect::<Vec<String>>(),
-        _ => (0..n).map(|_| "compile_error!(\"unhandled primitive\")".to_string()).collect::<Vec<String>>(),
-    };
-    let values2_str = &values2.join(", ");
-
-    tests.push(quote! {
+    output.tests.push(quote! {
         $("// The following code is generated for all primitives")
 
         $(

@@ -1,12 +1,7 @@
 use genco::quote;
+use strum::IntoEnumIterator;
 
-use crate::{
-    constants::{
-        COMPARISON_OPS, COMPARISON_OP_DOCS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPONENTS, COMPONENT_ORDINALS, LENGTHS, LENGTH_NAMES,
-    },
-    join_or,
-    module::{SrcDir, TestDir, TokensExt}, primitives::Primitive,
-};
+use crate::{backend::{SrcDir, TestDir, TokensExt}, code::join_or, iter::{CmpOp, Length, Primitive}};
 
 mod constructor;
 mod dir;
@@ -15,7 +10,7 @@ mod primitives;
 mod scalar;
 mod swizzle;
 
-pub fn src_mod() -> SrcDir {
+pub fn srcmod() -> SrcDir {
     quote! {
         $("//! Vector related types and traits")
 
@@ -40,12 +35,10 @@ pub fn src_mod() -> SrcDir {
         pub use constructor::*;
         pub use dir::*;
 
-        $(let length_list = join_or(LENGTHS.iter().map(|&n| n.to_string())))
-
         $("/// A generic vector type.")
         $("///")
         $("/// This type is generic over 3 parameters:")
-        $(format!("/// - `N`: The length of the vector, which currently can be {length_list}"))
+        $(format!("/// - `N`: The length of the vector, which currently can be {}", join_or(Length::iter().map(|n| n.to_string()))))
         $("/// - `T`: The scalar type of the vector, which must implement [`Scalar`]")
         $("/// - `S`: The \"simdness\" of the vector, which must be either [`Simd`] or [`NonSimd`]")
         $("///")
@@ -121,14 +114,14 @@ pub fn src_mod() -> SrcDir {
             Usize<N>: VecLen;
 
         $(
-            for &n in LENGTHS =>
+            for n in Length::iter() =>
 
             $(format!("/// Type alias for [`Vector<{n}, T, Simd>`][Vector]."))
             pub type Vec$(n)<T> = Vector<$n, T, Simd>;
             $['\n']
         )
         $(
-            for &n in LENGTHS =>
+            for n in Length::iter() =>
 
             $(format!("/// Type alias for [`Vector<{n}, T, NonSimd>`][Vector]."))
             $(r#"/// "S" stands for "scalar""#)
@@ -149,8 +142,8 @@ pub fn src_mod() -> SrcDir {
         $("/// ```")
         $("/// use ggmath::*;")
         $("///")
-        $(for &n in LENGTHS => $(format!("/// pub type FVec{n} = Vec{n}<f32>;"))$['\r'])
-        $(for &n in LENGTHS => $(format!("/// pub type FVec{n}S = Vec{n}S<f32>;"))$['\r'])
+        $(for n in Length::iter() => $(format!("/// pub type FVec{n} = Vec{n}<f32>;"))$['\r'])
+        $(for n in Length::iter() => $(format!("/// pub type FVec{n}S = Vec{n}S<f32>;"))$['\r'])
         $("/// ```")
         #[macro_export]
         macro_rules! vector_aliases {
@@ -167,7 +160,7 @@ pub fn src_mod() -> SrcDir {
             (@($$($$vis:tt)*) $$(#[$$($$attr:tt)*])* type $$prefix:ident => $$t:ty) => {
                 $$crate::_hidden_::paste! {
                     $(
-                        for &n in LENGTHS =>
+                        for n in Length::iter() =>
 
                         #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", Simd>`][Vector]."]
                         $$(#[$$($$attr)*])*
@@ -197,10 +190,10 @@ pub fn src_mod() -> SrcDir {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum VecLenEnum {
             $(
-                for (&n, &length_name) in LENGTHS.iter().zip(LENGTH_NAMES.iter()) =>
+                for n in Length::iter() =>
 
                 $(format!("/// `{n}`"))
-                $length_name,
+                $(n.word_camelcase()),
                 $['\r']
             )
         }
@@ -224,17 +217,17 @@ pub fn src_mod() -> SrcDir {
         pub struct NonSimd;
 
         $(
-            for (&n, &length_name) in LENGTHS.iter().zip(LENGTH_NAMES.iter()) join($['\n'])=>
+            for n in Length::iter() join($['\n'])=>
 
             impl VecLen for Usize<$n> {
                 type InnerSimdVector<T: Scalar> = T::InnerSimdVec$(n);
 
-                const ENUM: VecLenEnum = VecLenEnum::$length_name;
+                const ENUM: VecLenEnum = VecLenEnum::$(n.word_camelcase());
             }
         )
 
         $(
-            for &n in LENGTHS join($['\n'])=>
+            for n in Length::iter() join($['\n'])=>
 
             impl Sealed for Usize<$n> {}
         )
@@ -304,7 +297,7 @@ pub fn src_mod() -> SrcDir {
                     (array: [T; N]) -> Vector<N, T, S>:
 
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
 
                         for ([T; $n]) -> Vector<$n, T, Simd> {
                             |array| T::vec$(n)_from_array(array)
@@ -326,7 +319,7 @@ pub fn src_mod() -> SrcDir {
                     (value: T) -> Vector<N, T, S>:
    
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
     
                         for (T) -> Vector<$n, T, Simd> {
                             |value| T::vec$(n)_splat(value)
@@ -358,7 +351,7 @@ pub fn src_mod() -> SrcDir {
                     (self: Vector<N, T, S>) -> [T; N]:
 
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
     
                         for (Vector<$n, T, Simd>) -> [T; $n] {
                             |vec| T::vec$(n)_as_array(vec)
@@ -403,7 +396,7 @@ pub fn src_mod() -> SrcDir {
                     (self: Vector<N, T, S>, index: usize) -> T:
 
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
 
                         for (Vector<$n, T, Simd>, usize) -> T {
                             |vec, index| unsafe { T::vec$(n)_get_unchecked(vec, index) }
@@ -447,7 +440,7 @@ pub fn src_mod() -> SrcDir {
                     ((*self): Vector<N, T, S>, index: usize, value: T) -> Vector<N, T, S>:
                     
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
 
                         for (Vector<$n, T, Simd>, usize, T) -> Vector<$n, T, Simd> {
                             |vec, index, value| unsafe { T::vec$(n)_with_unchecked(vec, index, value) }
@@ -464,31 +457,31 @@ pub fn src_mod() -> SrcDir {
             }
 
             $(
-                for &n2 in LENGTHS join($['\n']) =>
+                for n2 in Length::iter() join($['\n']) =>
 
                 $(format!("/// Returns a vec{n2} where:"))
                 $(
-                    for i in 0..n2 =>
+                    for axis in n2.axes() =>
 
-                    $(format!("/// - The `{}` ({}) component is `self[{}_SRC]`", COMPONENTS[i], COMPONENT_ORDINALS[i], COMPONENTS[i].to_uppercase()))
+                    $(format!("/// - The `{}` ({}) component is `self[{}_SRC]`", axis.lowercase_str(), axis.ordinal_str(), axis.uppercase_str()))
                     $['\r']
                 )
                 $("///")
                 $("/// Out of bounds indices are compile time errors.")
                 #[inline(always)]
-                pub fn shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(self) -> Vector<$n2, T, S> {
+                pub fn shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_SRC: usize)>(self) -> Vector<$n2, T, S> {
                     specialize! {
                         (self: Vector<N, T, S>) -> Vector<$n2, T, S>:
 
                         $(
-                            for &n in LENGTHS join($['\r']) =>
+                            for n in Length::iter() join($['\r']) =>
 
                             for (Vector<$n, T, Simd>) -> Vector<$n2, T, Simd> {
-                                |vec| T::vec$(n)_shuffle_$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_SRC)>(vec)
+                                |vec| T::vec$(n)_shuffle_$(n2)::<$(for axis in n2.axes() join(, ) => $(axis.uppercase_str())_SRC)>(vec)
                             }
                         )
                         else {
-                            Vector::<$n2, T, S>::from_array([$(for i in 0..n2 join(, ) => self.index($(COMPONENTS[i].to_uppercase())_SRC))])
+                            Vector::<$n2, T, S>::from_array([$(for axis in n2.axes() join(, ) => self.index($(axis.uppercase_str())_SRC))])
                         }
                     }
                 }
@@ -558,31 +551,26 @@ pub fn src_mod() -> SrcDir {
             }
 
             $(
-                for cmp_op_idx in 0..COMPARISON_OPS.len() join($['\n']) =>
+                for cmp_op in CmpOp::iter() join($['\n']) =>
 
-                $(let cmp_lower = COMPARISON_OPS[cmp_op_idx])
-                $(let cmp_tt = COMPARISON_OP_TOKENS[cmp_op_idx])
-                $(let cmp_trait = COMPARISON_OP_TRAITS[cmp_op_idx])
-                $(let cmp_doc = COMPARISON_OP_DOCS[cmp_op_idx])
-
-                $(format!("/// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is {cmp_doc} the corresponding component of `other`."))
+                $(format!("/// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is {} the corresponding component of `other`.", cmp_op.doc_str()))
                 #[inline(always)]
-                pub fn $(cmp_lower)_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
+                pub fn $(cmp_op.lowercase_str())_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
                 where
-                    T: $cmp_trait<T2>,
+                    T: $(cmp_op.trait_str()),
                 {
                     specialize! {
                         (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
     
                         $(
-                            for &n in LENGTHS join($['\r']) =>
+                            for n in Length::iter() join($['\r']) =>
     
                             for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> Vector<$n, bool, Simd> {
-                                |vec, other| T::vec$(n)_$(cmp_lower)_mask(vec, other)
+                                |vec, other| T::vec$(n)_$(cmp_op.lowercase_str())_mask(vec, other)
                             }
                         )
                         else {
-                            Vector::from_fn(|i| self.index(i) $cmp_tt other.index(i))
+                            Vector::from_fn(|i| self.index(i) $(cmp_op.punct_str()) other.index(i))
                         }
                     }
                 }
@@ -598,7 +586,7 @@ pub fn src_mod() -> SrcDir {
                     (self: Vector<N, T, S>) -> T:
 
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
 
                         for (Vector<$n, T, Simd>) -> T {
                             |vec| T::vec$(n)_sum(vec)
@@ -620,7 +608,7 @@ pub fn src_mod() -> SrcDir {
                     (self: Vector<N, T, S>) -> T:
 
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
 
                         for (Vector<$n, T, Simd>) -> T {
                             |vec| T::vec$(n)_product(vec)
@@ -705,11 +693,11 @@ pub fn src_mod() -> SrcDir {
         }
 
         $(
-            for &n in LENGTHS join($['\n']) =>
+            for n in Length::iter() join($['\n']) =>
 
             impl<T: Scalar, S: Simdness> Vector<$n, T, S> {
                 $(
-                    if n == 2 =>
+                    if n == Length::Two =>
 
                     $(format!("/// Returns `self` rotated 90 degrees counter-clockwise."))
                     #[inline(always)]
@@ -740,7 +728,7 @@ pub fn src_mod() -> SrcDir {
                 )
 
                 $(
-                    if n == 3 =>
+                    if n == Length::Three =>
 
                     $(format!("/// Returns the cross product of `self` and `other`."))
                     #[inline(always)]
@@ -753,63 +741,63 @@ pub fn src_mod() -> SrcDir {
                 )
 
                 $(
-                    for i in 0..n join($['\n']) =>
+                    for axis in n.axes() join($['\n']) =>
 
-                    $(format!("/// Returns the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    $(format!("/// Returns the `{}` ({}) component of `self`.", axis.lowercase_str(), axis.ordinal_str()))
                     #[inline(always)]
-                    pub fn $(COMPONENTS[i])(self) -> T {
-                        self.index($i)
+                    pub fn $(axis.lowercase_str())(self) -> T {
+                        self.index($(axis.as_usize()))
                     }
                 )
 
                 $(
-                    for i in 0..n join($['\n']) =>
+                    for axis in n.axes() join($['\n']) =>
 
-                    $(format!("/// Returns `self` but with the `{}` ({}) component set to `value`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    $(format!("/// Returns `self` but with the `{}` ({}) component set to `value`.", axis.lowercase_str(), axis.ordinal_str()))
                     #[inline(always)]
-                    pub fn with_$(COMPONENTS[i])(self, value: T) -> Self {
+                    pub fn with_$(axis.lowercase_str())(self, value: T) -> Self {
                         let mut output = self;
-                        output.set($i, value);
+                        output.set($(axis.as_usize()), value);
                         output
                     }
                 )
 
                 $(
-                    for i in 0..n join($['\n']) =>
+                    for axis in n.axes() join($['\n']) =>
 
-                    $(format!("/// Sets the `{}` ({}) component of `self` to `value`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    $(format!("/// Sets the `{}` ({}) component of `self` to `value`.", axis.lowercase_str(), axis.ordinal_str()))
                     #[inline(always)]
-                    pub fn set_$(COMPONENTS[i])(&mut self, value: T) {
-                        *self = self.with_$(COMPONENTS[i])(value);
+                    pub fn set_$(axis.lowercase_str())(&mut self, value: T) {
+                        *self = self.with_$(axis.lowercase_str())(value);
                     }
                 )
 
                 $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) =>
+                    for n2 in Length::iter().filter(|&n2| n2 <= n) join($['\n']) =>
     
                     $(format!("/// Returns `self` but with:"))
                     $(
-                        for i in 0..n2 =>
+                        for axis in n2.axes() =>
 
-                        $(format!("/// - `self[{}_DST]` set to the `{}` ({}) component of `value`", COMPONENTS[i].to_uppercase(), COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                        $(format!("/// - `self[{}_DST]` set to the `{}` ({}) component of `value`", axis.uppercase_str(), axis.lowercase_str(), axis.ordinal_str()))
                         $['\r']
                     )
                     $("///")
                     $("/// Out of bounds indices are compile time errors.")
                     #[inline(always)]
-                    pub fn with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(self, value: Vector<$n2, T, S>) -> Self {
+                    pub fn with_shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_DST: usize)>(self, value: Vector<$n2, T, S>) -> Self {
                         specialize! {
                             (self: Vector<$n, T, S>, value: Vector<$n2, T, _>) -> Vector<$n, T, S>:
     
                             for (Vector<$n, T, Simd>, Vector<$n2, T, Simd>) -> Vector<$n, T, Simd> {
-                                |vec, value| T::vec$(n)_with_shuffle_$(n2)::<$(for i in 0..n2 join(, ) => $(COMPONENTS[i].to_uppercase())_DST)>(vec, value)
+                                |vec, value| T::vec$(n)_with_shuffle_$(n2)::<$(for axis in n2.axes() join(, ) => $(axis.uppercase_str())_DST)>(vec, value)
                             }
                             else {
                                 let mut output = self;
                                 $(
-                                    for i in 0..n2 =>
+                                    for axis in n2.axes() =>
     
-                                    output.set($(COMPONENTS[i].to_uppercase())_DST, value.$(COMPONENTS[i])());
+                                    output.set($(axis.uppercase_str())_DST, value.$(axis.lowercase_str())());
                                     $['\r']
                                 )
     
@@ -822,26 +810,26 @@ pub fn src_mod() -> SrcDir {
         )
 
         $(
-            for &n in LENGTHS join($['\n']) =>
+            for n in Length::iter() join($['\n']) =>
 
             impl<T: Scalar> Vector<$n, T, NonSimd> {
                 $(
-                    for i in 0..n join($['\n']) =>
+                    for axis in n.axes() join($['\n']) =>
 
-                    $(format!("/// Returns a reference to the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    $(format!("/// Returns a reference to the `{}` ({}) component of `self`.", axis.lowercase_str(), axis.ordinal_str()))
                     #[inline(always)]
-                    pub const fn $(COMPONENTS[i])_ref(&self) -> &T {
-                        &self.0[$i]
+                    pub const fn $(axis.lowercase_str())_ref(&self) -> &T {
+                        &self.0[$(axis.as_usize())]
                     }
                 )
                 
                 $(
-                    for i in 0..n join($['\n']) =>
+                    for axis in n.axes() join($['\n']) =>
 
-                    $(format!("/// Returns a mutable reference to the `{}` ({}) component of `self`.", COMPONENTS[i], COMPONENT_ORDINALS[i]))
+                    $(format!("/// Returns a mutable reference to the `{}` ({}) component of `self`.", axis.lowercase_str(), axis.ordinal_str()))
                     #[inline(always)]
-                    pub const fn $(COMPONENTS[i])_mut(&mut self) -> &mut T {
-                        &mut self.0[$i]
+                    pub const fn $(axis.lowercase_str())_mut(&mut self) -> &mut T {
+                        &mut self.0[$(axis.as_usize())]
                     }
                 )
             }
@@ -931,7 +919,7 @@ pub fn src_mod() -> SrcDir {
                     ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
                         
                         for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> bool {
                             |vec, other| T::vec$(n)_eq(vec, other)
@@ -949,7 +937,7 @@ pub fn src_mod() -> SrcDir {
                     ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
                     $(
-                        for &n in LENGTHS join($['\r']) =>
+                        for n in Length::iter() join($['\r']) =>
 
                         for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> bool {
                             |vec, other| T::vec$(n)_ne(vec, other)
@@ -1029,19 +1017,19 @@ pub fn src_mod() -> SrcDir {
             }
         }
     }
-    .to_src_dir("vector")
-    .with_submod_dir(primitives::src_mod())
-    .with_submod_file(constructor::src_mod())
-    .with_submod_file(swizzle::src_mod())
-    .with_submod_file(scalar::src_mod())
-    .with_submod_file(ops::src_mod())
-    .with_submod_file(dir::src_mod())
+    .to_srcdir("vector")
+    .with_submod_dir(primitives::srcmod())
+    .with_submod_file(constructor::srcmod())
+    .with_submod_file(swizzle::srcmod())
+    .with_submod_file(scalar::srcmod())
+    .with_submod_file(ops::srcmod())
+    .with_submod_file(dir::srcmod())
 }
 
-pub fn test_mod() -> TestDir {
+pub fn testmod() -> TestDir {
     quote!{
-        $(
-            for primitive in Primitive::iter() join($['\r']) => mod $primitive;
-        )
-    }.to_test_dir("vector").with_submod_files(primitives::test_mods())
+        $(for primitive in Primitive::iter() join($['\r']) => mod $primitive;)
+    }
+    .to_testdir("vector")
+    .with_submod_files(primitives::testmods())
 }

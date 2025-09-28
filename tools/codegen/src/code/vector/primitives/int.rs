@@ -1,9 +1,9 @@
-use genco::{lang::rust::Tokens, quote};
+use genco::quote;
+use strum::IntoEnumIterator;
 
 use crate::{
-    constants::{COMPONENTS, LENGTHS},
-    primitives::PrimitiveFloat,
-    vector::primitives::{PrimitiveInt, PrimitiveSrcMod},
+    code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod},
+    iter::{Length, PrimitiveFloat, PrimitiveInt},
 };
 
 pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
@@ -167,7 +167,7 @@ pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
             const ZERO: Self = 0;
 
             $(
-                for &n in LENGTHS join($['\r']) =>
+                for n in Length::iter() join($['\r']) =>
 
                 const VEC$(n)_ZERO: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([0; $n]);
             )
@@ -177,19 +177,17 @@ pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
             const ONE: Self = 1;
 
             $(
-                for &n in LENGTHS join($['\r']) =>
+                for n in Length::iter() join($['\r']) =>
 
                 const VEC$(n)_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([1; $n]);
             )
 
             $(
-                for &n in LENGTHS join($['\n']) => $(
-                    for i in 0..n join($['\r']) =>
+                for n in Length::iter() join($['\n']) => $(
+                    for axis in n.axes() join($['\r']) =>
 
-                    $(let component = COMPONENTS[i].to_uppercase())
-
-                    const VEC$(n)_$(component): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for i2 in 0..n join(, ) => $(if i2 == i { 1 } else { 0 })
+                    const VEC$(n)_$(axis.uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
+                        for axis2 in n.axes() join(, ) => $(if axis2 == axis { 1 } else { 0 })
                     )]);
                 )
             )
@@ -197,4 +195,4 @@ pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
     });
 }
 
-pub fn push_tests(_n: usize, _primitive: &str, _is_simd: bool, _tests: &mut Vec<Tokens>) {}
+pub fn push_tests(_primitive: PrimitiveInt, _output: &mut PrimitiveTestMod) {}

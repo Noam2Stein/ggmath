@@ -1,11 +1,9 @@
 use std::{collections::HashMap};
 
 use genco::{lang::{rust::Tokens}, quote};
+use strum::IntoEnumIterator;
 
-use crate::{
-    constants::LENGTHS,
-    module::{SrcDir, TestFile, TokensExt}, primitives::{Primitive, PrimitiveInt},
-};
+use crate::{backend::{SrcDir, TestFile, TokensExt}, iter::{Length, Primitive, PrimitiveInt, Simdness}};
 
 mod bool_;
 mod float;
@@ -15,40 +13,37 @@ mod primitive;
 mod sint;
 mod uint;
 
-pub fn src_mod() -> SrcDir {
+pub fn srcmod() -> SrcDir {
     quote! {
         $(for primitive in Primitive::iter() join($['\r']) => mod $primitive;)
         mod option;
     }
-    .to_src_dir("primitives")
-    .with_submod_dirs(Primitive::iter().map(primitive_src_mod))
-    .with_submod_file(option::src_mod())
+    .to_srcdir("primitives")
+    .with_submod_dirs(Primitive::iter().map(primitive_srcmod))
+    .with_submod_file(option::srcmod())
 }
 
-pub fn test_mods() -> impl Iterator<Item = TestFile> {
+pub fn testmods() -> impl Iterator<Item = TestFile> {
     Primitive::iter()
-        .map(primitive_test_mod)
-}
-
-#[expect(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum SimdBackend {
-    X86,
-    Arm,
-    Wasm,
-    Scalar,
+        .map(primitive_testmod)
 }
 
 #[derive(Default)]
 struct PrimitiveSrcMod {
     impl_items: Vec<Tokens>,
     std_impl_items: Vec<Tokens>,
-    len_impl_items: HashMap<usize, Vec<Tokens>>,
-    std_len_impl_items: HashMap<usize, Vec<Tokens>>,
+    len_impl_items: HashMap<Length, Vec<Tokens>>,
+    std_len_impl_items: HashMap<Length, Vec<Tokens>>,
     trait_impls: Vec<Tokens>,
 }
 
-fn primitive_src_mod(primitive: Primitive) -> SrcDir {
+#[derive(Default)]
+struct PrimitiveTestMod {
+    util: Vec<Tokens>,
+    tests: Vec<Tokens>,
+}
+
+fn primitive_srcmod(primitive: Primitive) -> SrcDir {
     let mut output = PrimitiveSrcMod::default();
 
     primitive::push_src(primitive, &mut output);
@@ -75,7 +70,7 @@ fn primitive_src_mod(primitive: Primitive) -> SrcDir {
     }
 
     quote! {
-        use crate::{Vector, Simdness, Simd, NonSimd, Usize, VecLen, Scalar, $(for &n in LENGTHS join(, ) => Vec$(n))};
+        use crate::{Vector, Simdness, Simd, NonSimd, Usize, VecLen, Scalar, $(for n in Length::iter() join(, ) => Vec$(n))};
 
         $(
             if !output.impl_items.is_empty() =>
@@ -89,8 +84,7 @@ fn primitive_src_mod(primitive: Primitive) -> SrcDir {
         )
 
         $(
-            for (n, impl_items) in LENGTHS.iter().filter_map(|&n| output.len_impl_items.get(&n).map(|impl_items| (n, impl_items)))
-                join($['\n']) =>
+            for (n, impl_items) in Length::iter().filter_map(|n| output.len_impl_items.get(&n).map(|impl_items| (n, impl_items))) join($['\n']) =>
 
             impl<S: Simdness> Vector<$n, $primitive, S> {
                 $(for impl_item in impl_items join($['\n']) => $impl_item)
@@ -110,8 +104,7 @@ fn primitive_src_mod(primitive: Primitive) -> SrcDir {
         )
 
         $(
-            for (n, impl_items) in LENGTHS.iter().filter_map(|&n| output.std_len_impl_items.get(&n).map(|impl_items| (n, impl_items)))
-                join($['\n']) =>
+            for (n, impl_items) in Length::iter().filter_map(|n| output.std_len_impl_items.get(&n).map(|impl_items| (n, impl_items))) join($['\n']) =>
 
             #[cfg(feature = "std")]
             impl<S: Simdness> Vector<$n, $primitive, S> {
@@ -121,10 +114,34 @@ fn primitive_src_mod(primitive: Primitive) -> SrcDir {
 
         $(for trait_impl in output.trait_impls join($['\n']) => $trait_impl)
     }
-    .to_src_dir(primitive.to_string())
+    .to_srcdir(primitive.to_string())
 }
 
-fn primitive_test_mod(primitive: Primitive) -> TestFile {
+fn primitive_testmod(primitive: Primitive) -> TestFile {
+    let mut output = PrimitiveTestMod::default();
+
+    primitive::push_tests(primitive, &mut output);
+    match primitive {
+        Primitive::Float(primitive) => {
+            float::push_tests(primitive, &mut output);
+        }
+        Primitive::Int(primitive) => {
+            int::push_tests(primitive, &mut output);
+            
+            match primitive {
+                PrimitiveInt::Sint(primitive) => {
+                    sint::push_tests(primitive, &mut output);
+                }
+                PrimitiveInt::Uint(primitive) => {
+                    uint::push_tests(primitive, &mut output);
+                }
+            }
+        }
+        Primitive::Bool => {
+            bool_::push_tests(&mut output);
+        }
+    }
+
     quote! {
         $(
             if primitive.is_float() =>
@@ -177,46 +194,26 @@ fn primitive_test_mod(primitive: Primitive) -> TestFile {
             }
         )
 
-        $(
-            for &n in LENGTHS join($['\n']) =>
-
-            $(
-                for is_simd in [true, false] join($['\r']) =>
-
-                $(
-                    if is_simd || primitive.is_primary() =>
-
-                    $(let tests = {
-                        let mut tests = Vec::new();
-
-                        primitive::push_tests(n, primitive, is_simd, &mut tests);
-                        if primitive_is_num {
-                            num::push_tests(n, primitive, is_simd, &mut tests);
-                        }
-                        if primitive_is_int {
-                            int::push_tests(n, primitive, is_simd, &mut tests);
-                        }
-                        if primitive_is_float {
-                            float::push_tests(n, primitive, is_simd, &mut tests);
-                        }
-                        if primitive_is_sint {
-                            sint::push_tests(n, primitive, is_simd, &mut tests);
-                        }
-                        if primitive_is_uint {
-                            uint::push_tests(n, primitive, is_simd, &mut tests);
-                        }
-                        if primitive_is_bool {
-                            bool_::push_tests(n, primitive, is_simd, &mut tests);
-                        }
-
-                        tests
-                    })
-
-                    $(for test in tests join($['\n']) => $test)
-                )
-            )
-        )
+        $(for item in output.util join($['\n']) => $item)
+                    
+        $(for item in output.tests join($['\n']) => $item)
     }
-    .to_test_file(primitive)
+    .to_testfile(primitive.as_str())
 }
 
+
+impl PrimitiveTestMod {
+    fn push_tests_for_vector(&mut self, primitive: impl Into<Primitive>, mut f: impl FnMut(Length, Simdness) -> Tokens) {
+        let primitive = primitive.into();
+
+        for length in Length::iter() {
+            for simdness in Simdness::iter() {
+                if !primitive.is_primary() && !(length == Length::Four && simdness == Simdness::Simd) {
+                    continue;
+                }
+
+                self.tests.push(f(length, simdness))
+            }
+        }
+    }
+}

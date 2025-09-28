@@ -1,8 +1,9 @@
-use genco::{lang::rust::Tokens, quote};
+use genco::quote;
+use strum::IntoEnumIterator;
 
 use crate::{
-    constants::{COMPONENTS, LENGTHS},
-    vector::primitives::{PrimitiveSint, PrimitiveSrcMod, PrimitiveUint},
+    code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod},
+    iter::{Length, PrimitiveSint, PrimitiveUint},
 };
 
 pub fn push_src(primitive: PrimitiveSint, output: &mut PrimitiveSrcMod) {
@@ -58,19 +59,17 @@ pub fn push_src(primitive: PrimitiveSint, output: &mut PrimitiveSrcMod) {
             const NEG_ONE: Self = -1;
 
             $(
-                for &n in LENGTHS join($['\r']) =>
+                for n in Length::iter() join($['\r']) =>
 
                 const VEC$(n)_NEG_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([-1; $n]);
             )
 
             $(
-                for &n in LENGTHS join($['\n']) => $(
-                    for i in 0..n join($['\r']) =>
+                for n in Length::iter() join($['\n']) => $(
+                    for axis in n.axes() join($['\r']) =>
 
-                    $(let component = COMPONENTS[i].to_uppercase())
-
-                    const VEC$(n)_NEG_$(component): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for i2 in 0..n join(, ) => $(if i2 == i { -1 } else { 0 })
+                    const VEC$(n)_NEG_$(axis.uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
+                        for axis2 in n.axes() join(, ) => $(if axis2 == axis { -1 } else { 0 })
                     )]);
                 )
             )
@@ -78,4 +77,4 @@ pub fn push_src(primitive: PrimitiveSint, output: &mut PrimitiveSrcMod) {
     });
 }
 
-pub fn push_tests(_n: usize, _primitive: &str, _is_simd: bool, _tests: &mut Vec<Tokens>) {}
+pub fn push_tests(_primitive: PrimitiveSint, _output: &mut PrimitiveTestMod) {}

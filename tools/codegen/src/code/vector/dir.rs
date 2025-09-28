@@ -1,15 +1,13 @@
 use genco::{quote, tokens::quoted};
+use strum::IntoEnumIterator;
 
-use crate::{
-    constants::{COMPONENTS, DIRECTIONS_A, DIRECTIONS_B, LENGTHS},
-    module::{SrcFile, TokensExt},
-};
+use crate::{backend::{SrcFile, TokensExt}, iter::{DirectionAxis, Length}};
 
-pub fn src_mod() -> SrcFile {
+pub fn srcmod() -> SrcFile {
     quote! {
         use core::mem::transmute_copy;
 
-        use crate::{Usize, Scalar, Simdness, Simd, NonSimd, VecLen, Vector, $(for &n in LENGTHS join(, ) => Vec$(n))};
+        use crate::{Usize, Scalar, Simdness, Simd, NonSimd, VecLen, Vector, $(for n in Length::iter() join(, ) => Vec$(n))};
 
         $("/// A trait for scalar types that have a `0` value.")
         $("///")
@@ -20,7 +18,7 @@ pub fn src_mod() -> SrcFile {
             const ZERO: Self;
 
             $(
-                for &n in LENGTHS join($['\r']) =>
+                for n in Length::iter() join($['\r']) =>
 
                 $(format!("/// A vec{n} of all `0`s."))
                 $("/// This only exists because Rust const traits aren't stable yet.")
@@ -37,18 +35,18 @@ pub fn src_mod() -> SrcFile {
             const ONE: Self;
 
             $(
-                for &n in LENGTHS join($['\n']) =>
+                for n in Length::iter() join($['\n']) =>
 
                 $(format!("/// A vec{n} of all `1`s."))
                 $("/// This only exists because Rust const traits aren't stable yet.")
                 const VEC$(n)_ONE: Vec$(n)<Self>;
 
                 $(
-                    for i in 0..n join($['\r']) =>
+                    for axis in n.axes() join($['\r']) =>
 
-                    $(format!("/// A vec{n} that points to the positive `{}` direction with magnitude `1`.", COMPONENTS[i]))
+                    $(format!("/// A vec{n} that points to the positive `{}` direction with magnitude `1`.", axis.lowercase_str()))
                     $("/// This only exists because Rust const traits aren't stable yet.")
-                    const VEC$(n)_$(COMPONENTS[i].to_uppercase()): Vec$(n)<Self>;
+                    const VEC$(n)_$(axis.uppercase_str()): Vec$(n)<Self>;
                 )
             )
         }
@@ -62,18 +60,18 @@ pub fn src_mod() -> SrcFile {
             const NEG_ONE: Self;
 
             $(
-                for &n in LENGTHS join($['\n']) =>
+                for n in Length::iter() join($['\n']) =>
 
                 $(format!("/// A vec{n} of all `-1`s."))
                 $("/// This only exists because Rust const traits aren't stable yet.")
                 const VEC$(n)_NEG_ONE: Vec$(n)<Self>;
 
                 $(
-                    for i in 0..n join($['\r']) =>
+                    for axis in n.axes() join($['\r']) =>
 
-                    $(format!("/// A vec{n} that points to the negative `{}` direction with magnitude `1`.", COMPONENTS[i]))
+                    $(format!("/// A vec{n} that points to the negative `{}` direction with magnitude `1`.", axis.lowercase_str()))
                     $("/// This only exists because Rust const traits aren't stable yet.")
-                    const VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase()): Vec$(n)<Self>;
+                    const VEC$(n)_NEG_$(axis.uppercase_str()): Vec$(n)<Self>;
                 )
             )
         }
@@ -88,7 +86,7 @@ pub fn src_mod() -> SrcFile {
                     if S::IS_SIMD {
                         match N {
                             $(
-                                for &n in LENGTHS join($['\r']) =>
+                                for n in Length::iter() join($['\r']) =>
 
                                 $n => transmute_copy::<Vector<$n, T, Simd>, Vector<N, T, S>>(&T::VEC$(n)_ZERO),
                             )
@@ -111,7 +109,7 @@ pub fn src_mod() -> SrcFile {
                     if S::IS_SIMD {
                         match N {
                             $(
-                                for &n in LENGTHS join($['\r']) =>
+                                for n in Length::iter() join($['\r']) =>
 
                                 $n => transmute_copy::<Vector<$n, T, Simd>, Vector<N, T, S>>(&T::VEC$(n)_ONE),
                             )
@@ -134,7 +132,7 @@ pub fn src_mod() -> SrcFile {
                     if S::IS_SIMD {
                         match N {
                             $(
-                                for &n in LENGTHS join($['\r']) =>
+                                for n in Length::iter() join($['\r']) =>
 
                                 $n => transmute_copy::<Vector<$n, T, Simd>, Vector<N, T, S>>(&T::VEC$(n)_NEG_ONE),
                             )
@@ -148,18 +146,18 @@ pub fn src_mod() -> SrcFile {
         }
 
         $(
-            for &n in LENGTHS join($['\n']) =>
+            for n in Length::iter() join($['\n']) =>
 
             impl<T: ScalarOne, S: Simdness> Vector<$n, T, S> {$(
-                for i in 0..n join($['\n']) =>
+                for axis in n.axes() join($['\n']) =>
 
-                $(format!("/// A vector that points to the positive `{}` direction with magnitude `1`.", COMPONENTS[i]))
-                pub const $(COMPONENTS[i].to_uppercase()): Self = {
+                $(format!("/// A vector that points to the positive `{}` direction with magnitude `1`.", axis.lowercase_str()))
+                pub const $(axis.uppercase_str()): Self = {
                     unsafe {
                         if S::IS_SIMD {
-                            transmute_copy::<Vector<$n, T, Simd>, Vector<$n, T, S>>(&T::VEC$(n)_$(COMPONENTS[i].to_uppercase()))
+                            transmute_copy::<Vector<$n, T, Simd>, Vector<$n, T, S>>(&T::VEC$(n)_$(axis.uppercase_str()))
                         } else {
-                            transmute_copy::<Vector<$n, T, NonSimd>, Vector<$n, T, S>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::ONE } else { T::ZERO }))]))
+                            transmute_copy::<Vector<$n, T, NonSimd>, Vector<$n, T, S>>(&Vector([$(for axis2 in n.axes() join(, ) => $(if axis2 == axis { T::ONE } else { T::ZERO }))]))
                         }
                     }
                 };
@@ -167,18 +165,18 @@ pub fn src_mod() -> SrcFile {
         )
         
         $(
-            for &n in LENGTHS join($['\n']) =>
+            for n in Length::iter() join($['\n']) =>
 
             impl<T: ScalarNegOne, S: Simdness> Vector<$n, T, S> {$(
-                for i in 0..n join($['\n']) =>
+                for axis in n.axes() join($['\n']) =>
 
-                $(format!("/// A vector that points to the negative `{}` direction with magnitude `1`.", COMPONENTS[i]))
-                pub const NEG_$(COMPONENTS[i].to_uppercase()): Self = {
+                $(format!("/// A vector that points to the negative `{}` direction with magnitude `1`.", axis.lowercase_str()))
+                pub const NEG_$(axis.uppercase_str()): Self = {
                     unsafe {
                         if S::IS_SIMD {
-                            transmute_copy::<Vector<$n, T, Simd>, Vector<$n, T, S>>(&T::VEC$(n)_NEG_$(COMPONENTS[i].to_uppercase()))
+                            transmute_copy::<Vector<$n, T, Simd>, Vector<$n, T, S>>(&T::VEC$(n)_NEG_$(axis.uppercase_str()))
                         } else {
-                            transmute_copy::<Vector<$n, T, NonSimd>, Vector<$n, T, S>>(&Vector([$(for i2 in 0..n join(, ) => $(if i2 == i { T::NEG_ONE } else { T::ZERO }))]))
+                            transmute_copy::<Vector<$n, T, NonSimd>, Vector<$n, T, S>>(&Vector([$(for axis2 in n.axes() join(, ) => $(if axis2 == axis { T::NEG_ONE } else { T::ZERO }))]))
                         }
                     }
                 };
@@ -186,105 +184,88 @@ pub fn src_mod() -> SrcFile {
         )
 
         $(
-            for (((&dir_a_camelcase, &dir_b_camelcase), &axis), axis_index) in DIRECTIONS_A.iter().zip(DIRECTIONS_B.iter()).zip(COMPONENTS.iter()).zip(0..COMPONENTS.len()) join($['\n']) =>
+            for axis in DirectionAxis::iter() join($['\n']) =>
 
-            $(let dir_a_lower = &dir_a_camelcase.to_lowercase())
-            $(let dir_a_upper = &dir_a_camelcase.to_uppercase())
-            $(let dir_b_lower = &dir_b_camelcase.to_lowercase())
-            $(let dir_b_upper = &dir_b_camelcase.to_uppercase())
+            $(format!("/// `{}` and `{} constants where {} is positive and {} is negative.", axis.a_uppercase_str(), axis.b_uppercase_str(), axis.a_lowercase_str(), axis.b_lowercase_str()))
+            #[cfg(feature = $(quoted(axis.a_lowercase_str())))]
+            pub mod $(axis.a_lowercase_str()) {
+                use crate::{Construct, ScalarOne, ScalarNegOne, Simdness, Vector};
 
-            $(format!("/// `{dir_a_upper}` and `{dir_b_upper} constants where {dir_a_lower} is positive and {dir_b_lower} is negative."))
-            #[cfg(feature = $(quoted(dir_a_lower)))]
-            pub mod $dir_a_lower {
-                use crate::{
-                    Construct,
-                    ScalarOne,
-                    ScalarNegOne,
-                    Simdness,
-                    Vector,
-                };
-
-                $(format!("/// `{dir_a_upper}` constant where {dir_a_lower} is positive and {dir_b_lower} is negative."))
-                pub trait Positive$(dir_a_camelcase): Construct {
-                    $(format!("/// A value that points {dir_a_lower} with a magnitude of one,"))
-                    $(format!("/// where {dir_a_lower} is positive and {dir_b_lower} is negative."))
-                    const $dir_a_upper: Self;
+                $(format!("/// `{}` constant where {} is positive and {} is negative.", axis.a_uppercase_str(), axis.a_lowercase_str(), axis.b_lowercase_str()))
+                pub trait Positive$(axis.a_camelcase_str()): Construct {
+                    $(format!("/// A value that points {} with a magnitude of one,", axis.a_lowercase_str()))
+                    $(format!("/// where {} is positive and {} is negative.", axis.a_lowercase_str(), axis.b_lowercase_str()))
+                    const $(axis.a_uppercase_str()): Self;
                 }
 
-                $(format!("/// `{dir_b_upper}` constant where {dir_a_lower} is positive and {dir_b_lower} is negative."))
-                pub trait Negative$(dir_b_camelcase): Construct {
-                    $(format!("/// A value that points {dir_b_lower} with a magnitude of one,"))
-                    $(format!("/// where {dir_a_lower} is positive and {dir_b_lower} is negative."))
-                    const $dir_b_upper: Self;
+                $(format!("/// `{}` constant where {} is positive and {} is negative.", axis.b_uppercase_str(), axis.a_lowercase_str(), axis.b_lowercase_str()))
+                pub trait Negative$(axis.b_camelcase_str()): Construct {
+                    $(format!("/// A value that points {} with a magnitude of one,", axis.b_lowercase_str()))
+                    $(format!("/// where {} is positive and {} is negative.", axis.a_lowercase_str(), axis.b_lowercase_str()))
+                    const $(axis.b_uppercase_str()): Self;
                 }
 
-                impl<T: ScalarOne> Positive$(dir_a_camelcase) for T {
-                    const $dir_a_upper: Self = Self::ONE;
+                impl<T: ScalarOne> Positive$(axis.a_camelcase_str()) for T {
+                    const $(axis.a_uppercase_str()): Self = Self::ONE;
                 }
                 
-                impl<T: ScalarNegOne> Negative$(dir_b_camelcase) for T {
-                    const $dir_b_upper: Self = Self::NEG_ONE;
+                impl<T: ScalarNegOne> Negative$(axis.b_camelcase_str()) for T {
+                    const $(axis.b_uppercase_str()): Self = Self::NEG_ONE;
                 }
 
                 $(
-                    for &n in LENGTHS.iter().filter(|&&n| n > axis_index) join($['\n']) =>
+                    for n in Length::iter().filter(|n| n.has_axis(axis)) join($['\n']) =>
 
-                    impl<T: ScalarOne, S: Simdness> Positive$(dir_a_camelcase) for Vector<$n, T, S> {
-                        const $dir_a_upper: Self = Self::$(axis.to_uppercase());
+                    impl<T: ScalarOne, S: Simdness> Positive$(axis.a_camelcase_str()) for Vector<$n, T, S> {
+                        const $(axis.a_uppercase_str()): Self = Self::$(axis.uppercase_str());
                     }
 
-                    impl<T: ScalarNegOne, S: Simdness> Negative$(dir_b_camelcase) for Vector<$n, T, S> {
-                        const $dir_b_upper: Self = Self::NEG_$(axis.to_uppercase());
+                    impl<T: ScalarNegOne, S: Simdness> Negative$(axis.b_camelcase_str()) for Vector<$n, T, S> {
+                        const $(axis.b_uppercase_str()): Self = Self::NEG_$(axis.uppercase_str());
                     }
                 )
             }
 
-            $(format!("/// `{dir_a_upper}` and `{dir_b_upper} constants where {dir_b_lower} is positive and {dir_a_lower} is negative."))
-            #[cfg(feature = $(quoted(dir_b_lower)))]
-            pub mod $dir_b_lower {
-                use crate::{
-                    Construct,
-                    ScalarOne,
-                    ScalarNegOne,
-                    Simdness,
-                    Vector,
-                };
+            $(format!("/// `{}` and `{} constants where {} is positive and {} is negative.", axis.a_uppercase_str(), axis.b_uppercase_str(), axis.b_lowercase_str(), axis.a_lowercase_str()))
+            #[cfg(feature = $(quoted(axis.b_lowercase_str())))]
+            pub mod $(axis.b_lowercase_str()) {
+                use crate::{Construct, ScalarOne, ScalarNegOne, Simdness, Vector};
 
-                $(format!("/// `{dir_a_upper}` constant where {dir_b_lower} is positive and {dir_a_lower} is negative."))
-                pub trait Negative$(dir_a_camelcase): Construct {
-                    $(format!("/// A value that points {dir_a_lower} with a magnitude of one,"))
-                    $(format!("/// where {dir_b_lower} is positive and {dir_a_lower} is negative."))
-                    const $dir_a_upper: Self;
+                $(format!("/// `{}` constant where {} is positive and {} is negative.", axis.a_uppercase_str(), axis.b_lowercase_str(), axis.a_lowercase_str()))
+                pub trait Negative$(axis.a_camelcase_str()): Construct {
+                    $(format!("/// A value that points {} with a magnitude of one,", axis.a_lowercase_str()))
+                    $(format!("/// where {} is positive and {} is negative.", axis.b_lowercase_str(), axis.a_lowercase_str()))
+                    const $(axis.a_uppercase_str()): Self;
                 }
 
-                $(format!("/// `{dir_b_upper}` constant where {dir_b_lower} is positive and {dir_a_lower} is negative."))
-                pub trait Positive$(dir_b_camelcase): Construct {
-                    $(format!("/// A value that points {dir_b_lower} with a magnitude of one,"))
-                    $(format!("/// where {dir_b_lower} is positive and {dir_a_lower} is negative."))
-                    const $dir_b_upper: Self;
+                $(format!("/// `{}` constant where {} is positive and {} is negative.", axis.b_uppercase_str(), axis.b_lowercase_str(), axis.a_lowercase_str()))
+                pub trait Positive$(axis.b_camelcase_str()): Construct {
+                    $(format!("/// A value that points {} with a magnitude of one,", axis.b_lowercase_str()))
+                    $(format!("/// where {} is positive and {} is negative.", axis.b_lowercase_str(), axis.a_lowercase_str()))
+                    const $(axis.b_uppercase_str()): Self;
                 }
 
-                impl<T: ScalarNegOne> Negative$(dir_a_camelcase) for T {
-                    const $dir_a_upper: Self = Self::NEG_ONE;
+                impl<T: ScalarNegOne> Negative$(axis.a_camelcase_str()) for T {
+                    const $(axis.a_uppercase_str()): Self = Self::NEG_ONE;
                 }
                 
-                impl<T: ScalarOne> Positive$(dir_b_camelcase) for T {
-                    const $dir_b_upper: Self = Self::ONE;
+                impl<T: ScalarOne> Positive$(axis.b_camelcase_str()) for T {
+                    const $(axis.b_uppercase_str()): Self = Self::ONE;
                 }
 
                 $(
-                    for &n in LENGTHS.iter().filter(|&&n| n > axis_index) join($['\n']) =>
+                    for n in Length::iter().filter(|n| n.has_axis(axis)) join($['\n']) =>
 
-                    impl<T: ScalarNegOne, S: Simdness> Negative$(dir_a_camelcase) for Vector<$n, T, S> {
-                        const $dir_a_upper: Self = Self::NEG_$(axis.to_uppercase());
+                    impl<T: ScalarNegOne, S: Simdness> Negative$(axis.a_camelcase_str()) for Vector<$n, T, S> {
+                        const $(axis.a_uppercase_str()): Self = Self::NEG_$(axis.uppercase_str());
                     }
 
-                    impl<T: ScalarOne, S: Simdness> Positive$(dir_b_camelcase) for Vector<$n, T, S> {
-                        const $dir_b_upper: Self = Self::$(axis.to_uppercase());
+                    impl<T: ScalarOne, S: Simdness> Positive$(axis.b_camelcase_str()) for Vector<$n, T, S> {
+                        const $(axis.b_uppercase_str()): Self = Self::$(axis.uppercase_str());
                     }
                 )
             }
         )
     }
-    .to_src_file("dir")
+    .to_srcfile("dir")
 }

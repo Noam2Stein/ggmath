@@ -5,7 +5,7 @@ use crate::{
     primitives::Primitive,
 };
 
-pub fn src_mod() -> SrcDir {
+pub fn srcmod() -> SrcDir {
     quote! {
         $(
             for primitive in Primitive::iter() =>

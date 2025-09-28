@@ -1,187 +1,181 @@
 use genco::quote;
+use strum::IntoEnumIterator;
 
-use crate::{
-    constants::{BINARY_OPS, LENGTHS, UNARY_OPS},
-    module::{SrcFile, TokensExt},
-};
+use crate::{backend::{SrcFile, TokensExt}, iter::{BinOp, Length, UnOp}};
 
-pub fn src_mod() -> SrcFile {
+pub fn srcmod() -> SrcFile {
     quote! {
         use std::ops::*;
 
         use crate::{specialize, Scalar, Usize, Simdness, Simd, VecLen, Vector};
 
         $(
-            for &op_camelcase in UNARY_OPS =>
+            for op in UnOp::iter() =>
 
-            $(let op_snakecase = &op_camelcase.to_lowercase())
-
-            impl<const N: usize, T: Scalar + $op_camelcase<Output: Scalar>, S: Simdness> $op_camelcase for Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<Output: Scalar>, S: Simdness> $(op.camelcase_str()) for Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self) -> Self::Output {
+                fn $(op.lowercase_str())(self) -> Self::Output {
                     specialize! {
                         (self: Vector<N, T, S>) -> Vector<N, T::Output, S>:
 
                         $(
-                            for &n in LENGTHS join($['\r']) =>
+                            for n in Length::iter() join($['\r']) =>
 
                             for (Vector<$n, T, Simd>) -> Vector<$n, T::Output, Simd> {
-                                |vec| T::vec$(n)_$(op_snakecase)(vec)
+                                |vec| T::vec$(n)_$(op.lowercase_str())(vec)
                             }
                         )
                         else {
-                            self.map(|v| v.$op_snakecase())
+                            self.map(|v| v.$(op.lowercase_str())())
                         }
                     }                    
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<Output: Scalar>, S: Simdness> $op_camelcase for &Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<Output: Scalar>, S: Simdness> $(op.camelcase_str()) for &Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self) -> Self::Output {
-                    (*self).$op_snakecase()
+                fn $(op.lowercase_str())(self) -> Self::Output {
+                    (*self).$(op.lowercase_str())()
                 }
             }
         )
 
         $(
-            for &op_camelcase in BINARY_OPS =>
+            for op in BinOp::iter() =>
 
-            $(let op_snakecase = &op_camelcase.to_lowercase())
-
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-                $op_camelcase<Vector<N, T2, S>> for Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output: Scalar>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())<Vector<N, T2, S>> for Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: Vector<N, T2, S>) -> Self::Output {
+                fn $(op.lowercase_str())(self, rhs: Vector<N, T2, S>) -> Self::Output {
                     specialize! {
                         (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
                         
                         $(
-                            for &n in LENGTHS join($['\r']) =>
+                            for n in Length::iter() join($['\r']) =>
                             
                             for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> Vector<$n, T::Output, Simd> {
-                                |vec, rhs| T::vec$(n)_$(op_snakecase)(vec, rhs)
+                                |vec, rhs| T::vec$(n)_$(op.lowercase_str())(vec, rhs)
                             }
                         )
                         else {
-                            Vector::from_fn(|i| self.index(i).$op_snakecase(rhs.index(i)))
+                            Vector::from_fn(|i| self.index(i).$(op.lowercase_str())(rhs.index(i)))
                         }
                     }
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-                $op_camelcase<Vector<N, T2, S>> for &Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output: Scalar>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())<Vector<N, T2, S>> for &Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: Vector<N, T2, S>) -> Self::Output {
-                    (*self).$op_snakecase(rhs)
+                fn $(op.lowercase_str())(self, rhs: Vector<N, T2, S>) -> Self::Output {
+                    (*self).$(op.lowercase_str())(rhs)
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-                $op_camelcase<&Vector<N, T2, S>> for Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output: Scalar>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())<&Vector<N, T2, S>> for Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-                    self.$op_snakecase(*rhs)
+                fn $(op.lowercase_str())(self, rhs: &Vector<N, T2, S>) -> Self::Output {
+                    self.$(op.lowercase_str())(*rhs)
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-                $op_camelcase<&Vector<N, T2, S>> for &Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output: Scalar>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())<&Vector<N, T2, S>> for &Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-                    (*self).$op_snakecase(*rhs)
+                fn $(op.lowercase_str())(self, rhs: &Vector<N, T2, S>) -> Self::Output {
+                    (*self).$(op.lowercase_str())(*rhs)
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, S: Simdness, T2: Scalar>
-                $(op_camelcase)Assign<Vector<N, T2, S>> for Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output = T>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())Assign<Vector<N, T2, S>> for Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 #[inline(always)]
-                fn $(op_snakecase)_assign(&mut self, rhs: Vector<N, T2, S>) {
-                    *self = (*self).$op_snakecase(rhs);
+                fn $(op.lowercase_str())_assign(&mut self, rhs: Vector<N, T2, S>) {
+                    *self = (*self).$(op.lowercase_str())(rhs);
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, S: Simdness, T2: Scalar>
-                $(op_camelcase)Assign<&Vector<N, T2, S>> for Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output = T>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())Assign<&Vector<N, T2, S>> for Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 #[inline(always)]
-                fn $(op_snakecase)_assign(&mut self, rhs: &Vector<N, T2, S>) {
-                    self.$(op_snakecase)_assign(*rhs);
+                fn $(op.lowercase_str())_assign(&mut self, rhs: &Vector<N, T2, S>) {
+                    self.$(op.lowercase_str())_assign(*rhs);
                 }
             }
             
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-                $op_camelcase<T2> for Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output: Scalar>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())<T2> for Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: T2) -> Self::Output {
-                    self.$op_snakecase(Vector::<N, T2, S>::splat(rhs))
+                fn $(op.lowercase_str())(self, rhs: T2) -> Self::Output {
+                    self.$(op.lowercase_str())(Vector::<N, T2, S>::splat(rhs))
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-                $op_camelcase<T2> for &Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output: Scalar>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())<T2> for &Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 type Output = Vector<N, T::Output, S>;
 
                 #[inline(always)]
-                fn $op_snakecase(self, rhs: T2) -> Self::Output {
-                    (*self).$op_snakecase(rhs)
+                fn $(op.lowercase_str())(self, rhs: T2) -> Self::Output {
+                    (*self).$(op.lowercase_str())(rhs)
                 }
             }
 
-            impl<const N: usize, T: Scalar + $op_camelcase<T2, Output = T>, S: Simdness, T2: Scalar>
-                $(op_camelcase)Assign<T2> for Vector<N, T, S>
+            impl<const N: usize, T: Scalar + $(op.camelcase_str())<T2, Output = T>, S: Simdness, T2: Scalar>
+                $(op.camelcase_str())Assign<T2> for Vector<N, T, S>
             where
                 Usize<N>: VecLen,
             {
                 #[inline(always)]
-                fn $(op_snakecase)_assign(&mut self, rhs: T2) {
-                    *self = (*self).$op_snakecase(rhs);
+                fn $(op.lowercase_str())_assign(&mut self, rhs: T2) {
+                    *self = (*self).$(op.lowercase_str())(rhs);
                 }
             }
         )
-    }.to_src_file("ops")
+    }.to_srcfile("ops")
 }

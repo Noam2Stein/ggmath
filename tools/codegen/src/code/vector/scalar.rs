@@ -1,18 +1,13 @@
 use genco::quote;
+use strum::IntoEnumIterator;
 
-use crate::{
-    constants::{
-        BINARY_OPS, COMPARISON_OP_TOKENS, COMPARISON_OP_TRAITS, COMPARISON_OPS, COMPONENTS,
-        LENGTHS, UNARY_OPS,
-    },
-    module::{SrcFile, TokensExt},
-};
+use crate::{backend::{SrcFile, TokensExt}, iter::{BinOp, CmpOp, Length, UnOp}};
 
-pub fn src_mod() -> SrcFile {
+pub fn srcmod() -> SrcFile {
     quote! {
         use std::ops::*;
 
-        use crate::{Construct, Vector, $(for &n in LENGTHS join(, ) => Vec$(n))};
+        use crate::{Construct, Vector, $(for n in Length::iter() join(, ) => Vec$(n))};
 
         $("/// Trait for types that can be put inside [`Vector`].")
         $("/// This is only implemented for actual scalar types (e.g., `f32`),")
@@ -34,14 +29,10 @@ pub fn src_mod() -> SrcFile {
         $("/// impl Scalar for MyInt {")
         $("///     // If we wanted to SIMD-accelerate this scalar type,")
         $("///     // we would use another SIMD type like from `std::arch`, `ggmath`, `glam`, etc.")
-        $(
-            for &n in LENGTHS =>
-
-            $(format!("///     type InnerSimdVec{n} = [MyInt; {n}];"))$['\r']
-        )
+        $(for n in Length::iter() => $(format!("///     type InnerSimdVec{n} = [MyInt; {n}];"))$['\r'])
         $("///")
         $(
-            for &n in LENGTHS join($['\r']$("///")$['\r']) =>
+            for n in Length::iter() join($['\r']$("///")$['\r']) =>
 
             $("///     #[inline(always)]")
             $(format!("///     fn vec{n}_from_array(array: [MyInt; {n}]) -> Vec{n}<MyInt> {{"))
@@ -50,7 +41,7 @@ pub fn src_mod() -> SrcFile {
         )
         $("///")
         $(
-            for &n in LENGTHS join($['\r']$("///")$['\r']) =>
+            for n in Length::iter() join($['\r']$("///")$['\r']) =>
 
             $("///     #[inline(always)]")
             $(format!("///     fn vec{n}_as_array(vec: Vec{n}<MyInt>) -> [MyInt; {n}] {{"))
@@ -61,14 +52,14 @@ pub fn src_mod() -> SrcFile {
         $("/// ```")
         pub trait Scalar: Construct {
             $(
-                for &n in LENGTHS join($['\n']) =>
+                for n in Length::iter() join($['\n']) =>
 
                 $(format!("/// The inner type contained inside `Vector<{n}, Self, Simd>`."))
                 type InnerSimdVec$(n): Construct;
             )
 
             $(
-                for &n in LENGTHS join($['\n']) =>
+                for n in Length::iter() join($['\n']) =>
 
                 $(format!("/// Constructs a simd vec{n} from an array."))
                 fn vec$(n)_from_array(array: [Self; $n]) -> Vec$(n)<Self>;
@@ -78,7 +69,7 @@ pub fn src_mod() -> SrcFile {
             )
 
             $(
-                for &n in LENGTHS join($['\n']) =>
+                for n in Length::iter() join($['\n']) =>
 
                 $(format!("/// Overridable implementation of `Vector::splat` for simd vec{n}s."))
                 #[inline(always)]
@@ -102,26 +93,26 @@ pub fn src_mod() -> SrcFile {
                 }
 
                 $(
-                    for &n2 in LENGTHS join($['\n']) =>
+                    for n2 in Length::iter() join($['\n']) =>
 
                     $(format!("/// Overridable implementation of `Vector::shuffle_{n2}` for simd vec{n}s."))
                     #[inline(always)]
-                    fn vec$(n)_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
-                        Vec$(n2)::from_array([$(for i in 0..n2 join(, ) => vec.index($(COMPONENTS[i].to_uppercase())_SRC))])
+                    fn vec$(n)_shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_SRC: usize)>(vec: Vec$(n)<Self>) -> Vec$(n2)<Self> {
+                        Vec$(n2)::from_array([$(for axis in n2.axes() join(, ) => vec.index($(axis.uppercase_str())_SRC))])
                     }
                 )
 
                 $(
-                    for &n2 in LENGTHS.iter().filter(|&&n2| n2 <= n) join($['\n']) =>
+                    for n2 in Length::iter().filter(|&n2| n2 <= n) join($['\n']) =>
 
                     $(format!("/// Overridable implementation of `Vector::with_{n2}` for simd vec{n}s."))
                     #[inline(always)]
-                    fn vec$(n)_with_shuffle_$(n2)<$(for i in 0..n2 join(, ) => const $(COMPONENTS[i].to_uppercase())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
+                    fn vec$(n)_with_shuffle_$(n2)<$(for axis in n2.axes() join(, ) => const $(axis.uppercase_str())_DST: usize)>(vec: Vec$(n)<Self>, value: Vec$(n2)<Self>) -> Vec$(n)<Self> {
                         let mut output = vec;
                         $(
-                            for i in 0..n2 =>
+                            for axis in n2.axes() =>
 
-                            output.set($(COMPONENTS[i].to_uppercase())_DST, value.index($i));
+                            output.set($(axis.uppercase_str())_DST, value.index($(axis.as_usize())));
                             $['\r']
                         )
 
@@ -148,49 +139,41 @@ pub fn src_mod() -> SrcFile {
                 }
 
                 $(
-                    for &op_camelcase in UNARY_OPS join($['\n']) =>
+                    for op in UnOp::iter() join($['\n']) =>
 
-                    $(let op_snakecase = &op_camelcase.to_lowercase())
-
-                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for simd vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::{}` for simd vec{n}s.", op.lowercase_str()))
                     #[inline(always)]
-                    fn vec$(n)_$(op_snakecase)(vec: Vec$(n)<Self>) -> Vec$(n)<<Self as $op_camelcase>::Output>
+                    fn vec$(n)_$(op.lowercase_str())(vec: Vec$(n)<Self>) -> Vec$(n)<<Self as $(op.camelcase_str())>::Output>
                     where
-                        Self: $op_camelcase<Output: Scalar>,
+                        Self: $(op.camelcase_str())<Output: Scalar>,
                     {
-                        vec.map(|v| v.$op_snakecase())
+                        vec.map(|v| v.$(op.lowercase_str())())
                     }
                 )
 
                 $(
-                    for &op_camelcase in BINARY_OPS join($['\n']) =>
+                    for op in BinOp::iter() join($['\n']) =>
 
-                    $(let op_snakecase = &op_camelcase.to_lowercase())
-
-                    $(format!("/// Overridable implementation of `Vector::{op_snakecase}` for simd vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::{}` for simd vec{n}s.", op.lowercase_str()))
                     #[inline(always)]
-                    fn vec$(n)_$(op_snakecase)<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> Vec$(n)<<Self as $op_camelcase<T2>>::Output>
+                    fn vec$(n)_$(op.lowercase_str())<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> Vec$(n)<<Self as $(op.camelcase_str())<T2>>::Output>
                     where
-                        Self: $op_camelcase<T2, Output: Scalar>,
+                        Self: $(op.camelcase_str())<T2, Output: Scalar>,
                     {
-                        Vector::from_fn(|i| vec.index(i).$op_snakecase(other.index(i)))
+                        Vector::from_fn(|i| vec.index(i).$(op.lowercase_str())(other.index(i)))
                     }
                 )
 
                 $(
-                    for cmp_op_idx in 0..COMPARISON_OPS.len() join($['\n']) =>
+                    for op in CmpOp::iter() join($['\n']) =>
 
-                    $(let cmp_lower = COMPARISON_OPS[cmp_op_idx])
-                    $(let cmp_tt = COMPARISON_OP_TOKENS[cmp_op_idx])
-                    $(let cmp_trait = COMPARISON_OP_TRAITS[cmp_op_idx])
-
-                    $(format!("/// Overridable implementation of `Vector::{cmp_lower}_mask` for simd vec{n}s."))
+                    $(format!("/// Overridable implementation of `Vector::{}_mask` for simd vec{n}s.", op.lowercase_str()))
                     #[inline(always)]
-                    fn vec$(n)_$(cmp_lower)_mask<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> Vec$(n)<bool>
+                    fn vec$(n)_$(op.lowercase_str())_mask<T2: Scalar>(vec: Vec$(n)<Self>, other: Vec$(n)<T2>) -> Vec$(n)<bool>
                     where
-                        Self: $cmp_trait<T2>,
+                        Self: $(op.trait_str())<T2>,
                     {
-                        Vector::from_fn(|i| vec.index(i) $cmp_tt other.index(i))
+                        Vector::from_fn(|i| vec.index(i) $(op.punct_str()) other.index(i))
                     }
                 )
 
@@ -214,5 +197,5 @@ pub fn src_mod() -> SrcFile {
             )
         }
     }
-    .to_src_file("scalar")
+    .to_srcfile("scalar")
 }
