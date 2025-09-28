@@ -2,8 +2,11 @@ use genco::{
     lang::rust::{import, Tokens},
     quote, tokens::quoted,
 };
+use strum::IntoEnumIterator;
 
-use crate::{code::vector::primitives::PrimitiveTestMod, constants::LENGTHS, primitives::{Primitive, PrimitiveFloat, PrimitiveInt}, vector::primitives::PrimitiveSrcMod};
+use crate::{code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod}, iter::{Length, Primitive, Simdness}};
+
+
 
 pub fn push_src(
     primitive: Primitive,
@@ -11,8 +14,6 @@ pub fn push_src(
 ) {
     output.impl_items.push(quote! {
         $("// The following code is generated for all primitives")
-
-        $(let transmute_copy = &import("core::mem", "transmute_copy"))
 
         $("/// Variation of `Vector::from_array` that is `const`.")
         $("/// This may be slower than `Vector::from_array`.")
@@ -24,13 +25,13 @@ pub fn push_src(
                 if S::IS_SIMD {
                     match N {
                         $(
-                            for &n in LENGTHS join($['\r']) =>
+                            for n in Length::iter() join($['\r']) =>
 
                             $n => {
-                                let array = $transmute_copy::<[$primitive; N], [$primitive; $n]>(&array);
+                                let array = transmute_copy::<[$primitive; N], [$primitive; $n]>(&array);
                                 let vec = Vector::<$n, _, _>(array);
 
-                                $transmute_copy::<
+                                transmute_copy::<
                                     Vector<$n, $primitive, Simd>,
                                     Vector<N, $primitive, S>,
                                 >(&vec)
@@ -39,7 +40,7 @@ pub fn push_src(
                         _ => panic!("unusual vector type")
                     }
                 } else {
-                    $transmute_copy::<
+                    transmute_copy::<
                         Vector<N, $primitive, NonSimd>,
                         Vector<N, $primitive, S>,
                     >(&Vector(array))
@@ -59,10 +60,10 @@ pub fn push_src(
 
     output.trait_impls.push(quote! {
         impl Scalar for $primitive {
-            $(for &n in LENGTHS join($['\r']) => type InnerSimdVec$(n) = [$primitive; $n];)
+            $(for n in Length::iter() join($['\r']) => type InnerSimdVec$(n) = [$primitive; $n];)
 
             $(
-                for &n in LENGTHS join($['\n']) =>
+                for n in Length::iter() join($['\n']) =>
 
                 #[inline(always)]
                 fn vec$(n)_from_array(array: [$primitive; $n]) -> Vec$(n)<$primitive> {
@@ -96,202 +97,194 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             Primitive::Bool => ["true".to_string(), "false".to_string()].into_iter().cycle().take(n.as_usize()).collect::<Vec<String>>(),
         })
         $(let values2_str = &values2.join(", "))
-    });
-
-    output.tests.push(quote! {
-        $("// The following code is generated for all primitives")
 
         $(
-            if !is_simd =>
+            if s == Simdness::NonSimd =>
 
             const _: () = assert!(size_of::<$vec_camelcase<$primitive>>() == size_of::<[$primitive; $n]>());
         )
 
         #[test]
-        fn test_$(vec_snakecase)_constructor() {
+        fn test_$(vec_lowercase)_constructor() {
             $(match n {
-                2 => {
-                    assert_eq!($vec_snakecase!($values_str), $vec_camelcase::from_array([$values_str]));
-                    assert_eq!($vec_snakecase!($vec_snakecase!($values_str)), $vec_camelcase::from_array([$values_str]));
+                Length::Two => {
+                    assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
+                    assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
                 }
-                3 => {
-                    assert_eq!($vec_snakecase!($values_str), $vec_camelcase::from_array([$values_str]));
-                    assert_eq!($vec_snakecase!($(&values[0]), vec2$(s_postfix_lowercase)!($(&values[1]), $(&values[2]))), $vec_camelcase::from_array([$values_str]));
-                    assert_eq!($vec_snakecase!($vec_snakecase!($values_str)), $vec_camelcase::from_array([$values_str]));
+                Length::Three => {
+                    assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
+                    assert_eq!($vec_lowercase!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2]))), $vec_camelcase::from_array([$values_str]));
+                    assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
                 }
-                4 => {
-                    assert_eq!($vec_snakecase!($values_str), $vec_camelcase::from_array([$values_str]));
-                    assert_eq!($vec_snakecase!($(&values[0]), vec2$(s_postfix_lowercase)!($(&values[1]), $(&values[2])), $(&values[3])), $vec_camelcase::from_array([$values_str]));
-                    assert_eq!($vec_snakecase!($vec_snakecase!($values_str)), $vec_camelcase::from_array([$values_str]));
+                Length::Four => {
+                    assert_eq!($vec_lowercase!($values_str), $vec_camelcase::from_array([$values_str]));
+                    assert_eq!($vec_lowercase!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2])), $(&values[3])), $vec_camelcase::from_array([$values_str]));
+                    assert_eq!($vec_lowercase!($vec_lowercase!($values_str)), $vec_camelcase::from_array([$values_str]));
                 }
-                _ => compile_error!("unhandled vector length"),
             })
         }
 
         #[test]
-        fn test_$(vec_snakecase)_as_simd() {
-            assert_eq!($vec_snakecase!($values_str).as_simd(), vec$(n)!($values_str));
+        fn test_$(vec_lowercase)_as_simd() {
+            assert_eq!($vec_lowercase!($values_str).as_simd(), vec$(n)!($values_str));
         }
 
         #[test]
-        fn test_$(vec_snakecase)_as_non_simd() {
-            assert_eq!($vec_snakecase!($values_str).as_non_simd(), vec$(n)s!($values_str));
+        fn test_$(vec_lowercase)_as_non_simd() {
+            assert_eq!($vec_lowercase!($values_str).as_non_simd(), vec$(n)s!($values_str));
         }
 
         #[test]
-        fn test_$(vec_snakecase)_from_array_as_array() {
+        fn test_$(vec_lowercase)_from_array_as_array() {
             assert_eq!($vec_camelcase::from_array([$values_str]).as_array(), [$values_str]);
         }
 
         #[test]
-        fn test_$(vec_snakecase)_splat() {
-            assert_eq!($vec_camelcase::splat($(&values[0])), $vec_snakecase!($(for _ in 0..n join(, ) => $(&values[0]))));
+        fn test_$(vec_lowercase)_splat() {
+            assert_eq!($vec_camelcase::splat($(&values[0])), $vec_lowercase!($(for _ in 0..n join(, ) => $(&values[0]))));
         }
 
         #[test]
-        fn test_$(vec_snakecase)_index() {
+        fn test_$(vec_lowercase)_index() {
             $(
-                for i in 0..n join($['\r']) =>
+                for i in 0..n.as_usize() join($['\r']) =>
 
-                assert_eq!($vec_snakecase!($values_str).index($i), $(&values[i]));
+                assert_eq!($vec_lowercase!($values_str).index($i), $(&values[i]));
             )
         }
 
         #[test]
         #[should_panic]
-        fn test_$(vec_snakecase)_index_panic() {
-            $vec_snakecase!($values_str).index($n);
+        fn test_$(vec_lowercase)_index_panic() {
+            $vec_lowercase!($values_str).index($n);
         }
 
         #[test]
-        fn test_$(vec_snakecase)_get() {
+        fn test_$(vec_lowercase)_get() {
             $(
                 for i in 0..n join($['\r']) =>
 
-                assert_eq!($vec_snakecase!($values_str).get($i), Some($(&values[i])));
+                assert_eq!($vec_lowercase!($values_str).get($i), Some($(&values[i])));
             )
 
-            assert_eq!($vec_snakecase!($values_str).get($n), None);
+            assert_eq!($vec_lowercase!($values_str).get($n), None);
         }
 
         #[test]
-        fn test_$(vec_snakecase)_get_unchecked() {
+        fn test_$(vec_lowercase)_get_unchecked() {
             unsafe {
                 $(
-                    for i in 0..n join($['\r']) =>
+                    for i in 0..n.as_usize() join($['\r']) =>
 
-                    assert_eq!($vec_snakecase!($values_str).get_unchecked($i), $(&values[i]));
+                    assert_eq!($vec_lowercase!($values_str).get_unchecked($i), $(&values[i]));
                 )
             }
         }
 
         #[test]
-        fn test_$(vec_snakecase)_set() {
+        fn test_$(vec_lowercase)_set() {
             $(
-                for i in 0..n join($['\r']) =>
+                for axis in n.axes() join($['\r']) =>
 
                 $(let value = &match primitive {
-                    _ if INT_PRIMITIVES.contains(&primitive) => format!("50{primitive}"),
-                    _ if FLOAT_PRIMITIVES.contains(&primitive) => format!("50.0{primitive}"),
-                    "bool" => (i % 2 == 0).to_string(),
-                    _ => unreachable!(),
+                    Primitive::Int(primitive) => format!("50{primitive}"),
+                    Primitive::Float(primitive) => format!("50.0{primitive}"),
+                    Primitive::Bool => (axis.as_usize() % 2 == 0).to_string(),
                 })
                 {
-                    let mut vec = $vec_snakecase!($values_str);
-                    vec.set($i, $value);
+                    let mut vec = $vec_lowercase!($values_str);
+                    vec.set($(axis.as_usize()), $value);
 
-                    assert_eq!(vec, $vec_snakecase!($(for i2 in 0..n join(, ) => $(if i2 == i { $value } else { $(&values[i2]) }))));
+                    assert_eq!(vec, $vec_lowercase!($(for axis2 in n.axes() join(, ) => $(if axis2 == axis { $value } else { $(&values[axis2.as_usize()]) }))));
                 }
             )
         }
 
         #[test]
         #[should_panic]
-        fn test_$(vec_snakecase)_set_panic() {
-            let mut vec = $vec_snakecase!($values_str);
+        fn test_$(vec_lowercase)_set_panic() {
+            let mut vec = $vec_lowercase!($values_str);
             vec.set($n, $(&values[0]));
         }
 
         #[test]
-        fn test_$(vec_snakecase)_try_set() {
+        fn test_$(vec_lowercase)_try_set() {
             $(
-                for i in 0..n join($['\r']) =>
+                for i in 0..n.as_usize() join($['\r']) =>
 
                 $(let value = &match primitive {
-                    _ if INT_PRIMITIVES.contains(&primitive) => format!("50{primitive}"),
-                    _ if FLOAT_PRIMITIVES.contains(&primitive) => format!("50.0{primitive}"),
-                    "bool" => (i % 2 == 0).to_string(),
-                    _ => unreachable!(),
+                    Primitive::Int(primitive) => format!("50{primitive}"),
+                    Primitive::Float(primitive) => format!("50.0{primitive}"),
+                    Primitive::Bool => (i % 2 == 0).to_string(),
                 })
                 {
-                    let mut vec = $vec_snakecase!($values_str);
+                    let mut vec = $vec_lowercase!($values_str);
                     vec.try_set($i, $value).unwrap();
 
-                    assert_eq!(vec, $vec_snakecase!($(for i2 in 0..n join(, ) => $(if i2 == i { $value } else { $(&values[i2]) }))));
+                    assert_eq!(vec, $vec_lowercase!($(for i2 in 0..n join(, ) => $(if i2 == i { $value } else { $(&values[i2]) }))));
                 }
             )
 
-            assert_eq!($vec_snakecase!($values_str).try_set($n, $(&values[0])), Err(IndexOutOfBoundsError));
+            assert_eq!($vec_lowercase!($values_str).try_set($n, $(&values[0])), Err(IndexOutOfBoundsError));
         }
 
         #[test]
-        fn test_$(vec_snakecase)_set_unchecked() {
+        fn test_$(vec_lowercase)_set_unchecked() {
             unsafe {
                 $(
-                    for i in 0..n join($['\r']) =>
+                    for i in 0..n.as_usize() join($['\r']) =>
 
                     $(let value = &match primitive {
-                        _ if INT_PRIMITIVES.contains(&primitive) => format!("50{primitive}"),
-                        _ if FLOAT_PRIMITIVES.contains(&primitive) => format!("50.0{primitive}"),
-                        "bool" => (i % 2 == 0).to_string(),
-                        _ => unreachable!(),
+                        Primitive::Int(primitive) => format!("50{primitive}"),
+                        Primitive::Float(primitive) => format!("50.0{primitive}"),
+                        Primitive::Bool => (i % 2 == 0).to_string(),
                     })
                     {
-                        let mut vec = $vec_snakecase!($values_str);
+                        let mut vec = $vec_lowercase!($values_str);
                         vec.set_unchecked($i, $value);
 
-                        assert_eq!(vec, $vec_snakecase!($(for i2 in 0..n join(, ) => $(if i2 == i { $value } else { $(&values[i2]) }))));
+                        assert_eq!(vec, $vec_lowercase!($(for i2 in 0..n join(, ) => $(if i2 == i { $value } else { $(&values[i2]) }))));
                     }
                 )
             }
         }
 
         #[test]
-        fn test_$(vec_snakecase)_swizzle() {
+        fn test_$(vec_lowercase)_swizzle() {
             $(match n {
                 2 => {
-                    assert_eq!($vec_snakecase!($values_str).y(), $(&values[1]));
-                    assert_eq!($vec_snakecase!($values_str).yx(), vec2$(s_postfix_lowercase)!($(&values[1]), $(&values[0])));
-                    assert_eq!($vec_snakecase!($values_str).yxy(), vec3$(s_postfix_lowercase)!($(&values[1]), $(&values[0]), $(&values[1])));
-                    assert_eq!($vec_snakecase!($values_str).yxyy(), vec4$(s_postfix_lowercase)!($(&values[1]), $(&values[0]), $(&values[1]), $(&values[1])));
+                    assert_eq!($vec_lowercase!($values_str).y(), $(&values[1]));
+                    assert_eq!($vec_lowercase!($values_str).yx(), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[0])));
+                    assert_eq!($vec_lowercase!($values_str).yxy(), vec3$(s.postfix_lowercase())!($(&values[1]), $(&values[0]), $(&values[1])));
+                    assert_eq!($vec_lowercase!($values_str).yxyy(), vec4$(s.postfix_lowercase())!($(&values[1]), $(&values[0]), $(&values[1]), $(&values[1])));
                 }
                 3 => {
-                    assert_eq!($vec_snakecase!($values_str).z(), $(&values[2]));
-                    assert_eq!($vec_snakecase!($values_str).zx(), vec2$(s_postfix_lowercase)!($(&values[2]), $(&values[0])));
-                    assert_eq!($vec_snakecase!($values_str).zxy(), vec3$(s_postfix_lowercase)!($(&values[2]), $(&values[0]), $(&values[1])));
-                    assert_eq!($vec_snakecase!($values_str).zxyz(), vec4$(s_postfix_lowercase)!($(&values[2]), $(&values[0]), $(&values[1]), $(&values[2])));
+                    assert_eq!($vec_lowercase!($values_str).z(), $(&values[2]));
+                    assert_eq!($vec_lowercase!($values_str).zx(), vec2$(s.postfix_lowercase())!($(&values[2]), $(&values[0])));
+                    assert_eq!($vec_lowercase!($values_str).zxy(), vec3$(s.postfix_lowercase())!($(&values[2]), $(&values[0]), $(&values[1])));
+                    assert_eq!($vec_lowercase!($values_str).zxyz(), vec4$(s.postfix_lowercase())!($(&values[2]), $(&values[0]), $(&values[1]), $(&values[2])));
                 }
                 4 => {
-                    assert_eq!($vec_snakecase!($values_str).z(), $(&values[2]));
-                    assert_eq!($vec_snakecase!($values_str).zw(), vec2$(s_postfix_lowercase)!($(&values[2]), $(&values[3])));
-                    assert_eq!($vec_snakecase!($values_str).zwy(), vec3$(s_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1])));
-                    assert_eq!($vec_snakecase!($values_str).zwyz(), vec4$(s_postfix_lowercase)!($(&values[2]), $(&values[3]), $(&values[1]), $(&values[2])));
+                    assert_eq!($vec_lowercase!($values_str).z(), $(&values[2]));
+                    assert_eq!($vec_lowercase!($values_str).zw(), vec2$(s.postfix_lowercase())!($(&values[2]), $(&values[3])));
+                    assert_eq!($vec_lowercase!($values_str).zwy(), vec3$(s.postfix_lowercase())!($(&values[2]), $(&values[3]), $(&values[1])));
+                    assert_eq!($vec_lowercase!($values_str).zwyz(), vec4$(s.postfix_lowercase())!($(&values[2]), $(&values[3]), $(&values[1]), $(&values[2])));
                 }
                 _ => compile_error!("unhandled vector length"),
             })
         }
 
         #[test]
-        fn test_$(vec_snakecase)_with_swizzle() {
+        fn test_$(vec_lowercase)_with_swizzle() {
             $(match n {
                 2 => {
-                    assert_eq!($vec_snakecase!($values_str).with_y($(&values[0])), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_y($(&values[0])), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             i => $(&values[i]),
                         })
                     )));
-                    assert_eq!($vec_snakecase!($values_str).with_yx(vec2$(s_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(s.postfix_lowercase())!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             0 => $(&values[1]),
@@ -300,20 +293,20 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                     )));
                 }
                 3 => {
-                    assert_eq!($vec_snakecase!($values_str).with_y($(&values[0])), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_y($(&values[0])), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             i => $(&values[i]),
                         })
                     )));
-                    assert_eq!($vec_snakecase!($values_str).with_yx(vec2$(s_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(s.postfix_lowercase())!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             0 => $(&values[1]),
                             i => $(&values[i]),
                         })
                     )));
-                    assert_eq!($vec_snakecase!($values_str).with_yxz(vec3$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(s.postfix_lowercase())!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             0 => $(&values[2]),
@@ -323,20 +316,20 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                     )));
                 }
                 4 => {
-                    assert_eq!($vec_snakecase!($values_str).with_y($(&values[0])), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_y($(&values[0])), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             i => $(&values[i]),
                         })
                     )));
-                    assert_eq!($vec_snakecase!($values_str).with_yx(vec2$(s_postfix_lowercase)!($(&values[0]), $(&values[1]))), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_yx(vec2$(s.postfix_lowercase())!($(&values[0]), $(&values[1]))), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             0 => $(&values[1]),
                             i => $(&values[i]),
                         })
                     )));
-                    assert_eq!($vec_snakecase!($values_str).with_yxz(vec3$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_yxz(vec3$(s.postfix_lowercase())!($(&values[0]), $(&values[2]), $(&values[1]))), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             0 => $(&values[2]),
@@ -344,7 +337,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                             i => $(&values[i]),
                         })
                     )));
-                    assert_eq!($vec_snakecase!($values_str).with_yxzw(vec4$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1]), $(&values[0]))), $vec_snakecase!($(
+                    assert_eq!($vec_lowercase!($values_str).with_yxzw(vec4$(s.postfix_lowercase())!($(&values[0]), $(&values[2]), $(&values[1]), $(&values[0]))), $vec_lowercase!($(
                         for i in 0..n join(, ) => $(match i {
                             1 => $(&values[0]),
                             0 => $(&values[2]),
@@ -359,14 +352,14 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         $(
-            if n == 4 && !is_simd =>
+            if n == Length::Four && s != Simdness::Simd =>
 
             #[test]
-            fn test_$(vec_snakecase)_swizzle_set() {
-                let mut vec = $vec_snakecase!($values_str);
-                vec.set_yxz(vec3$(s_postfix_lowercase)!($(&values[0]), $(&values[2]), $(&values[1])));
+            fn test_$(vec_lowercase)_swizzle_set() {
+                let mut vec = $vec_lowercase!($values_str);
+                vec.set_yxz(vec3$(s.postfix_lowercase())!($(&values[0]), $(&values[2]), $(&values[1])));
     
-                assert_eq!(vec, $vec_snakecase!($(for i in 0..n join(, ) => $(
+                assert_eq!(vec, $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(
                     match i {
                         1 => $(&values[0]),
                         0 => $(&values[2]),
@@ -378,251 +371,247 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         )
 
         $(
-            if !is_simd =>
+            if s == Simdness::NonSimd =>
 
             #[test]
-            fn test_$(vec_snakecase)_swizzle_ref() {
+            fn test_$(vec_lowercase)_swizzle_ref() {
                 $(match n {
-                    2 => {
-                        assert_eq!($vec_snakecase!($values_str).y_ref(), &$(&values[1]));
-                        assert_eq!($vec_snakecase!($values_str).xy_ref(), &vec2s!($values_str));
+                    Length::Two => {
+                        assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
+                        assert_eq!($vec_lowercase!($values_str).xy_ref(), &vec2s!($values_str));
                     }
-                    3 => {
-                        assert_eq!($vec_snakecase!($values_str).y_ref(), &$(&values[1]));
-                        assert_eq!($vec_snakecase!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
-                        assert_eq!($vec_snakecase!($values_str).xyz_ref(), &vec3s!($values_str));
+                    Length::Three => {
+                        assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
+                        assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                        assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3s!($values_str));
                     }
-                    4 => {
-                        assert_eq!($vec_snakecase!($values_str).y_ref(), &$(&values[1]));
-                        assert_eq!($vec_snakecase!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
-                        assert_eq!($vec_snakecase!($values_str).xyz_ref(), &vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));
-                        assert_eq!($vec_snakecase!($values_str).xyzw_ref(), &vec4s!($values_str));
+                    Length::Four => {
+                        assert_eq!($vec_lowercase!($values_str).y_ref(), &$(&values[1]));
+                        assert_eq!($vec_lowercase!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                        assert_eq!($vec_lowercase!($values_str).xyz_ref(), &vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));
+                        assert_eq!($vec_lowercase!($values_str).xyzw_ref(), &vec4s!($values_str));
                     }
-                    _ => compile_error!("unhandled vector length"),
                 })
             }
 
             #[test]
-            fn test_$(vec_snakecase)_swizzle_mut() {
+            fn test_$(vec_lowercase)_swizzle_mut() {
                 $(match n {
-                    2 => {
-                        assert_eq!($vec_snakecase!($values_str).y_mut(), &mut $(&values[1]));
-                        assert_eq!($vec_snakecase!($values_str).xy_mut(), &mut vec2s!($values_str));
+                    Length::Two => {
+                        assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
+                        assert_eq!($vec_lowercase!($values_str).xy_mut(), &mut vec2s!($values_str));
 
-                        assert_eq!($vec_snakecase!($values_str).x_y_mut(), (&mut $(&values[0]), &mut $(&values[1])));
+                        assert_eq!($vec_lowercase!($values_str).x_y_mut(), (&mut $(&values[0]), &mut $(&values[1])));
                     }
-                    3 => {
-                        assert_eq!($vec_snakecase!($values_str).y_mut(), &mut $(&values[1]));
-                        assert_eq!($vec_snakecase!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
-                        assert_eq!($vec_snakecase!($values_str).xyz_mut(), &mut vec3s!($values_str));
+                    Length::Three => {
+                        assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
+                        assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                        assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3s!($values_str));
 
-                        assert_eq!($vec_snakecase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i])))));
+                        assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i])))));
                     }
-                    4 => {
-                        assert_eq!($vec_snakecase!($values_str).y_mut(), &mut $(&values[1]));
-                        assert_eq!($vec_snakecase!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
-                        assert_eq!($vec_snakecase!($values_str).xyz_mut(), &mut vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));
-                        assert_eq!($vec_snakecase!($values_str).xyzw_mut(), &mut vec4s!($values_str));
+                    Length::Four => {
+                        assert_eq!($vec_lowercase!($values_str).y_mut(), &mut $(&values[1]));
+                        assert_eq!($vec_lowercase!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
+                        assert_eq!($vec_lowercase!($values_str).xyz_mut(), &mut vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));
+                        assert_eq!($vec_lowercase!($values_str).xyzw_mut(), &mut vec4s!($values_str));
 
-                        assert_eq!($vec_snakecase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i])))));
+                        assert_eq!($vec_lowercase!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i])))));
                     }
-                    _ => compile_error!("unhandled vector length"),
                 })
             }
         )
 
         #[test]
-        fn test_$(vec_snakecase)_fold() {
+        fn test_$(vec_lowercase)_fold() {
             $(match primitive {
-                _ if INT_PRIMITIVES.contains(&primitive) => {
-                    assert_eq!($vec_snakecase!($values_str).fold(13, |acc, x| acc + x), 13 + $(for value in &values join( + ) => $value));
+                Primitive::Int(primitive) => {
+                    assert_eq!($vec_lowercase!($values_str).fold(13, |acc, x| acc + x), 13 + $(for value in &values join( + ) => $value));
                 }
-                _ if FLOAT_PRIMITIVES.contains(&primitive) => {
-                    assert_eq!($vec_snakecase!($values_str).fold(13.0, |acc, x| acc + x), 13.0 + $(for value in &values join( + ) => $value));
+                Primitive::Float(primitive) => {
+                    assert_eq!($vec_lowercase!($values_str).fold(13.0, |acc, x| acc + x), 13.0 + $(for value in &values join( + ) => $value));
                 }
-                "bool" => {
-                    assert_eq!($vec_snakecase!($values_str).fold(false, |acc, x| acc | x), true);
+                Primitive::Bool => {
+                    assert_eq!($vec_lowercase!($values_str).fold(false, |acc, x| acc | x), true);
                 }
-                _ => unreachable!("unhandled primitive"),
             })
         }
 
         #[test]
-        fn test_$(vec_snakecase)_reduce() {
+        fn test_$(vec_lowercase)_reduce() {
             $(match primitive {
-                _ if INT_PRIMITIVES.contains(&primitive) => {
-                    assert_eq!($vec_snakecase!($values_str).reduce(|acc, x| acc + x), $(for value in &values join( + ) => $value));
+                Primitive::Int(primitive) => {
+                    assert_eq!($vec_lowercase!($values_str).reduce(|acc, x| acc + x), $(for value in &values join( + ) => $value));
                 }
-                _ if FLOAT_PRIMITIVES.contains(&primitive) => {
-                    assert_eq!($vec_snakecase!($values_str).reduce(|acc, x| acc + x), $(for value in &values join( + ) => $value));
+                Primitive::Float(primitive) => {
+                    assert_eq!($vec_lowercase!($values_str).reduce(|acc, x| acc + x), $(for value in &values join( + ) => $value));
                 }
-                "bool" => {
-                    assert_eq!($vec_snakecase!($values_str).reduce(|acc, x| acc | x), true);
+                Primitive::Bool => {
+                    assert_eq!($vec_lowercase!($values_str).reduce(|acc, x| acc | x), true);
                 }
-                _ => unreachable!("unhandled primitive"),
             })
         }
 
         #[test]
-        fn test_$(vec_snakecase)_eq_mask() {
-            assert_eq!($vec_snakecase!($values_str).eq_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
+        fn test_$(vec_lowercase)_eq_mask() {
+            assert_eq!($vec_lowercase!($values_str).eq_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n.as_usize() join(, ) => true)));
             assert_eq!(
-                $vec_snakecase!($values_str).eq_mask($vec_snakecase!(
-                    $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
+                $vec_lowercase!($values_str).eq_mask($vec_lowercase!(
+                    $(for i in 0..n.as_usize() join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
                 )),
-                $vec_snakecase!($(
-                    for i in 0..n join(, ) => $(if i == 1 { false } else { true })
+                $vec_lowercase!($(
+                    for i in 0..n.as_usize() join(, ) => $(if i == 1 { false } else { true })
                 )),
             );
-            assert_eq!($vec_snakecase!($values_str).eq_mask($vec_snakecase!($values2_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
+            assert_eq!($vec_lowercase!($values_str).eq_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n.as_usize() join(, ) => false)));
 
             $(
-                if FLOAT_PRIMITIVES.contains(&primitive) {
-                    $(let nan_values_str = &(0..n).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
-                    assert_eq!($vec_snakecase!($nan_values_str).eq_mask($vec_snakecase!($nan_values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
+                if let Primitive::Float(primitive) = primitive {
+                    $(let nan_values_str = &(0..n.as_usize()).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
+                    assert_eq!($vec_lowercase!($nan_values_str).eq_mask($vec_lowercase!($nan_values_str)), $vec_lowercase!($(for _ in 0..n.as_usize() join(, ) => false)));
                 }
             )
         }
 
         #[test]
-        fn test_$(vec_snakecase)_ne_mask() {
-            assert_eq!($vec_snakecase!($values_str).ne_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
+        fn test_$(vec_lowercase)_ne_mask() {
+            assert_eq!($vec_lowercase!($values_str).ne_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n.as_usize() join(, ) => false)));
             assert_eq!(
-                $vec_snakecase!($values_str).ne_mask($vec_snakecase!(
-                    $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
+                $vec_lowercase!($values_str).ne_mask($vec_lowercase!(
+                    $(for i in 0..n.as_usize() join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
                 )),
-                $vec_snakecase!($(
-                    for i in 0..n join(, ) => $(if i == 1 { true } else { false })
+                $vec_lowercase!($(
+                    for i in 0..n.as_usize() join(, ) => $(if i == 1 { true } else { false })
                 )),
             );
-            assert_eq!($vec_snakecase!($values_str).ne_mask($vec_snakecase!($values2_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
+            assert_eq!($vec_lowercase!($values_str).ne_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n.as_usize() join(, ) => true)));
 
             $(
-                if FLOAT_PRIMITIVES.contains(&primitive) {
-                    $(let nan_values_str = &(0..n).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
-                    assert_eq!($vec_snakecase!($nan_values_str).ne_mask($vec_snakecase!($nan_values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
+                if let Primitive::Float(primitive) = primitive {
+                    $(let nan_values_str = &(0..n.as_usize()).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
+                    assert_eq!($vec_lowercase!($nan_values_str).ne_mask($vec_lowercase!($nan_values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
                 }
             )
         }
 
         #[test]
-        fn test_$(vec_snakecase)_lt_mask() {
-            assert_eq!($vec_snakecase!($values_str).lt_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
+        fn test_$(vec_lowercase)_lt_mask() {
+            assert_eq!($vec_lowercase!($values_str).lt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
             assert_eq!(
-                $vec_snakecase!($values_str).lt_mask($vec_snakecase!(
+                $vec_lowercase!($values_str).lt_mask($vec_lowercase!(
                     $(for i in 0..n join(, ) => $(match i {
                         0 => $(&values[1]),
                         1 => $(&values[0]),
                         i => $(&values[i]),
                     }))
                 )),
-                $vec_snakecase!($(
+                $vec_lowercase!($(
                     for i in 0..n join(, ) => $(if i == 0 { true } else { false })
                 )),
             );
             $(
                 if NUM_PRIMITIVES.contains(&primitive) {
-                    assert_eq!($vec_snakecase!($values_str).lt_mask($vec_snakecase!($values2_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
-                    assert_eq!($vec_snakecase!($values2_str).lt_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
+                    assert_eq!($vec_lowercase!($values_str).lt_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                    assert_eq!($vec_lowercase!($values2_str).lt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
                 }
             )
         }
 
         #[test]
-        fn test_$(vec_snakecase)_gt_mask() {
-            assert_eq!($vec_snakecase!($values_str).gt_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
+        fn test_$(vec_lowercase)_gt_mask() {
+            assert_eq!($vec_lowercase!($values_str).gt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
             assert_eq!(
-                $vec_snakecase!($values_str).gt_mask($vec_snakecase!(
+                $vec_lowercase!($values_str).gt_mask($vec_lowercase!(
                     $(for i in 0..n join(, ) => $(match i {
                         0 => $(&values[1]),
                         1 => $(&values[0]),
                         i => $(&values[i]),
                     }))
                 )),
-                $vec_snakecase!($(
+                $vec_lowercase!($(
                     for i in 0..n join(, ) => $(if i == 1 { true } else { false })
                 )),
             );
             $(
                 if NUM_PRIMITIVES.contains(&primitive) {
-                    assert_eq!($vec_snakecase!($values_str).gt_mask($vec_snakecase!($values2_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
-                    assert_eq!($vec_snakecase!($values2_str).gt_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
+                    assert_eq!($vec_lowercase!($values_str).gt_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                    assert_eq!($vec_lowercase!($values2_str).gt_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
                 }
             )
         }
 
         #[test]
-        fn test_$(vec_snakecase)_le_mask() {
-            assert_eq!($vec_snakecase!($values_str).le_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
+        fn test_$(vec_lowercase)_le_mask() {
+            assert_eq!($vec_lowercase!($values_str).le_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
             assert_eq!(
-                $vec_snakecase!($values_str).le_mask($vec_snakecase!(
+                $vec_lowercase!($values_str).le_mask($vec_lowercase!(
                     $(for i in 0..n join(, ) => $(match i {
                         0 => $(&values[1]),
                         1 => $(&values[0]),
                         i => $(&values[i]),
                     }))
                 )),
-                $vec_snakecase!($(
+                $vec_lowercase!($(
                     for i in 0..n join(, ) => $(if i == 1 { false } else { true })
                 )),
             );
             $(
                 if NUM_PRIMITIVES.contains(&primitive) {
-                    assert_eq!($vec_snakecase!($values_str).le_mask($vec_snakecase!($values2_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
-                    assert_eq!($vec_snakecase!($values2_str).le_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
+                    assert_eq!($vec_lowercase!($values_str).le_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
+                    assert_eq!($vec_lowercase!($values2_str).le_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
                 }
             )
         }
 
         #[test]
-        fn test_$(vec_snakecase)_ge_mask() {
-            assert_eq!($vec_snakecase!($values_str).ge_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
+        fn test_$(vec_lowercase)_ge_mask() {
+            assert_eq!($vec_lowercase!($values_str).ge_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
             assert_eq!(
-                $vec_snakecase!($values_str).ge_mask($vec_snakecase!(
+                $vec_lowercase!($values_str).ge_mask($vec_lowercase!(
                     $(for i in 0..n join(, ) => $(match i {
                         0 => $(&values[1]),
                         1 => $(&values[0]),
                         i => $(&values[i]),
                     }))
                 )),
-                $vec_snakecase!($(
+                $vec_lowercase!($(
                     for i in 0..n join(, ) => $(if i == 0 { false } else { true })
                 )),
             );
             $(
                 if NUM_PRIMITIVES.contains(&primitive) {
-                    assert_eq!($vec_snakecase!($values_str).ge_mask($vec_snakecase!($values2_str)), $vec_snakecase!($(for _ in 0..n join(, ) => false)));
-                    assert_eq!($vec_snakecase!($values2_str).ge_mask($vec_snakecase!($values_str)), $vec_snakecase!($(for _ in 0..n join(, ) => true)));
+                    assert_eq!($vec_lowercase!($values_str).ge_mask($vec_lowercase!($values2_str)), $vec_lowercase!($(for _ in 0..n join(, ) => false)));
+                    assert_eq!($vec_lowercase!($values2_str).ge_mask($vec_lowercase!($values_str)), $vec_lowercase!($(for _ in 0..n join(, ) => true)));
                 }
             )
         }
 
         #[test]
-        fn test_$(vec_snakecase)_eq() {
-            assert_eq!($vec_snakecase!($values_str) == $vec_snakecase!($values_str), true);
+        fn test_$(vec_lowercase)_eq() {
+            assert_eq!($vec_lowercase!($values_str) == $vec_lowercase!($values_str), true);
             assert_eq!(
-                $vec_snakecase!($values_str) == $vec_snakecase!(
+                $vec_lowercase!($values_str) == $vec_lowercase!(
                     $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
                 ),
                 false
             );
-            assert_eq!($vec_snakecase!($values_str) == $vec_snakecase!($values2_str), false);
+            assert_eq!($vec_lowercase!($values_str) == $vec_lowercase!($values2_str), false);
         }
         
         #[test]
-        fn test_$(vec_snakecase)_ne() {
-            assert_eq!($vec_snakecase!($values_str) != $vec_snakecase!($values_str), false);
+        fn test_$(vec_lowercase)_ne() {
+            assert_eq!($vec_lowercase!($values_str) != $vec_lowercase!($values_str), false);
             assert_eq!(
-                $vec_snakecase!($values_str) != $vec_snakecase!(
+                $vec_lowercase!($values_str) != $vec_lowercase!(
                     $(for i in 0..n join(, ) => $(if i == 1 { $(&values[0]) } else { $(&values[i]) }))
                 ),
                 true
             );
-            assert_eq!($vec_snakecase!($values_str) != $vec_snakecase!($values2_str), true);
+            assert_eq!($vec_lowercase!($values_str) != $vec_lowercase!($values2_str), true);
         }
 
         #[test]
-        fn test_$(vec_snakecase)_debug() {
+        fn test_$(vec_lowercase)_debug() {
             $(let expected_value_strs = match primitive {
                 _ if FLOAT_PRIMITIVES.contains(&primitive) => (0..n).map(|i| format!("{i}.0")).collect::<Vec<_>>(),
                 _ if INT_PRIMITIVES.contains(&primitive) => (0..n).map(|i| format!("{i}")).collect::<Vec<_>>(),
@@ -630,11 +619,11 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 _ => unreachable!("unhandled primitive"),
             });
             $(let expected_str = quoted(format!("({})", expected_value_strs.join(", "))));
-            assert_eq!(format!("{:?}", $vec_snakecase!($values_str)), $expected_str);
+            assert_eq!(format!("{:?}", $vec_lowercase!($values_str)), $expected_str);
         }
 
         #[test]
-        fn test_$(vec_snakecase)_display() {
+        fn test_$(vec_lowercase)_display() {
             $(let expected_value_strs = match primitive {
                 _ if FLOAT_PRIMITIVES.contains(&primitive) => (0..n).map(|i| format!("{i}")).collect::<Vec<_>>(),
                 _ if INT_PRIMITIVES.contains(&primitive) => (0..n).map(|i| format!("{i}")).collect::<Vec<_>>(),
@@ -642,11 +631,11 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 _ => unreachable!("unhandled primitive"),
             });
             $(let expected_str = quoted(format!("({})", expected_value_strs.join(", "))));
-            assert_eq!(format!("{}", $vec_snakecase!($values_str)), $expected_str);
+            assert_eq!(format!("{}", $vec_lowercase!($values_str)), $expected_str);
         }
 
         #[test]
-        fn test_$(vec_snakecase)_const_from_array() {
+        fn test_$(vec_lowercase)_const_from_array() {
             assert_eq!($vec_camelcase::<$primitive>::const_from_array([$values_str]), $vec_camelcase::from_array([$values_str]));
         }
     });

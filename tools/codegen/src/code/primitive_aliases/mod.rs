@@ -1,8 +1,8 @@
 use genco::quote;
 
 use crate::{
-    module::{SrcDir, TokensExt},
-    primitives::Primitive,
+    backend::{SrcDir, TokensExt},
+    iter::Primitive,
 };
 
 pub fn srcmod() -> SrcDir {
@@ -20,5 +20,5 @@ pub fn srcmod() -> SrcDir {
             }$['\n']
         )
     }
-    .to_src_dir("primitive_aliases")
+    .to_srcdir("primitive_aliases")
 }

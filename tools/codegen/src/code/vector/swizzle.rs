@@ -51,7 +51,7 @@ pub fn srcmod() -> SrcFile {
                         )))
                         #[inline(always)]
                         pub fn with_$combination_str(self, value: Vector<$n2, T, S>) -> Self {
-                            self.with_shuffle_$(n2)::<$(for (_, dst_axis) in &combination join(, ) => dst_axis.as_usize())>(value)
+                            self.with_shuffle_$(n2)::<$(for (_, dst_axis) in &combination join(, ) => $(dst_axis.as_usize()))>(value)
                         }
                     )
                 )
@@ -60,7 +60,7 @@ pub fn srcmod() -> SrcFile {
                     for n2 in Length::iter() join($['\n']) => $(
                         for combination in with_swizzle_combinations(n, n2) join($['\n']) =>
 
-                        $(let combination_str = combination.iter().map(|(_, dst)| dst.lowercase_str()).collect::<String>())
+                        $(let combination_str = &combination.iter().map(|(_, dst)| dst.lowercase_str()).collect::<String>())
 
                         $(for (src, dst) in combination join($['\r']) => $(format!(
                             "/// - Sets the `{}` ({}) component of `self` to the `{}` ({}) component of `value`",
