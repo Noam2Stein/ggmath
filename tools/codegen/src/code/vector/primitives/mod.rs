@@ -70,7 +70,15 @@ fn primitive_srcmod(primitive: Primitive) -> SrcFile {
     }
 
     quote! {
-        use crate::{Vector, Simdness, Simd, NonSimd, Usize, VecLen, Scalar, $(for n in Length::iter() join(, ) => Vec$(n))};
+        use core::mem::transmute_copy;
+
+        use crate::{
+            Vector, Simdness, Simd, NonSimd, Usize, VecLen, Scalar,
+            $(for n in Length::iter() join(, ) => Vec$(n)),
+            $(if primitive.is_float() => ScalarZero, ScalarOne, ScalarNegOne,)
+            $(if primitive.is_sint() => ScalarZero, ScalarOne, ScalarNegOne,)
+            $(if primitive.is_uint() => ScalarZero, ScalarOne,)
+        };
 
         $(
             if !output.impl_items.is_empty() =>

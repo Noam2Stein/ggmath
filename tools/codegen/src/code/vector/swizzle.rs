@@ -11,7 +11,7 @@ use crate::{
 
 pub fn srcmod() -> SrcFile {
     quote! {
-        use crate::{Scalar, Simdness, Vector, $(for n in Length::iter() join(, ) => Vec$(n)S)};
+        use crate::{Scalar, Simdness, Vector, NonSimd, $(for n in Length::iter() join(, ) => Vec$(n)S)};
 
         $(
             for n in Length::iter() join($['\n']) =>

@@ -637,7 +637,7 @@ where
     #[inline(always)]
     pub fn eq_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
-        T: PartialEq,
+        T: PartialEq<T2>,
     {
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
@@ -661,7 +661,7 @@ where
     #[inline(always)]
     pub fn ne_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
-        T: PartialEq,
+        T: PartialEq<T2>,
     {
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
@@ -685,7 +685,7 @@ where
     #[inline(always)]
     pub fn lt_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
-        T: PartialOrd,
+        T: PartialOrd<T2>,
     {
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
@@ -709,7 +709,7 @@ where
     #[inline(always)]
     pub fn le_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
-        T: PartialOrd,
+        T: PartialOrd<T2>,
     {
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
@@ -733,7 +733,7 @@ where
     #[inline(always)]
     pub fn gt_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
-        T: PartialOrd,
+        T: PartialOrd<T2>,
     {
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
@@ -757,7 +757,7 @@ where
     #[inline(always)]
     pub fn ge_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
     where
-        T: PartialOrd,
+        T: PartialOrd<T2>,
     {
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:

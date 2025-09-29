@@ -557,7 +557,7 @@ pub fn srcmod() -> SrcDir {
                 #[inline(always)]
                 pub fn $(cmp_op.lowercase_str())_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
                 where
-                    T: $(cmp_op.trait_str()),
+                    T: $(cmp_op.trait_str())<T2>,
                 {
                     specialize! {
                         (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
