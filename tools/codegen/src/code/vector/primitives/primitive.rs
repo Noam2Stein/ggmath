@@ -79,7 +79,11 @@ pub fn push_src(
 }
 
 pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
-    output.push_tests_for_vector(primitive, |n, s| quote! {
+    output.items.push(quote! {
+        use ggmath::*;
+    });
+
+    output.push_for_vector(primitive, |n, s| quote! {
         $(let vec_label = &format!("{t_prefix}vec{n}{s_postfix}", t_prefix = primitive.prefix_lowercase(), s_postfix = s.postfix_lowercase()))
         $(let vec_macro = &format!("vec{n}{s_postfix}", s_postfix = s.postfix_lowercase()))
         $(let vec_type = &format!("Vec{n}{s_postfix}", s_postfix = s.postfix_uppercase()))
@@ -97,7 +101,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             Primitive::Bool => ["true".to_string(), "false".to_string()].into_iter().cycle().take(n.as_usize()).collect::<Vec<String>>(),
         })
         $(let values2_str = &values2.join(", "))
-        
+
         $(
             if s == Simdness::NonSimd =>
 
@@ -508,8 +512,14 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
 
-            assert_eq!($vec_macro!($values_str).lt_mask($vec_macro!($values2_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
-            assert_eq!($vec_macro!($values2_str).lt_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
+            assert_eq!($vec_macro!($values_str).lt_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => true,
+                Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
+            }))));
+            assert_eq!($vec_macro!($values2_str).lt_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => false,
+                Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
+            }))));
         }
 
         #[test]
@@ -528,8 +538,14 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
             
-            assert_eq!($vec_macro!($values_str).gt_mask($vec_macro!($values2_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
-            assert_eq!($vec_macro!($values2_str).gt_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
+            assert_eq!($vec_macro!($values_str).gt_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => false,
+                Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
+            }))));
+            assert_eq!($vec_macro!($values2_str).gt_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => true,
+                Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
+            }))));
         }
 
         #[test]
@@ -548,8 +564,14 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
 
-            assert_eq!($vec_macro!($values_str).le_mask($vec_macro!($values2_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
-            assert_eq!($vec_macro!($values2_str).le_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
+            assert_eq!($vec_macro!($values_str).le_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => true,
+                Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
+            }))));
+            assert_eq!($vec_macro!($values2_str).le_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => false,
+                Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
+            }))));
         }
 
         #[test]
@@ -568,8 +590,14 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
 
-            assert_eq!($vec_macro!($values_str).ge_mask($vec_macro!($values2_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
-            assert_eq!($vec_macro!($values2_str).ge_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
+            assert_eq!($vec_macro!($values_str).ge_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => false,
+                Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
+            }))));
+            assert_eq!($vec_macro!($values2_str).ge_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+                Primitive::Float(_) | Primitive::Int(_) => true,
+                Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
+            }))));
         }
 
         #[test]

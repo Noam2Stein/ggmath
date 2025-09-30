@@ -4,6 +4,644 @@
 use ggmath::*;
 
 #[test]
+fn test_i64vec2_constructor() {
+    assert_eq!(vec2!(0i64, 1i64), Vec2::from_array([0i64, 1i64]));
+    assert_eq!(vec2!(vec2!(0i64, 1i64)), Vec2::from_array([0i64, 1i64]));
+}
+
+#[test]
+fn test_i64vec2_as_simd() {
+    assert_eq!(vec2!(0i64, 1i64).as_simd(), vec2!(0i64, 1i64));
+}
+
+#[test]
+fn test_i64vec2_as_non_simd() {
+    assert_eq!(vec2!(0i64, 1i64).as_non_simd(), vec2s!(0i64, 1i64));
+}
+
+#[test]
+fn test_i64vec2_from_array_as_array() {
+    assert_eq!(Vec2::from_array([0i64, 1i64]).as_array(), [0i64, 1i64]);
+}
+
+#[test]
+fn test_i64vec2_splat() {
+    assert_eq!(Vec2::splat(0i64), vec2!(0i64, 0i64));
+}
+
+#[test]
+fn test_i64vec2_index() {
+    assert_eq!(vec2!(0i64, 1i64).index(0), 0i64);
+    assert_eq!(vec2!(0i64, 1i64).index(1), 1i64);
+}
+
+#[test]
+#[should_panic]
+fn test_i64vec2_index_panic() {
+    vec2!(0i64, 1i64).index(2);
+}
+
+#[test]
+fn test_i64vec2_get() {
+    assert_eq!(vec2!(0i64, 1i64).get(0), Some(0i64));
+    assert_eq!(vec2!(0i64, 1i64).get(1), Some(1i64));
+
+    assert_eq!(vec2!(0i64, 1i64).get(2), None);
+}
+
+#[test]
+fn test_i64vec2_get_unchecked() {
+    unsafe {
+        assert_eq!(vec2!(0i64, 1i64).get_unchecked(0), 0i64);
+        assert_eq!(vec2!(0i64, 1i64).get_unchecked(1), 1i64);
+    }
+}
+
+#[test]
+fn test_i64vec2_set() {
+    {
+        let mut vec = vec2!(0i64, 1i64);
+        vec.set(0, 50i64);
+
+        assert_eq!(vec, vec2!(50i64, 1i64));
+    }
+    {
+        let mut vec = vec2!(0i64, 1i64);
+        vec.set(1, 50i64);
+
+        assert_eq!(vec, vec2!(0i64, 50i64));
+    }
+}
+
+#[test]
+#[should_panic]
+fn test_i64vec2_set_panic() {
+    let mut vec = vec2!(0i64, 1i64);
+    vec.set(2, 0i64);
+}
+
+#[test]
+fn test_i64vec2_try_set() {
+    {
+        let mut vec = vec2!(0i64, 1i64);
+        vec.try_set(0, 50i64).unwrap();
+
+        assert_eq!(vec, vec2!(50i64, 1i64));
+    }
+    {
+        let mut vec = vec2!(0i64, 1i64);
+        vec.try_set(1, 50i64).unwrap();
+
+        assert_eq!(vec, vec2!(0i64, 50i64));
+    }
+
+    assert_eq!(
+        vec2!(0i64, 1i64).try_set(2, 0i64),
+        Err(IndexOutOfBoundsError)
+    );
+}
+
+#[test]
+fn test_i64vec2_set_unchecked() {
+    unsafe {
+        {
+            let mut vec = vec2!(0i64, 1i64);
+            vec.set_unchecked(0, 50i64);
+
+            assert_eq!(vec, vec2!(50i64, 1i64));
+        }
+        {
+            let mut vec = vec2!(0i64, 1i64);
+            vec.set_unchecked(1, 50i64);
+
+            assert_eq!(vec, vec2!(0i64, 50i64));
+        }
+    }
+}
+
+#[test]
+fn test_i64vec2_swizzle() {
+    assert_eq!(vec2!(0i64, 1i64).y(), 1i64);
+    assert_eq!(vec2!(0i64, 1i64).yx(), vec2!(1i64, 0i64));
+    assert_eq!(vec2!(0i64, 1i64).yxy(), vec3!(1i64, 0i64, 1i64));
+    assert_eq!(vec2!(0i64, 1i64).yxyy(), vec4!(1i64, 0i64, 1i64, 1i64));
+}
+
+#[test]
+fn test_i64vec2_with_swizzle() {
+    assert_eq!(vec2!(0i64, 1i64).with_y(0i64), vec2!(0i64, 0i64));
+    assert_eq!(
+        vec2!(0i64, 1i64).with_yx(vec2!(0i64, 1i64)),
+        vec2!(1i64, 0i64)
+    );
+}
+
+#[test]
+fn test_i64vec2_fold() {
+    assert_eq!(
+        vec2!(0i64, 1i64).fold(13, |acc, x| acc + x),
+        13 + 0i64 + 1i64
+    );
+}
+
+#[test]
+fn test_i64vec2_reduce() {
+    assert_eq!(vec2!(0i64, 1i64).reduce(|acc, x| acc + x), 0i64 + 1i64);
+}
+
+#[test]
+fn test_i64vec2_eq_mask() {
+    assert_eq!(
+        vec2!(0i64, 1i64).eq_mask(vec2!(0i64, 1i64)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).eq_mask(vec2!(0i64, 0i64)),
+        vec2!(true, false),
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).eq_mask(vec2!(2i64, 3i64)),
+        vec2!(false, false)
+    );
+}
+
+#[test]
+fn test_i64vec2_ne_mask() {
+    assert_eq!(
+        vec2!(0i64, 1i64).ne_mask(vec2!(0i64, 1i64)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).ne_mask(vec2!(0i64, 0i64)),
+        vec2!(false, true),
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).ne_mask(vec2!(2i64, 3i64)),
+        vec2!(true, true)
+    );
+}
+
+#[test]
+fn test_i64vec2_lt_mask() {
+    assert_eq!(
+        vec2!(0i64, 1i64).lt_mask(vec2!(0i64, 1i64)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).lt_mask(vec2!(1i64, 0i64)),
+        vec2!(true, false),
+    );
+
+    assert_eq!(
+        vec2!(0i64, 1i64).lt_mask(vec2!(2i64, 3i64)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(2i64, 3i64).lt_mask(vec2!(0i64, 1i64)),
+        vec2!(false, false)
+    );
+}
+
+#[test]
+fn test_i64vec2_gt_mask() {
+    assert_eq!(
+        vec2!(0i64, 1i64).gt_mask(vec2!(0i64, 1i64)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).gt_mask(vec2!(1i64, 0i64)),
+        vec2!(false, true),
+    );
+
+    assert_eq!(
+        vec2!(0i64, 1i64).gt_mask(vec2!(2i64, 3i64)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(2i64, 3i64).gt_mask(vec2!(0i64, 1i64)),
+        vec2!(true, true)
+    );
+}
+
+#[test]
+fn test_i64vec2_le_mask() {
+    assert_eq!(
+        vec2!(0i64, 1i64).le_mask(vec2!(0i64, 1i64)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).le_mask(vec2!(1i64, 0i64)),
+        vec2!(true, false),
+    );
+
+    assert_eq!(
+        vec2!(0i64, 1i64).le_mask(vec2!(2i64, 3i64)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(2i64, 3i64).le_mask(vec2!(0i64, 1i64)),
+        vec2!(false, false)
+    );
+}
+
+#[test]
+fn test_i64vec2_ge_mask() {
+    assert_eq!(
+        vec2!(0i64, 1i64).ge_mask(vec2!(0i64, 1i64)),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec2!(0i64, 1i64).ge_mask(vec2!(1i64, 0i64)),
+        vec2!(false, true),
+    );
+
+    assert_eq!(
+        vec2!(0i64, 1i64).ge_mask(vec2!(2i64, 3i64)),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec2!(2i64, 3i64).ge_mask(vec2!(0i64, 1i64)),
+        vec2!(true, true)
+    );
+}
+
+#[test]
+fn test_i64vec2_eq() {
+    assert_eq!(vec2!(0i64, 1i64) == vec2!(0i64, 1i64), true);
+    assert_eq!(vec2!(0i64, 1i64) == vec2!(0i64, 0i64), false);
+    assert_eq!(vec2!(0i64, 1i64) == vec2!(2i64, 3i64), false);
+}
+
+#[test]
+fn test_i64vec2_ne() {
+    assert_eq!(vec2!(0i64, 1i64) != vec2!(0i64, 1i64), false);
+    assert_eq!(vec2!(0i64, 1i64) != vec2!(0i64, 0i64), true);
+    assert_eq!(vec2!(0i64, 1i64) != vec2!(2i64, 3i64), true);
+}
+
+#[test]
+fn test_i64vec2_debug() {
+    assert_eq!(format!("{:?}", vec2!(0i64, 1i64)), "(0, 1)");
+}
+
+#[test]
+fn test_i64vec2_display() {
+    assert_eq!(format!("{}", vec2!(0i64, 1i64)), "(0, 1)");
+}
+
+#[test]
+fn test_i64vec2_const_from_array() {
+    assert_eq!(
+        Vec2::<i64>::const_from_array([0i64, 1i64]),
+        Vec2::from_array([0i64, 1i64])
+    );
+}
+
+#[test]
+fn test_i64vec3_constructor() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64),
+        Vec3::from_array([0i64, 1i64, 2i64])
+    );
+    assert_eq!(
+        vec3!(0i64, vec2!(1i64, 2i64)),
+        Vec3::from_array([0i64, 1i64, 2i64])
+    );
+    assert_eq!(
+        vec3!(vec3!(0i64, 1i64, 2i64)),
+        Vec3::from_array([0i64, 1i64, 2i64])
+    );
+}
+
+#[test]
+fn test_i64vec3_as_simd() {
+    assert_eq!(vec3!(0i64, 1i64, 2i64).as_simd(), vec3!(0i64, 1i64, 2i64));
+}
+
+#[test]
+fn test_i64vec3_as_non_simd() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).as_non_simd(),
+        vec3s!(0i64, 1i64, 2i64)
+    );
+}
+
+#[test]
+fn test_i64vec3_from_array_as_array() {
+    assert_eq!(
+        Vec3::from_array([0i64, 1i64, 2i64]).as_array(),
+        [0i64, 1i64, 2i64]
+    );
+}
+
+#[test]
+fn test_i64vec3_splat() {
+    assert_eq!(Vec3::splat(0i64), vec3!(0i64, 0i64, 0i64));
+}
+
+#[test]
+fn test_i64vec3_index() {
+    assert_eq!(vec3!(0i64, 1i64, 2i64).index(0), 0i64);
+    assert_eq!(vec3!(0i64, 1i64, 2i64).index(1), 1i64);
+    assert_eq!(vec3!(0i64, 1i64, 2i64).index(2), 2i64);
+}
+
+#[test]
+#[should_panic]
+fn test_i64vec3_index_panic() {
+    vec3!(0i64, 1i64, 2i64).index(3);
+}
+
+#[test]
+fn test_i64vec3_get() {
+    assert_eq!(vec3!(0i64, 1i64, 2i64).get(0), Some(0i64));
+    assert_eq!(vec3!(0i64, 1i64, 2i64).get(1), Some(1i64));
+    assert_eq!(vec3!(0i64, 1i64, 2i64).get(2), Some(2i64));
+
+    assert_eq!(vec3!(0i64, 1i64, 2i64).get(3), None);
+}
+
+#[test]
+fn test_i64vec3_get_unchecked() {
+    unsafe {
+        assert_eq!(vec3!(0i64, 1i64, 2i64).get_unchecked(0), 0i64);
+        assert_eq!(vec3!(0i64, 1i64, 2i64).get_unchecked(1), 1i64);
+        assert_eq!(vec3!(0i64, 1i64, 2i64).get_unchecked(2), 2i64);
+    }
+}
+
+#[test]
+fn test_i64vec3_set() {
+    {
+        let mut vec = vec3!(0i64, 1i64, 2i64);
+        vec.set(0, 50i64);
+
+        assert_eq!(vec, vec3!(50i64, 1i64, 2i64));
+    }
+    {
+        let mut vec = vec3!(0i64, 1i64, 2i64);
+        vec.set(1, 50i64);
+
+        assert_eq!(vec, vec3!(0i64, 50i64, 2i64));
+    }
+    {
+        let mut vec = vec3!(0i64, 1i64, 2i64);
+        vec.set(2, 50i64);
+
+        assert_eq!(vec, vec3!(0i64, 1i64, 50i64));
+    }
+}
+
+#[test]
+#[should_panic]
+fn test_i64vec3_set_panic() {
+    let mut vec = vec3!(0i64, 1i64, 2i64);
+    vec.set(3, 0i64);
+}
+
+#[test]
+fn test_i64vec3_try_set() {
+    {
+        let mut vec = vec3!(0i64, 1i64, 2i64);
+        vec.try_set(0, 50i64).unwrap();
+
+        assert_eq!(vec, vec3!(50i64, 1i64, 2i64));
+    }
+    {
+        let mut vec = vec3!(0i64, 1i64, 2i64);
+        vec.try_set(1, 50i64).unwrap();
+
+        assert_eq!(vec, vec3!(0i64, 50i64, 2i64));
+    }
+    {
+        let mut vec = vec3!(0i64, 1i64, 2i64);
+        vec.try_set(2, 50i64).unwrap();
+
+        assert_eq!(vec, vec3!(0i64, 1i64, 50i64));
+    }
+
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).try_set(3, 0i64),
+        Err(IndexOutOfBoundsError)
+    );
+}
+
+#[test]
+fn test_i64vec3_set_unchecked() {
+    unsafe {
+        {
+            let mut vec = vec3!(0i64, 1i64, 2i64);
+            vec.set_unchecked(0, 50i64);
+
+            assert_eq!(vec, vec3!(50i64, 1i64, 2i64));
+        }
+        {
+            let mut vec = vec3!(0i64, 1i64, 2i64);
+            vec.set_unchecked(1, 50i64);
+
+            assert_eq!(vec, vec3!(0i64, 50i64, 2i64));
+        }
+        {
+            let mut vec = vec3!(0i64, 1i64, 2i64);
+            vec.set_unchecked(2, 50i64);
+
+            assert_eq!(vec, vec3!(0i64, 1i64, 50i64));
+        }
+    }
+}
+
+#[test]
+fn test_i64vec3_swizzle() {
+    assert_eq!(vec3!(0i64, 1i64, 2i64).z(), 2i64);
+    assert_eq!(vec3!(0i64, 1i64, 2i64).zx(), vec2!(2i64, 0i64));
+    assert_eq!(vec3!(0i64, 1i64, 2i64).zxy(), vec3!(2i64, 0i64, 1i64));
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).zxyz(),
+        vec4!(2i64, 0i64, 1i64, 2i64)
+    );
+}
+
+#[test]
+fn test_i64vec3_with_swizzle() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).with_y(0i64),
+        vec3!(0i64, 0i64, 2i64)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).with_yx(vec2!(0i64, 1i64)),
+        vec3!(1i64, 0i64, 2i64)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).with_yxz(vec3!(0i64, 2i64, 1i64)),
+        vec3!(2i64, 0i64, 1i64)
+    );
+}
+
+#[test]
+fn test_i64vec3_fold() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).fold(13, |acc, x| acc + x),
+        13 + 0i64 + 1i64 + 2i64
+    );
+}
+
+#[test]
+fn test_i64vec3_reduce() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).reduce(|acc, x| acc + x),
+        0i64 + 1i64 + 2i64
+    );
+}
+
+#[test]
+fn test_i64vec3_eq_mask() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).eq_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).eq_mask(vec3!(0i64, 0i64, 2i64)),
+        vec3!(true, false, true),
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).eq_mask(vec3!(3i64, 4i64, 5i64)),
+        vec3!(false, false, false)
+    );
+}
+
+#[test]
+fn test_i64vec3_ne_mask() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).ne_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).ne_mask(vec3!(0i64, 0i64, 2i64)),
+        vec3!(false, true, false),
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).ne_mask(vec3!(3i64, 4i64, 5i64)),
+        vec3!(true, true, true)
+    );
+}
+
+#[test]
+fn test_i64vec3_lt_mask() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).lt_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).lt_mask(vec3!(1i64, 0i64, 2i64)),
+        vec3!(true, false, false),
+    );
+
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).lt_mask(vec3!(3i64, 4i64, 5i64)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(3i64, 4i64, 5i64).lt_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(false, false, false)
+    );
+}
+
+#[test]
+fn test_i64vec3_gt_mask() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).gt_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).gt_mask(vec3!(1i64, 0i64, 2i64)),
+        vec3!(false, true, false),
+    );
+
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).gt_mask(vec3!(3i64, 4i64, 5i64)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(3i64, 4i64, 5i64).gt_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(true, true, true)
+    );
+}
+
+#[test]
+fn test_i64vec3_le_mask() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).le_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).le_mask(vec3!(1i64, 0i64, 2i64)),
+        vec3!(true, false, true),
+    );
+
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).le_mask(vec3!(3i64, 4i64, 5i64)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(3i64, 4i64, 5i64).le_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(false, false, false)
+    );
+}
+
+#[test]
+fn test_i64vec3_ge_mask() {
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).ge_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(true, true, true)
+    );
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).ge_mask(vec3!(1i64, 0i64, 2i64)),
+        vec3!(false, true, true),
+    );
+
+    assert_eq!(
+        vec3!(0i64, 1i64, 2i64).ge_mask(vec3!(3i64, 4i64, 5i64)),
+        vec3!(false, false, false)
+    );
+    assert_eq!(
+        vec3!(3i64, 4i64, 5i64).ge_mask(vec3!(0i64, 1i64, 2i64)),
+        vec3!(true, true, true)
+    );
+}
+
+#[test]
+fn test_i64vec3_eq() {
+    assert_eq!(vec3!(0i64, 1i64, 2i64) == vec3!(0i64, 1i64, 2i64), true);
+    assert_eq!(vec3!(0i64, 1i64, 2i64) == vec3!(0i64, 0i64, 2i64), false);
+    assert_eq!(vec3!(0i64, 1i64, 2i64) == vec3!(3i64, 4i64, 5i64), false);
+}
+
+#[test]
+fn test_i64vec3_ne() {
+    assert_eq!(vec3!(0i64, 1i64, 2i64) != vec3!(0i64, 1i64, 2i64), false);
+    assert_eq!(vec3!(0i64, 1i64, 2i64) != vec3!(0i64, 0i64, 2i64), true);
+    assert_eq!(vec3!(0i64, 1i64, 2i64) != vec3!(3i64, 4i64, 5i64), true);
+}
+
+#[test]
+fn test_i64vec3_debug() {
+    assert_eq!(format!("{:?}", vec3!(0i64, 1i64, 2i64)), "(0, 1, 2)");
+}
+
+#[test]
+fn test_i64vec3_display() {
+    assert_eq!(format!("{}", vec3!(0i64, 1i64, 2i64)), "(0, 1, 2)");
+}
+
+#[test]
+fn test_i64vec3_const_from_array() {
+    assert_eq!(
+        Vec3::<i64>::const_from_array([0i64, 1i64, 2i64]),
+        Vec3::from_array([0i64, 1i64, 2i64])
+    );
+}
+
+#[test]
 fn test_i64vec4_constructor() {
     assert_eq!(
         vec4!(0i64, 1i64, 2i64, 3i64),
@@ -393,5 +1031,450 @@ fn test_i64vec4_const_from_array() {
     assert_eq!(
         Vec4::<i64>::const_from_array([0i64, 1i64, 2i64, 3i64]),
         Vec4::from_array([0i64, 1i64, 2i64, 3i64])
+    );
+}
+
+const _: () = assert!(size_of::<Vec4S<i64>>() == size_of::<[i64; 4]>());
+
+#[test]
+fn test_i64vec4s_constructor() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64),
+        Vec4S::from_array([0i64, 1i64, 2i64, 3i64])
+    );
+    assert_eq!(
+        vec4s!(0i64, vec2s!(1i64, 2i64), 3i64),
+        Vec4S::from_array([0i64, 1i64, 2i64, 3i64])
+    );
+    assert_eq!(
+        vec4s!(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        Vec4S::from_array([0i64, 1i64, 2i64, 3i64])
+    );
+}
+
+#[test]
+fn test_i64vec4s_as_simd() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).as_simd(),
+        vec4!(0i64, 1i64, 2i64, 3i64)
+    );
+}
+
+#[test]
+fn test_i64vec4s_as_non_simd() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).as_non_simd(),
+        vec4s!(0i64, 1i64, 2i64, 3i64)
+    );
+}
+
+#[test]
+fn test_i64vec4s_from_array_as_array() {
+    assert_eq!(
+        Vec4S::from_array([0i64, 1i64, 2i64, 3i64]).as_array(),
+        [0i64, 1i64, 2i64, 3i64]
+    );
+}
+
+#[test]
+fn test_i64vec4s_splat() {
+    assert_eq!(Vec4S::splat(0i64), vec4s!(0i64, 0i64, 0i64, 0i64));
+}
+
+#[test]
+fn test_i64vec4s_index() {
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).index(0), 0i64);
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).index(1), 1i64);
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).index(2), 2i64);
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).index(3), 3i64);
+}
+
+#[test]
+#[should_panic]
+fn test_i64vec4s_index_panic() {
+    vec4s!(0i64, 1i64, 2i64, 3i64).index(4);
+}
+
+#[test]
+fn test_i64vec4s_get() {
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get(0), Some(0i64));
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get(1), Some(1i64));
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get(2), Some(2i64));
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get(3), Some(3i64));
+
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get(4), None);
+}
+
+#[test]
+fn test_i64vec4s_get_unchecked() {
+    unsafe {
+        assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get_unchecked(0), 0i64);
+        assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get_unchecked(1), 1i64);
+        assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get_unchecked(2), 2i64);
+        assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).get_unchecked(3), 3i64);
+    }
+}
+
+#[test]
+fn test_i64vec4s_set() {
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.set(0, 50i64);
+
+        assert_eq!(vec, vec4s!(50i64, 1i64, 2i64, 3i64));
+    }
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.set(1, 50i64);
+
+        assert_eq!(vec, vec4s!(0i64, 50i64, 2i64, 3i64));
+    }
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.set(2, 50i64);
+
+        assert_eq!(vec, vec4s!(0i64, 1i64, 50i64, 3i64));
+    }
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.set(3, 50i64);
+
+        assert_eq!(vec, vec4s!(0i64, 1i64, 2i64, 50i64));
+    }
+}
+
+#[test]
+#[should_panic]
+fn test_i64vec4s_set_panic() {
+    let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+    vec.set(4, 0i64);
+}
+
+#[test]
+fn test_i64vec4s_try_set() {
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.try_set(0, 50i64).unwrap();
+
+        assert_eq!(vec, vec4s!(50i64, 1i64, 2i64, 3i64));
+    }
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.try_set(1, 50i64).unwrap();
+
+        assert_eq!(vec, vec4s!(0i64, 50i64, 2i64, 3i64));
+    }
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.try_set(2, 50i64).unwrap();
+
+        assert_eq!(vec, vec4s!(0i64, 1i64, 50i64, 3i64));
+    }
+    {
+        let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+        vec.try_set(3, 50i64).unwrap();
+
+        assert_eq!(vec, vec4s!(0i64, 1i64, 2i64, 50i64));
+    }
+
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).try_set(4, 0i64),
+        Err(IndexOutOfBoundsError)
+    );
+}
+
+#[test]
+fn test_i64vec4s_set_unchecked() {
+    unsafe {
+        {
+            let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+            vec.set_unchecked(0, 50i64);
+
+            assert_eq!(vec, vec4s!(50i64, 1i64, 2i64, 3i64));
+        }
+        {
+            let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+            vec.set_unchecked(1, 50i64);
+
+            assert_eq!(vec, vec4s!(0i64, 50i64, 2i64, 3i64));
+        }
+        {
+            let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+            vec.set_unchecked(2, 50i64);
+
+            assert_eq!(vec, vec4s!(0i64, 1i64, 50i64, 3i64));
+        }
+        {
+            let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+            vec.set_unchecked(3, 50i64);
+
+            assert_eq!(vec, vec4s!(0i64, 1i64, 2i64, 50i64));
+        }
+    }
+}
+
+#[test]
+fn test_i64vec4s_swizzle() {
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).z(), 2i64);
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).zw(), vec2s!(2i64, 3i64));
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).zwy(),
+        vec3s!(2i64, 3i64, 1i64)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).zwyz(),
+        vec4s!(2i64, 3i64, 1i64, 2i64)
+    );
+}
+
+#[test]
+fn test_i64vec4s_with_swizzle() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).with_y(0i64),
+        vec4s!(0i64, 0i64, 2i64, 3i64)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).with_yx(vec2s!(0i64, 1i64)),
+        vec4s!(1i64, 0i64, 2i64, 3i64)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).with_yxz(vec3s!(0i64, 2i64, 1i64)),
+        vec4s!(2i64, 0i64, 1i64, 3i64)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).with_yxzw(vec4s!(0i64, 2i64, 1i64, 0i64)),
+        vec4s!(2i64, 0i64, 1i64, 0i64)
+    );
+}
+
+#[test]
+fn test_i64vec4s_swizzle_set() {
+    let mut vec = vec4s!(0i64, 1i64, 2i64, 3i64);
+    vec.set_yxz(vec3s!(0i64, 2i64, 1i64));
+
+    assert_eq!(vec, vec4s!(2i64, 0i64, 1i64, 3i64));
+}
+
+#[test]
+fn test_i64vec4s_swizzle_ref() {
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).y_ref(), &1i64);
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).yz_ref(), &vec2s!(1i64, 2i64));
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).xyz_ref(),
+        &vec3s!(0i64, 1i64, 2i64)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).xyzw_ref(),
+        &vec4s!(0i64, 1i64, 2i64, 3i64)
+    );
+}
+
+#[test]
+fn test_i64vec4s_swizzle_mut() {
+    assert_eq!(vec4s!(0i64, 1i64, 2i64, 3i64).y_mut(), &mut 1i64);
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).yz_mut(),
+        &mut vec2s!(1i64, 2i64)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).xyz_mut(),
+        &mut vec3s!(0i64, 1i64, 2i64)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).xyzw_mut(),
+        &mut vec4s!(0i64, 1i64, 2i64, 3i64)
+    );
+
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).x_yz_mut(),
+        (&mut 0i64, &mut vec2s!(1i64, 2i64))
+    );
+}
+
+#[test]
+fn test_i64vec4s_fold() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).fold(13, |acc, x| acc + x),
+        13 + 0i64 + 1i64 + 2i64 + 3i64
+    );
+}
+
+#[test]
+fn test_i64vec4s_reduce() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).reduce(|acc, x| acc + x),
+        0i64 + 1i64 + 2i64 + 3i64
+    );
+}
+
+#[test]
+fn test_i64vec4s_eq_mask() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).eq_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).eq_mask(vec4s!(0i64, 0i64, 2i64, 3i64)),
+        vec4s!(true, false, true, true),
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).eq_mask(vec4s!(4i64, 5i64, 6i64, 7i64)),
+        vec4s!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_i64vec4s_ne_mask() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).ne_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).ne_mask(vec4s!(0i64, 0i64, 2i64, 3i64)),
+        vec4s!(false, true, false, false),
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).ne_mask(vec4s!(4i64, 5i64, 6i64, 7i64)),
+        vec4s!(true, true, true, true)
+    );
+}
+
+#[test]
+fn test_i64vec4s_lt_mask() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).lt_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).lt_mask(vec4s!(1i64, 0i64, 2i64, 3i64)),
+        vec4s!(true, false, false, false),
+    );
+
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).lt_mask(vec4s!(4i64, 5i64, 6i64, 7i64)),
+        vec4s!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4s!(4i64, 5i64, 6i64, 7i64).lt_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_i64vec4s_gt_mask() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).gt_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).gt_mask(vec4s!(1i64, 0i64, 2i64, 3i64)),
+        vec4s!(false, true, false, false),
+    );
+
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).gt_mask(vec4s!(4i64, 5i64, 6i64, 7i64)),
+        vec4s!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4s!(4i64, 5i64, 6i64, 7i64).gt_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(true, true, true, true)
+    );
+}
+
+#[test]
+fn test_i64vec4s_le_mask() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).le_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).le_mask(vec4s!(1i64, 0i64, 2i64, 3i64)),
+        vec4s!(true, false, true, true),
+    );
+
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).le_mask(vec4s!(4i64, 5i64, 6i64, 7i64)),
+        vec4s!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4s!(4i64, 5i64, 6i64, 7i64).le_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(false, false, false, false)
+    );
+}
+
+#[test]
+fn test_i64vec4s_ge_mask() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).ge_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(true, true, true, true)
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).ge_mask(vec4s!(1i64, 0i64, 2i64, 3i64)),
+        vec4s!(false, true, true, true),
+    );
+
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64).ge_mask(vec4s!(4i64, 5i64, 6i64, 7i64)),
+        vec4s!(false, false, false, false)
+    );
+    assert_eq!(
+        vec4s!(4i64, 5i64, 6i64, 7i64).ge_mask(vec4s!(0i64, 1i64, 2i64, 3i64)),
+        vec4s!(true, true, true, true)
+    );
+}
+
+#[test]
+fn test_i64vec4s_eq() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64) == vec4s!(0i64, 1i64, 2i64, 3i64),
+        true
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64) == vec4s!(0i64, 0i64, 2i64, 3i64),
+        false
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64) == vec4s!(4i64, 5i64, 6i64, 7i64),
+        false
+    );
+}
+
+#[test]
+fn test_i64vec4s_ne() {
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64) != vec4s!(0i64, 1i64, 2i64, 3i64),
+        false
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64) != vec4s!(0i64, 0i64, 2i64, 3i64),
+        true
+    );
+    assert_eq!(
+        vec4s!(0i64, 1i64, 2i64, 3i64) != vec4s!(4i64, 5i64, 6i64, 7i64),
+        true
+    );
+}
+
+#[test]
+fn test_i64vec4s_debug() {
+    assert_eq!(
+        format!("{:?}", vec4s!(0i64, 1i64, 2i64, 3i64)),
+        "(0, 1, 2, 3)"
+    );
+}
+
+#[test]
+fn test_i64vec4s_display() {
+    assert_eq!(
+        format!("{}", vec4s!(0i64, 1i64, 2i64, 3i64)),
+        "(0, 1, 2, 3)"
+    );
+}
+
+#[test]
+fn test_i64vec4s_const_from_array() {
+    assert_eq!(
+        Vec4S::<i64>::const_from_array([0i64, 1i64, 2i64, 3i64]),
+        Vec4S::from_array([0i64, 1i64, 2i64, 3i64])
     );
 }

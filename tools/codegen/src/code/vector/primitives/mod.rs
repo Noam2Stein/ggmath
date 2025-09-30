@@ -1,9 +1,12 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
-use genco::{lang::{rust::Tokens}, quote};
+use genco::{lang::rust::Tokens, quote};
 use strum::IntoEnumIterator;
 
-use crate::{backend::{SrcDir, SrcFile, TestFile, TokensExt}, iter::{Length, Primitive, PrimitiveInt, Simdness}};
+use crate::{
+    backend::{SrcDir, SrcFile, TestFile, TokensExt},
+    iter::{Length, Primitive, PrimitiveInt, Simdness},
+};
 
 mod bool_;
 mod float;
@@ -24,8 +27,7 @@ pub fn srcmod() -> SrcDir {
 }
 
 pub fn testmods() -> impl Iterator<Item = TestFile> {
-    Primitive::iter()
-        .map(primitive_testmod)
+    Primitive::iter().map(primitive_testmod)
 }
 
 #[derive(Default)]
@@ -39,8 +41,7 @@ struct PrimitiveSrcMod {
 
 #[derive(Default)]
 struct PrimitiveTestMod {
-    util: Vec<Tokens>,
-    tests: Vec<Tokens>,
+    items: Vec<Tokens>,
 }
 
 fn primitive_srcmod(primitive: Primitive) -> SrcFile {
@@ -54,7 +55,7 @@ fn primitive_srcmod(primitive: Primitive) -> SrcFile {
         }
         Primitive::Int(primitive) => {
             int::push_src(primitive, &mut output);
-            
+
             match primitive {
                 PrimitiveInt::Sint(primitive) => {
                     sint::push_src(primitive, &mut output);
@@ -135,7 +136,7 @@ fn primitive_testmod(primitive: Primitive) -> TestFile {
         }
         Primitive::Int(primitive) => {
             int::push_tests(primitive, &mut output);
-            
+
             match primitive {
                 PrimitiveInt::Sint(primitive) => {
                     sint::push_tests(primitive, &mut output);
@@ -151,76 +152,26 @@ fn primitive_testmod(primitive: Primitive) -> TestFile {
     }
 
     quote! {
-        $(
-            if primitive.is_float() && primitive.is_primary() =>
-
-            use core::mem::size_of;
-        )
-
-        use ggmath::*;
-
-        $(
-            if primitive.is_float() =>
-
-            fn approx_eq(a: $primitive, b: $primitive) -> bool {
-                if a.is_nan() && b.is_nan() {
-                    true
-                } else if a.is_infinite() && b.is_infinite() {
-                    a.is_sign_positive() == b.is_sign_positive()
-                } else {
-                    (a - b).abs() < 0.1
-                }
-            }
-
-            fn approx_vec_eq<const N: usize, S: Simdness>(a: Vector<N, $primitive, S>, b: Vector<N, $primitive, S>) -> bool
-            where
-                Usize<N>: VecLen,
-            {
-                (0..N).all(|i| approx_eq(a.index(i), b.index(i)))
-            }
-
-            macro_rules! assert_approx_eq {
-                ($$a:expr, $$b:expr $$(,)?) => {
-                    let a = $$a;
-                    let b = $$b;
-                    
-                    if !approx_eq(a, b) {
-                        panic!("approx_eq failed: {a:?} != {b:?}");
-                    }
-                };
-            }
-
-            macro_rules! assert_approx_vec_eq {
-                ($$a:expr, $$b:expr $$(,)?) => {
-                    let a = $$a;
-                    let b = $$b;
-                    
-                    if !approx_vec_eq(a, b) {
-                        panic!("approx_vec_eq failed: {a:?} != {b:?}");
-                    }
-                };
-            }
-        )
-
-        $(for item in output.util join($['\n']) => $item)
-                    
-        $(for item in output.tests join($['\n']) => $item)
+        $(for item in output.items join($['\n']) => $item)
     }
     .to_testfile(primitive.as_str())
 }
 
-
 impl PrimitiveTestMod {
-    fn push_tests_for_vector(&mut self, primitive: impl Into<Primitive>, mut f: impl FnMut(Length, Simdness) -> Tokens) {
+    fn push_for_vector(
+        &mut self,
+        primitive: impl Into<Primitive>,
+        mut f: impl FnMut(Length, Simdness) -> Tokens,
+    ) {
         let primitive = primitive.into();
 
         for length in Length::iter() {
             for simdness in Simdness::iter() {
-                if !primitive.is_primary() && !(length == Length::N4 && simdness == Simdness::Simd) {
+                if !primitive.is_primary() && simdness != Simdness::Simd && length != Length::N4 {
                     continue;
                 }
 
-                self.tests.push(f(length, simdness))
+                self.items.push(f(length, simdness))
             }
         }
     }

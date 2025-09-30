@@ -30,7 +30,7 @@ pub fn srcmod() -> SrcFile {
                         ))
                         #[inline(always)]
                         pub fn $combination_str(self) -> Vector<$n2, T, S> {
-                            self.shuffle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $i)>()
+                            self.shuffle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $(combination[i]))>()
                         }
                     )
                 )
