@@ -6,23 +6,23 @@ use ggmath::*;
 #[test]
 fn test_u16vec4_constructor() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16),
-        U16Vec4::from_array([0u16, 1u16, 2u16, 3u16])
+        vec4!(0u16, 1u16, 2u16, 3u16),
+        Vec4::from_array([0u16, 1u16, 2u16, 3u16])
     );
     assert_eq!(
-        u16vec4!(0u16, vec2!(1u16, 2u16), 3u16),
-        U16Vec4::from_array([0u16, 1u16, 2u16, 3u16])
+        vec4!(0u16, vec2!(1u16, 2u16), 3u16),
+        Vec4::from_array([0u16, 1u16, 2u16, 3u16])
     );
     assert_eq!(
-        u16vec4!(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        U16Vec4::from_array([0u16, 1u16, 2u16, 3u16])
+        vec4!(vec4!(0u16, 1u16, 2u16, 3u16)),
+        Vec4::from_array([0u16, 1u16, 2u16, 3u16])
     );
 }
 
 #[test]
 fn test_u16vec4_as_simd() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).as_simd(),
+        vec4!(0u16, 1u16, 2u16, 3u16).as_simd(),
         vec4!(0u16, 1u16, 2u16, 3u16)
     );
 }
@@ -30,7 +30,7 @@ fn test_u16vec4_as_simd() {
 #[test]
 fn test_u16vec4_as_non_simd() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).as_non_simd(),
+        vec4!(0u16, 1u16, 2u16, 3u16).as_non_simd(),
         vec4s!(0u16, 1u16, 2u16, 3u16)
     );
 }
@@ -38,114 +38,114 @@ fn test_u16vec4_as_non_simd() {
 #[test]
 fn test_u16vec4_from_array_as_array() {
     assert_eq!(
-        U16Vec4::from_array([0u16, 1u16, 2u16, 3u16]).as_array(),
+        Vec4::from_array([0u16, 1u16, 2u16, 3u16]).as_array(),
         [0u16, 1u16, 2u16, 3u16]
     );
 }
 
 #[test]
 fn test_u16vec4_splat() {
-    assert_eq!(U16Vec4::splat(0u16), u16vec4!(0u16, 0u16, 0u16, 0u16));
+    assert_eq!(Vec4::splat(0u16), vec4!(0u16, 0u16, 0u16, 0u16));
 }
 
 #[test]
 fn test_u16vec4_index() {
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).index(0), 0u16);
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).index(1), 1u16);
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).index(2), 2u16);
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).index(3), 3u16);
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).index(0), 0u16);
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).index(1), 1u16);
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).index(2), 2u16);
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).index(3), 3u16);
 }
 
 #[test]
 #[should_panic]
 fn test_u16vec4_index_panic() {
-    u16vec4!(0u16, 1u16, 2u16, 3u16).index(4);
+    vec4!(0u16, 1u16, 2u16, 3u16).index(4);
 }
 
 #[test]
 fn test_u16vec4_get() {
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get(0), Some(0u16));
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get(1), Some(1u16));
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get(2), Some(2u16));
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get(3), Some(3u16));
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get(0), Some(0u16));
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get(1), Some(1u16));
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get(2), Some(2u16));
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get(3), Some(3u16));
 
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get(4), None);
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get(4), None);
 }
 
 #[test]
 fn test_u16vec4_get_unchecked() {
     unsafe {
-        assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(0), 0u16);
-        assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(1), 1u16);
-        assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(2), 2u16);
-        assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(3), 3u16);
+        assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(0), 0u16);
+        assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(1), 1u16);
+        assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(2), 2u16);
+        assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).get_unchecked(3), 3u16);
     }
 }
 
 #[test]
 fn test_u16vec4_set() {
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.set(0, 50u16);
 
-        assert_eq!(vec, u16vec4!(50u16, 1u16, 2u16, 3u16));
+        assert_eq!(vec, vec4!(50u16, 1u16, 2u16, 3u16));
     }
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.set(1, 50u16);
 
-        assert_eq!(vec, u16vec4!(0u16, 50u16, 2u16, 3u16));
+        assert_eq!(vec, vec4!(0u16, 50u16, 2u16, 3u16));
     }
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.set(2, 50u16);
 
-        assert_eq!(vec, u16vec4!(0u16, 1u16, 50u16, 3u16));
+        assert_eq!(vec, vec4!(0u16, 1u16, 50u16, 3u16));
     }
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.set(3, 50u16);
 
-        assert_eq!(vec, u16vec4!(0u16, 1u16, 2u16, 50u16));
+        assert_eq!(vec, vec4!(0u16, 1u16, 2u16, 50u16));
     }
 }
 
 #[test]
 #[should_panic]
 fn test_u16vec4_set_panic() {
-    let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+    let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
     vec.set(4, 0u16);
 }
 
 #[test]
 fn test_u16vec4_try_set() {
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.try_set(0, 50u16).unwrap();
 
-        assert_eq!(vec, u16vec4!(50u16, 1u16, 2u16, 3u16));
+        assert_eq!(vec, vec4!(50u16, 1u16, 2u16, 3u16));
     }
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.try_set(1, 50u16).unwrap();
 
-        assert_eq!(vec, u16vec4!(0u16, 50u16, 2u16, 3u16));
+        assert_eq!(vec, vec4!(0u16, 50u16, 2u16, 3u16));
     }
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.try_set(2, 50u16).unwrap();
 
-        assert_eq!(vec, u16vec4!(0u16, 1u16, 50u16, 3u16));
+        assert_eq!(vec, vec4!(0u16, 1u16, 50u16, 3u16));
     }
     {
-        let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+        let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
         vec.try_set(3, 50u16).unwrap();
 
-        assert_eq!(vec, u16vec4!(0u16, 1u16, 2u16, 50u16));
+        assert_eq!(vec, vec4!(0u16, 1u16, 2u16, 50u16));
     }
 
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).try_set(4, 0u16),
+        vec4!(0u16, 1u16, 2u16, 3u16).try_set(4, 0u16),
         Err(IndexOutOfBoundsError)
     );
 }
@@ -154,42 +154,39 @@ fn test_u16vec4_try_set() {
 fn test_u16vec4_set_unchecked() {
     unsafe {
         {
-            let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+            let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
             vec.set_unchecked(0, 50u16);
 
-            assert_eq!(vec, u16vec4!(50u16, 1u16, 2u16, 3u16));
+            assert_eq!(vec, vec4!(50u16, 1u16, 2u16, 3u16));
         }
         {
-            let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+            let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
             vec.set_unchecked(1, 50u16);
 
-            assert_eq!(vec, u16vec4!(0u16, 50u16, 2u16, 3u16));
+            assert_eq!(vec, vec4!(0u16, 50u16, 2u16, 3u16));
         }
         {
-            let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+            let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
             vec.set_unchecked(2, 50u16);
 
-            assert_eq!(vec, u16vec4!(0u16, 1u16, 50u16, 3u16));
+            assert_eq!(vec, vec4!(0u16, 1u16, 50u16, 3u16));
         }
         {
-            let mut vec = u16vec4!(0u16, 1u16, 2u16, 3u16);
+            let mut vec = vec4!(0u16, 1u16, 2u16, 3u16);
             vec.set_unchecked(3, 50u16);
 
-            assert_eq!(vec, u16vec4!(0u16, 1u16, 2u16, 50u16));
+            assert_eq!(vec, vec4!(0u16, 1u16, 2u16, 50u16));
         }
     }
 }
 
 #[test]
 fn test_u16vec4_swizzle() {
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).z(), 2u16);
-    assert_eq!(u16vec4!(0u16, 1u16, 2u16, 3u16).zw(), vec2!(2u16, 3u16));
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).z(), 2u16);
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).zw(), vec2!(2u16, 3u16));
+    assert_eq!(vec4!(0u16, 1u16, 2u16, 3u16).zwy(), vec3!(2u16, 3u16, 1u16));
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).zwy(),
-        vec3!(2u16, 3u16, 1u16)
-    );
-    assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).zwyz(),
+        vec4!(0u16, 1u16, 2u16, 3u16).zwyz(),
         vec4!(2u16, 3u16, 1u16, 2u16)
     );
 }
@@ -197,27 +194,27 @@ fn test_u16vec4_swizzle() {
 #[test]
 fn test_u16vec4_with_swizzle() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).with_y(0u16),
-        u16vec4!(0u16, 0u16, 2u16, 3u16)
+        vec4!(0u16, 1u16, 2u16, 3u16).with_y(0u16),
+        vec4!(0u16, 0u16, 2u16, 3u16)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).with_yx(vec2!(0u16, 1u16)),
-        u16vec4!(1u16, 0u16, 2u16, 3u16)
+        vec4!(0u16, 1u16, 2u16, 3u16).with_yx(vec2!(0u16, 1u16)),
+        vec4!(1u16, 0u16, 2u16, 3u16)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).with_yxz(vec3!(0u16, 2u16, 1u16)),
-        u16vec4!(2u16, 0u16, 1u16, 3u16)
+        vec4!(0u16, 1u16, 2u16, 3u16).with_yxz(vec3!(0u16, 2u16, 1u16)),
+        vec4!(2u16, 0u16, 1u16, 3u16)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).with_yxzw(vec4!(0u16, 2u16, 1u16, 0u16)),
-        u16vec4!(2u16, 0u16, 1u16, 0u16)
+        vec4!(0u16, 1u16, 2u16, 3u16).with_yxzw(vec4!(0u16, 2u16, 1u16, 0u16)),
+        vec4!(2u16, 0u16, 1u16, 0u16)
     );
 }
 
 #[test]
 fn test_u16vec4_fold() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).fold(13, |acc, x| acc + x),
+        vec4!(0u16, 1u16, 2u16, 3u16).fold(13, |acc, x| acc + x),
         13 + 0u16 + 1u16 + 2u16 + 3u16
     );
 }
@@ -225,7 +222,7 @@ fn test_u16vec4_fold() {
 #[test]
 fn test_u16vec4_reduce() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).reduce(|acc, x| acc + x),
+        vec4!(0u16, 1u16, 2u16, 3u16).reduce(|acc, x| acc + x),
         0u16 + 1u16 + 2u16 + 3u16
     );
 }
@@ -233,131 +230,131 @@ fn test_u16vec4_reduce() {
 #[test]
 fn test_u16vec4_eq_mask() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).eq_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(0u16, 1u16, 2u16, 3u16).eq_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).eq_mask(u16vec4!(0u16, 0u16, 2u16, 3u16)),
-        u16vec4!(true, false, true, true),
+        vec4!(0u16, 1u16, 2u16, 3u16).eq_mask(vec4!(0u16, 0u16, 2u16, 3u16)),
+        vec4!(true, false, true, true),
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).eq_mask(u16vec4!(4u16, 5u16, 6u16, 7u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(0u16, 1u16, 2u16, 3u16).eq_mask(vec4!(4u16, 5u16, 6u16, 7u16)),
+        vec4!(false, false, false, false)
     );
 }
 
 #[test]
 fn test_u16vec4_ne_mask() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).ne_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(0u16, 1u16, 2u16, 3u16).ne_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).ne_mask(u16vec4!(0u16, 0u16, 2u16, 3u16)),
-        u16vec4!(false, true, false, false),
+        vec4!(0u16, 1u16, 2u16, 3u16).ne_mask(vec4!(0u16, 0u16, 2u16, 3u16)),
+        vec4!(false, true, false, false),
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).ne_mask(u16vec4!(4u16, 5u16, 6u16, 7u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(0u16, 1u16, 2u16, 3u16).ne_mask(vec4!(4u16, 5u16, 6u16, 7u16)),
+        vec4!(true, true, true, true)
     );
 }
 
 #[test]
 fn test_u16vec4_lt_mask() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).lt_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(0u16, 1u16, 2u16, 3u16).lt_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).lt_mask(u16vec4!(1u16, 0u16, 2u16, 3u16)),
-        u16vec4!(true, false, false, false),
+        vec4!(0u16, 1u16, 2u16, 3u16).lt_mask(vec4!(1u16, 0u16, 2u16, 3u16)),
+        vec4!(true, false, false, false),
     );
 
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).lt_mask(u16vec4!(4u16, 5u16, 6u16, 7u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(0u16, 1u16, 2u16, 3u16).lt_mask(vec4!(4u16, 5u16, 6u16, 7u16)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        u16vec4!(4u16, 5u16, 6u16, 7u16).lt_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(4u16, 5u16, 6u16, 7u16).lt_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(false, false, false, false)
     );
 }
 
 #[test]
 fn test_u16vec4_gt_mask() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).gt_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(0u16, 1u16, 2u16, 3u16).gt_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).gt_mask(u16vec4!(1u16, 0u16, 2u16, 3u16)),
-        u16vec4!(false, true, false, false),
+        vec4!(0u16, 1u16, 2u16, 3u16).gt_mask(vec4!(1u16, 0u16, 2u16, 3u16)),
+        vec4!(false, true, false, false),
     );
 
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).gt_mask(u16vec4!(4u16, 5u16, 6u16, 7u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(0u16, 1u16, 2u16, 3u16).gt_mask(vec4!(4u16, 5u16, 6u16, 7u16)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        u16vec4!(4u16, 5u16, 6u16, 7u16).gt_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(4u16, 5u16, 6u16, 7u16).gt_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(true, true, true, true)
     );
 }
 
 #[test]
 fn test_u16vec4_le_mask() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).le_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(0u16, 1u16, 2u16, 3u16).le_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).le_mask(u16vec4!(1u16, 0u16, 2u16, 3u16)),
-        u16vec4!(true, false, true, true),
+        vec4!(0u16, 1u16, 2u16, 3u16).le_mask(vec4!(1u16, 0u16, 2u16, 3u16)),
+        vec4!(true, false, true, true),
     );
 
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).le_mask(u16vec4!(4u16, 5u16, 6u16, 7u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(0u16, 1u16, 2u16, 3u16).le_mask(vec4!(4u16, 5u16, 6u16, 7u16)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        u16vec4!(4u16, 5u16, 6u16, 7u16).le_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(4u16, 5u16, 6u16, 7u16).le_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(false, false, false, false)
     );
 }
 
 #[test]
 fn test_u16vec4_ge_mask() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).ge_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(0u16, 1u16, 2u16, 3u16).ge_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).ge_mask(u16vec4!(1u16, 0u16, 2u16, 3u16)),
-        u16vec4!(false, true, true, true),
+        vec4!(0u16, 1u16, 2u16, 3u16).ge_mask(vec4!(1u16, 0u16, 2u16, 3u16)),
+        vec4!(false, true, true, true),
     );
 
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16).ge_mask(u16vec4!(4u16, 5u16, 6u16, 7u16)),
-        u16vec4!(false, false, false, false)
+        vec4!(0u16, 1u16, 2u16, 3u16).ge_mask(vec4!(4u16, 5u16, 6u16, 7u16)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        u16vec4!(4u16, 5u16, 6u16, 7u16).ge_mask(u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        u16vec4!(true, true, true, true)
+        vec4!(4u16, 5u16, 6u16, 7u16).ge_mask(vec4!(0u16, 1u16, 2u16, 3u16)),
+        vec4!(true, true, true, true)
     );
 }
 
 #[test]
 fn test_u16vec4_eq() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16) == u16vec4!(0u16, 1u16, 2u16, 3u16),
+        vec4!(0u16, 1u16, 2u16, 3u16) == vec4!(0u16, 1u16, 2u16, 3u16),
         true
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16) == u16vec4!(0u16, 0u16, 2u16, 3u16),
+        vec4!(0u16, 1u16, 2u16, 3u16) == vec4!(0u16, 0u16, 2u16, 3u16),
         false
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16) == u16vec4!(4u16, 5u16, 6u16, 7u16),
+        vec4!(0u16, 1u16, 2u16, 3u16) == vec4!(4u16, 5u16, 6u16, 7u16),
         false
     );
 }
@@ -365,15 +362,15 @@ fn test_u16vec4_eq() {
 #[test]
 fn test_u16vec4_ne() {
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16) != u16vec4!(0u16, 1u16, 2u16, 3u16),
+        vec4!(0u16, 1u16, 2u16, 3u16) != vec4!(0u16, 1u16, 2u16, 3u16),
         false
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16) != u16vec4!(0u16, 0u16, 2u16, 3u16),
+        vec4!(0u16, 1u16, 2u16, 3u16) != vec4!(0u16, 0u16, 2u16, 3u16),
         true
     );
     assert_eq!(
-        u16vec4!(0u16, 1u16, 2u16, 3u16) != u16vec4!(4u16, 5u16, 6u16, 7u16),
+        vec4!(0u16, 1u16, 2u16, 3u16) != vec4!(4u16, 5u16, 6u16, 7u16),
         true
     );
 }
@@ -381,23 +378,20 @@ fn test_u16vec4_ne() {
 #[test]
 fn test_u16vec4_debug() {
     assert_eq!(
-        format!("{:?}", u16vec4!(0u16, 1u16, 2u16, 3u16)),
+        format!("{:?}", vec4!(0u16, 1u16, 2u16, 3u16)),
         "(0, 1, 2, 3)"
     );
 }
 
 #[test]
 fn test_u16vec4_display() {
-    assert_eq!(
-        format!("{}", u16vec4!(0u16, 1u16, 2u16, 3u16)),
-        "(0, 1, 2, 3)"
-    );
+    assert_eq!(format!("{}", vec4!(0u16, 1u16, 2u16, 3u16)), "(0, 1, 2, 3)");
 }
 
 #[test]
 fn test_u16vec4_const_from_array() {
     assert_eq!(
-        U16Vec4::<u16>::const_from_array([0u16, 1u16, 2u16, 3u16]),
-        U16Vec4::from_array([0u16, 1u16, 2u16, 3u16])
+        Vec4::<u16>::const_from_array([0u16, 1u16, 2u16, 3u16]),
+        Vec4::from_array([0u16, 1u16, 2u16, 3u16])
     );
 }

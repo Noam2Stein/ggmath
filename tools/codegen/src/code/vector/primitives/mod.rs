@@ -152,7 +152,7 @@ fn primitive_testmod(primitive: Primitive) -> TestFile {
 
     quote! {
         $(
-            if primitive.is_float() =>
+            if primitive.is_float() && primitive.is_primary() =>
 
             use core::mem::size_of;
         )

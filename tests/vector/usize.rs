@@ -6,23 +6,23 @@ use ggmath::*;
 #[test]
 fn test_usizevec4_constructor() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize),
-        UsizeVec4::from_array([0usize, 1usize, 2usize, 3usize])
+        vec4!(0usize, 1usize, 2usize, 3usize),
+        Vec4::from_array([0usize, 1usize, 2usize, 3usize])
     );
     assert_eq!(
-        usizevec4!(0usize, vec2!(1usize, 2usize), 3usize),
-        UsizeVec4::from_array([0usize, 1usize, 2usize, 3usize])
+        vec4!(0usize, vec2!(1usize, 2usize), 3usize),
+        Vec4::from_array([0usize, 1usize, 2usize, 3usize])
     );
     assert_eq!(
-        usizevec4!(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        UsizeVec4::from_array([0usize, 1usize, 2usize, 3usize])
+        vec4!(vec4!(0usize, 1usize, 2usize, 3usize)),
+        Vec4::from_array([0usize, 1usize, 2usize, 3usize])
     );
 }
 
 #[test]
 fn test_usizevec4_as_simd() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).as_simd(),
+        vec4!(0usize, 1usize, 2usize, 3usize).as_simd(),
         vec4!(0usize, 1usize, 2usize, 3usize)
     );
 }
@@ -30,7 +30,7 @@ fn test_usizevec4_as_simd() {
 #[test]
 fn test_usizevec4_as_non_simd() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).as_non_simd(),
+        vec4!(0usize, 1usize, 2usize, 3usize).as_non_simd(),
         vec4s!(0usize, 1usize, 2usize, 3usize)
     );
 }
@@ -38,72 +38,57 @@ fn test_usizevec4_as_non_simd() {
 #[test]
 fn test_usizevec4_from_array_as_array() {
     assert_eq!(
-        UsizeVec4::from_array([0usize, 1usize, 2usize, 3usize]).as_array(),
+        Vec4::from_array([0usize, 1usize, 2usize, 3usize]).as_array(),
         [0usize, 1usize, 2usize, 3usize]
     );
 }
 
 #[test]
 fn test_usizevec4_splat() {
-    assert_eq!(
-        UsizeVec4::splat(0usize),
-        usizevec4!(0usize, 0usize, 0usize, 0usize)
-    );
+    assert_eq!(Vec4::splat(0usize), vec4!(0usize, 0usize, 0usize, 0usize));
 }
 
 #[test]
 fn test_usizevec4_index() {
-    assert_eq!(usizevec4!(0usize, 1usize, 2usize, 3usize).index(0), 0usize);
-    assert_eq!(usizevec4!(0usize, 1usize, 2usize, 3usize).index(1), 1usize);
-    assert_eq!(usizevec4!(0usize, 1usize, 2usize, 3usize).index(2), 2usize);
-    assert_eq!(usizevec4!(0usize, 1usize, 2usize, 3usize).index(3), 3usize);
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).index(0), 0usize);
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).index(1), 1usize);
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).index(2), 2usize);
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).index(3), 3usize);
 }
 
 #[test]
 #[should_panic]
 fn test_usizevec4_index_panic() {
-    usizevec4!(0usize, 1usize, 2usize, 3usize).index(4);
+    vec4!(0usize, 1usize, 2usize, 3usize).index(4);
 }
 
 #[test]
 fn test_usizevec4_get() {
-    assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).get(0),
-        Some(0usize)
-    );
-    assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).get(1),
-        Some(1usize)
-    );
-    assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).get(2),
-        Some(2usize)
-    );
-    assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).get(3),
-        Some(3usize)
-    );
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).get(0), Some(0usize));
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).get(1), Some(1usize));
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).get(2), Some(2usize));
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).get(3), Some(3usize));
 
-    assert_eq!(usizevec4!(0usize, 1usize, 2usize, 3usize).get(4), None);
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).get(4), None);
 }
 
 #[test]
 fn test_usizevec4_get_unchecked() {
     unsafe {
         assert_eq!(
-            usizevec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(0),
+            vec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(0),
             0usize
         );
         assert_eq!(
-            usizevec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(1),
+            vec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(1),
             1usize
         );
         assert_eq!(
-            usizevec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(2),
+            vec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(2),
             2usize
         );
         assert_eq!(
-            usizevec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(3),
+            vec4!(0usize, 1usize, 2usize, 3usize).get_unchecked(3),
             3usize
         );
     }
@@ -112,67 +97,67 @@ fn test_usizevec4_get_unchecked() {
 #[test]
 fn test_usizevec4_set() {
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.set(0, 50usize);
 
-        assert_eq!(vec, usizevec4!(50usize, 1usize, 2usize, 3usize));
+        assert_eq!(vec, vec4!(50usize, 1usize, 2usize, 3usize));
     }
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.set(1, 50usize);
 
-        assert_eq!(vec, usizevec4!(0usize, 50usize, 2usize, 3usize));
+        assert_eq!(vec, vec4!(0usize, 50usize, 2usize, 3usize));
     }
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.set(2, 50usize);
 
-        assert_eq!(vec, usizevec4!(0usize, 1usize, 50usize, 3usize));
+        assert_eq!(vec, vec4!(0usize, 1usize, 50usize, 3usize));
     }
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.set(3, 50usize);
 
-        assert_eq!(vec, usizevec4!(0usize, 1usize, 2usize, 50usize));
+        assert_eq!(vec, vec4!(0usize, 1usize, 2usize, 50usize));
     }
 }
 
 #[test]
 #[should_panic]
 fn test_usizevec4_set_panic() {
-    let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+    let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
     vec.set(4, 0usize);
 }
 
 #[test]
 fn test_usizevec4_try_set() {
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.try_set(0, 50usize).unwrap();
 
-        assert_eq!(vec, usizevec4!(50usize, 1usize, 2usize, 3usize));
+        assert_eq!(vec, vec4!(50usize, 1usize, 2usize, 3usize));
     }
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.try_set(1, 50usize).unwrap();
 
-        assert_eq!(vec, usizevec4!(0usize, 50usize, 2usize, 3usize));
+        assert_eq!(vec, vec4!(0usize, 50usize, 2usize, 3usize));
     }
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.try_set(2, 50usize).unwrap();
 
-        assert_eq!(vec, usizevec4!(0usize, 1usize, 50usize, 3usize));
+        assert_eq!(vec, vec4!(0usize, 1usize, 50usize, 3usize));
     }
     {
-        let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+        let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
         vec.try_set(3, 50usize).unwrap();
 
-        assert_eq!(vec, usizevec4!(0usize, 1usize, 2usize, 50usize));
+        assert_eq!(vec, vec4!(0usize, 1usize, 2usize, 50usize));
     }
 
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).try_set(4, 0usize),
+        vec4!(0usize, 1usize, 2usize, 3usize).try_set(4, 0usize),
         Err(IndexOutOfBoundsError)
     );
 }
@@ -181,45 +166,45 @@ fn test_usizevec4_try_set() {
 fn test_usizevec4_set_unchecked() {
     unsafe {
         {
-            let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+            let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
             vec.set_unchecked(0, 50usize);
 
-            assert_eq!(vec, usizevec4!(50usize, 1usize, 2usize, 3usize));
+            assert_eq!(vec, vec4!(50usize, 1usize, 2usize, 3usize));
         }
         {
-            let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+            let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
             vec.set_unchecked(1, 50usize);
 
-            assert_eq!(vec, usizevec4!(0usize, 50usize, 2usize, 3usize));
+            assert_eq!(vec, vec4!(0usize, 50usize, 2usize, 3usize));
         }
         {
-            let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+            let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
             vec.set_unchecked(2, 50usize);
 
-            assert_eq!(vec, usizevec4!(0usize, 1usize, 50usize, 3usize));
+            assert_eq!(vec, vec4!(0usize, 1usize, 50usize, 3usize));
         }
         {
-            let mut vec = usizevec4!(0usize, 1usize, 2usize, 3usize);
+            let mut vec = vec4!(0usize, 1usize, 2usize, 3usize);
             vec.set_unchecked(3, 50usize);
 
-            assert_eq!(vec, usizevec4!(0usize, 1usize, 2usize, 50usize));
+            assert_eq!(vec, vec4!(0usize, 1usize, 2usize, 50usize));
         }
     }
 }
 
 #[test]
 fn test_usizevec4_swizzle() {
-    assert_eq!(usizevec4!(0usize, 1usize, 2usize, 3usize).z(), 2usize);
+    assert_eq!(vec4!(0usize, 1usize, 2usize, 3usize).z(), 2usize);
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).zw(),
+        vec4!(0usize, 1usize, 2usize, 3usize).zw(),
         vec2!(2usize, 3usize)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).zwy(),
+        vec4!(0usize, 1usize, 2usize, 3usize).zwy(),
         vec3!(2usize, 3usize, 1usize)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).zwyz(),
+        vec4!(0usize, 1usize, 2usize, 3usize).zwyz(),
         vec4!(2usize, 3usize, 1usize, 2usize)
     );
 }
@@ -227,27 +212,27 @@ fn test_usizevec4_swizzle() {
 #[test]
 fn test_usizevec4_with_swizzle() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).with_y(0usize),
-        usizevec4!(0usize, 0usize, 2usize, 3usize)
+        vec4!(0usize, 1usize, 2usize, 3usize).with_y(0usize),
+        vec4!(0usize, 0usize, 2usize, 3usize)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).with_yx(vec2!(0usize, 1usize)),
-        usizevec4!(1usize, 0usize, 2usize, 3usize)
+        vec4!(0usize, 1usize, 2usize, 3usize).with_yx(vec2!(0usize, 1usize)),
+        vec4!(1usize, 0usize, 2usize, 3usize)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).with_yxz(vec3!(0usize, 2usize, 1usize)),
-        usizevec4!(2usize, 0usize, 1usize, 3usize)
+        vec4!(0usize, 1usize, 2usize, 3usize).with_yxz(vec3!(0usize, 2usize, 1usize)),
+        vec4!(2usize, 0usize, 1usize, 3usize)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).with_yxzw(vec4!(0usize, 2usize, 1usize, 0usize)),
-        usizevec4!(2usize, 0usize, 1usize, 0usize)
+        vec4!(0usize, 1usize, 2usize, 3usize).with_yxzw(vec4!(0usize, 2usize, 1usize, 0usize)),
+        vec4!(2usize, 0usize, 1usize, 0usize)
     );
 }
 
 #[test]
 fn test_usizevec4_fold() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).fold(13, |acc, x| acc + x),
+        vec4!(0usize, 1usize, 2usize, 3usize).fold(13, |acc, x| acc + x),
         13 + 0usize + 1usize + 2usize + 3usize
     );
 }
@@ -255,7 +240,7 @@ fn test_usizevec4_fold() {
 #[test]
 fn test_usizevec4_reduce() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize).reduce(|acc, x| acc + x),
+        vec4!(0usize, 1usize, 2usize, 3usize).reduce(|acc, x| acc + x),
         0usize + 1usize + 2usize + 3usize
     );
 }
@@ -263,153 +248,131 @@ fn test_usizevec4_reduce() {
 #[test]
 fn test_usizevec4_eq_mask() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .eq_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(0usize, 1usize, 2usize, 3usize).eq_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .eq_mask(usizevec4!(0usize, 0usize, 2usize, 3usize)),
-        usizevec4!(true, false, true, true),
+        vec4!(0usize, 1usize, 2usize, 3usize).eq_mask(vec4!(0usize, 0usize, 2usize, 3usize)),
+        vec4!(true, false, true, true),
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .eq_mask(usizevec4!(4usize, 5usize, 6usize, 7usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(0usize, 1usize, 2usize, 3usize).eq_mask(vec4!(4usize, 5usize, 6usize, 7usize)),
+        vec4!(false, false, false, false)
     );
 }
 
 #[test]
 fn test_usizevec4_ne_mask() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .ne_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(0usize, 1usize, 2usize, 3usize).ne_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .ne_mask(usizevec4!(0usize, 0usize, 2usize, 3usize)),
-        usizevec4!(false, true, false, false),
+        vec4!(0usize, 1usize, 2usize, 3usize).ne_mask(vec4!(0usize, 0usize, 2usize, 3usize)),
+        vec4!(false, true, false, false),
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .ne_mask(usizevec4!(4usize, 5usize, 6usize, 7usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(0usize, 1usize, 2usize, 3usize).ne_mask(vec4!(4usize, 5usize, 6usize, 7usize)),
+        vec4!(true, true, true, true)
     );
 }
 
 #[test]
 fn test_usizevec4_lt_mask() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .lt_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(0usize, 1usize, 2usize, 3usize).lt_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .lt_mask(usizevec4!(1usize, 0usize, 2usize, 3usize)),
-        usizevec4!(true, false, false, false),
+        vec4!(0usize, 1usize, 2usize, 3usize).lt_mask(vec4!(1usize, 0usize, 2usize, 3usize)),
+        vec4!(true, false, false, false),
     );
 
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .lt_mask(usizevec4!(4usize, 5usize, 6usize, 7usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(0usize, 1usize, 2usize, 3usize).lt_mask(vec4!(4usize, 5usize, 6usize, 7usize)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        usizevec4!(4usize, 5usize, 6usize, 7usize)
-            .lt_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(4usize, 5usize, 6usize, 7usize).lt_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(false, false, false, false)
     );
 }
 
 #[test]
 fn test_usizevec4_gt_mask() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .gt_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(0usize, 1usize, 2usize, 3usize).gt_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .gt_mask(usizevec4!(1usize, 0usize, 2usize, 3usize)),
-        usizevec4!(false, true, false, false),
+        vec4!(0usize, 1usize, 2usize, 3usize).gt_mask(vec4!(1usize, 0usize, 2usize, 3usize)),
+        vec4!(false, true, false, false),
     );
 
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .gt_mask(usizevec4!(4usize, 5usize, 6usize, 7usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(0usize, 1usize, 2usize, 3usize).gt_mask(vec4!(4usize, 5usize, 6usize, 7usize)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        usizevec4!(4usize, 5usize, 6usize, 7usize)
-            .gt_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(4usize, 5usize, 6usize, 7usize).gt_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(true, true, true, true)
     );
 }
 
 #[test]
 fn test_usizevec4_le_mask() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .le_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(0usize, 1usize, 2usize, 3usize).le_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .le_mask(usizevec4!(1usize, 0usize, 2usize, 3usize)),
-        usizevec4!(true, false, true, true),
+        vec4!(0usize, 1usize, 2usize, 3usize).le_mask(vec4!(1usize, 0usize, 2usize, 3usize)),
+        vec4!(true, false, true, true),
     );
 
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .le_mask(usizevec4!(4usize, 5usize, 6usize, 7usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(0usize, 1usize, 2usize, 3usize).le_mask(vec4!(4usize, 5usize, 6usize, 7usize)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        usizevec4!(4usize, 5usize, 6usize, 7usize)
-            .le_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(4usize, 5usize, 6usize, 7usize).le_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(false, false, false, false)
     );
 }
 
 #[test]
 fn test_usizevec4_ge_mask() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .ge_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(0usize, 1usize, 2usize, 3usize).ge_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(true, true, true, true)
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .ge_mask(usizevec4!(1usize, 0usize, 2usize, 3usize)),
-        usizevec4!(false, true, true, true),
+        vec4!(0usize, 1usize, 2usize, 3usize).ge_mask(vec4!(1usize, 0usize, 2usize, 3usize)),
+        vec4!(false, true, true, true),
     );
 
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize)
-            .ge_mask(usizevec4!(4usize, 5usize, 6usize, 7usize)),
-        usizevec4!(false, false, false, false)
+        vec4!(0usize, 1usize, 2usize, 3usize).ge_mask(vec4!(4usize, 5usize, 6usize, 7usize)),
+        vec4!(false, false, false, false)
     );
     assert_eq!(
-        usizevec4!(4usize, 5usize, 6usize, 7usize)
-            .ge_mask(usizevec4!(0usize, 1usize, 2usize, 3usize)),
-        usizevec4!(true, true, true, true)
+        vec4!(4usize, 5usize, 6usize, 7usize).ge_mask(vec4!(0usize, 1usize, 2usize, 3usize)),
+        vec4!(true, true, true, true)
     );
 }
 
 #[test]
 fn test_usizevec4_eq() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize) == usizevec4!(0usize, 1usize, 2usize, 3usize),
+        vec4!(0usize, 1usize, 2usize, 3usize) == vec4!(0usize, 1usize, 2usize, 3usize),
         true
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize) == usizevec4!(0usize, 0usize, 2usize, 3usize),
+        vec4!(0usize, 1usize, 2usize, 3usize) == vec4!(0usize, 0usize, 2usize, 3usize),
         false
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize) == usizevec4!(4usize, 5usize, 6usize, 7usize),
+        vec4!(0usize, 1usize, 2usize, 3usize) == vec4!(4usize, 5usize, 6usize, 7usize),
         false
     );
 }
@@ -417,15 +380,15 @@ fn test_usizevec4_eq() {
 #[test]
 fn test_usizevec4_ne() {
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize) != usizevec4!(0usize, 1usize, 2usize, 3usize),
+        vec4!(0usize, 1usize, 2usize, 3usize) != vec4!(0usize, 1usize, 2usize, 3usize),
         false
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize) != usizevec4!(0usize, 0usize, 2usize, 3usize),
+        vec4!(0usize, 1usize, 2usize, 3usize) != vec4!(0usize, 0usize, 2usize, 3usize),
         true
     );
     assert_eq!(
-        usizevec4!(0usize, 1usize, 2usize, 3usize) != usizevec4!(4usize, 5usize, 6usize, 7usize),
+        vec4!(0usize, 1usize, 2usize, 3usize) != vec4!(4usize, 5usize, 6usize, 7usize),
         true
     );
 }
@@ -433,7 +396,7 @@ fn test_usizevec4_ne() {
 #[test]
 fn test_usizevec4_debug() {
     assert_eq!(
-        format!("{:?}", usizevec4!(0usize, 1usize, 2usize, 3usize)),
+        format!("{:?}", vec4!(0usize, 1usize, 2usize, 3usize)),
         "(0, 1, 2, 3)"
     );
 }
@@ -441,7 +404,7 @@ fn test_usizevec4_debug() {
 #[test]
 fn test_usizevec4_display() {
     assert_eq!(
-        format!("{}", usizevec4!(0usize, 1usize, 2usize, 3usize)),
+        format!("{}", vec4!(0usize, 1usize, 2usize, 3usize)),
         "(0, 1, 2, 3)"
     );
 }
@@ -449,7 +412,7 @@ fn test_usizevec4_display() {
 #[test]
 fn test_usizevec4_const_from_array() {
     assert_eq!(
-        UsizeVec4::<usize>::const_from_array([0usize, 1usize, 2usize, 3usize]),
-        UsizeVec4::from_array([0usize, 1usize, 2usize, 3usize])
+        Vec4::<usize>::const_from_array([0usize, 1usize, 2usize, 3usize]),
+        Vec4::from_array([0usize, 1usize, 2usize, 3usize])
     );
 }

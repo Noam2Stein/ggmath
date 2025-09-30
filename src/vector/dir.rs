@@ -497,27 +497,27 @@ pub mod right {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveRight for Vector<2, T, S> {
-        const RIGHT: Self = Self::RIGHT;
+        const RIGHT: Self = Self::X;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeLeft for Vector<2, T, S> {
-        const LEFT: Self = Self::NEG_RIGHT;
+        const LEFT: Self = Self::NEG_X;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveRight for Vector<3, T, S> {
-        const RIGHT: Self = Self::RIGHT;
+        const RIGHT: Self = Self::X;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeLeft for Vector<3, T, S> {
-        const LEFT: Self = Self::NEG_RIGHT;
+        const LEFT: Self = Self::NEG_X;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveRight for Vector<4, T, S> {
-        const RIGHT: Self = Self::RIGHT;
+        const RIGHT: Self = Self::X;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeLeft for Vector<4, T, S> {
-        const LEFT: Self = Self::NEG_RIGHT;
+        const LEFT: Self = Self::NEG_X;
     }
 }
 
@@ -549,27 +549,27 @@ pub mod left {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveLeft for Vector<2, T, S> {
-        const LEFT: Self = Self::LEFT;
+        const LEFT: Self = Self::X;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<2, T, S> {
-        const RIGHT: Self = Self::NEG_LEFT;
+        const RIGHT: Self = Self::NEG_X;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveLeft for Vector<3, T, S> {
-        const LEFT: Self = Self::LEFT;
+        const LEFT: Self = Self::X;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<3, T, S> {
-        const RIGHT: Self = Self::NEG_LEFT;
+        const RIGHT: Self = Self::NEG_X;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveLeft for Vector<4, T, S> {
-        const LEFT: Self = Self::LEFT;
+        const LEFT: Self = Self::X;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeRight for Vector<4, T, S> {
-        const RIGHT: Self = Self::NEG_LEFT;
+        const RIGHT: Self = Self::NEG_X;
     }
 }
 
@@ -601,27 +601,27 @@ pub mod up {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveUp for Vector<2, T, S> {
-        const UP: Self = Self::UP;
+        const UP: Self = Self::Y;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeDown for Vector<2, T, S> {
-        const DOWN: Self = Self::NEG_UP;
+        const DOWN: Self = Self::NEG_Y;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveUp for Vector<3, T, S> {
-        const UP: Self = Self::UP;
+        const UP: Self = Self::Y;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeDown for Vector<3, T, S> {
-        const DOWN: Self = Self::NEG_UP;
+        const DOWN: Self = Self::NEG_Y;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveUp for Vector<4, T, S> {
-        const UP: Self = Self::UP;
+        const UP: Self = Self::Y;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeDown for Vector<4, T, S> {
-        const DOWN: Self = Self::NEG_UP;
+        const DOWN: Self = Self::NEG_Y;
     }
 }
 
@@ -653,27 +653,27 @@ pub mod down {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveDown for Vector<2, T, S> {
-        const DOWN: Self = Self::DOWN;
+        const DOWN: Self = Self::Y;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<2, T, S> {
-        const UP: Self = Self::NEG_DOWN;
+        const UP: Self = Self::NEG_Y;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveDown for Vector<3, T, S> {
-        const DOWN: Self = Self::DOWN;
+        const DOWN: Self = Self::Y;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<3, T, S> {
-        const UP: Self = Self::NEG_DOWN;
+        const UP: Self = Self::NEG_Y;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveDown for Vector<4, T, S> {
-        const DOWN: Self = Self::DOWN;
+        const DOWN: Self = Self::Y;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeUp for Vector<4, T, S> {
-        const UP: Self = Self::NEG_DOWN;
+        const UP: Self = Self::NEG_Y;
     }
 }
 
@@ -705,19 +705,19 @@ pub mod forwards {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveForwards for Vector<3, T, S> {
-        const FORWARDS: Self = Self::FORWARDS;
+        const FORWARDS: Self = Self::Z;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeBackwards for Vector<3, T, S> {
-        const BACKWARDS: Self = Self::NEG_FORWARDS;
+        const BACKWARDS: Self = Self::NEG_Z;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveForwards for Vector<4, T, S> {
-        const FORWARDS: Self = Self::FORWARDS;
+        const FORWARDS: Self = Self::Z;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeBackwards for Vector<4, T, S> {
-        const BACKWARDS: Self = Self::NEG_FORWARDS;
+        const BACKWARDS: Self = Self::NEG_Z;
     }
 }
 
@@ -749,18 +749,18 @@ pub mod backwards {
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveBackwards for Vector<3, T, S> {
-        const BACKWARDS: Self = Self::BACKWARDS;
+        const BACKWARDS: Self = Self::Z;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeForwards for Vector<3, T, S> {
-        const FORWARDS: Self = Self::NEG_BACKWARDS;
+        const FORWARDS: Self = Self::NEG_Z;
     }
 
     impl<T: ScalarOne, S: Simdness> PositiveBackwards for Vector<4, T, S> {
-        const BACKWARDS: Self = Self::BACKWARDS;
+        const BACKWARDS: Self = Self::Z;
     }
 
     impl<T: ScalarNegOne, S: Simdness> NegativeForwards for Vector<4, T, S> {
-        const FORWARDS: Self = Self::NEG_BACKWARDS;
+        const FORWARDS: Self = Self::NEG_Z;
     }
 }

@@ -510,8 +510,9 @@ pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
 
 pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
     output.push_tests_for_vector(primitive, |n, s| quote! {
-        $(let vec_lowercase = &format!("{t_prefix}vec{n}{s_postfix}", t_prefix = primitive.prefix_lowercase(), s_postfix = s.postfix_lowercase()))
-        $(let vec_camelcase = &format!("{t_prefix}Vec{n}{s_postfix}", t_prefix = primitive.prefix_uppercase(), s_postfix = s.postfix_uppercase()))
+        $(let vec_label = &format!("{t_prefix}vec{n}{s_postfix}", t_prefix = primitive.prefix_lowercase(), s_postfix = s.postfix_lowercase()))
+        $(let vec_macro = &format!("vec{n}{s_postfix}", s_postfix = s.postfix_lowercase()))
+        $(let vec_type = &format!("Vec{n}{s_postfix}", s_postfix = s.postfix_uppercase()))
 
         $(let values = (0..n.as_usize()).map(|i| (i as f64) * 1.3).collect::<Vec<f64>>())
         $(let values_str = &values.iter().map(|&x| float_lit(x, primitive)).collect::<Vec<String>>().join(", "))
@@ -537,78 +538,78 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
         $("// The following code is generated for all float primitives")
 
         #[test]
-        fn test_$(vec_lowercase)_neg() {
+        fn test_$(vec_label)_neg() {
             assert_approx_vec_eq!(
-                -$vec_lowercase!($values_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(-values[i], primitive))))
+                -$vec_macro!($values_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(-values[i], primitive))))
             );
             assert_approx_vec_eq!(
-                -$vec_lowercase!($values2_with_nan_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(-values2_with_nan[i], primitive))))
-            );
-        }
-
-        #[test]
-        fn test_$(vec_lowercase)_add() {
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) + $vec_lowercase!($values2_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
-            );
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) + $vec_lowercase!($values2_with_nan_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2_with_nan[i], primitive))))
+                -$vec_macro!($values2_with_nan_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(-values2_with_nan[i], primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_sub() {
+        fn test_$(vec_label)_add() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) - $vec_lowercase!($values2_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] - values2[i], primitive))))
+                $vec_macro!($values_str) + $vec_macro!($values2_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) - $vec_lowercase!($values2_with_nan_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] - values2_with_nan[i], primitive))))
-            );
-        }
-
-        #[test]
-        fn test_$(vec_lowercase)_mul() {
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) * $vec_lowercase!($values2_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] * values2[i], primitive))))
-            );
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) * $vec_lowercase!($values2_with_nan_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] * values2_with_nan[i], primitive))))
+                $vec_macro!($values_str) + $vec_macro!($values2_with_nan_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2_with_nan[i], primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_div() {
+        fn test_$(vec_label)_sub() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) / $vec_lowercase!($values2_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values2[i], primitive))))
+                $vec_macro!($values_str) - $vec_macro!($values2_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] - values2[i], primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) / $vec_lowercase!($values2_with_nan_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values2_with_nan[i], primitive))))
-            );
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) / $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2[i] * (i as f64 - 1.0), primitive)))),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / (values2[i] * (i as f64 - 1.0)), primitive))))
+                $vec_macro!($values_str) - $vec_macro!($values2_with_nan_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] - values2_with_nan[i], primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_rem() {
+        fn test_$(vec_label)_mul() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) % $vec_lowercase!($values2_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] % values2[i], primitive))))
+                $vec_macro!($values_str) * $vec_macro!($values2_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] * values2[i], primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str) % $vec_lowercase!($values2_with_nan_str),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] % values2_with_nan[i], primitive))))
+                $vec_macro!($values_str) * $vec_macro!($values2_with_nan_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] * values2_with_nan[i], primitive))))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_label)_div() {
+            assert_approx_vec_eq!(
+                $vec_macro!($values_str) / $vec_macro!($values2_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values2[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_macro!($values_str) / $vec_macro!($values2_with_nan_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values2_with_nan[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_macro!($values_str) / $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2[i] * (i as f64 - 1.0), primitive)))),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / (values2[i] * (i as f64 - 1.0)), primitive))))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_label)_rem() {
+            assert_approx_vec_eq!(
+                $vec_macro!($values_str) % $vec_macro!($values2_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] % values2[i], primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_macro!($values_str) % $vec_macro!($values2_with_nan_str),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] % values2_with_nan[i], primitive))))
             );
         }
 
@@ -616,86 +617,86 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
             if n == Length::N4 && s == Simdness::NonSimd =>
 
             #[test]
-            fn test_$(vec_lowercase)_add_assign() {
-                let mut vec = $vec_lowercase!($values_str);
-                vec += $vec_lowercase!($values2_str);
+            fn test_$(vec_label)_add_assign() {
+                let mut vec = $vec_macro!($values_str);
+                vec += $vec_macro!($values2_str);
                 assert_approx_vec_eq!(
                     vec,
-                    $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                    $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
                 );
             }
 
             #[test]
-            fn test_$(vec_lowercase)_neg_ref() {
+            fn test_$(vec_label)_neg_ref() {
                 assert_approx_vec_eq!(
-                    -&$vec_lowercase!($values_str),
-                    $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(-values[i], primitive))))
+                    -&$vec_macro!($values_str),
+                    $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(-values[i], primitive))))
                 );
             }
 
             #[test]
-            fn test_$(vec_lowercase)_add_ref() {
+            fn test_$(vec_label)_add_ref() {
                 assert_approx_vec_eq!(
-                    $vec_lowercase!($values_str) + &$vec_lowercase!($values2_str),
-                    $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                    $vec_macro!($values_str) + &$vec_macro!($values2_str),
+                    $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
                 );
                 assert_approx_vec_eq!(
-                    &$vec_lowercase!($values_str) + $vec_lowercase!($values2_str),
-                    $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                    &$vec_macro!($values_str) + $vec_macro!($values2_str),
+                    $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
                 );
                 assert_approx_vec_eq!(
-                    &$vec_lowercase!($values_str) + &$vec_lowercase!($values2_str),
-                    $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                    &$vec_macro!($values_str) + &$vec_macro!($values2_str),
+                    $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
                 );
             }
 
             #[test]
-            fn test_$(vec_lowercase)_add_assign_ref() {
-                let mut vec = $vec_lowercase!($values_str);
-                vec += &$vec_lowercase!($values2_str);
+            fn test_$(vec_label)_add_assign_ref() {
+                let mut vec = $vec_macro!($values_str);
+                vec += &$vec_macro!($values2_str);
                 assert_approx_vec_eq!(
                     vec,
-                    $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
+                    $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + values2[i], primitive))))
                 );
             }
 
             #[test]
-            fn test_$(vec_lowercase)_add_scalar() {
+            fn test_$(vec_label)_add_scalar() {
                 assert_approx_vec_eq!(
-                    $vec_lowercase!($values_str) + 1.0,
-                    $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + 1.0, primitive))))
+                    $vec_macro!($values_str) + 1.0,
+                    $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] + 1.0, primitive))))
                 );
             }
         )
 
         #[test]
-        fn test_$(vec_lowercase)_sum() {
+        fn test_$(vec_label)_sum() {
             assert_approx_eq!(
-                $vec_lowercase!($values_str).sum(),
+                $vec_macro!($values_str).sum(),
                 $(float_lit(values.iter().sum::<f64>(), primitive))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_product() {
+        fn test_$(vec_label)_product() {
             assert_approx_eq!(
-                $vec_lowercase!($values2_str).product(),
+                $vec_macro!($values2_str).product(),
                 $(float_lit(values2.iter().product::<f64>(), primitive))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_mag_sq() {
+        fn test_$(vec_label)_mag_sq() {
             assert_approx_eq!(
-                $vec_lowercase!($values_str).mag_sq(),
+                $vec_macro!($values_str).mag_sq(),
                 $(float_lit(values.iter().map(|&x| x * x).sum::<f64>(), primitive))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_dot() {
+        fn test_$(vec_label)_dot() {
             assert_approx_eq!(
-                $vec_lowercase!($values_str).dot($vec_lowercase!($values2_str)),
+                $vec_macro!($values_str).dot($vec_macro!($values2_str)),
                 $(float_lit(values.iter().zip(values2.iter()).map(|(&x, &y)| x * y).sum::<f64>(), primitive))
             );
         }
@@ -704,307 +705,307 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
             if n == Length::N2 =>
 
             #[test]
-            fn test_$(vec_lowercase)_perp() {
+            fn test_$(vec_label)_perp() {
                 assert_approx_vec_eq!(
-                    $vec_lowercase!(1.0$primitive, 0.0$primitive).perp(),
-                    $vec_lowercase!(0.0$primitive, 1.0$primitive),
+                    $vec_macro!(1.0$primitive, 0.0$primitive).perp(),
+                    $vec_macro!(0.0$primitive, 1.0$primitive),
                 );
             }
 
             #[test]
-            fn test_$(vec_lowercase)_perp_cw() {
+            fn test_$(vec_label)_perp_cw() {
                 assert_approx_vec_eq!(
-                    $vec_lowercase!(1.0$primitive, 0.0$primitive).perp_cw(),
-                    $vec_lowercase!(0.0$primitive, -1.0$primitive),
+                    $vec_macro!(1.0$primitive, 0.0$primitive).perp_cw(),
+                    $vec_macro!(0.0$primitive, -1.0$primitive),
                 );
             }
         )
 
         #[test]
-        fn test_$(vec_lowercase)_div_euclid() {
+        fn test_$(vec_label)_div_euclid() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_str).div_euclid($vec_lowercase!($values_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2[i].div_euclid(values[i]), primitive))))
+                $vec_macro!($values2_str).div_euclid($vec_macro!($values_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2[i].div_euclid(values[i]), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).div_euclid($vec_lowercase!($values2_with_nan_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].div_euclid(values2_with_nan[i]), primitive))))
+                $vec_macro!($values_str).div_euclid($vec_macro!($values2_with_nan_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].div_euclid(values2_with_nan[i]), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).div_euclid($vec_lowercase!($values2_with_zero_and_neg_zero_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].div_euclid(values2_with_zero_and_neg_zero[i]), primitive))))
+                $vec_macro!($values_str).div_euclid($vec_macro!($values2_with_zero_and_neg_zero_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].div_euclid(values2_with_zero_and_neg_zero[i]), primitive))))
             );
         }
         
         #[test]
-        fn test_$(vec_lowercase)_rem_euclid() {
+        fn test_$(vec_label)_rem_euclid() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_str).rem_euclid($vec_lowercase!($values_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2[i].rem_euclid(values[i]), primitive))))
+                $vec_macro!($values2_str).rem_euclid($vec_macro!($values_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2[i].rem_euclid(values[i]), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).rem_euclid($vec_lowercase!($values2_with_nan_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].rem_euclid(values2_with_nan[i]), primitive))))
+                $vec_macro!($values_str).rem_euclid($vec_macro!($values2_with_nan_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].rem_euclid(values2_with_nan[i]), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).rem_euclid($vec_lowercase!($values2_with_zero_and_neg_zero_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].rem_euclid(values2_with_zero_and_neg_zero[i]), primitive))))
-            );
-        }
-
-        #[test]
-        fn test_$(vec_lowercase)_min() {
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).min($vec_lowercase!($values2_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].min(values2[i]), primitive))))
-            );
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).min($vec_lowercase!($values2_with_nan_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].min(values2_with_nan[i]), primitive))))
-            );
-            assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_zero_str).min($vec_lowercase!($values2_with_neg_zero_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero[i].min(values2_with_neg_zero[i]), primitive))))
+                $vec_macro!($values_str).rem_euclid($vec_macro!($values2_with_zero_and_neg_zero_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].rem_euclid(values2_with_zero_and_neg_zero[i]), primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_max() {
+        fn test_$(vec_label)_min() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).max($vec_lowercase!($values2_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].max(values2[i]), primitive))))
+                $vec_macro!($values_str).min($vec_macro!($values2_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].min(values2[i]), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).max($vec_lowercase!($values2_with_nan_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].max(values2_with_nan[i]), primitive))))
+                $vec_macro!($values_str).min($vec_macro!($values2_with_nan_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].min(values2_with_nan[i]), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_zero_str).max($vec_lowercase!($values2_with_neg_zero_str)),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero[i].max(values2_with_neg_zero[i]), primitive))))
+                $vec_macro!($values2_with_zero_str).min($vec_macro!($values2_with_neg_zero_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero[i].min(values2_with_neg_zero[i]), primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_min_element() {
+        fn test_$(vec_label)_max() {
+            assert_approx_vec_eq!(
+                $vec_macro!($values_str).max($vec_macro!($values2_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].max(values2[i]), primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_macro!($values_str).max($vec_macro!($values2_with_nan_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].max(values2_with_nan[i]), primitive))))
+            );
+            assert_approx_vec_eq!(
+                $vec_macro!($values2_with_zero_str).max($vec_macro!($values2_with_neg_zero_str)),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero[i].max(values2_with_neg_zero[i]), primitive))))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_label)_min_element() {
             assert_approx_eq!(
-                $vec_lowercase!($values_str).min_element(),
+                $vec_macro!($values_str).min_element(),
                 $(float_lit(values.iter().cloned().reduce(f64::min).unwrap(), primitive))
             );
             assert_approx_eq!(
-                $vec_lowercase!($values2_with_nan_str).min_element(),
+                $vec_macro!($values2_with_nan_str).min_element(),
                 $(float_lit(values2_with_nan.iter().cloned().reduce(f64::min).unwrap(), primitive))
             );
             assert_approx_eq!(
-                $vec_lowercase!($values2_with_zero_and_neg_zero_str).min_element(),
+                $vec_macro!($values2_with_zero_and_neg_zero_str).min_element(),
                 $(float_lit(values2_with_zero_and_neg_zero.iter().cloned().reduce(f64::min).unwrap(), primitive))
             );
         }
         
         #[test]
-        fn test_$(vec_lowercase)_max_element() {
+        fn test_$(vec_label)_max_element() {
             assert_approx_eq!(
-                $vec_lowercase!($values_str).max_element(),
+                $vec_macro!($values_str).max_element(),
                 $(float_lit(values.iter().cloned().reduce(f64::max).unwrap(), primitive))
             );
             assert_approx_eq!(
-                $vec_lowercase!($values2_with_nan_str).max_element(),
+                $vec_macro!($values2_with_nan_str).max_element(),
                 $(float_lit(values2_with_nan.iter().cloned().reduce(f64::max).unwrap(), primitive))
             );
             assert_approx_eq!(
-                $vec_lowercase!($values2_with_zero_and_neg_zero_str).max_element(),
+                $vec_macro!($values2_with_zero_and_neg_zero_str).max_element(),
                 $(float_lit(values2_with_zero_and_neg_zero.iter().cloned().reduce(f64::max).unwrap(), primitive))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_signum() {
+        fn test_$(vec_label)_signum() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).signum(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].signum(), primitive))))
+                $vec_macro!($values_str).signum(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].signum(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_nan_str).signum(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_nan[i].signum(), primitive))))
+                $vec_macro!($values2_with_nan_str).signum(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_nan[i].signum(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_zero_and_neg_zero_str).signum(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero_and_neg_zero[i].signum(), primitive))))
+                $vec_macro!($values2_with_zero_and_neg_zero_str).signum(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero_and_neg_zero[i].signum(), primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_abs() {
+        fn test_$(vec_label)_abs() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).abs(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].abs(), primitive))))
+                $vec_macro!($values_str).abs(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i].abs(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_nan_str).abs(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_nan[i].abs(), primitive))))
+                $vec_macro!($values2_with_nan_str).abs(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_nan[i].abs(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_zero_and_neg_zero_str).abs(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero_and_neg_zero[i].abs(), primitive))))
+                $vec_macro!($values2_with_zero_and_neg_zero_str).abs(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_zero_and_neg_zero[i].abs(), primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_positive_sign_mask() {
+        fn test_$(vec_label)_positive_sign_mask() {
             assert_eq!(
-                $vec_lowercase!($values_str).positive_sign_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_sign_positive().to_string())))
+                $vec_macro!($values_str).positive_sign_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_sign_positive().to_string())))
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_nan_str).positive_sign_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_sign_positive().to_string())))
+                $vec_macro!($values2_with_nan_str).positive_sign_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_sign_positive().to_string())))
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_zero_and_neg_zero_str).positive_sign_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_zero_and_neg_zero[i].is_sign_positive().to_string())))
-            );
-        }
-
-        #[test]
-        fn test_$(vec_lowercase)_negative_sign_mask() {
-            assert_eq!(
-                $vec_lowercase!($values_str).negative_sign_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_sign_negative().to_string())))
-            );
-            assert_eq!(
-                $vec_lowercase!($values2_with_nan_str).negative_sign_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_sign_negative().to_string())))
-            );
-            assert_eq!(
-                $vec_lowercase!($values2_with_zero_and_neg_zero_str).negative_sign_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_zero_and_neg_zero[i].is_sign_negative().to_string())))
+                $vec_macro!($values2_with_zero_and_neg_zero_str).positive_sign_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_zero_and_neg_zero[i].is_sign_positive().to_string())))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_nan_mask() {
+        fn test_$(vec_label)_negative_sign_mask() {
             assert_eq!(
-                $vec_lowercase!($values_str).nan_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_nan().to_string())))
+                $vec_macro!($values_str).negative_sign_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_sign_negative().to_string())))
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_nan_str).nan_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_nan().to_string())))
+                $vec_macro!($values2_with_nan_str).negative_sign_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_sign_negative().to_string())))
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_inf_str).nan_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_inf[i].is_nan().to_string())))
+                $vec_macro!($values2_with_zero_and_neg_zero_str).negative_sign_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_zero_and_neg_zero[i].is_sign_negative().to_string())))
+            );
+        }
+
+        #[test]
+        fn test_$(vec_label)_nan_mask() {
+            assert_eq!(
+                $vec_macro!($values_str).nan_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_nan().to_string())))
+            );
+            assert_eq!(
+                $vec_macro!($values2_with_nan_str).nan_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_nan().to_string())))
+            );
+            assert_eq!(
+                $vec_macro!($values2_with_inf_str).nan_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_inf[i].is_nan().to_string())))
             );
         }
         
         #[test]
-        fn test_$(vec_lowercase)_finite_mask() {
+        fn test_$(vec_label)_finite_mask() {
             assert_eq!(
-                $vec_lowercase!($values_str).finite_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_finite().to_string())))
+                $vec_macro!($values_str).finite_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values[i].is_finite().to_string())))
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_nan_str).finite_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_finite().to_string())))
+                $vec_macro!($values2_with_nan_str).finite_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_nan[i].is_finite().to_string())))
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_inf_str).finite_mask(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(values2_with_inf[i].is_finite().to_string())))
+                $vec_macro!($values2_with_inf_str).finite_mask(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(values2_with_inf[i].is_finite().to_string())))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_is_nan() {
+        fn test_$(vec_label)_is_nan() {
             assert_eq!(
-                $vec_lowercase!($values_str).is_nan(),
+                $vec_macro!($values_str).is_nan(),
                 $(values.iter().any(|&x| x.is_nan()).to_string())
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_nan_str).is_nan(),
+                $vec_macro!($values2_with_nan_str).is_nan(),
                 $(values2_with_nan.iter().any(|&x| x.is_nan()).to_string())
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_inf_str).is_nan(),
+                $vec_macro!($values2_with_inf_str).is_nan(),
                 $(values2_with_inf.iter().any(|&x| x.is_nan()).to_string())
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_is_finite() {
+        fn test_$(vec_label)_is_finite() {
             assert_eq!(
-                $vec_lowercase!($values_str).is_finite(),
+                $vec_macro!($values_str).is_finite(),
                 $(values.iter().all(|&x| x.is_finite()).to_string())
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_nan_str).is_finite(),
+                $vec_macro!($values2_with_nan_str).is_finite(),
                 $(values2_with_nan.iter().all(|&x| x.is_finite()).to_string())
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_inf_str).is_finite(),
+                $vec_macro!($values2_with_inf_str).is_finite(),
                 $(values2_with_inf.iter().all(|&x| x.is_finite()).to_string())
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_normalize() {
+        fn test_$(vec_label)_normalize() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).normalize(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
+                $vec_macro!($values_str).normalize(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_nan_str).normalize(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_nan[i] / values2_with_nan.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
+                $vec_macro!($values2_with_nan_str).normalize(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values2_with_nan[i] / values2_with_nan.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_camelcase::<$primitive>::ZERO.normalize(),
-                $vec_lowercase!($(for _ in 0..n.as_usize() join(, ) => $(float_lit(0.0 / 0.0, primitive))))
+                $vec_type::<$primitive>::ZERO.normalize(),
+                $vec_macro!($(for _ in 0..n.as_usize() join(, ) => $(float_lit(0.0 / 0.0, primitive))))
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_checked_normalize() {
+        fn test_$(vec_label)_checked_normalize() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).checked_normalize().unwrap(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
+                $vec_macro!($values_str).checked_normalize().unwrap(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
             );
             assert_eq!(
-                $vec_lowercase!($values2_with_nan_str).checked_normalize(),
+                $vec_macro!($values2_with_nan_str).checked_normalize(),
                 None
             );
             assert_eq!(
-                $vec_camelcase::<$primitive>::ZERO.checked_normalize(),
+                $vec_type::<$primitive>::ZERO.checked_normalize(),
                 None
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_normalize_or() {
+        fn test_$(vec_label)_normalize_or() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).normalize_or($vec_camelcase::<$primitive>::MAX),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
+                $vec_macro!($values_str).normalize_or($vec_type::<$primitive>::MAX),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_nan_str).normalize_or($vec_camelcase::<$primitive>::MAX),
-                $vec_camelcase::<$primitive>::MAX
+                $vec_macro!($values2_with_nan_str).normalize_or($vec_type::<$primitive>::MAX),
+                $vec_type::<$primitive>::MAX
             );
             assert_approx_vec_eq!(
-                $vec_camelcase::<$primitive>::ZERO.normalize_or($vec_camelcase::<$primitive>::MAX),
-                $vec_camelcase::<$primitive>::MAX
+                $vec_type::<$primitive>::ZERO.normalize_or($vec_type::<$primitive>::MAX),
+                $vec_type::<$primitive>::MAX
             );
         }
 
         #[test]
-        fn test_$(vec_lowercase)_normalize_or_zero() {
+        fn test_$(vec_label)_normalize_or_zero() {
             assert_approx_vec_eq!(
-                $vec_lowercase!($values_str).normalize_or_zero(),
-                $vec_lowercase!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
+                $vec_macro!($values_str).normalize_or_zero(),
+                $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(float_lit(values[i] / values.iter().map(|&x| x * x).sum::<f64>().sqrt(), primitive))))
             );
             assert_approx_vec_eq!(
-                $vec_lowercase!($values2_with_nan_str).normalize_or_zero(),
-                $vec_camelcase::<$primitive>::ZERO
+                $vec_macro!($values2_with_nan_str).normalize_or_zero(),
+                $vec_type::<$primitive>::ZERO
             );
             assert_approx_vec_eq!(
-                $vec_camelcase::<$primitive>::ZERO.normalize_or_zero(),
-                $vec_camelcase::<$primitive>::ZERO
+                $vec_type::<$primitive>::ZERO.normalize_or_zero(),
+                $vec_type::<$primitive>::ZERO
             );
         }
     });

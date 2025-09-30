@@ -217,11 +217,11 @@ pub fn srcmod() -> SrcFile {
                     for n in Length::iter().filter(|n| dir.axis() < n.as_usize()) join($['\n']) =>
 
                     impl<T: ScalarOne, S: Simdness> Positive$(dir.camelcase_str()) for Vector<$n, T, S> {
-                        const $(dir.uppercase_str()): Self = Self::$(dir.uppercase_str());
+                        const $(dir.uppercase_str()): Self = Self::$(Axis(dir.axis()).uppercase_str());
                     }
 
                     impl<T: ScalarNegOne, S: Simdness> Negative$(dir.opposite_dir().camelcase_str()) for Vector<$n, T, S> {
-                        const $(dir.opposite_dir().uppercase_str()): Self = Self::NEG_$(dir.uppercase_str());
+                        const $(dir.opposite_dir().uppercase_str()): Self = Self::NEG_$(Axis(dir.axis()).uppercase_str());
                     }
                 )
             }
