@@ -9,7 +9,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         use ggmath::*;
     });
 
-    output.push_for_vector(primitive, |n, s| quote! {
+    output.push_for_all_vectors(primitive, |n, s| quote! {
         $(let vec_label = &format!("{t_prefix}vec{n}{s_postfix}", t_prefix = primitive.prefix_lowercase(), s_postfix = s.postfix_lowercase()))
         $(let vec_macro = &format!("vec{n}{s_postfix}", s_postfix = s.postfix_lowercase()))
         $(let vec_type = &format!("Vec{n}{s_postfix}", s_postfix = s.postfix_uppercase()))

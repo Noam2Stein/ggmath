@@ -1745,9 +1745,8 @@ fn test_dvec2_perp() {
     assert_approx_vec_eq!(vec2!(1.0f64, 0.0f64).perp(), vec2!(0.0f64, 1.0f64),);
 }
 
-#[test]
-fn test_dvec2_perp_cw() {
-    assert_approx_vec_eq!(vec2!(1.0f64, 0.0f64).perp_cw(), vec2!(0.0f64, -1.0f64),);
+fn test_dvec2_perp_dot() {
+    assert_approx_eq!(vec2!(1.0f64, 2.0f64).perp_dot(vec2!(3.0f64, 4.0f64)), -2.0,);
 }
 
 #[test]
@@ -2055,6 +2054,14 @@ fn test_dvec3_dot() {
     assert_approx_eq!(
         vec3!(0.0f64, 1.3f64, 2.6f64).dot(vec3!(16.2f64, 21.6f64, 27.0f64)),
         98.28f64
+    );
+}
+
+#[test]
+fn test_dvec3_cross() {
+    assert_approx_vec_eq!(
+        vec3!(1.0f64, 2.0f64, 3.0f64).cross(vec3!(4.0f64, 5.0f64, 6.0f64)),
+        vec3!(-3.0f64, 6.0f64, -3f64),
     );
 }
 

@@ -44,7 +44,7 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
         }
     });
 
-    output.push_for_vector(primitive, |n, s| quote! {
+    output.push_for_all_vectors(primitive, |n, s| quote! {
         $(let vec_label = &format!("{t_prefix}vec{n}{s_postfix}", t_prefix = primitive.prefix_lowercase(), s_postfix = s.postfix_lowercase()))
         $(let vec_macro = &format!("vec{n}{s_postfix}", s_postfix = s.postfix_lowercase()))
         $(let vec_type = &format!("Vec{n}{s_postfix}", s_postfix = s.postfix_uppercase()))
@@ -246,12 +246,27 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
                     $vec_macro!(0.0$primitive, 1.0$primitive),
                 );
             }
+            
+            fn test_$(vec_label)_perp_dot() {
+                assert_approx_eq!(
+                    $vec_macro!(1.0$primitive, 2.0$primitive).perp_dot(
+                        $vec_macro!(3.0$primitive, 4.0$primitive)
+                    ),
+                    -2.0,
+                );
+            }
+        )
+
+        $(
+            if n == Length::N3 =>
 
             #[test]
-            fn test_$(vec_label)_perp_cw() {
+            fn test_$(vec_label)_cross() {
                 assert_approx_vec_eq!(
-                    $vec_macro!(1.0$primitive, 0.0$primitive).perp_cw(),
-                    $vec_macro!(0.0$primitive, -1.0$primitive),
+                    $vec_macro!(1.0$primitive, 2.0$primitive, 3.0$primitive).cross(
+                        $vec_macro!(4.0$primitive, 5.0$primitive, 6.0$primitive)
+                    ),
+                    $vec_macro!(-3.0$primitive, 6.0$primitive, -3$primitive),
                 );
             }
         )

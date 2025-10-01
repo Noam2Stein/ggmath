@@ -642,59 +642,6 @@ pub fn srcmod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar> Vector<N, T, NonSimd>
-        where
-            Usize<N>: VecLen,
-        {
-            $("/// Converts an array reference to a vector reference.")
-            #[inline(always)]
-            pub const fn from_array_ref(array: &[T; N]) -> &Self {
-                unsafe { transmute::<&[T; N], &Vector<N, T, NonSimd>>(array) }
-            }
-
-            $("/// Converts a mutable array reference to a mutable vector reference.")
-            #[inline(always)]
-            pub const fn from_mut_array(array: &mut [T; N]) -> &mut Self {
-                unsafe { transmute::<&mut [T; N], &mut Vector<N, T, NonSimd>>(array) }
-            }
-
-            $("/// Converts a vector reference to an array reference.")
-            #[inline(always)]
-            pub const fn as_array_ref(&self) -> &[T; N] {
-                &self.0
-            }
-
-            $("/// Converts a mutable vector reference to a mutable array reference.")
-            #[inline(always)]
-            pub const fn as_mut_array(&mut self) -> &mut [T; N] {
-                &mut self.0
-            }
-
-            $("/// Returns a pointer to the first element of the vector.")
-            #[inline(always)]
-            pub const fn as_ptr(&self) -> *const T {
-                self.0.as_ptr()
-            }
-
-            $("/// Returns a mutable pointer to the first element of the vector.")
-            #[inline(always)]
-            pub const fn as_mut_ptr(&mut self) -> *mut T {
-                self.0.as_mut_ptr()
-            }
-
-            $("/// Returns an iterator over the references to the components of the vector.")
-            #[inline(always)]
-            pub fn iter_ref(&self) -> <&[T; N] as IntoIterator>::IntoIter {
-                self.into_iter()
-            }
-
-            $("/// Returns an iterator over the mutable references to the components of the vector.")
-            #[inline(always)]
-            pub fn iter_mut(&mut self) -> <&mut [T; N] as IntoIterator>::IntoIter {
-                self.into_iter()
-            }
-        }
-
         $(
             for n in Length::iter() join($['\n']) =>
 
@@ -709,15 +656,6 @@ pub fn srcmod() -> SrcDir {
                         T: Neg<Output = T>,
                     {
                         vec2g!(-self.y(), self.x())
-                    }
-
-                    $(format!("/// Returns `self` rotated 90 degrees clockwise."))
-                    #[inline(always)]
-                    pub fn perp_cw(self) -> Self
-                    where
-                        T: Neg<Output = T>,
-                    {
-                        vec2g!(self.y(), -self.x())
                     }
 
                     $("/// Returns the perpendicular dot product of `self` and `other`.")
@@ -811,6 +749,59 @@ pub fn srcmod() -> SrcDir {
                 )
             }
         )
+
+        impl<const N: usize, T: Scalar> Vector<N, T, NonSimd>
+        where
+            Usize<N>: VecLen,
+        {
+            $("/// Converts an array reference to a vector reference.")
+            #[inline(always)]
+            pub const fn from_array_ref(array: &[T; N]) -> &Self {
+                unsafe { transmute::<&[T; N], &Vector<N, T, NonSimd>>(array) }
+            }
+
+            $("/// Converts a mutable array reference to a mutable vector reference.")
+            #[inline(always)]
+            pub const fn from_mut_array(array: &mut [T; N]) -> &mut Self {
+                unsafe { transmute::<&mut [T; N], &mut Vector<N, T, NonSimd>>(array) }
+            }
+
+            $("/// Converts a vector reference to an array reference.")
+            #[inline(always)]
+            pub const fn as_array_ref(&self) -> &[T; N] {
+                &self.0
+            }
+
+            $("/// Converts a mutable vector reference to a mutable array reference.")
+            #[inline(always)]
+            pub const fn as_mut_array(&mut self) -> &mut [T; N] {
+                &mut self.0
+            }
+
+            $("/// Returns a pointer to the first element of the vector.")
+            #[inline(always)]
+            pub const fn as_ptr(&self) -> *const T {
+                self.0.as_ptr()
+            }
+
+            $("/// Returns a mutable pointer to the first element of the vector.")
+            #[inline(always)]
+            pub const fn as_mut_ptr(&mut self) -> *mut T {
+                self.0.as_mut_ptr()
+            }
+
+            $("/// Returns an iterator over the references to the components of the vector.")
+            #[inline(always)]
+            pub fn iter_ref(&self) -> <&[T; N] as IntoIterator>::IntoIter {
+                self.into_iter()
+            }
+
+            $("/// Returns an iterator over the mutable references to the components of the vector.")
+            #[inline(always)]
+            pub fn iter_mut(&mut self) -> <&mut [T; N] as IntoIterator>::IntoIter {
+                self.into_iter()
+            }
+        }
 
         $(
             for n in Length::iter() join($['\n']) =>

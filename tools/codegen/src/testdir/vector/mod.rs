@@ -58,7 +58,7 @@ fn primitive_testmod(primitive: Primitive) -> TestFile {
 }
 
 impl PrimitiveTestMod {
-    fn push_for_vector(
+    fn push_for_all_vectors(
         &mut self,
         primitive: impl Into<Primitive>,
         mut f: impl FnMut(Length, Simdness) -> Tokens,

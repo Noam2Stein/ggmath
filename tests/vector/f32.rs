@@ -2490,9 +2490,8 @@ fn test_fvec2_perp() {
     assert_approx_vec_eq!(vec2!(1.0f32, 0.0f32).perp(), vec2!(0.0f32, 1.0f32),);
 }
 
-#[test]
-fn test_fvec2_perp_cw() {
-    assert_approx_vec_eq!(vec2!(1.0f32, 0.0f32).perp_cw(), vec2!(0.0f32, -1.0f32),);
+fn test_fvec2_perp_dot() {
+    assert_approx_eq!(vec2!(1.0f32, 2.0f32).perp_dot(vec2!(3.0f32, 4.0f32)), -2.0,);
 }
 
 #[test]
@@ -2802,9 +2801,11 @@ fn test_fvec2s_perp() {
     assert_approx_vec_eq!(vec2s!(1.0f32, 0.0f32).perp(), vec2s!(0.0f32, 1.0f32),);
 }
 
-#[test]
-fn test_fvec2s_perp_cw() {
-    assert_approx_vec_eq!(vec2s!(1.0f32, 0.0f32).perp_cw(), vec2s!(0.0f32, -1.0f32),);
+fn test_fvec2s_perp_dot() {
+    assert_approx_eq!(
+        vec2s!(1.0f32, 2.0f32).perp_dot(vec2s!(3.0f32, 4.0f32)),
+        -2.0,
+    );
 }
 
 #[test]
@@ -3112,6 +3113,14 @@ fn test_fvec3_dot() {
     assert_approx_eq!(
         vec3!(0.0f32, 1.3f32, 2.6f32).dot(vec3!(16.2f32, 21.6f32, 27.0f32)),
         98.28f32
+    );
+}
+
+#[test]
+fn test_fvec3_cross() {
+    assert_approx_vec_eq!(
+        vec3!(1.0f32, 2.0f32, 3.0f32).cross(vec3!(4.0f32, 5.0f32, 6.0f32)),
+        vec3!(-3.0f32, 6.0f32, -3f32),
     );
 }
 
@@ -3456,6 +3465,14 @@ fn test_fvec3s_dot() {
     assert_approx_eq!(
         vec3s!(0.0f32, 1.3f32, 2.6f32).dot(vec3s!(16.2f32, 21.6f32, 27.0f32)),
         98.28f32
+    );
+}
+
+#[test]
+fn test_fvec3s_cross() {
+    assert_approx_vec_eq!(
+        vec3s!(1.0f32, 2.0f32, 3.0f32).cross(vec3s!(4.0f32, 5.0f32, 6.0f32)),
+        vec3s!(-3.0f32, 6.0f32, -3f32),
     );
 }
 
