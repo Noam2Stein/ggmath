@@ -1,10 +1,10 @@
-mod backend;
 mod iter;
-mod srcgen;
-mod testgen;
+mod module;
+mod srcdir;
+mod testdir;
 mod util;
 
 fn main() {
-    srcgen::srcmod().export_as_root();
-    testgen::testmod().export_as_root();
+    srcdir::srcmod().export_as_root();
+    testdir::testmod().export_as_root();
 }
