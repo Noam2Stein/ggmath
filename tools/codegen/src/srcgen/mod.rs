@@ -27,23 +27,21 @@ pub fn srcmod() -> SrcDir {
         pub use primitive_aliases::*;
 
         $("/// The base trait for all `ggmath` types.")
-        $("/// This is an auto trait that requires basic traits,")
-        $("/// and most importantly `Copy + 'static`.")
-        $("///")
-        $("/// This does mean that `ggmath` does not support references or heap-based types as scalars.")
+        $("/// This is an auto trait that requires `Copy + 'static` along with other basic traits.")
         pub trait Construct: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe {}
 
-        $("/// Marker type that is generic over a `usize` constant,")
-        $("/// which is used to implement traits for specific `usize` values.")
+        $("/// Marker type that is generic over a `usize` constant.")
+        $("/// Is used to implement traits for specific `usize` values.")
         pub struct Usize<const N: usize>;
 
-        $("/// An error type for when an index is out of bounds.")
+        $("/// An empty error type for when an index is out of bounds.")
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub struct IndexOutOfBoundsError;
 
-        $("/// A macro for type specialization.")
-        $("/// Takes a generic signature and a set of cases,")
-        $("/// and picks the appropriate case based on the types of the arguments.")
+        $("/// Specializes a generic expression based on the concrete types of a function-like signature.")
+        $("///")
+        $("/// The macro takes a generic function-like signature, followed by a list of concrete type cases.")
+        $("/// Each case has an expression body, and the macro evaluates to the appropriate case.")
         $("///")
         $("/// # Example")
         $("///")
@@ -159,7 +157,7 @@ pub fn srcmod() -> SrcDir {
         }
 
         #[doc(hidden)]
-        pub mod _hidden_ {
+        pub mod hidden {
             pub use paste::paste;
         }
         
@@ -176,11 +174,10 @@ pub fn srcmod() -> SrcDir {
             }
         }
 
-        use sealed::Sealed;
-
         mod sealed {
             pub trait Sealed {}
         }
+        use sealed::Sealed;
     }
     .to_srcdir("")
     .with_submod_dir(vector::srcmod())

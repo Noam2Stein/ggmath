@@ -37,7 +37,7 @@ pub fn srcmod() -> SrcDir {
 
         $("/// A generic vector type.")
         $("///")
-        $("/// This type is generic over 3 parameters:")
+        $("/// Is generic over 3 parameters:")
         $(format!("/// - `N`: The length of the vector, which currently can be {}", join_or(Length::iter().map(|n| n.to_string()))))
         $("/// - `T`: The scalar type of the vector, which must implement [`Scalar`]")
         $("/// - `S`: The \"simdness\" of the vector, which must be either [`Simd`] or [`NonSimd`]")
@@ -158,7 +158,7 @@ pub fn srcmod() -> SrcDir {
             };
 
             (@($$($$vis:tt)*) $$(#[$$($$attr:tt)*])* type $$prefix:ident => $$t:ty) => {
-                $$crate::_hidden_::paste! {
+                $$crate::hidden::paste! {
                     $(
                         for n in Length::iter() =>
 
@@ -229,6 +229,7 @@ pub fn srcmod() -> SrcDir {
         $(
             for n in Length::iter() join($['\n'])=>
 
+            #[doc(hidden)]
             impl Sealed for Usize<$n> {}
         )
 
@@ -250,7 +251,9 @@ pub fn srcmod() -> SrcDir {
             const IS_SIMD: bool = false;
         }
         
+        #[doc(hidden)]
         impl Sealed for Simd {}
+        #[doc(hidden)]
         impl Sealed for NonSimd {}
 
         impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
