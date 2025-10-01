@@ -1,8 +1,10 @@
 mod backend;
-mod code;
 mod iter;
+mod srcgen;
+mod testgen;
+mod util;
 
 fn main() {
-    code::srcmod().export_as_root();
-    code::testmod().export_as_root();
+    srcgen::srcmod().export_as_root();
+    testgen::testmod().export_as_root();
 }

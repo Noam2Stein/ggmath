@@ -1,6 +1,6 @@
 use genco::quote;
 
-use crate::backend::{SrcDir, TestDir, TokensExt};
+use crate::backend::{SrcDir, TokensExt};
 
 mod float_ext;
 mod primitive_aliases;
@@ -188,40 +188,3 @@ pub fn srcmod() -> SrcDir {
     .with_submod_file(float_ext::srcmod())    
 }
 
-pub fn testmod() -> TestDir {
-    quote! {
-        mod vector;
-    }
-    .to_testdir("")
-    .with_submod_dir(vector::testmod())
-}
-
-fn join_and<T: Into<String>>(iter: impl Iterator<Item = T>) -> String {
-    let mut vec = iter.map(|item| item.into()).collect::<Vec<String>>();
-    let last = vec.pop();
-
-    if let Some(last) = last {
-        if vec.is_empty() {
-            last
-        } else {
-            format!("{} and {last}", vec.join(", "))
-        }
-    } else {
-        String::new()
-    }
-}
-
-fn join_or<T: Into<String>>(iter: impl Iterator<Item = T>) -> String {
-    let mut vec = iter.map(|item| item.into()).collect::<Vec<String>>();
-    let last = vec.pop();
-
-    if let Some(last) = last {
-        if vec.is_empty() {
-            last
-        } else {
-            format!("{} or {last}", vec.join(", "))
-        }
-    } else {
-        String::new()
-    }
-}

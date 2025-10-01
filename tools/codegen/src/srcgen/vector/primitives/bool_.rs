@@ -1,9 +1,6 @@
 use genco::quote;
 
-use crate::{
-    code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod},
-    iter::PrimitiveInt,
-};
+use crate::{iter::PrimitiveInt, srcgen::vector::primitives::PrimitiveSrcMod};
 
 pub fn push_src(output: &mut PrimitiveSrcMod) {
     output.impl_items.push(quote! {
@@ -67,5 +64,3 @@ pub fn push_src(output: &mut PrimitiveSrcMod) {
         )
     });
 }
-
-pub fn push_tests(_output: &mut PrimitiveTestMod) {}

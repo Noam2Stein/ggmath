@@ -4,8 +4,8 @@ use genco::{lang::rust::Tokens, quote};
 use strum::IntoEnumIterator;
 
 use crate::{
-    backend::{SrcDir, SrcFile, TestFile, TokensExt},
-    iter::{Length, Primitive, PrimitiveInt, Simdness},
+    backend::{SrcDir, SrcFile, TokensExt},
+    iter::{Length, Primitive, PrimitiveInt},
 };
 
 mod bool_;
@@ -26,10 +26,6 @@ pub fn srcmod() -> SrcDir {
     .with_submod_file(option::srcmod())
 }
 
-pub fn testmods() -> impl Iterator<Item = TestFile> {
-    Primitive::iter().map(primitive_testmod)
-}
-
 #[derive(Default)]
 struct PrimitiveSrcMod {
     impl_items: Vec<Tokens>,
@@ -37,11 +33,6 @@ struct PrimitiveSrcMod {
     len_impl_items: HashMap<Length, Vec<Tokens>>,
     std_len_impl_items: HashMap<Length, Vec<Tokens>>,
     trait_impls: Vec<Tokens>,
-}
-
-#[derive(Default)]
-struct PrimitiveTestMod {
-    items: Vec<Tokens>,
 }
 
 fn primitive_srcmod(primitive: Primitive) -> SrcFile {
@@ -124,55 +115,4 @@ fn primitive_srcmod(primitive: Primitive) -> SrcFile {
         $(for trait_impl in output.trait_impls join($['\n']) => $trait_impl)
     }
     .to_srcfile(primitive.to_string())
-}
-
-fn primitive_testmod(primitive: Primitive) -> TestFile {
-    let mut output = PrimitiveTestMod::default();
-
-    primitive::push_tests(primitive, &mut output);
-    match primitive {
-        Primitive::Float(primitive) => {
-            float::push_tests(primitive, &mut output);
-        }
-        Primitive::Int(primitive) => {
-            int::push_tests(primitive, &mut output);
-
-            match primitive {
-                PrimitiveInt::Sint(primitive) => {
-                    sint::push_tests(primitive, &mut output);
-                }
-                PrimitiveInt::Uint(primitive) => {
-                    uint::push_tests(primitive, &mut output);
-                }
-            }
-        }
-        Primitive::Bool => {
-            bool_::push_tests(&mut output);
-        }
-    }
-
-    quote! {
-        $(for item in output.items join($['\n']) => $item)
-    }
-    .to_testfile(primitive.as_str())
-}
-
-impl PrimitiveTestMod {
-    fn push_for_vector(
-        &mut self,
-        primitive: impl Into<Primitive>,
-        mut f: impl FnMut(Length, Simdness) -> Tokens,
-    ) {
-        let primitive = primitive.into();
-
-        for length in Length::iter() {
-            for simdness in Simdness::iter() {
-                if !primitive.is_primary() && simdness != Simdness::Simd && length != Length::N4 {
-                    continue;
-                }
-
-                self.items.push(f(length, simdness))
-            }
-        }
-    }
 }

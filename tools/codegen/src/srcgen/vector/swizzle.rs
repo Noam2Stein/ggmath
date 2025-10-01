@@ -5,8 +5,8 @@ use strum::IntoEnumIterator;
 
 use crate::{
     backend::{SrcFile, TokensExt},
-    code::join_and,
     iter::{Axis, Length},
+    util::join_and,
 };
 
 pub fn srcmod() -> SrcFile {

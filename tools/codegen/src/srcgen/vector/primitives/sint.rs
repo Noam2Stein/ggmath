@@ -2,8 +2,8 @@ use genco::quote;
 use strum::IntoEnumIterator;
 
 use crate::{
-    code::vector::primitives::{PrimitiveSrcMod, PrimitiveTestMod},
     iter::{Axis, Length, PrimitiveSint, PrimitiveUint},
+    srcgen::vector::primitives::PrimitiveSrcMod,
 };
 
 pub fn push_src(primitive: PrimitiveSint, output: &mut PrimitiveSrcMod) {
@@ -76,5 +76,3 @@ pub fn push_src(primitive: PrimitiveSint, output: &mut PrimitiveSrcMod) {
         }
     });
 }
-
-pub fn push_tests(_primitive: PrimitiveSint, _output: &mut PrimitiveTestMod) {}

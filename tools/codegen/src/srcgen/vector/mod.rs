@@ -1,7 +1,7 @@
 use genco::quote;
 use strum::IntoEnumIterator;
 
-use crate::{backend::{SrcDir, TestDir, TokensExt}, code::join_or, iter::{Axis, CmpOp, Length, Primitive}};
+use crate::{backend::{SrcDir, TokensExt}, iter::{Axis, CmpOp, Length}, util::join_or};
 
 mod constructor;
 mod dir;
@@ -1024,12 +1024,4 @@ pub fn srcmod() -> SrcDir {
     .with_submod_file(scalar::srcmod())
     .with_submod_file(ops::srcmod())
     .with_submod_file(dir::srcmod())
-}
-
-pub fn testmod() -> TestDir {
-    quote!{
-        $(for primitive in Primitive::iter() join($['\r']) => mod $primitive;)
-    }
-    .to_testdir("vector")
-    .with_submod_files(primitives::testmods())
 }
