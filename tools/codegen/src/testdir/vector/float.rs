@@ -149,7 +149,7 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
         }
 
         $(
-            if n == Length::N4 && s == Simdness::NonSimd =>
+            if n == Length::Four && s == Simdness::NonSimd =>
 
             #[test]
             fn test_$(vec_label)_add_assign() {
@@ -237,7 +237,7 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
         }
 
         $(
-            if n == Length::N2 =>
+            if n == Length::Two =>
 
             #[test]
             fn test_$(vec_label)_perp() {
@@ -247,6 +247,7 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
                 );
             }
             
+            #[test]
             fn test_$(vec_label)_perp_dot() {
                 assert_approx_eq!(
                     $vec_macro!(1.0$primitive, 2.0$primitive).perp_dot(
@@ -258,7 +259,7 @@ pub fn push_tests(primitive: PrimitiveFloat, output: &mut PrimitiveTestMod) {
         )
 
         $(
-            if n == Length::N3 =>
+            if n == Length::Three =>
 
             #[test]
             fn test_$(vec_label)_cross() {

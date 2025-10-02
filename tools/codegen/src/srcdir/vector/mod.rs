@@ -647,7 +647,7 @@ pub fn srcmod() -> SrcDir {
 
             impl<T: Scalar, S: Simdness> Vector<$n, T, S> {
                 $(
-                    if n == Length::N2 =>
+                    if n == Length::Two =>
 
                     $(format!("/// Returns `self` rotated 90 degrees counter-clockwise."))
                     #[inline(always)]
@@ -669,7 +669,7 @@ pub fn srcmod() -> SrcDir {
                 )
 
                 $(
-                    if n == Length::N3 =>
+                    if n == Length::Three =>
 
                     $(format!("/// Returns the cross product of `self` and `other`."))
                     #[inline(always)]

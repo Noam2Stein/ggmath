@@ -1745,6 +1745,7 @@ fn test_dvec2_perp() {
     assert_approx_vec_eq!(vec2!(1.0f64, 0.0f64).perp(), vec2!(0.0f64, 1.0f64),);
 }
 
+#[test]
 fn test_dvec2_perp_dot() {
     assert_approx_eq!(vec2!(1.0f64, 2.0f64).perp_dot(vec2!(3.0f64, 4.0f64)), -2.0,);
 }

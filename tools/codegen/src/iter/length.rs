@@ -5,35 +5,35 @@ use strum_macros::EnumIter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter)]
 pub enum Length {
-    N2,
-    N3,
-    N4,
+    Two,
+    Three,
+    Four,
 }
 
 impl Length {
     #[expect(unused)]
     pub fn from_usize(value: usize) -> Option<Self> {
         match value {
-            2 => Some(Length::N2),
-            3 => Some(Length::N3),
-            4 => Some(Length::N4),
+            2 => Some(Length::Two),
+            3 => Some(Length::Three),
+            4 => Some(Length::Four),
             _ => None,
         }
     }
 
     pub fn as_usize(&self) -> usize {
         match self {
-            Length::N2 => 2,
-            Length::N3 => 3,
-            Length::N4 => 4,
+            Length::Two => 2,
+            Length::Three => 3,
+            Length::Four => 4,
         }
     }
 
     pub fn word_camelcase(&self) -> &'static str {
         match self {
-            Length::N2 => "Two",
-            Length::N3 => "Three",
-            Length::N4 => "Four",
+            Length::Two => "Two",
+            Length::Three => "Three",
+            Length::Four => "Four",
         }
     }
 }

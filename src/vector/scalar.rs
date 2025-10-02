@@ -5,58 +5,176 @@ use std::ops::*;
 
 use crate::{Construct, Vec2, Vec3, Vec4, Vector};
 
-/// Trait for types that can be put inside [`Vector`].
-/// This is only implemented for actual scalar types (e.g., `f32`),
-/// not vectors, matrices, etc.
+/// Trait for [`Vector`] element types.
 ///
-/// When implementing this trait you need to specify the inner types of [`Simd`] vectors.
-/// You can also override the implementation of vector functions to make optimizations.
+/// This trait is intended for *scalar* types like `f32`, `i32`, or custom number-like types.
+/// It is not intended for higher-level mathamatical structures like vectors or matrices.
+/// Meaning you cannot do things like `Vec2<Vec2<f32>>`.
 ///
-/// For an example of an optimized `Scalar` implementation,
-/// look at the `f32` implementation.
+/// Each [`Scalar`] implementation specifies its own inner [`Simd`] vector types,
+/// and how to convert them to and from arrays.
 ///
-/// ## Example
+/// Additionally, each [`Scalar`] implementation can override the implementation of [`Simd`] vector functions to make optimizations.
+///
+/// ## Examples
+///
+/// Non SIMD-accelerated implementation:
 /// ```
+/// use core::ops::*;
+///
 /// use ggmath::*;
 ///
 /// #[derive(Clone, Copy)]
-/// struct MyInt(i32);
+/// struct U256([u128; 2]);
 ///
-/// impl Scalar for MyInt {
-///     // If we wanted to SIMD-accelerate this scalar type,
-///     // we would use another SIMD type like from `std::arch`, `ggmath`, `glam`, etc.
-///     type InnerSimdVec2 = [MyInt; 2];
-///     type InnerSimdVec3 = [MyInt; 3];
-///     type InnerSimdVec4 = [MyInt; 4];
+/// // Because U256 is Add, Vector<_, U256, _> is automatically Add as well.
+/// impl Add for U256 {
+///     type Output = U256;
+///
+///     fn add(self, other: U256) -> U256 {
+///         todo!()
+///     }
+/// }
+///
+///
+/// impl Scalar for U256 {
+///     type InnerSimdVec2 = [U256; 2];
+///     type InnerSimdVec3 = [U256; 3];
+///     type InnerSimdVec4 = [U256; 4];
 ///
 ///     #[inline(always)]
-///     fn vec2_from_array(array: [MyInt; 2]) -> Vec2<MyInt> {
+///     fn vec2_from_array(array: [U256; 2]) -> Vec2<U256> {
 ///         Vector(array)
 ///     }
 ///
 ///     #[inline(always)]
-///     fn vec3_from_array(array: [MyInt; 3]) -> Vec3<MyInt> {
+///     fn vec3_from_array(array: [U256; 3]) -> Vec3<U256> {
 ///         Vector(array)
 ///     }
 ///
 ///     #[inline(always)]
-///     fn vec4_from_array(array: [MyInt; 4]) -> Vec4<MyInt> {
+///     fn vec4_from_array(array: [U256; 4]) -> Vec4<U256> {
 ///         Vector(array)
 ///     }
 ///
 ///     #[inline(always)]
-///     fn vec2_as_array(vec: Vec2<MyInt>) -> [MyInt; 2] {
+///     fn vec2_as_array(vec: Vec2<U256>) -> [U256; 2] {
 ///         vec.0
 ///     }
 ///
 ///     #[inline(always)]
-///     fn vec3_as_array(vec: Vec3<MyInt>) -> [MyInt; 3] {
+///     fn vec3_as_array(vec: Vec3<U256>) -> [U256; 3] {
 ///         vec.0
 ///     }
 ///
 ///     #[inline(always)]
-///     fn vec4_as_array(vec: Vec4<MyInt>) -> [MyInt; 4] {
+///     fn vec4_as_array(vec: Vec4<U256>) -> [U256; 4] {
 ///         vec.0
+///     }
+/// }
+/// ```
+///
+/// SIMD-accelerated implementation:
+/// ```
+/// use core::ops::*;
+///
+/// use ggmath::*;
+///
+/// #[repr(transparent)]
+/// #[derive(Clone, Copy)]
+/// struct CustomInt(i32);
+///
+/// // Because CustomInt is Add, Vector<_, CustomInt, _> is automatically Add as well.
+/// // This time we will override the implementation of vector addition to make SIMD optimizations.
+/// impl Add for CustomInt {
+///     type Output = CustomInt;
+///
+///     fn add(self, other: CustomInt) -> CustomInt {
+///         CustomInt(self.0 + other.0)
+///     }
+/// }
+///
+/// impl Scalar for CustomInt {
+///     type InnerSimdVec2 = Vec2<i32>;
+///     type InnerSimdVec3 = Vec3<i32>;
+///     type InnerSimdVec4 = Vec4<i32>;
+///
+///     #[inline(always)]
+///     fn vec2_from_array(array: [CustomInt; 2]) -> Vec2<CustomInt> {
+///         Vector(Vec2::<i32>::from_array(array))
+///     }
+///
+///     #[inline(always)]
+///     fn vec3_from_array(array: [CustomInt; 3]) -> Vec3<CustomInt> {
+///         Vector(Vec3::<i32>::from_array(array))
+///     }
+///
+///     #[inline(always)]
+///     fn vec4_from_array(array: [CustomInt; 4]) -> Vec4<CustomInt> {
+///         Vector(Vec4::<i32>::from_array(array))
+///     }
+///
+///     #[inline(always)]
+///     fn vec2_as_array(vec: Vec2<CustomInt>) -> [CustomInt; 2] {
+///         vec.0.as_array()
+///     }
+///
+///     #[inline(always)]
+///     fn vec3_as_array(vec: Vec3<CustomInt>) -> [CustomInt; 3] {
+///         vec.0.as_array()
+///     }
+///
+///     #[inline(always)]
+///     fn vec4_as_array(vec: Vec4<CustomInt>) -> [CustomInt; 4] {
+///         vec.0.as_array()
+///     }
+///
+///     #[inline(always)]
+///     fn vec2_add<T2: Scalar>(vec: Vec2<CustomInt>, rhs: Vec2<T2>) -> Vec2<CustomInt::Output>
+///     where
+///         CustomInt: Add<T2, Output: Scalar>,
+///     {
+///         specialize! {
+///             (vec: Vec2<CustomInt>, rhs: Vec2<T2>) -> Vec2<CustomInt::Output>:
+///             
+///             for (Vec2<CustomInt>, Vec2<CustomInt>) -> Vec2<CustomInt> {
+///                 |vec, rhs| Vector(vec.0 + rhs.0)
+///             } else {
+///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))
+///             }
+///         }
+///     }
+///
+///     #[inline(always)]
+///     fn vec3_add<T2: Scalar>(vec: Vec3<CustomInt>, rhs: Vec3<T2>) -> Vec3<CustomInt::Output>
+///     where
+///         CustomInt: Add<T2, Output: Scalar>,
+///     {
+///         specialize! {
+///             (vec: Vec3<CustomInt>, rhs: Vec3<T2>) -> Vec3<CustomInt::Output>:
+///             
+///             for (Vec3<CustomInt>, Vec3<CustomInt>) -> Vec3<CustomInt> {
+///                 |vec, rhs| Vector(vec.0 + rhs.0)
+///             } else {
+///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))
+///             }
+///         }
+///     }
+///
+///     #[inline(always)]
+///     fn vec4_add<T2: Scalar>(vec: Vec4<CustomInt>, rhs: Vec4<T2>) -> Vec4<CustomInt::Output>
+///     where
+///         CustomInt: Add<T2, Output: Scalar>,
+///     {
+///         specialize! {
+///             (vec: Vec4<CustomInt>, rhs: Vec4<T2>) -> Vec4<CustomInt::Output>:
+///             
+///             for (Vec4<CustomInt>, Vec4<CustomInt>) -> Vec4<CustomInt> {
+///                 |vec, rhs| Vector(vec.0 + rhs.0)
+///             } else {
+///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))
+///             }
+///         }
 ///     }
 /// }
 /// ```

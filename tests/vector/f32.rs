@@ -2490,6 +2490,7 @@ fn test_fvec2_perp() {
     assert_approx_vec_eq!(vec2!(1.0f32, 0.0f32).perp(), vec2!(0.0f32, 1.0f32),);
 }
 
+#[test]
 fn test_fvec2_perp_dot() {
     assert_approx_eq!(vec2!(1.0f32, 2.0f32).perp_dot(vec2!(3.0f32, 4.0f32)), -2.0,);
 }
@@ -2801,6 +2802,7 @@ fn test_fvec2s_perp() {
     assert_approx_vec_eq!(vec2s!(1.0f32, 0.0f32).perp(), vec2s!(0.0f32, 1.0f32),);
 }
 
+#[test]
 fn test_fvec2s_perp_dot() {
     assert_approx_eq!(
         vec2s!(1.0f32, 2.0f32).perp_dot(vec2s!(3.0f32, 4.0f32)),

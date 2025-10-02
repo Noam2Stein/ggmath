@@ -28,9 +28,9 @@ pub fn srcmod() -> SrcFile {
             $(format!("/// fn example() -> Vec{n}<f32> {{"))
             $(
                 match n {
-                    Length::N2 => $("///     vec2!(1.0, 2.0)"),
-                    Length::N3 => $("///     vec3!(1.0, vec2!(2.0, 3.0))"),
-                    Length::N4 => $("///     vec4!(1.0, vec2!(2.0, 3.0), 4.0)"),
+                    Length::Two => $("///     vec2!(1.0, 2.0)"),
+                    Length::Three => $("///     vec3!(1.0, vec2!(2.0, 3.0))"),
+                    Length::Four => $("///     vec4!(1.0, vec2!(2.0, 3.0), 4.0)"),
                 }
             )
             $("/// }")
@@ -55,9 +55,9 @@ pub fn srcmod() -> SrcFile {
             $(format!("/// fn example() -> Vec{n}S<f32> {{"))
             $(
                 match n {
-                    Length::N2 => $("///     vec2s!(1.0, 2.0)"),
-                    Length::N3 => $("///     vec3s!(1.0, vec2s!(2.0, 3.0))"),
-                    Length::N4 => $("///     vec4s!(1.0, vec2s!(2.0, 3.0), 4.0)"),
+                    Length::Two => $("///     vec2s!(1.0, 2.0)"),
+                    Length::Three => $("///     vec3s!(1.0, vec2s!(2.0, 3.0))"),
+                    Length::Four => $("///     vec4s!(1.0, vec2s!(2.0, 3.0), 4.0)"),
                 }
             )
             $("/// }")
@@ -83,9 +83,9 @@ pub fn srcmod() -> SrcFile {
             $(format!("/// fn example<S: Simdness>() -> Vector<{n}, f32, S> {{"))
             $(
                 match n {
-                    Length::N2 => $("///     vec2g!(1.0, 2.0)"),
-                    Length::N3 => $("///     vec3g!(1.0, vec2g!(2.0, 3.0))"),
-                    Length::N4 => $("///     vec4g!(1.0, vec2g!(2.0, 3.0), 4.0)"),
+                    Length::Two => $("///     vec2g!(1.0, 2.0)"),
+                    Length::Three => $("///     vec3g!(1.0, vec2g!(2.0, 3.0))"),
+                    Length::Four => $("///     vec4g!(1.0, vec2g!(2.0, 3.0), 4.0)"),
                 }
             )
             $("/// }")

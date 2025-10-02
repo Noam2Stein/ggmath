@@ -37,16 +37,16 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         #[test]
         fn test_$(vec_label)_constructor() {
             $(match n {
-                Length::N2 => {
+                Length::Two => {
                     assert_eq!($vec_macro!($values_str), $vec_type::from_array([$values_str]));
                     assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_type::from_array([$values_str]));
                 }
-                Length::N3 => {
+                Length::Three => {
                     assert_eq!($vec_macro!($values_str), $vec_type::from_array([$values_str]));
                     assert_eq!($vec_macro!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2]))), $vec_type::from_array([$values_str]));
                     assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_type::from_array([$values_str]));
                 }
-                Length::N4 => {
+                Length::Four => {
                     assert_eq!($vec_macro!($values_str), $vec_type::from_array([$values_str]));
                     assert_eq!($vec_macro!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2])), $(&values[3])), $vec_type::from_array([$values_str]));
                     assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_type::from_array([$values_str]));
@@ -182,19 +182,19 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         #[test]
         fn test_$(vec_label)_swizzle() {
             $(match n {
-                Length::N2 => {
+                Length::Two => {
                     assert_eq!($vec_macro!($values_str).y(), $(&values[1]));
                     assert_eq!($vec_macro!($values_str).yx(), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[0])));
                     assert_eq!($vec_macro!($values_str).yxy(), vec3$(s.postfix_lowercase())!($(&values[1]), $(&values[0]), $(&values[1])));
                     assert_eq!($vec_macro!($values_str).yxyy(), vec4$(s.postfix_lowercase())!($(&values[1]), $(&values[0]), $(&values[1]), $(&values[1])));
                 }
-                Length::N3 => {
+                Length::Three => {
                     assert_eq!($vec_macro!($values_str).z(), $(&values[2]));
                     assert_eq!($vec_macro!($values_str).zx(), vec2$(s.postfix_lowercase())!($(&values[2]), $(&values[0])));
                     assert_eq!($vec_macro!($values_str).zxy(), vec3$(s.postfix_lowercase())!($(&values[2]), $(&values[0]), $(&values[1])));
                     assert_eq!($vec_macro!($values_str).zxyz(), vec4$(s.postfix_lowercase())!($(&values[2]), $(&values[0]), $(&values[1]), $(&values[2])));
                 }
-                Length::N4 => {
+                Length::Four => {
                     assert_eq!($vec_macro!($values_str).z(), $(&values[2]));
                     assert_eq!($vec_macro!($values_str).zw(), vec2$(s.postfix_lowercase())!($(&values[2]), $(&values[3])));
                     assert_eq!($vec_macro!($values_str).zwy(), vec3$(s.postfix_lowercase())!($(&values[2]), $(&values[3]), $(&values[1])));
@@ -206,7 +206,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         #[test]
         fn test_$(vec_label)_with_swizzle() {
             $(match n {
-                Length::N2 => {
+                Length::Two => {
                     assert_eq!($vec_macro!($values_str).with_y($(&values[0])), $vec_macro!($(
                         for i in 0..n.as_usize() join(, ) => $(match i {
                             1 => $(&values[0]),
@@ -221,7 +221,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                         })
                     )));
                 }
-                Length::N3 => {
+                Length::Three => {
                     assert_eq!($vec_macro!($values_str).with_y($(&values[0])), $vec_macro!($(
                         for i in 0..n.as_usize() join(, ) => $(match i {
                             1 => $(&values[0]),
@@ -244,7 +244,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                         })
                     )));
                 }
-                Length::N4 => {
+                Length::Four => {
                     assert_eq!($vec_macro!($values_str).with_y($(&values[0])), $vec_macro!($(
                         for i in 0..n.as_usize() join(, ) => $(match i {
                             1 => $(&values[0]),
@@ -280,7 +280,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         $(
-            if n == Length::N4 && s != Simdness::Simd =>
+            if n == Length::Four && s != Simdness::Simd =>
 
             #[test]
             fn test_$(vec_label)_swizzle_set() {
@@ -304,16 +304,16 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             #[test]
             fn test_$(vec_label)_swizzle_ref() {
                 $(match n {
-                    Length::N2 => {
+                    Length::Two => {
                         assert_eq!($vec_macro!($values_str).y_ref(), &$(&values[1]));
                         assert_eq!($vec_macro!($values_str).xy_ref(), &vec2s!($values_str));
                     }
-                    Length::N3 => {
+                    Length::Three => {
                         assert_eq!($vec_macro!($values_str).y_ref(), &$(&values[1]));
                         assert_eq!($vec_macro!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
                         assert_eq!($vec_macro!($values_str).xyz_ref(), &vec3s!($values_str));
                     }
-                    Length::N4 => {
+                    Length::Four => {
                         assert_eq!($vec_macro!($values_str).y_ref(), &$(&values[1]));
                         assert_eq!($vec_macro!($values_str).yz_ref(), &vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
                         assert_eq!($vec_macro!($values_str).xyz_ref(), &vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));
@@ -325,20 +325,20 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             #[test]
             fn test_$(vec_label)_swizzle_mut() {
                 $(match n {
-                    Length::N2 => {
+                    Length::Two => {
                         assert_eq!($vec_macro!($values_str).y_mut(), &mut $(&values[1]));
                         assert_eq!($vec_macro!($values_str).xy_mut(), &mut vec2s!($values_str));
 
                         assert_eq!($vec_macro!($values_str).x_y_mut(), (&mut $(&values[0]), &mut $(&values[1])));
                     }
-                    Length::N3 => {
+                    Length::Three => {
                         assert_eq!($vec_macro!($values_str).y_mut(), &mut $(&values[1]));
                         assert_eq!($vec_macro!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
                         assert_eq!($vec_macro!($values_str).xyz_mut(), &mut vec3s!($values_str));
 
                         assert_eq!($vec_macro!($values_str).x_yz_mut(), (&mut $(&values[0]), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i])))));
                     }
-                    Length::N4 => {
+                    Length::Four => {
                         assert_eq!($vec_macro!($values_str).y_mut(), &mut $(&values[1]));
                         assert_eq!($vec_macro!($values_str).yz_mut(), &mut vec2s!($(for i in 1..3 join(, ) => $(&values[i]))));
                         assert_eq!($vec_macro!($values_str).xyz_mut(), &mut vec3s!($(for i in 0..3 join(, ) => $(&values[i]))));

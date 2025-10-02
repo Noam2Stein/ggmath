@@ -67,7 +67,7 @@ impl PrimitiveTestMod {
 
         for length in Length::iter() {
             for simdness in Simdness::iter() {
-                if !primitive.is_primary() && simdness != Simdness::Simd && length != Length::N4 {
+                if !primitive.is_primary() && simdness != Simdness::Simd && length != Length::Four {
                     continue;
                 }
 

@@ -443,7 +443,7 @@ pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
         }
     });
 
-    output.std_len_impl_items.entry(Length::N2).or_default().push(quote! {
+    output.std_len_impl_items.entry(Length::Two).or_default().push(quote! {
         // The following code is generated for all float primitives
 
         $("/// Returns the signed angle in radians between `self` and `other` in the range `[-π, π]`.")
