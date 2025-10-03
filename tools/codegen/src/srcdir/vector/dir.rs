@@ -9,10 +9,9 @@ pub fn srcmod() -> SrcFile {
 
         use crate::{Usize, Scalar, Simdness, Simd, NonSimd, VecLen, Vector, $(for n in Length::iter() join(, ) => Vec$(n))};
 
+        pub use crate::{scalar_zero_boilerplate, scalar_one_boilerplate, scalar_neg_one_boilerplate};
+
         $("/// A trait for scalar types that have a `0` value.")
-        $("///")
-        $("/// This trait along with `ScalarOne` and `ScalarNegOne`")
-        $("/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.")
         pub trait ScalarZero: Scalar {
             $("/// `0`")
             const ZERO: Self;
@@ -20,16 +19,13 @@ pub fn srcmod() -> SrcFile {
             $(
                 for n in Length::iter() join($['\r']) =>
 
-                $(format!("/// A vec{n} of all `0`s."))
-                $("/// This only exists because Rust const traits aren't stable yet.")
+                $("/// This is boilerplate that is required because of stable-Rust limitations.")
+                $("/// Use [`scalar_zero_boilerplate`] to automatically implement this.")
                 const VEC$(n)_ZERO: Vec$(n)<Self>;
             )
         }
 
         $("/// A trait for scalar types that have a `1` value.")
-        $("///")
-        $("/// This trait along with `ScalarZero` and `ScalarNegOne`")
-        $("/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.")
         pub trait ScalarOne: ScalarZero {
             $("/// `1`")
             const ONE: Self;
@@ -37,24 +33,21 @@ pub fn srcmod() -> SrcFile {
             $(
                 for n in Length::iter() join($['\n']) =>
 
-                $(format!("/// A vec{n} of all `1`s."))
-                $("/// This only exists because Rust const traits aren't stable yet.")
+                $("/// This is boilerplate that is required because of stable-Rust limitations.")
+                $("/// Use [`scalar_one_boilerplate`] to automatically implement this.")
                 const VEC$(n)_ONE: Vec$(n)<Self>;
 
                 $(
                     for i in 0..n.as_usize() join($['\r']) =>
 
-                    $(format!("/// A vec{n} that points to the positive `{}` direction with magnitude `1`.", Axis(i).lowercase_str()))
-                    $("/// This only exists because Rust const traits aren't stable yet.")
+                    $("/// This is boilerplate that is required because of stable-Rust limitations.")
+                    $("/// Use [`scalar_one_boilerplate`] to automatically implement this.")
                     const VEC$(n)_$(Axis(i).uppercase_str()): Vec$(n)<Self>;
                 )
             )
         }
 
         $("/// A trait for scalar types that have a `-1` value.")
-        $("///")
-        $("/// This trait along with `ScalarZero` and `ScalarOne`")
-        $("/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.")
         pub trait ScalarNegOne: ScalarZero {
             $("/// `-1`")
             const NEG_ONE: Self;
@@ -62,18 +55,73 @@ pub fn srcmod() -> SrcFile {
             $(
                 for n in Length::iter() join($['\n']) =>
 
-                $(format!("/// A vec{n} of all `-1`s."))
-                $("/// This only exists because Rust const traits aren't stable yet.")
+                $("/// This is boilerplate that is required because of stable-Rust limitations.")
+                $("/// Use [`scalar_neg_one_boilerplate`] to automatically implement this.")
                 const VEC$(n)_NEG_ONE: Vec$(n)<Self>;
 
                 $(
                     for i in 0..n.as_usize() join($['\r']) =>
 
-                    $(format!("/// A vec{n} that points to the negative `{}` direction with magnitude `1`.", Axis(i).lowercase_str()))
-                    $("/// This only exists because Rust const traits aren't stable yet.")
+                    $("/// This is boilerplate that is required because of stable-Rust limitations.")
+                    $("/// Use [`scalar_neg_one_boilerplate`] to automatically implement this.")
                     const VEC$(n)_NEG_$(Axis(i).uppercase_str()): Vec$(n)<Self>;
                 )
             )
+        }
+
+        $("/// Automatically generates the boilerplate part of [`ScalarZero`] implementations.")
+        $("/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.")
+        #[macro_export]
+        macro_rules! scalar_zero_boilerplate {
+            {} => {
+                $(
+                    for n in Length::iter() join($['\r']) =>
+    
+                    const VEC$(n)_ZERO: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([Self::ZERO; $n]);
+                )
+            }
+        }
+
+        $("/// Automatically generates the boilerplate part of [`ScalarOne`] implementations.")
+        $("/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.")
+        #[macro_export]
+        macro_rules! scalar_one_boilerplate {
+            {} => {
+                $(
+                    for n in Length::iter() join($['\n']) =>
+    
+                    const VEC$(n)_ONE: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([Self::ONE; $n]);
+    
+                    $(
+                        for i in 0..n.as_usize() join($['\r']) =>
+    
+                        const VEC$(n)_$(Axis(i).uppercase_str()): $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([$(
+                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { Self::ONE } else { Self::ZERO })
+                        )]);
+                    )
+                )
+            }
+        }
+
+        $("/// Automatically generates the boilerplate part of [`ScalarNegOne`] implementations.")
+        $("/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.")
+        #[macro_export]
+        macro_rules! scalar_neg_one_boilerplate {
+            {} => {
+                $(
+                    for n in Length::iter() join($['\n']) =>
+    
+                    const VEC$(n)_NEG_ONE: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([Self::NEG_ONE; $n]);
+    
+                    $(
+                        for i in 0..n.as_usize() join($['\r']) =>
+    
+                        const VEC$(n)_NEG_$(Axis(i).uppercase_str()): $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([$(
+                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { Self::NEG_ONE } else { Self::ZERO })
+                        )]);
+                    )
+                )
+            }
         }
 
         impl<const N: usize, T: ScalarZero, S: Simdness> Vector<N, T, S>

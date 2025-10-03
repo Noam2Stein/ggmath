@@ -5,125 +5,179 @@ use core::mem::transmute_copy;
 
 use crate::{NonSimd, Scalar, Simd, Simdness, Usize, Vec2, Vec3, Vec4, VecLen, Vector};
 
+pub use crate::{scalar_neg_one_boilerplate, scalar_one_boilerplate, scalar_zero_boilerplate};
+
 /// A trait for scalar types that have a `0` value.
-///
-/// This trait along with `ScalarOne` and `ScalarNegOne`
-/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.
 pub trait ScalarZero: Scalar {
     /// `0`
     const ZERO: Self;
 
-    /// A vec2 of all `0`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_zero_boilerplate`] to automatically implement this.
     const VEC2_ZERO: Vec2<Self>;
-    /// A vec3 of all `0`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_zero_boilerplate`] to automatically implement this.
     const VEC3_ZERO: Vec3<Self>;
-    /// A vec4 of all `0`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_zero_boilerplate`] to automatically implement this.
     const VEC4_ZERO: Vec4<Self>;
 }
 
 /// A trait for scalar types that have a `1` value.
-///
-/// This trait along with `ScalarZero` and `ScalarNegOne`
-/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.
 pub trait ScalarOne: ScalarZero {
     /// `1`
     const ONE: Self;
 
-    /// A vec2 of all `1`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC2_ONE: Vec2<Self>;
 
-    /// A vec2 that points to the positive `x` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC2_X: Vec2<Self>;
-    /// A vec2 that points to the positive `y` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC2_Y: Vec2<Self>;
 
-    /// A vec3 of all `1`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC3_ONE: Vec3<Self>;
 
-    /// A vec3 that points to the positive `x` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC3_X: Vec3<Self>;
-    /// A vec3 that points to the positive `y` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC3_Y: Vec3<Self>;
-    /// A vec3 that points to the positive `z` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC3_Z: Vec3<Self>;
 
-    /// A vec4 of all `1`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC4_ONE: Vec4<Self>;
 
-    /// A vec4 that points to the positive `x` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC4_X: Vec4<Self>;
-    /// A vec4 that points to the positive `y` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC4_Y: Vec4<Self>;
-    /// A vec4 that points to the positive `z` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC4_Z: Vec4<Self>;
-    /// A vec4 that points to the positive `w` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_one_boilerplate`] to automatically implement this.
     const VEC4_W: Vec4<Self>;
 }
 
 /// A trait for scalar types that have a `-1` value.
-///
-/// This trait along with `ScalarZero` and `ScalarOne`
-/// automatically enables direction constants like `RIGHT`, `UP`, and `FORWARD` if direction cargo features are enabled.
 pub trait ScalarNegOne: ScalarZero {
     /// `-1`
     const NEG_ONE: Self;
 
-    /// A vec2 of all `-1`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC2_NEG_ONE: Vec2<Self>;
 
-    /// A vec2 that points to the negative `x` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC2_NEG_X: Vec2<Self>;
-    /// A vec2 that points to the negative `y` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC2_NEG_Y: Vec2<Self>;
 
-    /// A vec3 of all `-1`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC3_NEG_ONE: Vec3<Self>;
 
-    /// A vec3 that points to the negative `x` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC3_NEG_X: Vec3<Self>;
-    /// A vec3 that points to the negative `y` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC3_NEG_Y: Vec3<Self>;
-    /// A vec3 that points to the negative `z` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC3_NEG_Z: Vec3<Self>;
 
-    /// A vec4 of all `-1`s.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC4_NEG_ONE: Vec4<Self>;
 
-    /// A vec4 that points to the negative `x` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC4_NEG_X: Vec4<Self>;
-    /// A vec4 that points to the negative `y` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC4_NEG_Y: Vec4<Self>;
-    /// A vec4 that points to the negative `z` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC4_NEG_Z: Vec4<Self>;
-    /// A vec4 that points to the negative `w` direction with magnitude `1`.
-    /// This only exists because Rust const traits aren't stable yet.
+    /// This is boilerplate that is required because of stable-Rust limitations.
+    /// Use [`scalar_neg_one_boilerplate`] to automatically implement this.
     const VEC4_NEG_W: Vec4<Self>;
+}
+
+/// Automatically generates the boilerplate part of [`ScalarZero`] implementations.
+/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.
+#[macro_export]
+macro_rules! scalar_zero_boilerplate {
+    {} => {
+        const VEC2_ZERO: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ZERO; 2]);
+        const VEC3_ZERO: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO; 3]);
+        const VEC4_ZERO: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO; 4]);
+    }
+}
+
+/// Automatically generates the boilerplate part of [`ScalarOne`] implementations.
+/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.
+#[macro_export]
+macro_rules! scalar_one_boilerplate {
+    {} => {
+        const VEC2_ONE: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ONE; 2]);
+
+        const VEC2_X: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ONE, Self::ZERO]);
+        const VEC2_Y: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ZERO, Self::ONE]);
+
+        const VEC3_ONE: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ONE; 3]);
+
+        const VEC3_X: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ONE, Self::ZERO, Self::ZERO]);
+        const VEC3_Y: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::ONE, Self::ZERO]);
+        const VEC3_Z: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ONE]);
+
+        const VEC4_ONE: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ONE; 4]);
+
+        const VEC4_X: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ONE, Self::ZERO, Self::ZERO, Self::ZERO]);
+        const VEC4_Y: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ONE, Self::ZERO, Self::ZERO]);
+        const VEC4_Z: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ONE, Self::ZERO]);
+        const VEC4_W: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ZERO, Self::ONE]);
+    }
+}
+
+/// Automatically generates the boilerplate part of [`ScalarNegOne`] implementations.
+/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.
+#[macro_export]
+macro_rules! scalar_neg_one_boilerplate {
+    {} => {
+        const VEC2_NEG_ONE: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::NEG_ONE; 2]);
+
+        const VEC2_NEG_X: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::NEG_ONE, Self::ZERO]);
+        const VEC2_NEG_Y: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ZERO, Self::NEG_ONE]);
+
+        const VEC3_NEG_ONE: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::NEG_ONE; 3]);
+
+        const VEC3_NEG_X: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::NEG_ONE, Self::ZERO, Self::ZERO]);
+        const VEC3_NEG_Y: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::NEG_ONE, Self::ZERO]);
+        const VEC3_NEG_Z: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::NEG_ONE]);
+
+        const VEC4_NEG_ONE: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::NEG_ONE; 4]);
+
+        const VEC4_NEG_X: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::NEG_ONE, Self::ZERO, Self::ZERO, Self::ZERO]);
+        const VEC4_NEG_Y: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::NEG_ONE, Self::ZERO, Self::ZERO]);
+        const VEC4_NEG_Z: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::NEG_ONE, Self::ZERO]);
+        const VEC4_NEG_W: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ZERO, Self::NEG_ONE]);
+    }
 }
 
 impl<const N: usize, T: ScalarZero, S: Simdness> Vector<N, T, S>

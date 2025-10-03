@@ -279,6 +279,42 @@ impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
+    /// Picks the vector with the appropriate length.
+    pub const fn pick_by_length(
+        vec2: Vector<2, T, S>,
+        vec3: Vector<3, T, S>,
+        vec4: Vector<4, T, S>,
+    ) -> Self
+    where
+        Usize<N>: VecLen,
+    {
+        unsafe {
+            match N {
+                2 => core::mem::transmute_copy::<Vector<2, T, S>, Vector<N, T, S>>(&vec2),
+                3 => core::mem::transmute_copy::<Vector<3, T, S>, Vector<N, T, S>>(&vec3),
+                4 => core::mem::transmute_copy::<Vector<4, T, S>, Vector<N, T, S>>(&vec4),
+                _ => panic!("unusual vector length"),
+            }
+        }
+    }
+
+    /// Picks the vector with the appropriate simdness.
+    pub const fn pick_by_simdness(
+        simd_vec: Vector<N, T, Simd>,
+        non_simd_vec: Vector<N, T, NonSimd>,
+    ) -> Self
+    where
+        Usize<N>: VecLen,
+    {
+        unsafe {
+            if S::IS_SIMD {
+                core::mem::transmute_copy::<Vector<N, T, Simd>, Vector<N, T, S>>(&simd_vec)
+            } else {
+                core::mem::transmute_copy::<Vector<N, T, NonSimd>, Vector<N, T, S>>(&non_simd_vec)
+            }
+        }
+    }
+
     /// Returns `true` for `Simd` vectors and `false` for `NonSimd` vectors.
     #[inline(always)]
     pub const fn is_simd(self) -> bool {

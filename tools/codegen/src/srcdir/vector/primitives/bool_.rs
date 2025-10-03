@@ -7,9 +7,9 @@ pub fn push_src(output: &mut PrimitiveSrcMod) {
         $("// The following code is generated for `bool`")
 
         $("/// All `true`.")
-        pub const TRUE: Self = Self::const_splat(true);
+        pub const TRUE: Self = Self::const_from_array([true; N]);
         $("/// All `false`.")
-        pub const FALSE: Self = Self::const_splat(false);
+        pub const FALSE: Self = Self::const_from_array([false; N]);
 
         $("/// Returns `true` if all elements are `true`.")
         #[inline(always)]

@@ -1,8 +1,7 @@
 use genco::quote;
-use strum::IntoEnumIterator;
 
 use crate::{
-    iter::{Axis, Length, PrimitiveFloat, PrimitiveInt},
+    iter::{PrimitiveFloat, PrimitiveInt},
     srcdir::vector::primitives::PrimitiveSrcMod,
 };
 
@@ -11,9 +10,9 @@ pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
         $("// The following code is generated for all int primitives")
 
         $("/// A vector of all minimum values.")
-        pub const MIN: Self = Self::const_splat($primitive::MIN);
+        pub const MIN: Self = Self::const_from_array([$primitive::MIN; N]);
         $("/// A vector of all maximum values.")
-        pub const MAX: Self = Self::const_splat($primitive::MAX);
+        pub const MAX: Self = Self::const_from_array([$primitive::MAX; N]);
 
         $(
             for primitive2 in PrimitiveFloat::iter() join($['\n']) =>
@@ -166,31 +165,13 @@ pub fn push_src(primitive: PrimitiveInt, output: &mut PrimitiveSrcMod) {
         impl ScalarZero for $primitive {
             const ZERO: Self = 0;
 
-            $(
-                for n in Length::iter() join($['\r']) =>
-
-                const VEC$(n)_ZERO: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([0; $n]);
-            )
+            scalar_zero_boilerplate! {}
         }
 
         impl ScalarOne for $primitive {
             const ONE: Self = 1;
 
-            $(
-                for n in Length::iter() join($['\r']) =>
-
-                const VEC$(n)_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([1; $n]);
-            )
-
-            $(
-                for n in Length::iter() join($['\n']) => $(
-                    for i in 0..n.as_usize() join($['\r']) =>
-
-                    const VEC$(n)_$(Axis(i).uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { 1 } else { 0 })
-                    )]);
-                )
-            )
+            scalar_one_boilerplate! {}
         }
     });
 }

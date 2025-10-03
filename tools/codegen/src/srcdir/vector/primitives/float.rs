@@ -1,24 +1,23 @@
 use genco::{ quote};
-use strum::IntoEnumIterator;
 
-use crate::{srcdir::vector::primitives::PrimitiveSrcMod, iter::{Axis, Length, PrimitiveFloat, PrimitiveInt}};
+use crate::{srcdir::vector::primitives::PrimitiveSrcMod, iter::{Length, PrimitiveFloat, PrimitiveInt}};
 
 pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
     output.impl_items.push(quote! {
         $("// The following code is generated for all float primitives")
 
         $("/// A vector of all minimum values.")
-        pub const MIN: Self = Self::const_splat($primitive::MIN);
+        pub const MIN: Self = Self::const_from_array([$primitive::MIN; N]);
         $("/// A vector of all maximum values.")
-        pub const MAX: Self = Self::const_splat($primitive::MAX);
+        pub const MAX: Self = Self::const_from_array([$primitive::MAX; N]);
         $("/// A vector with all elements set to `NaN`.")
-        pub const NAN: Self = Self::const_splat($primitive::NAN);
+        pub const NAN: Self = Self::const_from_array([$primitive::NAN; N]);
         $("/// A vector with all elements set to `Infinity`.")
-        pub const INFINITY: Self = Self::const_splat($primitive::INFINITY);
+        pub const INFINITY: Self = Self::const_from_array([$primitive::INFINITY; N]);
         $("/// A vector with all elements set to `-Infinity`.")
-        pub const NEG_INFINITY: Self = Self::const_splat($primitive::NEG_INFINITY);
+        pub const NEG_INFINITY: Self = Self::const_from_array([$primitive::NEG_INFINITY; N]);
         $("/// A vector with all elements set to `Epsilon`.")
-        pub const EPSILON: Self = Self::const_splat($primitive::EPSILON);
+        pub const EPSILON: Self = Self::const_from_array([$primitive::EPSILON; N]);
 
         $(
             for primitive2 in PrimitiveFloat::iter().filter(|&primitive2| primitive2 != primitive) join($['\n']) =>
@@ -457,51 +456,19 @@ pub fn push_src(primitive: PrimitiveFloat, output: &mut PrimitiveSrcMod) {
         impl ScalarZero for $primitive {
             const ZERO: Self = 0.0;
 
-            $(
-                for n in Length::iter() join($['\r']) =>
-
-                const VEC$(n)_ZERO: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([0.0; $n]);
-            )
+            scalar_zero_boilerplate! {}
         }
 
         impl ScalarOne for $primitive {
             const ONE: Self = 1.0;
 
-            $(
-                for n in Length::iter() join($['\r']) =>
-
-                const VEC$(n)_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([1.0; $n]);
-            )
-
-            $(
-                for n in Length::iter() join($['\n']) => $(
-                    for i in 0..n.as_usize() join($['\r']) =>
-
-                    const VEC$(n)_$(Axis(i).uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { 1.0 } else { 0.0 })
-                    )]);
-                )
-            )
+            scalar_one_boilerplate! {}
         }
 
         impl ScalarNegOne for $primitive {
             const NEG_ONE: Self = -1.0;
 
-            $(
-                for n in Length::iter() join($['\r']) =>
-
-                const VEC$(n)_NEG_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([-1.0; $n]);
-            )
-
-            $(
-                for n in Length::iter() join($['\n']) => $(
-                    for i in 0..n.as_usize() join($['\r']) =>
-
-                    const VEC$(n)_NEG_$(Axis(i).uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { -1.0 } else { 0.0 })
-                    )]);
-                )
-            )
+            scalar_neg_one_boilerplate! {}
         }
     });
 }

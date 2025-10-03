@@ -1,8 +1,7 @@
 use genco::quote;
-use strum::IntoEnumIterator;
 
 use crate::{
-    iter::{Axis, Length, PrimitiveSint, PrimitiveUint},
+    iter::{PrimitiveSint, PrimitiveUint},
     srcdir::vector::primitives::PrimitiveSrcMod,
 };
 
@@ -58,21 +57,7 @@ pub fn push_src(primitive: PrimitiveSint, output: &mut PrimitiveSrcMod) {
         impl ScalarNegOne for $primitive {
             const NEG_ONE: Self = -1;
 
-            $(
-                for n in Length::iter() join($['\r']) =>
-
-                const VEC$(n)_NEG_ONE: Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([-1; $n]);
-            )
-
-            $(
-                for n in Length::iter() join($['\n']) => $(
-                    for i in 0..n.as_usize() join($['\r']) =>
-
-                    const VEC$(n)_NEG_$(Axis(i).uppercase_str()): Vec$(n)<$primitive> = Vec$(n)::<$primitive>::const_from_array([$(
-                        for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { -1 } else { 0 })
-                    )]);
-                )
-            )
+            scalar_neg_one_boilerplate! {}
         }
     });
 }

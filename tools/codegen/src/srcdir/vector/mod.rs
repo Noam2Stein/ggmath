@@ -260,6 +260,44 @@ pub fn srcmod() -> SrcDir {
         where
             Usize<N>: VecLen,
         {
+            $("/// Picks the vector with the appropriate length.")
+            pub const fn pick_by_length($(
+                for n in Length::iter() join($['\r']) =>
+                
+                vec$(n): Vector<$n, T, S>,
+            )) -> Self
+            where
+                Usize<N>: VecLen,
+            {
+                unsafe {
+                    match N {
+                        $(
+                            for n in Length::iter() join($['\r']) =>
+                            
+                            $n => core::mem::transmute_copy::<Vector<$n, T, S>, Vector<N, T, S>>(&vec$(n)),
+                        )
+                        _ => panic!("unusual vector length"),
+                    }
+                }
+            }
+
+            $("/// Picks the vector with the appropriate simdness.")
+            pub const fn pick_by_simdness(
+                simd_vec: Vector<N, T, Simd>,
+                non_simd_vec: Vector<N, T, NonSimd>,
+            ) -> Self
+            where
+                Usize<N>: VecLen,
+            {
+                unsafe {
+                    if S::IS_SIMD {
+                        core::mem::transmute_copy::<Vector<N, T, Simd>, Vector<N, T, S>>(&simd_vec)
+                    } else {
+                        core::mem::transmute_copy::<Vector<N, T, NonSimd>, Vector<N, T, S>>(&non_simd_vec)
+                    }
+                }
+            }
+
             $("/// Returns `true` for `Simd` vectors and `false` for `NonSimd` vectors.")
             #[inline(always)]
             pub const fn is_simd(self) -> bool {
