@@ -3,7 +3,7 @@
 
 use std::ops::*;
 
-use crate::{Construct, Vec2, Vec3, Vec4, Vector};
+use crate::{Construct, Simd, Usize, VecLen, Vector};
 
 /// Trait for [`Vector`] element types.
 ///
@@ -179,81 +179,96 @@ use crate::{Construct, Vec2, Vec3, Vec4, Vector};
 /// }
 /// ```
 pub trait Scalar: Construct {
-    /// The inner type contained inside `Vector<2, Self, Simd>`.
-    type InnerSimdVec2: Construct;
+    /// The inner type contained inside [`Simd`] vectors.
+    ///
+    /// To choose a seperate type for each length, use [`Usize<N>::Match`][VecLen::Match].
+    type SimdVectorStorage<const N: usize>: Construct
+    where
+        Usize<N>: VecLen;
 
-    /// The inner type contained inside `Vector<3, Self, Simd>`.
-    type InnerSimdVec3: Construct;
+    /// Converts an array to a [`Simd`] vector.
+    fn vec_from_array<const N: usize>(array: [Self; N]) -> Vector<N, Self, Simd>
+    where
+        Usize<N>: VecLen;
 
-    /// The inner type contained inside `Vector<4, Self, Simd>`.
-    type InnerSimdVec4: Construct;
+    /// Converts a [`Simd`] vector to an array.
+    fn vec_as_array<const N: usize>(vec: Vector<N, Self, Simd>) -> [Self; N]
+    where
+        Usize<N>: VecLen;
 
-    /// Constructs a simd vec2 from an array.
-    fn vec2_from_array(array: [Self; 2]) -> Vec2<Self>;
-
-    /// Converts a simd vec2 to an array.
-    fn vec2_as_array(vec: Vec2<Self>) -> [Self; 2];
-
-    /// Constructs a simd vec3 from an array.
-    fn vec3_from_array(array: [Self; 3]) -> Vec3<Self>;
-
-    /// Converts a simd vec3 to an array.
-    fn vec3_as_array(vec: Vec3<Self>) -> [Self; 3];
-
-    /// Constructs a simd vec4 from an array.
-    fn vec4_from_array(array: [Self; 4]) -> Vec4<Self>;
-
-    /// Converts a simd vec4 to an array.
-    fn vec4_as_array(vec: Vec4<Self>) -> [Self; 4];
-
-    /// Overridable implementation of `Vector::splat` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::splat`].
     #[inline(always)]
-    fn vec2_splat(value: Self) -> Vec2<Self> {
-        Vec2::from_array([value; 2])
+    fn vec_splat<const N: usize>(value: Self) -> Vector<N, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::from_array([value; N])
     }
 
-    /// Overridable implementation of `Vector::get_unchecked` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::get_unchecked`].
     #[inline(always)]
-    unsafe fn vec2_get_unchecked(vec: Vec2<Self>, index: usize) -> Self {
+    unsafe fn vec_get_unchecked<const N: usize>(vec: Vector<N, Self, Simd>, index: usize) -> Self
+    where
+        Usize<N>: VecLen,
+    {
         unsafe { *vec.as_array().get_unchecked(index) }
     }
 
-    /// Overridable implementation of `Vector::set_unchecked` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::with_unchecked`].
     #[inline(always)]
-    unsafe fn vec2_with_unchecked(vec: Vec2<Self>, index: usize, value: Self) -> Vec2<Self> {
+    unsafe fn vec_with_unchecked<const N: usize>(
+        vec: Vector<N, Self, Simd>,
+        index: usize,
+        value: Self,
+    ) -> Vector<N, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
         let mut array = vec.as_array();
         unsafe {
             *array.get_unchecked_mut(index) = value;
         }
 
-        Vec2::from_array(array)
+        Vector::from_array(array)
     }
 
-    /// Overridable implementation of `Vector::shuffle_2` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::shuffle_2`].
     #[inline(always)]
-    fn vec2_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec2<Self>) -> Vec2<Self> {
-        Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
+    fn vec_shuffle_2<const N: usize, const X_SRC: usize, const Y_SRC: usize>(
+        vec: Vector<N, Self, Simd>,
+    ) -> Vector<2, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<2, Self, Simd>::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_3` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::shuffle_3`].
     #[inline(always)]
-    fn vec2_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
-        vec: Vec2<Self>,
-    ) -> Vec3<Self> {
-        Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
+    fn vec_shuffle_3<const N: usize, const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vector<N, Self, Simd>,
+    ) -> Vector<3, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<3, Self, Simd>::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
     }
 
-    /// Overridable implementation of `Vector::shuffle_4` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::shuffle_4`].
     #[inline(always)]
-    fn vec2_shuffle_4<
+    fn vec_shuffle_4<
+        const N: usize,
         const X_SRC: usize,
         const Y_SRC: usize,
         const Z_SRC: usize,
         const W_SRC: usize,
     >(
-        vec: Vec2<Self>,
-    ) -> Vec4<Self> {
-        Vec4::from_array([
+        vec: Vector<N, Self, Simd>,
+    ) -> Vector<4, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
+        Vector::<4, Self, Simd>::from_array([
             vec.index(X_SRC),
             vec.index(Y_SRC),
             vec.index(Z_SRC),
@@ -261,12 +276,15 @@ pub trait Scalar: Construct {
         ])
     }
 
-    /// Overridable implementation of `Vector::with_2` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::with_shuffle_2`].
     #[inline(always)]
-    fn vec2_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
-        vec: Vec2<Self>,
-        value: Vec2<Self>,
-    ) -> Vec2<Self> {
+    fn vec_with_shuffle_2<const N: usize, const X_DST: usize, const Y_DST: usize>(
+        vec: Vector<N, Self, Simd>,
+        value: Vector<2, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -274,284 +292,20 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::eq` for simd vec2s.
+    /// Overridable implementation of [`Simd`] [`Vector::with_shuffle_3`].
     #[inline(always)]
-    fn vec2_eq<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..2).all(|i| vec.index(i) == other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ne` for simd vec2s.
-    #[inline(always)]
-    fn vec2_ne<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..2).any(|i| vec.index(i) != other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::neg` for simd vec2s.
-    #[inline(always)]
-    fn vec2_neg(vec: Vec2<Self>) -> Vec2<<Self as Neg>::Output>
-    where
-        Self: Neg<Output: Scalar>,
-    {
-        vec.map(|v| v.neg())
-    }
-
-    /// Overridable implementation of `Vector::not` for simd vec2s.
-    #[inline(always)]
-    fn vec2_not(vec: Vec2<Self>) -> Vec2<<Self as Not>::Output>
-    where
-        Self: Not<Output: Scalar>,
-    {
-        vec.map(|v| v.not())
-    }
-
-    /// Overridable implementation of `Vector::add` for simd vec2s.
-    #[inline(always)]
-    fn vec2_add<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Add<T2>>::Output>
-    where
-        Self: Add<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).add(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::sub` for simd vec2s.
-    #[inline(always)]
-    fn vec2_sub<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Sub<T2>>::Output>
-    where
-        Self: Sub<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::mul` for simd vec2s.
-    #[inline(always)]
-    fn vec2_mul<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Mul<T2>>::Output>
-    where
-        Self: Mul<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::div` for simd vec2s.
-    #[inline(always)]
-    fn vec2_div<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Div<T2>>::Output>
-    where
-        Self: Div<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).div(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::rem` for simd vec2s.
-    #[inline(always)]
-    fn vec2_rem<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Rem<T2>>::Output>
-    where
-        Self: Rem<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shl` for simd vec2s.
-    #[inline(always)]
-    fn vec2_shl<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Shl<T2>>::Output>
-    where
-        Self: Shl<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shr` for simd vec2s.
-    #[inline(always)]
-    fn vec2_shr<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as Shr<T2>>::Output>
-    where
-        Self: Shr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitand` for simd vec2s.
-    #[inline(always)]
-    fn vec2_bitand<T2: Scalar>(
-        vec: Vec2<Self>,
-        other: Vec2<T2>,
-    ) -> Vec2<<Self as BitAnd<T2>>::Output>
-    where
-        Self: BitAnd<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitor` for simd vec2s.
-    #[inline(always)]
-    fn vec2_bitor<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<<Self as BitOr<T2>>::Output>
-    where
-        Self: BitOr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitxor` for simd vec2s.
-    #[inline(always)]
-    fn vec2_bitxor<T2: Scalar>(
-        vec: Vec2<Self>,
-        other: Vec2<T2>,
-    ) -> Vec2<<Self as BitXor<T2>>::Output>
-    where
-        Self: BitXor<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::eq_mask` for simd vec2s.
-    #[inline(always)]
-    fn vec2_eq_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
-    where
-        Self: PartialEq<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) == other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ne_mask` for simd vec2s.
-    #[inline(always)]
-    fn vec2_ne_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
-    where
-        Self: PartialEq<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) != other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::lt_mask` for simd vec2s.
-    #[inline(always)]
-    fn vec2_lt_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) < other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::le_mask` for simd vec2s.
-    #[inline(always)]
-    fn vec2_le_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) <= other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::gt_mask` for simd vec2s.
-    #[inline(always)]
-    fn vec2_gt_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) > other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ge_mask` for simd vec2s.
-    #[inline(always)]
-    fn vec2_ge_mask<T2: Scalar>(vec: Vec2<Self>, other: Vec2<T2>) -> Vec2<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) >= other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::sum` for simd vec2s.
-    #[inline(always)]
-    fn vec2_sum(vec: Vec2<Self>) -> Self
-    where
-        Self: Add<Output = Self>,
-    {
-        vec.reduce(|a, b| a + b)
-    }
-
-    /// Overridable implementation of `Vector::product` for simd vec2s.
-    #[inline(always)]
-    fn vec2_product(vec: Vec2<Self>) -> Self
-    where
-        Self: Mul<Output = Self>,
-    {
-        vec.reduce(|a, b| a * b)
-    }
-
-    /// Overridable implementation of `Vector::splat` for simd vec3s.
-    #[inline(always)]
-    fn vec3_splat(value: Self) -> Vec3<Self> {
-        Vec3::from_array([value; 3])
-    }
-
-    /// Overridable implementation of `Vector::get_unchecked` for simd vec3s.
-    #[inline(always)]
-    unsafe fn vec3_get_unchecked(vec: Vec3<Self>, index: usize) -> Self {
-        unsafe { *vec.as_array().get_unchecked(index) }
-    }
-
-    /// Overridable implementation of `Vector::set_unchecked` for simd vec3s.
-    #[inline(always)]
-    unsafe fn vec3_with_unchecked(vec: Vec3<Self>, index: usize, value: Self) -> Vec3<Self> {
-        let mut array = vec.as_array();
-        unsafe {
-            *array.get_unchecked_mut(index) = value;
-        }
-
-        Vec3::from_array(array)
-    }
-
-    /// Overridable implementation of `Vector::shuffle_2` for simd vec3s.
-    #[inline(always)]
-    fn vec3_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec3<Self>) -> Vec2<Self> {
-        Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_3` for simd vec3s.
-    #[inline(always)]
-    fn vec3_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
-        vec: Vec3<Self>,
-    ) -> Vec3<Self> {
-        Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_4` for simd vec3s.
-    #[inline(always)]
-    fn vec3_shuffle_4<
-        const X_SRC: usize,
-        const Y_SRC: usize,
-        const Z_SRC: usize,
-        const W_SRC: usize,
+    fn vec_with_shuffle_3<
+        const N: usize,
+        const X_DST: usize,
+        const Y_DST: usize,
+        const Z_DST: usize,
     >(
-        vec: Vec3<Self>,
-    ) -> Vec4<Self> {
-        Vec4::from_array([
-            vec.index(X_SRC),
-            vec.index(Y_SRC),
-            vec.index(Z_SRC),
-            vec.index(W_SRC),
-        ])
-    }
-
-    /// Overridable implementation of `Vector::with_2` for simd vec3s.
-    #[inline(always)]
-    fn vec3_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
-        vec: Vec3<Self>,
-        value: Vec2<Self>,
-    ) -> Vec3<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::with_3` for simd vec3s.
-    #[inline(always)]
-    fn vec3_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
-        vec: Vec3<Self>,
-        value: Vec3<Self>,
-    ) -> Vec3<Self> {
+        vec: Vector<N, Self, Simd>,
+        value: Vector<3, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -560,303 +314,21 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::eq` for simd vec3s.
+    /// Overridable implementation of [`Simd`] [`Vector::with_shuffle_4`].
     #[inline(always)]
-    fn vec3_eq<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..3).all(|i| vec.index(i) == other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ne` for simd vec3s.
-    #[inline(always)]
-    fn vec3_ne<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> bool
-    where
-        Self: PartialEq<T2>,
-    {
-        (0..3).any(|i| vec.index(i) != other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::neg` for simd vec3s.
-    #[inline(always)]
-    fn vec3_neg(vec: Vec3<Self>) -> Vec3<<Self as Neg>::Output>
-    where
-        Self: Neg<Output: Scalar>,
-    {
-        vec.map(|v| v.neg())
-    }
-
-    /// Overridable implementation of `Vector::not` for simd vec3s.
-    #[inline(always)]
-    fn vec3_not(vec: Vec3<Self>) -> Vec3<<Self as Not>::Output>
-    where
-        Self: Not<Output: Scalar>,
-    {
-        vec.map(|v| v.not())
-    }
-
-    /// Overridable implementation of `Vector::add` for simd vec3s.
-    #[inline(always)]
-    fn vec3_add<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Add<T2>>::Output>
-    where
-        Self: Add<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).add(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::sub` for simd vec3s.
-    #[inline(always)]
-    fn vec3_sub<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Sub<T2>>::Output>
-    where
-        Self: Sub<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::mul` for simd vec3s.
-    #[inline(always)]
-    fn vec3_mul<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Mul<T2>>::Output>
-    where
-        Self: Mul<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::div` for simd vec3s.
-    #[inline(always)]
-    fn vec3_div<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Div<T2>>::Output>
-    where
-        Self: Div<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).div(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::rem` for simd vec3s.
-    #[inline(always)]
-    fn vec3_rem<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Rem<T2>>::Output>
-    where
-        Self: Rem<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shl` for simd vec3s.
-    #[inline(always)]
-    fn vec3_shl<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Shl<T2>>::Output>
-    where
-        Self: Shl<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::shr` for simd vec3s.
-    #[inline(always)]
-    fn vec3_shr<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as Shr<T2>>::Output>
-    where
-        Self: Shr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitand` for simd vec3s.
-    #[inline(always)]
-    fn vec3_bitand<T2: Scalar>(
-        vec: Vec3<Self>,
-        other: Vec3<T2>,
-    ) -> Vec3<<Self as BitAnd<T2>>::Output>
-    where
-        Self: BitAnd<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitor` for simd vec3s.
-    #[inline(always)]
-    fn vec3_bitor<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<<Self as BitOr<T2>>::Output>
-    where
-        Self: BitOr<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::bitxor` for simd vec3s.
-    #[inline(always)]
-    fn vec3_bitxor<T2: Scalar>(
-        vec: Vec3<Self>,
-        other: Vec3<T2>,
-    ) -> Vec3<<Self as BitXor<T2>>::Output>
-    where
-        Self: BitXor<T2, Output: Scalar>,
-    {
-        Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
-    }
-
-    /// Overridable implementation of `Vector::eq_mask` for simd vec3s.
-    #[inline(always)]
-    fn vec3_eq_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
-    where
-        Self: PartialEq<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) == other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ne_mask` for simd vec3s.
-    #[inline(always)]
-    fn vec3_ne_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
-    where
-        Self: PartialEq<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) != other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::lt_mask` for simd vec3s.
-    #[inline(always)]
-    fn vec3_lt_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) < other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::le_mask` for simd vec3s.
-    #[inline(always)]
-    fn vec3_le_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) <= other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::gt_mask` for simd vec3s.
-    #[inline(always)]
-    fn vec3_gt_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) > other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::ge_mask` for simd vec3s.
-    #[inline(always)]
-    fn vec3_ge_mask<T2: Scalar>(vec: Vec3<Self>, other: Vec3<T2>) -> Vec3<bool>
-    where
-        Self: PartialOrd<T2>,
-    {
-        Vector::from_fn(|i| vec.index(i) >= other.index(i))
-    }
-
-    /// Overridable implementation of `Vector::sum` for simd vec3s.
-    #[inline(always)]
-    fn vec3_sum(vec: Vec3<Self>) -> Self
-    where
-        Self: Add<Output = Self>,
-    {
-        vec.reduce(|a, b| a + b)
-    }
-
-    /// Overridable implementation of `Vector::product` for simd vec3s.
-    #[inline(always)]
-    fn vec3_product(vec: Vec3<Self>) -> Self
-    where
-        Self: Mul<Output = Self>,
-    {
-        vec.reduce(|a, b| a * b)
-    }
-
-    /// Overridable implementation of `Vector::splat` for simd vec4s.
-    #[inline(always)]
-    fn vec4_splat(value: Self) -> Vec4<Self> {
-        Vec4::from_array([value; 4])
-    }
-
-    /// Overridable implementation of `Vector::get_unchecked` for simd vec4s.
-    #[inline(always)]
-    unsafe fn vec4_get_unchecked(vec: Vec4<Self>, index: usize) -> Self {
-        unsafe { *vec.as_array().get_unchecked(index) }
-    }
-
-    /// Overridable implementation of `Vector::set_unchecked` for simd vec4s.
-    #[inline(always)]
-    unsafe fn vec4_with_unchecked(vec: Vec4<Self>, index: usize, value: Self) -> Vec4<Self> {
-        let mut array = vec.as_array();
-        unsafe {
-            *array.get_unchecked_mut(index) = value;
-        }
-
-        Vec4::from_array(array)
-    }
-
-    /// Overridable implementation of `Vector::shuffle_2` for simd vec4s.
-    #[inline(always)]
-    fn vec4_shuffle_2<const X_SRC: usize, const Y_SRC: usize>(vec: Vec4<Self>) -> Vec2<Self> {
-        Vec2::from_array([vec.index(X_SRC), vec.index(Y_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_3` for simd vec4s.
-    #[inline(always)]
-    fn vec4_shuffle_3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
-        vec: Vec4<Self>,
-    ) -> Vec3<Self> {
-        Vec3::from_array([vec.index(X_SRC), vec.index(Y_SRC), vec.index(Z_SRC)])
-    }
-
-    /// Overridable implementation of `Vector::shuffle_4` for simd vec4s.
-    #[inline(always)]
-    fn vec4_shuffle_4<
-        const X_SRC: usize,
-        const Y_SRC: usize,
-        const Z_SRC: usize,
-        const W_SRC: usize,
-    >(
-        vec: Vec4<Self>,
-    ) -> Vec4<Self> {
-        Vec4::from_array([
-            vec.index(X_SRC),
-            vec.index(Y_SRC),
-            vec.index(Z_SRC),
-            vec.index(W_SRC),
-        ])
-    }
-
-    /// Overridable implementation of `Vector::with_2` for simd vec4s.
-    #[inline(always)]
-    fn vec4_with_shuffle_2<const X_DST: usize, const Y_DST: usize>(
-        vec: Vec4<Self>,
-        value: Vec2<Self>,
-    ) -> Vec4<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::with_3` for simd vec4s.
-    #[inline(always)]
-    fn vec4_with_shuffle_3<const X_DST: usize, const Y_DST: usize, const Z_DST: usize>(
-        vec: Vec4<Self>,
-        value: Vec3<Self>,
-    ) -> Vec4<Self> {
-        let mut output = vec;
-        output.set(X_DST, value.index(0));
-        output.set(Y_DST, value.index(1));
-        output.set(Z_DST, value.index(2));
-
-        output
-    }
-
-    /// Overridable implementation of `Vector::with_4` for simd vec4s.
-    #[inline(always)]
-    fn vec4_with_shuffle_4<
+    fn vec_with_shuffle_4<
+        const N: usize,
         const X_DST: usize,
         const Y_DST: usize,
         const Z_DST: usize,
         const W_DST: usize,
     >(
-        vec: Vec4<Self>,
-        value: Vec4<Self>,
-    ) -> Vec4<Self> {
+        vec: Vector<N, Self, Simd>,
+        value: Vector<4, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
         let mut output = vec;
         output.set(X_DST, value.index(0));
         output.set(Y_DST, value.index(1));
@@ -866,205 +338,275 @@ pub trait Scalar: Construct {
         output
     }
 
-    /// Overridable implementation of `Vector::eq` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::eq`].
     #[inline(always)]
-    fn vec4_eq<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> bool
+    fn vec_eq<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> bool
     where
+        Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
-        (0..4).all(|i| vec.index(i) == other.index(i))
+        (0..N).all(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::ne`].
     #[inline(always)]
-    fn vec4_ne<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> bool
+    fn vec_ne<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> bool
     where
+        Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
-        (0..4).any(|i| vec.index(i) != other.index(i))
+        (0..N).any(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::neg` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::neg`].
     #[inline(always)]
-    fn vec4_neg(vec: Vec4<Self>) -> Vec4<<Self as Neg>::Output>
+    fn vec_neg<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, <Self as Neg>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Neg<Output: Scalar>,
     {
         vec.map(|v| v.neg())
     }
 
-    /// Overridable implementation of `Vector::not` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::not`].
     #[inline(always)]
-    fn vec4_not(vec: Vec4<Self>) -> Vec4<<Self as Not>::Output>
+    fn vec_not<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, <Self as Not>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Not<Output: Scalar>,
     {
         vec.map(|v| v.not())
     }
 
-    /// Overridable implementation of `Vector::add` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::add`].
     #[inline(always)]
-    fn vec4_add<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Add<T2>>::Output>
+    fn vec_add<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as Add<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Add<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).add(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::sub` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::sub`].
     #[inline(always)]
-    fn vec4_sub<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Sub<T2>>::Output>
+    fn vec_sub<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as Sub<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Sub<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::mul` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::mul`].
     #[inline(always)]
-    fn vec4_mul<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Mul<T2>>::Output>
+    fn vec_mul<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as Mul<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Mul<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::div` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::div`].
     #[inline(always)]
-    fn vec4_div<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Div<T2>>::Output>
+    fn vec_div<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as Div<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Div<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).div(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::rem` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::rem`].
     #[inline(always)]
-    fn vec4_rem<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Rem<T2>>::Output>
+    fn vec_rem<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as Rem<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Rem<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shl` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::shl`].
     #[inline(always)]
-    fn vec4_shl<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Shl<T2>>::Output>
+    fn vec_shl<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as Shl<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Shl<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::shr` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::shr`].
     #[inline(always)]
-    fn vec4_shr<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as Shr<T2>>::Output>
+    fn vec_shr<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as Shr<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: Shr<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitand` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::bitand`].
     #[inline(always)]
-    fn vec4_bitand<T2: Scalar>(
-        vec: Vec4<Self>,
-        other: Vec4<T2>,
-    ) -> Vec4<<Self as BitAnd<T2>>::Output>
+    fn vec_bitand<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as BitAnd<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: BitAnd<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitor` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::bitor`].
     #[inline(always)]
-    fn vec4_bitor<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<<Self as BitOr<T2>>::Output>
+    fn vec_bitor<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as BitOr<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: BitOr<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::bitxor` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::bitxor`].
     #[inline(always)]
-    fn vec4_bitxor<T2: Scalar>(
-        vec: Vec4<Self>,
-        other: Vec4<T2>,
-    ) -> Vec4<<Self as BitXor<T2>>::Output>
+    fn vec_bitxor<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, <Self as BitXor<T2>>::Output, Simd>
     where
+        Usize<N>: VecLen,
         Self: BitXor<T2, Output: Scalar>,
     {
         Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
     }
 
-    /// Overridable implementation of `Vector::eq_mask` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::eq_mask`].
     #[inline(always)]
-    fn vec4_eq_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
+    fn vec_eq_mask<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, bool, Simd>
     where
+        Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
         Vector::from_fn(|i| vec.index(i) == other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ne_mask` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::ne_mask`].
     #[inline(always)]
-    fn vec4_ne_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
+    fn vec_ne_mask<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, bool, Simd>
     where
+        Usize<N>: VecLen,
         Self: PartialEq<T2>,
     {
         Vector::from_fn(|i| vec.index(i) != other.index(i))
     }
 
-    /// Overridable implementation of `Vector::lt_mask` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::lt_mask`].
     #[inline(always)]
-    fn vec4_lt_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
+    fn vec_lt_mask<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, bool, Simd>
     where
+        Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
         Vector::from_fn(|i| vec.index(i) < other.index(i))
     }
 
-    /// Overridable implementation of `Vector::le_mask` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::le_mask`].
     #[inline(always)]
-    fn vec4_le_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
+    fn vec_le_mask<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, bool, Simd>
     where
+        Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
         Vector::from_fn(|i| vec.index(i) <= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::gt_mask` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::gt_mask`].
     #[inline(always)]
-    fn vec4_gt_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
+    fn vec_gt_mask<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, bool, Simd>
     where
+        Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
         Vector::from_fn(|i| vec.index(i) > other.index(i))
     }
 
-    /// Overridable implementation of `Vector::ge_mask` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::ge_mask`].
     #[inline(always)]
-    fn vec4_ge_mask<T2: Scalar>(vec: Vec4<Self>, other: Vec4<T2>) -> Vec4<bool>
+    fn vec_ge_mask<const N: usize, T2: Scalar>(
+        vec: Vector<N, Self, Simd>,
+        other: Vector<N, T2, Simd>,
+    ) -> Vector<N, bool, Simd>
     where
+        Usize<N>: VecLen,
         Self: PartialOrd<T2>,
     {
         Vector::from_fn(|i| vec.index(i) >= other.index(i))
     }
 
-    /// Overridable implementation of `Vector::sum` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::sum`].
     #[inline(always)]
-    fn vec4_sum(vec: Vec4<Self>) -> Self
+    fn vec_sum<const N: usize>(vec: Vector<N, Self, Simd>) -> Self
     where
+        Usize<N>: VecLen,
         Self: Add<Output = Self>,
     {
         vec.reduce(|a, b| a + b)
     }
 
-    /// Overridable implementation of `Vector::product` for simd vec4s.
+    /// Overridable implementation of [`Simd`] [`Vector::product`].
     #[inline(always)]
-    fn vec4_product(vec: Vec4<Self>) -> Self
+    fn vec_product<const N: usize>(vec: Vector<N, Self, Simd>) -> Self
     where
+        Usize<N>: VecLen,
         Self: Mul<Output = Self>,
     {
         vec.reduce(|a, b| a * b)

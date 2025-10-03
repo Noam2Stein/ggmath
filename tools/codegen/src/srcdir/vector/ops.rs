@@ -1,7 +1,7 @@
 use genco::quote;
 use strum::IntoEnumIterator;
 
-use crate::{module::{SrcFile, TokensExt}, iter::{BinOp, Length, UnOp}};
+use crate::{module::{SrcFile, TokensExt}, iter::{BinOp, UnOp}};
 
 pub fn srcmod() -> SrcFile {
     quote! {
@@ -23,14 +23,9 @@ pub fn srcmod() -> SrcFile {
                     specialize! {
                         (self: Vector<N, T, S>) -> Vector<N, T::Output, S>:
 
-                        $(
-                            for n in Length::iter() join($['\r']) =>
-
-                            for (Vector<$n, T, Simd>) -> Vector<$n, T::Output, Simd> {
-                                |vec| T::vec$(n)_$(op.lowercase_str())(vec)
-                            }
-                        )
-                        else {
+                        for (Vector<N, T, Simd>) -> Vector<N, T::Output, Simd> {
+                            |vec| T::vec_$(op.lowercase_str())(vec)
+                        } else {
                             self.map(|v| v.$(op.lowercase_str())())
                         }
                     }                    
@@ -65,14 +60,9 @@ pub fn srcmod() -> SrcFile {
                     specialize! {
                         (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
                         
-                        $(
-                            for n in Length::iter() join($['\r']) =>
-                            
-                            for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> Vector<$n, T::Output, Simd> {
-                                |vec, rhs| T::vec$(n)_$(op.lowercase_str())(vec, rhs)
-                            }
-                        )
-                        else {
+                        for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                            |vec, rhs| T::vec_$(op.lowercase_str())(vec, rhs)
+                        } else {
                             Vector::from_fn(|i| self.index(i).$(op.lowercase_str())(rhs.index(i)))
                         }
                     }

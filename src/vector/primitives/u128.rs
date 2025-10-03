@@ -270,37 +270,24 @@ where
 }
 
 impl Scalar for u128 {
-    type InnerSimdVec2 = [u128; 2];
-    type InnerSimdVec3 = [u128; 3];
-    type InnerSimdVec4 = [u128; 4];
+    type SimdVectorStorage<const N: usize>
+        = [u128; N]
+    where
+        Usize<N>: VecLen;
 
     #[inline(always)]
-    fn vec2_from_array(array: [u128; 2]) -> Vec2<u128> {
+    fn vec_from_array<const N: usize>(array: [u128; N]) -> Vector<N, u128, Simd>
+    where
+        Usize<N>: VecLen,
+    {
         Vector(array)
     }
 
     #[inline(always)]
-    fn vec2_as_array(vec: Vec2<u128>) -> [u128; 2] {
-        vec.0
-    }
-
-    #[inline(always)]
-    fn vec3_from_array(array: [u128; 3]) -> Vec3<u128> {
-        Vector(array)
-    }
-
-    #[inline(always)]
-    fn vec3_as_array(vec: Vec3<u128>) -> [u128; 3] {
-        vec.0
-    }
-
-    #[inline(always)]
-    fn vec4_from_array(array: [u128; 4]) -> Vec4<u128> {
-        Vector(array)
-    }
-
-    #[inline(always)]
-    fn vec4_as_array(vec: Vec4<u128>) -> [u128; 4] {
+    fn vec_as_array<const N: usize>(vec: Vector<N, u128, Simd>) -> [u128; N]
+    where
+        Usize<N>: VecLen,
+    {
         vec.0
     }
 }

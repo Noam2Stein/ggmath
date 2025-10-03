@@ -568,37 +568,24 @@ impl<S: Simdness> Vector<2, f64, S> {
 }
 
 impl Scalar for f64 {
-    type InnerSimdVec2 = [f64; 2];
-    type InnerSimdVec3 = [f64; 3];
-    type InnerSimdVec4 = [f64; 4];
+    type SimdVectorStorage<const N: usize>
+        = [f64; N]
+    where
+        Usize<N>: VecLen;
 
     #[inline(always)]
-    fn vec2_from_array(array: [f64; 2]) -> Vec2<f64> {
+    fn vec_from_array<const N: usize>(array: [f64; N]) -> Vector<N, f64, Simd>
+    where
+        Usize<N>: VecLen,
+    {
         Vector(array)
     }
 
     #[inline(always)]
-    fn vec2_as_array(vec: Vec2<f64>) -> [f64; 2] {
-        vec.0
-    }
-
-    #[inline(always)]
-    fn vec3_from_array(array: [f64; 3]) -> Vec3<f64> {
-        Vector(array)
-    }
-
-    #[inline(always)]
-    fn vec3_as_array(vec: Vec3<f64>) -> [f64; 3] {
-        vec.0
-    }
-
-    #[inline(always)]
-    fn vec4_from_array(array: [f64; 4]) -> Vec4<f64> {
-        Vector(array)
-    }
-
-    #[inline(always)]
-    fn vec4_as_array(vec: Vec4<f64>) -> [f64; 4] {
+    fn vec_as_array<const N: usize>(vec: Vector<N, f64, Simd>) -> [f64; N]
+    where
+        Usize<N>: VecLen,
+    {
         vec.0
     }
 }

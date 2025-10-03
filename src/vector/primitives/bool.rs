@@ -188,37 +188,24 @@ where
 }
 
 impl Scalar for bool {
-    type InnerSimdVec2 = [bool; 2];
-    type InnerSimdVec3 = [bool; 3];
-    type InnerSimdVec4 = [bool; 4];
+    type SimdVectorStorage<const N: usize>
+        = [bool; N]
+    where
+        Usize<N>: VecLen;
 
     #[inline(always)]
-    fn vec2_from_array(array: [bool; 2]) -> Vec2<bool> {
+    fn vec_from_array<const N: usize>(array: [bool; N]) -> Vector<N, bool, Simd>
+    where
+        Usize<N>: VecLen,
+    {
         Vector(array)
     }
 
     #[inline(always)]
-    fn vec2_as_array(vec: Vec2<bool>) -> [bool; 2] {
-        vec.0
-    }
-
-    #[inline(always)]
-    fn vec3_from_array(array: [bool; 3]) -> Vec3<bool> {
-        Vector(array)
-    }
-
-    #[inline(always)]
-    fn vec3_as_array(vec: Vec3<bool>) -> [bool; 3] {
-        vec.0
-    }
-
-    #[inline(always)]
-    fn vec4_from_array(array: [bool; 4]) -> Vec4<bool> {
-        Vector(array)
-    }
-
-    #[inline(always)]
-    fn vec4_as_array(vec: Vec4<bool>) -> [bool; 4] {
+    fn vec_as_array<const N: usize>(vec: Vector<N, bool, Simd>) -> [bool; N]
+    where
+        Usize<N>: VecLen,
+    {
         vec.0
     }
 }

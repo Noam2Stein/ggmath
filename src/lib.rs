@@ -109,21 +109,21 @@ macro_rules! specialize {
 
         $(else { $($else_tt:tt)* })?
     ) => {
-        if let Some(tuple) = $crate::typecheck::<$args_type, ($($first_case_arg_type,)*)>($args)
+        if let Some(tuple) = $crate::hidden::typecheck::<$args_type, ($($first_case_arg_type,)*)>($args)
             && core::any::TypeId::of::<$ret_type>() == core::any::TypeId::of::<$first_case_ret_type>()
         {
             let closure: fn($($first_case_arg_type),*) -> $first_case_ret_type = $first_case_closure;
             let result: $first_case_ret_type = $crate::specialize!(@expand_tuple_into_closure closure(tuple); $($first_case_arg_type),*);
 
-            $crate::typecheck::<$first_case_ret_type, $ret_type>(result).unwrap()
+            $crate::hidden::typecheck::<$first_case_ret_type, $ret_type>(result).unwrap()
         }
-        $(else if let Some(tuple) = $crate::typecheck::<$args_type, ($($case_arg_type,)*)>($args)
+        $(else if let Some(tuple) = $crate::hidden::typecheck::<$args_type, ($($case_arg_type,)*)>($args)
             && core::any::TypeId::of::<$ret_type>() == core::any::TypeId::of::<$case_ret_type>()
         {
             let closure: fn($($case_arg_type),*) -> $case_ret_type = $case_closure;
             let result: $case_ret_type = $crate::specialize!(@expand_tuple_into_closure closure(tuple); $($case_arg_type),*);
 
-            $crate::typecheck::<$case_ret_type, $ret_type>(result).unwrap()
+            $crate::hidden::typecheck::<$case_ret_type, $ret_type>(result).unwrap()
         })*
         $(else {
             $($else_tt)*
@@ -175,23 +175,23 @@ impl core::fmt::Display for IndexOutOfBoundsError {
 
 #[doc(hidden)]
 pub mod hidden {
+    use crate::Construct;
+
     pub use paste::paste;
-}
 
-#[doc(hidden)]
-#[inline(always)]
-pub fn typecheck<T1: Construct, T2: Construct>(value: T1) -> Option<T2> {
-    use core::any::TypeId;
+    #[inline(always)]
+    pub fn typecheck<T1: Construct, T2: Construct>(value: T1) -> Option<T2> {
+        use core::any::TypeId;
 
-    if TypeId::of::<T1>() == TypeId::of::<T2>() {
-        let ptr = &value as *const T1 as *const T2;
-        Some(unsafe { ptr.read() })
-    } else {
-        None
+        if TypeId::of::<T1>() == TypeId::of::<T2>() {
+            let ptr = &value as *const T1 as *const T2;
+            Some(unsafe { ptr.read() })
+        } else {
+            None
+        }
     }
 }
 
 mod sealed {
     pub trait Sealed {}
 }
-use sealed::Sealed;

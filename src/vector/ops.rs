@@ -16,16 +16,9 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec| T::vec2_neg(vec)
-            }
-            for (Vector<3, T, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec| T::vec3_neg(vec)
-            }
-            for (Vector<4, T, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec| T::vec4_neg(vec)
-            }
-            else {
+            for (Vector<N, T, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec| T::vec_neg(vec)
+            } else {
                 self.map(|v| v.neg())
             }
         }
@@ -54,16 +47,9 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec| T::vec2_not(vec)
-            }
-            for (Vector<3, T, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec| T::vec3_not(vec)
-            }
-            for (Vector<4, T, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec| T::vec4_not(vec)
-            }
-            else {
+            for (Vector<N, T, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec| T::vec_not(vec)
+            } else {
                 self.map(|v| v.not())
             }
         }
@@ -94,16 +80,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_add(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_add(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_add(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_add(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).add(rhs.index(i)))
             }
         }
@@ -219,16 +198,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_sub(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_sub(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_sub(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_sub(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).sub(rhs.index(i)))
             }
         }
@@ -344,16 +316,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_mul(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_mul(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_mul(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_mul(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).mul(rhs.index(i)))
             }
         }
@@ -469,16 +434,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_div(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_div(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_div(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_div(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).div(rhs.index(i)))
             }
         }
@@ -594,16 +552,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_rem(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_rem(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_rem(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_rem(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).rem(rhs.index(i)))
             }
         }
@@ -719,16 +670,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_shl(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_shl(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_shl(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_shl(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).shl(rhs.index(i)))
             }
         }
@@ -844,16 +788,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_shr(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_shr(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_shr(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_shr(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).shr(rhs.index(i)))
             }
         }
@@ -969,16 +906,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_bitand(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_bitand(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_bitand(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_bitand(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).bitand(rhs.index(i)))
             }
         }
@@ -1094,16 +1024,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_bitor(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_bitor(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_bitor(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_bitor(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).bitor(rhs.index(i)))
             }
         }
@@ -1219,16 +1142,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, T::Output, Simd> {
-                |vec, rhs| T::vec2_bitxor(vec, rhs)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, T::Output, Simd> {
-                |vec, rhs| T::vec3_bitxor(vec, rhs)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, T::Output, Simd> {
-                |vec, rhs| T::vec4_bitxor(vec, rhs)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+                |vec, rhs| T::vec_bitxor(vec, rhs)
+            } else {
                 Vector::from_fn(|i| self.index(i).bitxor(rhs.index(i)))
             }
         }

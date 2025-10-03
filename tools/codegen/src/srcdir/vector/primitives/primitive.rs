@@ -55,21 +55,25 @@ pub fn push_src(primitive: Primitive, output: &mut PrimitiveSrcMod) {
 
     output.trait_impls.push(quote! {
         impl Scalar for $primitive {
-            $(for n in Length::iter() join($['\r']) => type InnerSimdVec$(n) = [$primitive; $n];)
+            type SimdVectorStorage<const N: usize> = [$primitive; N]
+            where
+                Usize<N>: VecLen;
 
-            $(
-                for n in Length::iter() join($['\n']) =>
+            #[inline(always)]
+            fn vec_from_array<const N: usize>(array: [$primitive; N]) -> Vector<N, $primitive, Simd>
+            where
+                Usize<N>: VecLen,
+            {
+                Vector(array)
+            }
 
-                #[inline(always)]
-                fn vec$(n)_from_array(array: [$primitive; $n]) -> Vec$(n)<$primitive> {
-                    Vector(array)
-                }
-
-                #[inline(always)]
-                fn vec$(n)_as_array(vec: Vec$(n)<$primitive>) -> [$primitive; $n] {
-                    vec.0
-                }
-            )
+            #[inline(always)]
+            fn vec_as_array<const N: usize>(vec: Vector<N, $primitive, Simd>) -> [$primitive; N]
+            where
+                Usize<N>: VecLen,
+            {
+                vec.0
+            }
         }
     });
 }

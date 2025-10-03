@@ -22,7 +22,7 @@ pub fn srcmod() -> SrcDir {
             hash::{Hash, Hasher},
         };
 
-        use crate::{Construct, Usize, IndexOutOfBoundsError, specialize, Sealed};
+        use crate::{Construct, Usize, IndexOutOfBoundsError, specialize, sealed::Sealed};
 
         mod constructor;
         mod dir;
@@ -109,7 +109,7 @@ pub fn srcmod() -> SrcDir {
         $("/// }")
         $("/// ```")
         #[repr(transparent)]
-        pub struct Vector<const N: usize, T: Scalar, S: Simdness>(pub S::InnerVector<N, T>)
+        pub struct Vector<const N: usize, T: Scalar, S: Simdness>(pub S::VectorStorage<N, T>)
         where
             Usize<N>: VecLen;
 
@@ -124,7 +124,7 @@ pub fn srcmod() -> SrcDir {
             for n in Length::iter() =>
 
             $(format!("/// Type alias for [`Vector<{n}, T, NonSimd>`][Vector]."))
-            $(r#"/// "S" stands for "scalar""#)
+            $(r#"/// "S" stands for "scalar"."#)
             pub type Vec$(n)S<T> = Vector<$n, T, NonSimd>;
             $['\n']
         )
@@ -167,7 +167,7 @@ pub fn srcmod() -> SrcDir {
                         $$($$vis)* type [<$$prefix Vec$(n)>] = $$crate::Vec$(n)<$$t>;
 
                         #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", NonSimd>`][Vector]."]
-                        #[doc = r#""S" stands for "scalar""#]
+                        #[doc = r#""S" stands for "scalar"."#]
                         $$(#[$$($$attr)*])*
                         $$($$vis)* type [<$$prefix Vec$(n)S>] = $$crate::Vec$(n)S<$$t>;
 
@@ -179,8 +179,8 @@ pub fn srcmod() -> SrcDir {
 
         $("/// Marks a `Usize<N>` type as a valid vector length.")
         pub trait VecLen: Sealed {
-            $("/// The inner type contained inside `Vector<N, T, Simd>`.")
-            type InnerSimdVector<T: Scalar>: Construct;
+            $("/// Returns the appropriate type for the given vector length (`T2` for `Usize<2>`, `T3` for `Usize<3>`, etc.).")
+            type Match<$(for n in Length::iter() join(, ) => T$(n): Construct)>: Construct;
 
             $("/// The length value as an enum.")
             const ENUM: VecLenEnum;
@@ -201,7 +201,7 @@ pub fn srcmod() -> SrcDir {
         $("/// See [`Vector`] for information.")
         pub trait Simdness: Sealed + 'static {
             $("/// The inner type contained inside [`Vector`].")
-            type InnerVector<const N: usize, T: Scalar>: Construct
+            type VectorStorage<const N: usize, T: Scalar>: Construct
             where
                 Usize<N>: VecLen;
 
@@ -220,7 +220,7 @@ pub fn srcmod() -> SrcDir {
             for n in Length::iter() join($['\n'])=>
 
             impl VecLen for Usize<$n> {
-                type InnerSimdVector<T: Scalar> = T::InnerSimdVec$(n);
+                type Match<$(for n in Length::iter() join(, ) => T$(n): Construct)> = T$(n);
 
                 const ENUM: VecLenEnum = VecLenEnum::$(n.word_camelcase());
             }
@@ -234,8 +234,8 @@ pub fn srcmod() -> SrcDir {
         )
 
         impl Simdness for Simd {
-            type InnerVector<const N: usize, T: Scalar>
-                = <Usize<N> as VecLen>::InnerSimdVector<T>
+            type VectorStorage<const N: usize, T: Scalar>
+                = T::SimdVectorStorage<N>
             where
                 Usize<N>: VecLen;
 
@@ -243,10 +243,10 @@ pub fn srcmod() -> SrcDir {
         }
         
         impl Simdness for NonSimd {
-            type InnerVector<const N: usize, T: Scalar>
-            = [T; N]
+            type VectorStorage<const N: usize, T: Scalar>
+                = [T; N]
             where
-            Usize<N>: VecLen;
+                Usize<N>: VecLen;
             
             const IS_SIMD: bool = false;
         }
@@ -299,17 +299,11 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     (array: [T; N]) -> Vector<N, T, S>:
 
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-
-                        for ([T; $n]) -> Vector<$n, T, Simd> {
-                            |array| T::vec$(n)_from_array(array)
-                        }
-                    )
-                    for ([T; N]) -> Vector<N, T, NonSimd> {
+                    for ([T; N]) -> Vector<N, T, Simd> {
+                        |array| T::vec_from_array(array)
+                    } for ([T; N]) -> Vector<N, T, NonSimd> {
                         |array| Vector(array)
-                    }
-                    else {
+                    } else {
                         unreachable!("unusual vector type")
                     }
                 }
@@ -321,14 +315,9 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     (value: T) -> Vector<N, T, S>:
    
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-    
-                        for (T) -> Vector<$n, T, Simd> {
-                            |value| T::vec$(n)_splat(value)
-                        }
-                    )
-                    else {
+                    for (T) -> Vector<N, T, Simd> {
+                        |value| T::vec_splat(value)
+                    } else {
                         Vector::from_array([value; N])
                     }
                 }
@@ -353,17 +342,11 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     (self: Vector<N, T, S>) -> [T; N]:
 
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-    
-                        for (Vector<$n, T, Simd>) -> [T; $n] {
-                            |vec| T::vec$(n)_as_array(vec)
-                        }
-                    )
-                    for (Vector<N, T, NonSimd>) -> [T; N] {
+                    for (Vector<N, T, Simd>) -> [T; N] {
+                        |vec| T::vec_as_array(vec)
+                    } for (Vector<N, T, NonSimd>) -> [T; N] {
                         |vec| vec.0
-                    }
-                    else {
+                    } else {
                         unreachable!("unusual vector type")
                     }
                 }
@@ -398,13 +381,9 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     (self: Vector<N, T, S>, index: usize) -> T:
 
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-
-                        for (Vector<$n, T, Simd>, usize) -> T {
-                            |vec, index| unsafe { T::vec$(n)_get_unchecked(vec, index) }
-                        }
-                    )
+                    for (Vector<N, T, Simd>, usize) -> T {
+                        |vec, index| unsafe { T::vec_get_unchecked(vec, index) }
+                    }
                     else {
                         unsafe { *self.as_array().get_unchecked(index) }
                     }
@@ -442,18 +421,14 @@ pub fn srcmod() -> SrcDir {
                 *self = specialize! {
                     ((*self): Vector<N, T, S>, index: usize, value: T) -> Vector<N, T, S>:
                     
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-
-                        for (Vector<$n, T, Simd>, usize, T) -> Vector<$n, T, Simd> {
-                            |vec, index, value| unsafe { T::vec$(n)_with_unchecked(vec, index, value) }
-                        }
-                    )
-                    else {
+                    for (Vector<N, T, Simd>, usize, T) -> Vector<N, T, Simd> {
+                        |vec, index, value| unsafe { T::vec_with_unchecked(vec, index, value) }
+                    } else {
                         let mut array = self.as_array();
                         unsafe {
                             *array.get_unchecked_mut(index) = value;
                         }
+
                         Vector::from_array(array)
                     }
                 };
@@ -476,13 +451,9 @@ pub fn srcmod() -> SrcDir {
                     specialize! {
                         (self: Vector<N, T, S>) -> Vector<$n2, T, S>:
 
-                        $(
-                            for n in Length::iter() join($['\r']) =>
-
-                            for (Vector<$n, T, Simd>) -> Vector<$n2, T, Simd> {
-                                |vec| T::vec$(n)_shuffle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_SRC)>(vec)
-                            }
-                        )
+                        for (Vector<N, T, Simd>) -> Vector<$n2, T, Simd> {
+                            |vec| T::vec_shuffle_$(n2)::<N, $(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_SRC)>(vec)
+                        }
                         else {
                             Vector::<$n2, T, S>::from_array([$(for i in 0..n2.as_usize() join(, ) => self.index($(Axis(i).uppercase_str())_SRC))])
                         }
@@ -565,14 +536,9 @@ pub fn srcmod() -> SrcDir {
                     specialize! {
                         (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
     
-                        $(
-                            for n in Length::iter() join($['\r']) =>
-    
-                            for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> Vector<$n, bool, Simd> {
-                                |vec, other| T::vec$(n)_$(cmp_op.lowercase_str())_mask(vec, other)
-                            }
-                        )
-                        else {
+                        for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, bool, Simd> {
+                            |vec, other| T::vec_$(cmp_op.lowercase_str())_mask(vec, other)
+                        } else {
                             Vector::from_fn(|i| self.index(i) $(cmp_op.punct_str()) other.index(i))
                         }
                     }
@@ -588,14 +554,9 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     (self: Vector<N, T, S>) -> T:
 
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-
-                        for (Vector<$n, T, Simd>) -> T {
-                            |vec| T::vec$(n)_sum(vec)
-                        }
-                    )
-                    else {
+                    for (Vector<N, T, Simd>) -> T {
+                        |vec| T::vec_sum(vec)
+                    } else {
                         self.reduce(|a, b| a + b)
                     }
                 }
@@ -610,14 +571,9 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     (self: Vector<N, T, S>) -> T:
 
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-
-                        for (Vector<$n, T, Simd>) -> T {
-                            |vec| T::vec$(n)_product(vec)
-                        }
-                    )
-                    else {
+                    for (Vector<N, T, Simd>) -> T {
+                        |vec| T::vec_product(vec)
+                    } else {
                         self.reduce(|a, b| a * b)
                     }
                 }
@@ -731,9 +687,8 @@ pub fn srcmod() -> SrcDir {
                             (self: Vector<$n, T, S>, value: Vector<$n2, T, _>) -> Vector<$n, T, S>:
     
                             for (Vector<$n, T, Simd>, Vector<$n2, T, Simd>) -> Vector<$n, T, Simd> {
-                                |vec, value| T::vec$(n)_with_shuffle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_DST)>(vec, value)
-                            }
-                            else {
+                                |vec, value| T::vec_with_shuffle_$(n2)::<$n, $(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_DST)>(vec, value)
+                            } else {
                                 let mut output = self;
                                 $(
                                     for i in 0..n2.as_usize() =>
@@ -912,14 +867,9 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-                        
-                        for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> bool {
-                            |vec, other| T::vec$(n)_eq(vec, other)
-                        }
-                    )
-                    else {
+                    for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> bool {
+                        |vec, other| T::vec_eq(vec, other)
+                    } else {
                         self.iter().zip(*other).all(|(a, b)| a == b)
                     }
                 }
@@ -930,14 +880,9 @@ pub fn srcmod() -> SrcDir {
                 specialize! {
                     ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
-                    $(
-                        for n in Length::iter() join($['\r']) =>
-
-                        for (Vector<$n, T, Simd>, Vector<$n, T2, Simd>) -> bool {
-                            |vec, other| T::vec$(n)_ne(vec, other)
-                        }
-                    )
-                    else {
+                    for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> bool {
+                        |vec, other| T::vec_ne(vec, other)
+                    } else {
                         self.iter().zip(*other).any(|(a, b)| a != b)
                     }
                 }

@@ -11,7 +11,7 @@ use core::{
     slice::SliceIndex,
 };
 
-use crate::{Construct, IndexOutOfBoundsError, Sealed, Usize, specialize};
+use crate::{Construct, IndexOutOfBoundsError, Usize, sealed::Sealed, specialize};
 
 mod constructor;
 mod dir;
@@ -98,7 +98,7 @@ pub use scalar::*;
 /// }
 /// ```
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, S: Simdness>(pub S::InnerVector<N, T>)
+pub struct Vector<const N: usize, T: Scalar, S: Simdness>(pub S::VectorStorage<N, T>)
 where
     Usize<N>: VecLen;
 
@@ -112,15 +112,15 @@ pub type Vec3<T> = Vector<3, T, Simd>;
 pub type Vec4<T> = Vector<4, T, Simd>;
 
 /// Type alias for [`Vector<2, T, NonSimd>`][Vector].
-/// "S" stands for "scalar"
+/// "S" stands for "scalar".
 pub type Vec2S<T> = Vector<2, T, NonSimd>;
 
 /// Type alias for [`Vector<3, T, NonSimd>`][Vector].
-/// "S" stands for "scalar"
+/// "S" stands for "scalar".
 pub type Vec3S<T> = Vector<3, T, NonSimd>;
 
 /// Type alias for [`Vector<4, T, NonSimd>`][Vector].
-/// "S" stands for "scalar"
+/// "S" stands for "scalar".
 pub type Vec4S<T> = Vector<4, T, NonSimd>;
 
 /// Generates vector type-aliases for a specific scalar type.
@@ -162,7 +162,7 @@ macro_rules! vector_aliases {
             $($vis)* type [<$prefix Vec2>] = $crate::Vec2<$t>;
 
             #[doc = "Type alias to [`Vector<2, " $t ", NonSimd>`][Vector]."]
-            #[doc = "\"S\" stands for \"scalar\""]
+            #[doc = "\"S\" stands for \"scalar\"."]
             $(#[$($attr)*])*
             $($vis)* type [<$prefix Vec2S>] = $crate::Vec2S<$t>;
 
@@ -171,7 +171,7 @@ macro_rules! vector_aliases {
             $($vis)* type [<$prefix Vec3>] = $crate::Vec3<$t>;
 
             #[doc = "Type alias to [`Vector<3, " $t ", NonSimd>`][Vector]."]
-            #[doc = "\"S\" stands for \"scalar\""]
+            #[doc = "\"S\" stands for \"scalar\"."]
             $(#[$($attr)*])*
             $($vis)* type [<$prefix Vec3S>] = $crate::Vec3S<$t>;
 
@@ -180,7 +180,7 @@ macro_rules! vector_aliases {
             $($vis)* type [<$prefix Vec4>] = $crate::Vec4<$t>;
 
             #[doc = "Type alias to [`Vector<4, " $t ", NonSimd>`][Vector]."]
-            #[doc = "\"S\" stands for \"scalar\""]
+            #[doc = "\"S\" stands for \"scalar\"."]
             $(#[$($attr)*])*
             $($vis)* type [<$prefix Vec4S>] = $crate::Vec4S<$t>;
         }
@@ -189,8 +189,8 @@ macro_rules! vector_aliases {
 
 /// Marks a `Usize<N>` type as a valid vector length.
 pub trait VecLen: Sealed {
-    /// The inner type contained inside `Vector<N, T, Simd>`.
-    type InnerSimdVector<T: Scalar>: Construct;
+    /// Returns the appropriate type for the given vector length (`T2` for `Usize<2>`, `T3` for `Usize<3>`, etc.).
+    type Match<T2: Construct, T3: Construct, T4: Construct>: Construct;
 
     /// The length value as an enum.
     const ENUM: VecLenEnum;
@@ -210,7 +210,7 @@ pub enum VecLenEnum {
 /// See [`Vector`] for information.
 pub trait Simdness: Sealed + 'static {
     /// The inner type contained inside [`Vector`].
-    type InnerVector<const N: usize, T: Scalar>: Construct
+    type VectorStorage<const N: usize, T: Scalar>: Construct
     where
         Usize<N>: VecLen;
 
@@ -226,19 +226,19 @@ pub struct Simd;
 pub struct NonSimd;
 
 impl VecLen for Usize<2> {
-    type InnerSimdVector<T: Scalar> = T::InnerSimdVec2;
+    type Match<T2: Construct, T3: Construct, T4: Construct> = T2;
 
     const ENUM: VecLenEnum = VecLenEnum::Two;
 }
 
 impl VecLen for Usize<3> {
-    type InnerSimdVector<T: Scalar> = T::InnerSimdVec3;
+    type Match<T2: Construct, T3: Construct, T4: Construct> = T3;
 
     const ENUM: VecLenEnum = VecLenEnum::Three;
 }
 
 impl VecLen for Usize<4> {
-    type InnerSimdVector<T: Scalar> = T::InnerSimdVec4;
+    type Match<T2: Construct, T3: Construct, T4: Construct> = T4;
 
     const ENUM: VecLenEnum = VecLenEnum::Four;
 }
@@ -253,8 +253,8 @@ impl Sealed for Usize<3> {}
 impl Sealed for Usize<4> {}
 
 impl Simdness for Simd {
-    type InnerVector<const N: usize, T: Scalar>
-        = <Usize<N> as VecLen>::InnerSimdVector<T>
+    type VectorStorage<const N: usize, T: Scalar>
+        = T::SimdVectorStorage<N>
     where
         Usize<N>: VecLen;
 
@@ -262,7 +262,7 @@ impl Simdness for Simd {
 }
 
 impl Simdness for NonSimd {
-    type InnerVector<const N: usize, T: Scalar>
+    type VectorStorage<const N: usize, T: Scalar>
         = [T; N]
     where
         Usize<N>: VecLen;
@@ -318,19 +318,11 @@ where
         specialize! {
             (array: [T; N]) -> Vector<N, T, S>:
 
-            for ([T; 2]) -> Vector<2, T, Simd> {
-                |array| T::vec2_from_array(array)
-            }
-            for ([T; 3]) -> Vector<3, T, Simd> {
-                |array| T::vec3_from_array(array)
-            }
-            for ([T; 4]) -> Vector<4, T, Simd> {
-                |array| T::vec4_from_array(array)
-            }
-            for ([T; N]) -> Vector<N, T, NonSimd> {
+            for ([T; N]) -> Vector<N, T, Simd> {
+                |array| T::vec_from_array(array)
+            } for ([T; N]) -> Vector<N, T, NonSimd> {
                 |array| Vector(array)
-            }
-            else {
+            } else {
                 unreachable!("unusual vector type")
             }
         }
@@ -342,16 +334,9 @@ where
         specialize! {
             (value: T) -> Vector<N, T, S>:
 
-            for (T) -> Vector<2, T, Simd> {
-                |value| T::vec2_splat(value)
-            }
-            for (T) -> Vector<3, T, Simd> {
-                |value| T::vec3_splat(value)
-            }
-            for (T) -> Vector<4, T, Simd> {
-                |value| T::vec4_splat(value)
-            }
-            else {
+            for (T) -> Vector<N, T, Simd> {
+                |value| T::vec_splat(value)
+            } else {
                 Vector::from_array([value; N])
             }
         }
@@ -376,19 +361,11 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> [T; N]:
 
-            for (Vector<2, T, Simd>) -> [T; 2] {
-                |vec| T::vec2_as_array(vec)
-            }
-            for (Vector<3, T, Simd>) -> [T; 3] {
-                |vec| T::vec3_as_array(vec)
-            }
-            for (Vector<4, T, Simd>) -> [T; 4] {
-                |vec| T::vec4_as_array(vec)
-            }
-            for (Vector<N, T, NonSimd>) -> [T; N] {
+            for (Vector<N, T, Simd>) -> [T; N] {
+                |vec| T::vec_as_array(vec)
+            } for (Vector<N, T, NonSimd>) -> [T; N] {
                 |vec| vec.0
-            }
-            else {
+            } else {
                 unreachable!("unusual vector type")
             }
         }
@@ -423,14 +400,8 @@ where
         specialize! {
             (self: Vector<N, T, S>, index: usize) -> T:
 
-            for (Vector<2, T, Simd>, usize) -> T {
-                |vec, index| unsafe { T::vec2_get_unchecked(vec, index) }
-            }
-            for (Vector<3, T, Simd>, usize) -> T {
-                |vec, index| unsafe { T::vec3_get_unchecked(vec, index) }
-            }
-            for (Vector<4, T, Simd>, usize) -> T {
-                |vec, index| unsafe { T::vec4_get_unchecked(vec, index) }
+            for (Vector<N, T, Simd>, usize) -> T {
+                |vec, index| unsafe { T::vec_get_unchecked(vec, index) }
             }
             else {
                 unsafe { *self.as_array().get_unchecked(index) }
@@ -469,20 +440,14 @@ where
         *self = specialize! {
             ((*self): Vector<N, T, S>, index: usize, value: T) -> Vector<N, T, S>:
 
-            for (Vector<2, T, Simd>, usize, T) -> Vector<2, T, Simd> {
-                |vec, index, value| unsafe { T::vec2_with_unchecked(vec, index, value) }
-            }
-            for (Vector<3, T, Simd>, usize, T) -> Vector<3, T, Simd> {
-                |vec, index, value| unsafe { T::vec3_with_unchecked(vec, index, value) }
-            }
-            for (Vector<4, T, Simd>, usize, T) -> Vector<4, T, Simd> {
-                |vec, index, value| unsafe { T::vec4_with_unchecked(vec, index, value) }
-            }
-            else {
+            for (Vector<N, T, Simd>, usize, T) -> Vector<N, T, Simd> {
+                |vec, index, value| unsafe { T::vec_with_unchecked(vec, index, value) }
+            } else {
                 let mut array = self.as_array();
                 unsafe {
                     *array.get_unchecked_mut(index) = value;
                 }
+
                 Vector::from_array(array)
             }
         };
@@ -498,14 +463,8 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<2, T, S>:
 
-            for (Vector<2, T, Simd>) -> Vector<2, T, Simd> {
-                |vec| T::vec2_shuffle_2::<X_SRC, Y_SRC>(vec)
-            }
-            for (Vector<3, T, Simd>) -> Vector<2, T, Simd> {
-                |vec| T::vec3_shuffle_2::<X_SRC, Y_SRC>(vec)
-            }
-            for (Vector<4, T, Simd>) -> Vector<2, T, Simd> {
-                |vec| T::vec4_shuffle_2::<X_SRC, Y_SRC>(vec)
+            for (Vector<N, T, Simd>) -> Vector<2, T, Simd> {
+                |vec| T::vec_shuffle_2::<N, X_SRC, Y_SRC>(vec)
             }
             else {
                 Vector::<2, T, S>::from_array([self.index(X_SRC), self.index(Y_SRC)])
@@ -526,14 +485,8 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<3, T, S>:
 
-            for (Vector<2, T, Simd>) -> Vector<3, T, Simd> {
-                |vec| T::vec2_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
-            }
-            for (Vector<3, T, Simd>) -> Vector<3, T, Simd> {
-                |vec| T::vec3_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
-            }
-            for (Vector<4, T, Simd>) -> Vector<3, T, Simd> {
-                |vec| T::vec4_shuffle_3::<X_SRC, Y_SRC, Z_SRC>(vec)
+            for (Vector<N, T, Simd>) -> Vector<3, T, Simd> {
+                |vec| T::vec_shuffle_3::<N, X_SRC, Y_SRC, Z_SRC>(vec)
             }
             else {
                 Vector::<3, T, S>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC)])
@@ -560,14 +513,8 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> Vector<4, T, S>:
 
-            for (Vector<2, T, Simd>) -> Vector<4, T, Simd> {
-                |vec| T::vec2_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
-            }
-            for (Vector<3, T, Simd>) -> Vector<4, T, Simd> {
-                |vec| T::vec3_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
-            }
-            for (Vector<4, T, Simd>) -> Vector<4, T, Simd> {
-                |vec| T::vec4_shuffle_4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
+            for (Vector<N, T, Simd>) -> Vector<4, T, Simd> {
+                |vec| T::vec_shuffle_4::<N, X_SRC, Y_SRC, Z_SRC, W_SRC>(vec)
             }
             else {
                 Vector::<4, T, S>::from_array([self.index(X_SRC), self.index(Y_SRC), self.index(Z_SRC), self.index(W_SRC)])
@@ -647,16 +594,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
-                |vec, other| T::vec2_eq_mask(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
-                |vec, other| T::vec3_eq_mask(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
-                |vec, other| T::vec4_eq_mask(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, bool, Simd> {
+                |vec, other| T::vec_eq_mask(vec, other)
+            } else {
                 Vector::from_fn(|i| self.index(i) == other.index(i))
             }
         }
@@ -671,16 +611,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
-                |vec, other| T::vec2_ne_mask(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
-                |vec, other| T::vec3_ne_mask(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
-                |vec, other| T::vec4_ne_mask(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, bool, Simd> {
+                |vec, other| T::vec_ne_mask(vec, other)
+            } else {
                 Vector::from_fn(|i| self.index(i) != other.index(i))
             }
         }
@@ -695,16 +628,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
-                |vec, other| T::vec2_lt_mask(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
-                |vec, other| T::vec3_lt_mask(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
-                |vec, other| T::vec4_lt_mask(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, bool, Simd> {
+                |vec, other| T::vec_lt_mask(vec, other)
+            } else {
                 Vector::from_fn(|i| self.index(i) < other.index(i))
             }
         }
@@ -719,16 +645,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
-                |vec, other| T::vec2_le_mask(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
-                |vec, other| T::vec3_le_mask(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
-                |vec, other| T::vec4_le_mask(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, bool, Simd> {
+                |vec, other| T::vec_le_mask(vec, other)
+            } else {
                 Vector::from_fn(|i| self.index(i) <= other.index(i))
             }
         }
@@ -743,16 +662,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
-                |vec, other| T::vec2_gt_mask(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
-                |vec, other| T::vec3_gt_mask(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
-                |vec, other| T::vec4_gt_mask(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, bool, Simd> {
+                |vec, other| T::vec_gt_mask(vec, other)
+            } else {
                 Vector::from_fn(|i| self.index(i) > other.index(i))
             }
         }
@@ -767,16 +679,9 @@ where
         specialize! {
             (self: Vector<N, T, S>, other: Vector<N, T2, S>) -> Vector<N, bool, S>:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> Vector<2, bool, Simd> {
-                |vec, other| T::vec2_ge_mask(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> Vector<3, bool, Simd> {
-                |vec, other| T::vec3_ge_mask(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> Vector<4, bool, Simd> {
-                |vec, other| T::vec4_ge_mask(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, bool, Simd> {
+                |vec, other| T::vec_ge_mask(vec, other)
+            } else {
                 Vector::from_fn(|i| self.index(i) >= other.index(i))
             }
         }
@@ -791,16 +696,9 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> T:
 
-            for (Vector<2, T, Simd>) -> T {
-                |vec| T::vec2_sum(vec)
-            }
-            for (Vector<3, T, Simd>) -> T {
-                |vec| T::vec3_sum(vec)
-            }
-            for (Vector<4, T, Simd>) -> T {
-                |vec| T::vec4_sum(vec)
-            }
-            else {
+            for (Vector<N, T, Simd>) -> T {
+                |vec| T::vec_sum(vec)
+            } else {
                 self.reduce(|a, b| a + b)
             }
         }
@@ -815,16 +713,9 @@ where
         specialize! {
             (self: Vector<N, T, S>) -> T:
 
-            for (Vector<2, T, Simd>) -> T {
-                |vec| T::vec2_product(vec)
-            }
-            for (Vector<3, T, Simd>) -> T {
-                |vec| T::vec3_product(vec)
-            }
-            for (Vector<4, T, Simd>) -> T {
-                |vec| T::vec4_product(vec)
-            }
-            else {
+            for (Vector<N, T, Simd>) -> T {
+                |vec| T::vec_product(vec)
+            } else {
                 self.reduce(|a, b| a * b)
             }
         }
@@ -922,9 +813,8 @@ impl<T: Scalar, S: Simdness> Vector<2, T, S> {
             (self: Vector<2, T, S>, value: Vector<2, T, _>) -> Vector<2, T, S>:
 
             for (Vector<2, T, Simd>, Vector<2, T, Simd>) -> Vector<2, T, Simd> {
-                |vec, value| T::vec2_with_shuffle_2::<X_DST, Y_DST>(vec, value)
-            }
-            else {
+                |vec, value| T::vec_with_shuffle_2::<2, X_DST, Y_DST>(vec, value)
+            } else {
                 let mut output = self;
                 output.set(X_DST, value.x());
                 output.set(Y_DST, value.y());
@@ -1019,9 +909,8 @@ impl<T: Scalar, S: Simdness> Vector<3, T, S> {
             (self: Vector<3, T, S>, value: Vector<2, T, _>) -> Vector<3, T, S>:
 
             for (Vector<3, T, Simd>, Vector<2, T, Simd>) -> Vector<3, T, Simd> {
-                |vec, value| T::vec3_with_shuffle_2::<X_DST, Y_DST>(vec, value)
-            }
-            else {
+                |vec, value| T::vec_with_shuffle_2::<3, X_DST, Y_DST>(vec, value)
+            } else {
                 let mut output = self;
                 output.set(X_DST, value.x());
                 output.set(Y_DST, value.y());
@@ -1046,9 +935,8 @@ impl<T: Scalar, S: Simdness> Vector<3, T, S> {
             (self: Vector<3, T, S>, value: Vector<3, T, _>) -> Vector<3, T, S>:
 
             for (Vector<3, T, Simd>, Vector<3, T, Simd>) -> Vector<3, T, Simd> {
-                |vec, value| T::vec3_with_shuffle_3::<X_DST, Y_DST, Z_DST>(vec, value)
-            }
-            else {
+                |vec, value| T::vec_with_shuffle_3::<3, X_DST, Y_DST, Z_DST>(vec, value)
+            } else {
                 let mut output = self;
                 output.set(X_DST, value.x());
                 output.set(Y_DST, value.y());
@@ -1155,9 +1043,8 @@ impl<T: Scalar, S: Simdness> Vector<4, T, S> {
             (self: Vector<4, T, S>, value: Vector<2, T, _>) -> Vector<4, T, S>:
 
             for (Vector<4, T, Simd>, Vector<2, T, Simd>) -> Vector<4, T, Simd> {
-                |vec, value| T::vec4_with_shuffle_2::<X_DST, Y_DST>(vec, value)
-            }
-            else {
+                |vec, value| T::vec_with_shuffle_2::<4, X_DST, Y_DST>(vec, value)
+            } else {
                 let mut output = self;
                 output.set(X_DST, value.x());
                 output.set(Y_DST, value.y());
@@ -1182,9 +1069,8 @@ impl<T: Scalar, S: Simdness> Vector<4, T, S> {
             (self: Vector<4, T, S>, value: Vector<3, T, _>) -> Vector<4, T, S>:
 
             for (Vector<4, T, Simd>, Vector<3, T, Simd>) -> Vector<4, T, Simd> {
-                |vec, value| T::vec4_with_shuffle_3::<X_DST, Y_DST, Z_DST>(vec, value)
-            }
-            else {
+                |vec, value| T::vec_with_shuffle_3::<4, X_DST, Y_DST, Z_DST>(vec, value)
+            } else {
                 let mut output = self;
                 output.set(X_DST, value.x());
                 output.set(Y_DST, value.y());
@@ -1216,9 +1102,8 @@ impl<T: Scalar, S: Simdness> Vector<4, T, S> {
             (self: Vector<4, T, S>, value: Vector<4, T, _>) -> Vector<4, T, S>:
 
             for (Vector<4, T, Simd>, Vector<4, T, Simd>) -> Vector<4, T, Simd> {
-                |vec, value| T::vec4_with_shuffle_4::<X_DST, Y_DST, Z_DST, W_DST>(vec, value)
-            }
-            else {
+                |vec, value| T::vec_with_shuffle_4::<4, X_DST, Y_DST, Z_DST, W_DST>(vec, value)
+            } else {
                 let mut output = self;
                 output.set(X_DST, value.x());
                 output.set(Y_DST, value.y());
@@ -1481,16 +1366,9 @@ where
         specialize! {
             ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> bool {
-                |vec, other| T::vec2_eq(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> bool {
-                |vec, other| T::vec3_eq(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> bool {
-                |vec, other| T::vec4_eq(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> bool {
+                |vec, other| T::vec_eq(vec, other)
+            } else {
                 self.iter().zip(*other).all(|(a, b)| a == b)
             }
         }
@@ -1501,16 +1379,9 @@ where
         specialize! {
             ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
 
-            for (Vector<2, T, Simd>, Vector<2, T2, Simd>) -> bool {
-                |vec, other| T::vec2_ne(vec, other)
-            }
-            for (Vector<3, T, Simd>, Vector<3, T2, Simd>) -> bool {
-                |vec, other| T::vec3_ne(vec, other)
-            }
-            for (Vector<4, T, Simd>, Vector<4, T2, Simd>) -> bool {
-                |vec, other| T::vec4_ne(vec, other)
-            }
-            else {
+            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> bool {
+                |vec, other| T::vec_ne(vec, other)
+            } else {
                 self.iter().zip(*other).any(|(a, b)| a != b)
             }
         }

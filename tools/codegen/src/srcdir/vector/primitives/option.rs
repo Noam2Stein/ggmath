@@ -1,28 +1,31 @@
 use genco::quote;
-use strum::IntoEnumIterator;
 
-use crate::{module::{SrcFile, TokensExt}, iter::Length};
+use crate::module::{SrcFile, TokensExt};
 
 pub fn srcmod() -> SrcFile {
     quote! {
-        use crate::{Scalar, Vector, $(for n in Length::iter() join(, ) => Vec$(n)), Simdness, VecLen, Usize};
+        use crate::{Scalar, Vector, Simdness, VecLen, Usize, Simd};
 
         impl<T: Scalar> Scalar for Option<T> {
-            $(for n in Length::iter() join($['\r']) => type InnerSimdVec$(n) = [Option<T>; $n];)
+            type SimdVectorStorage<const N: usize> = [Option<T>; N]
+            where
+                Usize<N>: VecLen;
 
-            $(
-                for n in Length::iter() join($['\n']) =>
+            #[inline(always)]
+            fn vec_from_array<const N: usize>(array: [Option<T>; N]) -> Vector<N, Option<T>, Simd>
+            where
+                Usize<N>: VecLen,
+            {
+                Vector(array)
+            }
 
-                #[inline(always)]
-                fn vec$(n)_from_array(array: [Option<T>; $n]) -> Vec$(n)<Option<T>> {
-                    Vector(array)
-                }
-
-                #[inline(always)]
-                fn vec$(n)_as_array(vec: Vec$(n)<Option<T>>) -> [Option<T>; $n] {
-                    vec.0
-                }
-            )
+            #[inline(always)]
+            fn vec_as_array<const N: usize>(vec: Vector<N, Option<T>, Simd>) -> [Option<T>; N]
+            where
+                Usize<N>: VecLen,
+            {
+                vec.0
+            }
         }
         
         impl<const N: usize, T: Scalar, S: Simdness> Vector<N, Option<T>, S>
