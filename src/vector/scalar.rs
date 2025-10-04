@@ -7,169 +7,72 @@ use crate::{Construct, Simd, Usize, VecLen, Vector};
 
 /// Trait for [`Vector`] element types.
 ///
-/// This trait is intended for *scalar* types like `f32`, `i32`, or custom number-like types.
-/// It is not intended for higher-level mathamatical structures like vectors or matrices.
-/// Meaning you cannot do things like `Vec2<Vec2<f32>>`.
+/// To enable SIMD optimizations in a [`Scalar`] implementation,
+/// you need to specify [`Simd`] vector representation,
+/// and override the implementation of [`Simd`] vector functions to use SIMD operations.
 ///
-/// Each [`Scalar`] implementation specifies its own inner [`Simd`] vector types,
-/// and how to convert them to and from arrays.
+/// To implement [`Scalar`] without SIMD optimizations, use the [`default_scalar_boilerplate!`] macro.
 ///
-/// Additionally, each [`Scalar`] implementation can override the implementation of [`Simd`] vector functions to make optimizations.
+/// ## Example
 ///
-/// ## Examples
-///
-/// Non SIMD-accelerated implementation:
 /// ```
-/// use core::ops::*;
-///
 /// use ggmath::*;
 ///
 /// #[derive(Clone, Copy)]
 /// struct U256([u128; 2]);
 ///
-/// // Because U256 is Add, Vector<_, U256, _> is automatically Add as well.
-/// impl Add for U256 {
-///     type Output = U256;
-///
-///     fn add(self, other: U256) -> U256 {
-///         todo!()
-///     }
-/// }
-///
-///
 /// impl Scalar for U256 {
-///     type InnerSimdVec2 = [U256; 2];
-///     type InnerSimdVec3 = [U256; 3];
-///     type InnerSimdVec4 = [U256; 4];
-///
-///     #[inline(always)]
-///     fn vec2_from_array(array: [U256; 2]) -> Vec2<U256> {
-///         Vector(array)
-///     }
-///
-///     #[inline(always)]
-///     fn vec3_from_array(array: [U256; 3]) -> Vec3<U256> {
-///         Vector(array)
-///     }
-///
-///     #[inline(always)]
-///     fn vec4_from_array(array: [U256; 4]) -> Vec4<U256> {
-///         Vector(array)
-///     }
-///
-///     #[inline(always)]
-///     fn vec2_as_array(vec: Vec2<U256>) -> [U256; 2] {
-///         vec.0
-///     }
-///
-///     #[inline(always)]
-///     fn vec3_as_array(vec: Vec3<U256>) -> [U256; 3] {
-///         vec.0
-///     }
-///
-///     #[inline(always)]
-///     fn vec4_as_array(vec: Vec4<U256>) -> [U256; 4] {
-///         vec.0
-///     }
+///     default_scalar_boilerplate! {}
 /// }
 /// ```
 ///
-/// SIMD-accelerated implementation:
+/// ## SIMD Example
+///
 /// ```
-/// use core::ops::*;
+/// use core::ops::Add;
 ///
 /// use ggmath::*;
 ///
 /// #[repr(transparent)]
 /// #[derive(Clone, Copy)]
-/// struct CustomInt(i32);
+/// struct Int(i32);
 ///
-/// // Because CustomInt is Add, Vector<_, CustomInt, _> is automatically Add as well.
-/// // This time we will override the implementation of vector addition to make SIMD optimizations.
-/// impl Add for CustomInt {
-///     type Output = CustomInt;
+/// // Implement `Add` for `Int` which automatically makes `Vector<N, Int, S>` `Add`.
+/// impl Add for Int {
+///     type Output = Int;
 ///
-///     fn add(self, other: CustomInt) -> CustomInt {
-///         CustomInt(self.0 + other.0)
+///     fn add(self, other: Int) -> Int {
+///         Int(self.0 + other.0)
 ///     }
 /// }
 ///
-/// impl Scalar for CustomInt {
-///     type InnerSimdVec2 = Vec2<i32>;
-///     type InnerSimdVec3 = Vec3<i32>;
-///     type InnerSimdVec4 = Vec4<i32>;
+/// impl Scalar for Int {
+///     // Because `Int` wraps `i32`, we can store `Int` SIMD vectors as high-level `i32` SIMD vectors,
+///     // instead of low-level SIMD types like `__m128i`.
+///     type SimdVectorStorage<const N: usize> = Vector<N, i32, Simd> where Usize<N>: VecLen;
 ///
 ///     #[inline(always)]
-///     fn vec2_from_array(array: [CustomInt; 2]) -> Vec2<CustomInt> {
-///         Vector(Vec2::<i32>::from_array(array))
+///     fn vec_from_array<const N: usize>(array: [Int; N]) -> Vector<N, Int, Simd> {
+///         let array = core::mem::transmute_copy::<[Int; N], [i32; N]>(&array);
+///         Vector(Vector::from_array(array))
 ///     }
 ///
 ///     #[inline(always)]
-///     fn vec3_from_array(array: [CustomInt; 3]) -> Vec3<CustomInt> {
-///         Vector(Vec3::<i32>::from_array(array))
+///     fn vec_as_array<const N: usize>(vec: Vector<N, Int, Simd>) -> [Int; N] {
+///         let array = vec.0.as_array();
+///         core::mem::transmute_copy::<[i32; N], [Int; N]>(&array)
 ///     }
 ///
+///     // Override vector addition to use SIMD operations.
 ///     #[inline(always)]
-///     fn vec4_from_array(array: [CustomInt; 4]) -> Vec4<CustomInt> {
-///         Vector(Vec4::<i32>::from_array(array))
-///     }
-///
-///     #[inline(always)]
-///     fn vec2_as_array(vec: Vec2<CustomInt>) -> [CustomInt; 2] {
-///         vec.0.as_array()
-///     }
-///
-///     #[inline(always)]
-///     fn vec3_as_array(vec: Vec3<CustomInt>) -> [CustomInt; 3] {
-///         vec.0.as_array()
-///     }
-///
-///     #[inline(always)]
-///     fn vec4_as_array(vec: Vec4<CustomInt>) -> [CustomInt; 4] {
-///         vec.0.as_array()
-///     }
-///
-///     #[inline(always)]
-///     fn vec2_add<T2: Scalar>(vec: Vec2<CustomInt>, rhs: Vec2<T2>) -> Vec2<CustomInt::Output>
+///     fn vec_add<const N: usize, T2: Scalar>(vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd> {
 ///     where
-///         CustomInt: Add<T2, Output: Scalar>,
+///         Int: Add<T2, Output: Scalar>,
 ///     {
 ///         specialize! {
-///             (vec: Vec2<CustomInt>, rhs: Vec2<T2>) -> Vec2<CustomInt::Output>:
-///             
-///             for (Vec2<CustomInt>, Vec2<CustomInt>) -> Vec2<CustomInt> {
-///                 |vec, rhs| Vector(vec.0 + rhs.0)
-///             } else {
-///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))
-///             }
-///         }
-///     }
+///             (vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd>:
 ///
-///     #[inline(always)]
-///     fn vec3_add<T2: Scalar>(vec: Vec3<CustomInt>, rhs: Vec3<T2>) -> Vec3<CustomInt::Output>
-///     where
-///         CustomInt: Add<T2, Output: Scalar>,
-///     {
-///         specialize! {
-///             (vec: Vec3<CustomInt>, rhs: Vec3<T2>) -> Vec3<CustomInt::Output>:
-///             
-///             for (Vec3<CustomInt>, Vec3<CustomInt>) -> Vec3<CustomInt> {
-///                 |vec, rhs| Vector(vec.0 + rhs.0)
-///             } else {
-///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))
-///             }
-///         }
-///     }
-///
-///     #[inline(always)]
-///     fn vec4_add<T2: Scalar>(vec: Vec4<CustomInt>, rhs: Vec4<T2>) -> Vec4<CustomInt::Output>
-///     where
-///         CustomInt: Add<T2, Output: Scalar>,
-///     {
-///         specialize! {
-///             (vec: Vec4<CustomInt>, rhs: Vec4<T2>) -> Vec4<CustomInt::Output>:
-///             
-///             for (Vec4<CustomInt>, Vec4<CustomInt>) -> Vec4<CustomInt> {
+///             for (Vector<N, Int, Simd>, Vector<N, Int, Simd>) -> Vector<N, Int, Simd> {
 ///                 |vec, rhs| Vector(vec.0 + rhs.0)
 ///             } else {
 ///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))
@@ -178,6 +81,7 @@ use crate::{Construct, Simd, Usize, VecLen, Vector};
 ///     }
 /// }
 /// ```
+///
 pub trait Scalar: Construct {
     /// The inner type contained inside [`Simd`] vectors.
     ///
@@ -611,4 +515,32 @@ pub trait Scalar: Construct {
     {
         vec.reduce(|a, b| a * b)
     }
+}
+
+/// Macro for generating the boilerplate of default [`Scalar`] implementations.
+/// "default" means no SIMD optimizations.
+#[macro_export]
+macro_rules! default_scalar_boilerplate {
+    () => {
+        type SimdVectorStorage<const N: usize>
+            = [Self; N]
+        where
+            Usize<N>: VecLen;
+
+        #[inline(always)]
+        fn vec_from_array<const N: usize>(array: [Self; N]) -> Vector<N, Self, Simd>
+        where
+            Usize<N>: VecLen,
+        {
+            Vector(array)
+        }
+
+        #[inline(always)]
+        fn vec_as_array<const N: usize>(vec: Vector<N, Self, Simd>) -> [Self; N]
+        where
+            Usize<N>: VecLen,
+        {
+            vec.0
+        }
+    };
 }

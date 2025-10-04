@@ -11,121 +11,81 @@ pub fn srcmod() -> SrcFile {
 
         $("/// Trait for [`Vector`] element types.")
         $("///")
-        $("/// This trait is intended for *scalar* types like `f32`, `i32`, or custom number-like types.")
-        $("/// It is not intended for higher-level mathamatical structures like vectors or matrices.")
-        $("/// Meaning you cannot do things like `Vec2<Vec2<f32>>`.")
+        $("/// To enable SIMD optimizations in a [`Scalar`] implementation,")
+        $("/// you need to specify [`Simd`] vector representation,")
+        $("/// and override the implementation of [`Simd`] vector functions to use SIMD operations.")
         $("///")
-        $("/// Each [`Scalar`] implementation specifies its own inner [`Simd`] vector types,")
-        $("/// and how to convert them to and from arrays.")
+        $("/// To implement [`Scalar`] without SIMD optimizations, use the [`default_scalar_boilerplate!`] macro.")
         $("///")
-        $("/// Additionally, each [`Scalar`] implementation can override the implementation of [`Simd`] vector functions to make optimizations.")
+        $("/// ## Example")
         $("///")
-        $("/// ## Examples")
-        $("///")
-        $("/// Non SIMD-accelerated implementation:")
         $("/// ```")
-        $("/// use core::ops::*;")
-        $("///")
         $("/// use ggmath::*;")
         $("///")
         $("/// #[derive(Clone, Copy)]")
         $("/// struct U256([u128; 2]);")
         $("///")
-        $("/// // Because U256 is Add, Vector<_, U256, _> is automatically Add as well.")
-        $("/// impl Add for U256 {")
-        $("///     type Output = U256;")
-        $("///")
-        $("///     fn add(self, other: U256) -> U256 {")
-        $("///         todo!()")
-        $("///     }")
-        $("/// }")
-        $("///")
-        $("///")
         $("/// impl Scalar for U256 {")
-        $(for n in Length::iter() => $(format!("///     type InnerSimdVec{n} = [U256; {n}];"))$['\r'])
-        $("///")
-        $(
-            for n in Length::iter() join($['\r']$("///")$['\r']) =>
-
-            $("///     #[inline(always)]")
-            $(format!("///     fn vec{n}_from_array(array: [U256; {n}]) -> Vec{n}<U256> {{"))
-            $("///         Vector(array)")
-            $("///     }")
-        )
-        $("///")
-        $(
-            for n in Length::iter() join($['\r']$("///")$['\r']) =>
-
-            $("///     #[inline(always)]")
-            $(format!("///     fn vec{n}_as_array(vec: Vec{n}<U256>) -> [U256; {n}] {{"))
-            $("///         vec.0")
-            $("///     }")
-        )
+        $("///     default_scalar_boilerplate! {}")
         $("/// }")
         $("/// ```")
         $("///")
-        $("/// SIMD-accelerated implementation:")
+        $("/// ## SIMD Example")
+        $("///")
         $("/// ```")
-        $("/// use core::ops::*;")
+        $("/// use core::ops::Add;")
         $("///")
         $("/// use ggmath::*;")
         $("///")
         $("/// #[repr(transparent)]")
         $("/// #[derive(Clone, Copy)]")
-        $("/// struct CustomInt(i32);")
+        $("/// struct Int(i32);")
         $("///")
-        $("/// // Because CustomInt is Add, Vector<_, CustomInt, _> is automatically Add as well.")
-        $("/// // This time we will override the implementation of vector addition to make SIMD optimizations.")
-        $("/// impl Add for CustomInt {")
-        $("///     type Output = CustomInt;")
+        $("/// // Implement `Add` for `Int` which automatically makes `Vector<N, Int, S>` `Add`.")
+        $("/// impl Add for Int {")
+        $("///     type Output = Int;")
         $("///")
-        $("///     fn add(self, other: CustomInt) -> CustomInt {")
-        $("///         CustomInt(self.0 + other.0)")
+        $("///     fn add(self, other: Int) -> Int {")
+        $("///         Int(self.0 + other.0)")
         $("///     }")
         $("/// }")
         $("///")
-        $("/// impl Scalar for CustomInt {")
-        $(for n in Length::iter() => $(format!("///     type InnerSimdVec{n} = Vec{n}<i32>;"))$['\r'])
+        $("/// impl Scalar for Int {")
+        $("///     // Because `Int` wraps `i32`, we can store `Int` SIMD vectors as high-level `i32` SIMD vectors,")
+        $("///     // instead of low-level SIMD types like `__m128i`.")
+        $("///     type SimdVectorStorage<const N: usize> = Vector<N, i32, Simd> where Usize<N>: VecLen;")
         $("///")
-        $(
-            for n in Length::iter() join($['\r']$("///")$['\r']) =>
-
-            $("///     #[inline(always)]")
-            $(format!("///     fn vec{n}_from_array(array: [CustomInt; {n}]) -> Vec{n}<CustomInt> {{"))
-            $(format!("///         Vector(Vec{n}::<i32>::from_array(array))"))
-            $("///     }")
-        )
+        $("///     #[inline(always)]")
+        $("///     fn vec_from_array<const N: usize>(array: [Int; N]) -> Vector<N, Int, Simd> {")
+        $("///         let array = core::mem::transmute_copy::<[Int; N], [i32; N]>(&array);")
+        $("///         Vector(Vector::from_array(array))")
+        $("///     }")
         $("///")
-        $(
-            for n in Length::iter() join($['\r']$("///")$['\r']) =>
-
-            $("///     #[inline(always)]")
-            $(format!("///     fn vec{n}_as_array(vec: Vec{n}<CustomInt>) -> [CustomInt; {n}] {{"))
-            $("///         vec.0.as_array()")
-            $("///     }")
-        )
+        $("///     #[inline(always)]")
+        $("///     fn vec_as_array<const N: usize>(vec: Vector<N, Int, Simd>) -> [Int; N] {")
+        $("///         let array = vec.0.as_array();")
+        $("///         core::mem::transmute_copy::<[i32; N], [Int; N]>(&array)")
+        $("///     }")
         $("///")
-        $(
-            for n in Length::iter() join($['\r']$("///")$['\r']) =>
-
-            $("///     #[inline(always)]")
-            $(format!("///     fn vec{n}_add<T2: Scalar>(vec: Vec{n}<CustomInt>, rhs: Vec{n}<T2>) -> Vec{n}<CustomInt::Output>"))
-            $("///     where")
-            $("///         CustomInt: Add<T2, Output: Scalar>,")
-            $("///     {")
-            $("///         specialize! {")
-            $(format!("///             (vec: Vec{n}<CustomInt>, rhs: Vec{n}<T2>) -> Vec{n}<CustomInt::Output>:"))
-            $("///             ")
-            $(format!("///             for (Vec{n}<CustomInt>, Vec{n}<CustomInt>) -> Vec{n}<CustomInt> {{"))
-            $("///                 |vec, rhs| Vector(vec.0 + rhs.0)")
-            $("///             } else {")
-            $("///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))")
-            $("///             }")
-            $("///         }")
-            $("///     }")
-        )
+        $("///     // Override vector addition to use SIMD operations.")
+        $("///     #[inline(always)]")
+        $("///     fn vec_add<const N: usize, T2: Scalar>(vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd> {")
+        $("///     where")
+        $("///         Int: Add<T2, Output: Scalar>,")
+        $("///     {")
+        $("///         specialize! {")
+        $("///             (vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd>:")
+        $("///")
+        $("///             for (Vector<N, Int, Simd>, Vector<N, Int, Simd>) -> Vector<N, Int, Simd> {")
+        $("///                 |vec, rhs| Vector(vec.0 + rhs.0)")
+        $("///             } else {")
+        $("///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))")
+        $("///             }")
+        $("///         }")
+        $("///     }")
         $("/// }")
         $("/// ```")
+        $("///")
         pub trait Scalar: Construct {
             $("/// The inner type contained inside [`Simd`] vectors.")
             $("///")
@@ -295,6 +255,33 @@ pub fn srcmod() -> SrcFile {
                 Self: Mul<Output = Self>,
             {
                 vec.reduce(|a, b| a * b)
+            }
+        }
+
+        $("/// Macro for generating the boilerplate of default [`Scalar`] implementations.")
+        $(r#"/// "default" means no SIMD optimizations."#)
+        #[macro_export]
+        macro_rules! default_scalar_boilerplate {
+            () => {
+                type SimdVectorStorage<const N: usize> = [Self; N]
+                where
+                    Usize<N>: VecLen;
+
+                #[inline(always)]
+                fn vec_from_array<const N: usize>(array: [Self; N]) -> Vector<N, Self, Simd>
+                where
+                    Usize<N>: VecLen,
+                {
+                    Vector(array)
+                }
+
+                #[inline(always)]
+                fn vec_as_array<const N: usize>(vec: Vector<N, Self, Simd>) -> [Self; N]
+                where
+                    Usize<N>: VecLen,
+                {
+                    vec.0
+                }
             }
         }
     }
