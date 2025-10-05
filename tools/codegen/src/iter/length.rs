@@ -46,6 +46,6 @@ impl Display for Length {
 
 impl<L: Lang> FormatInto<L> for Length {
     fn format_into(self, tokens: &mut Tokens<L>) {
-        self.as_usize().format_into(tokens);
+        FormatInto::format_into(self.as_usize(), tokens);
     }
 }
