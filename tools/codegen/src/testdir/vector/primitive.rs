@@ -1,27 +1,21 @@
-use genco::{
-    quote, tokens::quoted,
-};
+use genco::{lang::rust::Tokens, quote, tokens::quoted};
 
-use crate::{iter::{Length, Primitive, Simdness}, testdir::vector::PrimitiveTestMod};
+use crate::iter::{Length, Primitive, Simdness, Vector, VectorInfo};
 
-pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
-    output.items.push(quote! {
-        use ggmath::*;
-    });
+pub fn push(t: Primitive, output: &mut Tokens) {
+    output.extend(quote! {$(
+        for vec in Vector::test_iter(t) join($['\n']) =>
 
-    output.push_for_all_vectors(primitive, |n, s| quote! {
-        $(let vec_label = &format!("{t_prefix}vec{n}{s_postfix}", t_prefix = primitive.prefix_lowercase(), s_postfix = s.postfix_lowercase()))
-        $(let vec_macro = &format!("vec{n}{s_postfix}", s_postfix = s.postfix_lowercase()))
-        $(let vec_type = &format!("Vec{n}{s_postfix}", s_postfix = s.postfix_uppercase()))
+        $(let VectorInfo { n, s, alias: ref vec_alias, r#macro: ref vec_macro, name_snakecase: ref vec_name, .. } = vec.info())
 
-        $(let values = match primitive {
+        $(let values = match t {
             Primitive::Float(primitive) => (0..n.as_usize()).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
             Primitive::Int(primitive) => (0..n.as_usize()).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
             Primitive::Bool => ["false".to_string(), "true".to_string()].into_iter().cycle().take(n.as_usize()).collect::<Vec<String>>(),
         })
         $(let values_str = &values.join(", "))
         
-        $(let values2 = match primitive {
+        $(let values2 = match t {
             Primitive::Float(primitive) => (n.as_usize()..n.as_usize() * 2).map(|i| format!("{i}.0{primitive}")).collect::<Vec<String>>(),
             Primitive::Int(primitive) => (n.as_usize()..n.as_usize() * 2).map(|i| format!("{i}{primitive}")).collect::<Vec<String>>(),
             Primitive::Bool => ["true".to_string(), "false".to_string()].into_iter().cycle().take(n.as_usize()).collect::<Vec<String>>(),
@@ -29,53 +23,53 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         $(let values2_str = &values2.join(", "))
 
         $(
-            if s == Simdness::NonSimd =>
+            if vec.s == Simdness::NonSimd =>
 
-            const _: () = assert!(size_of::<$vec_type<$primitive>>() == size_of::<[$primitive; $n]>());
+            const _: () = assert!(size_of::<$(vec.alias())<$t>>() == size_of::<[$t; $(n)]>());
         )
 
         #[test]
-        fn test_$(vec_label)_constructor() {
+        fn test_$(vec_name)_constructor() {
             $(match n {
                 Length::Two => {
-                    assert_eq!($vec_macro!($values_str), $vec_type::from_array([$values_str]));
-                    assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_type::from_array([$values_str]));
+                    assert_eq!($vec_macro!($values_str), $vec_alias::from_array([$values_str]));
+                    assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_alias::from_array([$values_str]));
                 }
                 Length::Three => {
-                    assert_eq!($vec_macro!($values_str), $vec_type::from_array([$values_str]));
-                    assert_eq!($vec_macro!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2]))), $vec_type::from_array([$values_str]));
-                    assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_type::from_array([$values_str]));
+                    assert_eq!($vec_macro!($values_str), $vec_alias::from_array([$values_str]));
+                    assert_eq!($vec_macro!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2]))), $vec_alias::from_array([$values_str]));
+                    assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_alias::from_array([$values_str]));
                 }
                 Length::Four => {
-                    assert_eq!($vec_macro!($values_str), $vec_type::from_array([$values_str]));
-                    assert_eq!($vec_macro!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2])), $(&values[3])), $vec_type::from_array([$values_str]));
-                    assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_type::from_array([$values_str]));
+                    assert_eq!($vec_macro!($values_str), $vec_alias::from_array([$values_str]));
+                    assert_eq!($vec_macro!($(&values[0]), vec2$(s.postfix_lowercase())!($(&values[1]), $(&values[2])), $(&values[3])), $vec_alias::from_array([$values_str]));
+                    assert_eq!($vec_macro!($vec_macro!($values_str)), $vec_alias::from_array([$values_str]));
                 }
             })
         }
 
         #[test]
-        fn test_$(vec_label)_as_simd() {
+        fn test_$(vec_name)_as_simd() {
             assert_eq!($vec_macro!($values_str).as_simd(), vec$(n)!($values_str));
         }
 
         #[test]
-        fn test_$(vec_label)_as_non_simd() {
+        fn test_$(vec_name)_as_non_simd() {
             assert_eq!($vec_macro!($values_str).as_non_simd(), vec$(n)s!($values_str));
         }
 
         #[test]
-        fn test_$(vec_label)_from_array_as_array() {
-            assert_eq!($vec_type::from_array([$values_str]).as_array(), [$values_str]);
+        fn test_$(vec_name)_from_array_as_array() {
+            assert_eq!($vec_alias::from_array([$values_str]).as_array(), [$values_str]);
         }
 
         #[test]
-        fn test_$(vec_label)_splat() {
-            assert_eq!($vec_type::splat($(&values[0])), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => $(&values[0]))));
+        fn test_$(vec_name)_splat() {
+            assert_eq!($vec_alias::splat($(&values[0])), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => $(&values[0]))));
         }
 
         #[test]
-        fn test_$(vec_label)_index() {
+        fn test_$(vec_name)_index() {
             $(
                 for i in 0..n.as_usize() join($['\r']) =>
 
@@ -85,12 +79,12 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
 
         #[test]
         #[should_panic]
-        fn test_$(vec_label)_index_panic() {
+        fn test_$(vec_name)_index_panic() {
             $vec_macro!($values_str).index($n);
         }
 
         #[test]
-        fn test_$(vec_label)_get() {
+        fn test_$(vec_name)_get() {
             $(
                 for i in 0..n.as_usize() join($['\r']) =>
 
@@ -101,7 +95,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_get_unchecked() {
+        fn test_$(vec_name)_get_unchecked() {
             unsafe {
                 $(
                     for i in 0..n.as_usize() join($['\r']) =>
@@ -112,11 +106,11 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_set() {
+        fn test_$(vec_name)_set() {
             $(
                 for i in 0..n.as_usize() join($['\r']) =>
 
-                $(let value = &match primitive {
+                $(let value = &match t {
                     Primitive::Int(primitive) => format!("50{primitive}"),
                     Primitive::Float(primitive) => format!("50.0{primitive}"),
                     Primitive::Bool => (i % 2 == 0).to_string(),
@@ -132,17 +126,17 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
 
         #[test]
         #[should_panic]
-        fn test_$(vec_label)_set_panic() {
+        fn test_$(vec_name)_set_panic() {
             let mut vec = $vec_macro!($values_str);
             vec.set($n, $(&values[0]));
         }
 
         #[test]
-        fn test_$(vec_label)_try_set() {
+        fn test_$(vec_name)_try_set() {
             $(
                 for i in 0..n.as_usize() join($['\r']) =>
 
-                $(let value = &match primitive {
+                $(let value = &match t {
                     Primitive::Int(primitive) => format!("50{primitive}"),
                     Primitive::Float(primitive) => format!("50.0{primitive}"),
                     Primitive::Bool => (i % 2 == 0).to_string(),
@@ -159,12 +153,12 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_set_unchecked() {
+        fn test_$(vec_name)_set_unchecked() {
             unsafe {
                 $(
                     for i in 0..n.as_usize() join($['\r']) =>
 
-                    $(let value = &match primitive {
+                    $(let value = &match t {
                         Primitive::Int(primitive) => format!("50{primitive}"),
                         Primitive::Float(primitive) => format!("50.0{primitive}"),
                         Primitive::Bool => (i % 2 == 0).to_string(),
@@ -180,7 +174,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_swizzle() {
+        fn test_$(vec_name)_swizzle() {
             $(match n {
                 Length::Two => {
                     assert_eq!($vec_macro!($values_str).y(), $(&values[1]));
@@ -204,7 +198,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_with_swizzle() {
+        fn test_$(vec_name)_with_swizzle() {
             $(match n {
                 Length::Two => {
                     assert_eq!($vec_macro!($values_str).with_y($(&values[0])), $vec_macro!($(
@@ -283,7 +277,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             if n == Length::Four && s != Simdness::Simd =>
 
             #[test]
-            fn test_$(vec_label)_swizzle_set() {
+            fn test_$(vec_name)_swizzle_set() {
                 let mut vec = $vec_macro!($values_str);
                 vec.set_yxz(vec3$(s.postfix_lowercase())!($(&values[0]), $(&values[2]), $(&values[1])));
     
@@ -302,7 +296,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             if s == Simdness::NonSimd =>
 
             #[test]
-            fn test_$(vec_label)_swizzle_ref() {
+            fn test_$(vec_name)_swizzle_ref() {
                 $(match n {
                     Length::Two => {
                         assert_eq!($vec_macro!($values_str).y_ref(), &$(&values[1]));
@@ -323,7 +317,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             }
 
             #[test]
-            fn test_$(vec_label)_swizzle_mut() {
+            fn test_$(vec_name)_swizzle_mut() {
                 $(match n {
                     Length::Two => {
                         assert_eq!($vec_macro!($values_str).y_mut(), &mut $(&values[1]));
@@ -351,8 +345,8 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         )
 
         #[test]
-        fn test_$(vec_label)_fold() {
-            $(match primitive {
+        fn test_$(vec_name)_fold() {
+            $(match t {
                 Primitive::Int(_) => {
                     assert_eq!($vec_macro!($values_str).fold(13, |acc, x| acc + x), 13 + $(for value in &values join( + ) => $value));
                 }
@@ -366,8 +360,8 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_reduce() {
-            $(match primitive {
+        fn test_$(vec_name)_reduce() {
+            $(match t {
                 Primitive::Int(_) => {
                     assert_eq!($vec_macro!($values_str).reduce(|acc, x| acc + x), $(for value in &values join( + ) => $value));
                 }
@@ -381,7 +375,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_eq_mask() {
+        fn test_$(vec_name)_eq_mask() {
             assert_eq!($vec_macro!($values_str).eq_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
             assert_eq!(
                 $vec_macro!($values_str).eq_mask($vec_macro!(
@@ -394,7 +388,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             assert_eq!($vec_macro!($values_str).eq_mask($vec_macro!($values2_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
 
             $(
-                if let Primitive::Float(primitive) = primitive {
+                if let Primitive::Float(primitive) = t {
                     $(let nan_values_str = &(0..n.as_usize()).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
                     assert_eq!($vec_macro!($nan_values_str).eq_mask($vec_macro!($nan_values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
                 }
@@ -402,7 +396,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_ne_mask() {
+        fn test_$(vec_name)_ne_mask() {
             assert_eq!($vec_macro!($values_str).ne_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
             assert_eq!(
                 $vec_macro!($values_str).ne_mask($vec_macro!(
@@ -415,7 +409,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
             assert_eq!($vec_macro!($values_str).ne_mask($vec_macro!($values2_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
 
             $(
-                if let Primitive::Float(primitive) = primitive {
+                if let Primitive::Float(primitive) = t {
                     $(let nan_values_str = &(0..n.as_usize()).map(|_| format!("{primitive}::NAN")).collect::<Vec<_>>().join(", "));
                     assert_eq!($vec_macro!($nan_values_str).ne_mask($vec_macro!($nan_values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
                 }
@@ -423,7 +417,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_lt_mask() {
+        fn test_$(vec_name)_lt_mask() {
             assert_eq!($vec_macro!($values_str).lt_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
             assert_eq!(
                 $vec_macro!($values_str).lt_mask($vec_macro!(
@@ -438,18 +432,18 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
 
-            assert_eq!($vec_macro!($values_str).lt_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values_str).lt_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => true,
                 Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
             }))));
-            assert_eq!($vec_macro!($values2_str).lt_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values2_str).lt_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => false,
                 Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
             }))));
         }
 
         #[test]
-        fn test_$(vec_label)_gt_mask() {
+        fn test_$(vec_name)_gt_mask() {
             assert_eq!($vec_macro!($values_str).gt_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => false)));
             assert_eq!(
                 $vec_macro!($values_str).gt_mask($vec_macro!(
@@ -464,18 +458,18 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
             
-            assert_eq!($vec_macro!($values_str).gt_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values_str).gt_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => false,
                 Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
             }))));
-            assert_eq!($vec_macro!($values2_str).gt_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values2_str).gt_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => true,
                 Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
             }))));
         }
 
         #[test]
-        fn test_$(vec_label)_le_mask() {
+        fn test_$(vec_name)_le_mask() {
             assert_eq!($vec_macro!($values_str).le_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
             assert_eq!(
                 $vec_macro!($values_str).le_mask($vec_macro!(
@@ -490,18 +484,18 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
 
-            assert_eq!($vec_macro!($values_str).le_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values_str).le_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => true,
                 Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
             }))));
-            assert_eq!($vec_macro!($values2_str).le_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values2_str).le_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => false,
                 Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
             }))));
         }
 
         #[test]
-        fn test_$(vec_label)_ge_mask() {
+        fn test_$(vec_name)_ge_mask() {
             assert_eq!($vec_macro!($values_str).ge_mask($vec_macro!($values_str)), $vec_macro!($(for _ in 0..n.as_usize() join(, ) => true)));
             assert_eq!(
                 $vec_macro!($values_str).ge_mask($vec_macro!(
@@ -516,18 +510,18 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
                 )),
             );
 
-            assert_eq!($vec_macro!($values_str).ge_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values_str).ge_mask($vec_macro!($values2_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => false,
                 Primitive::Bool => $((!i.is_multiple_of(2)).to_string()),
             }))));
-            assert_eq!($vec_macro!($values2_str).ge_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match primitive {
+            assert_eq!($vec_macro!($values2_str).ge_mask($vec_macro!($values_str)), $vec_macro!($(for i in 0..n.as_usize() join(, ) => $(match t {
                 Primitive::Float(_) | Primitive::Int(_) => true,
                 Primitive::Bool => $((i.is_multiple_of(2)).to_string()),
             }))));
         }
 
         #[test]
-        fn test_$(vec_label)_eq() {
+        fn test_$(vec_name)_eq() {
             assert_eq!($vec_macro!($values_str) == $vec_macro!($values_str), true);
             assert_eq!(
                 $vec_macro!($values_str) == $vec_macro!(
@@ -539,7 +533,7 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
         
         #[test]
-        fn test_$(vec_label)_ne() {
+        fn test_$(vec_name)_ne() {
             assert_eq!($vec_macro!($values_str) != $vec_macro!($values_str), false);
             assert_eq!(
                 $vec_macro!($values_str) != $vec_macro!(
@@ -551,8 +545,8 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_debug() {
-            $(let expected_value_strs = match primitive {
+        fn test_$(vec_name)_debug() {
+            $(let expected_value_strs = match t {
                 Primitive::Float(_) => (0..n.as_usize()).map(|i| format!("{i}.0")).collect::<Vec<_>>(),
                 Primitive::Int(_) => (0..n.as_usize()).map(|i| format!("{i}")).collect::<Vec<_>>(),
                 Primitive::Bool => (0..n.as_usize()).map(|i| (i % 2 != 0).to_string()).collect::<Vec<_>>(),
@@ -562,8 +556,8 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_display() {
-            $(let expected_value_strs = match primitive {
+        fn test_$(vec_name)_display() {
+            $(let expected_value_strs = match t {
                 Primitive::Float(_) => (0..n.as_usize()).map(|i| format!("{i}")).collect::<Vec<_>>(),
                 Primitive::Int(_) => (0..n.as_usize()).map(|i| format!("{i}")).collect::<Vec<_>>(),
                 Primitive::Bool => (0..n.as_usize()).map(|i| (i % 2 != 0).to_string()).collect::<Vec<_>>(),
@@ -573,8 +567,8 @@ pub fn push_tests(primitive: Primitive, output: &mut PrimitiveTestMod) {
         }
 
         #[test]
-        fn test_$(vec_label)_const_from_array() {
-            assert_eq!($vec_type::<$primitive>::const_from_array([$values_str]), $vec_type::from_array([$values_str]));
+        fn test_$(vec_name)_const_from_array() {
+            assert_eq!($vec_alias::<$t>::const_from_array([$values_str]), $vec_alias::from_array([$values_str]));
         }
-    });
+    )});
 }

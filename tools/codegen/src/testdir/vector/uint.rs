@@ -1,3 +1,5 @@
-use crate::{iter::PrimitiveUint, testdir::vector::PrimitiveTestMod};
+use genco::lang::rust::Tokens;
 
-pub fn push_tests(_primitive: PrimitiveUint, _output: &mut PrimitiveTestMod) {}
+use crate::iter::PrimitiveUint;
+
+pub fn push(_t: PrimitiveUint, _output: &mut Tokens) {}

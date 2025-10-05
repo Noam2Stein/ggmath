@@ -1,12 +1,11 @@
 use genco::{lang::rust::Tokens, quote};
-use strum::IntoEnumIterator;
 
 use crate::{
-    iter::{Length, Primitive, PrimitiveInt, Simdness},
+    iter::{Primitive, PrimitiveInt},
     module::{TestDir, TestFile, TokensExt},
 };
 
-mod bool_;
+mod bool;
 mod float;
 mod int;
 mod primitive;
@@ -21,58 +20,30 @@ pub fn testmod() -> TestDir {
     .with_submod_files(Primitive::iter().map(primitive_testmod))
 }
 
-#[derive(Default)]
-struct PrimitiveTestMod {
-    items: Vec<Tokens>,
-}
+fn primitive_testmod(t: Primitive) -> TestFile {
+    let mut tokens = Tokens::new();
 
-fn primitive_testmod(primitive: Primitive) -> TestFile {
-    let mut output = PrimitiveTestMod::default();
-
-    primitive::push_tests(primitive, &mut output);
-    match primitive {
+    primitive::push(t, &mut tokens);
+    match t {
         Primitive::Float(primitive) => {
-            float::push_tests(primitive, &mut output);
+            float::push(primitive, &mut tokens);
         }
         Primitive::Int(primitive) => {
-            int::push_tests(primitive, &mut output);
+            int::push(primitive, &mut tokens);
 
             match primitive {
                 PrimitiveInt::Sint(primitive) => {
-                    sint::push_tests(primitive, &mut output);
+                    sint::push(primitive, &mut tokens);
                 }
                 PrimitiveInt::Uint(primitive) => {
-                    uint::push_tests(primitive, &mut output);
+                    uint::push(primitive, &mut tokens);
                 }
             }
         }
         Primitive::Bool => {
-            bool_::push_tests(&mut output);
+            bool::push(&mut tokens);
         }
     }
 
-    quote! {
-        $(for item in output.items join($['\n']) => $item)
-    }
-    .to_testfile(primitive.as_str())
-}
-
-impl PrimitiveTestMod {
-    fn push_for_all_vectors(
-        &mut self,
-        primitive: impl Into<Primitive>,
-        mut f: impl FnMut(Length, Simdness) -> Tokens,
-    ) {
-        let primitive = primitive.into();
-
-        for length in Length::iter() {
-            for simdness in Simdness::iter() {
-                if !primitive.is_primary() && simdness != Simdness::Simd && length != Length::Four {
-                    continue;
-                }
-
-                self.items.push(f(length, simdness))
-            }
-        }
-    }
+    tokens.to_testfile(t.as_str())
 }
