@@ -10,7 +10,7 @@ pub fn srcmod() -> SrcFile {
         use crate::{specialize, Scalar, Usize, Simdness, Simd, VecLen, Vector};
 
         $(
-            for op in UnOp::iter() =>
+            for op in UnOp::iter() join($['\n']) =>
 
             impl<const N: usize, T: Scalar + $(op.camelcase_str())<Output = T>, S: Simdness> $(op.camelcase_str()) for Vector<N, T, S>
             where
@@ -46,7 +46,7 @@ pub fn srcmod() -> SrcFile {
         )
 
         $(
-            for op in BinOp::iter() =>
+            for op in BinOp::iter() join($['\n']) =>
 
             impl<const N: usize, T: Scalar + $(op.camelcase_str())<Output = T>, S: Simdness>
                 $(op.camelcase_str()) for Vector<N, T, S>

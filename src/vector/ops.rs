@@ -36,6 +36,7 @@ where
         (*self).neg()
     }
 }
+
 impl<const N: usize, T: Scalar + Not<Output = T>, S: Simdness> Not for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -178,6 +179,7 @@ where
         *self = (*self).add(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> Sub for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -288,6 +290,7 @@ where
         *self = (*self).sub(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> Mul for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -398,6 +401,7 @@ where
         *self = (*self).mul(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> Div for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -508,6 +512,7 @@ where
         *self = (*self).div(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> Rem for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -618,6 +623,7 @@ where
         *self = (*self).rem(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> Shl for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -728,6 +734,7 @@ where
         *self = (*self).shl(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> Shr for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -838,6 +845,7 @@ where
         *self = (*self).shr(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAnd for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -950,6 +958,7 @@ where
         *self = (*self).bitand(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOr for Vector<N, T, S>
 where
     Usize<N>: VecLen,
@@ -1061,6 +1070,7 @@ where
         *self = (*self).bitor(rhs);
     }
 }
+
 impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXor for Vector<N, T, S>
 where
     Usize<N>: VecLen,
