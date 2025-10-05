@@ -69,19 +69,8 @@ pub fn srcmod() -> SrcFile {
         $("///")
         $("///     // Override vector addition to use SIMD operations.")
         $("///     #[inline(always)]")
-        $("///     fn vec_add<const N: usize, T2: Scalar>(vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd> {")
-        $("///     where")
-        $("///         Int: Add<T2, Output: Scalar>,")
-        $("///     {")
-        $("///         specialize! {")
-        $("///             (vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd>:")
-        $("///")
-        $("///             for (Vector<N, Int, Simd>, Vector<N, Int, Simd>) -> Vector<N, Int, Simd> {")
-        $("///                 |vec, rhs| Vector(vec.0 + rhs.0)")
-        $("///             } else {")
-        $("///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))")
-        $("///             }")
-        $("///         }")
+        $("///     fn vec_add<const N: usize>(vec: Vector<N, Int, Simd>, rhs: Vector<N, Int, Simd>) -> Vector<N, Int, Simd> {")
+        $("///         Vector(vec.0 + rhs.0)")
         $("///     }")
         $("/// }")
         $("/// ```")
@@ -200,10 +189,10 @@ pub fn srcmod() -> SrcFile {
 
                 $(format!("/// Overridable implementation of [`Simd`] [`Vector::{op}`].", op = op.lowercase_str()))
                 #[inline(always)]
-                fn vec_$(op.lowercase_str())<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, <Self as $(op.camelcase_str())>::Output, Simd>
+                fn vec_$(op.lowercase_str())<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
                 where
                     Usize<N>: VecLen,
-                    Self: $(op.camelcase_str())<Output: Scalar>,
+                    Self: $(op.camelcase_str())<Output = Self>,
                 {
                     vec.map(|v| v.$(op.lowercase_str())())
                 }
@@ -214,10 +203,10 @@ pub fn srcmod() -> SrcFile {
 
                 $(format!("/// Overridable implementation of [`Simd`] [`Vector::{op}`].", op = op.lowercase_str()))
                 #[inline(always)]
-                fn vec_$(op.lowercase_str())<const N: usize, T2: Scalar>(vec: Vector<N, Self, Simd>, other: Vector<N, T2, Simd>) -> Vector<N, <Self as $(op.camelcase_str())<T2>>::Output, Simd>
+                fn vec_$(op.lowercase_str())<const N: usize>(vec: Vector<N, Self, Simd>, other: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
                 where
                     Usize<N>: VecLen,
-                    Self: $(op.camelcase_str())<T2, Output: Scalar>,
+                    Self: $(op.camelcase_str())<Output = Self>,
                 {
                     Vector::from_fn(|i| vec.index(i).$(op.lowercase_str())(other.index(i)))
                 }

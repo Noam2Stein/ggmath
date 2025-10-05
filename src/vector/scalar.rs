@@ -65,19 +65,8 @@ use crate::{Construct, Simd, Usize, VecLen, Vector};
 ///
 ///     // Override vector addition to use SIMD operations.
 ///     #[inline(always)]
-///     fn vec_add<const N: usize, T2: Scalar>(vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd> {
-///     where
-///         Int: Add<T2, Output: Scalar>,
-///     {
-///         specialize! {
-///             (vec: Vector<N, Int, Simd>, rhs: Vector<N, T2, Simd>) -> Vector<N, Int::Output, Simd>:
-///
-///             for (Vector<N, Int, Simd>, Vector<N, Int, Simd>) -> Vector<N, Int, Simd> {
-///                 |vec, rhs| Vector(vec.0 + rhs.0)
-///             } else {
-///                 Vector::from_fn(|i| vec.index(i).add(rhs.index(i)))
-///             }
-///         }
+///     fn vec_add<const N: usize>(vec: Vector<N, Int, Simd>, rhs: Vector<N, Int, Simd>) -> Vector<N, Int, Simd> {
+///         Vector(vec.0 + rhs.0)
 ///     }
 /// }
 /// ```
@@ -270,150 +259,150 @@ pub trait Scalar: Construct {
 
     /// Overridable implementation of [`Simd`] [`Vector::neg`].
     #[inline(always)]
-    fn vec_neg<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, <Self as Neg>::Output, Simd>
+    fn vec_neg<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Neg<Output: Scalar>,
+        Self: Neg<Output = Self>,
     {
         vec.map(|v| v.neg())
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::not`].
     #[inline(always)]
-    fn vec_not<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, <Self as Not>::Output, Simd>
+    fn vec_not<const N: usize>(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Not<Output: Scalar>,
+        Self: Not<Output = Self>,
     {
         vec.map(|v| v.not())
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::add`].
     #[inline(always)]
-    fn vec_add<const N: usize, T2: Scalar>(
+    fn vec_add<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as Add<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Add<T2, Output: Scalar>,
+        Self: Add<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).add(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::sub`].
     #[inline(always)]
-    fn vec_sub<const N: usize, T2: Scalar>(
+    fn vec_sub<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as Sub<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Sub<T2, Output: Scalar>,
+        Self: Sub<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).sub(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::mul`].
     #[inline(always)]
-    fn vec_mul<const N: usize, T2: Scalar>(
+    fn vec_mul<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as Mul<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Mul<T2, Output: Scalar>,
+        Self: Mul<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).mul(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::div`].
     #[inline(always)]
-    fn vec_div<const N: usize, T2: Scalar>(
+    fn vec_div<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as Div<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Div<T2, Output: Scalar>,
+        Self: Div<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).div(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::rem`].
     #[inline(always)]
-    fn vec_rem<const N: usize, T2: Scalar>(
+    fn vec_rem<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as Rem<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Rem<T2, Output: Scalar>,
+        Self: Rem<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).rem(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::shl`].
     #[inline(always)]
-    fn vec_shl<const N: usize, T2: Scalar>(
+    fn vec_shl<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as Shl<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Shl<T2, Output: Scalar>,
+        Self: Shl<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).shl(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::shr`].
     #[inline(always)]
-    fn vec_shr<const N: usize, T2: Scalar>(
+    fn vec_shr<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as Shr<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: Shr<T2, Output: Scalar>,
+        Self: Shr<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).shr(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::bitand`].
     #[inline(always)]
-    fn vec_bitand<const N: usize, T2: Scalar>(
+    fn vec_bitand<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as BitAnd<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: BitAnd<T2, Output: Scalar>,
+        Self: BitAnd<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).bitand(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::bitor`].
     #[inline(always)]
-    fn vec_bitor<const N: usize, T2: Scalar>(
+    fn vec_bitor<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as BitOr<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: BitOr<T2, Output: Scalar>,
+        Self: BitOr<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).bitor(other.index(i)))
     }
 
     /// Overridable implementation of [`Simd`] [`Vector::bitxor`].
     #[inline(always)]
-    fn vec_bitxor<const N: usize, T2: Scalar>(
+    fn vec_bitxor<const N: usize>(
         vec: Vector<N, Self, Simd>,
-        other: Vector<N, T2, Simd>,
-    ) -> Vector<N, <Self as BitXor<T2>>::Output, Simd>
+        other: Vector<N, Self, Simd>,
+    ) -> Vector<N, Self, Simd>
     where
         Usize<N>: VecLen,
-        Self: BitXor<T2, Output: Scalar>,
+        Self: BitXor<Output = Self>,
     {
         Vector::from_fn(|i| vec.index(i).bitxor(other.index(i)))
     }

@@ -5,18 +5,18 @@ use std::ops::*;
 
 use crate::{Scalar, Simd, Simdness, Usize, VecLen, Vector, specialize};
 
-impl<const N: usize, T: Scalar + Neg<Output: Scalar>, S: Simdness> Neg for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Neg<Output = T>, S: Simdness> Neg for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Self;
 
     #[inline(always)]
     fn neg(self) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, S>) -> Vector<N, T::Output, S>:
+            (self: Vector<N, T, S>) -> Vector<N, T, S>:
 
-            for (Vector<N, T, Simd>) -> Vector<N, T::Output, Simd> {
+            for (Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec| T::vec_neg(vec)
             } else {
                 self.map(|v| v.neg())
@@ -25,29 +25,29 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Neg<Output: Scalar>, S: Simdness> Neg for &Vector<N, T, S>
+impl<const N: usize, T: Scalar + Neg<Output = T>, S: Simdness> Neg for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
     fn neg(self) -> Self::Output {
         (*self).neg()
     }
 }
-impl<const N: usize, T: Scalar + Not<Output: Scalar>, S: Simdness> Not for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Not<Output = T>, S: Simdness> Not for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Self;
 
     #[inline(always)]
     fn not(self) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, S>) -> Vector<N, T::Output, S>:
+            (self: Vector<N, T, S>) -> Vector<N, T, S>:
 
-            for (Vector<N, T, Simd>) -> Vector<N, T::Output, Simd> {
+            for (Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec| T::vec_not(vec)
             } else {
                 self.map(|v| v.not())
@@ -56,11 +56,11 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Not<Output: Scalar>, S: Simdness> Not for &Vector<N, T, S>
+impl<const N: usize, T: Scalar + Not<Output = T>, S: Simdness> Not for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
     fn not(self) -> Self::Output {
@@ -68,19 +68,18 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Add<Vector<N, T2, S>> for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> Add for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Self;
 
     #[inline(always)]
-    fn add(self, rhs: Vector<N, T2, S>) -> Self::Output {
+    fn add(self, rhs: Self) -> Self::Output {
         specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_add(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).add(rhs.index(i)))
@@ -89,116 +88,108 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Add<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn add(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).add(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Add<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn add(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.add(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Add<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn add(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).add(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, S: Simdness, T2: Scalar>
-    AddAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).add(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, S: Simdness, T2: Scalar>
-    AddAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.add_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, S: Simdness, T2: Scalar> Add<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn add(self, rhs: T2) -> Self::Output {
-        self.add(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + Add<T2, Output: Scalar>, S: Simdness, T2: Scalar> Add<T2>
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> Add<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn add(self, rhs: T2) -> Self::Output {
+    fn add(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).add(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Add<T2, Output = T>, S: Simdness, T2: Scalar> AddAssign<T2>
-    for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> Add<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn add(self, rhs: &Self) -> Self::Output {
+        self.add(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> Add for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn add(self, rhs: Self) -> Self::Output {
+        (*self).add(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> AddAssign for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn add_assign(&mut self, rhs: T2) {
+    fn add_assign(&mut self, rhs: Self) {
         *self = (*self).add(rhs);
     }
 }
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Sub<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> AddAssign<&Self> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: &Self) {
+        self.add_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> Add<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
 
     #[inline(always)]
-    fn sub(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn add(self, rhs: T) -> Self::Output {
+        self.add(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> Add<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn add(self, rhs: T) -> Self::Output {
+        (*self).add(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Add<Output = T>, S: Simdness> AddAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: T) {
+        *self = (*self).add(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> Sub for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn sub(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_sub(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).sub(rhs.index(i)))
@@ -207,116 +198,108 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Sub<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn sub(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).sub(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Sub<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn sub(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.sub(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Sub<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn sub(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).sub(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, S: Simdness, T2: Scalar>
-    SubAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn sub_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).sub(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, S: Simdness, T2: Scalar>
-    SubAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn sub_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.sub_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, S: Simdness, T2: Scalar> Sub<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn sub(self, rhs: T2) -> Self::Output {
-        self.sub(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + Sub<T2, Output: Scalar>, S: Simdness, T2: Scalar> Sub<T2>
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> Sub<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn sub(self, rhs: T2) -> Self::Output {
+    fn sub(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).sub(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Sub<T2, Output = T>, S: Simdness, T2: Scalar> SubAssign<T2>
-    for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> Sub<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn sub(self, rhs: &Self) -> Self::Output {
+        self.sub(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> Sub for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn sub(self, rhs: Self) -> Self::Output {
+        (*self).sub(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> SubAssign for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn sub_assign(&mut self, rhs: T2) {
+    fn sub_assign(&mut self, rhs: Self) {
         *self = (*self).sub(rhs);
     }
 }
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Mul<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> SubAssign<&Self> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: &Self) {
+        self.sub_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> Sub<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
 
     #[inline(always)]
-    fn mul(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn sub(self, rhs: T) -> Self::Output {
+        self.sub(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> Sub<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn sub(self, rhs: T) -> Self::Output {
+        (*self).sub(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Sub<Output = T>, S: Simdness> SubAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn sub_assign(&mut self, rhs: T) {
+        *self = (*self).sub(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> Mul for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn mul(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_mul(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).mul(rhs.index(i)))
@@ -325,116 +308,108 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Mul<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn mul(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).mul(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Mul<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn mul(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.mul(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Mul<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn mul(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).mul(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, S: Simdness, T2: Scalar>
-    MulAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn mul_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).mul(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, S: Simdness, T2: Scalar>
-    MulAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn mul_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.mul_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, S: Simdness, T2: Scalar> Mul<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn mul(self, rhs: T2) -> Self::Output {
-        self.mul(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + Mul<T2, Output: Scalar>, S: Simdness, T2: Scalar> Mul<T2>
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> Mul<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn mul(self, rhs: T2) -> Self::Output {
+    fn mul(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).mul(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Mul<T2, Output = T>, S: Simdness, T2: Scalar> MulAssign<T2>
-    for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> Mul<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn mul(self, rhs: &Self) -> Self::Output {
+        self.mul(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> Mul for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn mul(self, rhs: Self) -> Self::Output {
+        (*self).mul(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> MulAssign for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn mul_assign(&mut self, rhs: T2) {
+    fn mul_assign(&mut self, rhs: Self) {
         *self = (*self).mul(rhs);
     }
 }
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Div<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> MulAssign<&Self> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: &Self) {
+        self.mul_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> Mul<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
 
     #[inline(always)]
-    fn div(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn mul(self, rhs: T) -> Self::Output {
+        self.mul(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> Mul<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn mul(self, rhs: T) -> Self::Output {
+        (*self).mul(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Mul<Output = T>, S: Simdness> MulAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn mul_assign(&mut self, rhs: T) {
+        *self = (*self).mul(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> Div for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn div(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_div(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).div(rhs.index(i)))
@@ -443,116 +418,108 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Div<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn div(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).div(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Div<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn div(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.div(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Div<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn div(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).div(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, S: Simdness, T2: Scalar>
-    DivAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn div_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).div(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, S: Simdness, T2: Scalar>
-    DivAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn div_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.div_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, S: Simdness, T2: Scalar> Div<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn div(self, rhs: T2) -> Self::Output {
-        self.div(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + Div<T2, Output: Scalar>, S: Simdness, T2: Scalar> Div<T2>
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> Div<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn div(self, rhs: T2) -> Self::Output {
+    fn div(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).div(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Div<T2, Output = T>, S: Simdness, T2: Scalar> DivAssign<T2>
-    for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> Div<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn div(self, rhs: &Self) -> Self::Output {
+        self.div(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> Div for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn div(self, rhs: Self) -> Self::Output {
+        (*self).div(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> DivAssign for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn div_assign(&mut self, rhs: T2) {
+    fn div_assign(&mut self, rhs: Self) {
         *self = (*self).div(rhs);
     }
 }
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Rem<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> DivAssign<&Self> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    #[inline(always)]
+    fn div_assign(&mut self, rhs: &Self) {
+        self.div_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> Div<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
 
     #[inline(always)]
-    fn rem(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn div(self, rhs: T) -> Self::Output {
+        self.div(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> Div<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn div(self, rhs: T) -> Self::Output {
+        (*self).div(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Div<Output = T>, S: Simdness> DivAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn div_assign(&mut self, rhs: T) {
+        *self = (*self).div(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> Rem for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn rem(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_rem(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).rem(rhs.index(i)))
@@ -561,116 +528,108 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Rem<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn rem(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).rem(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Rem<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn rem(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.rem(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Rem<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn rem(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).rem(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, S: Simdness, T2: Scalar>
-    RemAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn rem_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).rem(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, S: Simdness, T2: Scalar>
-    RemAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn rem_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.rem_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, S: Simdness, T2: Scalar> Rem<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn rem(self, rhs: T2) -> Self::Output {
-        self.rem(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + Rem<T2, Output: Scalar>, S: Simdness, T2: Scalar> Rem<T2>
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> Rem<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn rem(self, rhs: T2) -> Self::Output {
+    fn rem(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).rem(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Rem<T2, Output = T>, S: Simdness, T2: Scalar> RemAssign<T2>
-    for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> Rem<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn rem(self, rhs: &Self) -> Self::Output {
+        self.rem(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> Rem for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn rem(self, rhs: Self) -> Self::Output {
+        (*self).rem(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> RemAssign for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn rem_assign(&mut self, rhs: T2) {
+    fn rem_assign(&mut self, rhs: Self) {
         *self = (*self).rem(rhs);
     }
 }
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shl<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> RemAssign<&Self> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    #[inline(always)]
+    fn rem_assign(&mut self, rhs: &Self) {
+        self.rem_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> Rem<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
 
     #[inline(always)]
-    fn shl(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn rem(self, rhs: T) -> Self::Output {
+        self.rem(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> Rem<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn rem(self, rhs: T) -> Self::Output {
+        (*self).rem(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Rem<Output = T>, S: Simdness> RemAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn rem_assign(&mut self, rhs: T) {
+        *self = (*self).rem(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> Shl for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn shl(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_shl(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).shl(rhs.index(i)))
@@ -679,116 +638,108 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shl<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shl(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).shl(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shl<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shl(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.shl(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shl<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shl(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).shl(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, S: Simdness, T2: Scalar>
-    ShlAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shl_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).shl(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, S: Simdness, T2: Scalar>
-    ShlAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shl_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.shl_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, S: Simdness, T2: Scalar> Shl<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shl(self, rhs: T2) -> Self::Output {
-        self.shl(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + Shl<T2, Output: Scalar>, S: Simdness, T2: Scalar> Shl<T2>
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> Shl<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn shl(self, rhs: T2) -> Self::Output {
+    fn shl(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).shl(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Shl<T2, Output = T>, S: Simdness, T2: Scalar> ShlAssign<T2>
-    for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> Shl<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn shl(self, rhs: &Self) -> Self::Output {
+        self.shl(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> Shl for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn shl(self, rhs: Self) -> Self::Output {
+        (*self).shl(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> ShlAssign for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn shl_assign(&mut self, rhs: T2) {
+    fn shl_assign(&mut self, rhs: Self) {
         *self = (*self).shl(rhs);
     }
 }
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shr<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> ShlAssign<&Self> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    #[inline(always)]
+    fn shl_assign(&mut self, rhs: &Self) {
+        self.shl_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> Shl<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
 
     #[inline(always)]
-    fn shr(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn shl(self, rhs: T) -> Self::Output {
+        self.shl(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> Shl<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn shl(self, rhs: T) -> Self::Output {
+        (*self).shl(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shl<Output = T>, S: Simdness> ShlAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn shl_assign(&mut self, rhs: T) {
+        *self = (*self).shl(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> Shr for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn shr(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_shr(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).shr(rhs.index(i)))
@@ -797,116 +748,108 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shr<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shr(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).shr(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shr<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shr(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.shr(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    Shr<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shr(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).shr(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, S: Simdness, T2: Scalar>
-    ShrAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shr_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).shr(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, S: Simdness, T2: Scalar>
-    ShrAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn shr_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.shr_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, S: Simdness, T2: Scalar> Shr<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn shr(self, rhs: T2) -> Self::Output {
-        self.shr(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + Shr<T2, Output: Scalar>, S: Simdness, T2: Scalar> Shr<T2>
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> Shr<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn shr(self, rhs: T2) -> Self::Output {
+    fn shr(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).shr(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + Shr<T2, Output = T>, S: Simdness, T2: Scalar> ShrAssign<T2>
-    for Vector<N, T, S>
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> Shr<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn shr(self, rhs: &Self) -> Self::Output {
+        self.shr(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> Shr for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn shr(self, rhs: Self) -> Self::Output {
+        (*self).shr(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> ShrAssign for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn shr_assign(&mut self, rhs: T2) {
+    fn shr_assign(&mut self, rhs: Self) {
         *self = (*self).shr(rhs);
     }
 }
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitAnd<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> ShrAssign<&Self> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    #[inline(always)]
+    fn shr_assign(&mut self, rhs: &Self) {
+        self.shr_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> Shr<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
 
     #[inline(always)]
-    fn bitand(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn shr(self, rhs: T) -> Self::Output {
+        self.shr(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> Shr<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn shr(self, rhs: T) -> Self::Output {
+        (*self).shr(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + Shr<Output = T>, S: Simdness> ShrAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn shr_assign(&mut self, rhs: T) {
+        *self = (*self).shr(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAnd for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn bitand(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_bitand(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).bitand(rhs.index(i)))
@@ -915,116 +858,110 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitAnd<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).bitand(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitAnd<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.bitand(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitAnd<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).bitand(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, S: Simdness, T2: Scalar>
-    BitAndAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitand_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).bitand(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, S: Simdness, T2: Scalar>
-    BitAndAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitand_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.bitand_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, S: Simdness, T2: Scalar> BitAnd<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitand(self, rhs: T2) -> Self::Output {
-        self.bitand(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + BitAnd<T2, Output: Scalar>, S: Simdness, T2: Scalar> BitAnd<T2>
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAnd<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn bitand(self, rhs: T2) -> Self::Output {
+    fn bitand(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).bitand(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + BitAnd<T2, Output = T>, S: Simdness, T2: Scalar> BitAndAssign<T2>
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAnd<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn bitand(self, rhs: &Self) -> Self::Output {
+        self.bitand(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAnd for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn bitand(self, rhs: Self) -> Self::Output {
+        (*self).bitand(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAndAssign for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn bitand_assign(&mut self, rhs: Self) {
+        *self = (*self).bitand(rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAndAssign<&Self>
     for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitand_assign(&mut self, rhs: T2) {
-        *self = (*self).bitand(rhs);
+    fn bitand_assign(&mut self, rhs: &Self) {
+        self.bitand_assign(*rhs);
     }
 }
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitOr<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAnd<T> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Self;
 
     #[inline(always)]
-    fn bitor(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn bitand(self, rhs: T) -> Self::Output {
+        self.bitand(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAnd<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn bitand(self, rhs: T) -> Self::Output {
+        (*self).bitand(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitAnd<Output = T>, S: Simdness> BitAndAssign<T>
+    for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn bitand_assign(&mut self, rhs: T) {
+        *self = (*self).bitand(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOr for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn bitor(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_bitor(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).bitor(rhs.index(i)))
@@ -1033,116 +970,109 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitOr<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).bitor(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitOr<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.bitor(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitOr<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).bitor(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, S: Simdness, T2: Scalar>
-    BitOrAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitor_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).bitor(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, S: Simdness, T2: Scalar>
-    BitOrAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitor_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.bitor_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, S: Simdness, T2: Scalar> BitOr<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitor(self, rhs: T2) -> Self::Output {
-        self.bitor(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + BitOr<T2, Output: Scalar>, S: Simdness, T2: Scalar> BitOr<T2>
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOr<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn bitor(self, rhs: T2) -> Self::Output {
+    fn bitor(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).bitor(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + BitOr<T2, Output = T>, S: Simdness, T2: Scalar> BitOrAssign<T2>
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOr<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn bitor(self, rhs: &Self) -> Self::Output {
+        self.bitor(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOr for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn bitor(self, rhs: Self) -> Self::Output {
+        (*self).bitor(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOrAssign for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = (*self).bitor(rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOrAssign<&Self>
     for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitor_assign(&mut self, rhs: T2) {
-        *self = (*self).bitor(rhs);
+    fn bitor_assign(&mut self, rhs: &Self) {
+        self.bitor_assign(*rhs);
     }
 }
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitXor<Vector<N, T2, S>> for Vector<N, T, S>
+
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOr<T> for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Self;
 
     #[inline(always)]
-    fn bitxor(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        specialize! {
-            (self: Vector<N, T, S>, rhs: Vector<N, T2, S>) -> Vector<N, T::Output, S>:
+    fn bitor(self, rhs: T) -> Self::Output {
+        self.bitor(Self::splat(rhs))
+    }
+}
 
-            for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> Vector<N, T::Output, Simd> {
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOr<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn bitor(self, rhs: T) -> Self::Output {
+        (*self).bitor(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitOr<Output = T>, S: Simdness> BitOrAssign<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn bitor_assign(&mut self, rhs: T) {
+        *self = (*self).bitor(rhs);
+    }
+}
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXor for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        specialize! {
+            (self: Vector<N, T, S>, rhs: Vector<N, T, S>) -> Vector<N, T, S>:
+
+            for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> Vector<N, T, Simd> {
                 |vec, rhs| T::vec_bitxor(vec, rhs)
             } else {
                 Vector::from_fn(|i| self.index(i).bitxor(rhs.index(i)))
@@ -1151,100 +1081,95 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitXor<Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: Vector<N, T2, S>) -> Self::Output {
-        (*self).bitxor(rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitXor<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        self.bitxor(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, S: Simdness, T2: Scalar>
-    BitXor<&Vector<N, T2, S>> for &Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: &Vector<N, T2, S>) -> Self::Output {
-        (*self).bitxor(*rhs)
-    }
-}
-
-impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, S: Simdness, T2: Scalar>
-    BitXorAssign<Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitxor_assign(&mut self, rhs: Vector<N, T2, S>) {
-        *self = (*self).bitxor(rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, S: Simdness, T2: Scalar>
-    BitXorAssign<&Vector<N, T2, S>> for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    #[inline(always)]
-    fn bitxor_assign(&mut self, rhs: &Vector<N, T2, S>) {
-        self.bitxor_assign(*rhs);
-    }
-}
-
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, S: Simdness, T2: Scalar> BitXor<T2>
-    for Vector<N, T, S>
-where
-    Usize<N>: VecLen,
-{
-    type Output = Vector<N, T::Output, S>;
-
-    #[inline(always)]
-    fn bitxor(self, rhs: T2) -> Self::Output {
-        self.bitxor(Vector::<N, T2, S>::splat(rhs))
-    }
-}
-
-impl<const N: usize, T: Scalar + BitXor<T2, Output: Scalar>, S: Simdness, T2: Scalar> BitXor<T2>
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXor<Vector<N, T, S>>
     for &Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
-    type Output = Vector<N, T::Output, S>;
+    type Output = Vector<N, T, S>;
 
     #[inline(always)]
-    fn bitxor(self, rhs: T2) -> Self::Output {
+    fn bitxor(self, rhs: Vector<N, T, S>) -> Self::Output {
         (*self).bitxor(rhs)
     }
 }
 
-impl<const N: usize, T: Scalar + BitXor<T2, Output = T>, S: Simdness, T2: Scalar> BitXorAssign<T2>
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXor<&Self> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn bitxor(self, rhs: &Self) -> Self::Output {
+        self.bitxor(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXor for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        (*self).bitxor(*rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXorAssign for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn bitxor_assign(&mut self, rhs: Self) {
+        *self = (*self).bitxor(rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXorAssign<&Self>
     for Vector<N, T, S>
 where
     Usize<N>: VecLen,
 {
     #[inline(always)]
-    fn bitxor_assign(&mut self, rhs: T2) {
+    fn bitxor_assign(&mut self, rhs: &Self) {
+        self.bitxor_assign(*rhs);
+    }
+}
+
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXor<T> for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Self;
+
+    #[inline(always)]
+    fn bitxor(self, rhs: T) -> Self::Output {
+        self.bitxor(Self::splat(rhs))
+    }
+}
+
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXor<T> for &Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn bitxor(self, rhs: T) -> Self::Output {
+        (*self).bitxor(rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar + BitXor<Output = T>, S: Simdness> BitXorAssign<T>
+    for Vector<N, T, S>
+where
+    Usize<N>: VecLen,
+{
+    #[inline(always)]
+    fn bitxor_assign(&mut self, rhs: T) {
         *self = (*self).bitxor(rhs);
     }
 }
