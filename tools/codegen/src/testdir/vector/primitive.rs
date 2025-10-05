@@ -3,6 +3,10 @@ use genco::{lang::rust::Tokens, quote, tokens::quoted};
 use crate::iter::{Length, Primitive, Simdness, Vector, VectorInfo};
 
 pub fn push(t: Primitive, output: &mut Tokens) {
+    output.extend(quote! {
+        use ggmath::*;
+    });
+
     output.extend(quote! {$(
         for vec in Vector::test_iter(t) join($['\n']) =>
 
