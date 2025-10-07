@@ -28,14 +28,6 @@ impl Length {
             Length::Four => 4,
         }
     }
-
-    pub fn word_camelcase(&self) -> &'static str {
-        match self {
-            Length::Two => "Two",
-            Length::Three => "Three",
-            Length::Four => "Four",
-        }
-    }
 }
 
 impl Display for Length {

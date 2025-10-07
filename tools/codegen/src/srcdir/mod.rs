@@ -34,10 +34,6 @@ pub fn srcmod() -> SrcDir {
         $("/// Is used to implement traits for specific `usize` values.")
         pub struct Usize<const N: usize>;
 
-        $("/// An empty error type for when an index is out of bounds.")
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        pub struct IndexOutOfBoundsError;
-
         $("/// Specializes a generic expression based on the concrete types of a function-like signature.")
         $("///")
         $("/// The macro takes a generic function-like signature, followed by a list of concrete type cases.")
@@ -147,14 +143,6 @@ pub fn srcmod() -> SrcDir {
         }
         
         impl<T: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe> Construct for T {}
-
-        impl core::error::Error for IndexOutOfBoundsError {}
-
-        impl core::fmt::Display for IndexOutOfBoundsError {
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                write!(f, "index out of bounds")
-            }
-        }
 
         #[doc(hidden)]
         pub mod hidden {

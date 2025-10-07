@@ -70,58 +70,101 @@ pub fn srcmod() -> SrcFile {
         }
 
         $("/// Automatically generates the boilerplate part of [`ScalarZero`] implementations.")
-        $("/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.")
+        $("///")
+        $("/// `scalar_zero_boilerplate! {}` Uses `Vector::const_from_array` which is only available for primitives.")
+        $("/// `scalar_zero_boilerplate! { $fn_path }` Uses the given function that must be generic over `N` and return a `Vector<N, T, Simd>`.")
         #[macro_export]
         macro_rules! scalar_zero_boilerplate {
             {} => {
                 $(
                     for n in Length::iter() join($['\r']) =>
-    
-                    const VEC$(n)_ZERO: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([Self::ZERO; $n]);
+
+                    const VEC$(n)_ZERO: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO; $n]);
                 )
-            }
+            };
+            { $$($$const_from_array:tt)::* } => {
+                $(
+                    for n in Length::iter() join($['\r']) =>
+
+                    const VEC$(n)_ZERO: $$crate::Vec$(n)<Self> = $$($$const_from_array)::*::<$n>([<Self as $crate::ScalarZero>::ZERO; $n]);
+                )
+            };
         }
 
         $("/// Automatically generates the boilerplate part of [`ScalarOne`] implementations.")
-        $("/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.")
+        $("///")
+        $("/// `scalar_one_boilerplate! {}` Uses `Vector::const_from_array` which is only available for primitives.")
+        $("/// `scalar_one_boilerplate! { $fn_path }` Uses the given function that must be generic over `N` and return a `Vector<N, T, Simd>`.")
         #[macro_export]
         macro_rules! scalar_one_boilerplate {
             {} => {
-                $(
+                    $(
                     for n in Length::iter() join($['\n']) =>
-    
-                    const VEC$(n)_ONE: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([Self::ONE; $n]);
-    
+
+                    const VEC$(n)_ONE: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([<Self as $crate::ScalarOne>::ONE; $n]);
+
                     $(
                         for i in 0..n.as_usize() join($['\r']) =>
-    
+
                         const VEC$(n)_$(Axis(i).uppercase_str()): $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([$(
-                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { Self::ONE } else { Self::ZERO })
+                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { <Self as $crate::ScalarOne>::ONE } else { <Self as $crate::ScalarZero>::ZERO })
                         )]);
                     )
                 )
-            }
+            };
+            { $$($$const_from_array:tt)::* } => {
+                $(
+                    for n in Length::iter() join($['\n']) =>
+
+                    const VEC$(n)_ONE: $$crate::Vec$(n)<Self> = $$($$const_from_array)::*::<$n>([<Self as $crate::ScalarOne>::ONE; $n]);
+
+                    $(
+                        for i in 0..n.as_usize() join($['\r']) =>
+
+                        const VEC$(n)_$(Axis(i).uppercase_str()): $$crate::Vec$(n)<Self> = $$($$const_from_array)::*::<$n>([$(
+                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { <Self as $crate::ScalarOne>::ONE } else { <Self as $crate::ScalarZero>::ZERO })
+                        )]);
+                    )
+                )
+            };
         }
 
         $("/// Automatically generates the boilerplate part of [`ScalarNegOne`] implementations.")
-        $("/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.")
+        $("///")
+        $("/// `scalar_neg_one_boilerplate! {}` Uses `Vector::const_from_array` which is only available for primitives.")
+        $("/// `scalar_neg_one_boilerplate! { $fn_path }` Uses the given function that must be generic over `N` and return a `Vector<N, T, Simd>`.")
         #[macro_export]
         macro_rules! scalar_neg_one_boilerplate {
             {} => {
                 $(
                     for n in Length::iter() join($['\n']) =>
-    
-                    const VEC$(n)_NEG_ONE: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([Self::NEG_ONE; $n]);
-    
+
+                    const VEC$(n)_NEG_ONE: $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([<Self as $crate::ScalarNegOne>::NEG_ONE; $n]);
+
                     $(
                         for i in 0..n.as_usize() join($['\r']) =>
-    
+
                         const VEC$(n)_NEG_$(Axis(i).uppercase_str()): $$crate::Vec$(n)<Self> = $$crate::Vec$(n)::<Self>::const_from_array([$(
-                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { Self::NEG_ONE } else { Self::ZERO })
+                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { <Self as $crate::ScalarNegOne>::NEG_ONE } else { <Self as $crate::ScalarZero>::ZERO })
                         )]);
                     )
                 )
-            }
+            };
+            { $$($$const_from_array:tt)::* } => {
+                $(
+                    for n in Length::iter() join($['\n']) =>
+
+                    const VEC$(n)_NEG_ONE: $$crate::Vec$(n)<Self> = $$($$const_from_array)::*::<$n>([<Self as $crate::ScalarNegOne>::NEG_ONE; $n]);
+
+                    $(
+                        for i in 0..n.as_usize() join($['\r']) =>
+
+                        const VEC$(n)_NEG_$(Axis(i).uppercase_str()): $$crate::Vec$(n)<Self> = $$($$const_from_array)::*::<$n>([$(
+                            for i2 in 0..n.as_usize() join(, ) => $(if i2 == i { <Self as $crate::ScalarNegOne>::NEG_ONE } else { <Self as $crate::ScalarZero>::ZERO })
+                        )]);
+                    )
+                )
+            };
         }
 
         impl<const N: usize, T: ScalarZero, S: Simdness> Vector<N, T, S>

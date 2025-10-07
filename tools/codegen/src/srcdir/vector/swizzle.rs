@@ -30,7 +30,7 @@ pub fn srcmod() -> SrcFile {
                         ))
                         #[inline(always)]
                         pub fn $combination_str(self) -> Vector<$n2, T, S> {
-                            self.shuffle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $(combination[i]))>()
+                            self.swizzle_$(n2)::<$(for i in 0..n2.as_usize() join(, ) => $(combination[i]))>()
                         }
                     )
                 )
@@ -51,7 +51,7 @@ pub fn srcmod() -> SrcFile {
                         )))
                         #[inline(always)]
                         pub fn with_$combination_str(self, value: Vector<$n2, T, S>) -> Self {
-                            self.with_shuffle_$(n2)::<$(for dst in combination.iter().copied() join(, ) => $dst)>(value)
+                            self.with_swizzle_$(n2)::<$(for dst in combination.iter().copied() join(, ) => $dst)>(value)
                         }
                     )
                 )
@@ -75,59 +75,35 @@ pub fn srcmod() -> SrcFile {
                         }
                     )
                 )
-            }
-        )
-
-        $(
-            for n in Length::iter() join($['\n']) =>
-
-            impl<T: Scalar> Vector<$n, T, NonSimd> {
-                $(
-                    for n2 in Length::iter().filter(|&n2| n2 <= n) join($['\n']) => $(
-                        for range in ref_swizzle_ranges(n, n2) join($['\n']) =>
-
-                        $(let range_str = range.clone().map(|i| Axis(i).lowercase_str()).collect::<String>())
-
-                        $(format!(
-                            "/// Returns a reference to the {components} ({components_ordinals}) components of `self`.",
-                            components = join_and(range.clone().map(|i| format!("`{}`", Axis(i).lowercase_str()))),
-                            components_ordinals = join_and(range.clone().map(|i| Axis(i).ordinal_str())),
-                        ))
-                        #[inline(always)]
-                        pub const fn $(range_str)_ref(&self) -> &Vec$(n2)S<T> {
-                            Vector::from_array_ref(unsafe { &*(self.as_ptr().add($(range.start)) as *const [T; $n2]) })
-                        }
-                    )
-                )
 
                 $(
                     for n2 in Length::iter().filter(|&n2| n2 <= n) join($['\n']) => $(
                         for range in ref_swizzle_ranges(n, n2) join($['\n']) =>
-
+    
                         $(let range_str = range.clone().map(|i| Axis(i).lowercase_str()).collect::<String>())
-
+    
                         $(format!(
                             "/// Returns a mutable reference to the {components} ({components_ordinals}) components of `self`.",
                             components = join_and(range.clone().map(|i| format!("`{}`", Axis(i).lowercase_str()))),
                             components_ordinals = join_and(range.clone().map(|i| Axis(i).ordinal_str())),
                         ))
                         #[inline(always)]
-                        pub const fn $(range_str)_mut(&mut self) -> &mut Vec$(n2)S<T> {
+                        pub const fn $(range_str)_mut(&mut self) -> &mut Vector<$n2, T, NonSimd> {
                             Vector::from_mut_array(unsafe { &mut *(self.as_mut_ptr().add($(range.start)) as *mut [T; $n2]) })
                         }
                     )
                 )
-
+    
                 $(
                     for split in mut_swizzle_splits(n) join($['\n']) =>
-
+    
                     $(let split_str = split
                         .iter()
                         .map(|range| range.clone().map(|i| Axis(i).lowercase_str()).collect::<String>())
                         .collect::<Vec<String>>()
                         .join("_")
                     )
-
+    
                     $(let split_tuple_type = format!(
                         "({})",
                         split
@@ -142,7 +118,7 @@ pub fn srcmod() -> SrcFile {
                             .collect::<Vec<String>>()
                             .join(", ")
                     ))
-
+    
                     $("/// Returns a tuple with mutable references to:")
                     $(for range in &split join($['\r']) => $(
                         if range.len() == 1 {

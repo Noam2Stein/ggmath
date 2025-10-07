@@ -120,64 +120,113 @@ pub trait ScalarNegOne: ScalarZero {
 }
 
 /// Automatically generates the boilerplate part of [`ScalarZero`] implementations.
-/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.
+///
+/// `scalar_zero_boilerplate! {}` Uses `Vector::const_from_array` which is only available for primitives.
+/// `scalar_zero_boilerplate! { $fn_path }` Uses the given function that must be generic over `N` and return a `Vector<N, T, Simd>`.
 #[macro_export]
 macro_rules! scalar_zero_boilerplate {
     {} => {
-        const VEC2_ZERO: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ZERO; 2]);
-        const VEC3_ZERO: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO; 3]);
-        const VEC4_ZERO: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO; 4]);
-    }
+        const VEC2_ZERO: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO; 2]);
+        const VEC3_ZERO: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO; 3]);
+        const VEC4_ZERO: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO; 4]);
+    };
+    { $($const_from_array:tt)::* } => {
+        const VEC2_ZERO: $crate::Vec2<Self> = $($const_from_array)::*::<2>([<Self as $crate::ScalarZero>::ZERO; 2]);
+        const VEC3_ZERO: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarZero>::ZERO; 3]);
+        const VEC4_ZERO: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarZero>::ZERO; 4]);
+    };
 }
 
 /// Automatically generates the boilerplate part of [`ScalarOne`] implementations.
-/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.
+///
+/// `scalar_one_boilerplate! {}` Uses `Vector::const_from_array` which is only available for primitives.
+/// `scalar_one_boilerplate! { $fn_path }` Uses the given function that must be generic over `N` and return a `Vector<N, T, Simd>`.
 #[macro_export]
 macro_rules! scalar_one_boilerplate {
     {} => {
-        const VEC2_ONE: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ONE; 2]);
+        const VEC2_ONE: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([<Self as $crate::ScalarOne>::ONE; 2]);
 
-        const VEC2_X: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ONE, Self::ZERO]);
-        const VEC2_Y: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ZERO, Self::ONE]);
+        const VEC2_X: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([<Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC2_Y: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE]);
 
-        const VEC3_ONE: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ONE; 3]);
+        const VEC3_ONE: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarOne>::ONE; 3]);
 
-        const VEC3_X: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ONE, Self::ZERO, Self::ZERO]);
-        const VEC3_Y: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::ONE, Self::ZERO]);
-        const VEC3_Z: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ONE]);
+        const VEC3_X: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_Y: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_Z: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE]);
 
-        const VEC4_ONE: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ONE; 4]);
+        const VEC4_ONE: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarOne>::ONE; 4]);
 
-        const VEC4_X: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ONE, Self::ZERO, Self::ZERO, Self::ZERO]);
-        const VEC4_Y: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ONE, Self::ZERO, Self::ZERO]);
-        const VEC4_Z: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ONE, Self::ZERO]);
-        const VEC4_W: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ZERO, Self::ONE]);
-    }
+        const VEC4_X: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_Y: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_Z: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_W: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE]);
+    };
+    { $($const_from_array:tt)::* } => {
+        const VEC2_ONE: $crate::Vec2<Self> = $($const_from_array)::*::<2>([<Self as $crate::ScalarOne>::ONE; 2]);
+
+        const VEC2_X: $crate::Vec2<Self> = $($const_from_array)::*::<2>([<Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC2_Y: $crate::Vec2<Self> = $($const_from_array)::*::<2>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE]);
+
+        const VEC3_ONE: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarOne>::ONE; 3]);
+
+        const VEC3_X: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_Y: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_Z: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE]);
+
+        const VEC4_ONE: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarOne>::ONE; 4]);
+
+        const VEC4_X: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_Y: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_Z: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_W: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarOne>::ONE]);
+    };
 }
 
 /// Automatically generates the boilerplate part of [`ScalarNegOne`] implementations.
-/// This requires that `Vector<N, Self, S>` has a `const_from_array` function.
+///
+/// `scalar_neg_one_boilerplate! {}` Uses `Vector::const_from_array` which is only available for primitives.
+/// `scalar_neg_one_boilerplate! { $fn_path }` Uses the given function that must be generic over `N` and return a `Vector<N, T, Simd>`.
 #[macro_export]
 macro_rules! scalar_neg_one_boilerplate {
     {} => {
-        const VEC2_NEG_ONE: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::NEG_ONE; 2]);
+        const VEC2_NEG_ONE: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([<Self as $crate::ScalarNegOne>::NEG_ONE; 2]);
 
-        const VEC2_NEG_X: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::NEG_ONE, Self::ZERO]);
-        const VEC2_NEG_Y: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([Self::ZERO, Self::NEG_ONE]);
+        const VEC2_NEG_X: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([<Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC2_NEG_Y: $crate::Vec2<Self> = $crate::Vec2::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE]);
 
-        const VEC3_NEG_ONE: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::NEG_ONE; 3]);
+        const VEC3_NEG_ONE: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarNegOne>::NEG_ONE; 3]);
 
-        const VEC3_NEG_X: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::NEG_ONE, Self::ZERO, Self::ZERO]);
-        const VEC3_NEG_Y: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::NEG_ONE, Self::ZERO]);
-        const VEC3_NEG_Z: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::NEG_ONE]);
+        const VEC3_NEG_X: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_NEG_Y: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_NEG_Z: $crate::Vec3<Self> = $crate::Vec3::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE]);
 
-        const VEC4_NEG_ONE: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::NEG_ONE; 4]);
+        const VEC4_NEG_ONE: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarNegOne>::NEG_ONE; 4]);
 
-        const VEC4_NEG_X: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::NEG_ONE, Self::ZERO, Self::ZERO, Self::ZERO]);
-        const VEC4_NEG_Y: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::NEG_ONE, Self::ZERO, Self::ZERO]);
-        const VEC4_NEG_Z: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::NEG_ONE, Self::ZERO]);
-        const VEC4_NEG_W: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([Self::ZERO, Self::ZERO, Self::ZERO, Self::NEG_ONE]);
-    }
+        const VEC4_NEG_X: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_NEG_Y: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_NEG_Z: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_NEG_W: $crate::Vec4<Self> = $crate::Vec4::<Self>::const_from_array([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE]);
+    };
+    { $($const_from_array:tt)::* } => {
+        const VEC2_NEG_ONE: $crate::Vec2<Self> = $($const_from_array)::*::<2>([<Self as $crate::ScalarNegOne>::NEG_ONE; 2]);
+
+        const VEC2_NEG_X: $crate::Vec2<Self> = $($const_from_array)::*::<2>([<Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC2_NEG_Y: $crate::Vec2<Self> = $($const_from_array)::*::<2>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE]);
+
+        const VEC3_NEG_ONE: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarNegOne>::NEG_ONE; 3]);
+
+        const VEC3_NEG_X: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_NEG_Y: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC3_NEG_Z: $crate::Vec3<Self> = $($const_from_array)::*::<3>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE]);
+
+        const VEC4_NEG_ONE: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarNegOne>::NEG_ONE; 4]);
+
+        const VEC4_NEG_X: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_NEG_Y: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_NEG_Z: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE, <Self as $crate::ScalarZero>::ZERO]);
+        const VEC4_NEG_W: $crate::Vec4<Self> = $($const_from_array)::*::<4>([<Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarZero>::ZERO, <Self as $crate::ScalarNegOne>::NEG_ONE]);
+    };
 }
 
 impl<const N: usize, T: ScalarZero, S: Simdness> Vector<N, T, S>

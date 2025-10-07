@@ -70,24 +70,23 @@ use crate::{Construct, Simd, Usize, VecLen, Vector};
 ///     }
 /// }
 /// ```
-///
-pub trait Scalar: Construct {
+pub unsafe trait Scalar: Construct {
     /// The inner type contained inside [`Simd`] vectors.
+    /// Its reference must be transmutable to `&[Self; N]`.
     ///
     /// To choose a seperate type for each length, use [`Usize<N>::Match`][VecLen::Match].
     type SimdVectorStorage<const N: usize>: Construct
     where
         Usize<N>: VecLen;
 
-    /// Converts an array to a [`Simd`] vector.
+    /// Overridable implementation of [`Simd`] [`Vector::from_array`].
+    #[inline(always)]
     fn vec_from_array<const N: usize>(array: [Self; N]) -> Vector<N, Self, Simd>
     where
-        Usize<N>: VecLen;
-
-    /// Converts a [`Simd`] vector to an array.
-    fn vec_as_array<const N: usize>(vec: Vector<N, Self, Simd>) -> [Self; N]
-    where
-        Usize<N>: VecLen;
+        Usize<N>: VecLen,
+    {
+        Vector::const_from_array(array)
+    }
 
     /// Overridable implementation of [`Simd`] [`Vector::splat`].
     #[inline(always)]
@@ -506,30 +505,30 @@ pub trait Scalar: Construct {
     }
 }
 
-/// Macro for generating the boilerplate of default [`Scalar`] implementations.
-/// "default" means no SIMD optimizations.
+/// Macro for implementing [`Scalar`] without SIMD optimizations.
+///
+/// ## Example
+///
+/// ```
+/// use ggmath::{Scalar, vec2};
+///
+/// #[derive(Debug, Clone, Copy)]
+/// struct MyScalar(f32);
+///
+/// impl_scalar! { impl Scalar for MyScalar }
+///
+/// fn main() {
+///     println!("{:?}", vec2!(MyScalar(1.0), MyScalar(2.0)));
+/// }
+///
+/// ```
 #[macro_export]
-macro_rules! default_scalar_boilerplate {
-    () => {
-        type SimdVectorStorage<const N: usize>
-            = [Self; N]
-        where
-            Usize<N>: VecLen;
-
-        #[inline(always)]
-        fn vec_from_array<const N: usize>(array: [Self; N]) -> Vector<N, Self, Simd>
-        where
-            Usize<N>: VecLen,
-        {
-            Vector(array)
+macro_rules! impl_scalar {
+    { impl$(<$($generics:tt)*>)? Scalar for $T $(where $($where_clause:tt)*)? } => {
+        unsafe impl$(<$($generics)*>)? Scalar for $T $(where $($where_clause)*)? {
+            type SimdVectorStorage<const N: usize> = [Self; N]
+            where
+                $crate::Usize<N>: $crate::VecLen;
         }
-
-        #[inline(always)]
-        fn vec_as_array<const N: usize>(vec: Vector<N, Self, Simd>) -> [Self; N]
-        where
-            Usize<N>: VecLen,
-        {
-            vec.0
-        }
-    };
+    }
 }

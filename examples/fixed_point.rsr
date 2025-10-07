@@ -1,0 +1,39 @@
+use ggmath::*;
+
+fn main() {
+    println!("{:?}", FpVec2::X);
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct FixedPoint(i32);
+
+vector_aliases!(type Fp => FixedPoint);
+
+impl Scalar for FixedPoint {
+    type SimdVectorStorage<const N: usize>
+        = Vector<N, i32, Simd>
+    where
+        Usize<N>: VecLen;
+
+    #[inline(always)]
+    fn vec_from_array<const N: usize>(array: [Self; N]) -> Vector<N, Self, Simd>
+    where
+        Usize<N>: VecLen,
+    {
+        let array = unsafe { core::mem::transmute_copy::<[Self; N], [i32; N]>(&array) };
+        Vector(Vector::from_array(array))
+    }
+
+    #[inline(always)]
+    fn vec_as_array<const N: usize>(vec: Vector<N, Self, Simd>) -> [Self; N]
+    where
+        Usize<N>: VecLen,
+    {
+        let array = vec.0.as_array();
+        unsafe { core::mem::transmute_copy::<[i32; N], [Self; N]>(&array) }
+    }
+}
+
+impl ScalarOne for FixedPoint {
+    const ONE: Self = Self(1);
+}

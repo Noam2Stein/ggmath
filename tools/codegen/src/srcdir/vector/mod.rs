@@ -22,7 +22,7 @@ pub fn srcmod() -> SrcDir {
             hash::{Hash, Hasher},
         };
 
-        use crate::{Construct, Usize, IndexOutOfBoundsError, specialize, sealed::Sealed};
+        use crate::{Construct, Usize, specialize, sealed::Sealed};
 
         mod constructor;
         mod dir;
@@ -114,19 +114,18 @@ pub fn srcmod() -> SrcDir {
             Usize<N>: VecLen;
 
         $(
-            for n in Length::iter() =>
+            for n in Length::iter() join($['\n']) =>
 
             $(format!("/// Type alias for [`Vector<{n}, T, Simd>`][Vector]."))
             pub type Vec$(n)<T> = Vector<$n, T, Simd>;
-            $['\n']
         )
+
         $(
-            for n in Length::iter() =>
+            for n in Length::iter() join($['\n']) =>
 
             $(format!("/// Type alias for [`Vector<{n}, T, NonSimd>`][Vector]."))
             $(r#"/// "S" stands for "scalar"."#)
             pub type Vec$(n)S<T> = Vector<$n, T, NonSimd>;
-            $['\n']
         )
 
         $("/// Generates vector type-aliases for a specific scalar type.")
@@ -142,8 +141,8 @@ pub fn srcmod() -> SrcDir {
         $("/// ```")
         $("/// use ggmath::*;")
         $("///")
-        $(for n in Length::iter() => $(format!("/// pub type FVec{n} = Vec{n}<f32>;"))$['\r'])
-        $(for n in Length::iter() => $(format!("/// pub type FVec{n}S = Vec{n}S<f32>;"))$['\r'])
+        $(for n in Length::iter() join($['\r']) => $(format!("/// pub type FVec{n} = Vec{n}<f32>;")))
+        $(for n in Length::iter() join($['\r']) => $(format!("/// pub type FVec{n}S = Vec{n}S<f32>;")))
         $("/// ```")
         #[macro_export]
         macro_rules! vector_aliases {
@@ -160,7 +159,7 @@ pub fn srcmod() -> SrcDir {
             (@($$($$vis:tt)*) $$(#[$$($$attr:tt)*])* type $$prefix:ident => $$t:ty) => {
                 $$crate::hidden::paste! {
                     $(
-                        for n in Length::iter() =>
+                        for n in Length::iter() join($['\n']) =>
 
                         #[doc = $(format!("\"Type alias to [`Vector<{n}, \"")) $$t ", Simd>`][Vector]."]
                         $$(#[$$($$attr)*])*
@@ -170,8 +169,6 @@ pub fn srcmod() -> SrcDir {
                         #[doc = r#""S" stands for "scalar"."#]
                         $$(#[$$($$attr)*])*
                         $$($$vis)* type [<$$prefix Vec$(n)S>] = $$crate::Vec$(n)S<$$t>;
-
-                        $['\n']
                     )
                 }
             };
@@ -181,21 +178,6 @@ pub fn srcmod() -> SrcDir {
         pub trait VecLen: Sealed {
             $("/// Returns the appropriate type for the given vector length (`T2` for `Usize<2>`, `T3` for `Usize<3>`, etc.).")
             type Match<$(for n in Length::iter() join(, ) => T$(n): Construct)>: Construct;
-
-            $("/// The length value as an enum.")
-            const ENUM: VecLenEnum;
-        }
-
-        $("/// An enum with all currently supported vector lengths.")
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        pub enum VecLenEnum {
-            $(
-                for n in Length::iter() =>
-
-                $(format!("/// `{n}`"))
-                $(n.word_camelcase()),
-                $['\r']
-            )
         }
 
         $("/// See [`Vector`] for information.")
@@ -221,16 +203,7 @@ pub fn srcmod() -> SrcDir {
 
             impl VecLen for Usize<$n> {
                 type Match<$(for n in Length::iter() join(, ) => T$(n): Construct)> = T$(n);
-
-                const ENUM: VecLenEnum = VecLenEnum::$(n.word_camelcase());
             }
-        )
-
-        $(
-            for n in Length::iter() join($['\n'])=>
-
-            #[doc(hidden)]
-            impl Sealed for Usize<$n> {}
         )
 
         impl Simdness for Simd {
@@ -250,87 +223,11 @@ pub fn srcmod() -> SrcDir {
             
             const IS_SIMD: bool = false;
         }
-        
-        #[doc(hidden)]
-        impl Sealed for Simd {}
-        #[doc(hidden)]
-        impl Sealed for NonSimd {}
 
         impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
-            $("/// Picks the vector with the appropriate length.")
-            pub const fn pick_by_length($(
-                for n in Length::iter() join($['\r']) =>
-                
-                vec$(n): Vector<$n, T, S>,
-            )) -> Self
-            where
-                Usize<N>: VecLen,
-            {
-                unsafe {
-                    match N {
-                        $(
-                            for n in Length::iter() join($['\r']) =>
-                            
-                            $n => core::mem::transmute_copy::<Vector<$n, T, S>, Vector<N, T, S>>(&vec$(n)),
-                        )
-                        _ => panic!("unusual vector length"),
-                    }
-                }
-            }
-
-            $("/// Picks the vector with the appropriate simdness.")
-            pub const fn pick_by_simdness(
-                simd_vec: Vector<N, T, Simd>,
-                non_simd_vec: Vector<N, T, NonSimd>,
-            ) -> Self
-            where
-                Usize<N>: VecLen,
-            {
-                unsafe {
-                    if S::IS_SIMD {
-                        core::mem::transmute_copy::<Vector<N, T, Simd>, Vector<N, T, S>>(&simd_vec)
-                    } else {
-                        core::mem::transmute_copy::<Vector<N, T, NonSimd>, Vector<N, T, S>>(&non_simd_vec)
-                    }
-                }
-            }
-
-            $("/// Returns `true` for `Simd` vectors and `false` for `NonSimd` vectors.")
-            #[inline(always)]
-            pub const fn is_simd(self) -> bool {
-                S::IS_SIMD
-            }
-
-            $("/// Converts the vector to a `Simd` vector.")
-            #[inline(always)]
-            pub fn as_simd(self) -> Vector<N, T, Simd> {
-                self.as_storage()
-            }
-
-            $("/// Converts the vector to a `NonSimd` vector.")
-            #[inline(always)]
-            pub fn as_non_simd(self) -> Vector<N, T, NonSimd> {
-                self.as_storage()
-            }
-
-            $("/// Converts the vector to the specified simdness.")
-            #[inline(always)]
-            pub fn as_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
-                specialize! {
-                    (self: Vector<N, T, S>) -> Vector<N, T, S2>:
-
-                    for (Vector<N, T, S>) -> Vector<N, T, S> {
-                        |vec| vec
-                    }
-                    else {
-                        Vector::from_array(self.as_array())
-                    }
-                }
-            }
-
             $("/// Creates a new vector from an array.")
             #[inline(always)]
             pub fn from_array(array: [T; N]) -> Self {
@@ -368,36 +265,109 @@ pub fn srcmod() -> SrcDir {
                 Vector::from_array(core::array::from_fn(f))
             }
 
+            $("/// Creates a new vector from an array in a const context.")
+            $("/// This is slower than [`Vector::from_array`].")
+            #[inline(always)]
+            pub const fn const_from_array(array: [T; N]) -> Self {
+                let mut output = Self(T::ANY_SIMD_VECTOR_VALUE);
+                *output.as_mut_array() = array;
+
+                output
+            }
+
+            $("/// Picks the vector with the appropriate length.")
+            pub const fn pick_by_length($(for n in Length::iter() join(, ) => vec$(n): Vector<$n, T, S>)) -> Self {
+                unsafe {
+                    match N {
+                        $(
+                            for n in Length::iter() join($['\r']) =>
+                            
+                            $n => core::mem::transmute_copy::<Vector<$n, T, S>, Vector<N, T, S>>(&vec$(n)),
+                        )
+                        _ => panic!("unusual vector length"),
+                    }
+                }
+            }
+
+            $("/// Picks the vector with the appropriate simdness.")
+            pub const fn pick_by_simdness(simd_vec: Vector<N, T, Simd>, non_simd_vec: Vector<N, T, NonSimd>) -> Self {
+                unsafe {
+                    if S::IS_SIMD {
+                        core::mem::transmute_copy::<Vector<N, T, Simd>, Vector<N, T, S>>(&simd_vec)
+                    } else {
+                        core::mem::transmute_copy::<Vector<N, T, NonSimd>, Vector<N, T, S>>(&non_simd_vec)
+                    }
+                }
+            }
+
             $("/// Returns the number of components in the vector.")
             #[inline(always)]
             pub const fn len(self) -> usize {
                 N
             }
 
-            $("/// Converts the vector to an array.")
+            $("/// Returns `true` for `Simd` vectors and `false` for `NonSimd` vectors.")
             #[inline(always)]
-            pub fn as_array(self) -> [T; N] {
-                specialize! {
-                    (self: Vector<N, T, S>) -> [T; N]:
+            pub const fn is_simd(self) -> bool {
+                S::IS_SIMD
+            }
 
-                    for (Vector<N, T, Simd>) -> [T; N] {
-                        |vec| T::vec_as_array(vec)
-                    } for (Vector<N, T, NonSimd>) -> [T; N] {
-                        |vec| vec.0
-                    } else {
-                        unreachable!("unusual vector type")
+            $("/// Converts the vector to a `Simd` vector.")
+            #[inline(always)]
+            pub fn as_simd(self) -> Vector<N, T, Simd> {
+                self.as_storage()
+            }
+
+            $("/// Converts the vector to a `NonSimd` vector.")
+            #[inline(always)]
+            pub fn as_non_simd(self) -> Vector<N, T, NonSimd> {
+                self.as_storage()
+            }
+
+            $("/// Converts the vector to the specified simdness.")
+            #[inline(always)]
+            pub fn as_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
+                specialize! {
+                    (self: Vector<N, T, S>) -> Vector<N, T, S2>:
+
+                    for (Vector<N, T, S>) -> Vector<N, T, S> {
+                        |vec| vec
+                    }
+                    else {
+                        Vector::from_array(self.as_array())
                     }
                 }
             }
 
-            $("/// Returns the component at the given index or panics if the index is out of bounds.")
+            $("/// Converts the vector to an array.")
             #[inline(always)]
-            pub fn index(self, index: usize) -> T {
-                if index >= N {
-                    panic!("index out of bounds: the len is {N} but the index is {index}");
-                }
+            pub const fn as_array(self) -> [T; N] {
+                let ptr = self.as_ptr() as *const [T; N];
+                unsafe { *ptr }
+            }
 
-                unsafe { self.get_unchecked(index) }
+            $("/// Converts a vector reference to an array reference.")
+            #[inline(always)]
+            pub const fn as_array_ref(&self) -> &[T; N] {
+                unsafe { transmute::<&Vector<N, T, S>, &[T; N]>(self) }
+            }
+
+            $("/// Converts a mutable vector reference to a mutable array reference.")
+            #[inline(always)]
+            pub const fn as_mut_array(&mut self) -> &mut [T; N] {
+                unsafe { transmute::<&mut Vector<N, T, NonSimd>, &mut [T; N]>(self) }
+            }
+
+            $("/// Returns a pointer to the first element of the vector.")
+            #[inline(always)]
+            pub const fn as_ptr(&self) -> *const T {
+                self.as_array_ref().as_ptr()
+            }
+
+            $("/// Returns a mutable pointer to the first element of the vector.")
+            #[inline(always)]
+            pub const fn as_mut_ptr(&mut self) -> *mut T {
+                self.as_mut_array().as_mut_ptr()
             }
 
             $("/// Returns the component at the given index or returns None if the index is out of bounds.")
@@ -407,6 +377,16 @@ pub fn srcmod() -> SrcDir {
                     None
                 } else {
                     Some(unsafe { self.get_unchecked(index) })
+                }
+            }
+
+            $("/// Returns the mutable component at the given index or returns None if the index is out of bounds.")
+            #[inline(always)]
+            pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+                if index >= N {
+                    None
+                } else {
+                    Some(unsafe { self.get_unchecked_mut(index) })
                 }
             }
 
@@ -428,76 +408,14 @@ pub fn srcmod() -> SrcDir {
                 }
             }
 
-            $("/// Sets the component at the given index or panics if the index is out of bounds.")
-            #[inline(always)]
-            pub fn set(&mut self, index: usize, value: T) {
-                if index >= N {
-                    panic!("index out of bounds: the len is {N} but the index is {index}");
-                }
-
-                unsafe { self.set_unchecked(index, value) }
-            }
-
-            $("/// Sets the component at the given index or returns an error if the index is out of bounds.")
-            #[inline(always)]
-            pub fn try_set(&mut self, index: usize, value: T) -> Result<(), IndexOutOfBoundsError> {
-                if index >= N {
-                    Err(IndexOutOfBoundsError)
-                } else {
-                    unsafe { self.set_unchecked(index, value) }
-
-                    Ok(())
-                }
-            }
-
-            $("/// Sets the component at the given index with no bounds checking.")
+            $("/// Returns the mutable component at the given index with no bounds checking.")
             $("///")
             $("/// # Safety")
             $("/// The caller must ensure that the index is in bounds.")
             #[inline(always)]
-            pub unsafe fn set_unchecked(&mut self, index: usize, value: T) {
-                *self = specialize! {
-                    ((*self): Vector<N, T, S>, index: usize, value: T) -> Vector<N, T, S>:
-                    
-                    for (Vector<N, T, Simd>, usize, T) -> Vector<N, T, Simd> {
-                        |vec, index, value| unsafe { T::vec_with_unchecked(vec, index, value) }
-                    } else {
-                        let mut array = self.as_array();
-                        unsafe {
-                            *array.get_unchecked_mut(index) = value;
-                        }
-
-                        Vector::from_array(array)
-                    }
-                };
+            pub unsafe fn get_unchecked_mut(&mut self, index: usize) -> &mut T {
+                unsafe { *self.as_mut_array().get_unchecked_mut(index) }
             }
-
-            $(
-                for n2 in Length::iter() join($['\n']) =>
-
-                $(format!("/// Returns a vec{n2} where:"))
-                $(
-                    for i in 0..n2.as_usize() =>
-
-                    $(format!("/// - The `{}` ({}) component is `self[{}_SRC]`", Axis(i).lowercase_str(), Axis(i).ordinal_str(), Axis(i).uppercase_str()))
-                    $['\r']
-                )
-                $("///")
-                $("/// Out of bounds indices are compile time errors.")
-                #[inline(always)]
-                pub fn shuffle_$(n2)<$(for i in 0..n2.as_usize() join(, ) => const $(Axis(i).uppercase_str())_SRC: usize)>(self) -> Vector<$n2, T, S> {
-                    specialize! {
-                        (self: Vector<N, T, S>) -> Vector<$n2, T, S>:
-
-                        for (Vector<N, T, Simd>) -> Vector<$n2, T, Simd> {
-                            |vec| T::vec_shuffle_$(n2)::<N, $(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_SRC)>(vec)
-                        }
-                        else {
-                            Vector::<$n2, T, S>::from_array([$(for i in 0..n2.as_usize() join(, ) => self.index($(Axis(i).uppercase_str())_SRC))])
-                        }
-                    }
-                }
-            )
 
             $("/// Maps each component of the vector to a new value using the given function.")
             #[inline(always)]
@@ -511,6 +429,18 @@ pub fn srcmod() -> SrcDir {
             $("/// Returns an iterator over the components of the vector.")
             #[inline(always)]
             pub fn iter(self) -> <[T; N] as IntoIterator>::IntoIter {
+                self.into_iter()
+            }
+
+            $("/// Returns an iterator over the references to the components of the vector.")
+            #[inline(always)]
+            pub fn iter_ref(&self) -> <&[T; N] as IntoIterator>::IntoIter {
+                self.into_iter()
+            }
+
+            $("/// Returns an iterator over the mutable references to the components of the vector.")
+            #[inline(always)]
+            pub fn iter_mut(&mut self) -> <&mut [T; N] as IntoIterator>::IntoIter {
                 self.into_iter()
             }
 
@@ -563,11 +493,38 @@ pub fn srcmod() -> SrcDir {
             }
 
             $(
+                for n2 in Length::iter() join($['\n']) =>
+
+                $(format!("/// Returns a vec{n2} where:"))
+                $(
+                    for i in 0..n2.as_usize() =>
+
+                    $(format!("/// - The `{}` ({}) component is `self[{}_SRC]`", Axis(i).lowercase_str(), Axis(i).ordinal_str(), Axis(i).uppercase_str()))
+                    $['\r']
+                )
+                $("///")
+                $("/// Out of bounds indices are compile time errors.")
+                #[inline(always)]
+                pub fn swizzle_$(n2)<$(for i in 0..n2.as_usize() join(, ) => const $(Axis(i).uppercase_str())_SRC: usize)>(self) -> Vector<$n2, T, S> {
+                    specialize! {
+                        (self: Vector<N, T, S>) -> Vector<$n2, T, S>:
+
+                        for (Vector<N, T, Simd>) -> Vector<$n2, T, Simd> {
+                            |vec| T::vec_shuffle_$(n2)::<N, $(for i in 0..n2.as_usize() join(, ) => $(Axis(i).uppercase_str())_SRC)>(vec)
+                        }
+                        else {
+                            Vector::<$n2, T, S>::from_array([$(for i in 0..n2.as_usize() join(, ) => self.index($(Axis(i).uppercase_str())_SRC))])
+                        }
+                    }
+                }
+            )
+
+            $(
                 for cmp_op in CmpOp::iter() join($['\n']) =>
 
                 $(format!("/// Returns a vector of booleans where each component is `true` if the corresponding component of `self` is {} the corresponding component of `other`.", cmp_op.doc_str()))
                 #[inline(always)]
-                pub fn $(cmp_op.lowercase_str())_mask<T2: Scalar>(self, other: Vector<N, T2, S>) -> Vector<N, bool, S>
+                pub fn $(cmp_op.lowercase_str())_mask(self, other: Self) -> Vector<N, bool, S>
                 where
                     T: $(cmp_op.trait_str())<T2>,
                 {
@@ -758,69 +715,7 @@ pub fn srcmod() -> SrcDir {
             pub const fn from_mut_array(array: &mut [T; N]) -> &mut Self {
                 unsafe { transmute::<&mut [T; N], &mut Vector<N, T, NonSimd>>(array) }
             }
-
-            $("/// Converts a vector reference to an array reference.")
-            #[inline(always)]
-            pub const fn as_array_ref(&self) -> &[T; N] {
-                &self.0
-            }
-
-            $("/// Converts a mutable vector reference to a mutable array reference.")
-            #[inline(always)]
-            pub const fn as_mut_array(&mut self) -> &mut [T; N] {
-                &mut self.0
-            }
-
-            $("/// Returns a pointer to the first element of the vector.")
-            #[inline(always)]
-            pub const fn as_ptr(&self) -> *const T {
-                self.0.as_ptr()
-            }
-
-            $("/// Returns a mutable pointer to the first element of the vector.")
-            #[inline(always)]
-            pub const fn as_mut_ptr(&mut self) -> *mut T {
-                self.0.as_mut_ptr()
-            }
-
-            $("/// Returns an iterator over the references to the components of the vector.")
-            #[inline(always)]
-            pub fn iter_ref(&self) -> <&[T; N] as IntoIterator>::IntoIter {
-                self.into_iter()
-            }
-
-            $("/// Returns an iterator over the mutable references to the components of the vector.")
-            #[inline(always)]
-            pub fn iter_mut(&mut self) -> <&mut [T; N] as IntoIterator>::IntoIter {
-                self.into_iter()
-            }
         }
-
-        $(
-            for n in Length::iter() join($['\n']) =>
-
-            impl<T: Scalar> Vector<$n, T, NonSimd> {
-                $(
-                    for i in 0..n.as_usize() join($['\n']) =>
-
-                    $(format!("/// Returns a reference to the `{}` ({}) component of `self`.", Axis(i).lowercase_str(), Axis(i).ordinal_str()))
-                    #[inline(always)]
-                    pub const fn $(Axis(i).lowercase_str())_ref(&self) -> &T {
-                        &self.0[$i]
-                    }
-                )
-                
-                $(
-                    for i in 0..n.as_usize() join($['\n']) =>
-
-                    $(format!("/// Returns a mutable reference to the `{}` ({}) component of `self`.", Axis(i).lowercase_str(), Axis(i).ordinal_str()))
-                    #[inline(always)]
-                    pub const fn $(Axis(i).lowercase_str())_mut(&mut self) -> &mut T {
-                        &mut self.0[$i]
-                    }
-                )
-            }
-        )
 
         impl<const N: usize, T: Scalar, S: Simdness> Clone for Vector<N, T, S>
         where
@@ -833,6 +728,36 @@ pub fn srcmod() -> SrcDir {
         }
 
         impl<const N: usize, T: Scalar, S: Simdness> Copy for Vector<N, T, S> where Usize<N>: VecLen {}
+
+        impl<const N: usize, T: Scalar, S: Simdness> Index<usize> for Vector<N, T, S>
+        where
+            Usize<N>: VecLen,
+        {
+            type Output = T;
+            
+            #[inline(always)]
+            fn index(&self, index: usize) -> &Self::Output {
+                if index >= N {
+                    panic!("index out of bounds: the len is {N} but the index is {index}");
+                }
+
+                unsafe { self.get_unchecked(index) }
+            }
+        }
+
+        impl<const N: usize, T: Scalar, S: Simdness> IndexMut<usize> for Vector<N, T, S>
+        where
+            Usize<N>: VecLen,
+        {
+            #[inline(always)]
+            fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+                if index >= N {
+                    panic!("index out of bounds: the len is {N} but the index is {index}");
+                }
+
+                unsafe { self.get_unchecked_mut(index) }
+            }
+        }
 
         impl<const N: usize, T: Scalar, S: Simdness> IntoIterator for Vector<N, T, S>
         where
@@ -847,7 +772,7 @@ pub fn srcmod() -> SrcDir {
             }
         }
 
-        impl<'a, const N: usize, T: Scalar> IntoIterator for &'a Vector<N, T, NonSimd>
+        impl<'a, const N: usize, T: Scalar, S: Simdness> IntoIterator for &'a Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
@@ -860,7 +785,7 @@ pub fn srcmod() -> SrcDir {
             }
         }
 
-        impl<'a, const N: usize, T: Scalar> IntoIterator for &'a mut Vector<N, T, NonSimd>
+        impl<'a, const N: usize, T: Scalar, S: Simdness> IntoIterator for &'a mut Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
@@ -873,39 +798,16 @@ pub fn srcmod() -> SrcDir {
             }
         }
 
-        impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> Index<I> for Vector<N, T, NonSimd>
-        where
-            Usize<N>: VecLen,
-        {
-            type Output = I::Output;
-
-            #[inline(always)]
-            fn index(&self, index: I) -> &Self::Output {
-                &self.0[index]
-            }
-        }
-
-        impl<const N: usize, T: Scalar, I: SliceIndex<[T]>> IndexMut<I> for Vector<N, T, NonSimd>
+        impl<const N: usize, T: Scalar + PartialEq, S: Simdness> PartialEq for Vector<N, T, S>
         where
             Usize<N>: VecLen,
         {
             #[inline(always)]
-            fn index_mut(&mut self, index: I) -> &mut Self::Output {
-                &mut self.0[index]
-            }
-        }
-
-        impl<const N: usize, T: Scalar + PartialEq<T2>, S: Simdness, T2: Scalar>
-            PartialEq<Vector<N, T2, S>> for Vector<N, T, S>
-        where
-            Usize<N>: VecLen,
-        {
-            #[inline(always)]
-            fn eq(&self, other: &Vector<N, T2, S>) -> bool {
+            fn eq(&self, other: &Self) -> bool {
                 specialize! {
-                    ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
+                    ((*self): Vector<N, T, S>, (*other): Vector<N, T, S>) -> bool:
 
-                    for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> bool {
+                    for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> bool {
                         |vec, other| T::vec_eq(vec, other)
                     } else {
                         self.iter().zip(*other).all(|(a, b)| a == b)
@@ -914,11 +816,11 @@ pub fn srcmod() -> SrcDir {
             }
 
             #[inline(always)]
-            fn ne(&self, other: &Vector<N, T2, S>) -> bool {
+            fn ne(&self, other: &Self) -> bool {
                 specialize! {
-                    ((*self): Vector<N, T, S>, (*other): Vector<N, T2, S>) -> bool:
+                    ((*self): Vector<N, T, S>, (*other): Vector<N, T, S>) -> bool:
 
-                    for (Vector<N, T, Simd>, Vector<N, T2, Simd>) -> bool {
+                    for (Vector<N, T, Simd>, Vector<N, T, Simd>) -> bool {
                         |vec, other| T::vec_ne(vec, other)
                     } else {
                         self.iter().zip(*other).any(|(a, b)| a != b)
@@ -993,6 +895,19 @@ pub fn srcmod() -> SrcDir {
                 Ok(())
             }
         }
+
+        $(
+            for n in Length::iter() join($['\n'])=>
+
+            #[doc(hidden)]
+            impl Sealed for Usize<$n> {}
+        )
+
+        #[doc(hidden)]
+        impl Sealed for Simd {}
+        
+        #[doc(hidden)]
+        impl Sealed for NonSimd {}
     }
     .to_srcdir("vector")
     .with_submod_dir(primitives::srcmod())
