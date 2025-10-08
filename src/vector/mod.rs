@@ -282,8 +282,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: Add<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a + b)
             .as_storage()
     }
@@ -294,8 +294,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: Sub<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a - b)
             .as_storage()
     }
@@ -306,8 +306,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: Mul<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a * b)
             .as_storage()
     }
@@ -318,8 +318,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: Div<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a / b)
             .as_storage()
     }
@@ -330,8 +330,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: Rem<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a % b)
             .as_storage()
     }
@@ -342,8 +342,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: Shl<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a << b)
             .as_storage()
     }
@@ -354,8 +354,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: Shr<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a >> b)
             .as_storage()
     }
@@ -366,8 +366,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: BitAnd<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a & b)
             .as_storage()
     }
@@ -378,8 +378,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: BitOr<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a | b)
             .as_storage()
     }
@@ -390,8 +390,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: BitXor<Output = Self>,
     {
-        vec.as_non_simd()
-            .zip(rhs.as_non_simd())
+        vec.as_nonsimd()
+            .zip(rhs.as_nonsimd())
             .map(|(a, b)| a ^ b)
             .as_storage()
     }
@@ -606,10 +606,10 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     /// use ggmath::{vec3, Vec3, Vec3S};
     ///
     /// let simd_vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
-    /// let nonsimd_vec: Vec3S<f32> = simd_vec.as_non_simd();
+    /// let nonsimd_vec: Vec3S<f32> = simd_vec.as_nonsimd();
     /// ```
     #[inline(always)]
-    pub fn as_non_simd(self) -> Vector<N, T, NonSimd> {
+    pub fn as_nonsimd(self) -> Vector<N, T, NonSimd> {
         self.as_storage::<NonSimd>()
     }
 
