@@ -122,7 +122,7 @@ pub fn generate() {
                     $("/// ```")
                     $("/// use ggmath::{vec2g, Vec2};")
                     $("///")
-                    $("/// assert_eq!(vec2!(1, 2), Vec2::from_array([1, 2]));")
+                    $("/// assert_eq!(vec2g!(1, 2), Vec2::from_array([1, 2]));")
                     $("/// ```")
                 }
                 3 => {

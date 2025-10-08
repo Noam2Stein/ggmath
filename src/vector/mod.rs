@@ -44,6 +44,8 @@ mod swizzle;
 /// ## Example
 ///
 /// ```
+/// use ggmath::{Vec3, Vec3S};
+///
 /// // Gameplay needs to update fast, so performance is more important than size in memory.
 /// // We should use `Simd` vectors.
 /// struct GameplayState {
@@ -423,7 +425,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
 /// }
 ///
 /// impl_element_of_vector!(impl for SimpleType);
-/// impl_element_of_vector!(impl<(T: Copy)> for GenericType<T>);
+/// impl_element_of_vector!(impl<(T: Copy + Send + Sync + 'static)> for GenericType<T>);
 ///
 /// // Now you can use SimpleType and GenericType in vectors.
 ///
@@ -567,7 +569,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     /// ## Example
     ///
     /// ```
-    /// use ggmath::{vec3, Vec3, Vec3S};
+    /// use ggmath::{NonSimd, vec3, Vec3, Vec3S};
     ///
     /// let simd_vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
     /// let nonsimd_vec: Vec3S<f32> = simd_vec.as_storage::<NonSimd>();
