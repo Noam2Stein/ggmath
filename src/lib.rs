@@ -5,6 +5,8 @@
 pub mod vector;
 pub use vector::*;
 
+mod primitives;
+
 /// The base trait for all `ggmath` types.
 /// This trait is automatically implemented for all types that are [`Copy`], [`'static`], [`Send`], and [`Sync`].
 pub trait Construct: Copy + 'static + Send + Sync {}

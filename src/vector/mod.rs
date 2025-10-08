@@ -423,13 +423,23 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
 #[macro_export]
 macro_rules! impl_element_of_vector {
     { impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
-        // SAFETY: InnerVectorType is [T; N] which is sound, and VECTOR_PADDING is None which matches [T; N].
-        unsafe impl<const N: usize, $($($impl_param_tt)*)?> $crate::ElementOfVector<N, $crate::Simd> for $T {
-            type InnerVectorType = [$T; N];
-
-            const VECTOR_PADDING: Option<Vector<N, Self, $crate::Simd>> = None;
-        }
+        $crate::impl_element_of_vector!(@for_length 2: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(@for_length 3: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(@for_length 4: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(@for_length 5: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(@for_length 6: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(@for_length 7: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(@for_length 8: impl$(<($($impl_param_tt)*)>)? for $T);
     };
+
+    { @for_length $n:literal: impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
+        // SAFETY: InnerVectorType is [T; $n] which is sound, and VECTOR_PADDING is None which matches [T; $n].
+        unsafe impl<$($($impl_param_tt)*)?> $crate::ElementOfVector<$n, $crate::Simd> for $T {
+            type InnerVectorType = [$T; $n];
+
+            const VECTOR_PADDING: Option<$crate::Vector<$n, Self, $crate::Simd>> = None;
+        }
+    }
 }
 
 /// Sealed trait implemented by [`Simd`] and [`NonSimd`].
@@ -865,13 +875,28 @@ unsafe impl<const N: usize, T: Construct> ElementOfVector<N, NonSimd> for T {
     const VECTOR_PADDING: Option<Vector<N, Self, NonSimd>> = None;
 }
 
+// SAFETY: InnerVectorType is () which is sound because its a ZST, and VECTOR_PADDING is None which matches ().
+unsafe impl<T: Construct> ElementOfVector<0, Simd> for T {
+    type InnerVectorType = ();
+
+    const VECTOR_PADDING: Option<Vector<0, Self, Simd>> = None;
+}
+
+// SAFETY: InnerVectorType is T which is sound because it begins with one T, and VECTOR_PADDING is None which matches T.
+unsafe impl<T: Construct> ElementOfVector<1, Simd> for T {
+    type InnerVectorType = T;
+
+    const VECTOR_PADDING: Option<Vector<1, Self, Simd>> = None;
+}
+
+impl_element_of_vector!(impl<(T: Construct, const N2: usize)> for [T; N2]);
+impl_element_of_vector!(impl<(T: Construct)> for Option<T>);
+
 impl_element_of_vector!(impl for ());
 impl_element_of_vector!(impl<(T0: Construct)> for (T0,));
 impl_element_of_vector!(impl<(T0: Construct, T1: Construct)> for (T0, T1));
 impl_element_of_vector!(impl<(T0: Construct, T1: Construct, T2: Construct)> for (T0, T1, T2));
 impl_element_of_vector!(impl<(T0: Construct, T1: Construct, T2: Construct, T3: Construct)> for (T0, T1, T2, T3));
-
-impl_element_of_vector!(impl<(T: Construct, const N2: usize)> for [T; N2]);
 
 impl Simdness for Simd {
     const IS_SIMD: bool = true;

@@ -21,6 +21,64 @@ pub trait ElementNegOne: Construct {
     const NEG_ONE: Self;
 }
 
+macro_rules! impl_for_float {
+    ($T:ty) => {
+        impl ElementZero for $T {
+            const ZERO: Self = 0.0;
+        }
+
+        impl ElementOne for $T {
+            const ONE: Self = 1.0;
+        }
+
+        impl ElementNegOne for $T {
+            const NEG_ONE: Self = -1.0;
+        }
+    };
+}
+impl_for_float!(f32);
+impl_for_float!(f64);
+
+macro_rules! impl_for_sint {
+    ($T:ty) => {
+        impl ElementZero for $T {
+            const ZERO: Self = 0;
+        }
+
+        impl ElementOne for $T {
+            const ONE: Self = 1;
+        }
+
+        impl ElementNegOne for $T {
+            const NEG_ONE: Self = -1;
+        }
+    };
+}
+impl_for_sint!(i8);
+impl_for_sint!(i16);
+impl_for_sint!(i32);
+impl_for_sint!(i64);
+impl_for_sint!(i128);
+impl_for_sint!(isize);
+
+macro_rules! impl_for_uint {
+    ($T:ty) => {
+        impl ElementZero for $T {
+            const ZERO: Self = 0;
+        }
+
+        impl ElementOne for $T {
+            const ONE: Self = 1;
+        }
+    };
+}
+impl_for_uint!(u8);
+impl_for_uint!(u16);
+impl_for_uint!(u32);
+impl_for_uint!(u64);
+impl_for_uint!(u128);
+impl_for_uint!(usize);
+
 impl<const N: usize, T: ElementZero + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     /// `0` vector.
     pub const ZERO: Self = Self::const_from_array([T::ZERO; N]);
