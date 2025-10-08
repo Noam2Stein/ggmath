@@ -13,8 +13,10 @@ use crate::{Construct, sealed::Sealed};
 pub use crate::{declare_vector_aliases, impl_element_of_vector};
 
 mod constructor;
+mod dir;
 mod ops;
 pub use constructor::*;
+pub use dir::*;
 
 /// Generic vector type.
 ///

@@ -1,0 +1,14 @@
+[package]
+name = "dir"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ggmath = { path = "../../", features = [
+    "right",
+    "left",
+    "up",
+    "down",
+    "forwards",
+    "backwards",
+] }

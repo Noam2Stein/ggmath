@@ -12,8 +12,15 @@ default = ["primitive_aliases"]
 
 full = ["primitive_aliases"]
 
+right = []
+left = []
+up = []
+down = []
+forwards = []
+backwards = []
+
 [dependencies]
 paste = { version = "1.0.15", optional = true }
 
 [workspace]
-members = [".", "codegen"]
+members = [".", "codegen", "examples/dir"]
