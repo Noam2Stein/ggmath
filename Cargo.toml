@@ -6,7 +6,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/Noam2Stein/ggmath"
 
 [features]
-primitive_aliases = ["paste"]
+primitive_aliases = []
 swizzle = []
 right = []
 left = []
@@ -30,7 +30,12 @@ full = [
 
 
 [dependencies]
-paste = { version = "1.0.15", optional = true }
+paste = "1.0.15"
 
 [workspace]
-members = [".", "codegen", "examples/custom_scalar", "examples/dir"]
+members = [
+    ".",
+    "codegen",
+    "examples/custom_scalar",
+    "examples/direction_constants", "examples/simple_operations",
+]

@@ -7,6 +7,11 @@ pub use vector::*;
 
 mod primitives;
 
+#[cfg(feature = "primitive_aliases")]
+mod primitive_aliases;
+#[cfg(feature = "primitive_aliases")]
+pub use primitive_aliases::*;
+
 /// The base trait for all `ggmath` types.
 /// This trait is automatically implemented for all types that are [`Copy`], [`'static`], [`Send`], and [`Sync`].
 pub trait Construct: Copy + 'static + Send + Sync {}
