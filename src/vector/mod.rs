@@ -7,8 +7,7 @@ use std::slice::IterMut;
 
 use crate::{Construct, sealed::Sealed};
 
-pub use crate::declare_vector_aliases;
-pub use crate::impl_element_of_vector;
+pub use crate::{declare_vector_aliases, impl_element_of_vector};
 
 mod constructor;
 pub use constructor::*;
@@ -199,7 +198,57 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     #[inline(always)]
     unsafe fn vec_get_const_vec2<const X_SRC: usize, const Y_SRC: usize>(
         vec: Vector<N, Self, S>,
-    ) -> Vector<2, Self, S> {
+    ) -> Vector<2, Self, S>
+    where
+        Self: ElementOfVector<2, S>,
+    {
+        vec2g!(vec.get_const::<X_SRC>(), vec.get_const::<Y_SRC>())
+    }
+
+    /// Overridable implementation of [`Vector::get_const_vec3`].
+    ///
+    /// ## Safety
+    ///
+    /// Calling this function with out of bounds indices is undefined behavior.
+    /// Implementations can assume that the indices are in bounds.
+    #[inline(always)]
+    unsafe fn vec_get_const_vec3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vector<N, Self, S>,
+    ) -> Vector<3, Self, S>
+    where
+        Self: ElementOfVector<3, S>,
+    {
+        vec3g!(
+            vec.get_const::<X_SRC>(),
+            vec.get_const::<Y_SRC>(),
+            vec.get_const::<Z_SRC>()
+        )
+    }
+
+    /// Overridable implementation of [`Vector::get_const_vec4`].
+    ///
+    /// ## Safety
+    ///
+    /// Calling this function with out of bounds indices is undefined behavior.
+    /// Implementations can assume that the indices are in bounds.
+    #[inline(always)]
+    unsafe fn vec_get_const_vec4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vector<N, Self, S>,
+    ) -> Vector<4, Self, S>
+    where
+        Self: ElementOfVector<4, S>,
+    {
+        vec4g!(
+            vec.get_const::<X_SRC>(),
+            vec.get_const::<Y_SRC>(),
+            vec.get_const::<Z_SRC>(),
+            vec.get_const::<W_SRC>()
+        )
     }
 }
 
@@ -529,7 +578,10 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     }
 
     /// Returns a vector2 with the elements at the given indices which are known at compile time.
-    pub fn get_const_vec2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, S> {
+    pub fn get_const_vec2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, S>
+    where
+        T: ElementOfVector<2, S>,
+    {
         const {
             assert!(X_SRC < N, "X Index out of bounds");
             assert!(Y_SRC < N, "Y Index out of bounds");
@@ -537,6 +589,46 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
 
         // SAFETY: indices are in bounds
         unsafe { T::vec_get_const_vec2::<X_SRC, Y_SRC>(self) }
+    }
+
+    /// Returns a vector3 with the elements at the given indices which are known at compile time.
+    pub fn get_const_vec3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        self,
+    ) -> Vector<3, T, S>
+    where
+        T: ElementOfVector<3, S>,
+    {
+        const {
+            assert!(X_SRC < N, "X Index out of bounds");
+            assert!(Y_SRC < N, "Y Index out of bounds");
+            assert!(Z_SRC < N, "Z Index out of bounds");
+        }
+
+        // SAFETY: indices are in bounds
+        unsafe { T::vec_get_const_vec3::<X_SRC, Y_SRC, Z_SRC>(self) }
+    }
+
+    /// Returns a vector4 with the elements at the given indices which are known at compile time.
+    pub fn get_const_vec4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        self,
+    ) -> Vector<4, T, S>
+    where
+        T: ElementOfVector<4, S>,
+    {
+        const {
+            assert!(X_SRC < N, "X Index out of bounds");
+            assert!(Y_SRC < N, "Y Index out of bounds");
+            assert!(Z_SRC < N, "Z Index out of bounds");
+            assert!(W_SRC < N, "W Index out of bounds");
+        }
+
+        // SAFETY: indices are in bounds
+        unsafe { T::vec_get_const_vec4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(self) }
     }
 }
 

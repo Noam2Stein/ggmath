@@ -1,5 +1,7 @@
-mod module;
+mod util;
+
+mod srcdir;
 
 fn main() {
-    println!("Hello, world!");
+    srcdir::generate();
 }
