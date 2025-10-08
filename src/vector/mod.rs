@@ -1,6 +1,7 @@
 //! Module with vector related items
 
 use std::array::IntoIter;
+use std::fmt::{Debug, Display};
 use std::mem::{transmute, transmute_copy};
 use std::ops::{Index, IndexMut};
 use std::slice::IterMut;
@@ -676,6 +677,34 @@ impl<'a, const N: usize, T: ElementOfVector<N, S>, S: Simdness> IntoIterator
     #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
+    }
+}
+
+impl<const N: usize, T: Debug + ElementOfVector<N, S>, S: Simdness> Debug for Vector<N, T, S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(")?;
+
+        for i in 0..N {
+            write!(f, "{:?}, ", self[i])?;
+        }
+
+        write!(f, ")")?;
+
+        Ok(())
+    }
+}
+
+impl<const N: usize, T: Display + ElementOfVector<N, S>, S: Simdness> Display for Vector<N, T, S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(")?;
+
+        for i in 0..N {
+            write!(f, "{}, ", self[i])?;
+        }
+
+        write!(f, ")")?;
+
+        Ok(())
     }
 }
 
