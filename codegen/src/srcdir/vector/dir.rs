@@ -13,35 +13,38 @@ pub fn generate() {
 
         use crate::{Construct, Vector, Simdness, ElementOfVector};
 
-        $("/// Trait for element types that have a `ZERO` value.")
-        pub trait ElementZero: Construct {
+        $("/// Trait for scalar types that have a `ZERO` value.")
+        $(r#"/// "scalar" means a single-dimensional number, not a vector."#)
+        pub trait ScalarZero: Construct {
             $("/// `0` constant.")
             const ZERO: Self;
         }
 
-        $("/// Trait for element types that have a `ONE` value.")
-        pub trait ElementOne: Construct {
+        $("/// Trait for scalar types that have a `ONE` value.")
+        $(r#"/// "scalar" means a single-dimensional number, not a vector."#)
+        pub trait ScalarOne: Construct {
             $("/// `1` constant.")
             const ONE: Self;
         }
 
-        $("/// Trait for element types that have a `NEG_ONE` value.")
-        pub trait ElementNegOne: Construct {
+        $("/// Trait for scalar types that have a `NEG_ONE` value.")
+        $(r#"/// "scalar" means a single-dimensional number, not a vector."#)
+        pub trait ScalarNegOne: Construct {
             $("/// `-1` constant.")
             const NEG_ONE: Self;
         }
 
         macro_rules! impl_for_float {
             ($$T:ty) => {
-                impl ElementZero for $$T {
+                impl ScalarZero for $$T {
                     const ZERO: Self = 0.0;
                 }
         
-                impl ElementOne for $$T {
+                impl ScalarOne for $$T {
                     const ONE: Self = 1.0;
                 }
         
-                impl ElementNegOne for $$T {
+                impl ScalarNegOne for $$T {
                     const NEG_ONE: Self = -1.0;
                 }
             };
@@ -51,15 +54,15 @@ pub fn generate() {
         
         macro_rules! impl_for_sint {
             ($$T:ty) => {
-                impl ElementZero for $$T {
+                impl ScalarZero for $$T {
                     const ZERO: Self = 0;
                 }
         
-                impl ElementOne for $$T {
+                impl ScalarOne for $$T {
                     const ONE: Self = 1;
                 }
         
-                impl ElementNegOne for $$T {
+                impl ScalarNegOne for $$T {
                     const NEG_ONE: Self = -1;
                 }
             };
@@ -73,11 +76,11 @@ pub fn generate() {
         
         macro_rules! impl_for_uint {
             ($$T:ty) => {
-                impl ElementZero for $$T {
+                impl ScalarZero for $$T {
                     const ZERO: Self = 0;
                 }
         
-                impl ElementOne for $$T {
+                impl ScalarOne for $$T {
                     const ONE: Self = 1;
                 }
             };
@@ -89,17 +92,17 @@ pub fn generate() {
         impl_for_uint!(u128);
         impl_for_uint!(usize);
 
-        impl<const N: usize, T: ElementZero + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
-            $("/// `0` vector.")
+        impl<const N: usize, T: ScalarZero + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
+            $("/// Vector with all elements set to `0`.")
             pub const ZERO: Self = Self::const_from_array([T::ZERO; N]);
         }
 
-        impl<const N: usize, T: ElementOne + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
+        impl<const N: usize, T: ScalarOne + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
             $("/// Vector with all elements set to `1`.")
             pub const ONE: Self = Self::const_from_array([T::ONE; N]);
         }
 
-        impl<const N: usize, T: ElementNegOne + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
+        impl<const N: usize, T: ScalarNegOne + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
             $("/// Vector with all elements set to `-1`.")
             pub const NEG_ONE: Self = Self::const_from_array([T::NEG_ONE; N]);
         }
@@ -107,7 +110,7 @@ pub fn generate() {
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: ElementZero + ElementOne + ElementOfVector<$n, S>, S: Simdness> Vector<$n, T, S> {
+            impl<T: ScalarZero + ScalarOne + ElementOfVector<$n, S>, S: Simdness> Vector<$n, T, S> {
                 $(
                     for i in 0..n join($['\n']) =>
 
@@ -124,7 +127,7 @@ pub fn generate() {
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: ElementZero + ElementNegOne + ElementOfVector<$n, S>, S: Simdness> Vector<$n, T, S> {
+            impl<T: ScalarZero + ScalarNegOne + ElementOfVector<$n, S>, S: Simdness> Vector<$n, T, S> {
                 $(
                     for i in 0..n join($['\n']) =>
 
@@ -146,34 +149,34 @@ pub fn generate() {
             $(format!("/// Module with `{}` and `{}` constants where {} is positive.", dir.uppercase(), neg_dir.uppercase(), dir.snakecase()))
             #[cfg(feature = $(quoted(dir.snakecase())))]
             pub mod $(dir.snakecase()) {
-                use crate::{Construct, Vector, Simdness, ElementOfVector, ElementNegOne, ElementOne, ElementZero};
+                use crate::{Construct, Vector, Simdness, ElementOfVector, ScalarNegOne, ScalarOne, ScalarZero};
 
                 $(format!("/// Trait with a `{}` constant where {} is positive and {} is negative.", dir.uppercase(), dir.snakecase(), neg_dir.snakecase()))
-                $("/// This trait is automatically implemented for vectors, and types that are [`ElementOne`].")
+                $("/// This trait is automatically implemented for vectors, and types that are [`ScalarOne`].")
                 pub trait Positive$(dir.camelcase()): Construct {
-                    $(format!("/// Points {} with magnitude `1` ({} is positive and {} is negative).", dir.snakecase(), dir.snakecase(), neg_dir.snakecase()))
+                    $(format!("/// Points {} with magnitude `1` (where {} is positive and {} is negative).", dir.snakecase(), dir.snakecase(), neg_dir.snakecase()))
                     const $(dir.uppercase()): Self;
                 }
 
                 $(format!("/// Trait with a `{}` constant where {} is positive and {} is negative.", neg_dir.uppercase(), dir.snakecase(), neg_dir.snakecase()))
-                $("/// This trait is automatically implemented for vectors, and types that are [`ElementNegOne`].")
+                $("/// This trait is automatically implemented for vectors, and types that are [`ScalarNegOne`].")
                 pub trait Negative$(neg_dir.camelcase()): Construct {
-                    $(format!("/// Points {} with magnitude `1` ({} is positive and {} is negative).", neg_dir.snakecase(), dir.snakecase(), neg_dir.snakecase()))
+                    $(format!("/// Points {} with magnitude `1` (where {} is positive and {} is negative).", neg_dir.snakecase(), dir.snakecase(), neg_dir.snakecase()))
                     const $(neg_dir.uppercase()): Self;
                 }
 
-                impl<T: ElementOne> Positive$(dir.camelcase()) for T {
+                impl<T: ScalarOne> Positive$(dir.camelcase()) for T {
                     const $(dir.uppercase()): Self = Self::ONE;
                 }
 
-                impl<T: ElementNegOne> Negative$(neg_dir.camelcase()) for T {
+                impl<T: ScalarNegOne> Negative$(neg_dir.camelcase()) for T {
                     const $(neg_dir.uppercase()): Self = Self::NEG_ONE;
                 }
 
                 $(
                     for n in common_lengths.into_iter().filter(|&n| dir.axis() < n) join($['\n']) =>
 
-                    impl<T: ElementZero + ElementOne + ElementOfVector<$n, S>, S: Simdness> Positive$(dir.camelcase()) for Vector<$n, T, S> {
+                    impl<T: ScalarZero + ScalarOne + ElementOfVector<$n, S>, S: Simdness> Positive$(dir.camelcase()) for Vector<$n, T, S> {
                         const $(dir.uppercase()): Self = Self::$(axes_uppercase[dir.axis()]);
                     }
                 )
@@ -181,7 +184,7 @@ pub fn generate() {
                 $(
                     for n in common_lengths.into_iter().filter(|&n| dir.axis() < n) join($['\n']) =>
 
-                    impl<T: ElementZero + ElementNegOne + ElementOfVector<$n, S>, S: Simdness> Negative$(neg_dir.camelcase()) for Vector<$n, T, S> {
+                    impl<T: ScalarZero + ScalarNegOne + ElementOfVector<$n, S>, S: Simdness> Negative$(neg_dir.camelcase()) for Vector<$n, T, S> {
                         const $(neg_dir.uppercase()): Self = Self::NEG_$(axes_uppercase[dir.axis()]);
                     }
                 )

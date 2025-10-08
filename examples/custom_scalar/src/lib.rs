@@ -4,7 +4,7 @@
 
 use std::ops::Add;
 
-use ggmath::{ElementNegOne, ElementOfVector, ElementOne, ElementZero, Simd, Vector};
+use ggmath::{ElementOfVector, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector};
 
 /// A fixed-point number type with 8 fractional bits.
 #[repr(transparent)]
@@ -40,15 +40,15 @@ impl Add for FixedPoint {
 // These implementations automatically add `ZERO`/`ONE`/`NEG_ONE` constants to `FixedPoint` vectors,
 // as well as `RIGHT`/`LEFT`/`UP`/`DOWN`/`FORWARDS`/`BACKWARDS` constants.
 
-impl ElementZero for FixedPoint {
+impl ScalarZero for FixedPoint {
     const ZERO: Self = Self(0);
 }
 
-impl ElementOne for FixedPoint {
+impl ScalarOne for FixedPoint {
     const ONE: Self = Self::from_i32(1);
 }
 
-impl ElementNegOne for FixedPoint {
+impl ScalarNegOne for FixedPoint {
     const NEG_ONE: Self = Self::from_i32(-1);
 }
 
