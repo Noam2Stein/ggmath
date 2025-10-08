@@ -1,5 +1,5 @@
 use std::{
-    fs::{File, read_dir, remove_dir_all, remove_file},
+    fs::File,
     io::Write,
     path::Path,
     process::{Command, Stdio},
@@ -40,33 +40,6 @@ impl RawDir {
     pub fn export(self, parent_path: &Path, file_name: impl Into<String>) {
         let dir_path = parent_path.join(&self.name);
         let modrs_path = dir_path.join(file_name.into()).with_extension("rs");
-
-        for entry in read_dir(&dir_path)
-            .into_iter()
-            .flatten()
-            .map(|entry| entry.unwrap())
-        {
-            if entry.path() == modrs_path {
-                continue;
-            }
-
-            let entry_name_path = entry.path().with_extension("");
-            let entry_name = entry_name_path.file_name().unwrap().to_str().unwrap();
-
-            if self.submod_files.iter().any(|file| file.name == entry_name) {
-                continue;
-            }
-
-            if self.submod_dirs.iter().any(|dir| dir.name == entry_name) {
-                continue;
-            }
-
-            if entry.path().is_dir() {
-                remove_dir_all(entry.path()).unwrap();
-            } else {
-                remove_file(entry.path()).unwrap();
-            }
-        }
 
         self.content.export(modrs_path);
 

@@ -1,75 +1,19 @@
-[workspace]
-members = [".", "tools/bench_checker", "tools/codegen", "tools/prepublish"]
-
 [package]
-categories = [
-    "data-structures",
-    "game-development",
-    "graphics",
-    "mathematics",
-    "no-std",
-]
-description = "A math crate for games and graphics with heavy generics and full SIMD support"
-edition = "2024"
-keywords = ["gamedev", "math", "matrix", "quaternion", "vector"]
-license = "MIT OR Apache-2.0"
 name = "ggmath"
-repository = "https://github.com/Noam2Stein/ggmath"
-rust-version = "1.89.0"
 version = "0.13.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Noam2Stein/ggmath"
 
 [features]
-aabb = ["vector"]
-matrix = ["vector"]
-primitive_aliases = []
-quaternion = ["vector"]
-swizzle = []
-vector = []
+primitive_aliases = ["paste"]
 
-backwards = []
-down = []
-forwards = []
-left = []
-right = []
-std = []
-up = []
+default = ["primitive_aliases"]
 
-default = [
-    "matrix",
-    "primitive_aliases",
-    "quaternion",
-    "std",
-    "swizzle",
-    "vector",
-]
-full = [
-    "aabb",
-    "matrix",
-    "primitive_aliases",
-    "quaternion",
-    "swizzle",
-    "vector",
-]
+full = ["primitive_aliases"]
 
 [dependencies]
-paste = "1.0.14"
+paste = { version = "1.0.15", optional = true }
 
-crevice = { version = "0.18.0", optional = true }
-serde = { version = "1.0.219", optional = true }
-
-[dev-dependencies]
-criterion = "0.7.0"
-glam = "0.30.5"
-wide = "0.7.33"
-
-[[bench]]
-harness = false
-name = "fvec2"
-
-[[bench]]
-harness = false
-name = "fvec3"
-
-[[bench]]
-harness = false
-name = "fvec4"
+[workspace]
+members = [".", "codegen"]

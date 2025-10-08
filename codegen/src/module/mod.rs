@@ -91,7 +91,6 @@ impl SrcDir {
 
         assert!(root_dir_path.ends_with("src"));
 
-        remove_dir_all(&root_dir_path).unwrap();
         self.0.export(&root_dir_path, "lib");
     }
 }
