@@ -170,7 +170,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S>, S: Simdness> From<(T, Vec
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([value.0, value.1.get_const::<0>()])
+        Vector::from_array([value.0, value.1[0]])
     }
 }
 
@@ -179,7 +179,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S>, S: Simdness> From<(Vector
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([value.0.get_const::<0>(), value.1])
+        Vector::from_array([value.0[0], value.1])
     }
 }
 
@@ -188,7 +188,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([value.0.get_const::<0>(), value.1.get_const::<0>()])
+        Vector::from_array([value.0[0], value.1[0]])
     }
 }
 
@@ -204,7 +204,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S>, S: Simdness> From<(T, T, 
 {
     #[inline(always)]
     fn from(value: (T, T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([value.0, value.1, value.2.get_const::<0>()])
+        Vector::from_array([value.0, value.1, value.2[0]])
     }
 }
 
@@ -213,7 +213,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S>, S: Simdness> From<(T, Vec
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([value.0, value.1.get_const::<0>(), value.2])
+        Vector::from_array([value.0, value.1[0], value.2])
     }
 }
 
@@ -222,7 +222,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([value.0, value.1.get_const::<0>(), value.2.get_const::<0>()])
+        Vector::from_array([value.0, value.1[0], value.2[0]])
     }
 }
 
@@ -231,7 +231,7 @@ impl<T: ElementOfVector<2, S> + ElementOfVector<3, S>, S: Simdness> From<(T, Vec
 {
     #[inline(always)]
     fn from(value: (T, Vector<2, T, S>)) -> Self {
-        Vector::from_array([value.0, value.1.get_const::<0>(), value.1.get_const::<1>()])
+        Vector::from_array([value.0, value.1[0], value.1[1]])
     }
 }
 
@@ -240,7 +240,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S>, S: Simdness> From<(Vector
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T, T)) -> Self {
-        Vector::from_array([value.0.get_const::<0>(), value.1, value.2])
+        Vector::from_array([value.0[0], value.1, value.2])
     }
 }
 
@@ -249,7 +249,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([value.0.get_const::<0>(), value.1, value.2.get_const::<0>()])
+        Vector::from_array([value.0[0], value.1, value.2[0]])
     }
 }
 
@@ -258,7 +258,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([value.0.get_const::<0>(), value.1.get_const::<0>(), value.2])
+        Vector::from_array([value.0[0], value.1[0], value.2])
     }
 }
 
@@ -267,11 +267,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<1, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.2[0]])
     }
 }
 
@@ -280,11 +276,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<3, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<2, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.1[1]])
     }
 }
 
@@ -293,7 +285,7 @@ impl<T: ElementOfVector<2, S> + ElementOfVector<3, S>, S: Simdness> From<(Vector
 {
     #[inline(always)]
     fn from(value: (Vector<2, T, S>, T)) -> Self {
-        Vector::from_array([value.0.get_const::<0>(), value.0.get_const::<1>(), value.1])
+        Vector::from_array([value.0[0], value.0[1], value.1])
     }
 }
 
@@ -302,11 +294,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<3, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<2, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.1.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.1[0]])
     }
 }
 
@@ -322,7 +310,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness> From<(T, T, 
 {
     #[inline(always)]
     fn from(value: (T, T, T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([value.0, value.1, value.2, value.3.get_const::<0>()])
+        Vector::from_array([value.0, value.1, value.2, value.3[0]])
     }
 }
 
@@ -331,7 +319,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness> From<(T, T, 
 {
     #[inline(always)]
     fn from(value: (T, T, Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([value.0, value.1, value.2.get_const::<0>(), value.3])
+        Vector::from_array([value.0, value.1, value.2[0], value.3])
     }
 }
 
@@ -340,12 +328,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (T, T, Vector<1, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1,
-            value.2.get_const::<0>(),
-            value.3.get_const::<0>(),
-        ])
+        Vector::from_array([value.0, value.1, value.2[0], value.3[0]])
     }
 }
 
@@ -354,12 +337,7 @@ impl<T: ElementOfVector<2, S> + ElementOfVector<4, S>, S: Simdness> From<(T, T, 
 {
     #[inline(always)]
     fn from(value: (T, T, Vector<2, T, S>)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1,
-            value.2.get_const::<0>(),
-            value.2.get_const::<1>(),
-        ])
+        Vector::from_array([value.0, value.1, value.2[0], value.2[1]])
     }
 }
 
@@ -368,7 +346,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness> From<(T, Vec
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>, T, T)) -> Self {
-        Vector::from_array([value.0, value.1.get_const::<0>(), value.2, value.3])
+        Vector::from_array([value.0, value.1[0], value.2, value.3])
     }
 }
 
@@ -377,12 +355,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>, T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1.get_const::<0>(),
-            value.2,
-            value.3.get_const::<0>(),
-        ])
+        Vector::from_array([value.0, value.1[0], value.2, value.3[0]])
     }
 }
 
@@ -391,12 +364,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>, Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-            value.3,
-        ])
+        Vector::from_array([value.0, value.1[0], value.2[0], value.3])
     }
 }
 
@@ -405,12 +373,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>, Vector<1, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-            value.3.get_const::<0>(),
-        ])
+        Vector::from_array([value.0, value.1[0], value.2[0], value.3[0]])
     }
 }
 
@@ -419,12 +382,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (T, Vector<1, T, S>, Vector<2, T, S>)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-            value.2.get_const::<1>(),
-        ])
+        Vector::from_array([value.0, value.1[0], value.2[0], value.2[1]])
     }
 }
 
@@ -433,12 +391,7 @@ impl<T: ElementOfVector<2, S> + ElementOfVector<4, S>, S: Simdness> From<(T, Vec
 {
     #[inline(always)]
     fn from(value: (T, Vector<2, T, S>, T)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-            value.2,
-        ])
+        Vector::from_array([value.0, value.1[0], value.1[1], value.2])
     }
 }
 
@@ -447,12 +400,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (T, Vector<2, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-            value.2.get_const::<0>(),
-        ])
+        Vector::from_array([value.0, value.1[0], value.1[1], value.2[0]])
     }
 }
 
@@ -461,12 +409,7 @@ impl<T: ElementOfVector<3, S> + ElementOfVector<4, S>, S: Simdness> From<(T, Vec
 {
     #[inline(always)]
     fn from(value: (T, Vector<3, T, S>)) -> Self {
-        Vector::from_array([
-            value.0,
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-            value.1.get_const::<2>(),
-        ])
+        Vector::from_array([value.0, value.1[0], value.1[1], value.1[2]])
     }
 }
 
@@ -475,7 +418,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness> From<(Vector
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T, T, T)) -> Self {
-        Vector::from_array([value.0.get_const::<0>(), value.1, value.2, value.3])
+        Vector::from_array([value.0[0], value.1, value.2, value.3])
     }
 }
 
@@ -484,12 +427,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T, T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1,
-            value.2,
-            value.3.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.1, value.2, value.3[0]])
     }
 }
 
@@ -498,12 +436,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T, Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1,
-            value.2.get_const::<0>(),
-            value.3,
-        ])
+        Vector::from_array([value.0[0], value.1, value.2[0], value.3])
     }
 }
 
@@ -512,12 +445,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T, Vector<1, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1,
-            value.2.get_const::<0>(),
-            value.3.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.1, value.2[0], value.3[0]])
     }
 }
 
@@ -526,12 +454,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, T, Vector<2, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1,
-            value.2.get_const::<0>(),
-            value.2.get_const::<1>(),
-        ])
+        Vector::from_array([value.0[0], value.1, value.2[0], value.2[1]])
     }
 }
 
@@ -540,12 +463,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<1, T, S>, T, T)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.2,
-            value.3,
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.2, value.3])
     }
 }
 
@@ -554,12 +472,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<1, T, S>, T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.2,
-            value.3.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.2, value.3[0]])
     }
 }
 
@@ -568,12 +481,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<1, T, S>, Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-            value.3,
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.2[0], value.3])
     }
 }
 
@@ -594,12 +502,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<4, S>, S: Simdness>
             Vector<1, T, S>,
         ),
     ) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-            value.3.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.2[0], value.3[0]])
     }
 }
 
@@ -608,12 +511,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<1, T, S>, Vector<2, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-            value.2.get_const::<1>(),
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.2[0], value.2[1]])
     }
 }
 
@@ -622,12 +520,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<2, T, S>, T)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-            value.2,
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.1[1], value.2])
     }
 }
 
@@ -636,12 +529,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<2, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-            value.2.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.1[1], value.2[0]])
     }
 }
 
@@ -650,12 +538,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<1, T, S>, Vector<3, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-            value.1.get_const::<2>(),
-        ])
+        Vector::from_array([value.0[0], value.1[0], value.1[1], value.1[2]])
     }
 }
 
@@ -664,12 +547,7 @@ impl<T: ElementOfVector<2, S> + ElementOfVector<4, S>, S: Simdness> From<(Vector
 {
     #[inline(always)]
     fn from(value: (Vector<2, T, S>, T, T)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.1,
-            value.2,
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.1, value.2])
     }
 }
 
@@ -678,12 +556,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<2, T, S>, T, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.1,
-            value.2.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.1, value.2[0]])
     }
 }
 
@@ -692,12 +565,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<2, T, S>, Vector<1, T, S>, T)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.1.get_const::<0>(),
-            value.2,
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.1[0], value.2])
     }
 }
 
@@ -706,12 +574,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<2, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<2, T, S>, Vector<1, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.1.get_const::<0>(),
-            value.2.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.1[0], value.2[0]])
     }
 }
 
@@ -720,12 +583,7 @@ impl<T: ElementOfVector<2, S> + ElementOfVector<4, S>, S: Simdness>
 {
     #[inline(always)]
     fn from(value: (Vector<2, T, S>, Vector<2, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.1.get_const::<0>(),
-            value.1.get_const::<1>(),
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.1[0], value.1[1]])
     }
 }
 
@@ -734,12 +592,7 @@ impl<T: ElementOfVector<3, S> + ElementOfVector<4, S>, S: Simdness> From<(Vector
 {
     #[inline(always)]
     fn from(value: (Vector<3, T, S>, T)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.0.get_const::<2>(),
-            value.1,
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.0[2], value.1])
     }
 }
 
@@ -748,12 +601,7 @@ impl<T: ElementOfVector<1, S> + ElementOfVector<3, S> + ElementOfVector<4, S>, S
 {
     #[inline(always)]
     fn from(value: (Vector<3, T, S>, Vector<1, T, S>)) -> Self {
-        Vector::from_array([
-            value.0.get_const::<0>(),
-            value.0.get_const::<1>(),
-            value.0.get_const::<2>(),
-            value.1.get_const::<0>(),
-        ])
+        Vector::from_array([value.0[0], value.0[1], value.0[2], value.1[0]])
     }
 }
 

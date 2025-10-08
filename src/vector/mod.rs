@@ -186,18 +186,6 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
         Vector::from_fn(|i| unsafe { vec.get_unchecked((N - 1) - i) })
     }
 
-    /// Overridable implementation of [`Vector::get_const`].
-    ///
-    /// ## Safety
-    ///
-    /// Calling this function with an out of bounds index is undefined behavior.
-    /// Implementations can assume that the index is in bounds.
-    #[inline(always)]
-    unsafe fn vec_get_const<const I: usize>(vec: Vector<N, Self, S>) -> Self {
-        // SAFETY: index is in bounds
-        unsafe { vec.get_unchecked(I) }
-    }
-
     /// Overridable implementation of [`Vector::get_const_vec2`].
     ///
     /// ## Safety
@@ -211,7 +199,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: ElementOfVector<2, S>,
     {
-        vec2g!(vec.get_const::<X_SRC>(), vec.get_const::<Y_SRC>())
+        vec2g!(vec[X_SRC], vec[Y_SRC])
     }
 
     /// Overridable implementation of [`Vector::get_const_vec3`].
@@ -227,11 +215,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: ElementOfVector<3, S>,
     {
-        vec3g!(
-            vec.get_const::<X_SRC>(),
-            vec.get_const::<Y_SRC>(),
-            vec.get_const::<Z_SRC>()
-        )
+        vec3g!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC])
     }
 
     /// Overridable implementation of [`Vector::get_const_vec4`].
@@ -252,12 +236,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
     where
         Self: ElementOfVector<4, S>,
     {
-        vec4g!(
-            vec.get_const::<X_SRC>(),
-            vec.get_const::<Y_SRC>(),
-            vec.get_const::<Z_SRC>(),
-            vec.get_const::<W_SRC>()
-        )
+        vec4g!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC])
     }
 
     /// Overridable implementation of [`Vector::eq`].
@@ -730,16 +709,6 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     #[inline(always)]
     pub fn reverse(self) -> Self {
         T::vec_reverse(self)
-    }
-
-    /// Returns the element at the given index which is known at compile time.
-    pub fn get_const<const I: usize>(self) -> T {
-        const {
-            assert!(I < N, "Index out of bounds");
-        }
-
-        // SAFETY: index is in bounds
-        unsafe { T::vec_get_const::<I>(self) }
     }
 
     /// Returns a vector2 with the elements at the given indices which are known at compile time.

@@ -198,7 +198,7 @@ pub fn generate() {
                         match *part {
                             Part::Element => items.push(format!("value.{part_idx}")),
                             Part::Vector { n } => for i in 0..n {
-                                items.push(format!("value.{part_idx}.get_const::<{i}>()"))
+                                items.push(format!("value.{part_idx}[{i}]"))
                             },
                         }
                     }
