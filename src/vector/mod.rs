@@ -18,6 +18,9 @@ mod ops;
 pub use constructor::*;
 pub use dir::*;
 
+#[cfg(feature = "swizzle")]
+mod swizzle;
+
 /// Generic vector type.
 ///
 /// Is generic over 3 parameters:

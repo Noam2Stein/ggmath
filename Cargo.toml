@@ -7,17 +7,27 @@ repository = "https://github.com/Noam2Stein/ggmath"
 
 [features]
 primitive_aliases = ["paste"]
-
-default = ["primitive_aliases"]
-
-full = ["primitive_aliases"]
-
+swizzle = []
 right = []
 left = []
 up = []
 down = []
 forwards = []
 backwards = []
+
+default = ["primitive_aliases", "swizzle"]
+
+full = [
+    "primitive_aliases",
+    "swizzle",
+    "right",
+    "left",
+    "up",
+    "down",
+    "forwards",
+    "backwards",
+]
+
 
 [dependencies]
 paste = { version = "1.0.15", optional = true }
