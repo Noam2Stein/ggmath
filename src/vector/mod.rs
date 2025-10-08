@@ -3,7 +3,9 @@
 use std::array::IntoIter;
 use std::fmt::{Debug, Display};
 use std::mem::{transmute, transmute_copy};
-use std::ops::{Index, IndexMut};
+use std::ops::{
+    Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub,
+};
 use std::slice::IterMut;
 
 use crate::{Construct, sealed::Sealed};
@@ -11,6 +13,7 @@ use crate::{Construct, sealed::Sealed};
 pub use crate::{declare_vector_aliases, impl_element_of_vector};
 
 mod constructor;
+mod ops;
 pub use constructor::*;
 
 /// Generic vector type.
@@ -250,6 +253,162 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
             vec.get_const::<Z_SRC>(),
             vec.get_const::<W_SRC>()
         )
+    }
+
+    /// Overridable implementation of [`Vector::eq`].
+    #[inline(always)]
+    fn vec_eq(vec: Vector<N, Self, S>, other: Vector<N, Self, S>) -> bool
+    where
+        Self: PartialEq,
+    {
+        vec.as_array() == other.as_array()
+    }
+
+    /// Overridable implementation of [`Vector::ne`].
+    #[inline(always)]
+    fn vec_ne(vec: Vector<N, Self, S>, other: Vector<N, Self, S>) -> bool
+    where
+        Self: PartialEq,
+    {
+        !(vec == other)
+    }
+
+    /// Overridable implementation of [`Vector::neg`].
+    #[inline(always)]
+    fn vec_neg(vec: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Neg<Output = Self>,
+    {
+        vec.map(Neg::neg)
+    }
+
+    /// Overridable implementation of [`Vector::not`].
+    #[inline(always)]
+    fn vec_not(vec: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Not<Output = Self>,
+    {
+        vec.map(Not::not)
+    }
+
+    /// Overridable implementation of [`Vector::add`].
+    #[inline(always)]
+    fn vec_add(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Add<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a + b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::sub`].
+    #[inline(always)]
+    fn vec_sub(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Sub<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a - b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::mul`].
+    #[inline(always)]
+    fn vec_mul(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Mul<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a * b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::div`].
+    #[inline(always)]
+    fn vec_div(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Div<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a / b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::rem`].
+    #[inline(always)]
+    fn vec_rem(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Rem<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a % b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::shl`].
+    #[inline(always)]
+    fn vec_shl(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Shl<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a << b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::shr`].
+    #[inline(always)]
+    fn vec_shr(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Shr<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a >> b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::bitand`].
+    #[inline(always)]
+    fn vec_bitand(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: BitAnd<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a & b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::bitor`].
+    #[inline(always)]
+    fn vec_bitor(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: BitOr<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a | b)
+            .as_storage()
+    }
+
+    /// Overridable implementation of [`Vector::bitxor`].
+    #[inline(always)]
+    fn vec_bitxor(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: BitXor<Output = Self>,
+    {
+        vec.as_non_simd()
+            .zip(rhs.as_non_simd())
+            .map(|(a, b)| a ^ b)
+            .as_storage()
     }
 }
 
@@ -679,6 +838,22 @@ impl<'a, const N: usize, T: ElementOfVector<N, S>, S: Simdness> IntoIterator
         self.iter_mut()
     }
 }
+
+impl<const N: usize, T: PartialEq + ElementOfVector<N, S>, S: Simdness> PartialEq
+    for Vector<N, T, S>
+{
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        T::vec_eq(*self, *other)
+    }
+
+    #[inline(always)]
+    fn ne(&self, other: &Self) -> bool {
+        T::vec_ne(*self, *other)
+    }
+}
+
+impl<const N: usize, T: Eq + ElementOfVector<N, S>, S: Simdness> Eq for Vector<N, T, S> {}
 
 impl<const N: usize, T: Debug + ElementOfVector<N, S>, S: Simdness> Debug for Vector<N, T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
