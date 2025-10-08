@@ -400,6 +400,8 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
 /// Macro to implement the [`ElementOfVector`] trait for SIMD vectors of all lengths.
 /// The generated implementation has no SIMD optimizations.
 ///
+/// * You can restrict the implementation to a specific length by using a `for N = <length>: ...` prefix.
+///
 /// # Example
 ///
 /// ```
@@ -415,24 +417,38 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
 ///     field: T,
 /// }
 ///
+/// #[derive(Clone, Copy)]
+/// struct SpecialType {
+///     field: f32,
+/// }
+///
 /// impl_element_of_vector!(impl for SimpleType);
 /// impl_element_of_vector!(impl<(T: Copy)> for GenericType<T>);
 ///
 /// // Now you can use SimpleType and GenericType in vectors.
+///
+/// impl_element_of_vector!(for N = 2: impl for SpecialType);
+///
+/// // Now you can use SpecialType in vectors of length 2,
+/// // and you are free to write manual implementations for other lengths.
 /// ```
 #[macro_export]
 macro_rules! impl_element_of_vector {
+    // This intentionally doesn't use const generics to avoid downstream crates from depending on a generic implementation.
+    // This macro is usually replaced with manual implementations for each length when adding SIMD optimizations.
     { impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
-        $crate::impl_element_of_vector!(@for_length 2: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(@for_length 3: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(@for_length 4: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(@for_length 5: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(@for_length 6: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(@for_length 7: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(@for_length 8: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 0: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 1: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 2: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 3: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 4: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 5: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 6: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 7: impl$(<($($impl_param_tt)*)>)? for $T);
+        $crate::impl_element_of_vector!(for N = 8: impl$(<($($impl_param_tt)*)>)? for $T);
     };
 
-    { @for_length $n:literal: impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
+    { for N = $n:literal: impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
         // SAFETY: InnerVectorType is [T; $n] which is sound, and VECTOR_PADDING is None which matches [T; $n].
         unsafe impl<$($($impl_param_tt)*)?> $crate::ElementOfVector<$n, $crate::Simd> for $T {
             type InnerVectorType = [$T; $n];
@@ -873,20 +889,6 @@ unsafe impl<const N: usize, T: Construct> ElementOfVector<N, NonSimd> for T {
     type InnerVectorType = [T; N];
 
     const VECTOR_PADDING: Option<Vector<N, Self, NonSimd>> = None;
-}
-
-// SAFETY: InnerVectorType is () which is sound because its a ZST, and VECTOR_PADDING is None which matches ().
-unsafe impl<T: Construct> ElementOfVector<0, Simd> for T {
-    type InnerVectorType = ();
-
-    const VECTOR_PADDING: Option<Vector<0, Self, Simd>> = None;
-}
-
-// SAFETY: InnerVectorType is T which is sound because it begins with one T, and VECTOR_PADDING is None which matches T.
-unsafe impl<T: Construct> ElementOfVector<1, Simd> for T {
-    type InnerVectorType = T;
-
-    const VECTOR_PADDING: Option<Vector<1, Self, Simd>> = None;
 }
 
 impl_element_of_vector!(impl<(T: Construct, const N2: usize)> for [T; N2]);

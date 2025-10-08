@@ -33,4 +33,4 @@ full = [
 paste = { version = "1.0.15", optional = true }
 
 [workspace]
-members = [".", "codegen", "examples/dir"]
+members = [".", "codegen", "examples/custom_scalar", "examples/dir"]
