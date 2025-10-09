@@ -863,7 +863,11 @@ impl<const N: usize, T: Debug + ElementOfVector<N, S>, S: Simdness> Debug for Ve
         write!(f, "(")?;
 
         for i in 0..N {
-            write!(f, "{:?}, ", self[i])?;
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+
+            write!(f, "{:?}", self[i])?;
         }
 
         write!(f, ")")?;
@@ -877,7 +881,11 @@ impl<const N: usize, T: Display + ElementOfVector<N, S>, S: Simdness> Display fo
         write!(f, "(")?;
 
         for i in 0..N {
-            write!(f, "{}, ", self[i])?;
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+
+            write!(f, "{}", self[i])?;
         }
 
         write!(f, ")")?;

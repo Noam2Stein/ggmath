@@ -4,18 +4,7 @@
 use ggmath::*;
 
 #[test]
-fn test_nonsimd_bool_vec_layout() {
-    assert_eq!(size_of::<Vec2S<bool>>(), size_of::<bool>() * 2);
-    assert_eq!(size_of::<Vec3S<bool>>(), size_of::<bool>() * 3);
-    assert_eq!(size_of::<Vec4S<bool>>(), size_of::<bool>() * 4);
-
-    assert_eq!(align_of::<Vec2S<bool>>(), align_of::<bool>());
-    assert_eq!(align_of::<Vec3S<bool>>(), align_of::<bool>());
-    assert_eq!(align_of::<Vec4S<bool>>(), align_of::<bool>());
-}
-
-#[test]
-fn test_simd_bool_vec_constructors() {
+fn test_simd_bool_vec() {
     assert_eq!(Vec2::from_array([false, true]).as_array(), [false, true]);
     assert_eq!(
         Vec3::from_array([false, true, false]).as_array(),
@@ -80,10 +69,522 @@ fn test_simd_bool_vec_constructors() {
         .as_array(),
         [false, true, false, true]
     );
+
+    assert_eq!(vec2!(false, true).as_array_ref(), &[false, true]);
+    assert_eq!(
+        vec3!(false, true, false).as_array_ref(),
+        &[false, true, false]
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).as_array_ref(),
+        &[false, true, false, true]
+    );
+
+    assert_eq!(vec2!(false, true).as_mut_array(), &mut [false, true]);
+    assert_eq!(
+        vec3!(false, true, false).as_mut_array(),
+        &mut [false, true, false]
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).as_mut_array(),
+        &mut [false, true, false, true]
+    );
+
+    assert_eq!(vec2!(false, true).as_simd(), vec2!(false, true));
+    assert_eq!(
+        vec3!(false, true, false).as_simd(),
+        vec3!(false, true, false)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).as_simd(),
+        vec4!(false, true, false, true)
+    );
+
+    assert_eq!(vec2!(false, true).as_nonsimd(), vec2s!(false, true));
+    assert_eq!(
+        vec3!(false, true, false).as_nonsimd(),
+        vec3s!(false, true, false)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).as_nonsimd(),
+        vec4s!(false, true, false, true)
+    );
+
+    assert_eq!(vec2!(false, true).len(), 2);
+    assert_eq!(vec3!(false, true, false).len(), 3);
+    assert_eq!(vec4!(false, true, false, true).len(), 4);
+
+    assert_eq!(vec2!(false, true).is_simd(), true);
+    assert_eq!(vec3!(false, true, false).is_simd(), true);
+    assert_eq!(vec4!(false, true, false, true).is_simd(), true);
+
+    assert_eq!(vec2!(false, true).get(0), Some(false));
+    assert_eq!(vec2!(false, true).get(1), Some(true));
+    assert_eq!(vec2!(false, true).get(2), None);
+    assert_eq!(vec2!(false, true).get(3), None);
+
+    assert_eq!(vec3!(false, true, false).get(0), Some(false));
+    assert_eq!(vec3!(false, true, false).get(1), Some(true));
+    assert_eq!(vec3!(false, true, false).get(2), Some(false));
+    assert_eq!(vec3!(false, true, false).get(3), None);
+    assert_eq!(vec3!(false, true, false).get(4), None);
+
+    assert_eq!(vec4!(false, true, false, true).get(0), Some(false));
+    assert_eq!(vec4!(false, true, false, true).get(1), Some(true));
+    assert_eq!(vec4!(false, true, false, true).get(2), Some(false));
+    assert_eq!(vec4!(false, true, false, true).get(3), Some(true));
+    assert_eq!(vec4!(false, true, false, true).get(4), None);
+    assert_eq!(vec4!(false, true, false, true).get(5), None);
+
+    assert_eq!(vec2!(false, true).get_mut(0), Some(&mut false));
+    assert_eq!(vec2!(false, true).get_mut(1), Some(&mut true));
+    assert_eq!(vec2!(false, true).get_mut(2), None);
+    assert_eq!(vec2!(false, true).get_mut(3), None);
+
+    assert_eq!(vec3!(false, true, false).get_mut(0), Some(&mut false));
+    assert_eq!(vec3!(false, true, false).get_mut(1), Some(&mut true));
+    assert_eq!(vec3!(false, true, false).get_mut(2), Some(&mut false));
+    assert_eq!(vec3!(false, true, false).get_mut(3), None);
+    assert_eq!(vec3!(false, true, false).get_mut(4), None);
+
+    assert_eq!(vec4!(false, true, false, true).get_mut(0), Some(&mut false));
+    assert_eq!(vec4!(false, true, false, true).get_mut(1), Some(&mut true));
+    assert_eq!(vec4!(false, true, false, true).get_mut(2), Some(&mut false));
+    assert_eq!(vec4!(false, true, false, true).get_mut(3), Some(&mut true));
+    assert_eq!(vec4!(false, true, false, true).get_mut(4), None);
+    assert_eq!(vec4!(false, true, false, true).get_mut(5), None);
+
+    unsafe {
+        assert_eq!(vec2!(false, true).get_unchecked(0), false);
+        assert_eq!(vec2!(false, true).get_unchecked(1), true);
+
+        assert_eq!(vec3!(false, true, false).get_unchecked(0), false);
+        assert_eq!(vec3!(false, true, false).get_unchecked(1), true);
+        assert_eq!(vec3!(false, true, false).get_unchecked(2), false);
+
+        assert_eq!(vec4!(false, true, false, true).get_unchecked(0), false);
+        assert_eq!(vec4!(false, true, false, true).get_unchecked(1), true);
+        assert_eq!(vec4!(false, true, false, true).get_unchecked(2), false);
+        assert_eq!(vec4!(false, true, false, true).get_unchecked(3), true);
+
+        assert_eq!(vec2!(false, true).get_unchecked_mut(0), &mut false);
+        assert_eq!(vec2!(false, true).get_unchecked_mut(1), &mut true);
+
+        assert_eq!(vec3!(false, true, false).get_unchecked_mut(0), &mut false);
+        assert_eq!(vec3!(false, true, false).get_unchecked_mut(1), &mut true);
+        assert_eq!(vec3!(false, true, false).get_unchecked_mut(2), &mut false);
+
+        assert_eq!(
+            vec4!(false, true, false, true).get_unchecked_mut(0),
+            &mut false
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).get_unchecked_mut(1),
+            &mut true
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).get_unchecked_mut(2),
+            &mut false
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).get_unchecked_mut(3),
+            &mut true
+        );
+    }
+
+    assert_eq!(
+        vec2!(false, true).iter().collect::<Vec<bool>>(),
+        vec![false, true]
+    );
+    assert_eq!(
+        vec3!(false, true, false).iter().collect::<Vec<bool>>(),
+        vec![false, true, false]
+    );
+    assert_eq!(
+        vec4!(false, true, false, true)
+            .iter()
+            .collect::<Vec<bool>>(),
+        vec![false, true, false, true]
+    );
+
+    assert_eq!(
+        vec2!(false, true).iter_mut().collect::<Vec<&mut bool>>(),
+        vec![&mut false, &mut true]
+    );
+    assert_eq!(
+        vec3!(false, true, false)
+            .iter_mut()
+            .collect::<Vec<&mut bool>>(),
+        vec![&mut false, &mut true, &mut false]
+    );
+    assert_eq!(
+        vec4!(false, true, false, true)
+            .iter_mut()
+            .collect::<Vec<&mut bool>>(),
+        vec![&mut false, &mut true, &mut false, &mut true]
+    );
+
+    assert_eq!(vec2!(false, true).map(|x| x == true), vec2!(false, true));
+    assert_eq!(
+        vec3!(false, true, false).map(|x| x == true),
+        vec3!(false, true, false)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).map(|x| x == true),
+        vec4!(false, true, false, true)
+    );
+
+    assert_eq!(
+        vec2!(false, true).zip(vec2!(true, false)),
+        vec2!((false, true), (true, false))
+    );
+    assert_eq!(
+        vec3!(false, true, false).zip(vec3!(true, false, false)),
+        vec3!((false, true), (true, false), (false, false))
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).zip(vec4!(true, false, true, false)),
+        vec4!((false, true), (true, false), (false, true), (true, false))
+    );
+
+    assert_eq!(vec2!(false, true).reverse(), vec2!(true, false));
+    assert_eq!(
+        vec3!(false, true, false).reverse(),
+        vec3!(false, true, false)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).reverse(),
+        vec4!(true, false, true, false)
+    );
+
+    assert_eq!(
+        vec2!(false, true).get_const_vec2::<0, 1>(),
+        vec2!(false, true)
+    );
+    assert_eq!(
+        vec2!(false, true).get_const_vec2::<1, 0>(),
+        vec2!(true, false)
+    );
+    assert_eq!(
+        vec2!(false, true).get_const_vec2::<1, 1>(),
+        vec2!(true, true)
+    );
+
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec2::<0, 1>(),
+        vec2!(false, true)
+    );
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec2::<0, 2>(),
+        vec2!(false, false)
+    );
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec2::<2, 1>(),
+        vec2!(false, true)
+    );
+
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec2::<0, 1>(),
+        vec2!(false, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec2::<1, 3>(),
+        vec2!(true, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec2::<3, 1>(),
+        vec2!(true, true)
+    );
+
+    assert_eq!(
+        vec2!(false, true).get_const_vec3::<0, 1, 1>(),
+        vec3!(false, true, true)
+    );
+    assert_eq!(
+        vec2!(false, true).get_const_vec3::<1, 0, 1>(),
+        vec3!(true, false, true)
+    );
+
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec3::<0, 1, 2>(),
+        vec3!(false, true, false)
+    );
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec3::<1, 0, 2>(),
+        vec3!(true, false, false)
+    );
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec3::<2, 1, 0>(),
+        vec3!(false, true, false)
+    );
+
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec3::<0, 1, 2>(),
+        vec3!(false, true, false)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec3::<1, 0, 2>(),
+        vec3!(true, false, false)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec3::<2, 1, 0>(),
+        vec3!(false, true, false)
+    );
+
+    assert_eq!(
+        vec2!(false, true).get_const_vec4::<0, 1, 1, 0>(),
+        vec4!(false, true, true, false)
+    );
+    assert_eq!(
+        vec2!(false, true).get_const_vec4::<1, 0, 1, 0>(),
+        vec4!(true, false, true, false)
+    );
+    assert_eq!(
+        vec2!(false, true).get_const_vec4::<1, 1, 0, 0>(),
+        vec4!(true, true, false, false)
+    );
+
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec4::<0, 1, 2, 0>(),
+        vec4!(false, true, false, false)
+    );
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec4::<1, 0, 2, 0>(),
+        vec4!(true, false, false, false)
+    );
+    assert_eq!(
+        vec3!(false, true, false).get_const_vec4::<2, 1, 0, 0>(),
+        vec4!(false, true, false, false)
+    );
+
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec4::<0, 1, 2, 3>(),
+        vec4!(false, true, false, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec4::<1, 0, 2, 3>(),
+        vec4!(true, false, false, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec4::<2, 1, 0, 3>(),
+        vec4!(false, true, false, true)
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).get_const_vec4::<3, 1, 2, 0>(),
+        vec4!(true, true, false, false)
+    );
+
+    assert_eq!(vec2!(false, true)[0], false);
+    assert_eq!(vec2!(false, true)[1], true);
+
+    assert_eq!(vec3!(false, true, false)[0], false);
+    assert_eq!(vec3!(false, true, false)[1], true);
+    assert_eq!(vec3!(false, true, false)[2], false);
+
+    assert_eq!(vec4!(false, true, false, true)[0], false);
+    assert_eq!(vec4!(false, true, false, true)[1], true);
+    assert_eq!(vec4!(false, true, false, true)[2], false);
+    assert_eq!(vec4!(false, true, false, true)[3], true);
+
+    assert_eq!(&mut vec2!(false, true)[0], &mut false);
+    assert_eq!(&mut vec2!(false, true)[1], &mut true);
+
+    assert_eq!(&mut vec3!(false, true, false)[0], &mut false);
+    assert_eq!(&mut vec3!(false, true, false)[1], &mut true);
+    assert_eq!(&mut vec3!(false, true, false)[2], &mut false);
+
+    assert_eq!(&mut vec4!(false, true, false, true)[0], &mut false);
+    assert_eq!(&mut vec4!(false, true, false, true)[1], &mut true);
+    assert_eq!(&mut vec4!(false, true, false, true)[2], &mut false);
+    assert_eq!(&mut vec4!(false, true, false, true)[3], &mut true);
+
+    assert_eq!(vec2!(false, true) == vec2!(false, true), true);
+    assert_eq!(vec2!(false, true) == vec2!(true, false), false);
+    assert_eq!(vec2!(false, true) == vec2!(true, true), false);
+
+    assert_eq!(vec3!(false, true, false) == vec3!(false, true, false), true);
+    assert_eq!(vec3!(false, true, false) == vec3!(true, false, true), false);
+    assert_eq!(vec3!(false, true, false) == vec3!(true, true, false), false);
+
+    assert_eq!(
+        vec4!(false, true, false, true) == vec4!(false, true, false, true),
+        true
+    );
+    assert_eq!(
+        vec4!(false, true, false, true) == vec4!(true, false, true, false),
+        false
+    );
+    assert_eq!(
+        vec4!(false, true, false, true) == vec4!(true, true, true, true),
+        false
+    );
+
+    assert_eq!(vec2!(false, true) != vec2!(false, true), false);
+    assert_eq!(vec2!(false, true) != vec2!(true, false), true);
+    assert_eq!(vec2!(false, true) != vec2!(true, true), true);
+
+    assert_eq!(
+        vec3!(false, true, false) != vec3!(false, true, false),
+        false
+    );
+    assert_eq!(vec3!(false, true, false) != vec3!(true, false, true), true);
+    assert_eq!(vec3!(false, true, false) != vec3!(true, true, false), true);
+
+    assert_eq!(
+        vec4!(false, true, false, true) != vec4!(false, true, false, true),
+        false
+    );
+    assert_eq!(
+        vec4!(false, true, false, true) != vec4!(true, false, true, false),
+        true
+    );
+    assert_eq!(
+        vec4!(false, true, false, true) != vec4!(true, true, true, true),
+        true
+    );
+
+    assert_eq!(vec2!(false, true).to_string(), "(false, true)");
+    assert_eq!(
+        vec3!(false, true, false).to_string(),
+        "(false, true, false)"
+    );
+    assert_eq!(
+        vec4!(false, true, false, true).to_string(),
+        "(false, true, false, true)"
+    );
+
+    assert_eq!(format!("{:?}", vec2!(false, true)), "(false, true)");
+    assert_eq!(
+        format!("{:?}", vec3!(false, true, false)),
+        "(false, true, false)"
+    );
+    assert_eq!(
+        format!("{:?}", vec4!(false, true, false, true)),
+        "(false, true, false, true)"
+    );
+
+    assert_eq!(vec2!(false, true).x, false);
+    assert_eq!(vec2!(false, true).y, true);
+
+    assert_eq!(vec3!(false, true, false).x, false);
+    assert_eq!(vec3!(false, true, false).y, true);
+    assert_eq!(vec3!(false, true, false).z, false);
+
+    assert_eq!(vec4!(false, true, false, true).x, false);
+    assert_eq!(vec4!(false, true, false, true).y, true);
+    assert_eq!(vec4!(false, true, false, true).z, false);
+    assert_eq!(vec4!(false, true, false, true).w, true);
+
+    assert_eq!(&mut vec2!(false, true).x, &mut false);
+    assert_eq!(&mut vec2!(false, true).y, &mut true);
+
+    assert_eq!(&mut vec3!(false, true, false).x, &mut false);
+    assert_eq!(&mut vec3!(false, true, false).y, &mut true);
+    assert_eq!(&mut vec3!(false, true, false).z, &mut false);
+
+    assert_eq!(&mut vec4!(false, true, false, true).x, &mut false);
+    assert_eq!(&mut vec4!(false, true, false, true).y, &mut true);
+    assert_eq!(&mut vec4!(false, true, false, true).z, &mut false);
+    assert_eq!(&mut vec4!(false, true, false, true).w, &mut true);
+
+    #[cfg(feature = "swizzle")]
+    {
+        assert_eq!(vec2!(false, true).xy(), vec2!(false, true));
+        assert_eq!(vec2!(false, true).yx(), vec2!(true, false));
+        assert_eq!(vec2!(false, true).yy(), vec2!(true, true));
+
+        assert_eq!(vec3!(false, true, false).xy(), vec2!(false, true));
+        assert_eq!(vec3!(false, true, false).xz(), vec2!(false, false));
+        assert_eq!(vec3!(false, true, false).zy(), vec2!(false, true));
+
+        assert_eq!(vec4!(false, true, false, true).xy(), vec2!(false, true));
+        assert_eq!(vec4!(false, true, false, true).yw(), vec2!(true, true));
+        assert_eq!(vec4!(false, true, false, true).wy(), vec2!(true, true));
+
+        assert_eq!(vec2!(false, true).xyy(), vec3!(false, true, true));
+        assert_eq!(vec2!(false, true).yxy(), vec3!(true, false, true));
+
+        assert_eq!(vec3!(false, true, false).xyz(), vec3!(false, true, false));
+        assert_eq!(vec3!(false, true, false).yxz(), vec3!(true, false, false));
+        assert_eq!(vec3!(false, true, false).zyx(), vec3!(false, true, false));
+
+        assert_eq!(
+            vec4!(false, true, false, true).xyz(),
+            vec3!(false, true, false)
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).yxz(),
+            vec3!(true, false, false)
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).zyx(),
+            vec3!(false, true, false)
+        );
+
+        assert_eq!(vec2!(false, true).xyyx(), vec4!(false, true, true, false));
+        assert_eq!(vec2!(false, true).yxyx(), vec4!(true, false, true, false));
+        assert_eq!(vec2!(false, true).yyxx(), vec4!(true, true, false, false));
+
+        assert_eq!(
+            vec3!(false, true, false).xyzx(),
+            vec4!(false, true, false, false)
+        );
+        assert_eq!(
+            vec3!(false, true, false).yxzx(),
+            vec4!(true, false, false, false)
+        );
+        assert_eq!(
+            vec3!(false, true, false).zyxx(),
+            vec4!(false, true, false, false)
+        );
+
+        assert_eq!(
+            vec4!(false, true, false, true).xyzw(),
+            vec4!(false, true, false, true)
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).yxzw(),
+            vec4!(true, false, false, true)
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).zyxw(),
+            vec4!(false, true, false, true)
+        );
+        assert_eq!(
+            vec4!(false, true, false, true).wyzx(),
+            vec4!(true, true, false, false)
+        );
+    }
 }
 
 #[test]
-fn test_nonsimd_bool_vec_constructors() {
+#[should_panic]
+fn test_bvec2_index_panic() {
+    vec2!(false, true)[2];
+}
+
+#[test]
+#[should_panic]
+fn test_bvec3_index_panic() {
+    vec3!(false, true, false)[3];
+}
+
+#[test]
+#[should_panic]
+fn test_bvec4_index_panic() {
+    vec4!(false, true, false, true)[4];
+}
+
+#[test]
+fn test_nonsimd_bool_vec() {
+    assert_eq!(size_of::<Vec2S<bool>>(), size_of::<bool>() * 2);
+    assert_eq!(size_of::<Vec3S<bool>>(), size_of::<bool>() * 3);
+    assert_eq!(size_of::<Vec4S<bool>>(), size_of::<bool>() * 4);
+
+    assert_eq!(align_of::<Vec2S<bool>>(), align_of::<bool>());
+    assert_eq!(align_of::<Vec3S<bool>>(), align_of::<bool>());
+    assert_eq!(align_of::<Vec4S<bool>>(), align_of::<bool>());
+
     assert_eq!(Vec2S::from_array([false, true]).as_array(), [false, true]);
     assert_eq!(
         Vec3S::from_array([false, true, false]).as_array(),
@@ -148,4 +649,529 @@ fn test_nonsimd_bool_vec_constructors() {
         .as_array(),
         [false, true, false, true]
     );
+
+    assert_eq!(vec2s!(false, true).as_array_ref(), &[false, true]);
+    assert_eq!(
+        vec3s!(false, true, false).as_array_ref(),
+        &[false, true, false]
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).as_array_ref(),
+        &[false, true, false, true]
+    );
+
+    assert_eq!(vec2s!(false, true).as_mut_array(), &mut [false, true]);
+    assert_eq!(
+        vec3s!(false, true, false).as_mut_array(),
+        &mut [false, true, false]
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).as_mut_array(),
+        &mut [false, true, false, true]
+    );
+
+    assert_eq!(vec2s!(false, true).as_simd(), vec2!(false, true));
+    assert_eq!(
+        vec3s!(false, true, false).as_simd(),
+        vec3!(false, true, false)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).as_simd(),
+        vec4!(false, true, false, true)
+    );
+
+    assert_eq!(vec2s!(false, true).as_nonsimd(), vec2s!(false, true));
+    assert_eq!(
+        vec3s!(false, true, false).as_nonsimd(),
+        vec3s!(false, true, false)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).as_nonsimd(),
+        vec4s!(false, true, false, true)
+    );
+
+    assert_eq!(vec2s!(false, true).len(), 2);
+    assert_eq!(vec3s!(false, true, false).len(), 3);
+    assert_eq!(vec4s!(false, true, false, true).len(), 4);
+
+    assert_eq!(vec2s!(false, true).is_simd(), false);
+    assert_eq!(vec3s!(false, true, false).is_simd(), false);
+    assert_eq!(vec4s!(false, true, false, true).is_simd(), false);
+
+    assert_eq!(vec2s!(false, true).get(0), Some(false));
+    assert_eq!(vec2s!(false, true).get(1), Some(true));
+    assert_eq!(vec2s!(false, true).get(2), None);
+    assert_eq!(vec2s!(false, true).get(3), None);
+
+    assert_eq!(vec3s!(false, true, false).get(0), Some(false));
+    assert_eq!(vec3s!(false, true, false).get(1), Some(true));
+    assert_eq!(vec3s!(false, true, false).get(2), Some(false));
+    assert_eq!(vec3s!(false, true, false).get(3), None);
+    assert_eq!(vec3s!(false, true, false).get(4), None);
+
+    assert_eq!(vec4s!(false, true, false, true).get(0), Some(false));
+    assert_eq!(vec4s!(false, true, false, true).get(1), Some(true));
+    assert_eq!(vec4s!(false, true, false, true).get(2), Some(false));
+    assert_eq!(vec4s!(false, true, false, true).get(3), Some(true));
+    assert_eq!(vec4s!(false, true, false, true).get(4), None);
+    assert_eq!(vec4s!(false, true, false, true).get(5), None);
+
+    assert_eq!(vec2s!(false, true).get_mut(0), Some(&mut false));
+    assert_eq!(vec2s!(false, true).get_mut(1), Some(&mut true));
+    assert_eq!(vec2s!(false, true).get_mut(2), None);
+    assert_eq!(vec2s!(false, true).get_mut(3), None);
+
+    assert_eq!(vec3s!(false, true, false).get_mut(0), Some(&mut false));
+    assert_eq!(vec3s!(false, true, false).get_mut(1), Some(&mut true));
+    assert_eq!(vec3s!(false, true, false).get_mut(2), Some(&mut false));
+    assert_eq!(vec3s!(false, true, false).get_mut(3), None);
+    assert_eq!(vec3s!(false, true, false).get_mut(4), None);
+
+    assert_eq!(
+        vec4s!(false, true, false, true).get_mut(0),
+        Some(&mut false)
+    );
+    assert_eq!(vec4s!(false, true, false, true).get_mut(1), Some(&mut true));
+    assert_eq!(
+        vec4s!(false, true, false, true).get_mut(2),
+        Some(&mut false)
+    );
+    assert_eq!(vec4s!(false, true, false, true).get_mut(3), Some(&mut true));
+    assert_eq!(vec4s!(false, true, false, true).get_mut(4), None);
+    assert_eq!(vec4s!(false, true, false, true).get_mut(5), None);
+
+    unsafe {
+        assert_eq!(vec2s!(false, true).get_unchecked(0), false);
+        assert_eq!(vec2s!(false, true).get_unchecked(1), true);
+
+        assert_eq!(vec3s!(false, true, false).get_unchecked(0), false);
+        assert_eq!(vec3s!(false, true, false).get_unchecked(1), true);
+        assert_eq!(vec3s!(false, true, false).get_unchecked(2), false);
+
+        assert_eq!(vec4s!(false, true, false, true).get_unchecked(0), false);
+        assert_eq!(vec4s!(false, true, false, true).get_unchecked(1), true);
+        assert_eq!(vec4s!(false, true, false, true).get_unchecked(2), false);
+        assert_eq!(vec4s!(false, true, false, true).get_unchecked(3), true);
+
+        assert_eq!(vec2s!(false, true).get_unchecked_mut(0), &mut false);
+        assert_eq!(vec2s!(false, true).get_unchecked_mut(1), &mut true);
+
+        assert_eq!(vec3s!(false, true, false).get_unchecked_mut(0), &mut false);
+        assert_eq!(vec3s!(false, true, false).get_unchecked_mut(1), &mut true);
+        assert_eq!(vec3s!(false, true, false).get_unchecked_mut(2), &mut false);
+
+        assert_eq!(
+            vec4s!(false, true, false, true).get_unchecked_mut(0),
+            &mut false
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).get_unchecked_mut(1),
+            &mut true
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).get_unchecked_mut(2),
+            &mut false
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).get_unchecked_mut(3),
+            &mut true
+        );
+    }
+
+    assert_eq!(
+        vec2s!(false, true).iter().collect::<Vec<bool>>(),
+        vec![false, true]
+    );
+    assert_eq!(
+        vec3s!(false, true, false).iter().collect::<Vec<bool>>(),
+        vec![false, true, false]
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true)
+            .iter()
+            .collect::<Vec<bool>>(),
+        vec![false, true, false, true]
+    );
+
+    assert_eq!(
+        vec2s!(false, true).iter_mut().collect::<Vec<&mut bool>>(),
+        vec![&mut false, &mut true]
+    );
+    assert_eq!(
+        vec3s!(false, true, false)
+            .iter_mut()
+            .collect::<Vec<&mut bool>>(),
+        vec![&mut false, &mut true, &mut false]
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true)
+            .iter_mut()
+            .collect::<Vec<&mut bool>>(),
+        vec![&mut false, &mut true, &mut false, &mut true]
+    );
+
+    assert_eq!(vec2s!(false, true).map(|x| x == true), vec2s!(false, true));
+    assert_eq!(
+        vec3s!(false, true, false).map(|x| x == true),
+        vec3s!(false, true, false)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).map(|x| x == true),
+        vec4s!(false, true, false, true)
+    );
+
+    assert_eq!(
+        vec2s!(false, true).zip(vec2s!(true, false)),
+        vec2s!((false, true), (true, false))
+    );
+    assert_eq!(
+        vec3s!(false, true, false).zip(vec3s!(true, false, false)),
+        vec3s!((false, true), (true, false), (false, false))
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).zip(vec4s!(true, false, true, false)),
+        vec4s!((false, true), (true, false), (false, true), (true, false))
+    );
+
+    assert_eq!(vec2s!(false, true).reverse(), vec2s!(true, false));
+    assert_eq!(
+        vec3s!(false, true, false).reverse(),
+        vec3s!(false, true, false)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).reverse(),
+        vec4s!(true, false, true, false)
+    );
+
+    assert_eq!(
+        vec2s!(false, true).get_const_vec2::<0, 1>(),
+        vec2s!(false, true)
+    );
+    assert_eq!(
+        vec2s!(false, true).get_const_vec2::<1, 0>(),
+        vec2s!(true, false)
+    );
+    assert_eq!(
+        vec2s!(false, true).get_const_vec2::<1, 1>(),
+        vec2s!(true, true)
+    );
+
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec2::<0, 1>(),
+        vec2s!(false, true)
+    );
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec2::<0, 2>(),
+        vec2s!(false, false)
+    );
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec2::<2, 1>(),
+        vec2s!(false, true)
+    );
+
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec2::<0, 1>(),
+        vec2s!(false, true)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec2::<1, 3>(),
+        vec2s!(true, true)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec2::<3, 1>(),
+        vec2s!(true, true)
+    );
+
+    assert_eq!(
+        vec2s!(false, true).get_const_vec3::<0, 1, 1>(),
+        vec3s!(false, true, true)
+    );
+    assert_eq!(
+        vec2s!(false, true).get_const_vec3::<1, 0, 1>(),
+        vec3s!(true, false, true)
+    );
+
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec3::<0, 1, 2>(),
+        vec3s!(false, true, false)
+    );
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec3::<1, 0, 2>(),
+        vec3s!(true, false, false)
+    );
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec3::<2, 1, 0>(),
+        vec3s!(false, true, false)
+    );
+
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec3::<0, 1, 2>(),
+        vec3s!(false, true, false)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec3::<1, 0, 2>(),
+        vec3s!(true, false, false)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec3::<2, 1, 0>(),
+        vec3s!(false, true, false)
+    );
+
+    assert_eq!(
+        vec2s!(false, true).get_const_vec4::<0, 1, 1, 0>(),
+        vec4s!(false, true, true, false)
+    );
+    assert_eq!(
+        vec2s!(false, true).get_const_vec4::<1, 0, 1, 0>(),
+        vec4s!(true, false, true, false)
+    );
+    assert_eq!(
+        vec2s!(false, true).get_const_vec4::<1, 1, 0, 0>(),
+        vec4s!(true, true, false, false)
+    );
+
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec4::<0, 1, 2, 0>(),
+        vec4s!(false, true, false, false)
+    );
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec4::<1, 0, 2, 0>(),
+        vec4s!(true, false, false, false)
+    );
+    assert_eq!(
+        vec3s!(false, true, false).get_const_vec4::<2, 1, 0, 0>(),
+        vec4s!(false, true, false, false)
+    );
+
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec4::<0, 1, 2, 3>(),
+        vec4s!(false, true, false, true)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec4::<1, 0, 2, 3>(),
+        vec4s!(true, false, false, true)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec4::<2, 1, 0, 3>(),
+        vec4s!(false, true, false, true)
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).get_const_vec4::<3, 1, 2, 0>(),
+        vec4s!(true, true, false, false)
+    );
+
+    assert_eq!(vec2s!(false, true)[0], false);
+    assert_eq!(vec2s!(false, true)[1], true);
+
+    assert_eq!(vec3s!(false, true, false)[0], false);
+    assert_eq!(vec3s!(false, true, false)[1], true);
+    assert_eq!(vec3s!(false, true, false)[2], false);
+
+    assert_eq!(vec4s!(false, true, false, true)[0], false);
+    assert_eq!(vec4s!(false, true, false, true)[1], true);
+    assert_eq!(vec4s!(false, true, false, true)[2], false);
+    assert_eq!(vec4s!(false, true, false, true)[3], true);
+
+    assert_eq!(&mut vec2s!(false, true)[0], &mut false);
+    assert_eq!(&mut vec2s!(false, true)[1], &mut true);
+
+    assert_eq!(&mut vec3s!(false, true, false)[0], &mut false);
+    assert_eq!(&mut vec3s!(false, true, false)[1], &mut true);
+    assert_eq!(&mut vec3s!(false, true, false)[2], &mut false);
+
+    assert_eq!(&mut vec4s!(false, true, false, true)[0], &mut false);
+    assert_eq!(&mut vec4s!(false, true, false, true)[1], &mut true);
+    assert_eq!(&mut vec4s!(false, true, false, true)[2], &mut false);
+    assert_eq!(&mut vec4s!(false, true, false, true)[3], &mut true);
+
+    assert_eq!(vec2s!(false, true) == vec2s!(false, true), true);
+    assert_eq!(vec2s!(false, true) == vec2s!(true, false), false);
+    assert_eq!(vec2s!(false, true) == vec2s!(true, true), false);
+
+    assert_eq!(
+        vec3s!(false, true, false) == vec3s!(false, true, false),
+        true
+    );
+    assert_eq!(
+        vec3s!(false, true, false) == vec3s!(true, false, true),
+        false
+    );
+    assert_eq!(
+        vec3s!(false, true, false) == vec3s!(true, true, false),
+        false
+    );
+
+    assert_eq!(
+        vec4s!(false, true, false, true) == vec4s!(false, true, false, true),
+        true
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true) == vec4s!(true, false, true, false),
+        false
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true) == vec4s!(true, true, true, true),
+        false
+    );
+
+    assert_eq!(vec2s!(false, true) != vec2s!(false, true), false);
+    assert_eq!(vec2s!(false, true) != vec2s!(true, false), true);
+    assert_eq!(vec2s!(false, true) != vec2s!(true, true), true);
+
+    assert_eq!(
+        vec3s!(false, true, false) != vec3s!(false, true, false),
+        false
+    );
+    assert_eq!(
+        vec3s!(false, true, false) != vec3s!(true, false, true),
+        true
+    );
+    assert_eq!(
+        vec3s!(false, true, false) != vec3s!(true, true, false),
+        true
+    );
+
+    assert_eq!(
+        vec4s!(false, true, false, true) != vec4s!(false, true, false, true),
+        false
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true) != vec4s!(true, false, true, false),
+        true
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true) != vec4s!(true, true, true, true),
+        true
+    );
+
+    assert_eq!(vec2s!(false, true).to_string(), "(false, true)");
+    assert_eq!(
+        vec3s!(false, true, false).to_string(),
+        "(false, true, false)"
+    );
+    assert_eq!(
+        vec4s!(false, true, false, true).to_string(),
+        "(false, true, false, true)"
+    );
+
+    assert_eq!(format!("{:?}", vec2s!(false, true)), "(false, true)");
+    assert_eq!(
+        format!("{:?}", vec3s!(false, true, false)),
+        "(false, true, false)"
+    );
+    assert_eq!(
+        format!("{:?}", vec4s!(false, true, false, true)),
+        "(false, true, false, true)"
+    );
+
+    assert_eq!(vec2s!(false, true).x, false);
+    assert_eq!(vec2s!(false, true).y, true);
+
+    assert_eq!(vec3s!(false, true, false).x, false);
+    assert_eq!(vec3s!(false, true, false).y, true);
+    assert_eq!(vec3s!(false, true, false).z, false);
+
+    assert_eq!(vec4s!(false, true, false, true).x, false);
+    assert_eq!(vec4s!(false, true, false, true).y, true);
+    assert_eq!(vec4s!(false, true, false, true).z, false);
+    assert_eq!(vec4s!(false, true, false, true).w, true);
+
+    assert_eq!(&mut vec2s!(false, true).x, &mut false);
+    assert_eq!(&mut vec2s!(false, true).y, &mut true);
+
+    assert_eq!(&mut vec3s!(false, true, false).x, &mut false);
+    assert_eq!(&mut vec3s!(false, true, false).y, &mut true);
+    assert_eq!(&mut vec3s!(false, true, false).z, &mut false);
+
+    assert_eq!(&mut vec4s!(false, true, false, true).x, &mut false);
+    assert_eq!(&mut vec4s!(false, true, false, true).y, &mut true);
+    assert_eq!(&mut vec4s!(false, true, false, true).z, &mut false);
+    assert_eq!(&mut vec4s!(false, true, false, true).w, &mut true);
+
+    #[cfg(feature = "swizzle")]
+    {
+        assert_eq!(vec2s!(false, true).xy(), vec2s!(false, true));
+        assert_eq!(vec2s!(false, true).yx(), vec2s!(true, false));
+        assert_eq!(vec2s!(false, true).yy(), vec2s!(true, true));
+
+        assert_eq!(vec3s!(false, true, false).xy(), vec2s!(false, true));
+        assert_eq!(vec3s!(false, true, false).xz(), vec2s!(false, false));
+        assert_eq!(vec3s!(false, true, false).zy(), vec2s!(false, true));
+
+        assert_eq!(vec4s!(false, true, false, true).xy(), vec2s!(false, true));
+        assert_eq!(vec4s!(false, true, false, true).yw(), vec2s!(true, true));
+        assert_eq!(vec4s!(false, true, false, true).wy(), vec2s!(true, true));
+
+        assert_eq!(vec2s!(false, true).xyy(), vec3s!(false, true, true));
+        assert_eq!(vec2s!(false, true).yxy(), vec3s!(true, false, true));
+
+        assert_eq!(vec3s!(false, true, false).xyz(), vec3s!(false, true, false));
+        assert_eq!(vec3s!(false, true, false).yxz(), vec3s!(true, false, false));
+        assert_eq!(vec3s!(false, true, false).zyx(), vec3s!(false, true, false));
+
+        assert_eq!(
+            vec4s!(false, true, false, true).xyz(),
+            vec3s!(false, true, false)
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).yxz(),
+            vec3s!(true, false, false)
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).zyx(),
+            vec3s!(false, true, false)
+        );
+
+        assert_eq!(vec2s!(false, true).xyyx(), vec4s!(false, true, true, false));
+        assert_eq!(vec2s!(false, true).yxyx(), vec4s!(true, false, true, false));
+        assert_eq!(vec2s!(false, true).yyxx(), vec4s!(true, true, false, false));
+
+        assert_eq!(
+            vec3s!(false, true, false).xyzx(),
+            vec4s!(false, true, false, false)
+        );
+        assert_eq!(
+            vec3s!(false, true, false).yxzx(),
+            vec4s!(true, false, false, false)
+        );
+        assert_eq!(
+            vec3s!(false, true, false).zyxx(),
+            vec4s!(false, true, false, false)
+        );
+
+        assert_eq!(
+            vec4s!(false, true, false, true).xyzw(),
+            vec4s!(false, true, false, true)
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).yxzw(),
+            vec4s!(true, false, false, true)
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).zyxw(),
+            vec4s!(false, true, false, true)
+        );
+        assert_eq!(
+            vec4s!(false, true, false, true).wyzx(),
+            vec4s!(true, true, false, false)
+        );
+    }
+}
+
+#[test]
+#[should_panic]
+fn test_bvec2s_index_panic() {
+    vec2!(false, true)[2];
+}
+
+#[test]
+#[should_panic]
+fn test_bvec3s_index_panic() {
+    vec3!(false, true, false)[3];
+}
+
+#[test]
+#[should_panic]
+fn test_bvec4s_index_panic() {
+    vec4!(false, true, false, true)[4];
 }

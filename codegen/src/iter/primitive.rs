@@ -52,6 +52,24 @@ impl Primitive {
             .chain(once(Self::Bool))
             .chain(once(Self::Char))
     }
+
+    pub fn lowercase_prefix(&self) -> &'static str {
+        match self {
+            Self::Float(float) => float.lowercase_prefix(),
+            Self::Int(int) => int.lowercase_prefix(),
+            Self::Bool => "b",
+            Self::Char => "c",
+        }
+    }
+}
+
+impl Float {
+    pub fn lowercase_prefix(&self) -> &'static str {
+        match self {
+            Self::F32 => "f",
+            Self::F64 => "d",
+        }
+    }
 }
 
 impl Int {
@@ -59,6 +77,39 @@ impl Int {
         Sint::iter()
             .map(Self::Sint)
             .chain(Uint::iter().map(Self::Uint))
+    }
+
+    pub fn lowercase_prefix(&self) -> &'static str {
+        match self {
+            Self::Sint(sint) => sint.lowercase_prefix(),
+            Self::Uint(uint) => uint.lowercase_prefix(),
+        }
+    }
+}
+
+impl Sint {
+    pub fn lowercase_prefix(&self) -> &'static str {
+        match self {
+            Self::I8 => "i8",
+            Self::I16 => "i16",
+            Self::I32 => "i",
+            Self::I64 => "i64",
+            Self::I128 => "i128",
+            Self::Isize => "isize",
+        }
+    }
+}
+
+impl Uint {
+    pub fn lowercase_prefix(&self) -> &'static str {
+        match self {
+            Self::U8 => "u8",
+            Self::U16 => "u16",
+            Self::U32 => "u",
+            Self::U64 => "u64",
+            Self::U128 => "u128",
+            Self::Usize => "usize",
+        }
     }
 }
 
