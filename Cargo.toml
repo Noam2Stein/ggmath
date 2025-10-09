@@ -1,31 +1,42 @@
 [package]
-name = "ggmath"
-version = "0.13.0"
+categories = [
+    "data-structures",
+    "game-development",
+    "graphics",
+    "mathematics",
+    "no-std",
+]
+description = "Math library for games and graphics with generic types and SIMD."
 edition = "2024"
+keywords = ["aabb", "math", "matrix", "simd", "vector"]
 license = "MIT OR Apache-2.0"
+name = "ggmath"
+readme = "README.md"
 repository = "https://github.com/Noam2Stein/ggmath"
+rust-version = "1.90.0"
+version = "0.13.0"
 
 [features]
+backwards         = []
+down              = []
+forwards          = []
+left              = []
 primitive_aliases = []
-swizzle = []
-right = []
-left = []
-up = []
-down = []
-forwards = []
-backwards = []
+right             = []
+swizzle           = []
+up                = []
 
 default = ["primitive_aliases", "swizzle"]
 
 full = [
-    "primitive_aliases",
-    "swizzle",
-    "right",
-    "left",
-    "up",
+    "backwards",
     "down",
     "forwards",
-    "backwards",
+    "left",
+    "primitive_aliases",
+    "right",
+    "swizzle",
+    "up",
 ]
 
 
@@ -37,5 +48,6 @@ members = [
     ".",
     "codegen",
     "examples/custom_scalar",
-    "examples/direction_constants", "examples/simple_operations",
+    "examples/direction_constants",
+    "examples/simple_operations",
 ]
