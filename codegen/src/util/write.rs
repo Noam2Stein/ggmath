@@ -11,12 +11,10 @@ use indoc::formatdoc;
 const WORKPLACE_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
 const SRC_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../src");
 const TESTS_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests");
-const BENCHES_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../benches");
 
 pub trait TokensExt {
     fn write_in_src(&self, path_in_src: impl AsRef<Path>);
     fn write_in_tests(&self, path_in_tests: impl AsRef<Path>);
-    fn write_in_benches(&self, path_in_benches: impl AsRef<Path>);
 }
 
 impl TokensExt for Tokens {
@@ -28,11 +26,6 @@ impl TokensExt for Tokens {
     fn write_in_tests(&self, path_in_tests: impl AsRef<Path>) {
         assert!(Path::new(TESTS_DIR).exists());
         write_with_full_path(self.clone(), &Path::new(TESTS_DIR).join(path_in_tests));
-    }
-
-    fn write_in_benches(&self, path_in_benches: impl AsRef<Path>) {
-        assert!(Path::new(BENCHES_DIR).exists());
-        write_with_full_path(self.clone(), &Path::new(BENCHES_DIR).join(path_in_benches));
     }
 }
 
