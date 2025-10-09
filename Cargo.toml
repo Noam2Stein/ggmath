@@ -43,6 +43,11 @@ full = [
 [dependencies]
 paste = "1.0.15"
 
+[dev-dependencies]
+criterion = "0.7.0"
+glam      = "0.30.8"
+gungraun  = "0.17.0"
+
 [workspace]
 members = [
     ".",
@@ -51,3 +56,28 @@ members = [
     "examples/direction_constants",
     "examples/simple_operations",
 ]
+
+[[bench]]
+harness = false
+name    = "fvec2"
+path    = "benches/f32/fvec2.rs"
+
+[[bench]]
+harness = false
+name    = "fvec3"
+path    = "benches/f32/fvec3.rs"
+
+[[bench]]
+harness = false
+name    = "fvec3s"
+path    = "benches/f32/fvec3s.rs"
+
+[[bench]]
+harness = false
+name    = "fvec4"
+path    = "benches/f32/fvec4.rs"
+
+[[bench]]
+harness = false
+name    = "f32_random_math"
+path    = "benches/f32/random_math.rs"
