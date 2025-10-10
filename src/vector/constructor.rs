@@ -13,6 +13,9 @@ pub use crate::{
 /// use ggmath::{vec2, Vec2};
 ///
 /// assert_eq!(vec2!(1, 2), Vec2::from_array([1, 2]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec2!(25), Vec2::from_array([25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec2 {
@@ -30,6 +33,9 @@ macro_rules! vec2 {
 ///
 /// assert_eq!(vec3!(1, 2, 3), Vec3::from_array([1, 2, 3]));
 /// assert_eq!(vec3!(1, vec2!(2, 3)), Vec3::from_array([1, 2, 3]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec3!(25), Vec3::from_array([25, 25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec3 {
@@ -47,6 +53,9 @@ macro_rules! vec3 {
 ///
 /// assert_eq!(vec4!(1, 2, 3, 4), Vec4::from_array([1, 2, 3, 4]));
 /// assert_eq!(vec4!(1, vec2!(2, 3), 4), Vec4::from_array([1, 2, 3, 4]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec4!(25), Vec4::from_array([25, 25, 25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec4 {
@@ -63,6 +72,9 @@ macro_rules! vec4 {
 /// use ggmath::{vec2s, Vec2S};
 ///
 /// assert_eq!(vec2s!(1, 2), Vec2S::from_array([1, 2]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec2s!(25), Vec2S::from_array([25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec2s {
@@ -80,6 +92,9 @@ macro_rules! vec2s {
 ///
 /// assert_eq!(vec3s!(1, 2, 3), Vec3S::from_array([1, 2, 3]));
 /// assert_eq!(vec3s!(1, vec2s!(2, 3)), Vec3S::from_array([1, 2, 3]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec3s!(25), Vec3S::from_array([25, 25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec3s {
@@ -97,6 +112,9 @@ macro_rules! vec3s {
 ///
 /// assert_eq!(vec4s!(1, 2, 3, 4), Vec4S::from_array([1, 2, 3, 4]));
 /// assert_eq!(vec4s!(1, vec2s!(2, 3), 4), Vec4S::from_array([1, 2, 3, 4]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec4s!(25), Vec4S::from_array([25, 25, 25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec4s {
@@ -114,6 +132,9 @@ macro_rules! vec4s {
 /// use ggmath::{vec2g, Vec2};
 ///
 /// assert_eq!(vec2g!(1, 2), Vec2::from_array([1, 2]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec2g!(25), Vec2::from_array([25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec2g {
@@ -132,6 +153,9 @@ macro_rules! vec2g {
 ///
 /// assert_eq!(vec3g!(1, 2, 3), Vec3::from_array([1, 2, 3]));
 /// assert_eq!(vec3g!(1, vec2g!(2, 3)), Vec3S::from_array([1, 2, 3]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec3g!(25), Vec3::from_array([25, 25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec3g {
@@ -150,6 +174,9 @@ macro_rules! vec3g {
 ///
 /// assert_eq!(vec4g!(1, 2, 3, 4), Vec4::from_array([1, 2, 3, 4]));
 /// assert_eq!(vec4g!(1, vec2g!(2, 3), 4), Vec4S::from_array([1, 2, 3, 4]));
+///
+/// // Splat a single value into all elements
+/// assert_eq!(vec4g!(25), Vec4::from_array([25, 25, 25, 25]));
 /// ```
 #[macro_export]
 macro_rules! vec4g {
@@ -611,5 +638,12 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> From<(Vector<N, T, S
     #[inline(always)]
     fn from(value: (Vector<N, T, S>,)) -> Self {
         value.0
+    }
+}
+
+impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> From<(T,)> for Vector<N, T, S> {
+    #[inline(always)]
+    fn from(value: (T,)) -> Self {
+        Self::splat(value.0)
     }
 }
