@@ -2,14 +2,19 @@
 
 #![deny(missing_docs)]
 
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
-use ggmath::{ElementOfVector, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector};
+use ggmath::{
+    ElementOfVector, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector, declare_vector_aliases,
+};
 
 /// A fixed-point number type with 8 fractional bits.
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct FixedPoint(i32);
+
+// Generate vector type-aliases for `FixedPoint` (like `FPVec2 => Vector<2, FixedPoint, Simd>`).
+declare_vector_aliases!(pub type FP => FixedPoint);
 
 impl FixedPoint {
     /// Creates a new `FixedPoint` from an `i32`.
@@ -34,6 +39,15 @@ impl Add for FixedPoint {
     fn add(self, other: Self) -> Self::Output {
         // To add two `FixedPoint`s, we simply add the underlying `i32`s.
         Self(self.0 + other.0)
+    }
+}
+
+impl Sub for FixedPoint {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        // To subtract two `FixedPoint`s, we simply subtract the underlying `i32`s.
+        Self(self.0 - other.0)
     }
 }
 
@@ -82,4 +96,23 @@ where
     }
 
     // From here we can override the implementation of more functions to use SIMD.
+}
+
+#[cfg(test)]
+mod tests {
+    use ggmath::{ScalarZero, vec2};
+
+    use crate::{FPVec2, FixedPoint};
+
+    #[test]
+    fn example_usage() {
+        // Now we can use `FixedPoint` in vectors, and perform operations on them.
+
+        let a = vec2!(FixedPoint::ZERO, FixedPoint::from_i32(2));
+        let b = FPVec2::X;
+
+        // Because `FixedPoint` implements `Sub`, so do `FixedPoint` vectors.
+        // Beware that because we didn't optimize `sub`, its not SIMD optimized.
+        let _ = a + b - FPVec2::splat(FixedPoint::from_i32(3));
+    }
 }
