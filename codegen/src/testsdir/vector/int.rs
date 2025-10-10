@@ -71,26 +71,26 @@ pub fn generate(t: Int, result: &mut Tokens) {
                 {
                     use ggmath::right::*;
 
-                    assert_eq!($Vec2::RIGHT, $Vec2::X);
-                    assert_eq!($Vec3::RIGHT, $Vec3::X);
-                    assert_eq!($Vec4::RIGHT, $Vec4::X);
+                    assert_eq!($Vec2::<$t>::RIGHT, $Vec2::<$t>::X);
+                    assert_eq!($Vec3::<$t>::RIGHT, $Vec3::<$t>::X);
+                    assert_eq!($Vec4::<$t>::RIGHT, $Vec4::<$t>::X);
                 }
 
                 #[cfg(feature = "left")]
                 {
                     use ggmath::left::*;
 
-                    assert_eq!($Vec2::LEFT, $Vec2::X);
-                    assert_eq!($Vec3::LEFT, $Vec3::X);
-                    assert_eq!($Vec4::LEFT, $Vec4::X);
+                    assert_eq!($Vec2::<$t>::LEFT, $Vec2::<$t>::X);
+                    assert_eq!($Vec3::<$t>::LEFT, $Vec3::<$t>::X);
+                    assert_eq!($Vec4::<$t>::LEFT, $Vec4::<$t>::X);
                 }
 
                 #[cfg(feature = "backwards")]
                 {
                     use ggmath::backwards::*;
 
-                    assert_eq!($Vec3::BACKWARDS, $Vec3::Z);
-                    assert_eq!($Vec4::BACKWARDS, $Vec4::Z);
+                    assert_eq!($Vec3::<$t>::BACKWARDS, $Vec3::<$t>::Z);
+                    assert_eq!($Vec4::<$t>::BACKWARDS, $Vec4::<$t>::Z);
                 }
             }
 

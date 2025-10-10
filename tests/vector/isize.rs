@@ -1517,26 +1517,26 @@ fn test_simd_int_fns() {
     {
         use ggmath::right::*;
 
-        assert_eq!(Vec2::RIGHT, Vec2::X);
-        assert_eq!(Vec3::RIGHT, Vec3::X);
-        assert_eq!(Vec4::RIGHT, Vec4::X);
+        assert_eq!(Vec2::<isize>::RIGHT, Vec2::<isize>::X);
+        assert_eq!(Vec3::<isize>::RIGHT, Vec3::<isize>::X);
+        assert_eq!(Vec4::<isize>::RIGHT, Vec4::<isize>::X);
     }
 
     #[cfg(feature = "left")]
     {
         use ggmath::left::*;
 
-        assert_eq!(Vec2::LEFT, Vec2::X);
-        assert_eq!(Vec3::LEFT, Vec3::X);
-        assert_eq!(Vec4::LEFT, Vec4::X);
+        assert_eq!(Vec2::<isize>::LEFT, Vec2::<isize>::X);
+        assert_eq!(Vec3::<isize>::LEFT, Vec3::<isize>::X);
+        assert_eq!(Vec4::<isize>::LEFT, Vec4::<isize>::X);
     }
 
     #[cfg(feature = "backwards")]
     {
         use ggmath::backwards::*;
 
-        assert_eq!(Vec3::BACKWARDS, Vec3::Z);
-        assert_eq!(Vec4::BACKWARDS, Vec4::Z);
+        assert_eq!(Vec3::<isize>::BACKWARDS, Vec3::<isize>::Z);
+        assert_eq!(Vec4::<isize>::BACKWARDS, Vec4::<isize>::Z);
     }
 }
 
@@ -1813,26 +1813,26 @@ fn test_nonsimd_int_fns() {
     {
         use ggmath::right::*;
 
-        assert_eq!(Vec2S::RIGHT, Vec2S::X);
-        assert_eq!(Vec3S::RIGHT, Vec3S::X);
-        assert_eq!(Vec4S::RIGHT, Vec4S::X);
+        assert_eq!(Vec2S::<isize>::RIGHT, Vec2S::<isize>::X);
+        assert_eq!(Vec3S::<isize>::RIGHT, Vec3S::<isize>::X);
+        assert_eq!(Vec4S::<isize>::RIGHT, Vec4S::<isize>::X);
     }
 
     #[cfg(feature = "left")]
     {
         use ggmath::left::*;
 
-        assert_eq!(Vec2S::LEFT, Vec2S::X);
-        assert_eq!(Vec3S::LEFT, Vec3S::X);
-        assert_eq!(Vec4S::LEFT, Vec4S::X);
+        assert_eq!(Vec2S::<isize>::LEFT, Vec2S::<isize>::X);
+        assert_eq!(Vec3S::<isize>::LEFT, Vec3S::<isize>::X);
+        assert_eq!(Vec4S::<isize>::LEFT, Vec4S::<isize>::X);
     }
 
     #[cfg(feature = "backwards")]
     {
         use ggmath::backwards::*;
 
-        assert_eq!(Vec3S::BACKWARDS, Vec3S::Z);
-        assert_eq!(Vec4S::BACKWARDS, Vec4S::Z);
+        assert_eq!(Vec3S::<isize>::BACKWARDS, Vec3S::<isize>::Z);
+        assert_eq!(Vec4S::<isize>::BACKWARDS, Vec4S::<isize>::Z);
     }
 }
 

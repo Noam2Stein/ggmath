@@ -160,37 +160,37 @@ pub fn generate(t: Float, result: &mut Tokens) {
                 {
                     use ggmath::right::*;
 
-                    assert_float_vec_eq!($Vec2::RIGHT, $Vec2::X, $(quoted(format!("{Vec2}::RIGHT == {Vec2}::X"))));
-                    assert_float_vec_eq!($Vec3::RIGHT, $Vec3::Y, $(quoted(format!("{Vec3}::RIGHT == {Vec3}::Y"))));
-                    assert_float_vec_eq!($Vec4::RIGHT, $Vec4::Z, $(quoted(format!("{Vec4}::RIGHT == {Vec4}::Z"))));
+                    assert_float_vec_eq!($Vec2::<$t>::RIGHT, $Vec2::<$t>::X, $(quoted(format!("{Vec2}::RIGHT == {Vec2}::X"))));
+                    assert_float_vec_eq!($Vec3::<$t>::RIGHT, $Vec3::<$t>::X, $(quoted(format!("{Vec3}::RIGHT == {Vec3}::X"))));
+                    assert_float_vec_eq!($Vec4::<$t>::RIGHT, $Vec4::<$t>::X, $(quoted(format!("{Vec4}::RIGHT == {Vec4}::X"))));
 
-                    assert_float_vec_eq!($Vec2::LEFT, $Vec2::NEG_X, $(quoted(format!("{Vec2}::LEFT == {Vec2}::NEG_X"))));
-                    assert_float_vec_eq!($Vec3::LEFT, $Vec3::NEG_Y, $(quoted(format!("{Vec3}::LEFT == {Vec3}::NEG_Y"))));
-                    assert_float_vec_eq!($Vec4::LEFT, $Vec4::NEG_Z, $(quoted(format!("{Vec4}::LEFT == {Vec4}::NEG_Z"))));
+                    assert_float_vec_eq!($Vec2::<$t>::LEFT, $Vec2::<$t>::NEG_X, $(quoted(format!("{Vec2}::LEFT == {Vec2}::NEG_X"))));
+                    assert_float_vec_eq!($Vec3::<$t>::LEFT, $Vec3::<$t>::NEG_X, $(quoted(format!("{Vec3}::LEFT == {Vec3}::NEG_X"))));
+                    assert_float_vec_eq!($Vec4::<$t>::LEFT, $Vec4::<$t>::NEG_X, $(quoted(format!("{Vec4}::LEFT == {Vec4}::NEG_X"))));
                 }
 
                 #[cfg(feature = "left")]
                 {
                     use ggmath::left::*;
 
-                    assert_float_vec_eq!($Vec2::RIGHT, $Vec2::NEG_X, $(quoted(format!("{Vec2}::RIGHT == {Vec2}::NEG_X"))));
-                    assert_float_vec_eq!($Vec3::RIGHT, $Vec3::NEG_Y, $(quoted(format!("{Vec3}::RIGHT == {Vec3}::NEG_Y"))));
-                    assert_float_vec_eq!($Vec4::RIGHT, $Vec4::NEG_Z, $(quoted(format!("{Vec4}::RIGHT == {Vec4}::NEG_Z"))));
+                    assert_float_vec_eq!($Vec2::<$t>::RIGHT, $Vec2::<$t>::NEG_X, $(quoted(format!("{Vec2}::RIGHT == {Vec2}::NEG_X"))));
+                    assert_float_vec_eq!($Vec3::<$t>::RIGHT, $Vec3::<$t>::NEG_X, $(quoted(format!("{Vec3}::RIGHT == {Vec3}::NEG_X"))));
+                    assert_float_vec_eq!($Vec4::<$t>::RIGHT, $Vec4::<$t>::NEG_X, $(quoted(format!("{Vec4}::RIGHT == {Vec4}::NEG_X"))));
 
-                    assert_float_vec_eq!($Vec2::LEFT, $Vec2::X, $(quoted(format!("{Vec2}::LEFT == {Vec2}::X"))));
-                    assert_float_vec_eq!($Vec3::LEFT, $Vec3::Y, $(quoted(format!("{Vec3}::LEFT == {Vec3}::Y"))));
-                    assert_float_vec_eq!($Vec4::LEFT, $Vec4::Z, $(quoted(format!("{Vec4}::LEFT == {Vec4}::Z"))));
+                    assert_float_vec_eq!($Vec2::<$t>::LEFT, $Vec2::<$t>::X, $(quoted(format!("{Vec2}::LEFT == {Vec2}::X"))));
+                    assert_float_vec_eq!($Vec3::<$t>::LEFT, $Vec3::<$t>::X, $(quoted(format!("{Vec3}::LEFT == {Vec3}::X"))));
+                    assert_float_vec_eq!($Vec4::<$t>::LEFT, $Vec4::<$t>::X, $(quoted(format!("{Vec4}::LEFT == {Vec4}::X"))));
                 }
 
                 #[cfg(feature = "backwards")]
                 {
                     use ggmath::backwards::*;
 
-                    assert_float_vec_eq!($Vec3::FORWARDS, $Vec3::NEG_Z, $(quoted(format!("{Vec3}::FORWARDS == {Vec3}::NEG_Z"))));
-                    assert_float_vec_eq!($Vec4::FORWARDS, $Vec4::NEG_Z, $(quoted(format!("{Vec4}::FORWARDS == {Vec4}::NEG_Z"))));
+                    assert_float_vec_eq!($Vec3::<$t>::FORWARDS, $Vec3::<$t>::NEG_Z, $(quoted(format!("{Vec3}::FORWARDS == {Vec3}::NEG_Z"))));
+                    assert_float_vec_eq!($Vec4::<$t>::FORWARDS, $Vec4::<$t>::NEG_Z, $(quoted(format!("{Vec4}::FORWARDS == {Vec4}::NEG_Z"))));
 
-                    assert_float_vec_eq!($Vec3::BACKWARDS, $Vec3::Z, $(quoted(format!("{Vec3}::BACKWARDS == {Vec3}::Z"))));
-                    assert_float_vec_eq!($Vec4::BACKWARDS, $Vec4::Z, $(quoted(format!("{Vec4}::BACKWARDS == {Vec4}::Z"))));
+                    assert_float_vec_eq!($Vec3::<$t>::BACKWARDS, $Vec3::<$t>::Z, $(quoted(format!("{Vec3}::BACKWARDS == {Vec3}::Z"))));
+                    assert_float_vec_eq!($Vec4::<$t>::BACKWARDS, $Vec4::<$t>::Z, $(quoted(format!("{Vec4}::BACKWARDS == {Vec4}::Z"))));
                 }
             }
         )

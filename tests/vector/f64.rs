@@ -1519,37 +1519,77 @@ fn test_simd_float_fns() {
     {
         use ggmath::right::*;
 
-        assert_float_vec_eq!(Vec2::RIGHT, Vec2::X, "Vec2::RIGHT == Vec2::X");
-        assert_float_vec_eq!(Vec3::RIGHT, Vec3::Y, "Vec3::RIGHT == Vec3::Y");
-        assert_float_vec_eq!(Vec4::RIGHT, Vec4::Z, "Vec4::RIGHT == Vec4::Z");
+        assert_float_vec_eq!(Vec2::<f64>::RIGHT, Vec2::<f64>::X, "Vec2::RIGHT == Vec2::X");
+        assert_float_vec_eq!(Vec3::<f64>::RIGHT, Vec3::<f64>::X, "Vec3::RIGHT == Vec3::X");
+        assert_float_vec_eq!(Vec4::<f64>::RIGHT, Vec4::<f64>::X, "Vec4::RIGHT == Vec4::X");
 
-        assert_float_vec_eq!(Vec2::LEFT, Vec2::NEG_X, "Vec2::LEFT == Vec2::NEG_X");
-        assert_float_vec_eq!(Vec3::LEFT, Vec3::NEG_Y, "Vec3::LEFT == Vec3::NEG_Y");
-        assert_float_vec_eq!(Vec4::LEFT, Vec4::NEG_Z, "Vec4::LEFT == Vec4::NEG_Z");
+        assert_float_vec_eq!(
+            Vec2::<f64>::LEFT,
+            Vec2::<f64>::NEG_X,
+            "Vec2::LEFT == Vec2::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec3::<f64>::LEFT,
+            Vec3::<f64>::NEG_X,
+            "Vec3::LEFT == Vec3::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec4::<f64>::LEFT,
+            Vec4::<f64>::NEG_X,
+            "Vec4::LEFT == Vec4::NEG_X"
+        );
     }
 
     #[cfg(feature = "left")]
     {
         use ggmath::left::*;
 
-        assert_float_vec_eq!(Vec2::RIGHT, Vec2::NEG_X, "Vec2::RIGHT == Vec2::NEG_X");
-        assert_float_vec_eq!(Vec3::RIGHT, Vec3::NEG_Y, "Vec3::RIGHT == Vec3::NEG_Y");
-        assert_float_vec_eq!(Vec4::RIGHT, Vec4::NEG_Z, "Vec4::RIGHT == Vec4::NEG_Z");
+        assert_float_vec_eq!(
+            Vec2::<f64>::RIGHT,
+            Vec2::<f64>::NEG_X,
+            "Vec2::RIGHT == Vec2::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec3::<f64>::RIGHT,
+            Vec3::<f64>::NEG_X,
+            "Vec3::RIGHT == Vec3::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec4::<f64>::RIGHT,
+            Vec4::<f64>::NEG_X,
+            "Vec4::RIGHT == Vec4::NEG_X"
+        );
 
-        assert_float_vec_eq!(Vec2::LEFT, Vec2::X, "Vec2::LEFT == Vec2::X");
-        assert_float_vec_eq!(Vec3::LEFT, Vec3::Y, "Vec3::LEFT == Vec3::Y");
-        assert_float_vec_eq!(Vec4::LEFT, Vec4::Z, "Vec4::LEFT == Vec4::Z");
+        assert_float_vec_eq!(Vec2::<f64>::LEFT, Vec2::<f64>::X, "Vec2::LEFT == Vec2::X");
+        assert_float_vec_eq!(Vec3::<f64>::LEFT, Vec3::<f64>::X, "Vec3::LEFT == Vec3::X");
+        assert_float_vec_eq!(Vec4::<f64>::LEFT, Vec4::<f64>::X, "Vec4::LEFT == Vec4::X");
     }
 
     #[cfg(feature = "backwards")]
     {
         use ggmath::backwards::*;
 
-        assert_float_vec_eq!(Vec3::FORWARDS, Vec3::NEG_Z, "Vec3::FORWARDS == Vec3::NEG_Z");
-        assert_float_vec_eq!(Vec4::FORWARDS, Vec4::NEG_Z, "Vec4::FORWARDS == Vec4::NEG_Z");
+        assert_float_vec_eq!(
+            Vec3::<f64>::FORWARDS,
+            Vec3::<f64>::NEG_Z,
+            "Vec3::FORWARDS == Vec3::NEG_Z"
+        );
+        assert_float_vec_eq!(
+            Vec4::<f64>::FORWARDS,
+            Vec4::<f64>::NEG_Z,
+            "Vec4::FORWARDS == Vec4::NEG_Z"
+        );
 
-        assert_float_vec_eq!(Vec3::BACKWARDS, Vec3::Z, "Vec3::BACKWARDS == Vec3::Z");
-        assert_float_vec_eq!(Vec4::BACKWARDS, Vec4::Z, "Vec4::BACKWARDS == Vec4::Z");
+        assert_float_vec_eq!(
+            Vec3::<f64>::BACKWARDS,
+            Vec3::<f64>::Z,
+            "Vec3::BACKWARDS == Vec3::Z"
+        );
+        assert_float_vec_eq!(
+            Vec4::<f64>::BACKWARDS,
+            Vec4::<f64>::Z,
+            "Vec4::BACKWARDS == Vec4::Z"
+        );
     }
 }
 
@@ -1706,26 +1746,74 @@ fn test_nonsimd_float_fns() {
     {
         use ggmath::right::*;
 
-        assert_float_vec_eq!(Vec2S::RIGHT, Vec2S::X, "Vec2S::RIGHT == Vec2S::X");
-        assert_float_vec_eq!(Vec3S::RIGHT, Vec3S::Y, "Vec3S::RIGHT == Vec3S::Y");
-        assert_float_vec_eq!(Vec4S::RIGHT, Vec4S::Z, "Vec4S::RIGHT == Vec4S::Z");
+        assert_float_vec_eq!(
+            Vec2S::<f64>::RIGHT,
+            Vec2S::<f64>::X,
+            "Vec2S::RIGHT == Vec2S::X"
+        );
+        assert_float_vec_eq!(
+            Vec3S::<f64>::RIGHT,
+            Vec3S::<f64>::X,
+            "Vec3S::RIGHT == Vec3S::X"
+        );
+        assert_float_vec_eq!(
+            Vec4S::<f64>::RIGHT,
+            Vec4S::<f64>::X,
+            "Vec4S::RIGHT == Vec4S::X"
+        );
 
-        assert_float_vec_eq!(Vec2S::LEFT, Vec2S::NEG_X, "Vec2S::LEFT == Vec2S::NEG_X");
-        assert_float_vec_eq!(Vec3S::LEFT, Vec3S::NEG_Y, "Vec3S::LEFT == Vec3S::NEG_Y");
-        assert_float_vec_eq!(Vec4S::LEFT, Vec4S::NEG_Z, "Vec4S::LEFT == Vec4S::NEG_Z");
+        assert_float_vec_eq!(
+            Vec2S::<f64>::LEFT,
+            Vec2S::<f64>::NEG_X,
+            "Vec2S::LEFT == Vec2S::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec3S::<f64>::LEFT,
+            Vec3S::<f64>::NEG_X,
+            "Vec3S::LEFT == Vec3S::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec4S::<f64>::LEFT,
+            Vec4S::<f64>::NEG_X,
+            "Vec4S::LEFT == Vec4S::NEG_X"
+        );
     }
 
     #[cfg(feature = "left")]
     {
         use ggmath::left::*;
 
-        assert_float_vec_eq!(Vec2S::RIGHT, Vec2S::NEG_X, "Vec2S::RIGHT == Vec2S::NEG_X");
-        assert_float_vec_eq!(Vec3S::RIGHT, Vec3S::NEG_Y, "Vec3S::RIGHT == Vec3S::NEG_Y");
-        assert_float_vec_eq!(Vec4S::RIGHT, Vec4S::NEG_Z, "Vec4S::RIGHT == Vec4S::NEG_Z");
+        assert_float_vec_eq!(
+            Vec2S::<f64>::RIGHT,
+            Vec2S::<f64>::NEG_X,
+            "Vec2S::RIGHT == Vec2S::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec3S::<f64>::RIGHT,
+            Vec3S::<f64>::NEG_X,
+            "Vec3S::RIGHT == Vec3S::NEG_X"
+        );
+        assert_float_vec_eq!(
+            Vec4S::<f64>::RIGHT,
+            Vec4S::<f64>::NEG_X,
+            "Vec4S::RIGHT == Vec4S::NEG_X"
+        );
 
-        assert_float_vec_eq!(Vec2S::LEFT, Vec2S::X, "Vec2S::LEFT == Vec2S::X");
-        assert_float_vec_eq!(Vec3S::LEFT, Vec3S::Y, "Vec3S::LEFT == Vec3S::Y");
-        assert_float_vec_eq!(Vec4S::LEFT, Vec4S::Z, "Vec4S::LEFT == Vec4S::Z");
+        assert_float_vec_eq!(
+            Vec2S::<f64>::LEFT,
+            Vec2S::<f64>::X,
+            "Vec2S::LEFT == Vec2S::X"
+        );
+        assert_float_vec_eq!(
+            Vec3S::<f64>::LEFT,
+            Vec3S::<f64>::X,
+            "Vec3S::LEFT == Vec3S::X"
+        );
+        assert_float_vec_eq!(
+            Vec4S::<f64>::LEFT,
+            Vec4S::<f64>::X,
+            "Vec4S::LEFT == Vec4S::X"
+        );
     }
 
     #[cfg(feature = "backwards")]
@@ -1733,17 +1821,25 @@ fn test_nonsimd_float_fns() {
         use ggmath::backwards::*;
 
         assert_float_vec_eq!(
-            Vec3S::FORWARDS,
-            Vec3S::NEG_Z,
+            Vec3S::<f64>::FORWARDS,
+            Vec3S::<f64>::NEG_Z,
             "Vec3S::FORWARDS == Vec3S::NEG_Z"
         );
         assert_float_vec_eq!(
-            Vec4S::FORWARDS,
-            Vec4S::NEG_Z,
+            Vec4S::<f64>::FORWARDS,
+            Vec4S::<f64>::NEG_Z,
             "Vec4S::FORWARDS == Vec4S::NEG_Z"
         );
 
-        assert_float_vec_eq!(Vec3S::BACKWARDS, Vec3S::Z, "Vec3S::BACKWARDS == Vec3S::Z");
-        assert_float_vec_eq!(Vec4S::BACKWARDS, Vec4S::Z, "Vec4S::BACKWARDS == Vec4S::Z");
+        assert_float_vec_eq!(
+            Vec3S::<f64>::BACKWARDS,
+            Vec3S::<f64>::Z,
+            "Vec3S::BACKWARDS == Vec3S::Z"
+        );
+        assert_float_vec_eq!(
+            Vec4S::<f64>::BACKWARDS,
+            Vec4S::<f64>::Z,
+            "Vec4S::BACKWARDS == Vec4S::Z"
+        );
     }
 }
