@@ -117,6 +117,6 @@ mod tests {
 
         // Because `FixedPoint` implements `Sub`, so do `FixedPoint` vectors.
         // Beware that because we didn't optimize `sub`, its not SIMD optimized.
-        let _ = a + b - FPVec2::splat(FixedPoint::from_i32(3));
+        let _ = a + b - vec2!(FixedPoint::from_i32(3));
     }
 }

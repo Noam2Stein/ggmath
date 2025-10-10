@@ -15,10 +15,6 @@ fn test_simd_primitive_fns() {
         [1u32, 2u32, 3u32, 4u32]
     );
 
-    assert_eq!(Vec2::splat(1u32).as_array(), [1u32; 2]);
-    assert_eq!(Vec3::splat(1u32).as_array(), [1u32; 3]);
-    assert_eq!(Vec4::splat(1u32).as_array(), [1u32; 4]);
-
     assert_eq!(Vec2::from_fn(|i| [1u32, 2u32][i]).as_array(), [1u32, 2u32]);
     assert_eq!(
         Vec3::from_fn(|i| [1u32, 2u32, 3u32][i]).as_array(),
@@ -66,6 +62,10 @@ fn test_simd_primitive_fns() {
         .as_array(),
         [1u32, 2u32, 3u32, 4u32]
     );
+
+    assert_eq!(vec2!(1u32).as_array(), [1u32; 2]);
+    assert_eq!(vec3!(1u32).as_array(), [1u32; 3]);
+    assert_eq!(vec4!(1u32).as_array(), [1u32; 4]);
 
     assert_eq!(vec2!(1u32, 2u32).as_array_ref(), &[1u32, 2u32]);
     assert_eq!(vec3!(1u32, 2u32, 3u32).as_array_ref(), &[1u32, 2u32, 3u32]);
@@ -560,10 +560,6 @@ fn test_nonsimd_primitive_fns() {
         [1u32, 2u32, 3u32, 4u32]
     );
 
-    assert_eq!(Vec2S::splat(1u32).as_array(), [1u32; 2]);
-    assert_eq!(Vec3S::splat(1u32).as_array(), [1u32; 3]);
-    assert_eq!(Vec4S::splat(1u32).as_array(), [1u32; 4]);
-
     assert_eq!(Vec2S::from_fn(|i| [1u32, 2u32][i]).as_array(), [1u32, 2u32]);
     assert_eq!(
         Vec3S::from_fn(|i| [1u32, 2u32, 3u32][i]).as_array(),
@@ -611,6 +607,10 @@ fn test_nonsimd_primitive_fns() {
         .as_array(),
         [1u32, 2u32, 3u32, 4u32]
     );
+
+    assert_eq!(vec2s!(1u32).as_array(), [1u32; 2]);
+    assert_eq!(vec3s!(1u32).as_array(), [1u32; 3]);
+    assert_eq!(vec4s!(1u32).as_array(), [1u32; 4]);
 
     assert_eq!(vec2s!(1u32, 2u32).as_array_ref(), &[1u32, 2u32]);
     assert_eq!(vec3s!(1u32, 2u32, 3u32).as_array_ref(), &[1u32, 2u32, 3u32]);

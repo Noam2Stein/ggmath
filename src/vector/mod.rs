@@ -167,7 +167,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Scalar {
         Vector::const_from_array(array)
     }
 
-    /// Overridable implementation of [`Vector::splat`].
+    /// Overridable implementation of [`Vector`] splat, which can be used through the [`vec2!`], [`vec3!`], etc. macros.
     #[inline(always)]
     fn vec_splat(value: Self) -> Vector<N, Self, S> {
         Vector::from_array([value; N])
@@ -488,20 +488,6 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     #[inline(always)]
     pub fn from_array(array: [T; N]) -> Self {
         T::vec_from_array(array)
-    }
-
-    /// Creates a vector with a value for all elements.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{vec2, Vec2};
-    ///
-    /// assert_eq!(Vec2::splat(1.0), vec2!(1.0, 1.0));
-    /// ```
-    #[inline(always)]
-    pub fn splat(value: T) -> Self {
-        T::vec_splat(value)
     }
 
     /// Creates a vector by calling a function for each element.

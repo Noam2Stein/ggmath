@@ -84,10 +84,6 @@ pub fn generate(t: Primitive) {
                 assert_eq!($Vec3::from_array([$val1, $val2, $val3]).as_array(), [$val1, $val2, $val3]);
                 assert_eq!($Vec4::from_array([$val1, $val2, $val3, $val4]).as_array(), [$val1, $val2, $val3, $val4]);
 
-                assert_eq!($Vec2::splat($val1).as_array(), [$val1; 2]);
-                assert_eq!($Vec3::splat($val1).as_array(), [$val1; 3]);
-                assert_eq!($Vec4::splat($val1).as_array(), [$val1; 4]);
-
                 assert_eq!($Vec2::from_fn(|i| [$val1, $val2][i]).as_array(), [$val1, $val2]);
                 assert_eq!($Vec3::from_fn(|i| [$val1, $val2, $val3][i]).as_array(), [$val1, $val2, $val3]);
                 assert_eq!($Vec4::from_fn(|i| [$val1, $val2, $val3, $val4][i]).as_array(), [$val1, $val2, $val3, $val4]);
@@ -103,6 +99,10 @@ pub fn generate(t: Primitive) {
                 assert_eq!($vec4!($val1, $val2, $val3, $val4).as_array(), [$val1, $val2, $val3, $val4]);
                 assert_eq!($vec4!($val1, $vec2!($val2, $val3), $val4).as_array(), [$val1, $val2, $val3, $val4]);
                 assert_eq!($vec4!($val1, $vec2!($val2, $val3), Vector::<1, $t, $s>::from_array([$val4])).as_array(), [$val1, $val2, $val3, $val4]);
+
+                assert_eq!($vec2!($val1).as_array(), [$val1; 2]);
+                assert_eq!($vec3!($val1).as_array(), [$val1; 3]);
+                assert_eq!($vec4!($val1).as_array(), [$val1; 4]);
 
                 assert_eq!($vec2!($val1, $val2).as_array_ref(), &[$val1, $val2]);
                 assert_eq!($vec3!($val1, $val2, $val3).as_array_ref(), &[$val1, $val2, $val3]);

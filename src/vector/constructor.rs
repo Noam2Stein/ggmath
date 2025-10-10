@@ -644,6 +644,6 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> From<(Vector<N, T, S
 impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> From<(T,)> for Vector<N, T, S> {
     #[inline(always)]
     fn from(value: (T,)) -> Self {
-        Self::splat(value.0)
+        T::vec_splat(value.0)
     }
 }
