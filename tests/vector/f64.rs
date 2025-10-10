@@ -4,7 +4,7 @@
 use ggmath::*;
 
 #[test]
-fn test_simd_f64_vec() {
+fn test_simd_primitive_fns() {
     assert_eq!(
         Vec2::from_array([1.0f64, 2.0f64]).as_array(),
         [1.0f64, 2.0f64]
@@ -645,24 +645,24 @@ fn test_simd_f64_vec() {
 
 #[test]
 #[should_panic]
-fn test_dvec2_index_panic() {
+fn test_vec2_index_panic() {
     vec2!(1.0f64, 2.0f64)[2];
 }
 
 #[test]
 #[should_panic]
-fn test_dvec3_index_panic() {
+fn test_vec3_index_panic() {
     vec3!(1.0f64, 2.0f64, 3.0f64)[3];
 }
 
 #[test]
 #[should_panic]
-fn test_dvec4_index_panic() {
+fn test_vec4_index_panic() {
     vec4!(1.0f64, 2.0f64, 3.0f64, 4.0f64)[4];
 }
 
 #[test]
-fn test_nonsimd_f64_vec() {
+fn test_nonsimd_primitive_fns() {
     assert_eq!(size_of::<Vec2S<f64>>(), size_of::<f64>() * 2);
     assert_eq!(size_of::<Vec3S<f64>>(), size_of::<f64>() * 3);
     assert_eq!(size_of::<Vec4S<f64>>(), size_of::<f64>() * 4);
@@ -1311,18 +1311,439 @@ fn test_nonsimd_f64_vec() {
 
 #[test]
 #[should_panic]
-fn test_dvec2s_index_panic() {
+fn test_vec2s_index_panic() {
     vec2!(1.0f64, 2.0f64)[2];
 }
 
 #[test]
 #[should_panic]
-fn test_dvec3s_index_panic() {
+fn test_vec3s_index_panic() {
     vec3!(1.0f64, 2.0f64, 3.0f64)[3];
 }
 
 #[test]
 #[should_panic]
-fn test_dvec4s_index_panic() {
+fn test_vec4s_index_panic() {
     vec4!(1.0f64, 2.0f64, 3.0f64, 4.0f64)[4];
+}
+
+fn float_eq(a: f64, b: f64) -> bool {
+    if a.is_nan() && b.is_nan() {
+        true
+    } else if a.signum() != b.signum() {
+        false
+    } else if a.is_infinite() && b.is_infinite() {
+        true
+    } else {
+        a == b
+    }
+}
+
+fn float_vec_eq<const N: usize, S: Simdness>(a: Vector<N, f64, S>, b: Vector<N, f64, S>) -> bool
+where
+    f64: ElementOfVector<N, S>,
+{
+    for i in 0..N {
+        if !float_eq(a[i], b[i]) {
+            return false;
+        }
+    }
+
+    true
+}
+
+macro_rules! assert_float_eq {
+    ($a:expr, $b:expr, $($message:tt)*) => {{
+        let a = $a;
+        let b = $b;
+
+        if !float_eq(a, b) {
+            panic!("assertion failed: {}\n\nexpected: {b:?}\nactual: {a:?}", format_args!($($message)*));
+        }
+    }}
+}
+
+macro_rules! assert_float_vec_eq {
+    ($a:expr, $b:expr, $($message:tt)*) => {{
+        let a = $a;
+        let b = $b;
+
+        if !float_vec_eq(a, b) {
+            panic!("assertion failed: {}\n\nexpected: {b:?}\nactual: {a:?}", format_args!($($message)*));
+        }
+    }}
+}
+
+#[test]
+fn test_simd_float_fns() {
+    const UNIQUE_FLOAT_VALUES: &[f64] = &[
+        1.0,
+        -1.0,
+        0.0,
+        -0.0,
+        f64::MIN,
+        f64::MAX,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::NAN,
+    ];
+
+    macro_rules! test_unary_op {
+        ($op:tt) => {
+            for x in UNIQUE_FLOAT_VALUES.iter().copied() {
+                let op = stringify!($op);
+                let op_x = $op x;
+                let op_one = $op 1.0;
+
+                assert_float_vec_eq!(
+                    $op vec2!(1.0, x),
+                    vec2!(op_one, op_x),
+                    "{op}vec2!(1.0, {x:?}) == vec2!({op_one:?}, {op_x:?})"
+                );
+                assert_float_vec_eq!(
+                    $op vec3!(1.0, x, 1.0),
+                    vec3!(op_one, op_x, op_one),
+                    "{op}vec3!(1.0, {x:?}, 1.0) == vec3!({op_one:?}, {op_x:?}, {op_one:?})"
+                );
+                assert_float_vec_eq!(
+                    $op vec4!(1.0, x, 1.0, 1.0),
+                    vec4!(op_one, op_x, op_one, op_one),
+                    "{op}vec4!(1.0, {x:?}, 1.0, 1.0) == vec4!({op_one:?}, {op_x:?}, {op_one:?}, {op_one:?})"
+                );
+            }
+        }
+    }
+
+    macro_rules! test_binary_op {
+        ($op:tt) => {
+            for (x, y) in UNIQUE_FLOAT_VALUES.iter().copied().flat_map(|x| UNIQUE_FLOAT_VALUES.iter().copied().map(move |y| (x, y))) {
+                let op = stringify!($op);
+                let x_op_y = x $op y;
+                let one_op_one = 1.0 $op 1.0;
+
+                assert_float_vec_eq!(
+                    vec2!(1.0, x) $op vec2!(1.0, y),
+                    vec2!(one_op_one, x_op_y),
+                    "vec2!(1.0, {x:?}) {op} vec2!(1.0, {y:?}) == vec2!({one_op_one:?}, {x_op_y:?})"
+                );
+                assert_float_vec_eq!(
+                    vec3!(1.0, x, 1.0) $op vec3!(1.0, y, 1.0),
+                    vec3!(one_op_one, x_op_y, one_op_one),
+                    "vec3!(1.0, {x:?}, 1.0) {op} vec3!(1.0, {y:?}, 1.0) == vec3!({one_op_one:?}, {x_op_y:?}, {one_op_one:?})"
+                );
+                assert_float_vec_eq!(
+                    vec4!(1.0, x, 1.0, 1.0) $op vec4!(1.0, y, 1.0, 1.0),
+                    vec4!(one_op_one, x_op_y, one_op_one, one_op_one),
+                    "vec4!(1.0, {x:?}, 1.0, 1.0) {op} vec4!(1.0, {y:?}, 1.0, 1.0) == vec4!({one_op_one:?}, {x_op_y:?}, {one_op_one:?}, {one_op_one:?})"
+                );
+            }
+        }
+    }
+
+    test_unary_op!(-);
+    test_binary_op!(+);
+    test_binary_op!(-);
+    test_binary_op!(*);
+    test_binary_op!(/);
+    test_binary_op!(%);
+
+    assert_float_vec_eq!(Vec2::ZERO, vec2!(0.0, 0.0), "Vec2::ZERO == vec2!(0.0, 0.0)");
+    assert_float_vec_eq!(
+        Vec3::ZERO,
+        vec3!(0.0, 0.0, 0.0),
+        "Vec3::ZERO == vec3!(0.0, 0.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4::ZERO,
+        vec4!(0.0, 0.0, 0.0, 0.0),
+        "Vec4::ZERO == vec4!(0.0, 0.0, 0.0, 0.0)"
+    );
+
+    assert_float_vec_eq!(Vec2::ONE, vec2!(1.0, 1.0), "Vec2::ONE == vec2!(1.0, 1.0)");
+    assert_float_vec_eq!(
+        Vec3::ONE,
+        vec3!(1.0, 1.0, 1.0),
+        "Vec3::ONE == vec3!(1.0, 1.0, 1.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4::ONE,
+        vec4!(1.0, 1.0, 1.0, 1.0),
+        "Vec4::ONE == vec4!(1.0, 1.0, 1.0, 1.0)"
+    );
+
+    assert_float_vec_eq!(
+        Vec2::NEG_ONE,
+        vec2!(-1.0, -1.0),
+        "Vec2::NEG_ONE == vec2!(-1.0, -1.0)"
+    );
+    assert_float_vec_eq!(
+        Vec3::NEG_ONE,
+        vec3!(-1.0, -1.0, -1.0),
+        "Vec3::NEG_ONE == vec3!(-1.0, -1.0, -1.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4::NEG_ONE,
+        vec4!(-1.0, -1.0, -1.0, -1.0),
+        "Vec4::NEG_ONE == vec4!(-1.0, -1.0, -1.0, -1.0)"
+    );
+
+    assert_float_vec_eq!(Vec2::X, vec2!(1.0, 0.0), "Vec2::X == vec2!(1.0, 0.0)");
+    assert_float_vec_eq!(
+        Vec3::Y,
+        vec3!(0.0, 1.0, 0.0),
+        "Vec3::Y == vec3!(0.0, 1.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4::Z,
+        vec4!(0.0, 0.0, 1.0, 0.0),
+        "Vec4::Z == vec4!(0.0, 0.0, 1.0, 0.0)"
+    );
+
+    assert_float_vec_eq!(
+        Vec2::NEG_X,
+        vec2!(-1.0, 0.0),
+        "Vec2::NEG_X == vec2!(-1.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec3::NEG_Y,
+        vec3!(0.0, -1.0, 0.0),
+        "Vec3::NEG_Y == vec3!(0.0, -1.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4::NEG_Z,
+        vec4!(0.0, 0.0, -1.0, 0.0),
+        "Vec4::NEG_Z == vec4!(0.0, 0.0, -1.0, 0.0)"
+    );
+
+    #[cfg(feature = "right")]
+    {
+        use ggmath::right::*;
+
+        assert_float_vec_eq!(Vec2::RIGHT, Vec2::X, "Vec2::RIGHT == Vec2::X");
+        assert_float_vec_eq!(Vec3::RIGHT, Vec3::Y, "Vec3::RIGHT == Vec3::Y");
+        assert_float_vec_eq!(Vec4::RIGHT, Vec4::Z, "Vec4::RIGHT == Vec4::Z");
+
+        assert_float_vec_eq!(Vec2::LEFT, Vec2::NEG_X, "Vec2::LEFT == Vec2::NEG_X");
+        assert_float_vec_eq!(Vec3::LEFT, Vec3::NEG_Y, "Vec3::LEFT == Vec3::NEG_Y");
+        assert_float_vec_eq!(Vec4::LEFT, Vec4::NEG_Z, "Vec4::LEFT == Vec4::NEG_Z");
+    }
+
+    #[cfg(feature = "left")]
+    {
+        use ggmath::left::*;
+
+        assert_float_vec_eq!(Vec2::RIGHT, Vec2::NEG_X, "Vec2::RIGHT == Vec2::NEG_X");
+        assert_float_vec_eq!(Vec3::RIGHT, Vec3::NEG_Y, "Vec3::RIGHT == Vec3::NEG_Y");
+        assert_float_vec_eq!(Vec4::RIGHT, Vec4::NEG_Z, "Vec4::RIGHT == Vec4::NEG_Z");
+
+        assert_float_vec_eq!(Vec2::LEFT, Vec2::X, "Vec2::LEFT == Vec2::X");
+        assert_float_vec_eq!(Vec3::LEFT, Vec3::Y, "Vec3::LEFT == Vec3::Y");
+        assert_float_vec_eq!(Vec4::LEFT, Vec4::Z, "Vec4::LEFT == Vec4::Z");
+    }
+
+    #[cfg(feature = "backwards")]
+    {
+        use ggmath::backwards::*;
+
+        assert_float_vec_eq!(Vec3::FORWARDS, Vec3::NEG_Z, "Vec3::FORWARDS == Vec3::NEG_Z");
+        assert_float_vec_eq!(Vec4::FORWARDS, Vec4::NEG_Z, "Vec4::FORWARDS == Vec4::NEG_Z");
+
+        assert_float_vec_eq!(Vec3::BACKWARDS, Vec3::Z, "Vec3::BACKWARDS == Vec3::Z");
+        assert_float_vec_eq!(Vec4::BACKWARDS, Vec4::Z, "Vec4::BACKWARDS == Vec4::Z");
+    }
+}
+
+#[test]
+fn test_nonsimd_float_fns() {
+    const UNIQUE_FLOAT_VALUES: &[f64] = &[
+        1.0,
+        -1.0,
+        0.0,
+        -0.0,
+        f64::MIN,
+        f64::MAX,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::NAN,
+    ];
+
+    macro_rules! test_unary_op {
+        ($op:tt) => {
+            for x in UNIQUE_FLOAT_VALUES.iter().copied() {
+                let op = stringify!($op);
+                let op_x = $op x;
+                let op_one = $op 1.0;
+
+                assert_float_vec_eq!(
+                    $op vec2s!(1.0, x),
+                    vec2s!(op_one, op_x),
+                    "{op}vec2s!(1.0, {x:?}) == vec2s!({op_one:?}, {op_x:?})"
+                );
+                assert_float_vec_eq!(
+                    $op vec3s!(1.0, x, 1.0),
+                    vec3s!(op_one, op_x, op_one),
+                    "{op}vec3s!(1.0, {x:?}, 1.0) == vec3s!({op_one:?}, {op_x:?}, {op_one:?})"
+                );
+                assert_float_vec_eq!(
+                    $op vec4s!(1.0, x, 1.0, 1.0),
+                    vec4s!(op_one, op_x, op_one, op_one),
+                    "{op}vec4s!(1.0, {x:?}, 1.0, 1.0) == vec4s!({op_one:?}, {op_x:?}, {op_one:?}, {op_one:?})"
+                );
+            }
+        }
+    }
+
+    macro_rules! test_binary_op {
+        ($op:tt) => {
+            for (x, y) in UNIQUE_FLOAT_VALUES.iter().copied().flat_map(|x| UNIQUE_FLOAT_VALUES.iter().copied().map(move |y| (x, y))) {
+                let op = stringify!($op);
+                let x_op_y = x $op y;
+                let one_op_one = 1.0 $op 1.0;
+
+                assert_float_vec_eq!(
+                    vec2s!(1.0, x) $op vec2s!(1.0, y),
+                    vec2s!(one_op_one, x_op_y),
+                    "vec2s!(1.0, {x:?}) {op} vec2s!(1.0, {y:?}) == vec2s!({one_op_one:?}, {x_op_y:?})"
+                );
+                assert_float_vec_eq!(
+                    vec3s!(1.0, x, 1.0) $op vec3s!(1.0, y, 1.0),
+                    vec3s!(one_op_one, x_op_y, one_op_one),
+                    "vec3s!(1.0, {x:?}, 1.0) {op} vec3s!(1.0, {y:?}, 1.0) == vec3s!({one_op_one:?}, {x_op_y:?}, {one_op_one:?})"
+                );
+                assert_float_vec_eq!(
+                    vec4s!(1.0, x, 1.0, 1.0) $op vec4s!(1.0, y, 1.0, 1.0),
+                    vec4s!(one_op_one, x_op_y, one_op_one, one_op_one),
+                    "vec4s!(1.0, {x:?}, 1.0, 1.0) {op} vec4s!(1.0, {y:?}, 1.0, 1.0) == vec4s!({one_op_one:?}, {x_op_y:?}, {one_op_one:?}, {one_op_one:?})"
+                );
+            }
+        }
+    }
+
+    test_unary_op!(-);
+    test_binary_op!(+);
+    test_binary_op!(-);
+    test_binary_op!(*);
+    test_binary_op!(/);
+    test_binary_op!(%);
+
+    assert_float_vec_eq!(
+        Vec2S::ZERO,
+        vec2s!(0.0, 0.0),
+        "Vec2S::ZERO == vec2s!(0.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec3S::ZERO,
+        vec3s!(0.0, 0.0, 0.0),
+        "Vec3S::ZERO == vec3s!(0.0, 0.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4S::ZERO,
+        vec4s!(0.0, 0.0, 0.0, 0.0),
+        "Vec4S::ZERO == vec4s!(0.0, 0.0, 0.0, 0.0)"
+    );
+
+    assert_float_vec_eq!(
+        Vec2S::ONE,
+        vec2s!(1.0, 1.0),
+        "Vec2S::ONE == vec2s!(1.0, 1.0)"
+    );
+    assert_float_vec_eq!(
+        Vec3S::ONE,
+        vec3s!(1.0, 1.0, 1.0),
+        "Vec3S::ONE == vec3s!(1.0, 1.0, 1.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4S::ONE,
+        vec4s!(1.0, 1.0, 1.0, 1.0),
+        "Vec4S::ONE == vec4s!(1.0, 1.0, 1.0, 1.0)"
+    );
+
+    assert_float_vec_eq!(
+        Vec2S::NEG_ONE,
+        vec2s!(-1.0, -1.0),
+        "Vec2S::NEG_ONE == vec2s!(-1.0, -1.0)"
+    );
+    assert_float_vec_eq!(
+        Vec3S::NEG_ONE,
+        vec3s!(-1.0, -1.0, -1.0),
+        "Vec3S::NEG_ONE == vec3s!(-1.0, -1.0, -1.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4S::NEG_ONE,
+        vec4s!(-1.0, -1.0, -1.0, -1.0),
+        "Vec4S::NEG_ONE == vec4s!(-1.0, -1.0, -1.0, -1.0)"
+    );
+
+    assert_float_vec_eq!(Vec2S::X, vec2s!(1.0, 0.0), "Vec2S::X == vec2s!(1.0, 0.0)");
+    assert_float_vec_eq!(
+        Vec3S::Y,
+        vec3s!(0.0, 1.0, 0.0),
+        "Vec3S::Y == vec3s!(0.0, 1.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4S::Z,
+        vec4s!(0.0, 0.0, 1.0, 0.0),
+        "Vec4S::Z == vec4s!(0.0, 0.0, 1.0, 0.0)"
+    );
+
+    assert_float_vec_eq!(
+        Vec2S::NEG_X,
+        vec2s!(-1.0, 0.0),
+        "Vec2S::NEG_X == vec2s!(-1.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec3S::NEG_Y,
+        vec3s!(0.0, -1.0, 0.0),
+        "Vec3S::NEG_Y == vec3s!(0.0, -1.0, 0.0)"
+    );
+    assert_float_vec_eq!(
+        Vec4S::NEG_Z,
+        vec4s!(0.0, 0.0, -1.0, 0.0),
+        "Vec4S::NEG_Z == vec4s!(0.0, 0.0, -1.0, 0.0)"
+    );
+
+    #[cfg(feature = "right")]
+    {
+        use ggmath::right::*;
+
+        assert_float_vec_eq!(Vec2S::RIGHT, Vec2S::X, "Vec2S::RIGHT == Vec2S::X");
+        assert_float_vec_eq!(Vec3S::RIGHT, Vec3S::Y, "Vec3S::RIGHT == Vec3S::Y");
+        assert_float_vec_eq!(Vec4S::RIGHT, Vec4S::Z, "Vec4S::RIGHT == Vec4S::Z");
+
+        assert_float_vec_eq!(Vec2S::LEFT, Vec2S::NEG_X, "Vec2S::LEFT == Vec2S::NEG_X");
+        assert_float_vec_eq!(Vec3S::LEFT, Vec3S::NEG_Y, "Vec3S::LEFT == Vec3S::NEG_Y");
+        assert_float_vec_eq!(Vec4S::LEFT, Vec4S::NEG_Z, "Vec4S::LEFT == Vec4S::NEG_Z");
+    }
+
+    #[cfg(feature = "left")]
+    {
+        use ggmath::left::*;
+
+        assert_float_vec_eq!(Vec2S::RIGHT, Vec2S::NEG_X, "Vec2S::RIGHT == Vec2S::NEG_X");
+        assert_float_vec_eq!(Vec3S::RIGHT, Vec3S::NEG_Y, "Vec3S::RIGHT == Vec3S::NEG_Y");
+        assert_float_vec_eq!(Vec4S::RIGHT, Vec4S::NEG_Z, "Vec4S::RIGHT == Vec4S::NEG_Z");
+
+        assert_float_vec_eq!(Vec2S::LEFT, Vec2S::X, "Vec2S::LEFT == Vec2S::X");
+        assert_float_vec_eq!(Vec3S::LEFT, Vec3S::Y, "Vec3S::LEFT == Vec3S::Y");
+        assert_float_vec_eq!(Vec4S::LEFT, Vec4S::Z, "Vec4S::LEFT == Vec4S::Z");
+    }
+
+    #[cfg(feature = "backwards")]
+    {
+        use ggmath::backwards::*;
+
+        assert_float_vec_eq!(
+            Vec3S::FORWARDS,
+            Vec3S::NEG_Z,
+            "Vec3S::FORWARDS == Vec3S::NEG_Z"
+        );
+        assert_float_vec_eq!(
+            Vec4S::FORWARDS,
+            Vec4S::NEG_Z,
+            "Vec4S::FORWARDS == Vec4S::NEG_Z"
+        );
+
+        assert_float_vec_eq!(Vec3S::BACKWARDS, Vec3S::Z, "Vec3S::BACKWARDS == Vec3S::Z");
+        assert_float_vec_eq!(Vec4S::BACKWARDS, Vec4S::Z, "Vec4S::BACKWARDS == Vec4S::Z");
+    }
 }

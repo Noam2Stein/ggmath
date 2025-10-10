@@ -2,7 +2,7 @@ use genco::{quote, tokens::quoted};
 
 use crate::{
     iter::{Primitive, Simdness},
-    testsdir::TokensExtendExt,
+    testsdir::{vector::float, TokensExtendExt},
     util::TokensExt,
 };
 
@@ -67,7 +67,7 @@ pub fn generate(t: Primitive) {
             $(let vec4 = &format!("vec4{}", s.lowercase_postfix()))
 
             #[test]
-            fn test_$(s.snakecase())_$(t)_vec() {
+            fn test_$(s.snakecase())_primitive_fns() {
                 $(
                     if s == Simdness::NonSimd =>
 
@@ -369,23 +369,27 @@ pub fn generate(t: Primitive) {
 
             #[test]
             #[should_panic]
-            fn test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_index_panic() {
+            fn test_vec2$(s.lowercase_postfix())_index_panic() {
                 vec2!($val1, $val2)[2];
             }
 
             #[test]
             #[should_panic]
-            fn test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_index_panic() {
+            fn test_vec3$(s.lowercase_postfix())_index_panic() {
                 vec3!($val1, $val2, $val3)[3];
             }
             
             #[test]
             #[should_panic]
-            fn test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_index_panic() {
+            fn test_vec4$(s.lowercase_postfix())_index_panic() {
                 vec4!($val1, $val2, $val3, $val4)[4];
             }
         )
     });
+
+    if let Primitive::Float(t) = t {
+        float::generate(t, &mut result);
+    }
 
     result.write_in_tests(format!("vector/{t}.rs"));
 }

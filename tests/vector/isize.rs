@@ -4,7 +4,7 @@
 use ggmath::*;
 
 #[test]
-fn test_simd_isize_vec() {
+fn test_simd_primitive_fns() {
     assert_eq!(
         Vec2::from_array([1isize, 2isize]).as_array(),
         [1isize, 2isize]
@@ -644,24 +644,24 @@ fn test_simd_isize_vec() {
 
 #[test]
 #[should_panic]
-fn test_isizevec2_index_panic() {
+fn test_vec2_index_panic() {
     vec2!(1isize, 2isize)[2];
 }
 
 #[test]
 #[should_panic]
-fn test_isizevec3_index_panic() {
+fn test_vec3_index_panic() {
     vec3!(1isize, 2isize, 3isize)[3];
 }
 
 #[test]
 #[should_panic]
-fn test_isizevec4_index_panic() {
+fn test_vec4_index_panic() {
     vec4!(1isize, 2isize, 3isize, 4isize)[4];
 }
 
 #[test]
-fn test_nonsimd_isize_vec() {
+fn test_nonsimd_primitive_fns() {
     assert_eq!(size_of::<Vec2S<isize>>(), size_of::<isize>() * 2);
     assert_eq!(size_of::<Vec3S<isize>>(), size_of::<isize>() * 3);
     assert_eq!(size_of::<Vec4S<isize>>(), size_of::<isize>() * 4);
@@ -1311,18 +1311,18 @@ fn test_nonsimd_isize_vec() {
 
 #[test]
 #[should_panic]
-fn test_isizevec2s_index_panic() {
+fn test_vec2s_index_panic() {
     vec2!(1isize, 2isize)[2];
 }
 
 #[test]
 #[should_panic]
-fn test_isizevec3s_index_panic() {
+fn test_vec3s_index_panic() {
     vec3!(1isize, 2isize, 3isize)[3];
 }
 
 #[test]
 #[should_panic]
-fn test_isizevec4s_index_panic() {
+fn test_vec4s_index_panic() {
     vec4!(1isize, 2isize, 3isize, 4isize)[4];
 }

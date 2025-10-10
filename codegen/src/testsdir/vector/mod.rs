@@ -2,6 +2,7 @@ use genco::quote;
 
 use crate::{iter::Primitive, util::TokensExt};
 
+mod float;
 mod primitive;
 
 pub fn generate() {
