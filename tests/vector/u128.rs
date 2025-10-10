@@ -1248,3 +1248,579 @@ fn test_vec3s_index_panic() {
 fn test_vec4s_index_panic() {
     vec4!(1u128, 2u128, 3u128, 4u128)[4];
 }
+
+#[test]
+fn test_simd_int_fns() {
+    assert_eq!(!vec2!(5u128, 7u128), vec2!(!5u128, !7u128));
+    assert_eq!(!vec3!(5u128, 7u128, 9u128), vec3!(!5u128, !7u128, !9u128));
+    assert_eq!(
+        !vec4!(5u128, 7u128, 9u128, 11u128),
+        vec4!(!5u128, !7u128, !9u128, !11u128)
+    );
+
+    assert_eq!(
+        vec2!(5u128, 7u128) + vec2!(9u128, 11u128),
+        vec2!(5u128 + 9u128, 7u128 + 11u128)
+    );
+    assert_eq!(
+        vec3!(5u128, 7u128, 9u128) + vec3!(11u128, 13u128, 15u128),
+        vec3!(5u128 + 11u128, 7u128 + 13u128, 9u128 + 15u128)
+    );
+    assert_eq!(
+        vec4!(5u128, 7u128, 9u128, 11u128) + vec4!(13u128, 15u128, 17u128, 19u128),
+        vec4!(
+            5u128 + 13u128,
+            7u128 + 15u128,
+            9u128 + 17u128,
+            11u128 + 19u128
+        )
+    );
+
+    assert_eq!(
+        vec2!(9u128, 11u128) - vec2!(5u128, 7u128),
+        vec2!(9u128 - 5u128, 11u128 - 7u128)
+    );
+    assert_eq!(
+        vec3!(9u128, 11u128, 13u128) - vec3!(5u128, 7u128, 9u128),
+        vec3!(9u128 - 5u128, 11u128 - 7u128, 13u128 - 9u128)
+    );
+    assert_eq!(
+        vec4!(9u128, 11u128, 13u128, 15u128) - vec4!(5u128, 7u128, 9u128, 11u128),
+        vec4!(
+            9u128 - 5u128,
+            11u128 - 7u128,
+            13u128 - 9u128,
+            15u128 - 11u128
+        )
+    );
+
+    assert_eq!(
+        vec2!(2u128, 4u128) * vec2!(3u128, 5u128),
+        vec2!(2u128 * 3u128, 4u128 * 5u128)
+    );
+    assert_eq!(
+        vec3!(2u128, 4u128, 6u128) * vec3!(3u128, 5u128, 7u128),
+        vec3!(2u128 * 3u128, 4u128 * 5u128, 6u128 * 7u128)
+    );
+    assert_eq!(
+        vec4!(2u128, 4u128, 6u128, 8u128) * vec4!(3u128, 5u128, 7u128, 9u128),
+        vec4!(2u128 * 3u128, 4u128 * 5u128, 6u128 * 7u128, 8u128 * 9u128)
+    );
+
+    assert_eq!(
+        vec2!(21u128, 23u128) / vec2!(4u128, 50u128),
+        vec2!(21u128 / 4u128, 23u128 / 50u128)
+    );
+    assert_eq!(
+        vec3!(21u128, 23u128, 25u128) / vec3!(4u128, 50u128, 3u128),
+        vec3!(21u128 / 4u128, 23u128 / 50u128, 25u128 / 3u128)
+    );
+    assert_eq!(
+        vec4!(21u128, 23u128, 25u128, 27u128) / vec4!(4u128, 50u128, 3u128, 10u128),
+        vec4!(
+            21u128 / 4u128,
+            23u128 / 50u128,
+            25u128 / 3u128,
+            27u128 / 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2!(16u128, 19u128) / vec2!(5u128, 5u128),
+        vec2!(16u128 / 5u128, 19u128 / 5u128)
+    );
+    assert_eq!(
+        vec3!(16u128, 19u128, 22u128) / vec3!(5u128, 5u128, 5u128),
+        vec3!(16u128 / 5u128, 19u128 / 5u128, 22u128 / 5u128)
+    );
+    assert_eq!(
+        vec4!(16u128, 19u128, 22u128, 25u128) / vec4!(5u128, 5u128, 5u128, 5u128),
+        vec4!(
+            16u128 / 5u128,
+            19u128 / 5u128,
+            22u128 / 5u128,
+            25u128 / 5u128
+        )
+    );
+
+    assert_eq!(
+        vec2!(21u128, 23u128) % vec2!(4u128, 50u128),
+        vec2!(21u128 % 4u128, 23u128 % 50u128)
+    );
+    assert_eq!(
+        vec3!(21u128, 23u128, 25u128) % vec3!(4u128, 50u128, 3u128),
+        vec3!(21u128 % 4u128, 23u128 % 50u128, 25u128 % 3u128)
+    );
+    assert_eq!(
+        vec4!(21u128, 23u128, 25u128, 27u128) % vec4!(4u128, 50u128, 3u128, 10u128),
+        vec4!(
+            21u128 % 4u128,
+            23u128 % 50u128,
+            25u128 % 3u128,
+            27u128 % 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2!(21u128, 23u128) & vec2!(4u128, 50u128),
+        vec2!(21u128 & 4u128, 23u128 & 50u128)
+    );
+    assert_eq!(
+        vec3!(21u128, 23u128, 25u128) & vec3!(4u128, 50u128, 3u128),
+        vec3!(21u128 & 4u128, 23u128 & 50u128, 25u128 & 3u128)
+    );
+    assert_eq!(
+        vec4!(21u128, 23u128, 25u128, 27u128) & vec4!(4u128, 50u128, 3u128, 10u128),
+        vec4!(
+            21u128 & 4u128,
+            23u128 & 50u128,
+            25u128 & 3u128,
+            27u128 & 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2!(21u128, 23u128) | vec2!(4u128, 50u128),
+        vec2!(21u128 | 4u128, 23u128 | 50u128)
+    );
+    assert_eq!(
+        vec3!(21u128, 23u128, 25u128) | vec3!(4u128, 50u128, 3u128),
+        vec3!(21u128 | 4u128, 23u128 | 50u128, 25u128 | 3u128)
+    );
+    assert_eq!(
+        vec4!(21u128, 23u128, 25u128, 27u128) | vec4!(4u128, 50u128, 3u128, 10u128),
+        vec4!(
+            21u128 | 4u128,
+            23u128 | 50u128,
+            25u128 | 3u128,
+            27u128 | 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2!(21u128, 23u128) ^ vec2!(4u128, 50u128),
+        vec2!(21u128 ^ 4u128, 23u128 ^ 50u128)
+    );
+    assert_eq!(
+        vec3!(21u128, 23u128, 25u128) ^ vec3!(4u128, 50u128, 3u128),
+        vec3!(21u128 ^ 4u128, 23u128 ^ 50u128, 25u128 ^ 3u128)
+    );
+    assert_eq!(
+        vec4!(21u128, 23u128, 25u128, 27u128) ^ vec4!(4u128, 50u128, 3u128, 10u128),
+        vec4!(
+            21u128 ^ 4u128,
+            23u128 ^ 50u128,
+            25u128 ^ 3u128,
+            27u128 ^ 10u128
+        )
+    );
+
+    assert_eq!(Vec2::ZERO, vec2!(0u128, 0u128));
+    assert_eq!(Vec3::ZERO, vec3!(0u128, 0u128, 0u128));
+    assert_eq!(Vec4::ZERO, vec4!(0u128, 0u128, 0u128, 0u128));
+
+    assert_eq!(Vec2::ONE, vec2!(1u128, 1u128));
+    assert_eq!(Vec3::ONE, vec3!(1u128, 1u128, 1u128));
+    assert_eq!(Vec4::ONE, vec4!(1u128, 1u128, 1u128, 1u128));
+
+    assert_eq!(Vec2::X, vec2!(1u128, 0u128));
+    assert_eq!(Vec3::Y, vec3!(0u128, 1u128, 0u128));
+    assert_eq!(Vec4::Z, vec4!(0u128, 0u128, 1u128, 0u128));
+
+    #[cfg(feature = "right")]
+    {
+        use ggmath::right::*;
+
+        assert_eq!(Vec2::RIGHT, Vec2::X);
+        assert_eq!(Vec3::RIGHT, Vec3::X);
+        assert_eq!(Vec4::RIGHT, Vec4::X);
+    }
+
+    #[cfg(feature = "left")]
+    {
+        use ggmath::left::*;
+
+        assert_eq!(Vec2::LEFT, Vec2::X);
+        assert_eq!(Vec3::LEFT, Vec3::X);
+        assert_eq!(Vec4::LEFT, Vec4::X);
+    }
+
+    #[cfg(feature = "backwards")]
+    {
+        use ggmath::backwards::*;
+
+        assert_eq!(Vec3::BACKWARDS, Vec3::Z);
+        assert_eq!(Vec4::BACKWARDS, Vec4::Z);
+    }
+}
+
+macro_rules! test_simd_binop_edgecase {
+    ( $(#[$attr:meta])* $vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident: $op:tt for $lhs:expr, $rhs:expr) => {
+        #[test]
+        $(#[$attr])*
+        fn $vec2_fn() {
+            assert_eq!(vec2!(1u128, $lhs) $op vec2!(1u128, $rhs), vec2!(1u128 $op 1u128, $lhs $op $rhs));
+        }
+
+        #[test]
+        $(#[$attr])*
+        fn $vec3_fn() {
+            assert_eq!(vec3!(1u128, $lhs, 1u128) $op vec3!(1u128, $rhs, 1u128), vec3!(1u128 $op 1u128, $lhs $op $rhs, 1u128 $op 1u128));
+        }
+
+        #[test]
+        $(#[$attr])*
+        fn $vec4_fn() {
+            assert_eq!(vec4!(1u128, $lhs, 1u128, 1u128) $op vec4!(1u128, $rhs, 1u128, 1u128), vec4!(1u128 $op 1u128, $lhs $op $rhs, 1u128 $op 1u128, 1u128 $op 1u128));
+        }
+    }
+}
+
+test_simd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2_add_overflow,
+    test_u128vec3_add_overflow,
+    test_u128vec4_add_overflow:
+
+    + for u128::MAX, 3
+}
+test_simd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2_add_exact_overflow,
+    test_u128vec3_add_exact_overflow,
+    test_u128vec4_add_exact_overflow:
+
+    + for u128::MAX, 1
+}
+
+test_simd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2_sub_overflow,
+    test_u128vec3_sub_overflow,
+    test_u128vec4_sub_overflow:
+
+    - for u128::MIN, 3
+}
+test_simd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2_sub_exact_overflow,
+    test_u128vec3_sub_exact_overflow,
+    test_u128vec4_sub_exact_overflow:
+
+    - for u128::MIN, 1
+}
+
+test_simd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2_mul_overflow,
+    test_u128vec3_mul_overflow,
+    test_u128vec4_mul_overflow:
+
+    * for u128::MAX, 3
+}
+
+test_simd_binop_edgecase! {
+    #[should_panic]
+    test_u128vec2_div_by_zero,
+    test_u128vec3_div_by_zero,
+    test_u128vec4_div_by_zero:
+
+    / for 5u128, 0u128
+}
+
+test_simd_binop_edgecase! {
+    #[should_panic]
+    test_u128vec2_rem_by_zero,
+    test_u128vec3_rem_by_zero,
+    test_u128vec4_rem_by_zero:
+
+    % for 5u128, 0u128
+}
+
+#[test]
+fn test_nonsimd_int_fns() {
+    assert_eq!(!vec2s!(5u128, 7u128), vec2s!(!5u128, !7u128));
+    assert_eq!(!vec3s!(5u128, 7u128, 9u128), vec3s!(!5u128, !7u128, !9u128));
+    assert_eq!(
+        !vec4s!(5u128, 7u128, 9u128, 11u128),
+        vec4s!(!5u128, !7u128, !9u128, !11u128)
+    );
+
+    assert_eq!(
+        vec2s!(5u128, 7u128) + vec2s!(9u128, 11u128),
+        vec2s!(5u128 + 9u128, 7u128 + 11u128)
+    );
+    assert_eq!(
+        vec3s!(5u128, 7u128, 9u128) + vec3s!(11u128, 13u128, 15u128),
+        vec3s!(5u128 + 11u128, 7u128 + 13u128, 9u128 + 15u128)
+    );
+    assert_eq!(
+        vec4s!(5u128, 7u128, 9u128, 11u128) + vec4s!(13u128, 15u128, 17u128, 19u128),
+        vec4s!(
+            5u128 + 13u128,
+            7u128 + 15u128,
+            9u128 + 17u128,
+            11u128 + 19u128
+        )
+    );
+
+    assert_eq!(
+        vec2s!(9u128, 11u128) - vec2s!(5u128, 7u128),
+        vec2s!(9u128 - 5u128, 11u128 - 7u128)
+    );
+    assert_eq!(
+        vec3s!(9u128, 11u128, 13u128) - vec3s!(5u128, 7u128, 9u128),
+        vec3s!(9u128 - 5u128, 11u128 - 7u128, 13u128 - 9u128)
+    );
+    assert_eq!(
+        vec4s!(9u128, 11u128, 13u128, 15u128) - vec4s!(5u128, 7u128, 9u128, 11u128),
+        vec4s!(
+            9u128 - 5u128,
+            11u128 - 7u128,
+            13u128 - 9u128,
+            15u128 - 11u128
+        )
+    );
+
+    assert_eq!(
+        vec2s!(2u128, 4u128) * vec2s!(3u128, 5u128),
+        vec2s!(2u128 * 3u128, 4u128 * 5u128)
+    );
+    assert_eq!(
+        vec3s!(2u128, 4u128, 6u128) * vec3s!(3u128, 5u128, 7u128),
+        vec3s!(2u128 * 3u128, 4u128 * 5u128, 6u128 * 7u128)
+    );
+    assert_eq!(
+        vec4s!(2u128, 4u128, 6u128, 8u128) * vec4s!(3u128, 5u128, 7u128, 9u128),
+        vec4s!(2u128 * 3u128, 4u128 * 5u128, 6u128 * 7u128, 8u128 * 9u128)
+    );
+
+    assert_eq!(
+        vec2s!(21u128, 23u128) / vec2s!(4u128, 50u128),
+        vec2s!(21u128 / 4u128, 23u128 / 50u128)
+    );
+    assert_eq!(
+        vec3s!(21u128, 23u128, 25u128) / vec3s!(4u128, 50u128, 3u128),
+        vec3s!(21u128 / 4u128, 23u128 / 50u128, 25u128 / 3u128)
+    );
+    assert_eq!(
+        vec4s!(21u128, 23u128, 25u128, 27u128) / vec4s!(4u128, 50u128, 3u128, 10u128),
+        vec4s!(
+            21u128 / 4u128,
+            23u128 / 50u128,
+            25u128 / 3u128,
+            27u128 / 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2s!(16u128, 19u128) / vec2s!(5u128, 5u128),
+        vec2s!(16u128 / 5u128, 19u128 / 5u128)
+    );
+    assert_eq!(
+        vec3s!(16u128, 19u128, 22u128) / vec3s!(5u128, 5u128, 5u128),
+        vec3s!(16u128 / 5u128, 19u128 / 5u128, 22u128 / 5u128)
+    );
+    assert_eq!(
+        vec4s!(16u128, 19u128, 22u128, 25u128) / vec4s!(5u128, 5u128, 5u128, 5u128),
+        vec4s!(
+            16u128 / 5u128,
+            19u128 / 5u128,
+            22u128 / 5u128,
+            25u128 / 5u128
+        )
+    );
+
+    assert_eq!(
+        vec2s!(21u128, 23u128) % vec2s!(4u128, 50u128),
+        vec2s!(21u128 % 4u128, 23u128 % 50u128)
+    );
+    assert_eq!(
+        vec3s!(21u128, 23u128, 25u128) % vec3s!(4u128, 50u128, 3u128),
+        vec3s!(21u128 % 4u128, 23u128 % 50u128, 25u128 % 3u128)
+    );
+    assert_eq!(
+        vec4s!(21u128, 23u128, 25u128, 27u128) % vec4s!(4u128, 50u128, 3u128, 10u128),
+        vec4s!(
+            21u128 % 4u128,
+            23u128 % 50u128,
+            25u128 % 3u128,
+            27u128 % 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2s!(21u128, 23u128) & vec2s!(4u128, 50u128),
+        vec2s!(21u128 & 4u128, 23u128 & 50u128)
+    );
+    assert_eq!(
+        vec3s!(21u128, 23u128, 25u128) & vec3s!(4u128, 50u128, 3u128),
+        vec3s!(21u128 & 4u128, 23u128 & 50u128, 25u128 & 3u128)
+    );
+    assert_eq!(
+        vec4s!(21u128, 23u128, 25u128, 27u128) & vec4s!(4u128, 50u128, 3u128, 10u128),
+        vec4s!(
+            21u128 & 4u128,
+            23u128 & 50u128,
+            25u128 & 3u128,
+            27u128 & 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2s!(21u128, 23u128) | vec2s!(4u128, 50u128),
+        vec2s!(21u128 | 4u128, 23u128 | 50u128)
+    );
+    assert_eq!(
+        vec3s!(21u128, 23u128, 25u128) | vec3s!(4u128, 50u128, 3u128),
+        vec3s!(21u128 | 4u128, 23u128 | 50u128, 25u128 | 3u128)
+    );
+    assert_eq!(
+        vec4s!(21u128, 23u128, 25u128, 27u128) | vec4s!(4u128, 50u128, 3u128, 10u128),
+        vec4s!(
+            21u128 | 4u128,
+            23u128 | 50u128,
+            25u128 | 3u128,
+            27u128 | 10u128
+        )
+    );
+
+    assert_eq!(
+        vec2s!(21u128, 23u128) ^ vec2s!(4u128, 50u128),
+        vec2s!(21u128 ^ 4u128, 23u128 ^ 50u128)
+    );
+    assert_eq!(
+        vec3s!(21u128, 23u128, 25u128) ^ vec3s!(4u128, 50u128, 3u128),
+        vec3s!(21u128 ^ 4u128, 23u128 ^ 50u128, 25u128 ^ 3u128)
+    );
+    assert_eq!(
+        vec4s!(21u128, 23u128, 25u128, 27u128) ^ vec4s!(4u128, 50u128, 3u128, 10u128),
+        vec4s!(
+            21u128 ^ 4u128,
+            23u128 ^ 50u128,
+            25u128 ^ 3u128,
+            27u128 ^ 10u128
+        )
+    );
+
+    assert_eq!(Vec2S::ZERO, vec2s!(0u128, 0u128));
+    assert_eq!(Vec3S::ZERO, vec3s!(0u128, 0u128, 0u128));
+    assert_eq!(Vec4S::ZERO, vec4s!(0u128, 0u128, 0u128, 0u128));
+
+    assert_eq!(Vec2S::ONE, vec2s!(1u128, 1u128));
+    assert_eq!(Vec3S::ONE, vec3s!(1u128, 1u128, 1u128));
+    assert_eq!(Vec4S::ONE, vec4s!(1u128, 1u128, 1u128, 1u128));
+
+    assert_eq!(Vec2S::X, vec2s!(1u128, 0u128));
+    assert_eq!(Vec3S::Y, vec3s!(0u128, 1u128, 0u128));
+    assert_eq!(Vec4S::Z, vec4s!(0u128, 0u128, 1u128, 0u128));
+
+    #[cfg(feature = "right")]
+    {
+        use ggmath::right::*;
+
+        assert_eq!(Vec2S::RIGHT, Vec2S::X);
+        assert_eq!(Vec3S::RIGHT, Vec3S::X);
+        assert_eq!(Vec4S::RIGHT, Vec4S::X);
+    }
+
+    #[cfg(feature = "left")]
+    {
+        use ggmath::left::*;
+
+        assert_eq!(Vec2S::LEFT, Vec2S::X);
+        assert_eq!(Vec3S::LEFT, Vec3S::X);
+        assert_eq!(Vec4S::LEFT, Vec4S::X);
+    }
+
+    #[cfg(feature = "backwards")]
+    {
+        use ggmath::backwards::*;
+
+        assert_eq!(Vec3S::BACKWARDS, Vec3S::Z);
+        assert_eq!(Vec4S::BACKWARDS, Vec4S::Z);
+    }
+}
+
+macro_rules! test_nonsimd_binop_edgecase {
+    ( $(#[$attr:meta])* $vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident: $op:tt for $lhs:expr, $rhs:expr) => {
+        #[test]
+        $(#[$attr])*
+        fn $vec2_fn() {
+            assert_eq!(vec2s!(1u128, $lhs) $op vec2s!(1u128, $rhs), vec2s!(1u128 $op 1u128, $lhs $op $rhs));
+        }
+
+        #[test]
+        $(#[$attr])*
+        fn $vec3_fn() {
+            assert_eq!(vec3s!(1u128, $lhs, 1u128) $op vec3s!(1u128, $rhs, 1u128), vec3s!(1u128 $op 1u128, $lhs $op $rhs, 1u128 $op 1u128));
+        }
+
+        #[test]
+        $(#[$attr])*
+        fn $vec4_fn() {
+            assert_eq!(vec4s!(1u128, $lhs, 1u128, 1u128) $op vec4s!(1u128, $rhs, 1u128, 1u128), vec4s!(1u128 $op 1u128, $lhs $op $rhs, 1u128 $op 1u128, 1u128 $op 1u128));
+        }
+    }
+}
+
+test_nonsimd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2s_add_overflow,
+    test_u128vec3s_add_overflow,
+    test_u128vec4s_add_overflow:
+
+    + for u128::MAX, 3
+}
+test_nonsimd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2s_add_exact_overflow,
+    test_u128vec3s_add_exact_overflow,
+    test_u128vec4s_add_exact_overflow:
+
+    + for u128::MAX, 1
+}
+
+test_nonsimd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2s_sub_overflow,
+    test_u128vec3s_sub_overflow,
+    test_u128vec4s_sub_overflow:
+
+    - for u128::MIN, 3
+}
+test_nonsimd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2s_sub_exact_overflow,
+    test_u128vec3s_sub_exact_overflow,
+    test_u128vec4s_sub_exact_overflow:
+
+    - for u128::MIN, 1
+}
+
+test_nonsimd_binop_edgecase! {
+    #[cfg_attr(debug_assertions, should_panic)]
+    test_u128vec2s_mul_overflow,
+    test_u128vec3s_mul_overflow,
+    test_u128vec4s_mul_overflow:
+
+    * for u128::MAX, 3
+}
+
+test_nonsimd_binop_edgecase! {
+    #[should_panic]
+    test_u128vec2s_div_by_zero,
+    test_u128vec3s_div_by_zero,
+    test_u128vec4s_div_by_zero:
+
+    / for 5u128, 0u128
+}
+
+test_nonsimd_binop_edgecase! {
+    #[should_panic]
+    test_u128vec2s_rem_by_zero,
+    test_u128vec3s_rem_by_zero,
+    test_u128vec4s_rem_by_zero:
+
+    % for 5u128, 0u128
+}

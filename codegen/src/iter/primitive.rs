@@ -53,6 +53,7 @@ impl Primitive {
             .chain(once(Self::Char))
     }
 
+    #[expect(unused)]
     pub fn lowercase_prefix(&self) -> &'static str {
         match self {
             Self::Float(float) => float.lowercase_prefix(),

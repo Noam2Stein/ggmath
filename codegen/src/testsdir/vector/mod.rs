@@ -3,6 +3,7 @@ use genco::quote;
 use crate::{iter::Primitive, util::TokensExt};
 
 mod float;
+mod int;
 mod primitive;
 
 pub fn generate() {

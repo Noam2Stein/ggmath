@@ -2,7 +2,7 @@ use genco::{quote, tokens::quoted};
 
 use crate::{
     iter::{Primitive, Simdness},
-    testsdir::{vector::float, TokensExtendExt},
+    testsdir::{vector::{float, int}, TokensExtendExt},
     util::TokensExt,
 };
 
@@ -387,8 +387,10 @@ pub fn generate(t: Primitive) {
         )
     });
 
-    if let Primitive::Float(t) = t {
-        float::generate(t, &mut result);
+    match t {
+        Primitive::Int(t) => int::generate(t, &mut result),
+        Primitive::Float(t) => float::generate(t, &mut result),
+        _ => {},
     }
 
     result.write_in_tests(format!("vector/{t}.rs"));
