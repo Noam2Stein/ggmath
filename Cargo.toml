@@ -53,7 +53,7 @@ members = [
     ".",
     "codegen",
     "examples/custom_scalar",
-    "examples/direction_constants",
+    "examples/direction_constants", "examples/sandbox",
     "examples/simple_operations",
 ]
 

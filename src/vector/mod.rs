@@ -114,8 +114,17 @@ macro_rules! declare_vector_aliases {
     };
 }
 
-/// Trait for types that can be elements of a vector of a specific length and "simdness".
-/// For example, `ElementOfVector<2, Simd>` means a type can be an element of a 2-element SIMD vector.
+/// Trait for vector element types.
+///
+/// * All vector element types must implement both [`Scalar`] and [`ElementOfVector<N, Simd>`] for each desired vector length.
+pub trait Scalar: Construct {}
+
+/// Trait to define how a vector of a specific element type and length should be stored and optimized.
+///
+/// All vector element types must implement both [`Scalar`] and [`ElementOfVector<N, Simd>`] for each desired vector length.
+///
+/// * [`ElementOfVector<N, NonSimd>`] is automatically implemented,
+/// because [`NonSimd`] vectors are always stored as `[T; N]` and have no SIMD optimizations.
 ///
 /// ## Safety
 ///
@@ -129,20 +138,8 @@ macro_rules! declare_vector_aliases {
 ///
 /// ## Example
 ///
-/// ```
-/// use ggmath::impl_element_of_vector;
-///
-/// #[derive(Clone, Copy)]
-/// struct MyType {
-///     field1: f32,
-///     field2: bool,
-/// }
-///
-/// impl_element_of_vector! { impl for MyType }
-///
-/// // Now you can use MyType in vectors.
-/// ```
-pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
+/// // TODO: add exampleca
+pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Scalar {
     /// The inner type contained inside [`Vector<N, Self, S>`].
     ///
     /// ## Safety
@@ -407,7 +404,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
 /// # Example
 ///
 /// ```
-/// use ggmath::impl_element_of_vector;
+/// use ggmath::{impl_element_of_vector, Scalar};
 ///
 /// #[derive(Clone, Copy)]
 /// struct SimpleType {
@@ -424,10 +421,15 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Construct {
 ///     field: f32,
 /// }
 ///
+/// impl Scalar for SimpleType {}
+/// impl<T: Copy + Send + Sync + 'static> Scalar for GenericType<T> {}
+///
 /// impl_element_of_vector!(impl for SimpleType);
 /// impl_element_of_vector!(impl<(T: Copy + Send + Sync + 'static)> for GenericType<T>);
 ///
 /// // Now you can use SimpleType and GenericType in vectors.
+///
+/// impl Scalar for SpecialType {}
 ///
 /// impl_element_of_vector!(for N = 2: impl for SpecialType);
 ///
@@ -894,21 +896,45 @@ impl<const N: usize, T: Display + ElementOfVector<N, S>, S: Simdness> Display fo
     }
 }
 
+impl Scalar for f32 {}
+impl Scalar for f64 {}
+impl Scalar for i8 {}
+impl Scalar for i16 {}
+impl Scalar for i32 {}
+impl Scalar for i64 {}
+impl Scalar for i128 {}
+impl Scalar for isize {}
+impl Scalar for u8 {}
+impl Scalar for u16 {}
+impl Scalar for u32 {}
+impl Scalar for u64 {}
+impl Scalar for u128 {}
+impl Scalar for usize {}
+impl Scalar for bool {}
+impl Scalar for char {}
+impl<T: Scalar, const N: usize> Scalar for [T; N] {}
+impl<T: Scalar> Scalar for Option<T> {}
+impl Scalar for () {}
+impl<T: Scalar> Scalar for (T,) {}
+impl<T0: Scalar, T1: Scalar> Scalar for (T0, T1) {}
+impl<T0: Scalar, T1: Scalar, T2: Scalar> Scalar for (T0, T1, T2) {}
+impl<T0: Scalar, T1: Scalar, T2: Scalar, T3: Scalar> Scalar for (T0, T1, T2, T3) {}
+
 // SAFETY: InnerVectorType is [T; N] which is sound, and VECTOR_PADDING is None which matches [T; N].
-unsafe impl<const N: usize, T: Construct> ElementOfVector<N, NonSimd> for T {
+unsafe impl<const N: usize, T: Scalar> ElementOfVector<N, NonSimd> for T {
     type InnerVectorType = [T; N];
 
     const VECTOR_PADDING: Option<Vector<N, Self, NonSimd>> = None;
 }
 
-impl_element_of_vector!(impl<(T: Construct, const N2: usize)> for [T; N2]);
-impl_element_of_vector!(impl<(T: Construct)> for Option<T>);
+impl_element_of_vector!(impl<(T: Scalar, const N2: usize)> for [T; N2]);
+impl_element_of_vector!(impl<(T: Scalar)> for Option<T>);
 
 impl_element_of_vector!(impl for ());
-impl_element_of_vector!(impl<(T0: Construct)> for (T0,));
-impl_element_of_vector!(impl<(T0: Construct, T1: Construct)> for (T0, T1));
-impl_element_of_vector!(impl<(T0: Construct, T1: Construct, T2: Construct)> for (T0, T1, T2));
-impl_element_of_vector!(impl<(T0: Construct, T1: Construct, T2: Construct, T3: Construct)> for (T0, T1, T2, T3));
+impl_element_of_vector!(impl<(T0: Scalar)> for (T0,));
+impl_element_of_vector!(impl<(T0: Scalar, T1: Scalar)> for (T0, T1));
+impl_element_of_vector!(impl<(T0: Scalar, T1: Scalar, T2: Scalar)> for (T0, T1, T2));
+impl_element_of_vector!(impl<(T0: Scalar, T1: Scalar, T2: Scalar, T3: Scalar)> for (T0, T1, T2, T3));
 
 impl Simdness for Simd {
     const IS_SIMD: bool = true;

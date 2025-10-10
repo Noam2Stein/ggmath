@@ -5,7 +5,8 @@
 use std::ops::{Add, Sub};
 
 use ggmath::{
-    ElementOfVector, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector, declare_vector_aliases,
+    ElementOfVector, Scalar, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector,
+    declare_vector_aliases,
 };
 
 /// A fixed-point number type with 8 fractional bits.
@@ -50,6 +51,9 @@ impl Sub for FixedPoint {
         Self(self.0 - other.0)
     }
 }
+
+// Implement `Scalar` for `FixedPoint` to use it as a vector element type.
+impl Scalar for FixedPoint {}
 
 // These implementations automatically add `ZERO`/`ONE`/`NEG_ONE` constants to `FixedPoint` vectors,
 // as well as `RIGHT`/`LEFT`/`UP`/`DOWN`/`FORWARDS`/`BACKWARDS` constants.
