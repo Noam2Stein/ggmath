@@ -16,8 +16,10 @@ mod constructor;
 mod deref;
 mod dir;
 mod ops;
+mod primitives;
 pub use constructor::*;
 pub use dir::*;
+pub use primitives::*;
 
 #[cfg(feature = "swizzle")]
 mod swizzle;
@@ -453,12 +455,12 @@ macro_rules! impl_element_of_vector {
         $crate::impl_element_of_vector!(for N = 8: impl$(<($($impl_param_tt)*)>)? for $T);
     };
 
-    { for N = $n:literal: impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
-        // SAFETY: InnerVectorType is [T; $n] which is sound, and VECTOR_PADDING is None which matches [T; $n].
-        unsafe impl<$($($impl_param_tt)*)?> $crate::ElementOfVector<$n, $crate::Simd> for $T {
-            type InnerVectorType = [$T; $n];
+    { for N = $N:literal: impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
+        // SAFETY: InnerVectorType is [T; $N] which is sound, and VECTOR_PADDING is None which matches [T; $N].
+        unsafe impl<$($($impl_param_tt)*)?> $crate::ElementOfVector<$N, $crate::Simd> for $T {
+            type InnerVectorType = [$T; $N];
 
-            const VECTOR_PADDING: Option<$crate::Vector<$n, Self, $crate::Simd>> = None;
+            const VECTOR_PADDING: Option<$crate::Vector<$N, Self, $crate::Simd>> = None;
         }
     }
 }
@@ -899,10 +901,12 @@ impl Scalar for u128 {}
 impl Scalar for usize {}
 impl Scalar for bool {}
 impl Scalar for char {}
+
 impl<T: Scalar, const N: usize> Scalar for [T; N] {}
 impl<T: Scalar> Scalar for Option<T> {}
+
 impl Scalar for () {}
-impl<T: Scalar> Scalar for (T,) {}
+impl<T0: Scalar> Scalar for (T0,) {}
 impl<T0: Scalar, T1: Scalar> Scalar for (T0, T1) {}
 impl<T0: Scalar, T1: Scalar, T2: Scalar> Scalar for (T0, T1, T2) {}
 impl<T0: Scalar, T1: Scalar, T2: Scalar, T3: Scalar> Scalar for (T0, T1, T2, T3) {}
