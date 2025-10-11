@@ -11,9 +11,9 @@ fn ggmath_random_math(input: [f32; 12]) -> ggmath::f32_aliases::FVec4 {
     let c = vec4!(input[5], a, input[6]);
     let d = vec3s!(input[7], input[8], input[9]);
 
-    let e = a.xxy() + b + b + b + b + b;
+    let e = a.xxy() + b + b.floor() + b.ceil() + b.trunc() + b.fract();
     let f = e.xyzy() * c.yzwx() + d.as_simd().xxxy();
-    let g = (-f).reverse() / c % c.xxxw();
+    let g = (-f).reverse().abs() / c % c.xxxw();
     let h = g.xz() * b.zy();
 
     let i = h.xyxy() + c + f + g + e.xxyz();
@@ -30,9 +30,9 @@ fn glam_random_math(input: [f32; 12]) -> glam::Vec4 {
     let c = Vec4::new(input[5], a.x, a.y, input[6]);
     let d = Vec3::new(input[7], input[8], input[9]);
 
-    let e = a.xxy().to_vec3a() + b + b + b + b + b;
+    let e = a.xxy().to_vec3a() + b + b.floor() + b.ceil() + b.trunc() + b.fract();
     let f = e.xyzy() * c.yzwx() + d.to_vec3a().xxxy();
-    let g = (-f).wzyx() / c % c.xxxw();
+    let g = (-f).wzyx().abs() / c % c.xxxw();
     let h = g.xz() * b.zy();
 
     let i = h.xyxy() + c + f + g + e.xxyz();
