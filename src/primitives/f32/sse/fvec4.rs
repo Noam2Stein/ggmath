@@ -381,4 +381,37 @@ impl FloatElementOfVector<4, Simd> for f32 {
             )
         })
     }
+
+    #[inline(always)]
+    fn vec_sum(vec: Vector<4, Self, Simd>) -> Self {
+        #[cfg(target_feature = "sse3")]
+        unsafe {
+            let xplusy_zplusw__ = _mm_hadd_ps(vec.0, vec.0);
+            let sum___ = _mm_hadd_ps(xplusy_zplusw__, xplusy_zplusw__);
+
+            sum___.x
+        }
+
+        #[cfg(not(target_feature = "sse3"))]
+        {
+            let xy__ = vec;
+            let zw__ = vec.zwxy();
+            let xplusz_yplusw__ = xy__ + zw__;
+            let yplusw_xplusz__ = xplusz_yplusw__.yxwz();
+            let sum___ = xplusz_yplusw__ + yplusw_xplusz__;
+
+            sum___.x
+        }
+    }
+
+    #[inline(always)]
+    fn vec_product(vec: Vector<4, Self, Simd>) -> Self {
+        let xy__ = vec;
+        let zw__ = vec.zwxy();
+        let xtimesz_ytimesw__ = xy__ * zw__;
+        let ytimesw_xtimesz__ = xtimesz_ytimesw__.yxwz();
+        let product___ = xtimesz_ytimesw__ * ytimesw_xtimesz__;
+
+        product___.x
+    }
 }

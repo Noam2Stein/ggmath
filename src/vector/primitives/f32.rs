@@ -170,4 +170,18 @@ where
     pub fn copysign(self, sign: Self) -> Self {
         f32::vec_copysign(self, sign)
     }
+
+    /// Returns the sum of all elements of `self`.
+    /// Equivalent to `self.x + self.y + ..`.
+    #[inline(always)]
+    pub fn sum(self) -> f32 {
+        f32::vec_sum(self)
+    }
+
+    /// Returns the product of all elements of `self`.
+    /// Equivalent to `self.x * self.y * ..`.
+    #[inline(always)]
+    pub fn product(self) -> f32 {
+        f32::vec_product(self)
+    }
 }

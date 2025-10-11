@@ -83,6 +83,12 @@ pub trait FloatElementOfVector<const N: usize, S: Simdness>:
 
     /// Implementation of `Vector::copysign` for this element type.
     fn vec_copysign(vec: Vector<N, Self, S>, sign: Vector<N, Self, S>) -> Vector<N, Self, S>;
+
+    /// Implementation of `Vector::sum` for this element type.
+    fn vec_sum(vec: Vector<N, Self, S>) -> Self;
+
+    /// Implementation of `Vector::product` for this element type.
+    fn vec_product(vec: Vector<N, Self, S>) -> Self;
 }
 
 #[doc(hidden)]
@@ -222,6 +228,16 @@ macro_rules! impl_float_element_of_vector {
             #[inline(always)]
             fn vec_copysign(vec: $crate::Vector<$N, Self, $crate::Simd>, sign: $crate::Vector<$N, Self, $crate::Simd>) -> $crate::Vector<$N, Self, $crate::Simd> {
                 vec.zip(sign).map(|(x, sign)| x.copysign(sign))
+            }
+
+            #[inline(always)]
+            fn vec_sum(vec: $crate::Vector<$N, Self, $crate::Simd>) -> Self {
+                vec.iter().sum()
+            }
+
+            #[inline(always)]
+            fn vec_product(vec: $crate::Vector<$N, Self, $crate::Simd>) -> Self {
+                vec.iter().product()
             }
         }
     }

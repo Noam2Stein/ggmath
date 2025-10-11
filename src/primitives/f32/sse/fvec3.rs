@@ -304,4 +304,33 @@ impl FloatElementOfVector<3, Simd> for f32 {
 
         Vector(result_as_vec4.0)
     }
+
+    #[inline(always)]
+    fn vec_sum(vec: Vector<3, Self, Simd>) -> Self {
+        #[cfg(target_feature = "sse3")]
+        unsafe {
+            const NO_W_MASK: Vector<4, Self, Simd> = Vector::const_from_array([
+                f32::from_bits(0xff_ff_ff_ff),
+                f32::from_bits(0xff_ff_ff_ff),
+                f32::from_bits(0xff_ff_ff_ff),
+                f32::from_bits(0x00_00_00_00),
+            ]);
+
+            let xyz0 = _mm_and_ps(vec.0, NO_W_MASK.0);
+            let xplusy_zplus0__ = _mm_hadd_ps(xyz0, xyz0);
+            let sum___ = _mm_hadd_ps(xplusy_zplus0__, xplusy_zplus0__);
+
+            sum___.x
+        }
+
+        #[cfg(not(target_feature = "sse3"))]
+        {
+            vec.x + vec.y + vec.z
+        }
+    }
+
+    #[inline(always)]
+    fn vec_product(vec: Vector<3, Self, Simd>) -> Self {
+        vec.x * vec.y * vec.z
+    }
 }

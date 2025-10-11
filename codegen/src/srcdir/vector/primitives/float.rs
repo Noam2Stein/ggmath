@@ -173,6 +173,20 @@ pub fn generate(t: Float) {
             pub fn copysign(self, sign: Self) -> Self {
                 $t::vec_copysign(self, sign)
             }
+
+            $("/// Returns the sum of all elements of `self`.")
+            $("/// Equivalent to `self.x + self.y + ..`.")
+            #[inline(always)]
+            pub fn sum(self) -> $t {
+                $t::vec_sum(self)
+            }
+
+            $("/// Returns the product of all elements of `self`.")
+            $("/// Equivalent to `self.x * self.y * ..`.")
+            #[inline(always)]
+            pub fn product(self) -> $t {
+                $t::vec_product(self)
+            }
         }
     )
     .write_in_src(format!("vector/primitives/{t}.rs"));
