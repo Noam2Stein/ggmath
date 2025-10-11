@@ -60,6 +60,7 @@ mod swizzle;
 ///     position: Vec3S<f32>,
 /// }
 /// ```
+#[repr(transparent)]
 pub struct Vector<const N: usize, T: ElementOfVector<N, S>, S: Simdness>(pub T::InnerVectorType);
 
 /// Type alias for [`Vector<2, T, Simd>`].
