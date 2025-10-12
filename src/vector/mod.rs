@@ -16,10 +16,10 @@ mod constructor;
 mod deref;
 mod dir;
 mod ops;
-mod primitives;
+mod primitive_api;
 pub use constructor::*;
 pub use dir::*;
-pub use primitives::*;
+pub use primitive_api::*;
 
 #[cfg(feature = "swizzle")]
 mod swizzle;

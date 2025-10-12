@@ -326,5 +326,5 @@ pub fn generate(t: Float) {
             }
         }
     )
-    .write_in_src(format!("vector/primitives/{t}.rs"));
+    .write_in_src(format!("vector/primitive_api/{t}.rs"));
 }

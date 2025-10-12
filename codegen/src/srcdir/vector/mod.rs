@@ -2,7 +2,7 @@ mod constructor;
 mod deref;
 mod dir;
 mod ops;
-mod primitives;
+mod primitive_api;
 mod swizzle;
 
 pub fn generate() {
@@ -10,6 +10,6 @@ pub fn generate() {
     deref::generate();
     dir::generate();
     ops::generate();
-    primitives::generate();
+    primitive_api::generate();
     swizzle::generate();
 }
