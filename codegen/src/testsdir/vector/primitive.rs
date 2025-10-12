@@ -2,7 +2,10 @@ use genco::{quote, tokens::quoted};
 
 use crate::{
     iter::{Primitive, Simdness},
-    testsdir::{vector::{float, int}, TokensExtendExt},
+    testsdir::{
+        TokensExtendExt,
+        vector::{float, int},
+    },
     util::TokensExt,
 };
 
@@ -53,6 +56,8 @@ pub fn generate(t: Primitive) {
 
     result.extend(quote!(
         use ggmath::*;
+
+        use crate::assert_panic;
     ));
 
     #[allow(non_snake_case)]
@@ -259,6 +264,10 @@ pub fn generate(t: Primitive) {
                 assert_eq!($vec4!($val1, $val2, $val3, $val4)[2], $val3);
                 assert_eq!($vec4!($val1, $val2, $val3, $val4)[3], $val4);
 
+                assert_panic!(vec2!($val1, $val2)[2]);
+                assert_panic!(vec3!($val1, $val2, $val3)[3]);
+                assert_panic!(vec4!($val1, $val2, $val3, $val4)[4]);
+
                 assert_eq!(&mut $vec2!($val1, $val2)[0], &mut $val1);
                 assert_eq!(&mut $vec2!($val1, $val2)[1], &mut $val2);
 
@@ -270,6 +279,10 @@ pub fn generate(t: Primitive) {
                 assert_eq!(&mut $vec4!($val1, $val2, $val3, $val4)[1], &mut $val2);
                 assert_eq!(&mut $vec4!($val1, $val2, $val3, $val4)[2], &mut $val3);
                 assert_eq!(&mut $vec4!($val1, $val2, $val3, $val4)[3], &mut $val4);
+
+                assert_panic!(&mut vec2!($val1, $val2)[2]);
+                assert_panic!(&mut vec3!($val1, $val2, $val3)[3]);
+                assert_panic!(&mut vec4!($val1, $val2, $val3, $val4)[4]);
 
                 assert_eq!($vec2!($val1, $val2) == $vec2!($val1, $val2), true);
                 assert_eq!($vec2!($val1, $val2) == $vec2!($val2, $val1), false);
@@ -366,31 +379,13 @@ pub fn generate(t: Primitive) {
                     assert_eq!($vec4!($val1, $val2, $val3, $val4).wyzx(), $vec4!($val4, $val2, $val3, $val1));
                 }
             }
-
-            #[test]
-            #[should_panic]
-            fn test_vec2$(s.lowercase_postfix())_index_panic() {
-                vec2!($val1, $val2)[2];
-            }
-
-            #[test]
-            #[should_panic]
-            fn test_vec3$(s.lowercase_postfix())_index_panic() {
-                vec3!($val1, $val2, $val3)[3];
-            }
-            
-            #[test]
-            #[should_panic]
-            fn test_vec4$(s.lowercase_postfix())_index_panic() {
-                vec4!($val1, $val2, $val3, $val4)[4];
-            }
         )
     });
 
     match t {
         Primitive::Int(t) => int::generate(t, &mut result),
         Primitive::Float(t) => float::generate(t, &mut result),
-        _ => {},
+        _ => {}
     }
 
     result.write_in_tests(format!("vector/{t}.rs"));

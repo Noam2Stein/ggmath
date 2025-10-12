@@ -5,7 +5,7 @@ use core::arch::x86_64::*;
 
 use core::{
     mem::transmute,
-    ops::{Add, Div, Mul, Neg, Sub},
+    ops::{Add, Div, Mul, Neg, Rem, Sub},
 };
 
 use crate::*;
@@ -119,7 +119,13 @@ unsafe impl ElementOfVector<3, Simd> for f32 {
         Vector(unsafe { _mm_div_ps(vec.0, rhs.0) })
     }
 
-    // TODO: optimized rem once trunc is implemented
+    #[inline(always)]
+    fn vec_rem(vec: Vector<3, Self, Simd>, rhs: Vector<3, Self, Simd>) -> Vector<3, Self, Simd>
+    where
+        Self: Rem<Output = Self>,
+    {
+        vec3!(vec.x % rhs.x, vec.y % rhs.y, vec.z % rhs.z)
+    }
 }
 
 impl FloatElementOfVector<3, Simd> for f32 {
@@ -251,11 +257,17 @@ impl FloatElementOfVector<3, Simd> for f32 {
 
     #[inline(always)]
     fn vec_max(vec: Vector<3, Self, Simd>, other: Vector<3, Self, Simd>) -> Vector<3, Self, Simd> {
+        debug_assert!(vec.iter().all(|x| !x.is_nan()));
+        debug_assert!(other.iter().all(|x| !x.is_nan()));
+
         Vector(unsafe { _mm_max_ps(vec.0, other.0) })
     }
 
     #[inline(always)]
     fn vec_min(vec: Vector<3, Self, Simd>, other: Vector<3, Self, Simd>) -> Vector<3, Self, Simd> {
+        debug_assert!(vec.iter().all(|x| !x.is_nan()));
+        debug_assert!(other.iter().all(|x| !x.is_nan()));
+
         Vector(unsafe { _mm_min_ps(vec.0, other.0) })
     }
 
@@ -264,7 +276,7 @@ impl FloatElementOfVector<3, Simd> for f32 {
         vec: Vector<3, Self, Simd>,
         other: Vector<3, Self, Simd>,
     ) -> Vector<3, Self, Simd> {
-        (vec + other) * vec3!(0.5)
+        vec * vec3!(0.5) + other * vec3!(0.5)
 
         // TODO: update this once mul by scalar is implemented
     }
@@ -275,7 +287,11 @@ impl FloatElementOfVector<3, Simd> for f32 {
         min: Vector<3, Self, Simd>,
         max: Vector<3, Self, Simd>,
     ) -> Vector<3, Self, Simd> {
-        vec.max(min).min(max)
+        debug_assert!(min.zip(max).iter().all(|(min, max)| min <= max));
+        debug_assert!(min.iter().all(|x| !x.is_nan()));
+        debug_assert!(max.iter().all(|x| !x.is_nan()));
+
+        Vector(unsafe { _mm_min_ps(_mm_max_ps(vec.0, min.0), max.0) })
     }
 
     #[inline(always)]

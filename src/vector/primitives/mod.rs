@@ -138,7 +138,7 @@ macro_rules! impl_float_element_of_vector {
                 a: $crate::Vector<$N, Self, $crate::Simd>,
                 b: $crate::Vector<$N, Self, $crate::Simd>,
             ) -> $crate::Vector<$N, Self, $crate::Simd> {
-                vec.zip(a).zip(b).map(|((x, a), b)| x * a + b)
+                vec.zip(a).zip(b).map(|((x, a), b)| x.mul_add(a, b))
             }
 
             #[inline(always)]
@@ -193,11 +193,17 @@ macro_rules! impl_float_element_of_vector {
 
             #[inline(always)]
             fn vec_max(vec: $crate::Vector<$N, Self, $crate::Simd>, other: $crate::Vector<$N, Self, $crate::Simd>) -> $crate::Vector<$N, Self, $crate::Simd> {
+                core::debug_assert!(vec.iter().all(|x| !x.is_nan()));
+                core::debug_assert!(other.iter().all(|x| !x.is_nan()));
+
                 vec.zip(other).map(|(x, y)| x.max(y))
             }
 
             #[inline(always)]
             fn vec_min(vec: $crate::Vector<$N, Self, $crate::Simd>, other: $crate::Vector<$N, Self, $crate::Simd>) -> $crate::Vector<$N, Self, $crate::Simd> {
+                core::debug_assert!(vec.iter().all(|x| !x.is_nan()));
+                core::debug_assert!(other.iter().all(|x| !x.is_nan()));
+
                 vec.zip(other).map(|(x, y)| x.min(y))
             }
 
@@ -212,6 +218,10 @@ macro_rules! impl_float_element_of_vector {
                 min: $crate::Vector<$N, Self, $crate::Simd>,
                 max: $crate::Vector<$N, Self, $crate::Simd>,
             ) -> $crate::Vector<$N, Self, $crate::Simd> {
+                core::debug_assert!(min.zip(max).iter().all(|(min, max)| min <= max));
+                core::debug_assert!(min.iter().all(|x| !x.is_nan()));
+                core::debug_assert!(max.iter().all(|x| !x.is_nan()));
+
                 vec.zip(min).zip(max).map(|((x, min), max)| x.clamp(min, max))
             }
 

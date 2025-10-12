@@ -3,6 +3,8 @@
 
 use ggmath::*;
 
+use crate::assert_panic;
+
 #[test]
 fn test_simd_primitive_fns() {
     assert_eq!(Vec2::from_array([1i32, 2i32]).as_array(), [1i32, 2i32]);
@@ -372,6 +374,10 @@ fn test_simd_primitive_fns() {
     assert_eq!(vec4!(1i32, 2i32, 3i32, 4i32)[2], 3i32);
     assert_eq!(vec4!(1i32, 2i32, 3i32, 4i32)[3], 4i32);
 
+    assert_panic!(vec2!(1i32, 2i32)[2]);
+    assert_panic!(vec3!(1i32, 2i32, 3i32)[3]);
+    assert_panic!(vec4!(1i32, 2i32, 3i32, 4i32)[4]);
+
     assert_eq!(&mut vec2!(1i32, 2i32)[0], &mut 1i32);
     assert_eq!(&mut vec2!(1i32, 2i32)[1], &mut 2i32);
 
@@ -383,6 +389,10 @@ fn test_simd_primitive_fns() {
     assert_eq!(&mut vec4!(1i32, 2i32, 3i32, 4i32)[1], &mut 2i32);
     assert_eq!(&mut vec4!(1i32, 2i32, 3i32, 4i32)[2], &mut 3i32);
     assert_eq!(&mut vec4!(1i32, 2i32, 3i32, 4i32)[3], &mut 4i32);
+
+    assert_panic!(&mut vec2!(1i32, 2i32)[2]);
+    assert_panic!(&mut vec3!(1i32, 2i32, 3i32)[3]);
+    assert_panic!(&mut vec4!(1i32, 2i32, 3i32, 4i32)[4]);
 
     assert_eq!(vec2!(1i32, 2i32) == vec2!(1i32, 2i32), true);
     assert_eq!(vec2!(1i32, 2i32) == vec2!(2i32, 1i32), false);
@@ -520,24 +530,6 @@ fn test_simd_primitive_fns() {
             vec4!(4i32, 2i32, 3i32, 1i32)
         );
     }
-}
-
-#[test]
-#[should_panic]
-fn test_vec2_index_panic() {
-    vec2!(1i32, 2i32)[2];
-}
-
-#[test]
-#[should_panic]
-fn test_vec3_index_panic() {
-    vec3!(1i32, 2i32, 3i32)[3];
-}
-
-#[test]
-#[should_panic]
-fn test_vec4_index_panic() {
-    vec4!(1i32, 2i32, 3i32, 4i32)[4];
 }
 
 #[test]
@@ -917,6 +909,10 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(vec4s!(1i32, 2i32, 3i32, 4i32)[2], 3i32);
     assert_eq!(vec4s!(1i32, 2i32, 3i32, 4i32)[3], 4i32);
 
+    assert_panic!(vec2!(1i32, 2i32)[2]);
+    assert_panic!(vec3!(1i32, 2i32, 3i32)[3]);
+    assert_panic!(vec4!(1i32, 2i32, 3i32, 4i32)[4]);
+
     assert_eq!(&mut vec2s!(1i32, 2i32)[0], &mut 1i32);
     assert_eq!(&mut vec2s!(1i32, 2i32)[1], &mut 2i32);
 
@@ -928,6 +924,10 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(&mut vec4s!(1i32, 2i32, 3i32, 4i32)[1], &mut 2i32);
     assert_eq!(&mut vec4s!(1i32, 2i32, 3i32, 4i32)[2], &mut 3i32);
     assert_eq!(&mut vec4s!(1i32, 2i32, 3i32, 4i32)[3], &mut 4i32);
+
+    assert_panic!(&mut vec2!(1i32, 2i32)[2]);
+    assert_panic!(&mut vec3!(1i32, 2i32, 3i32)[3]);
+    assert_panic!(&mut vec4!(1i32, 2i32, 3i32, 4i32)[4]);
 
     assert_eq!(vec2s!(1i32, 2i32) == vec2s!(1i32, 2i32), true);
     assert_eq!(vec2s!(1i32, 2i32) == vec2s!(2i32, 1i32), false);
@@ -1075,27 +1075,48 @@ fn test_nonsimd_primitive_fns() {
         );
     }
 }
-
-#[test]
-#[should_panic]
-fn test_vec2s_index_panic() {
-    vec2!(1i32, 2i32)[2];
-}
-
-#[test]
-#[should_panic]
-fn test_vec3s_index_panic() {
-    vec3!(1i32, 2i32, 3i32)[3];
-}
-
-#[test]
-#[should_panic]
-fn test_vec4s_index_panic() {
-    vec4!(1i32, 2i32, 3i32, 4i32)[4];
-}
+use crate::assert_debug_panic;
 
 #[test]
 fn test_simd_int_fns() {
+    assert_eq!(Vec2::ZERO, vec2!(0i32, 0i32));
+    assert_eq!(Vec3::ZERO, vec3!(0i32, 0i32, 0i32));
+    assert_eq!(Vec4::ZERO, vec4!(0i32, 0i32, 0i32, 0i32));
+
+    assert_eq!(Vec2::ONE, vec2!(1i32, 1i32));
+    assert_eq!(Vec3::ONE, vec3!(1i32, 1i32, 1i32));
+    assert_eq!(Vec4::ONE, vec4!(1i32, 1i32, 1i32, 1i32));
+
+    assert_eq!(Vec2::X, vec2!(1i32, 0i32));
+    assert_eq!(Vec3::Y, vec3!(0i32, 1i32, 0i32));
+    assert_eq!(Vec4::Z, vec4!(0i32, 0i32, 1i32, 0i32));
+
+    #[cfg(feature = "right")]
+    {
+        use ggmath::right::*;
+
+        assert_eq!(Vec2::<i32>::RIGHT, Vec2::<i32>::X);
+        assert_eq!(Vec3::<i32>::RIGHT, Vec3::<i32>::X);
+        assert_eq!(Vec4::<i32>::RIGHT, Vec4::<i32>::X);
+    }
+
+    #[cfg(feature = "left")]
+    {
+        use ggmath::left::*;
+
+        assert_eq!(Vec2::<i32>::LEFT, Vec2::<i32>::X);
+        assert_eq!(Vec3::<i32>::LEFT, Vec3::<i32>::X);
+        assert_eq!(Vec4::<i32>::LEFT, Vec4::<i32>::X);
+    }
+
+    #[cfg(feature = "backwards")]
+    {
+        use ggmath::backwards::*;
+
+        assert_eq!(Vec3::<i32>::BACKWARDS, Vec3::<i32>::Z);
+        assert_eq!(Vec4::<i32>::BACKWARDS, Vec4::<i32>::Z);
+    }
+
     assert_eq!(!vec2!(5i32, 7i32), vec2!(!5i32, !7i32));
     assert_eq!(!vec3!(5i32, 7i32, 9i32), vec3!(!5i32, !7i32, !9i32));
     assert_eq!(
@@ -1220,130 +1241,120 @@ fn test_simd_int_fns() {
         vec4!(21i32 ^ 4i32, 23i32 ^ 50i32, 25i32 ^ 3i32, 27i32 ^ 10i32)
     );
 
-    assert_eq!(Vec2::ZERO, vec2!(0i32, 0i32));
-    assert_eq!(Vec3::ZERO, vec3!(0i32, 0i32, 0i32));
-    assert_eq!(Vec4::ZERO, vec4!(0i32, 0i32, 0i32, 0i32));
+    assert_debug_panic!(assert_eq!(
+        vec2!(1i32, i32::MAX) + vec2!(1i32, 3i32),
+        vec2!(2i32, i32::MAX + 3i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3!(1i32, i32::MAX, 1i32) + vec3!(1i32, 3i32, 1i32),
+        vec3!(2i32, i32::MAX + 3i32, 2i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4!(1i32, i32::MAX, 1i32, 1i32) + vec4!(1i32, 3i32, 1i32, 1i32),
+        vec4!(2i32, i32::MAX + 3i32, 2i32, 2i32)
+    ));
 
-    assert_eq!(Vec2::ONE, vec2!(1i32, 1i32));
-    assert_eq!(Vec3::ONE, vec3!(1i32, 1i32, 1i32));
-    assert_eq!(Vec4::ONE, vec4!(1i32, 1i32, 1i32, 1i32));
+    assert_debug_panic!(assert_eq!(
+        vec2!(1i32, i32::MAX) + vec2!(1i32),
+        vec2!(2i32, i32::MAX + 1i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3!(1i32, i32::MAX, 1i32) + vec3!(1i32),
+        vec3!(2i32, i32::MAX + 1i32, 2i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4!(1i32, i32::MAX, 1i32, 1i32) + vec4!(1i32),
+        vec4!(2i32, i32::MAX + 1i32, 2i32, 2i32)
+    ));
 
-    assert_eq!(Vec2::X, vec2!(1i32, 0i32));
-    assert_eq!(Vec3::Y, vec3!(0i32, 1i32, 0i32));
-    assert_eq!(Vec4::Z, vec4!(0i32, 0i32, 1i32, 0i32));
+    assert_debug_panic!(assert_eq!(
+        vec2!(1i32, i32::MIN) - vec2!(1i32, 3i32),
+        vec2!(0i32, i32::MIN - 3i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3!(1i32, i32::MIN, 1i32) - vec3!(1i32, 3i32, 1i32),
+        vec3!(0i32, i32::MIN - 3i32, 0i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4!(1i32, i32::MIN, 1i32, 1i32) - vec4!(1i32, 3i32, 1i32, 1i32),
+        vec4!(0i32, i32::MIN - 3i32, 0i32, 0i32)
+    ));
+
+    assert_debug_panic!(assert_eq!(
+        vec2!(1i32, i32::MIN) - vec2!(1i32),
+        vec2!(0i32, i32::MIN - 1i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3!(1i32, i32::MIN, 1i32) - vec3!(1i32),
+        vec3!(0i32, i32::MIN - 1i32, 0i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4!(1i32, i32::MIN, 1i32, 1i32) - vec4!(1i32),
+        vec4!(0i32, i32::MIN - 1i32, 0i32, 0i32)
+    ));
+
+    assert_debug_panic!(assert_eq!(
+        vec2!(1i32, i32::MAX) * vec2!(1i32, 3i32),
+        vec2!(1i32, i32::MAX * 3i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3!(1i32, i32::MAX, 1i32) * vec3!(1i32, 3i32, 1i32),
+        vec3!(1i32, i32::MAX * 3i32, 1i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4!(1i32, i32::MAX, 1i32, 1i32) * vec4!(1i32, 3i32, 1i32, 1i32),
+        vec4!(1i32, i32::MAX * 3i32, 1i32, 1i32)
+    ));
+
+    assert_panic!(vec2!(5i32) / vec2!(1i32, 0i32));
+    assert_panic!(vec3!(5i32) / vec3!(1i32, 0i32, 1i32));
+    assert_panic!(vec4!(5i32) / vec4!(1i32, 0i32, 1i32, 1i32));
+
+    assert_panic!(vec2!(5i32) % vec2!(1i32, 0i32));
+    assert_panic!(vec3!(5i32) % vec3!(1i32, 0i32, 1i32));
+    assert_panic!(vec4!(5i32) % vec4!(1i32, 0i32, 1i32, 1i32));
+}
+
+#[test]
+fn test_nonsimd_int_fns() {
+    assert_eq!(Vec2S::ZERO, vec2s!(0i32, 0i32));
+    assert_eq!(Vec3S::ZERO, vec3s!(0i32, 0i32, 0i32));
+    assert_eq!(Vec4S::ZERO, vec4s!(0i32, 0i32, 0i32, 0i32));
+
+    assert_eq!(Vec2S::ONE, vec2s!(1i32, 1i32));
+    assert_eq!(Vec3S::ONE, vec3s!(1i32, 1i32, 1i32));
+    assert_eq!(Vec4S::ONE, vec4s!(1i32, 1i32, 1i32, 1i32));
+
+    assert_eq!(Vec2S::X, vec2s!(1i32, 0i32));
+    assert_eq!(Vec3S::Y, vec3s!(0i32, 1i32, 0i32));
+    assert_eq!(Vec4S::Z, vec4s!(0i32, 0i32, 1i32, 0i32));
 
     #[cfg(feature = "right")]
     {
         use ggmath::right::*;
 
-        assert_eq!(Vec2::<i32>::RIGHT, Vec2::<i32>::X);
-        assert_eq!(Vec3::<i32>::RIGHT, Vec3::<i32>::X);
-        assert_eq!(Vec4::<i32>::RIGHT, Vec4::<i32>::X);
+        assert_eq!(Vec2S::<i32>::RIGHT, Vec2S::<i32>::X);
+        assert_eq!(Vec3S::<i32>::RIGHT, Vec3S::<i32>::X);
+        assert_eq!(Vec4S::<i32>::RIGHT, Vec4S::<i32>::X);
     }
 
     #[cfg(feature = "left")]
     {
         use ggmath::left::*;
 
-        assert_eq!(Vec2::<i32>::LEFT, Vec2::<i32>::X);
-        assert_eq!(Vec3::<i32>::LEFT, Vec3::<i32>::X);
-        assert_eq!(Vec4::<i32>::LEFT, Vec4::<i32>::X);
+        assert_eq!(Vec2S::<i32>::LEFT, Vec2S::<i32>::X);
+        assert_eq!(Vec3S::<i32>::LEFT, Vec3S::<i32>::X);
+        assert_eq!(Vec4S::<i32>::LEFT, Vec4S::<i32>::X);
     }
 
     #[cfg(feature = "backwards")]
     {
         use ggmath::backwards::*;
 
-        assert_eq!(Vec3::<i32>::BACKWARDS, Vec3::<i32>::Z);
-        assert_eq!(Vec4::<i32>::BACKWARDS, Vec4::<i32>::Z);
+        assert_eq!(Vec3S::<i32>::BACKWARDS, Vec3S::<i32>::Z);
+        assert_eq!(Vec4S::<i32>::BACKWARDS, Vec4S::<i32>::Z);
     }
-}
 
-macro_rules! test_simd_binop_edgecase {
-    ( $(#[$attr:meta])* $vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident: $op:tt for $lhs:expr, $rhs:expr) => {
-        #[test]
-        $(#[$attr])*
-        fn $vec2_fn() {
-            assert_eq!(vec2!(1i32, $lhs) $op vec2!(1i32, $rhs), vec2!(1i32 $op 1i32, $lhs $op $rhs));
-        }
-
-        #[test]
-        $(#[$attr])*
-        fn $vec3_fn() {
-            assert_eq!(vec3!(1i32, $lhs, 1i32) $op vec3!(1i32, $rhs, 1i32), vec3!(1i32 $op 1i32, $lhs $op $rhs, 1i32 $op 1i32));
-        }
-
-        #[test]
-        $(#[$attr])*
-        fn $vec4_fn() {
-            assert_eq!(vec4!(1i32, $lhs, 1i32, 1i32) $op vec4!(1i32, $rhs, 1i32, 1i32), vec4!(1i32 $op 1i32, $lhs $op $rhs, 1i32 $op 1i32, 1i32 $op 1i32));
-        }
-    }
-}
-
-test_simd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2_add_overflow,
-    test_ivec3_add_overflow,
-    test_ivec4_add_overflow:
-
-    + for i32::MAX, 3
-}
-test_simd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2_add_exact_overflow,
-    test_ivec3_add_exact_overflow,
-    test_ivec4_add_exact_overflow:
-
-    + for i32::MAX, 1
-}
-
-test_simd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2_sub_overflow,
-    test_ivec3_sub_overflow,
-    test_ivec4_sub_overflow:
-
-    - for i32::MIN, 3
-}
-test_simd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2_sub_exact_overflow,
-    test_ivec3_sub_exact_overflow,
-    test_ivec4_sub_exact_overflow:
-
-    - for i32::MIN, 1
-}
-
-test_simd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2_mul_overflow,
-    test_ivec3_mul_overflow,
-    test_ivec4_mul_overflow:
-
-    * for i32::MAX, 3
-}
-
-test_simd_binop_edgecase! {
-    #[should_panic]
-    test_ivec2_div_by_zero,
-    test_ivec3_div_by_zero,
-    test_ivec4_div_by_zero:
-
-    / for 5i32, 0i32
-}
-
-test_simd_binop_edgecase! {
-    #[should_panic]
-    test_ivec2_rem_by_zero,
-    test_ivec3_rem_by_zero,
-    test_ivec4_rem_by_zero:
-
-    % for 5i32, 0i32
-}
-
-#[test]
-fn test_nonsimd_int_fns() {
     assert_eq!(!vec2s!(5i32, 7i32), vec2s!(!5i32, !7i32));
     assert_eq!(!vec3s!(5i32, 7i32, 9i32), vec3s!(!5i32, !7i32, !9i32));
     assert_eq!(
@@ -1468,124 +1479,76 @@ fn test_nonsimd_int_fns() {
         vec4s!(21i32 ^ 4i32, 23i32 ^ 50i32, 25i32 ^ 3i32, 27i32 ^ 10i32)
     );
 
-    assert_eq!(Vec2S::ZERO, vec2s!(0i32, 0i32));
-    assert_eq!(Vec3S::ZERO, vec3s!(0i32, 0i32, 0i32));
-    assert_eq!(Vec4S::ZERO, vec4s!(0i32, 0i32, 0i32, 0i32));
+    assert_debug_panic!(assert_eq!(
+        vec2s!(1i32, i32::MAX) + vec2s!(1i32, 3i32),
+        vec2s!(2i32, i32::MAX + 3i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3s!(1i32, i32::MAX, 1i32) + vec3s!(1i32, 3i32, 1i32),
+        vec3s!(2i32, i32::MAX + 3i32, 2i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4s!(1i32, i32::MAX, 1i32, 1i32) + vec4s!(1i32, 3i32, 1i32, 1i32),
+        vec4s!(2i32, i32::MAX + 3i32, 2i32, 2i32)
+    ));
 
-    assert_eq!(Vec2S::ONE, vec2s!(1i32, 1i32));
-    assert_eq!(Vec3S::ONE, vec3s!(1i32, 1i32, 1i32));
-    assert_eq!(Vec4S::ONE, vec4s!(1i32, 1i32, 1i32, 1i32));
+    assert_debug_panic!(assert_eq!(
+        vec2s!(1i32, i32::MAX) + vec2s!(1i32),
+        vec2s!(2i32, i32::MAX + 1i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3s!(1i32, i32::MAX, 1i32) + vec3s!(1i32),
+        vec3s!(2i32, i32::MAX + 1i32, 2i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4s!(1i32, i32::MAX, 1i32, 1i32) + vec4s!(1i32),
+        vec4s!(2i32, i32::MAX + 1i32, 2i32, 2i32)
+    ));
 
-    assert_eq!(Vec2S::X, vec2s!(1i32, 0i32));
-    assert_eq!(Vec3S::Y, vec3s!(0i32, 1i32, 0i32));
-    assert_eq!(Vec4S::Z, vec4s!(0i32, 0i32, 1i32, 0i32));
+    assert_debug_panic!(assert_eq!(
+        vec2s!(1i32, i32::MIN) - vec2s!(1i32, 3i32),
+        vec2s!(0i32, i32::MIN - 3i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3s!(1i32, i32::MIN, 1i32) - vec3s!(1i32, 3i32, 1i32),
+        vec3s!(0i32, i32::MIN - 3i32, 0i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4s!(1i32, i32::MIN, 1i32, 1i32) - vec4s!(1i32, 3i32, 1i32, 1i32),
+        vec4s!(0i32, i32::MIN - 3i32, 0i32, 0i32)
+    ));
 
-    #[cfg(feature = "right")]
-    {
-        use ggmath::right::*;
+    assert_debug_panic!(assert_eq!(
+        vec2s!(1i32, i32::MIN) - vec2s!(1i32),
+        vec2s!(0i32, i32::MIN - 1i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3s!(1i32, i32::MIN, 1i32) - vec3s!(1i32),
+        vec3s!(0i32, i32::MIN - 1i32, 0i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4s!(1i32, i32::MIN, 1i32, 1i32) - vec4s!(1i32),
+        vec4s!(0i32, i32::MIN - 1i32, 0i32, 0i32)
+    ));
 
-        assert_eq!(Vec2S::<i32>::RIGHT, Vec2S::<i32>::X);
-        assert_eq!(Vec3S::<i32>::RIGHT, Vec3S::<i32>::X);
-        assert_eq!(Vec4S::<i32>::RIGHT, Vec4S::<i32>::X);
-    }
+    assert_debug_panic!(assert_eq!(
+        vec2s!(1i32, i32::MAX) * vec2s!(1i32, 3i32),
+        vec2s!(1i32, i32::MAX * 3i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec3s!(1i32, i32::MAX, 1i32) * vec3s!(1i32, 3i32, 1i32),
+        vec3s!(1i32, i32::MAX * 3i32, 1i32)
+    ));
+    assert_debug_panic!(assert_eq!(
+        vec4s!(1i32, i32::MAX, 1i32, 1i32) * vec4s!(1i32, 3i32, 1i32, 1i32),
+        vec4s!(1i32, i32::MAX * 3i32, 1i32, 1i32)
+    ));
 
-    #[cfg(feature = "left")]
-    {
-        use ggmath::left::*;
+    assert_panic!(vec2s!(5i32) / vec2s!(1i32, 0i32));
+    assert_panic!(vec3s!(5i32) / vec3s!(1i32, 0i32, 1i32));
+    assert_panic!(vec4s!(5i32) / vec4s!(1i32, 0i32, 1i32, 1i32));
 
-        assert_eq!(Vec2S::<i32>::LEFT, Vec2S::<i32>::X);
-        assert_eq!(Vec3S::<i32>::LEFT, Vec3S::<i32>::X);
-        assert_eq!(Vec4S::<i32>::LEFT, Vec4S::<i32>::X);
-    }
-
-    #[cfg(feature = "backwards")]
-    {
-        use ggmath::backwards::*;
-
-        assert_eq!(Vec3S::<i32>::BACKWARDS, Vec3S::<i32>::Z);
-        assert_eq!(Vec4S::<i32>::BACKWARDS, Vec4S::<i32>::Z);
-    }
-}
-
-macro_rules! test_nonsimd_binop_edgecase {
-    ( $(#[$attr:meta])* $vec2_fn:ident, $vec3_fn:ident, $vec4_fn:ident: $op:tt for $lhs:expr, $rhs:expr) => {
-        #[test]
-        $(#[$attr])*
-        fn $vec2_fn() {
-            assert_eq!(vec2s!(1i32, $lhs) $op vec2s!(1i32, $rhs), vec2s!(1i32 $op 1i32, $lhs $op $rhs));
-        }
-
-        #[test]
-        $(#[$attr])*
-        fn $vec3_fn() {
-            assert_eq!(vec3s!(1i32, $lhs, 1i32) $op vec3s!(1i32, $rhs, 1i32), vec3s!(1i32 $op 1i32, $lhs $op $rhs, 1i32 $op 1i32));
-        }
-
-        #[test]
-        $(#[$attr])*
-        fn $vec4_fn() {
-            assert_eq!(vec4s!(1i32, $lhs, 1i32, 1i32) $op vec4s!(1i32, $rhs, 1i32, 1i32), vec4s!(1i32 $op 1i32, $lhs $op $rhs, 1i32 $op 1i32, 1i32 $op 1i32));
-        }
-    }
-}
-
-test_nonsimd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2s_add_overflow,
-    test_ivec3s_add_overflow,
-    test_ivec4s_add_overflow:
-
-    + for i32::MAX, 3
-}
-test_nonsimd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2s_add_exact_overflow,
-    test_ivec3s_add_exact_overflow,
-    test_ivec4s_add_exact_overflow:
-
-    + for i32::MAX, 1
-}
-
-test_nonsimd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2s_sub_overflow,
-    test_ivec3s_sub_overflow,
-    test_ivec4s_sub_overflow:
-
-    - for i32::MIN, 3
-}
-test_nonsimd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2s_sub_exact_overflow,
-    test_ivec3s_sub_exact_overflow,
-    test_ivec4s_sub_exact_overflow:
-
-    - for i32::MIN, 1
-}
-
-test_nonsimd_binop_edgecase! {
-    #[cfg_attr(debug_assertions, should_panic)]
-    test_ivec2s_mul_overflow,
-    test_ivec3s_mul_overflow,
-    test_ivec4s_mul_overflow:
-
-    * for i32::MAX, 3
-}
-
-test_nonsimd_binop_edgecase! {
-    #[should_panic]
-    test_ivec2s_div_by_zero,
-    test_ivec3s_div_by_zero,
-    test_ivec4s_div_by_zero:
-
-    / for 5i32, 0i32
-}
-
-test_nonsimd_binop_edgecase! {
-    #[should_panic]
-    test_ivec2s_rem_by_zero,
-    test_ivec3s_rem_by_zero,
-    test_ivec4s_rem_by_zero:
-
-    % for 5i32, 0i32
+    assert_panic!(vec2s!(5i32) % vec2s!(1i32, 0i32));
+    assert_panic!(vec3s!(5i32) % vec3s!(1i32, 0i32, 1i32));
+    assert_panic!(vec4s!(5i32) % vec4s!(1i32, 0i32, 1i32, 1i32));
 }

@@ -3,6 +3,10 @@ use genco::{lang::rust::Tokens, quote};
 use crate::{iter::Int, testsdir::TokensExtendExt};
 
 pub fn generate(t: Int, result: &mut Tokens) {
+    result.extend(quote!(
+        use crate::assert_debug_panic;
+    ));
+
     #[expect(non_snake_case)]
     result.extend_for_simdness(|s| {
         quote!(
@@ -15,6 +19,44 @@ pub fn generate(t: Int, result: &mut Tokens) {
 
             #[test]
             fn test_$(s.snakecase())_int_fns() {
+                assert_eq!($Vec2::ZERO, $vec2!(0$t, 0$t));
+                assert_eq!($Vec3::ZERO, $vec3!(0$t, 0$t, 0$t));
+                assert_eq!($Vec4::ZERO, $vec4!(0$t, 0$t, 0$t, 0$t));
+
+                assert_eq!($Vec2::ONE, $vec2!(1$t, 1$t));
+                assert_eq!($Vec3::ONE, $vec3!(1$t, 1$t, 1$t));
+                assert_eq!($Vec4::ONE, $vec4!(1$t, 1$t, 1$t, 1$t));
+                
+                assert_eq!($Vec2::X, $vec2!(1$t, 0$t));
+                assert_eq!($Vec3::Y, $vec3!(0$t, 1$t, 0$t));
+                assert_eq!($Vec4::Z, $vec4!(0$t, 0$t, 1$t, 0$t));
+
+                #[cfg(feature = "right")]
+                {
+                    use ggmath::right::*;
+
+                    assert_eq!($Vec2::<$t>::RIGHT, $Vec2::<$t>::X);
+                    assert_eq!($Vec3::<$t>::RIGHT, $Vec3::<$t>::X);
+                    assert_eq!($Vec4::<$t>::RIGHT, $Vec4::<$t>::X);
+                }
+
+                #[cfg(feature = "left")]
+                {
+                    use ggmath::left::*;
+
+                    assert_eq!($Vec2::<$t>::LEFT, $Vec2::<$t>::X);
+                    assert_eq!($Vec3::<$t>::LEFT, $Vec3::<$t>::X);
+                    assert_eq!($Vec4::<$t>::LEFT, $Vec4::<$t>::X);
+                }
+
+                #[cfg(feature = "backwards")]
+                {
+                    use ggmath::backwards::*;
+
+                    assert_eq!($Vec3::<$t>::BACKWARDS, $Vec3::<$t>::Z);
+                    assert_eq!($Vec4::<$t>::BACKWARDS, $Vec4::<$t>::Z);
+                }
+
                 assert_eq!(!$vec2!(5$t, 7$t), $vec2!(!5$t, !7$t));
                 assert_eq!(!$vec3!(5$t, 7$t, 9$t), $vec3!(!5$t, !7$t, !9$t));
                 assert_eq!(!$vec4!(5$t, 7$t, 9$t, 11$t), $vec4!(!5$t, !7$t, !9$t, !11$t));
@@ -55,127 +97,33 @@ pub fn generate(t: Int, result: &mut Tokens) {
                 assert_eq!($vec3!(21$t, 23$t, 25$t) ^ $vec3!(4$t, 50$t, 3$t), $vec3!(21$t ^ 4$t, 23$t ^ 50$t, 25$t ^ 3$t));
                 assert_eq!($vec4!(21$t, 23$t, 25$t, 27$t) ^ $vec4!(4$t, 50$t, 3$t, 10$t), $vec4!(21$t ^ 4$t, 23$t ^ 50$t, 25$t ^ 3$t, 27$t ^ 10$t));
 
-                assert_eq!($Vec2::ZERO, $vec2!(0$t, 0$t));
-                assert_eq!($Vec3::ZERO, $vec3!(0$t, 0$t, 0$t));
-                assert_eq!($Vec4::ZERO, $vec4!(0$t, 0$t, 0$t, 0$t));
+                assert_debug_panic!(assert_eq!($vec2!(1$t, $t::MAX) + $vec2!(1$t, 3$t), $vec2!(2$t, $t::MAX + 3$t)));
+                assert_debug_panic!(assert_eq!($vec3!(1$t, $t::MAX, 1$t) + $vec3!(1$t, 3$t, 1$t), $vec3!(2$t, $t::MAX + 3$t, 2$t)));
+                assert_debug_panic!(assert_eq!($vec4!(1$t, $t::MAX, 1$t, 1$t) + $vec4!(1$t, 3$t, 1$t, 1$t), $vec4!(2$t, $t::MAX + 3$t, 2$t, 2$t)));
 
-                assert_eq!($Vec2::ONE, $vec2!(1$t, 1$t));
-                assert_eq!($Vec3::ONE, $vec3!(1$t, 1$t, 1$t));
-                assert_eq!($Vec4::ONE, $vec4!(1$t, 1$t, 1$t, 1$t));
-                
-                assert_eq!($Vec2::X, $vec2!(1$t, 0$t));
-                assert_eq!($Vec3::Y, $vec3!(0$t, 1$t, 0$t));
-                assert_eq!($Vec4::Z, $vec4!(0$t, 0$t, 1$t, 0$t));
+                assert_debug_panic!(assert_eq!($vec2!(1$t, $t::MAX) + $vec2!(1$t), $vec2!(2$t, $t::MAX + 1$t)));
+                assert_debug_panic!(assert_eq!($vec3!(1$t, $t::MAX, 1$t) + $vec3!(1$t), $vec3!(2$t, $t::MAX + 1$t, 2$t)));
+                assert_debug_panic!(assert_eq!($vec4!(1$t, $t::MAX, 1$t, 1$t) + $vec4!(1$t), $vec4!(2$t, $t::MAX + 1$t, 2$t, 2$t)));
 
-                #[cfg(feature = "right")]
-                {
-                    use ggmath::right::*;
+                assert_debug_panic!(assert_eq!($vec2!(1$t, $t::MIN) - $vec2!(1$t, 3$t), $vec2!(0$t, $t::MIN - 3$t)));
+                assert_debug_panic!(assert_eq!($vec3!(1$t, $t::MIN, 1$t) - $vec3!(1$t, 3$t, 1$t), $vec3!(0$t, $t::MIN - 3$t, 0$t)));
+                assert_debug_panic!(assert_eq!($vec4!(1$t, $t::MIN, 1$t, 1$t) - $vec4!(1$t, 3$t, 1$t, 1$t), $vec4!(0$t, $t::MIN - 3$t, 0$t, 0$t)));
 
-                    assert_eq!($Vec2::<$t>::RIGHT, $Vec2::<$t>::X);
-                    assert_eq!($Vec3::<$t>::RIGHT, $Vec3::<$t>::X);
-                    assert_eq!($Vec4::<$t>::RIGHT, $Vec4::<$t>::X);
-                }
+                assert_debug_panic!(assert_eq!($vec2!(1$t, $t::MIN) - $vec2!(1$t), $vec2!(0$t, $t::MIN - 1$t)));
+                assert_debug_panic!(assert_eq!($vec3!(1$t, $t::MIN, 1$t) - $vec3!(1$t), $vec3!(0$t, $t::MIN - 1$t, 0$t)));
+                assert_debug_panic!(assert_eq!($vec4!(1$t, $t::MIN, 1$t, 1$t) - $vec4!(1$t), $vec4!(0$t, $t::MIN - 1$t, 0$t, 0$t)));
 
-                #[cfg(feature = "left")]
-                {
-                    use ggmath::left::*;
+                assert_debug_panic!(assert_eq!($vec2!(1$t, $t::MAX) * $vec2!(1$t, 3$t), $vec2!(1$t, $t::MAX * 3$t)));
+                assert_debug_panic!(assert_eq!($vec3!(1$t, $t::MAX, 1$t) * $vec3!(1$t, 3$t, 1$t), $vec3!(1$t, $t::MAX * 3$t, 1$t)));
+                assert_debug_panic!(assert_eq!($vec4!(1$t, $t::MAX, 1$t, 1$t) * $vec4!(1$t, 3$t, 1$t, 1$t), $vec4!(1$t, $t::MAX * 3$t, 1$t, 1$t)));
 
-                    assert_eq!($Vec2::<$t>::LEFT, $Vec2::<$t>::X);
-                    assert_eq!($Vec3::<$t>::LEFT, $Vec3::<$t>::X);
-                    assert_eq!($Vec4::<$t>::LEFT, $Vec4::<$t>::X);
-                }
+                assert_panic!($vec2!(5$t) / $vec2!(1$t, 0$t));
+                assert_panic!($vec3!(5$t) / $vec3!(1$t, 0$t, 1$t));
+                assert_panic!($vec4!(5$t) / $vec4!(1$t, 0$t, 1$t, 1$t));
 
-                #[cfg(feature = "backwards")]
-                {
-                    use ggmath::backwards::*;
-
-                    assert_eq!($Vec3::<$t>::BACKWARDS, $Vec3::<$t>::Z);
-                    assert_eq!($Vec4::<$t>::BACKWARDS, $Vec4::<$t>::Z);
-                }
-            }
-
-            macro_rules! test_$(s.snakecase())_binop_edgecase {
-                ( $$(#[$$attr:meta])* $$vec2_fn:ident, $$vec3_fn:ident, $$vec4_fn:ident: $$op:tt for $$lhs:expr, $$rhs:expr) => {
-                    #[test]
-                    $$(#[$$attr])*
-                    fn $$vec2_fn() {
-                        assert_eq!($vec2!(1$t, $$lhs) $$op $vec2!(1$t, $$rhs), $vec2!(1$t $$op 1$t, $$lhs $$op $$rhs));
-                    }
-                    
-                    #[test]
-                    $$(#[$$attr])*
-                    fn $$vec3_fn() {
-                        assert_eq!($vec3!(1$t, $$lhs, 1$t) $$op $vec3!(1$t, $$rhs, 1$t), $vec3!(1$t $$op 1$t, $$lhs $$op $$rhs, 1$t $$op 1$t));
-                    }
-                    
-                    
-                    #[test]
-                    $$(#[$$attr])*
-                    fn $$vec4_fn() {
-                        assert_eq!($vec4!(1$t, $$lhs, 1$t, 1$t) $$op $vec4!(1$t, $$rhs, 1$t, 1$t), $vec4!(1$t $$op 1$t, $$lhs $$op $$rhs, 1$t $$op 1$t, 1$t $$op 1$t));
-                    }
-                }
-            }
-
-            test_$(s.snakecase())_binop_edgecase! {
-                #[cfg_attr(debug_assertions, should_panic)]
-                test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_add_overflow,
-                test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_add_overflow,
-                test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_add_overflow:
-
-                + for $t::MAX, 3
-            }
-            test_$(s.snakecase())_binop_edgecase! {
-                #[cfg_attr(debug_assertions, should_panic)]
-                test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_add_exact_overflow,
-                test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_add_exact_overflow,
-                test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_add_exact_overflow:
-
-                + for $t::MAX, 1
-            }
-
-            test_$(s.snakecase())_binop_edgecase! {
-                #[cfg_attr(debug_assertions, should_panic)]
-                test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_sub_overflow,
-                test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_sub_overflow,
-                test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_sub_overflow:
-
-                - for $t::MIN, 3
-            }
-            test_$(s.snakecase())_binop_edgecase! {
-                #[cfg_attr(debug_assertions, should_panic)]
-                test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_sub_exact_overflow,
-                test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_sub_exact_overflow,
-                test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_sub_exact_overflow:
-
-                - for $t::MIN, 1
-            }
-
-            test_$(s.snakecase())_binop_edgecase! {
-                #[cfg_attr(debug_assertions, should_panic)]
-                test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_mul_overflow,
-                test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_mul_overflow,
-                test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_mul_overflow:
-
-                * for $t::MAX, 3
-            }
-
-            test_$(s.snakecase())_binop_edgecase! {
-                #[should_panic]
-                test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_div_by_zero,
-                test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_div_by_zero,
-                test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_div_by_zero:
-
-                / for 5$t, 0$t
-            }
-
-            test_$(s.snakecase())_binop_edgecase! {
-                #[should_panic]
-                test_$(t.lowercase_prefix())vec2$(s.lowercase_postfix())_rem_by_zero,
-                test_$(t.lowercase_prefix())vec3$(s.lowercase_postfix())_rem_by_zero,
-                test_$(t.lowercase_prefix())vec4$(s.lowercase_postfix())_rem_by_zero:
-
-                % for 5$t, 0$t
+                assert_panic!($vec2!(5$t) % $vec2!(1$t, 0$t));
+                assert_panic!($vec3!(5$t) % $vec3!(1$t, 0$t, 1$t));
+                assert_panic!($vec4!(5$t) % $vec4!(1$t, 0$t, 1$t, 1$t));
             }
         )
     });

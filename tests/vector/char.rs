@@ -3,6 +3,8 @@
 
 use ggmath::*;
 
+use crate::assert_panic;
+
 #[test]
 fn test_simd_primitive_fns() {
     assert_eq!(Vec2::from_array(['a', 'b']).as_array(), ['a', 'b']);
@@ -334,6 +336,10 @@ fn test_simd_primitive_fns() {
     assert_eq!(vec4!('a', 'b', 'c', 'd')[2], 'c');
     assert_eq!(vec4!('a', 'b', 'c', 'd')[3], 'd');
 
+    assert_panic!(vec2!('a', 'b')[2]);
+    assert_panic!(vec3!('a', 'b', 'c')[3]);
+    assert_panic!(vec4!('a', 'b', 'c', 'd')[4]);
+
     assert_eq!(&mut vec2!('a', 'b')[0], &mut 'a');
     assert_eq!(&mut vec2!('a', 'b')[1], &mut 'b');
 
@@ -345,6 +351,10 @@ fn test_simd_primitive_fns() {
     assert_eq!(&mut vec4!('a', 'b', 'c', 'd')[1], &mut 'b');
     assert_eq!(&mut vec4!('a', 'b', 'c', 'd')[2], &mut 'c');
     assert_eq!(&mut vec4!('a', 'b', 'c', 'd')[3], &mut 'd');
+
+    assert_panic!(&mut vec2!('a', 'b')[2]);
+    assert_panic!(&mut vec3!('a', 'b', 'c')[3]);
+    assert_panic!(&mut vec4!('a', 'b', 'c', 'd')[4]);
 
     assert_eq!(vec2!('a', 'b') == vec2!('a', 'b'), true);
     assert_eq!(vec2!('a', 'b') == vec2!('b', 'a'), false);
@@ -452,24 +462,6 @@ fn test_simd_primitive_fns() {
         assert_eq!(vec4!('a', 'b', 'c', 'd').zyxw(), vec4!('c', 'b', 'a', 'd'));
         assert_eq!(vec4!('a', 'b', 'c', 'd').wyzx(), vec4!('d', 'b', 'c', 'a'));
     }
-}
-
-#[test]
-#[should_panic]
-fn test_vec2_index_panic() {
-    vec2!('a', 'b')[2];
-}
-
-#[test]
-#[should_panic]
-fn test_vec3_index_panic() {
-    vec3!('a', 'b', 'c')[3];
-}
-
-#[test]
-#[should_panic]
-fn test_vec4_index_panic() {
-    vec4!('a', 'b', 'c', 'd')[4];
 }
 
 #[test]
@@ -811,6 +803,10 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(vec4s!('a', 'b', 'c', 'd')[2], 'c');
     assert_eq!(vec4s!('a', 'b', 'c', 'd')[3], 'd');
 
+    assert_panic!(vec2!('a', 'b')[2]);
+    assert_panic!(vec3!('a', 'b', 'c')[3]);
+    assert_panic!(vec4!('a', 'b', 'c', 'd')[4]);
+
     assert_eq!(&mut vec2s!('a', 'b')[0], &mut 'a');
     assert_eq!(&mut vec2s!('a', 'b')[1], &mut 'b');
 
@@ -822,6 +818,10 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(&mut vec4s!('a', 'b', 'c', 'd')[1], &mut 'b');
     assert_eq!(&mut vec4s!('a', 'b', 'c', 'd')[2], &mut 'c');
     assert_eq!(&mut vec4s!('a', 'b', 'c', 'd')[3], &mut 'd');
+
+    assert_panic!(&mut vec2!('a', 'b')[2]);
+    assert_panic!(&mut vec3!('a', 'b', 'c')[3]);
+    assert_panic!(&mut vec4!('a', 'b', 'c', 'd')[4]);
 
     assert_eq!(vec2s!('a', 'b') == vec2s!('a', 'b'), true);
     assert_eq!(vec2s!('a', 'b') == vec2s!('b', 'a'), false);
@@ -950,22 +950,4 @@ fn test_nonsimd_primitive_fns() {
             vec4s!('d', 'b', 'c', 'a')
         );
     }
-}
-
-#[test]
-#[should_panic]
-fn test_vec2s_index_panic() {
-    vec2!('a', 'b')[2];
-}
-
-#[test]
-#[should_panic]
-fn test_vec3s_index_panic() {
-    vec3!('a', 'b', 'c')[3];
-}
-
-#[test]
-#[should_panic]
-fn test_vec4s_index_panic() {
-    vec4!('a', 'b', 'c', 'd')[4];
 }

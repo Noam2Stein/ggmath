@@ -3,6 +3,8 @@
 
 use ggmath::*;
 
+use crate::assert_panic;
+
 #[test]
 fn test_simd_primitive_fns() {
     assert_eq!(Vec2::from_array([false, true]).as_array(), [false, true]);
@@ -386,6 +388,10 @@ fn test_simd_primitive_fns() {
     assert_eq!(vec4!(false, true, false, true)[2], false);
     assert_eq!(vec4!(false, true, false, true)[3], true);
 
+    assert_panic!(vec2!(false, true)[2]);
+    assert_panic!(vec3!(false, true, false)[3]);
+    assert_panic!(vec4!(false, true, false, true)[4]);
+
     assert_eq!(&mut vec2!(false, true)[0], &mut false);
     assert_eq!(&mut vec2!(false, true)[1], &mut true);
 
@@ -397,6 +403,10 @@ fn test_simd_primitive_fns() {
     assert_eq!(&mut vec4!(false, true, false, true)[1], &mut true);
     assert_eq!(&mut vec4!(false, true, false, true)[2], &mut false);
     assert_eq!(&mut vec4!(false, true, false, true)[3], &mut true);
+
+    assert_panic!(&mut vec2!(false, true)[2]);
+    assert_panic!(&mut vec3!(false, true, false)[3]);
+    assert_panic!(&mut vec4!(false, true, false, true)[4]);
 
     assert_eq!(vec2!(false, true) == vec2!(false, true), true);
     assert_eq!(vec2!(false, true) == vec2!(true, false), false);
@@ -555,24 +565,6 @@ fn test_simd_primitive_fns() {
             vec4!(true, true, false, false)
         );
     }
-}
-
-#[test]
-#[should_panic]
-fn test_vec2_index_panic() {
-    vec2!(false, true)[2];
-}
-
-#[test]
-#[should_panic]
-fn test_vec3_index_panic() {
-    vec3!(false, true, false)[3];
-}
-
-#[test]
-#[should_panic]
-fn test_vec4_index_panic() {
-    vec4!(false, true, false, true)[4];
 }
 
 #[test]
@@ -972,6 +964,10 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(vec4s!(false, true, false, true)[2], false);
     assert_eq!(vec4s!(false, true, false, true)[3], true);
 
+    assert_panic!(vec2!(false, true)[2]);
+    assert_panic!(vec3!(false, true, false)[3]);
+    assert_panic!(vec4!(false, true, false, true)[4]);
+
     assert_eq!(&mut vec2s!(false, true)[0], &mut false);
     assert_eq!(&mut vec2s!(false, true)[1], &mut true);
 
@@ -983,6 +979,10 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(&mut vec4s!(false, true, false, true)[1], &mut true);
     assert_eq!(&mut vec4s!(false, true, false, true)[2], &mut false);
     assert_eq!(&mut vec4s!(false, true, false, true)[3], &mut true);
+
+    assert_panic!(&mut vec2!(false, true)[2]);
+    assert_panic!(&mut vec3!(false, true, false)[3]);
+    assert_panic!(&mut vec4!(false, true, false, true)[4]);
 
     assert_eq!(vec2s!(false, true) == vec2s!(false, true), true);
     assert_eq!(vec2s!(false, true) == vec2s!(true, false), false);
@@ -1156,22 +1156,4 @@ fn test_nonsimd_primitive_fns() {
             vec4s!(true, true, false, false)
         );
     }
-}
-
-#[test]
-#[should_panic]
-fn test_vec2s_index_panic() {
-    vec2!(false, true)[2];
-}
-
-#[test]
-#[should_panic]
-fn test_vec3s_index_panic() {
-    vec3!(false, true, false)[3];
-}
-
-#[test]
-#[should_panic]
-fn test_vec4s_index_panic() {
-    vec4!(false, true, false, true)[4];
 }

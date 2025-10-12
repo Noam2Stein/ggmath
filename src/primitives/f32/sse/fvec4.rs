@@ -134,7 +134,7 @@ unsafe impl ElementOfVector<4, Simd> for f32 {
     where
         Self: Rem<Output = Self>,
     {
-        vec - rhs * (vec / rhs).trunc()
+        vec4!(vec.x % rhs.x, vec.y % rhs.y, vec.z % rhs.z, vec.w % rhs.w)
     }
 }
 
@@ -320,11 +320,17 @@ impl FloatElementOfVector<4, Simd> for f32 {
 
     #[inline(always)]
     fn vec_max(vec: Vector<4, Self, Simd>, other: Vector<4, Self, Simd>) -> Vector<4, Self, Simd> {
+        debug_assert!(vec.iter().all(|x| !x.is_nan()));
+        debug_assert!(other.iter().all(|x| !x.is_nan()));
+
         Vector(unsafe { _mm_max_ps(vec.0, other.0) })
     }
 
     #[inline(always)]
     fn vec_min(vec: Vector<4, Self, Simd>, other: Vector<4, Self, Simd>) -> Vector<4, Self, Simd> {
+        debug_assert!(vec.iter().all(|x| !x.is_nan()));
+        debug_assert!(other.iter().all(|x| !x.is_nan()));
+
         Vector(unsafe { _mm_min_ps(vec.0, other.0) })
     }
 
@@ -333,7 +339,7 @@ impl FloatElementOfVector<4, Simd> for f32 {
         vec: Vector<4, Self, Simd>,
         other: Vector<4, Self, Simd>,
     ) -> Vector<4, Self, Simd> {
-        (vec + other) * vec4!(0.5)
+        vec * vec4!(0.5) + other * vec4!(0.5)
 
         // TODO: update this once mul by scalar is implemented
     }
@@ -344,7 +350,11 @@ impl FloatElementOfVector<4, Simd> for f32 {
         min: Vector<4, Self, Simd>,
         max: Vector<4, Self, Simd>,
     ) -> Vector<4, Self, Simd> {
-        vec.max(min).min(max)
+        debug_assert!(min.zip(max).iter().all(|(min, max)| min <= max));
+        debug_assert!(min.iter().all(|x| !x.is_nan()));
+        debug_assert!(max.iter().all(|x| !x.is_nan()));
+
+        Vector(unsafe { _mm_min_ps(_mm_max_ps(vec.0, min.0), max.0) })
     }
 
     #[inline(always)]
