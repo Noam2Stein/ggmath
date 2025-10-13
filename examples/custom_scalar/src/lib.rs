@@ -5,7 +5,7 @@
 use std::ops::{Add, Sub};
 
 use ggmath::{
-    ElementOfVector, Scalar, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector,
+    Scalar, Scalar, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector,
     declare_vector_aliases,
 };
 
@@ -76,9 +76,9 @@ impl ScalarNegOne for FixedPoint {
 // SAFETY:
 // We directly wrap the appropriate `i32` vector type and padding.
 // This is sound because `FixedPoint` is `repr(transparent)` around `i32`.
-unsafe impl<const N: usize> ElementOfVector<N, Simd> for FixedPoint
+unsafe impl<const N: usize> Scalar<N, Simd> for FixedPoint
 where
-    i32: ElementOfVector<N, Simd>,
+    i32: Scalar<N, Simd>,
 {
     type InnerVectorType = Vector<N, i32, Simd>;
 

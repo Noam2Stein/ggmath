@@ -13,14 +13,14 @@ pub fn generate() {
             $(for op_camelcase in binary_ops_camelcase join(, ) => $(op_camelcase)Assign),
         };
 
-        use crate::{Vector, ElementOfVector, Simdness};
+        use crate::{Vector, Scalar, Simdness};
 
         $(
             for op_camelcase in unary_ops_camelcase =>
 
             $(let op_snakecase = &op_camelcase.to_lowercase())
 
-            impl<const N: usize, T: $op_camelcase<Output = T> + ElementOfVector<N, S>, S: Simdness> $op_camelcase for Vector<N, T, S> {
+            impl<const N: usize, T: $op_camelcase<Output = T> + Scalar<N, S>, S: Simdness> $op_camelcase for Vector<N, T, S> {
                 type Output = Self;
 
                 #[inline(always)]
@@ -35,7 +35,7 @@ pub fn generate() {
 
             $(let op_snakecase = &op_camelcase.to_lowercase())
 
-            impl<const N: usize, T: $op_camelcase<Output = T> + ElementOfVector<N, S>, S: Simdness> $op_camelcase for Vector<N, T, S> {
+            impl<const N: usize, T: $op_camelcase<Output = T> + Scalar<N, S>, S: Simdness> $op_camelcase for Vector<N, T, S> {
                 type Output = Self;
 
                 #[inline(always)]
@@ -50,7 +50,7 @@ pub fn generate() {
 
             $(let op_snakecase = &op_camelcase.to_lowercase())
 
-            impl<const N: usize, T: $op_camelcase<Output = T> + ElementOfVector<N, S>, S: Simdness> $(op_camelcase)Assign for Vector<N, T, S> {
+            impl<const N: usize, T: $op_camelcase<Output = T> + Scalar<N, S>, S: Simdness> $(op_camelcase)Assign for Vector<N, T, S> {
                 #[inline(always)]
                 fn $(op_snakecase)_assign(&mut self, rhs: Self) {
                     *self = T::vec_$op_snakecase(*self, rhs);

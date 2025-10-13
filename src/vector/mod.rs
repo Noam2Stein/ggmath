@@ -1,8 +1,8 @@
-//! Module with vector related items
+//! A module with vector related items
 
 use std::array::IntoIter;
 use std::fmt::{Debug, Display};
-use std::mem::{transmute, transmute_copy};
+use std::mem::{ManuallyDrop, transmute, transmute_copy};
 use std::ops::{
     Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub,
 };
@@ -10,60 +10,45 @@ use std::slice::IterMut;
 
 use crate::{Construct, sealed::Sealed};
 
-pub use crate::{declare_vector_aliases, impl_element_of_vector};
+pub use crate::declare_vector_aliases;
 
 mod constructor;
 mod deref;
 mod dir;
 mod ops;
-mod primitive_api;
 pub use constructor::*;
 pub use dir::*;
-pub use primitive_api::*;
+
+mod primitive_api;
+pub(crate) use primitive_api::*;
 
 #[cfg(feature = "swizzle")]
 mod swizzle;
 
-/// Generic vector type.
+/// A generic vector type.
 ///
 /// Is generic over 3 parameters:
-/// - `N` - the number of elements in the vector.
-/// - `T` - the type of elements in the vector.
-/// - `S` - whether or not the vector is SIMD.
+/// - `N` - the number of elements in the vector
+/// - `T` - the type of elements in the vector
+/// - `S` - whether or not the vector is SIMD-backed
 ///
-/// This type has short type-aliases for common cases, like [`Vec2`] and [`Vec3S`].
-/// It also has type-aliases for primitive elements, like [`FVec2`],
-/// which are enabled by the `primitive_aliases` feature which is enabled by default.
+/// ## SIMD
 ///
-/// ## SIMD optimizations
+/// - [`Simd`] vectors are SIMD aligned and use explicit SIMD instructions.
+/// Their inner implementation is controlled by [`T as Scalar<N, Simd>`][Scalar].
 ///
-/// Because SIMD optimizations increase size in memory, they can be enabled or disabled via `S` which can be either [`Simd`] or [`NonSimd`].
+/// - [`NonSimd`] vectors are stored as arrays and don't use SIMD instructions
 ///
-/// Both [`Vector`] storage and function implementations are controlled by [`T as ElementOfVector<N, S>`][`ElementOfVector`].
-/// - For [`NonSimd`], [`ElementOfVector`] is automatically implemented for all types, with `[T; N]` storage and no SIMD optimizations.
-/// - For [`Simd`], [`ElementOfVector`] must be implemented manually for each type, with the goal of SIMD optimizations.
+/// It is recommended to use [`Simd`] as the default, and to only use [`NonSimd`] in memory-critical scenarios.
 ///
-/// ## Example
+/// ## Type aliases
 ///
-/// ```
-/// use ggmath::{Vec3, Vec3S};
+/// There are type aliases for both [`Simd`] and [`NonSimd`] vectors (e.g., [`Vec2<T>`], and [`Vec2S<T>`]).
 ///
-/// // Gameplay needs to update fast, so performance is more important than size in memory.
-/// // We should use `Simd` vectors.
-/// struct GameplayState {
-///     // `Vec3<f32>` is `Vector<3, f32, Simd>`.
-///     player_position: Vec3<f32>,
-/// }
-///
-/// // Models have a lot of vertices, so size in memory is more important than performance.
-/// // We should use `NonSimd` vectors.
-/// struct ModelVertex {
-///     // `Vec3S<f32>` is `Vector<3, f32, NonSimd>`.
-///     position: Vec3S<f32>,
-/// }
-/// ```
+/// Additionaly, the `primitive_aliases` feature enables type aliases for primitive vectors
+/// (e.g., [`FVec2`], [`DVec4S`], and [`U8Vec3`]).
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: ElementOfVector<N, S>, S: Simdness>(pub T::InnerVectorType);
+pub struct Vector<const N: usize, T: Scalar<N, S>, S: Simdness>(pub T::InnerVectorType);
 
 /// Type alias for [`Vector<2, T, Simd>`].
 pub type Vec2<T> = Vector<2, T, Simd>;
@@ -117,52 +102,38 @@ macro_rules! declare_vector_aliases {
     };
 }
 
-/// Trait for vector element types.
-///
-/// * All vector element types must implement both [`Scalar`] and [`ElementOfVector<N, Simd>`] for each desired vector length.
-pub trait Scalar: Construct {}
+pub unsafe trait TransmuteTo<T>: Sized {
+    fn transmute_to(self) -> T {
+        const { assert!(size_of::<Self>() == size_of::<T>()) }
+        const { assert!(align_of::<Self>() >= align_of::<T>()) }
 
-/// Trait to define how a vector of a specific element type and length should be stored and optimized.
+        let value = ManuallyDrop::new(self);
+
+        unsafe { transmute_copy::<ManuallyDrop<Self>, T>(&value) }
+    }
+}
+
+pub unsafe trait InnerVectorType<const N: usize, T: Construct> {
+    const PADDING: Option<Self>;
+}
+
+/// A trait for [`Vector`] element types.
+/// Is generic over `N` and `S`, which means that `T: Scalar<N, S>` can be put in [`Vector<N, T, S>`]
 ///
-/// All vector element types must implement both [`Scalar`] and [`ElementOfVector<N, Simd>`] for each desired vector length.
+/// ## SIMD
 ///
-/// * [`ElementOfVector<N, NonSimd>`] is automatically implemented,
-/// because [`NonSimd`] vectors are always stored as `[T; N]` and have no SIMD optimizations.
+/// This trait controls:
+/// - The inner type contained inside [`Vector<N, T, S>`]
+/// - The implementations of [`Vector<N, T, S>`] functions
 ///
-/// ## Safety
-///
-/// This trait is unsafe because of both [`ElementOfVector::InnerVectorType`] and [`ElementOfVector::VECTOR_PADDING`].
-/// All other items are safe to implement.
-///
-/// ## SIMD optimizations
-///
-/// This trait defines both the inner type and function implementations for [`Vector<N, Self, S>`].
-/// This allows for explicit SIMD optimizations to be made for specific lengths (see the implementation for [`f32`]).
+/// This allows implementations to add SIMD optimizations to vectors.
 ///
 /// ## Example
 ///
-/// // TODO: add exampleca
-pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Scalar {
+/// TODO: add example
+pub trait Scalar<const N: usize, S: Simdness>: Construct {
     /// The inner type contained inside [`Vector<N, Self, S>`].
-    ///
-    /// ## Safety
-    ///
-    /// You must ensure that this type is valid as `&[Self; N]`.
-    /// It can have extra padding and alignment, but it must start with N Self elements in memory.
-    ///
-    /// For example, [`std::arch::x86_64::__m128`] is valid for [`Vector<3, f32, Simd>`] because it starts with 3 `f32` elements in memory.
-    /// In contrast, [`std::arch::x86_64::__m128`] is NOT valid for [`Vector<3, bool, Simd>`] because it DOES NOT start with 3 `bool` elements in memory.
-    type InnerVectorType: Construct;
-
-    /// An initialized value for the padding of [`Vector<N, Self, S>`], if it has any.
-    ///
-    /// ## Safety
-    ///
-    /// If this is `Some(val)`, `val` will be used to initialize vectors from arrays.
-    /// If this is `None`, it is guaranteed that there is no padding to initialize.
-    ///
-    /// It is UNSOUND to mark this as `None` unless [`ElementOfVector::InnerVectorType`] has the exact memory layout of `[Self; N]`.
-    const VECTOR_PADDING: Option<Vector<N, Self, S>>;
+    type InnerVectorType: Construct + InnerVectorType<N, Self>;
 
     /// Overridable implementation of [`Vector::from_array`].
     #[inline(always)]
@@ -200,7 +171,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Scalar {
         vec: Vector<N, Self, S>,
     ) -> Vector<2, Self, S>
     where
-        Self: ElementOfVector<2, S>,
+        Self: Scalar<2, S>,
     {
         vec2g!(vec[X_SRC], vec[Y_SRC])
     }
@@ -216,7 +187,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Scalar {
         vec: Vector<N, Self, S>,
     ) -> Vector<3, Self, S>
     where
-        Self: ElementOfVector<3, S>,
+        Self: Scalar<3, S>,
     {
         vec3g!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC])
     }
@@ -237,7 +208,7 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Scalar {
         vec: Vector<N, Self, S>,
     ) -> Vector<4, Self, S>
     where
-        Self: ElementOfVector<4, S>,
+        Self: Scalar<4, S>,
     {
         vec4g!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC])
     }
@@ -399,72 +370,6 @@ pub unsafe trait ElementOfVector<const N: usize, S: Simdness>: Scalar {
     }
 }
 
-/// Macro to implement the [`ElementOfVector`] trait for SIMD vectors of all lengths.
-/// The generated implementation has no SIMD optimizations.
-///
-/// * You can restrict the implementation to a specific length by using a `for N = <length>: ...` prefix.
-///
-/// # Example
-///
-/// ```
-/// use ggmath::{impl_element_of_vector, Scalar};
-///
-/// #[derive(Clone, Copy)]
-/// struct SimpleType {
-///     field: f32,
-/// }
-///
-/// #[derive(Clone, Copy)]
-/// struct GenericType<T> {
-///     field: T,
-/// }
-///
-/// #[derive(Clone, Copy)]
-/// struct SpecialType {
-///     field: f32,
-/// }
-///
-/// impl Scalar for SimpleType {}
-/// impl<T: Copy + Send + Sync + 'static> Scalar for GenericType<T> {}
-///
-/// impl_element_of_vector!(impl for SimpleType);
-/// impl_element_of_vector!(impl<(T: Copy + Send + Sync + 'static)> for GenericType<T>);
-///
-/// // Now you can use SimpleType and GenericType in vectors.
-///
-/// impl Scalar for SpecialType {}
-///
-/// impl_element_of_vector!(for N = 2: impl for SpecialType);
-///
-/// // Now you can use SpecialType in vectors of length 2,
-/// // and you are free to write manual implementations for other lengths.
-/// ```
-#[macro_export]
-macro_rules! impl_element_of_vector {
-    // This intentionally doesn't use const generics to avoid downstream crates from depending on a generic implementation.
-    // This macro is usually replaced with manual implementations for each length when adding SIMD optimizations.
-    { impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
-        $crate::impl_element_of_vector!(for N = 0: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 1: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 2: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 3: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 4: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 5: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 6: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 7: impl$(<($($impl_param_tt)*)>)? for $T);
-        $crate::impl_element_of_vector!(for N = 8: impl$(<($($impl_param_tt)*)>)? for $T);
-    };
-
-    { for N = $N:literal: impl$(<($($impl_param_tt:tt)*)>)? for $T:ty } => {
-        // SAFETY: InnerVectorType is [T; $N] which is sound, and VECTOR_PADDING is None which matches [T; $N].
-        unsafe impl<$($($impl_param_tt)*)?> $crate::ElementOfVector<$N, $crate::Simd> for $T {
-            type InnerVectorType = [$T; $N];
-
-            const VECTOR_PADDING: Option<$crate::Vector<$N, Self, $crate::Simd>> = None;
-        }
-    }
-}
-
 /// Sealed trait implemented by [`Simd`] and [`NonSimd`].
 /// This trait is used to mark vectors as either SIMD-optimized, or not.
 pub trait Simdness: Sealed + 'static {
@@ -478,7 +383,7 @@ pub struct Simd;
 /// Marker type for non-SIMD vectors.
 pub struct NonSimd;
 
-impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
+impl<const N: usize, T: Scalar<N, S>, S: Simdness> Vector<N, T, S> {
     /// Creates a vector from an array.
     ///
     /// ## Example
@@ -568,7 +473,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     #[inline(always)]
     pub fn as_storage<S2: Simdness>(self) -> Vector<N, T, S2>
     where
-        T: ElementOfVector<N, S2>,
+        T: Scalar<N, S2>,
     {
         Vector::from_array(self.as_array())
     }
@@ -586,7 +491,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     #[inline(always)]
     pub fn as_simd(self) -> Vector<N, T, Simd>
     where
-        T: ElementOfVector<N, Simd>,
+        T: Scalar<N, Simd>,
     {
         self.as_storage::<Simd>()
     }
@@ -688,7 +593,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
 
     /// Maps a vector to a new vector by applying a function to each element.
     #[inline(always)]
-    pub fn map<T2: ElementOfVector<N, S>>(self, f: impl FnMut(T) -> T2) -> Vector<N, T2, S> {
+    pub fn map<T2: Scalar<N, S>>(self, f: impl FnMut(T) -> T2) -> Vector<N, T2, S> {
         Vector::from_array(self.as_array().map(f))
     }
 
@@ -706,9 +611,9 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     /// assert_eq!(vec_c, vec3!((1.0, 4.0), (2.0, 5.0), (3.0, 6.0)));
     /// ```
     #[inline(always)]
-    pub fn zip<T2: ElementOfVector<N, S>>(self, other: Vector<N, T2, S>) -> Vector<N, (T, T2), S>
+    pub fn zip<T2: Scalar<N, S>>(self, other: Vector<N, T2, S>) -> Vector<N, (T, T2), S>
     where
-        (T, T2): ElementOfVector<N, S>,
+        (T, T2): Scalar<N, S>,
     {
         // SAFETY: index is in bounds because we know that all vectors have the same length
         unsafe { Vector::from_fn(|i| (self.get_unchecked(i), other.get_unchecked(i))) }
@@ -734,7 +639,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     /// Returns a vector2 with the elements at the given indices which are known at compile time.
     pub fn get_const_vec2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, S>
     where
-        T: ElementOfVector<2, S>,
+        T: Scalar<2, S>,
     {
         const {
             assert!(X_SRC < N, "X Index out of bounds");
@@ -750,7 +655,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
         self,
     ) -> Vector<3, T, S>
     where
-        T: ElementOfVector<3, S>,
+        T: Scalar<3, S>,
     {
         const {
             assert!(X_SRC < N, "X Index out of bounds");
@@ -772,7 +677,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
         self,
     ) -> Vector<4, T, S>
     where
-        T: ElementOfVector<4, S>,
+        T: Scalar<4, S>,
     {
         const {
             assert!(X_SRC < N, "X Index out of bounds");
@@ -786,16 +691,16 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
     }
 }
 
-impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Clone for Vector<N, T, S> {
+impl<const N: usize, T: Scalar<N, S>, S: Simdness> Clone for Vector<N, T, S> {
     #[inline(always)]
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Copy for Vector<N, T, S> {}
+impl<const N: usize, T: Scalar<N, S>, S: Simdness> Copy for Vector<N, T, S> {}
 
-impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Index<usize> for Vector<N, T, S> {
+impl<const N: usize, T: Scalar<N, S>, S: Simdness> Index<usize> for Vector<N, T, S> {
     type Output = T;
 
     #[inline(always)]
@@ -804,14 +709,14 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> Index<usize> for Vec
     }
 }
 
-impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> IndexMut<usize> for Vector<N, T, S> {
+impl<const N: usize, T: Scalar<N, S>, S: Simdness> IndexMut<usize> for Vector<N, T, S> {
     #[inline(always)]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.as_mut_array()[index]
     }
 }
 
-impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> IntoIterator for Vector<N, T, S> {
+impl<const N: usize, T: Scalar<N, S>, S: Simdness> IntoIterator for Vector<N, T, S> {
     type Item = T;
     type IntoIter = IntoIter<T, N>;
 
@@ -821,9 +726,7 @@ impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> IntoIterator for Vec
     }
 }
 
-impl<'a, const N: usize, T: ElementOfVector<N, S>, S: Simdness> IntoIterator
-    for &'a mut Vector<N, T, S>
-{
+impl<'a, const N: usize, T: Scalar<N, S>, S: Simdness> IntoIterator for &'a mut Vector<N, T, S> {
     type Item = &'a mut T;
     type IntoIter = IterMut<'a, T>;
 
@@ -833,9 +736,7 @@ impl<'a, const N: usize, T: ElementOfVector<N, S>, S: Simdness> IntoIterator
     }
 }
 
-impl<const N: usize, T: PartialEq + ElementOfVector<N, S>, S: Simdness> PartialEq
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: PartialEq + Scalar<N, S>, S: Simdness> PartialEq for Vector<N, T, S> {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         T::vec_eq(*self, *other)
@@ -847,9 +748,9 @@ impl<const N: usize, T: PartialEq + ElementOfVector<N, S>, S: Simdness> PartialE
     }
 }
 
-impl<const N: usize, T: Eq + ElementOfVector<N, S>, S: Simdness> Eq for Vector<N, T, S> {}
+impl<const N: usize, T: Eq + Scalar<N, S>, S: Simdness> Eq for Vector<N, T, S> {}
 
-impl<const N: usize, T: Debug + ElementOfVector<N, S>, S: Simdness> Debug for Vector<N, T, S> {
+impl<const N: usize, T: Debug + Scalar<N, S>, S: Simdness> Debug for Vector<N, T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "(")?;
 
@@ -867,7 +768,7 @@ impl<const N: usize, T: Debug + ElementOfVector<N, S>, S: Simdness> Debug for Ve
     }
 }
 
-impl<const N: usize, T: Display + ElementOfVector<N, S>, S: Simdness> Display for Vector<N, T, S> {
+impl<const N: usize, T: Display + Scalar<N, S>, S: Simdness> Display for Vector<N, T, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "(")?;
 
@@ -885,47 +786,39 @@ impl<const N: usize, T: Display + ElementOfVector<N, S>, S: Simdness> Display fo
     }
 }
 
-impl Scalar for f32 {}
-impl Scalar for f64 {}
-impl Scalar for i8 {}
-impl Scalar for i16 {}
-impl Scalar for i32 {}
-impl Scalar for i64 {}
-impl Scalar for i128 {}
-impl Scalar for isize {}
-impl Scalar for u8 {}
-impl Scalar for u16 {}
-impl Scalar for u32 {}
-impl Scalar for u64 {}
-impl Scalar for u128 {}
-impl Scalar for usize {}
-impl Scalar for bool {}
-impl Scalar for char {}
-
-impl<T: Scalar, const N: usize> Scalar for [T; N] {}
-impl<T: Scalar> Scalar for Option<T> {}
-
-impl Scalar for () {}
-impl<T0: Scalar> Scalar for (T0,) {}
-impl<T0: Scalar, T1: Scalar> Scalar for (T0, T1) {}
-impl<T0: Scalar, T1: Scalar, T2: Scalar> Scalar for (T0, T1, T2) {}
-impl<T0: Scalar, T1: Scalar, T2: Scalar, T3: Scalar> Scalar for (T0, T1, T2, T3) {}
-
-// SAFETY: InnerVectorType is [T; N] which is sound, and VECTOR_PADDING is None which matches [T; N].
-unsafe impl<const N: usize, T: Scalar> ElementOfVector<N, NonSimd> for T {
+impl<const N: usize, T: Scalar<N, Simd>> Scalar<N, NonSimd> for T {
     type InnerVectorType = [T; N];
-
-    const VECTOR_PADDING: Option<Vector<N, Self, NonSimd>> = None;
 }
 
-impl_element_of_vector!(impl<(T: Scalar, const N2: usize)> for [T; N2]);
-impl_element_of_vector!(impl<(T: Scalar)> for Option<T>);
+impl<const N: usize, T: Construct, const N2: usize> Scalar<N, Simd> for [T; N2] {
+    type InnerVectorType = [[T; N2]; N];
+}
 
-impl_element_of_vector!(impl for ());
-impl_element_of_vector!(impl<(T0: Scalar)> for (T0,));
-impl_element_of_vector!(impl<(T0: Scalar, T1: Scalar)> for (T0, T1));
-impl_element_of_vector!(impl<(T0: Scalar, T1: Scalar, T2: Scalar)> for (T0, T1, T2));
-impl_element_of_vector!(impl<(T0: Scalar, T1: Scalar, T2: Scalar, T3: Scalar)> for (T0, T1, T2, T3));
+impl<const N: usize> Scalar<N, Simd> for () {
+    type InnerVectorType = [(); N];
+}
+
+impl<const N: usize, T0: Construct> Scalar<N, Simd> for (T0,) {
+    type InnerVectorType = [(T0,); N];
+}
+
+impl<const N: usize, T0: Construct, T1: Construct> Scalar<N, Simd> for (T0, T1) {
+    type InnerVectorType = [(T0, T1); N];
+}
+
+impl<const N: usize, T0: Construct, T1: Construct, T2: Construct> Scalar<N, Simd> for (T0, T1, T2) {
+    type InnerVectorType = [(T0, T1); N];
+}
+
+impl<const N: usize, T0: Construct, T1: Construct, T2: Construct, T3: Construct> Scalar<N, Simd>
+    for (T0, T1, T2, T3)
+{
+    type InnerVectorType = [(T0, T1, T2, T3); N];
+}
+
+impl<const N: usize, T: Construct> Scalar<N, Simd> for Option<T> {
+    type InnerVectorType = [Option<T>; N];
+}
 
 impl Simdness for Simd {
     const IS_SIMD: bool = true;
@@ -942,7 +835,7 @@ impl Sealed for NonSimd {}
 const _VERIFY_VECTOR_IS_CONSTRUCT: () = {
     fn verify_t_is_construct<T: Construct>() {}
 
-    fn _helper<const N: usize, T: ElementOfVector<N, S>, S: Simdness>() {
+    fn _helper<const N: usize, T: Scalar<N, S>, S: Simdness>() {
         verify_t_is_construct::<Vector<N, T, S>>();
     }
 };

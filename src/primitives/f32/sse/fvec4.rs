@@ -13,7 +13,7 @@ use crate::*;
 // SAFETY:
 // InnerVectorType - __m128 starts with 4 f32s, which makes it valid.
 // VECTOR_PADDING - the entirety of __m128 is filled by [f32; 4], which means there is no padding.
-unsafe impl ElementOfVector<4, Simd> for f32 {
+unsafe impl Scalar<4, Simd> for f32 {
     type InnerVectorType = __m128;
 
     const VECTOR_PADDING: Option<Vector<4, Self, Simd>> = None;
@@ -38,7 +38,7 @@ unsafe impl ElementOfVector<4, Simd> for f32 {
         vec: Vector<4, Self, Simd>,
     ) -> Vector<2, Self, Simd>
     where
-        Self: ElementOfVector<2, Simd>,
+        Self: Scalar<2, Simd>,
     {
         Vector([vec[X_SRC], vec[Y_SRC]])
     }
@@ -48,7 +48,7 @@ unsafe impl ElementOfVector<4, Simd> for f32 {
         vec: Vector<4, Self, Simd>,
     ) -> Vector<3, Self, Simd>
     where
-        Self: ElementOfVector<3, Simd>,
+        Self: Scalar<3, Simd>,
     {
         let result_as_vec4 = vec.get_const_vec4::<X_SRC, Y_SRC, Z_SRC, Z_SRC>();
 
@@ -65,7 +65,7 @@ unsafe impl ElementOfVector<4, Simd> for f32 {
         vec: Vector<4, Self, Simd>,
     ) -> Vector<4, Self, Simd>
     where
-        Self: ElementOfVector<4, Simd>,
+        Self: Scalar<4, Simd>,
     {
         let result: __m128;
         unsafe {
@@ -138,7 +138,7 @@ unsafe impl ElementOfVector<4, Simd> for f32 {
     }
 }
 
-impl FloatElementOfVector<4, Simd> for f32 {
+impl F32ElementOfVector<4, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vector<4, Self, Simd>) -> Vector<4, Self, Simd> {
         Vector(unsafe { _mm_floor_ps(vec.0) })

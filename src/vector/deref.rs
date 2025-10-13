@@ -6,7 +6,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use crate::{Construct, ElementOfVector, Simdness, Vector};
+use crate::{Construct, Scalar, Simdness, Vector};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -41,7 +41,7 @@ pub struct Vec4Elements<T: Construct> {
     pub w: T,
 }
 
-impl<T: ElementOfVector<2, S>, S: Simdness> Deref for Vector<2, T, S> {
+impl<T: Scalar<2, S>, S: Simdness> Deref for Vector<2, T, S> {
     type Target = Vec2Elements<T>;
 
     #[inline(always)]
@@ -51,7 +51,7 @@ impl<T: ElementOfVector<2, S>, S: Simdness> Deref for Vector<2, T, S> {
     }
 }
 
-impl<T: ElementOfVector<3, S>, S: Simdness> Deref for Vector<3, T, S> {
+impl<T: Scalar<3, S>, S: Simdness> Deref for Vector<3, T, S> {
     type Target = Vec3Elements<T>;
 
     #[inline(always)]
@@ -61,7 +61,7 @@ impl<T: ElementOfVector<3, S>, S: Simdness> Deref for Vector<3, T, S> {
     }
 }
 
-impl<T: ElementOfVector<4, S>, S: Simdness> Deref for Vector<4, T, S> {
+impl<T: Scalar<4, S>, S: Simdness> Deref for Vector<4, T, S> {
     type Target = Vec4Elements<T>;
 
     #[inline(always)]
@@ -71,7 +71,7 @@ impl<T: ElementOfVector<4, S>, S: Simdness> Deref for Vector<4, T, S> {
     }
 }
 
-impl<T: ElementOfVector<2, S>, S: Simdness> DerefMut for Vector<2, T, S> {
+impl<T: Scalar<2, S>, S: Simdness> DerefMut for Vector<2, T, S> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: Vector<2, T, S> is guaranteed to begin with 2 consecutive T elements
@@ -79,7 +79,7 @@ impl<T: ElementOfVector<2, S>, S: Simdness> DerefMut for Vector<2, T, S> {
     }
 }
 
-impl<T: ElementOfVector<3, S>, S: Simdness> DerefMut for Vector<3, T, S> {
+impl<T: Scalar<3, S>, S: Simdness> DerefMut for Vector<3, T, S> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: Vector<3, T, S> is guaranteed to begin with 3 consecutive T elements
@@ -87,7 +87,7 @@ impl<T: ElementOfVector<3, S>, S: Simdness> DerefMut for Vector<3, T, S> {
     }
 }
 
-impl<T: ElementOfVector<4, S>, S: Simdness> DerefMut for Vector<4, T, S> {
+impl<T: Scalar<4, S>, S: Simdness> DerefMut for Vector<4, T, S> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: Vector<4, T, S> is guaranteed to begin with 4 consecutive T elements

@@ -10,12 +10,12 @@ pub fn generate() {
         $(let axes_lowercase = ['x', 'y', 'z', 'w'])
         $(let axes_ordinals = ["1st", "2nd", "3rd", "4th"])
 
-        use crate::{Vector, Simdness, ElementOfVector};
+        use crate::{Vector, Simdness, Scalar};
 
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: ElementOfVector<$n, S>, S: Simdness> Vector<$n, T, S> {
+            impl<T: Scalar<$n, S>, S: Simdness> Vector<$n, T, S> {
                 $(
                     for n2 in common_lengths join($['\n']) => $(
                         for combination in get_swizzle_combinations(n, n2) join($['\n']) =>
@@ -35,7 +35,7 @@ pub fn generate() {
                             if n2 != n =>
 
                             where
-                                T: ElementOfVector<$n2, S>,
+                                T: Scalar<$n2, S>,
                         )
                         {
                             self.get_const_vec$n2::<$generic_args>()

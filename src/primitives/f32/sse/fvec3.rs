@@ -13,7 +13,7 @@ use crate::*;
 // SAFETY:
 // InnerVectorType - __m128 starts with 3 f32s, which makes it valid.
 // VECTOR_PADDING - it is `Some` which is always sound.
-unsafe impl ElementOfVector<3, Simd> for f32 {
+unsafe impl Scalar<3, Simd> for f32 {
     type InnerVectorType = __m128;
 
     const VECTOR_PADDING: Option<Vector<3, Self, Simd>> = Some(unsafe { transmute([0.0f32; 4]) });
@@ -38,7 +38,7 @@ unsafe impl ElementOfVector<3, Simd> for f32 {
         vec: Vector<3, Self, Simd>,
     ) -> Vector<2, Self, Simd>
     where
-        Self: ElementOfVector<2, Simd>,
+        Self: Scalar<2, Simd>,
     {
         Vector([vec[X_SRC], vec[Y_SRC]])
     }
@@ -48,7 +48,7 @@ unsafe impl ElementOfVector<3, Simd> for f32 {
         vec: Vector<3, Self, Simd>,
     ) -> Vector<3, Self, Simd>
     where
-        Self: ElementOfVector<3, Simd>,
+        Self: Scalar<3, Simd>,
     {
         let vec_as_vec4 = Vector::<4, Self, Simd>(vec.0);
 
@@ -65,7 +65,7 @@ unsafe impl ElementOfVector<3, Simd> for f32 {
         vec: Vector<3, Self, Simd>,
     ) -> Vector<4, Self, Simd>
     where
-        Self: ElementOfVector<4, Simd>,
+        Self: Scalar<4, Simd>,
     {
         let vec_as_vec4 = Vector::<4, Self, Simd>(vec.0);
 
@@ -128,7 +128,7 @@ unsafe impl ElementOfVector<3, Simd> for f32 {
     }
 }
 
-impl FloatElementOfVector<3, Simd> for f32 {
+impl F32ElementOfVector<3, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vector<3, Self, Simd>) -> Vector<3, Self, Simd> {
         Vector(unsafe { _mm_floor_ps(vec.0) })

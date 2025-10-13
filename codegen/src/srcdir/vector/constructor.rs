@@ -8,11 +8,12 @@ pub fn generate() {
     quote! {
         $(let common_lengths = [2, 3, 4])
 
+        use crate::{Simdness, Vector, Scalar};
+
         pub use crate::{
             $(for n in common_lengths join(, ) => vec$n),
             $(for n in common_lengths join(, ) => vec$(n)s),
             $(for n in common_lengths join(, ) => vec$(n)g),
-            Simdness, Vector, ElementOfVector,
         };
 
         $(
@@ -201,7 +202,7 @@ pub fn generate() {
                     let mut lengths = lengths.into_iter().collect::<Vec<usize>>();
                     lengths.sort();
 
-                    &lengths.iter().map(|n| format!("ElementOfVector<{n}, S>")).collect::<Vec<String>>().join(" + ")
+                    &lengths.iter().map(|n| format!("Scalar<{n}, S>")).collect::<Vec<String>>().join(" + ")
                 })
 
                 $(let tuple_type = {
@@ -242,14 +243,14 @@ pub fn generate() {
             )
         )
 
-        impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> From<(Vector<N, T, S>,)> for Vector<N, T, S> {
+        impl<const N: usize, T: Scalar<N, S>, S: Simdness> From<(Vector<N, T, S>,)> for Vector<N, T, S> {
             #[inline(always)]
             fn from(value: (Vector<N, T, S>,)) -> Self {
                 value.0
             }
         }
 
-        impl<const N: usize, T: ElementOfVector<N, S>, S: Simdness> From<(T,)> for Vector<N, T, S> {
+        impl<const N: usize, T: Scalar<N, S>, S: Simdness> From<(T,)> for Vector<N, T, S> {
             #[inline(always)]
             fn from(value: (T,)) -> Self {
                 T::vec_splat(value.0)

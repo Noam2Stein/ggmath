@@ -4,11 +4,11 @@ use crate::{iter::Float, util::TokensExt};
 
 pub fn generate(t: Float) {
     quote!(
-        use crate::{FloatElementOfVector, NonSimd, Simdness, Vector};
+        use crate::{Scalar, NonSimd, Simdness, Vector};
 
         impl<const N: usize, S: Simdness> Vector<N, $t, S>
         where
-            $t: FloatElementOfVector<N, S>,
+            $t: $(t.camelcase())Scalar<N, S>,
         {
             $("/// Returns a vector with the largest integer less than or equal to each element of `self`.")
             #[inline(always)]
@@ -189,142 +189,156 @@ pub fn generate(t: Float) {
             }
         }
 
-        impl<const N: usize> FloatElementOfVector<N, NonSimd> for $t {
-            #[inline(always)]
-            fn vec_floor(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+        $("/// TODO: make this pub(crate)")
+        pub trait $(t.camelcase())Scalar<const N: usize, S: Simdness>
+        where
+            $t: Scalar<N, S>,
+        {
+            $("/// TODO: make this pub(crate)")
+            fn vec_floor(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::floor)
             }
 
-            #[inline(always)]
-            fn vec_ceil(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+            $("/// TODO: make this pub(crate)")
+            fn vec_ceil(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::ceil)
             }
-            
-            #[inline(always)]
-            fn vec_round(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_round(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::round)
             }
-            
-            #[inline(always)]
-            fn vec_trunc(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_trunc(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::trunc)
             }
-            
-            #[inline(always)]
-            fn vec_fract(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_fract(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::fract)
             }
-            
-            #[inline(always)]
-            fn vec_mul_add(vec: Vector<N, $t, NonSimd>, a: Vector<N, $t, NonSimd>, b: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_mul_add(
+                vec: Vector<N, $t, S>,
+                a: Vector<N, $t, S>,
+                b: Vector<N, $t, S>,
+            ) -> Vector<N, $t, S> {
                 vec.zip(a).zip(b).map(|((x, a), b)| $t::mul_add(x, a, b))
             }
 
-            #[inline(always)]
-            fn vec_div_euclid(vec: Vector<N, $t, NonSimd>, rhs: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+            $("/// TODO: make this pub(crate)")
+            fn vec_div_euclid(vec: Vector<N, $t, S>, rhs: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(rhs).map(|(x, rhs)| $t::div_euclid(x, rhs))
             }
-            
-            #[inline(always)]
-            fn vec_rem_euclid(vec: Vector<N, $t, NonSimd>, rhs: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_rem_euclid(vec: Vector<N, $t, S>, rhs: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(rhs).map(|(x, rhs)| $t::rem_euclid(x, rhs))
             }
-            
-            #[inline(always)]
-            fn vec_sqrt(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_sqrt(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::sqrt)
             }
-            
-            #[inline(always)]
-            fn vec_sin(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_sin(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::sin)
             }
-            
-            #[inline(always)]
-            fn vec_cos(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_cos(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::cos)
             }
-            
-            #[inline(always)]
-            fn vec_tan(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_tan(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::tan)
             }
-            
-            #[inline(always)]
-            fn vec_asin(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_asin(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::asin)
             }
-            
-            #[inline(always)]
-            fn vec_acos(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_acos(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::acos)
             }
-            
-            #[inline(always)]
-            fn vec_atan(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_atan(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::atan)
             }
-            
-            #[inline(always)]
-            fn vec_recip(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_recip(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::recip)
             }
 
-            #[inline(always)]
-            fn vec_max(vec: Vector<N, $t, NonSimd>, other: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+            $("/// TODO: make this pub(crate)")
+            fn vec_max(vec: Vector<N, $t, S>, other: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 debug_assert!(vec.iter().all(|x| !x.is_nan()));
                 debug_assert!(other.iter().all(|x| !x.is_nan()));
 
                 vec.zip(other).map(|(x, other)| $t::max(x, other))
             }
-            
-            #[inline(always)]
-            fn vec_min(vec: Vector<N, $t, NonSimd>, other: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_min(vec: Vector<N, $t, S>, other: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 debug_assert!(vec.iter().all(|x| !x.is_nan()));
                 debug_assert!(other.iter().all(|x| !x.is_nan()));
 
                 vec.zip(other).map(|(x, other)| $t::min(x, other))
             }
 
-            #[inline(always)]
-            fn vec_midpoint(vec: Vector<N, $t, NonSimd>, other: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+            $("/// TODO: make this pub(crate)")
+            fn vec_midpoint(vec: Vector<N, $t, S>, other: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(other).map(|(x, other)| $t::midpoint(x, other))
             }
-            
-            #[inline(always)]
-            fn vec_clamp(vec: Vector<N, $t, NonSimd>, min: Vector<N, $t, NonSimd>, max: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_clamp(
+                vec: Vector<N, $t, S>,
+                min: Vector<N, $t, S>,
+                max: Vector<N, $t, S>,
+            ) -> Vector<N, $t, S> {
                 debug_assert!(min.zip(max).iter().all(|(min, max)| min <= max));
                 debug_assert!(min.iter().all(|x| !x.is_nan()));
                 debug_assert!(max.iter().all(|x| !x.is_nan()));
 
                 vec.zip(min).zip(max).map(|((x, min), max)| $t::clamp(x, min, max))
             }
-            
-            #[inline(always)]
-            fn vec_abs(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_abs(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::abs)
             }
-            
-            #[inline(always)]
-            fn vec_signum(vec: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_signum(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::signum)
             }
-            
-            #[inline(always)]
-            fn vec_copysign(vec: Vector<N, $t, NonSimd>, sign: Vector<N, $t, NonSimd>) -> Vector<N, $t, NonSimd> {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_copysign(vec: Vector<N, $t, S>, sign: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(sign).map(|(x, sign)| $t::copysign(x, sign))
             }
-            
-            #[inline(always)]
-            fn vec_sum(vec: Vector<N, $t, NonSimd>) -> $t {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_sum(vec: Vector<N, $t, S>) -> $t {
                 vec.iter().sum()
             }
-            
-            #[inline(always)]
-            fn vec_product(vec: Vector<N, $t, NonSimd>) -> $t {
+
+            $("/// TODO: make this pub(crate)")
+            fn vec_product(vec: Vector<N, $t, S>) -> $t {
                 vec.iter().product()
             }
         }
+
+        impl<const N: usize> $(t.camelcase())ElementOfVector<N, NonSimd> for $t {}
     )
     .write_in_src(format!("vector/primitive_api/{t}.rs"));
 }

@@ -53,6 +53,25 @@ impl Primitive {
             .chain(once(Self::Char))
     }
 
+    pub fn snakecase(&self) -> &'static str {
+        match self {
+            Self::Float(float) => float.snakecase(),
+            Self::Int(int) => int.snakecase(),
+            Self::Bool => "bool",
+            Self::Char => "char",
+        }
+    }
+
+    #[expect(unused)]
+    pub fn camelcase(&self) -> &'static str {
+        match self {
+            Self::Float(float) => float.camelcase(),
+            Self::Int(int) => int.camelcase(),
+            Self::Bool => "Bool",
+            Self::Char => "Char",
+        }
+    }
+
     #[expect(unused)]
     pub fn lowercase_prefix(&self) -> &'static str {
         match self {
@@ -65,6 +84,20 @@ impl Primitive {
 }
 
 impl Float {
+    pub fn snakecase(&self) -> &'static str {
+        match self {
+            Self::F32 => "f32",
+            Self::F64 => "f64",
+        }
+    }
+
+    pub fn camelcase(&self) -> &'static str {
+        match self {
+            Self::F32 => "F32",
+            Self::F64 => "F64",
+        }
+    }
+
     pub fn lowercase_prefix(&self) -> &'static str {
         match self {
             Self::F32 => "f",
@@ -80,6 +113,20 @@ impl Int {
             .chain(Uint::iter().map(Self::Uint))
     }
 
+    pub fn snakecase(&self) -> &'static str {
+        match self {
+            Self::Sint(sint) => sint.snakecase(),
+            Self::Uint(uint) => uint.snakecase(),
+        }
+    }
+
+    pub fn camelcase(&self) -> &'static str {
+        match self {
+            Self::Sint(sint) => sint.camelcase(),
+            Self::Uint(uint) => uint.camelcase(),
+        }
+    }
+
     pub fn lowercase_prefix(&self) -> &'static str {
         match self {
             Self::Sint(sint) => sint.lowercase_prefix(),
@@ -89,6 +136,28 @@ impl Int {
 }
 
 impl Sint {
+    pub fn snakecase(&self) -> &'static str {
+        match self {
+            Self::I8 => "i8",
+            Self::I16 => "i16",
+            Self::I32 => "i32",
+            Self::I64 => "i64",
+            Self::I128 => "i128",
+            Self::Isize => "isize",
+        }
+    }
+
+    pub fn camelcase(&self) -> &'static str {
+        match self {
+            Self::I8 => "I8",
+            Self::I16 => "I16",
+            Self::I32 => "I32",
+            Self::I64 => "I64",
+            Self::I128 => "I128",
+            Self::Isize => "Isize",
+        }
+    }
+
     pub fn lowercase_prefix(&self) -> &'static str {
         match self {
             Self::I8 => "i8",
@@ -102,6 +171,28 @@ impl Sint {
 }
 
 impl Uint {
+    pub fn snakecase(&self) -> &'static str {
+        match self {
+            Self::U8 => "u8",
+            Self::U16 => "u16",
+            Self::U32 => "u32",
+            Self::U64 => "u64",
+            Self::U128 => "u128",
+            Self::Usize => "usize",
+        }
+    }
+
+    pub fn camelcase(&self) -> &'static str {
+        match self {
+            Self::U8 => "U8",
+            Self::U16 => "U16",
+            Self::U32 => "U32",
+            Self::U64 => "U64",
+            Self::U128 => "U128",
+            Self::Usize => "Usize",
+        }
+    }
+
     pub fn lowercase_prefix(&self) -> &'static str {
         match self {
             Self::U8 => "u8",
@@ -127,74 +218,54 @@ impl Display for Primitive {
 
 impl Display for Float {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::F32 => write!(f, "f32"),
-            Self::F64 => write!(f, "f64"),
-        }
+        write!(f, "{}", self.snakecase())
     }
 }
 
 impl Display for Int {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Sint(sint) => write!(f, "{sint}"),
-            Self::Uint(uint) => write!(f, "{uint}"),
-        }
+        write!(f, "{}", self.snakecase())
     }
 }
 
 impl Display for Sint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::I8 => write!(f, "i8"),
-            Self::I16 => write!(f, "i16"),
-            Self::I32 => write!(f, "i32"),
-            Self::I64 => write!(f, "i64"),
-            Self::I128 => write!(f, "i128"),
-            Self::Isize => write!(f, "isize"),
-        }
+        write!(f, "{}", self.snakecase())
     }
 }
 
 impl Display for Uint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::U8 => write!(f, "u8"),
-            Self::U16 => write!(f, "u16"),
-            Self::U32 => write!(f, "u32"),
-            Self::U64 => write!(f, "u64"),
-            Self::U128 => write!(f, "u128"),
-            Self::Usize => write!(f, "usize"),
-        }
+        write!(f, "{}", self.snakecase())
     }
 }
 
 impl<L: Lang> FormatInto<L> for Primitive {
     fn format_into(self, tokens: &mut genco::Tokens<L>) {
-        tokens.append(self.to_string());
+        tokens.append(self.snakecase());
     }
 }
 
 impl<L: Lang> FormatInto<L> for Float {
     fn format_into(self, tokens: &mut genco::Tokens<L>) {
-        tokens.append(self.to_string());
+        tokens.append(self.snakecase());
     }
 }
 
 impl<L: Lang> FormatInto<L> for Int {
     fn format_into(self, tokens: &mut genco::Tokens<L>) {
-        tokens.append(self.to_string());
+        tokens.append(self.snakecase());
     }
 }
 
 impl<L: Lang> FormatInto<L> for Sint {
     fn format_into(self, tokens: &mut genco::Tokens<L>) {
-        tokens.append(self.to_string());
+        tokens.append(self.snakecase());
     }
 }
 
 impl<L: Lang> FormatInto<L> for Uint {
     fn format_into(self, tokens: &mut genco::Tokens<L>) {
-        tokens.append(self.to_string());
+        tokens.append(self.snakecase());
     }
 }

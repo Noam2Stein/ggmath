@@ -11,7 +11,7 @@ pub fn generate() {
         $(let axes_uppercase = ["X", "Y", "Z", "W"])
         $(let axes_ordinals = ["1st", "2nd", "3rd", "4th"])
 
-        use crate::{Construct, Vector, Simdness, ElementOfVector};
+        use crate::{Construct, Vector, Simdness, Scalar};
 
         $("/// Trait for scalar types that have a `ZERO` value.")
         $(r#"/// "scalar" means a single-dimensional number, not a vector."#)
@@ -92,17 +92,17 @@ pub fn generate() {
         impl_for_uint!(u128);
         impl_for_uint!(usize);
 
-        impl<const N: usize, T: ScalarZero + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
+        impl<const N: usize, T: ScalarZero + Scalar<N, S>, S: Simdness> Vector<N, T, S> {
             $("/// Vector with all elements set to `0`.")
             pub const ZERO: Self = Self::const_from_array([T::ZERO; N]);
         }
 
-        impl<const N: usize, T: ScalarOne + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
+        impl<const N: usize, T: ScalarOne + Scalar<N, S>, S: Simdness> Vector<N, T, S> {
             $("/// Vector with all elements set to `1`.")
             pub const ONE: Self = Self::const_from_array([T::ONE; N]);
         }
 
-        impl<const N: usize, T: ScalarNegOne + ElementOfVector<N, S>, S: Simdness> Vector<N, T, S> {
+        impl<const N: usize, T: ScalarNegOne + Scalar<N, S>, S: Simdness> Vector<N, T, S> {
             $("/// Vector with all elements set to `-1`.")
             pub const NEG_ONE: Self = Self::const_from_array([T::NEG_ONE; N]);
         }
@@ -110,7 +110,7 @@ pub fn generate() {
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: ScalarZero + ScalarOne + ElementOfVector<$n, S>, S: Simdness> Vector<$n, T, S> {
+            impl<T: ScalarZero + ScalarOne + Scalar<$n, S>, S: Simdness> Vector<$n, T, S> {
                 $(
                     for i in 0..n join($['\n']) =>
 
@@ -127,7 +127,7 @@ pub fn generate() {
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: ScalarZero + ScalarNegOne + ElementOfVector<$n, S>, S: Simdness> Vector<$n, T, S> {
+            impl<T: ScalarZero + ScalarNegOne + Scalar<$n, S>, S: Simdness> Vector<$n, T, S> {
                 $(
                     for i in 0..n join($['\n']) =>
 
@@ -149,7 +149,7 @@ pub fn generate() {
             $(format!("/// Module with `{}` and `{}` constants where {} is positive.", dir.uppercase(), neg_dir.uppercase(), dir.snakecase()))
             #[cfg(feature = $(quoted(dir.snakecase())))]
             pub mod $(dir.snakecase()) {
-                use crate::{Construct, Vector, Simdness, ElementOfVector, ScalarNegOne, ScalarOne, ScalarZero};
+                use crate::{Construct, Vector, Simdness, Scalar, ScalarNegOne, ScalarOne, ScalarZero};
 
                 $(format!("/// Trait with a `{}` constant where {} is positive and {} is negative.", dir.uppercase(), dir.snakecase(), neg_dir.snakecase()))
                 $("/// This trait is automatically implemented for vectors, and types that are [`ScalarOne`].")
@@ -176,7 +176,7 @@ pub fn generate() {
                 $(
                     for n in common_lengths.into_iter().filter(|&n| dir.axis() < n) join($['\n']) =>
 
-                    impl<T: ScalarZero + ScalarOne + ElementOfVector<$n, S>, S: Simdness> Positive$(dir.camelcase()) for Vector<$n, T, S> {
+                    impl<T: ScalarZero + ScalarOne + Scalar<$n, S>, S: Simdness> Positive$(dir.camelcase()) for Vector<$n, T, S> {
                         const $(dir.uppercase()): Self = Self::$(axes_uppercase[dir.axis()]);
                     }
                 )
@@ -184,7 +184,7 @@ pub fn generate() {
                 $(
                     for n in common_lengths.into_iter().filter(|&n| dir.axis() < n) join($['\n']) =>
 
-                    impl<T: ScalarZero + ScalarNegOne + ElementOfVector<$n, S>, S: Simdness> Negative$(neg_dir.camelcase()) for Vector<$n, T, S> {
+                    impl<T: ScalarZero + ScalarNegOne + Scalar<$n, S>, S: Simdness> Negative$(neg_dir.camelcase()) for Vector<$n, T, S> {
                         const $(neg_dir.uppercase()): Self = Self::NEG_$(axes_uppercase[dir.axis()]);
                     }
                 )

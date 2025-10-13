@@ -6,11 +6,9 @@ use std::ops::{
     Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 
-use crate::{ElementOfVector, Simdness, Vector};
+use crate::{Scalar, Simdness, Vector};
 
-impl<const N: usize, T: Neg<Output = T> + ElementOfVector<N, S>, S: Simdness> Neg
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Neg<Output = T> + Scalar<N, S>, S: Simdness> Neg for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -19,9 +17,7 @@ impl<const N: usize, T: Neg<Output = T> + ElementOfVector<N, S>, S: Simdness> Ne
     }
 }
 
-impl<const N: usize, T: Not<Output = T> + ElementOfVector<N, S>, S: Simdness> Not
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Not<Output = T> + Scalar<N, S>, S: Simdness> Not for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -30,9 +26,7 @@ impl<const N: usize, T: Not<Output = T> + ElementOfVector<N, S>, S: Simdness> No
     }
 }
 
-impl<const N: usize, T: Add<Output = T> + ElementOfVector<N, S>, S: Simdness> Add
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Add<Output = T> + Scalar<N, S>, S: Simdness> Add for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -41,9 +35,7 @@ impl<const N: usize, T: Add<Output = T> + ElementOfVector<N, S>, S: Simdness> Ad
     }
 }
 
-impl<const N: usize, T: Sub<Output = T> + ElementOfVector<N, S>, S: Simdness> Sub
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Sub<Output = T> + Scalar<N, S>, S: Simdness> Sub for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -52,9 +44,7 @@ impl<const N: usize, T: Sub<Output = T> + ElementOfVector<N, S>, S: Simdness> Su
     }
 }
 
-impl<const N: usize, T: Mul<Output = T> + ElementOfVector<N, S>, S: Simdness> Mul
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Mul<Output = T> + Scalar<N, S>, S: Simdness> Mul for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -63,9 +53,7 @@ impl<const N: usize, T: Mul<Output = T> + ElementOfVector<N, S>, S: Simdness> Mu
     }
 }
 
-impl<const N: usize, T: Div<Output = T> + ElementOfVector<N, S>, S: Simdness> Div
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Div<Output = T> + Scalar<N, S>, S: Simdness> Div for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -74,9 +62,7 @@ impl<const N: usize, T: Div<Output = T> + ElementOfVector<N, S>, S: Simdness> Di
     }
 }
 
-impl<const N: usize, T: Rem<Output = T> + ElementOfVector<N, S>, S: Simdness> Rem
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Rem<Output = T> + Scalar<N, S>, S: Simdness> Rem for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -85,9 +71,7 @@ impl<const N: usize, T: Rem<Output = T> + ElementOfVector<N, S>, S: Simdness> Re
     }
 }
 
-impl<const N: usize, T: Shl<Output = T> + ElementOfVector<N, S>, S: Simdness> Shl
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Shl<Output = T> + Scalar<N, S>, S: Simdness> Shl for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -96,9 +80,7 @@ impl<const N: usize, T: Shl<Output = T> + ElementOfVector<N, S>, S: Simdness> Sh
     }
 }
 
-impl<const N: usize, T: Shr<Output = T> + ElementOfVector<N, S>, S: Simdness> Shr
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Shr<Output = T> + Scalar<N, S>, S: Simdness> Shr for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -107,9 +89,7 @@ impl<const N: usize, T: Shr<Output = T> + ElementOfVector<N, S>, S: Simdness> Sh
     }
 }
 
-impl<const N: usize, T: BitAnd<Output = T> + ElementOfVector<N, S>, S: Simdness> BitAnd
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: BitAnd<Output = T> + Scalar<N, S>, S: Simdness> BitAnd for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -118,9 +98,7 @@ impl<const N: usize, T: BitAnd<Output = T> + ElementOfVector<N, S>, S: Simdness>
     }
 }
 
-impl<const N: usize, T: BitOr<Output = T> + ElementOfVector<N, S>, S: Simdness> BitOr
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: BitOr<Output = T> + Scalar<N, S>, S: Simdness> BitOr for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -129,9 +107,7 @@ impl<const N: usize, T: BitOr<Output = T> + ElementOfVector<N, S>, S: Simdness> 
     }
 }
 
-impl<const N: usize, T: BitXor<Output = T> + ElementOfVector<N, S>, S: Simdness> BitXor
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: BitXor<Output = T> + Scalar<N, S>, S: Simdness> BitXor for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
@@ -140,70 +116,56 @@ impl<const N: usize, T: BitXor<Output = T> + ElementOfVector<N, S>, S: Simdness>
     }
 }
 
-impl<const N: usize, T: Add<Output = T> + ElementOfVector<N, S>, S: Simdness> AddAssign
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Add<Output = T> + Scalar<N, S>, S: Simdness> AddAssign for Vector<N, T, S> {
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
         *self = T::vec_add(*self, rhs);
     }
 }
 
-impl<const N: usize, T: Sub<Output = T> + ElementOfVector<N, S>, S: Simdness> SubAssign
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Sub<Output = T> + Scalar<N, S>, S: Simdness> SubAssign for Vector<N, T, S> {
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
         *self = T::vec_sub(*self, rhs);
     }
 }
 
-impl<const N: usize, T: Mul<Output = T> + ElementOfVector<N, S>, S: Simdness> MulAssign
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Mul<Output = T> + Scalar<N, S>, S: Simdness> MulAssign for Vector<N, T, S> {
     #[inline(always)]
     fn mul_assign(&mut self, rhs: Self) {
         *self = T::vec_mul(*self, rhs);
     }
 }
 
-impl<const N: usize, T: Div<Output = T> + ElementOfVector<N, S>, S: Simdness> DivAssign
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Div<Output = T> + Scalar<N, S>, S: Simdness> DivAssign for Vector<N, T, S> {
     #[inline(always)]
     fn div_assign(&mut self, rhs: Self) {
         *self = T::vec_div(*self, rhs);
     }
 }
 
-impl<const N: usize, T: Rem<Output = T> + ElementOfVector<N, S>, S: Simdness> RemAssign
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Rem<Output = T> + Scalar<N, S>, S: Simdness> RemAssign for Vector<N, T, S> {
     #[inline(always)]
     fn rem_assign(&mut self, rhs: Self) {
         *self = T::vec_rem(*self, rhs);
     }
 }
 
-impl<const N: usize, T: Shl<Output = T> + ElementOfVector<N, S>, S: Simdness> ShlAssign
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Shl<Output = T> + Scalar<N, S>, S: Simdness> ShlAssign for Vector<N, T, S> {
     #[inline(always)]
     fn shl_assign(&mut self, rhs: Self) {
         *self = T::vec_shl(*self, rhs);
     }
 }
 
-impl<const N: usize, T: Shr<Output = T> + ElementOfVector<N, S>, S: Simdness> ShrAssign
-    for Vector<N, T, S>
-{
+impl<const N: usize, T: Shr<Output = T> + Scalar<N, S>, S: Simdness> ShrAssign for Vector<N, T, S> {
     #[inline(always)]
     fn shr_assign(&mut self, rhs: Self) {
         *self = T::vec_shr(*self, rhs);
     }
 }
 
-impl<const N: usize, T: BitAnd<Output = T> + ElementOfVector<N, S>, S: Simdness> BitAndAssign
+impl<const N: usize, T: BitAnd<Output = T> + Scalar<N, S>, S: Simdness> BitAndAssign
     for Vector<N, T, S>
 {
     #[inline(always)]
@@ -212,7 +174,7 @@ impl<const N: usize, T: BitAnd<Output = T> + ElementOfVector<N, S>, S: Simdness>
     }
 }
 
-impl<const N: usize, T: BitOr<Output = T> + ElementOfVector<N, S>, S: Simdness> BitOrAssign
+impl<const N: usize, T: BitOr<Output = T> + Scalar<N, S>, S: Simdness> BitOrAssign
     for Vector<N, T, S>
 {
     #[inline(always)]
@@ -221,7 +183,7 @@ impl<const N: usize, T: BitOr<Output = T> + ElementOfVector<N, S>, S: Simdness> 
     }
 }
 
-impl<const N: usize, T: BitXor<Output = T> + ElementOfVector<N, S>, S: Simdness> BitXorAssign
+impl<const N: usize, T: BitXor<Output = T> + Scalar<N, S>, S: Simdness> BitXorAssign
     for Vector<N, T, S>
 {
     #[inline(always)]
