@@ -8,15 +8,10 @@ use core::{
     ops::{Add, Div, Mul, Neg, Rem, Sub},
 };
 
-use crate::*;
+use crate::{InnerVectorType, Scalar, Simd, Vector, vec4, vector::primitive_api::f32::ScalarF32};
 
-// SAFETY:
-// InnerVectorType - __m128 starts with 4 f32s, which makes it valid.
-// VECTOR_PADDING - the entirety of __m128 is filled by [f32; 4], which means there is no padding.
-unsafe impl Scalar<4, Simd> for f32 {
+impl Scalar<4, Simd> for f32 {
     type InnerVectorType = __m128;
-
-    const VECTOR_PADDING: Option<Vector<4, Self, Simd>> = None;
 
     #[inline(always)]
     fn vec_from_array(array: [Self; 4]) -> Vector<4, Self, Simd> {
@@ -138,7 +133,7 @@ unsafe impl Scalar<4, Simd> for f32 {
     }
 }
 
-impl F32ElementOfVector<4, Simd> for f32 {
+impl ScalarF32<4, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vector<4, Self, Simd>) -> Vector<4, Self, Simd> {
         Vector(unsafe { _mm_floor_ps(vec.0) })
@@ -424,4 +419,11 @@ impl F32ElementOfVector<4, Simd> for f32 {
 
         product___.x
     }
+}
+
+// SAFETY: `__m128` contains exactly 4 f32s which guarantees:
+// - that `__m128` starts with 4 f32 elements
+// - that `__m128` doesn't have more padding than [f32; 4]
+unsafe impl InnerVectorType<4, f32> for __m128 {
+    const PADDING: Option<Self> = None;
 }

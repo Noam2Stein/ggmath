@@ -16,11 +16,10 @@ mod constructor;
 mod deref;
 mod dir;
 mod ops;
+mod primitive_api;
+mod primitive_impls;
 pub use constructor::*;
 pub use dir::*;
-
-mod primitive_api;
-pub(crate) use primitive_api::*;
 
 #[cfg(feature = "swizzle")]
 mod swizzle;
@@ -807,7 +806,7 @@ impl<const N: usize, T0: Construct, T1: Construct> Scalar<N, Simd> for (T0, T1) 
 }
 
 impl<const N: usize, T0: Construct, T1: Construct, T2: Construct> Scalar<N, Simd> for (T0, T1, T2) {
-    type InnerVectorType = [(T0, T1); N];
+    type InnerVectorType = [(T0, T1, T2); N];
 }
 
 impl<const N: usize, T0: Construct, T1: Construct, T2: Construct, T3: Construct> Scalar<N, Simd>
@@ -818,6 +817,14 @@ impl<const N: usize, T0: Construct, T1: Construct, T2: Construct, T3: Construct>
 
 impl<const N: usize, T: Construct> Scalar<N, Simd> for Option<T> {
     type InnerVectorType = [Option<T>; N];
+}
+
+// SAFETY:
+// [T; N] starts with exactly N Ts which guarantees:
+// - that it does exactly that (requirement of InnerVectorType)
+// - that it does not have padding
+unsafe impl<const N: usize, T: Construct> InnerVectorType<N, T> for [T; N] {
+    const PADDING: Option<Self> = None;
 }
 
 impl Simdness for Simd {

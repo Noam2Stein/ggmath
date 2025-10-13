@@ -3,20 +3,13 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use core::{
-    mem::transmute,
-    ops::{Add, Div, Mul, Neg, Rem, Sub},
-};
+use core::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::mem::transmute;
 
-use crate::*;
+use crate::{InnerVectorType, Scalar, Simd, Vector, vec3, vector::primitive_api::f32::ScalarF32};
 
-// SAFETY:
-// InnerVectorType - __m128 starts with 3 f32s, which makes it valid.
-// VECTOR_PADDING - it is `Some` which is always sound.
-unsafe impl Scalar<3, Simd> for f32 {
+impl Scalar<3, Simd> for f32 {
     type InnerVectorType = __m128;
-
-    const VECTOR_PADDING: Option<Vector<3, Self, Simd>> = Some(unsafe { transmute([0.0f32; 4]) });
 
     #[inline(always)]
     fn vec_from_array(array: [Self; 3]) -> Vector<3, Self, Simd> {
@@ -128,7 +121,7 @@ unsafe impl Scalar<3, Simd> for f32 {
     }
 }
 
-impl F32ElementOfVector<3, Simd> for f32 {
+impl ScalarF32<3, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vector<3, Self, Simd>) -> Vector<3, Self, Simd> {
         Vector(unsafe { _mm_floor_ps(vec.0) })
@@ -349,4 +342,8 @@ impl F32ElementOfVector<3, Simd> for f32 {
     fn vec_product(vec: Vector<3, Self, Simd>) -> Self {
         vec.x * vec.y * vec.z
     }
+}
+
+unsafe impl InnerVectorType<3, f32> for __m128 {
+    const PADDING: Option<Self> = Some(unsafe { transmute::<[f32; 4], __m128>([0.0; 4]) });
 }

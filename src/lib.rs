@@ -1,11 +1,8 @@
-//! TODO
-
 #![deny(missing_docs)]
+#![doc = include_str!("../README.md")]
 
 pub mod vector;
 pub use vector::*;
-
-mod primitives;
 
 #[cfg(feature = "primitive_aliases")]
 mod primitive_aliases;

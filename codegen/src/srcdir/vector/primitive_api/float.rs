@@ -4,43 +4,43 @@ use crate::{iter::Float, util::TokensExt};
 
 pub fn generate(t: Float) {
     quote!(
-        use crate::{Scalar, NonSimd, Simdness, Vector};
+        use crate::{Scalar, NonSimd, Simdness, Vector, specialize};
 
         impl<const N: usize, S: Simdness> Vector<N, $t, S>
         where
-            $t: $(t.camelcase())Scalar<N, S>,
+            $t: Scalar<N, S>,
         {
             $("/// Returns a vector with the largest integer less than or equal to each element of `self`.")
             #[inline(always)]
             pub fn floor(self) -> Self {
-                $t::vec_floor(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_floor(self))
             }
 
             $("/// Returns a vector with the smallest integer greater than or equal to each element of `self`.")
             #[inline(always)]
             pub fn ceil(self) -> Self {
-                $t::vec_ceil(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_ceil(self))
             }
 
             $("/// Returns a vector with the nearest integer to each element of `self`.")
             $("/// If an element is half-way between two integers, round away from `0.0`.")
             #[inline(always)]
             pub fn round(self) -> Self {
-                $t::vec_round(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_round(self))
             }
 
             $("/// Returns a vector with the integer part of each element of `self`.")
             $("/// This means that each element is rounded towards zero.")
             #[inline(always)]
             pub fn trunc(self) -> Self {
-                $t::vec_trunc(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_trunc(self))
             }
 
             $("/// Returns a vector with the fractional part of each element of `self`.")
             $("/// This is equivalent to `self - self.trunc()`.")
             #[inline(always)]
             pub fn fract(self) -> Self {
-                $t::vec_fract(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_fract(self))
             }
 
             $("/// Fused multiply-add. Computes `(self * a) + b` with only one rounding error,")
@@ -52,19 +52,19 @@ pub fn generate(t: Float) {
             $("/// algorithms with specific target hardware in mind.")
             #[inline(always)]
             pub fn mul_add(self, a: Self, b: Self) -> Self {
-                $t::vec_mul_add(self, a, b)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_mul_add(self, a, b))
             }
 
             $("/// Calculates Euclidean division, the matching method for `rem_euclid`.")
             #[inline(always)]
             pub fn div_euclid(self, rhs: Self) -> Self {
-                $t::vec_div_euclid(self, rhs)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_div_euclid(self, rhs))
             }
 
             $("/// Calculates the least nonnegative remainder of `self (mod rhs)`.")
             #[inline(always)]
             pub fn rem_euclid(self, rhs: Self) -> Self {
-                $t::vec_rem_euclid(self, rhs)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_rem_euclid(self, rhs))
             }
 
             $("/// Returns a vector with the square root of each element of `self`.")
@@ -73,67 +73,67 @@ pub fn generate(t: Float) {
             $("/// but only for those elements.")
             #[inline(always)]
             pub fn sqrt(self) -> Self {
-                $t::vec_sqrt(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_sqrt(self))
             }
 
             $("/// Returns a vector with the sine of each element of `self`.")
             #[inline(always)]
             pub fn sin(self) -> Self {
-                $t::vec_sin(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_sin(self))
             }
 
             $("/// Returns a vector with the cosine of each element of `self`.")
             #[inline(always)]
             pub fn cos(self) -> Self {
-                $t::vec_cos(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_cos(self))
             }
 
             $("/// Returns a vector with the tangent of each element of `self`.")
             #[inline(always)]
             pub fn tan(self) -> Self {
-                $t::vec_tan(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_tan(self))
             }
 
             $("/// Returns a vector with the arcsine of each element of `self`.")
             #[inline(always)]
             pub fn asin(self) -> Self {
-                $t::vec_asin(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_asin(self))
             }
 
             $("/// Returns a vector with the arccosine of each element of `self`.")
             #[inline(always)]
             pub fn acos(self) -> Self {
-                $t::vec_acos(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_acos(self))
             }
 
             $("/// Returns a vector with the arctangent of each element of `self`.")
             #[inline(always)]
             pub fn atan(self) -> Self {
-                $t::vec_atan(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_atan(self))
             }
 
             $("/// Returns a vector with the reciprocal of each element of `self`, `1.0 / self`.")
             #[inline(always)]
             pub fn recip(self) -> Self {
-                $t::vec_recip(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_recip(self))
             }
 
             $("/// Returns a vector with the maximum of each element of `self` and `other`.")
             #[inline(always)]
             pub fn max(self, other: Self) -> Self {
-                $t::vec_max(self, other)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_max(self, other))
             }
 
             $("/// Returns a vector with the minimum of each element of `self` and `other`.")
             #[inline(always)]
             pub fn min(self, other: Self) -> Self {
-                $t::vec_min(self, other)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_min(self, other))
             }
 
             $("/// Returns a vector with the midpoint of each element of `self` and `other`.")
             #[inline(always)]
             pub fn midpoint(self, other: Self) -> Self {
-                $t::vec_midpoint(self, other)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_midpoint(self, other))
             }
 
             $("/// Returns a vector with the clamp of each element of `self` between each element of `min` and `max`.")
@@ -147,13 +147,13 @@ pub fn generate(t: Float) {
             $("/// or if `min` or `max` is `NaN`.")
             #[inline(always)]
             pub fn clamp(self, min: Self, max: Self) -> Self {
-                $t::vec_clamp(self, min, max)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_clamp(self, min, max))
             }
 
             $("/// Returns a vector with the absolute value of each element of `self`.")
             #[inline(always)]
             pub fn abs(self) -> Self {
-                $t::vec_abs(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_abs(self))
             }
             
             $("/// Returns a vector with elements representing the sign of each element of `self`.")
@@ -163,7 +163,7 @@ pub fn generate(t: Float) {
             $("/// - `NaN` if the element is `NaN`.")
             #[inline(always)]
             pub fn signum(self) -> Self {
-                $t::vec_signum(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_signum(self))
             }
             
             $("/// Returns a vector with the signs of `sign` and the magnitudes of `self`.")
@@ -171,55 +171,54 @@ pub fn generate(t: Float) {
             $("/// Sign of `0.0` is considered positive.")
             #[inline(always)]
             pub fn copysign(self, sign: Self) -> Self {
-                $t::vec_copysign(self, sign)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_copysign(self, sign))
             }
 
             $("/// Returns the sum of all elements of `self`.")
             $("/// Equivalent to `self.x + self.y + ..`.")
             #[inline(always)]
             pub fn sum(self) -> $t {
-                $t::vec_sum(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_sum(self))
             }
 
             $("/// Returns the product of all elements of `self`.")
             $("/// Equivalent to `self.x * self.y * ..`.")
             #[inline(always)]
             pub fn product(self) -> $t {
-                $t::vec_product(self)
+                specialize!(<$t as Scalar$(t.camelcase())<N, S>>::vec_product(self))
             }
         }
 
-        $("/// TODO: make this pub(crate)")
-        pub trait $(t.camelcase())Scalar<const N: usize, S: Simdness>
+        pub trait Scalar$(t.camelcase())<const N: usize, S: Simdness>
         where
             $t: Scalar<N, S>,
         {
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_floor(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::floor)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_ceil(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::ceil)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_round(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::round)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_trunc(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::trunc)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_fract(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::fract)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_mul_add(
                 vec: Vector<N, $t, S>,
                 a: Vector<N, $t, S>,
@@ -228,57 +227,57 @@ pub fn generate(t: Float) {
                 vec.zip(a).zip(b).map(|((x, a), b)| $t::mul_add(x, a, b))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_div_euclid(vec: Vector<N, $t, S>, rhs: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(rhs).map(|(x, rhs)| $t::div_euclid(x, rhs))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_rem_euclid(vec: Vector<N, $t, S>, rhs: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(rhs).map(|(x, rhs)| $t::rem_euclid(x, rhs))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_sqrt(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::sqrt)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_sin(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::sin)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_cos(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::cos)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_tan(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::tan)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_asin(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::asin)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_acos(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::acos)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_atan(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::atan)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_recip(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::recip)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_max(vec: Vector<N, $t, S>, other: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 debug_assert!(vec.iter().all(|x| !x.is_nan()));
                 debug_assert!(other.iter().all(|x| !x.is_nan()));
@@ -286,7 +285,7 @@ pub fn generate(t: Float) {
                 vec.zip(other).map(|(x, other)| $t::max(x, other))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_min(vec: Vector<N, $t, S>, other: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 debug_assert!(vec.iter().all(|x| !x.is_nan()));
                 debug_assert!(other.iter().all(|x| !x.is_nan()));
@@ -294,12 +293,12 @@ pub fn generate(t: Float) {
                 vec.zip(other).map(|(x, other)| $t::min(x, other))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_midpoint(vec: Vector<N, $t, S>, other: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(other).map(|(x, other)| $t::midpoint(x, other))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_clamp(
                 vec: Vector<N, $t, S>,
                 min: Vector<N, $t, S>,
@@ -312,33 +311,37 @@ pub fn generate(t: Float) {
                 vec.zip(min).zip(max).map(|((x, min), max)| $t::clamp(x, min, max))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_abs(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::abs)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_signum(vec: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.map($t::signum)
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_copysign(vec: Vector<N, $t, S>, sign: Vector<N, $t, S>) -> Vector<N, $t, S> {
                 vec.zip(sign).map(|(x, sign)| $t::copysign(x, sign))
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_sum(vec: Vector<N, $t, S>) -> $t {
                 vec.iter().sum()
             }
 
-            $("/// TODO: make this pub(crate)")
+            #[inline(always)]
             fn vec_product(vec: Vector<N, $t, S>) -> $t {
                 vec.iter().product()
             }
         }
 
-        impl<const N: usize> $(t.camelcase())ElementOfVector<N, NonSimd> for $t {}
+        impl<const N: usize> Scalar$(t.camelcase())<N, NonSimd> for $t
+        where
+            $t: Scalar<N, NonSimd>,
+        {
+        }
     )
     .write_in_src(format!("vector/primitive_api/{t}.rs"));
 }
