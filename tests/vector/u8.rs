@@ -46,15 +46,6 @@ fn test_simd_primitive_fns() {
         vec4!(1u8, vec2!(2u8, 3u8), 4u8).as_array(),
         [1u8, 2u8, 3u8, 4u8]
     );
-    assert_eq!(
-        vec4!(
-            1u8,
-            vec2!(2u8, 3u8),
-            Vector::<1, u8, Simd>::from_array([4u8])
-        )
-        .as_array(),
-        [1u8, 2u8, 3u8, 4u8]
-    );
 
     assert_eq!(vec2!(1u8).as_array(), [1u8; 2]);
     assert_eq!(vec3!(1u8).as_array(), [1u8; 3]);
@@ -191,19 +182,6 @@ fn test_simd_primitive_fns() {
     assert_eq!(
         vec4!(1u8, 2u8, 3u8, 4u8).map(|x| x == 2u8),
         vec4!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2!(1u8, 2u8).zip(vec2!(2u8, 1u8)),
-        vec2!((1u8, 2u8), (2u8, 1u8))
-    );
-    assert_eq!(
-        vec3!(1u8, 2u8, 3u8).zip(vec3!(2u8, 3u8, 1u8)),
-        vec3!((1u8, 2u8), (2u8, 3u8), (3u8, 1u8))
-    );
-    assert_eq!(
-        vec4!(1u8, 2u8, 3u8, 4u8).zip(vec4!(2u8, 3u8, 4u8, 1u8)),
-        vec4!((1u8, 2u8), (2u8, 3u8), (3u8, 4u8), (4u8, 1u8))
     );
 
     assert_eq!(vec2!(1u8, 2u8).reverse(), vec2!(2u8, 1u8));
@@ -507,15 +485,6 @@ fn test_nonsimd_primitive_fns() {
         vec4s!(1u8, vec2s!(2u8, 3u8), 4u8).as_array(),
         [1u8, 2u8, 3u8, 4u8]
     );
-    assert_eq!(
-        vec4s!(
-            1u8,
-            vec2s!(2u8, 3u8),
-            Vector::<1, u8, NonSimd>::from_array([4u8])
-        )
-        .as_array(),
-        [1u8, 2u8, 3u8, 4u8]
-    );
 
     assert_eq!(vec2s!(1u8).as_array(), [1u8; 2]);
     assert_eq!(vec3s!(1u8).as_array(), [1u8; 3]);
@@ -652,19 +621,6 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(
         vec4s!(1u8, 2u8, 3u8, 4u8).map(|x| x == 2u8),
         vec4s!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2s!(1u8, 2u8).zip(vec2s!(2u8, 1u8)),
-        vec2s!((1u8, 2u8), (2u8, 1u8))
-    );
-    assert_eq!(
-        vec3s!(1u8, 2u8, 3u8).zip(vec3s!(2u8, 3u8, 1u8)),
-        vec3s!((1u8, 2u8), (2u8, 3u8), (3u8, 1u8))
-    );
-    assert_eq!(
-        vec4s!(1u8, 2u8, 3u8, 4u8).zip(vec4s!(2u8, 3u8, 4u8, 1u8)),
-        vec4s!((1u8, 2u8), (2u8, 3u8), (3u8, 4u8), (4u8, 1u8))
     );
 
     assert_eq!(vec2s!(1u8, 2u8).reverse(), vec2s!(2u8, 1u8));

@@ -8,10 +8,10 @@ use core::{
     ops::{Add, Div, Mul, Neg, Rem, Sub},
 };
 
-use crate::{InnerVectorType, Scalar, Simd, Vector, vec4, vector::primitive_api::f32::ScalarF32};
+use crate::{InnerVectorType, Scalar, Simd, Vector, vec4, vector::primitive_api::f32::F32Api};
 
-impl Scalar<4, Simd> for f32 {
-    type InnerVectorType = __m128;
+impl Scalar<4> for f32 {
+    type InnerSimdVectorType = __m128;
 
     #[inline(always)]
     fn vec_from_array(array: [Self; 4]) -> Vector<4, Self, Simd> {
@@ -33,7 +33,7 @@ impl Scalar<4, Simd> for f32 {
         vec: Vector<4, Self, Simd>,
     ) -> Vector<2, Self, Simd>
     where
-        Self: Scalar<2, Simd>,
+        Self: Scalar<2>,
     {
         Vector([vec[X_SRC], vec[Y_SRC]])
     }
@@ -43,7 +43,7 @@ impl Scalar<4, Simd> for f32 {
         vec: Vector<4, Self, Simd>,
     ) -> Vector<3, Self, Simd>
     where
-        Self: Scalar<3, Simd>,
+        Self: Scalar<3>,
     {
         let result_as_vec4 = vec.get_const_vec4::<X_SRC, Y_SRC, Z_SRC, Z_SRC>();
 
@@ -60,7 +60,7 @@ impl Scalar<4, Simd> for f32 {
         vec: Vector<4, Self, Simd>,
     ) -> Vector<4, Self, Simd>
     where
-        Self: Scalar<4, Simd>,
+        Self: Scalar<4>,
     {
         let result: __m128;
         unsafe {
@@ -133,7 +133,7 @@ impl Scalar<4, Simd> for f32 {
     }
 }
 
-impl ScalarF32<4, Simd> for f32 {
+impl F32Api<4, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vector<4, Self, Simd>) -> Vector<4, Self, Simd> {
         Vector(unsafe { _mm_floor_ps(vec.0) })
@@ -345,7 +345,7 @@ impl ScalarF32<4, Simd> for f32 {
         min: Vector<4, Self, Simd>,
         max: Vector<4, Self, Simd>,
     ) -> Vector<4, Self, Simd> {
-        debug_assert!(min.zip(max).iter().all(|(min, max)| min <= max));
+        debug_assert!(min.iter().zip(max.iter()).all(|(min, max)| min <= max));
         debug_assert!(min.iter().all(|x| !x.is_nan()));
         debug_assert!(max.iter().all(|x| !x.is_nan()));
 

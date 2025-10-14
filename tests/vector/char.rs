@@ -46,15 +46,6 @@ fn test_simd_primitive_fns() {
         vec4!('a', vec2!('b', 'c'), 'd').as_array(),
         ['a', 'b', 'c', 'd']
     );
-    assert_eq!(
-        vec4!(
-            'a',
-            vec2!('b', 'c'),
-            Vector::<1, char, Simd>::from_array(['d'])
-        )
-        .as_array(),
-        ['a', 'b', 'c', 'd']
-    );
 
     assert_eq!(vec2!('a').as_array(), ['a'; 2]);
     assert_eq!(vec3!('a').as_array(), ['a'; 3]);
@@ -194,19 +185,6 @@ fn test_simd_primitive_fns() {
     assert_eq!(
         vec4!('a', 'b', 'c', 'd').map(|x| x == 'b'),
         vec4!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2!('a', 'b').zip(vec2!('b', 'a')),
-        vec2!(('a', 'b'), ('b', 'a'))
-    );
-    assert_eq!(
-        vec3!('a', 'b', 'c').zip(vec3!('b', 'c', 'a')),
-        vec3!(('a', 'b'), ('b', 'c'), ('c', 'a'))
-    );
-    assert_eq!(
-        vec4!('a', 'b', 'c', 'd').zip(vec4!('b', 'c', 'd', 'a')),
-        vec4!(('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'a'))
     );
 
     assert_eq!(vec2!('a', 'b').reverse(), vec2!('b', 'a'));
@@ -513,15 +491,6 @@ fn test_nonsimd_primitive_fns() {
         vec4s!('a', vec2s!('b', 'c'), 'd').as_array(),
         ['a', 'b', 'c', 'd']
     );
-    assert_eq!(
-        vec4s!(
-            'a',
-            vec2s!('b', 'c'),
-            Vector::<1, char, NonSimd>::from_array(['d'])
-        )
-        .as_array(),
-        ['a', 'b', 'c', 'd']
-    );
 
     assert_eq!(vec2s!('a').as_array(), ['a'; 2]);
     assert_eq!(vec3s!('a').as_array(), ['a'; 3]);
@@ -661,19 +630,6 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(
         vec4s!('a', 'b', 'c', 'd').map(|x| x == 'b'),
         vec4s!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2s!('a', 'b').zip(vec2s!('b', 'a')),
-        vec2s!(('a', 'b'), ('b', 'a'))
-    );
-    assert_eq!(
-        vec3s!('a', 'b', 'c').zip(vec3s!('b', 'c', 'a')),
-        vec3s!(('a', 'b'), ('b', 'c'), ('c', 'a'))
-    );
-    assert_eq!(
-        vec4s!('a', 'b', 'c', 'd').zip(vec4s!('b', 'c', 'd', 'a')),
-        vec4s!(('a', 'b'), ('b', 'c'), ('c', 'd'), ('d', 'a'))
     );
 
     assert_eq!(vec2s!('a', 'b').reverse(), vec2s!('b', 'a'));

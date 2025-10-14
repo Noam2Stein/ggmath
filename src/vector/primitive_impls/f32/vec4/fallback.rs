@@ -1,7 +1,7 @@
-use crate::{Scalar, Simd, vector::primitive_api::f32::ScalarF32};
+use crate::{Scalar, Simd, vector::primitive_api::f32::F32Api};
 
-impl Scalar<4, Simd> for f32 {
+impl Scalar<4> for f32 {
     type InnerVectorType = [f32; 4];
 }
 
-impl ScalarF32<4, Simd> for f32 {}
+impl F32Api<4, Simd> for f32 {}

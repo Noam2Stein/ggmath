@@ -55,15 +55,6 @@ fn test_simd_primitive_fns() {
         vec4!(1i32, vec2!(2i32, 3i32), 4i32).as_array(),
         [1i32, 2i32, 3i32, 4i32]
     );
-    assert_eq!(
-        vec4!(
-            1i32,
-            vec2!(2i32, 3i32),
-            Vector::<1, i32, Simd>::from_array([4i32])
-        )
-        .as_array(),
-        [1i32, 2i32, 3i32, 4i32]
-    );
 
     assert_eq!(vec2!(1i32).as_array(), [1i32; 2]);
     assert_eq!(vec3!(1i32).as_array(), [1i32; 3]);
@@ -223,19 +214,6 @@ fn test_simd_primitive_fns() {
     assert_eq!(
         vec4!(1i32, 2i32, 3i32, 4i32).map(|x| x == 2i32),
         vec4!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2!(1i32, 2i32).zip(vec2!(2i32, 1i32)),
-        vec2!((1i32, 2i32), (2i32, 1i32))
-    );
-    assert_eq!(
-        vec3!(1i32, 2i32, 3i32).zip(vec3!(2i32, 3i32, 1i32)),
-        vec3!((1i32, 2i32), (2i32, 3i32), (3i32, 1i32))
-    );
-    assert_eq!(
-        vec4!(1i32, 2i32, 3i32, 4i32).zip(vec4!(2i32, 3i32, 4i32, 1i32)),
-        vec4!((1i32, 2i32), (2i32, 3i32), (3i32, 4i32), (4i32, 1i32))
     );
 
     assert_eq!(vec2!(1i32, 2i32).reverse(), vec2!(2i32, 1i32));
@@ -590,15 +568,6 @@ fn test_nonsimd_primitive_fns() {
         vec4s!(1i32, vec2s!(2i32, 3i32), 4i32).as_array(),
         [1i32, 2i32, 3i32, 4i32]
     );
-    assert_eq!(
-        vec4s!(
-            1i32,
-            vec2s!(2i32, 3i32),
-            Vector::<1, i32, NonSimd>::from_array([4i32])
-        )
-        .as_array(),
-        [1i32, 2i32, 3i32, 4i32]
-    );
 
     assert_eq!(vec2s!(1i32).as_array(), [1i32; 2]);
     assert_eq!(vec3s!(1i32).as_array(), [1i32; 3]);
@@ -758,19 +727,6 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(
         vec4s!(1i32, 2i32, 3i32, 4i32).map(|x| x == 2i32),
         vec4s!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2s!(1i32, 2i32).zip(vec2s!(2i32, 1i32)),
-        vec2s!((1i32, 2i32), (2i32, 1i32))
-    );
-    assert_eq!(
-        vec3s!(1i32, 2i32, 3i32).zip(vec3s!(2i32, 3i32, 1i32)),
-        vec3s!((1i32, 2i32), (2i32, 3i32), (3i32, 1i32))
-    );
-    assert_eq!(
-        vec4s!(1i32, 2i32, 3i32, 4i32).zip(vec4s!(2i32, 3i32, 4i32, 1i32)),
-        vec4s!((1i32, 2i32), (2i32, 3i32), (3i32, 4i32), (4i32, 1i32))
     );
 
     assert_eq!(vec2s!(1i32, 2i32).reverse(), vec2s!(2i32, 1i32));

@@ -3,13 +3,15 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use core::ops::{Add, Div, Mul, Neg, Rem, Sub};
-use std::mem::transmute;
+use core::{
+    mem::transmute,
+    ops::{Add, Div, Mul, Neg, Rem, Sub},
+};
 
-use crate::{InnerVectorType, Scalar, Simd, Vector, vec3, vector::primitive_api::f32::ScalarF32};
+use crate::{InnerVectorType, Scalar, Simd, Vector, vec3, vector::primitive_api::f32::F32Api};
 
-impl Scalar<3, Simd> for f32 {
-    type InnerVectorType = __m128;
+impl Scalar<3> for f32 {
+    type InnerSimdVectorType = __m128;
 
     #[inline(always)]
     fn vec_from_array(array: [Self; 3]) -> Vector<3, Self, Simd> {
@@ -31,7 +33,7 @@ impl Scalar<3, Simd> for f32 {
         vec: Vector<3, Self, Simd>,
     ) -> Vector<2, Self, Simd>
     where
-        Self: Scalar<2, Simd>,
+        Self: Scalar<2>,
     {
         Vector([vec[X_SRC], vec[Y_SRC]])
     }
@@ -41,7 +43,7 @@ impl Scalar<3, Simd> for f32 {
         vec: Vector<3, Self, Simd>,
     ) -> Vector<3, Self, Simd>
     where
-        Self: Scalar<3, Simd>,
+        Self: Scalar<3>,
     {
         let vec_as_vec4 = Vector::<4, Self, Simd>(vec.0);
 
@@ -58,7 +60,7 @@ impl Scalar<3, Simd> for f32 {
         vec: Vector<3, Self, Simd>,
     ) -> Vector<4, Self, Simd>
     where
-        Self: Scalar<4, Simd>,
+        Self: Scalar<4>,
     {
         let vec_as_vec4 = Vector::<4, Self, Simd>(vec.0);
 
@@ -121,7 +123,7 @@ impl Scalar<3, Simd> for f32 {
     }
 }
 
-impl ScalarF32<3, Simd> for f32 {
+impl F32Api<3, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vector<3, Self, Simd>) -> Vector<3, Self, Simd> {
         Vector(unsafe { _mm_floor_ps(vec.0) })
@@ -280,7 +282,7 @@ impl ScalarF32<3, Simd> for f32 {
         min: Vector<3, Self, Simd>,
         max: Vector<3, Self, Simd>,
     ) -> Vector<3, Self, Simd> {
-        debug_assert!(min.zip(max).iter().all(|(min, max)| min <= max));
+        debug_assert!(min.iter().zip(max.iter()).all(|(min, max)| min <= max));
         debug_assert!(min.iter().all(|x| !x.is_nan()));
         debug_assert!(max.iter().all(|x| !x.is_nan()));
 

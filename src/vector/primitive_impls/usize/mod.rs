@@ -1,4 +1,15 @@
-use crate::impl_element_of_vector;
+use crate::Scalar;
 
-// TODO: Sync this with `u16`, `u32` and `u64`.
-impl_element_of_vector!(impl for usize);
+// TODO: Sync usize vectors with `u16`, `u32` and `u64`.
+
+impl Scalar<2> for usize {
+    type InnerSimdVectorType = [usize; 2];
+}
+
+impl Scalar<3> for usize {
+    type InnerSimdVectorType = [usize; 3];
+}
+
+impl Scalar<4> for usize {
+    type InnerSimdVectorType = [usize; 4];
+}

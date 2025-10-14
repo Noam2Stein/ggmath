@@ -21,7 +21,7 @@ pub fn generate(t: Float, result: &mut Tokens) {
 
         fn float_vec_eq<const N: usize, S: Simdness>(a: Vector<N, $t, S>, b: Vector<N, $t, S>) -> bool
         where
-            $t: ElementOfVector<N, S>,
+            $t: Scalar<N>,
         {
             for i in 0..N {
                 if !float_eq(a[i], b[i]) {

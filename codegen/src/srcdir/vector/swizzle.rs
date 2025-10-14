@@ -15,7 +15,7 @@ pub fn generate() {
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: Scalar<$n, S>, S: Simdness> Vector<$n, T, S> {
+            impl<T: Scalar<$n>, S: Simdness> Vector<$n, T, S> {
                 $(
                     for n2 in common_lengths join($['\n']) => $(
                         for combination in get_swizzle_combinations(n, n2) join($['\n']) =>
@@ -35,7 +35,7 @@ pub fn generate() {
                             if n2 != n =>
 
                             where
-                                T: Scalar<$n2, S>,
+                                T: Scalar<$n2>,
                         )
                         {
                             self.get_const_vec$n2::<$generic_args>()

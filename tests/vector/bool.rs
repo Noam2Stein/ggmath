@@ -58,15 +58,6 @@ fn test_simd_primitive_fns() {
         vec4!(false, vec2!(true, false), true).as_array(),
         [false, true, false, true]
     );
-    assert_eq!(
-        vec4!(
-            false,
-            vec2!(true, false),
-            Vector::<1, bool, Simd>::from_array([true])
-        )
-        .as_array(),
-        [false, true, false, true]
-    );
 
     assert_eq!(vec2!(false).as_array(), [false; 2]);
     assert_eq!(vec3!(false).as_array(), [false; 3]);
@@ -234,19 +225,6 @@ fn test_simd_primitive_fns() {
     assert_eq!(
         vec4!(false, true, false, true).map(|x| x == true),
         vec4!(false, true, false, true)
-    );
-
-    assert_eq!(
-        vec2!(false, true).zip(vec2!(true, false)),
-        vec2!((false, true), (true, false))
-    );
-    assert_eq!(
-        vec3!(false, true, false).zip(vec3!(true, false, false)),
-        vec3!((false, true), (true, false), (false, false))
-    );
-    assert_eq!(
-        vec4!(false, true, false, true).zip(vec4!(true, false, true, false)),
-        vec4!((false, true), (true, false), (false, true), (true, false))
     );
 
     assert_eq!(vec2!(false, true).reverse(), vec2!(true, false));
@@ -628,15 +606,6 @@ fn test_nonsimd_primitive_fns() {
         vec4s!(false, vec2s!(true, false), true).as_array(),
         [false, true, false, true]
     );
-    assert_eq!(
-        vec4s!(
-            false,
-            vec2s!(true, false),
-            Vector::<1, bool, NonSimd>::from_array([true])
-        )
-        .as_array(),
-        [false, true, false, true]
-    );
 
     assert_eq!(vec2s!(false).as_array(), [false; 2]);
     assert_eq!(vec3s!(false).as_array(), [false; 3]);
@@ -810,19 +779,6 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(
         vec4s!(false, true, false, true).map(|x| x == true),
         vec4s!(false, true, false, true)
-    );
-
-    assert_eq!(
-        vec2s!(false, true).zip(vec2s!(true, false)),
-        vec2s!((false, true), (true, false))
-    );
-    assert_eq!(
-        vec3s!(false, true, false).zip(vec3s!(true, false, false)),
-        vec3s!((false, true), (true, false), (false, false))
-    );
-    assert_eq!(
-        vec4s!(false, true, false, true).zip(vec4s!(true, false, true, false)),
-        vec4s!((false, true), (true, false), (false, true), (true, false))
     );
 
     assert_eq!(vec2s!(false, true).reverse(), vec2s!(true, false));

@@ -33,7 +33,7 @@ pub fn generate() {
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: Scalar<$n, S>, S: Simdness> Deref for Vector<$n, T, S> {
+            impl<T: Scalar<$n>, S: Simdness> Deref for Vector<$n, T, S> {
                 type Target = Vec$(n)Elements<T>;
 
                 #[inline(always)]
@@ -47,7 +47,7 @@ pub fn generate() {
         $(
             for n in common_lengths join($['\n']) =>
 
-            impl<T: Scalar<$n, S>, S: Simdness> DerefMut for Vector<$n, T, S> {
+            impl<T: Scalar<$n>, S: Simdness> DerefMut for Vector<$n, T, S> {
                 #[inline(always)]
                 fn deref_mut(&mut self) -> &mut Self::Target {
                     $(format!("// SAFETY: Vector<{n}, T, S> is guaranteed to begin with {n} consecutive T elements"))

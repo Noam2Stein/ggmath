@@ -1,25 +1,19 @@
-use crate::impl_element_of_vector;
+use crate::Scalar;
 
-impl_element_of_vector!(for N = 0: impl for u64);
-impl_element_of_vector!(for N = 1: impl for u64);
+// TODO: Implement SIMD optimizations for U64Vec2.
 
-// TODO: Add SIMD optimizations to U64Vec2.
-impl_element_of_vector!(for N = 2: impl for u64);
+impl Scalar<2> for u64 {
+    type InnerSimdVectorType = [u64; 2];
+}
 
-// TODO: Add SIMD optimizations to U64Vec3.
-impl_element_of_vector!(for N = 3: impl for u64);
+// TODO: Implement SIMD optimizations for U64Vec3.
 
-// TODO: Add SIMD optimizations to U64Vec4.
-impl_element_of_vector!(for N = 4: impl for u64);
+impl Scalar<3> for u64 {
+    type InnerSimdVectorType = [u64; 3];
+}
 
-// TODO: Determine if U64Vec5 benefits from SIMD.
-impl_element_of_vector!(for N = 5: impl for u64);
+// TODO: Implement SIMD optimizations for U64Vec4.
 
-// TODO: Determine if U64Vec6 benefits from SIMD.
-impl_element_of_vector!(for N = 6: impl for u64);
-
-// TODO: Determine if U64Vec7 benefits from SIMD.
-impl_element_of_vector!(for N = 7: impl for u64);
-
-// TODO: Determine if U64Vec8 benefits from SIMD.
-impl_element_of_vector!(for N = 8: impl for u64);
+impl Scalar<4> for u64 {
+    type InnerSimdVectorType = [u64; 4];
+}

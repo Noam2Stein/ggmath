@@ -103,7 +103,6 @@ pub fn generate(t: Primitive) {
                 assert_eq!($vec3!($val1, $vec2!($val2, $val3)).as_array(), [$val1, $val2, $val3]);
                 assert_eq!($vec4!($val1, $val2, $val3, $val4).as_array(), [$val1, $val2, $val3, $val4]);
                 assert_eq!($vec4!($val1, $vec2!($val2, $val3), $val4).as_array(), [$val1, $val2, $val3, $val4]);
-                assert_eq!($vec4!($val1, $vec2!($val2, $val3), Vector::<1, $t, $s>::from_array([$val4])).as_array(), [$val1, $val2, $val3, $val4]);
 
                 assert_eq!($vec2!($val1).as_array(), [$val1; 2]);
                 assert_eq!($vec3!($val1).as_array(), [$val1; 3]);
@@ -207,10 +206,6 @@ pub fn generate(t: Primitive) {
                 assert_eq!($vec2!($val1, $val2).map(|x| x == $val2), $vec2!(false, true));
                 assert_eq!($vec3!($val1, $val2, $val3).map(|x| x == $val2), $vec3!(false, true, $((val3 == val2).to_string())));
                 assert_eq!($vec4!($val1, $val2, $val3, $val4).map(|x| x == $val2), $vec4!(false, true, $((val3 == val2).to_string()), $((val4 == val2).to_string())));
-
-                assert_eq!($vec2!($val1, $val2).zip($vec2!($val2, $val1)), $vec2!(($val1, $val2), ($val2, $val1)));
-                assert_eq!($vec3!($val1, $val2, $val3).zip($vec3!($val2, $val3, $val1)), $vec3!(($val1, $val2), ($val2, $val3), ($val3, $val1)));
-                assert_eq!($vec4!($val1, $val2, $val3, $val4).zip($vec4!($val2, $val3, $val4, $val1)), $vec4!(($val1, $val2), ($val2, $val3), ($val3, $val4), ($val4, $val1)));
 
                 assert_eq!($vec2!($val1, $val2).reverse(), $vec2!($val2, $val1));
                 assert_eq!($vec3!($val1, $val2, $val3).reverse(), $vec3!($val3, $val2, $val1));

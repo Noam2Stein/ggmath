@@ -3,7 +3,7 @@
 
 use crate::{Scalar, Simdness, Vector};
 
-impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
+impl<T: Scalar<2>, S: Simdness> Vector<2, T, S> {
     /// Returns a vector2 with the `x` and `y` (1st and 2nd) components of `self`.
     #[inline(always)]
     pub fn xy(self) -> Vector<2, T, S> {
@@ -26,7 +26,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xxy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 0, 1>()
     }
@@ -35,7 +35,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xyx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 1, 0>()
     }
@@ -44,7 +44,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xyy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 1, 1>()
     }
@@ -53,7 +53,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yxx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 0, 0>()
     }
@@ -62,7 +62,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yxy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 0, 1>()
     }
@@ -71,7 +71,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yyx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 1, 0>()
     }
@@ -80,7 +80,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yyy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 1, 1>()
     }
@@ -89,7 +89,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xxxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 0, 1>()
     }
@@ -98,7 +98,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xxyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 1, 0>()
     }
@@ -107,7 +107,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xxyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 1, 1>()
     }
@@ -116,7 +116,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xyxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 0, 0>()
     }
@@ -125,7 +125,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xyxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 0, 1>()
     }
@@ -134,7 +134,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xyyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 1, 0>()
     }
@@ -143,7 +143,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn xyyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 1, 1>()
     }
@@ -152,7 +152,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yxxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 0, 0>()
     }
@@ -161,7 +161,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yxxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 0, 1>()
     }
@@ -170,7 +170,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yxyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 1, 0>()
     }
@@ -179,7 +179,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yxyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 1, 1>()
     }
@@ -188,7 +188,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yyxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 0, 0>()
     }
@@ -197,7 +197,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yyxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 0, 1>()
     }
@@ -206,7 +206,7 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yyyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 1, 0>()
     }
@@ -215,18 +215,18 @@ impl<T: Scalar<2, S>, S: Simdness> Vector<2, T, S> {
     #[inline(always)]
     pub fn yyyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 1, 1>()
     }
 }
 
-impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
+impl<T: Scalar<3>, S: Simdness> Vector<3, T, S> {
     /// Returns a vector2 with the `x` and `y` (1st and 2nd) components of `self`.
     #[inline(always)]
     pub fn xy(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<0, 1>()
     }
@@ -235,7 +235,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xz(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<0, 2>()
     }
@@ -244,7 +244,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yx(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<1, 0>()
     }
@@ -253,7 +253,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yy(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<1, 1>()
     }
@@ -262,7 +262,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yz(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<1, 2>()
     }
@@ -271,7 +271,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zx(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<2, 0>()
     }
@@ -280,7 +280,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zy(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<2, 1>()
     }
@@ -289,7 +289,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zz(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<2, 2>()
     }
@@ -454,7 +454,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 0, 1>()
     }
@@ -463,7 +463,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 0, 2>()
     }
@@ -472,7 +472,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 1, 0>()
     }
@@ -481,7 +481,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 1, 1>()
     }
@@ -490,7 +490,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 1, 2>()
     }
@@ -499,7 +499,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 2, 0>()
     }
@@ -508,7 +508,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 2, 1>()
     }
@@ -517,7 +517,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xxzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 0, 2, 2>()
     }
@@ -526,7 +526,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 0, 0>()
     }
@@ -535,7 +535,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 0, 1>()
     }
@@ -544,7 +544,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 0, 2>()
     }
@@ -553,7 +553,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 1, 0>()
     }
@@ -562,7 +562,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 1, 1>()
     }
@@ -571,7 +571,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 1, 2>()
     }
@@ -580,7 +580,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 2, 0>()
     }
@@ -589,7 +589,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 2, 1>()
     }
@@ -598,7 +598,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xyzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 1, 2, 2>()
     }
@@ -607,7 +607,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 0, 0>()
     }
@@ -616,7 +616,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 0, 1>()
     }
@@ -625,7 +625,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 0, 2>()
     }
@@ -634,7 +634,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 1, 0>()
     }
@@ -643,7 +643,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 1, 1>()
     }
@@ -652,7 +652,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 1, 2>()
     }
@@ -661,7 +661,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 2, 0>()
     }
@@ -670,7 +670,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 2, 1>()
     }
@@ -679,7 +679,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn xzzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<0, 2, 2, 2>()
     }
@@ -688,7 +688,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 0, 0>()
     }
@@ -697,7 +697,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 0, 1>()
     }
@@ -706,7 +706,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 0, 2>()
     }
@@ -715,7 +715,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 1, 0>()
     }
@@ -724,7 +724,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 1, 1>()
     }
@@ -733,7 +733,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 1, 2>()
     }
@@ -742,7 +742,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 2, 0>()
     }
@@ -751,7 +751,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 2, 1>()
     }
@@ -760,7 +760,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yxzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 0, 2, 2>()
     }
@@ -769,7 +769,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 0, 0>()
     }
@@ -778,7 +778,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 0, 1>()
     }
@@ -787,7 +787,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 0, 2>()
     }
@@ -796,7 +796,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 1, 0>()
     }
@@ -805,7 +805,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 1, 1>()
     }
@@ -814,7 +814,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 1, 2>()
     }
@@ -823,7 +823,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 2, 0>()
     }
@@ -832,7 +832,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 2, 1>()
     }
@@ -841,7 +841,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yyzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 1, 2, 2>()
     }
@@ -850,7 +850,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 0, 0>()
     }
@@ -859,7 +859,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 0, 1>()
     }
@@ -868,7 +868,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 0, 2>()
     }
@@ -877,7 +877,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 1, 0>()
     }
@@ -886,7 +886,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 1, 1>()
     }
@@ -895,7 +895,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 1, 2>()
     }
@@ -904,7 +904,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 2, 0>()
     }
@@ -913,7 +913,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 2, 1>()
     }
@@ -922,7 +922,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn yzzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<1, 2, 2, 2>()
     }
@@ -931,7 +931,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 0, 0>()
     }
@@ -940,7 +940,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 0, 1>()
     }
@@ -949,7 +949,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 0, 2>()
     }
@@ -958,7 +958,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 1, 0>()
     }
@@ -967,7 +967,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 1, 1>()
     }
@@ -976,7 +976,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 1, 2>()
     }
@@ -985,7 +985,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 2, 0>()
     }
@@ -994,7 +994,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 2, 1>()
     }
@@ -1003,7 +1003,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zxzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 0, 2, 2>()
     }
@@ -1012,7 +1012,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 0, 0>()
     }
@@ -1021,7 +1021,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 0, 1>()
     }
@@ -1030,7 +1030,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 0, 2>()
     }
@@ -1039,7 +1039,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 1, 0>()
     }
@@ -1048,7 +1048,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 1, 1>()
     }
@@ -1057,7 +1057,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 1, 2>()
     }
@@ -1066,7 +1066,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 2, 0>()
     }
@@ -1075,7 +1075,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 2, 1>()
     }
@@ -1084,7 +1084,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zyzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 1, 2, 2>()
     }
@@ -1093,7 +1093,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzxx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 0, 0>()
     }
@@ -1102,7 +1102,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzxy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 0, 1>()
     }
@@ -1111,7 +1111,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzxz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 0, 2>()
     }
@@ -1120,7 +1120,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzyx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 1, 0>()
     }
@@ -1129,7 +1129,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzyy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 1, 1>()
     }
@@ -1138,7 +1138,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzyz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 1, 2>()
     }
@@ -1147,7 +1147,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzzx(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 2, 0>()
     }
@@ -1156,7 +1156,7 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzzy(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 2, 1>()
     }
@@ -1165,18 +1165,18 @@ impl<T: Scalar<3, S>, S: Simdness> Vector<3, T, S> {
     #[inline(always)]
     pub fn zzzz(self) -> Vector<4, T, S>
     where
-        T: Scalar<4, S>,
+        T: Scalar<4>,
     {
         self.get_const_vec4::<2, 2, 2, 2>()
     }
 }
 
-impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
+impl<T: Scalar<4>, S: Simdness> Vector<4, T, S> {
     /// Returns a vector2 with the `x` and `y` (1st and 2nd) components of `self`.
     #[inline(always)]
     pub fn xy(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<0, 1>()
     }
@@ -1185,7 +1185,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xz(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<0, 2>()
     }
@@ -1194,7 +1194,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xw(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<0, 3>()
     }
@@ -1203,7 +1203,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yx(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<1, 0>()
     }
@@ -1212,7 +1212,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yy(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<1, 1>()
     }
@@ -1221,7 +1221,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yz(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<1, 2>()
     }
@@ -1230,7 +1230,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yw(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<1, 3>()
     }
@@ -1239,7 +1239,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zx(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<2, 0>()
     }
@@ -1248,7 +1248,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zy(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<2, 1>()
     }
@@ -1257,7 +1257,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zz(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<2, 2>()
     }
@@ -1266,7 +1266,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zw(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<2, 3>()
     }
@@ -1275,7 +1275,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wx(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<3, 0>()
     }
@@ -1284,7 +1284,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wy(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<3, 1>()
     }
@@ -1293,7 +1293,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wz(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<3, 2>()
     }
@@ -1302,7 +1302,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn ww(self) -> Vector<2, T, S>
     where
-        T: Scalar<2, S>,
+        T: Scalar<2>,
     {
         self.get_const_vec2::<3, 3>()
     }
@@ -1311,7 +1311,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xxy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 0, 1>()
     }
@@ -1320,7 +1320,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xxz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 0, 2>()
     }
@@ -1329,7 +1329,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xxw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 0, 3>()
     }
@@ -1338,7 +1338,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xyx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 1, 0>()
     }
@@ -1347,7 +1347,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xyy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 1, 1>()
     }
@@ -1356,7 +1356,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xyz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 1, 2>()
     }
@@ -1365,7 +1365,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xyw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 1, 3>()
     }
@@ -1374,7 +1374,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xzx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 2, 0>()
     }
@@ -1383,7 +1383,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xzy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 2, 1>()
     }
@@ -1392,7 +1392,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xzz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 2, 2>()
     }
@@ -1401,7 +1401,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xzw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 2, 3>()
     }
@@ -1410,7 +1410,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xwx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 3, 0>()
     }
@@ -1419,7 +1419,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xwy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 3, 1>()
     }
@@ -1428,7 +1428,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xwz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 3, 2>()
     }
@@ -1437,7 +1437,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn xww(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<0, 3, 3>()
     }
@@ -1446,7 +1446,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yxx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 0, 0>()
     }
@@ -1455,7 +1455,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yxy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 0, 1>()
     }
@@ -1464,7 +1464,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yxz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 0, 2>()
     }
@@ -1473,7 +1473,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yxw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 0, 3>()
     }
@@ -1482,7 +1482,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yyx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 1, 0>()
     }
@@ -1491,7 +1491,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yyy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 1, 1>()
     }
@@ -1500,7 +1500,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yyz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 1, 2>()
     }
@@ -1509,7 +1509,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yyw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 1, 3>()
     }
@@ -1518,7 +1518,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yzx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 2, 0>()
     }
@@ -1527,7 +1527,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yzy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 2, 1>()
     }
@@ -1536,7 +1536,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yzz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 2, 2>()
     }
@@ -1545,7 +1545,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yzw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 2, 3>()
     }
@@ -1554,7 +1554,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn ywx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 3, 0>()
     }
@@ -1563,7 +1563,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn ywy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 3, 1>()
     }
@@ -1572,7 +1572,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn ywz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 3, 2>()
     }
@@ -1581,7 +1581,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn yww(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<1, 3, 3>()
     }
@@ -1590,7 +1590,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zxx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 0, 0>()
     }
@@ -1599,7 +1599,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zxy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 0, 1>()
     }
@@ -1608,7 +1608,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zxz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 0, 2>()
     }
@@ -1617,7 +1617,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zxw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 0, 3>()
     }
@@ -1626,7 +1626,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zyx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 1, 0>()
     }
@@ -1635,7 +1635,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zyy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 1, 1>()
     }
@@ -1644,7 +1644,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zyz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 1, 2>()
     }
@@ -1653,7 +1653,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zyw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 1, 3>()
     }
@@ -1662,7 +1662,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zzx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 2, 0>()
     }
@@ -1671,7 +1671,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zzy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 2, 1>()
     }
@@ -1680,7 +1680,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zzz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 2, 2>()
     }
@@ -1689,7 +1689,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zzw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 2, 3>()
     }
@@ -1698,7 +1698,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zwx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 3, 0>()
     }
@@ -1707,7 +1707,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zwy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 3, 1>()
     }
@@ -1716,7 +1716,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zwz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 3, 2>()
     }
@@ -1725,7 +1725,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn zww(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<2, 3, 3>()
     }
@@ -1734,7 +1734,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wxx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 0, 0>()
     }
@@ -1743,7 +1743,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wxy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 0, 1>()
     }
@@ -1752,7 +1752,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wxz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 0, 2>()
     }
@@ -1761,7 +1761,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wxw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 0, 3>()
     }
@@ -1770,7 +1770,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wyx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 1, 0>()
     }
@@ -1779,7 +1779,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wyy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 1, 1>()
     }
@@ -1788,7 +1788,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wyz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 1, 2>()
     }
@@ -1797,7 +1797,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wyw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 1, 3>()
     }
@@ -1806,7 +1806,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wzx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 2, 0>()
     }
@@ -1815,7 +1815,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wzy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 2, 1>()
     }
@@ -1824,7 +1824,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wzz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 2, 2>()
     }
@@ -1833,7 +1833,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wzw(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 2, 3>()
     }
@@ -1842,7 +1842,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wwx(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 3, 0>()
     }
@@ -1851,7 +1851,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wwy(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 3, 1>()
     }
@@ -1860,7 +1860,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn wwz(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 3, 2>()
     }
@@ -1869,7 +1869,7 @@ impl<T: Scalar<4, S>, S: Simdness> Vector<4, T, S> {
     #[inline(always)]
     pub fn www(self) -> Vector<3, T, S>
     where
-        T: Scalar<3, S>,
+        T: Scalar<3>,
     {
         self.get_const_vec3::<3, 3, 3>()
     }

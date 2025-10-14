@@ -64,15 +64,6 @@ fn test_simd_primitive_fns() {
         vec4!(1.0f64, vec2!(2.0f64, 3.0f64), 4.0f64).as_array(),
         [1.0f64, 2.0f64, 3.0f64, 4.0f64]
     );
-    assert_eq!(
-        vec4!(
-            1.0f64,
-            vec2!(2.0f64, 3.0f64),
-            Vector::<1, f64, Simd>::from_array([4.0f64])
-        )
-        .as_array(),
-        [1.0f64, 2.0f64, 3.0f64, 4.0f64]
-    );
 
     assert_eq!(vec2!(1.0f64).as_array(), [1.0f64; 2]);
     assert_eq!(vec3!(1.0f64).as_array(), [1.0f64; 3]);
@@ -276,24 +267,6 @@ fn test_simd_primitive_fns() {
     assert_eq!(
         vec4!(1.0f64, 2.0f64, 3.0f64, 4.0f64).map(|x| x == 2.0f64),
         vec4!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2!(1.0f64, 2.0f64).zip(vec2!(2.0f64, 1.0f64)),
-        vec2!((1.0f64, 2.0f64), (2.0f64, 1.0f64))
-    );
-    assert_eq!(
-        vec3!(1.0f64, 2.0f64, 3.0f64).zip(vec3!(2.0f64, 3.0f64, 1.0f64)),
-        vec3!((1.0f64, 2.0f64), (2.0f64, 3.0f64), (3.0f64, 1.0f64))
-    );
-    assert_eq!(
-        vec4!(1.0f64, 2.0f64, 3.0f64, 4.0f64).zip(vec4!(2.0f64, 3.0f64, 4.0f64, 1.0f64)),
-        vec4!(
-            (1.0f64, 2.0f64),
-            (2.0f64, 3.0f64),
-            (3.0f64, 4.0f64),
-            (4.0f64, 1.0f64)
-        )
     );
 
     assert_eq!(vec2!(1.0f64, 2.0f64).reverse(), vec2!(2.0f64, 1.0f64));
@@ -720,15 +693,6 @@ fn test_nonsimd_primitive_fns() {
         vec4s!(1.0f64, vec2s!(2.0f64, 3.0f64), 4.0f64).as_array(),
         [1.0f64, 2.0f64, 3.0f64, 4.0f64]
     );
-    assert_eq!(
-        vec4s!(
-            1.0f64,
-            vec2s!(2.0f64, 3.0f64),
-            Vector::<1, f64, NonSimd>::from_array([4.0f64])
-        )
-        .as_array(),
-        [1.0f64, 2.0f64, 3.0f64, 4.0f64]
-    );
 
     assert_eq!(vec2s!(1.0f64).as_array(), [1.0f64; 2]);
     assert_eq!(vec3s!(1.0f64).as_array(), [1.0f64; 3]);
@@ -932,24 +896,6 @@ fn test_nonsimd_primitive_fns() {
     assert_eq!(
         vec4s!(1.0f64, 2.0f64, 3.0f64, 4.0f64).map(|x| x == 2.0f64),
         vec4s!(false, true, false, false)
-    );
-
-    assert_eq!(
-        vec2s!(1.0f64, 2.0f64).zip(vec2s!(2.0f64, 1.0f64)),
-        vec2s!((1.0f64, 2.0f64), (2.0f64, 1.0f64))
-    );
-    assert_eq!(
-        vec3s!(1.0f64, 2.0f64, 3.0f64).zip(vec3s!(2.0f64, 3.0f64, 1.0f64)),
-        vec3s!((1.0f64, 2.0f64), (2.0f64, 3.0f64), (3.0f64, 1.0f64))
-    );
-    assert_eq!(
-        vec4s!(1.0f64, 2.0f64, 3.0f64, 4.0f64).zip(vec4s!(2.0f64, 3.0f64, 4.0f64, 1.0f64)),
-        vec4s!(
-            (1.0f64, 2.0f64),
-            (2.0f64, 3.0f64),
-            (3.0f64, 4.0f64),
-            (4.0f64, 1.0f64)
-        )
     );
 
     assert_eq!(vec2s!(1.0f64, 2.0f64).reverse(), vec2s!(2.0f64, 1.0f64));
@@ -1325,7 +1271,7 @@ fn float_eq(a: f64, b: f64) -> bool {
 
 fn float_vec_eq<const N: usize, S: Simdness>(a: Vector<N, f64, S>, b: Vector<N, f64, S>) -> bool
 where
-    f64: ElementOfVector<N, S>,
+    f64: Scalar<N>,
 {
     for i in 0..N {
         if !float_eq(a[i], b[i]) {

@@ -6,188 +6,296 @@ use std::ops::{
     Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 
-use crate::{Scalar, Simdness, Vector};
+use crate::{NonSimd, Scalar, Simd, Simdness, Vector, match_simdness};
 
-impl<const N: usize, T: Neg<Output = T> + Scalar<N, S>, S: Simdness> Neg for Vector<N, T, S> {
+impl<const N: usize, T: Neg<Output = T> + Scalar<N>, S: Simdness> Neg for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn neg(self) -> Self::Output {
-        T::vec_neg(self)
+        match_simdness! {
+            for self;
+
+            Simd => |vec: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_neg(vec)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                vec.map(|x| x.neg())
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Not<Output = T> + Scalar<N, S>, S: Simdness> Not for Vector<N, T, S> {
+impl<const N: usize, T: Not<Output = T> + Scalar<N>, S: Simdness> Not for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn not(self) -> Self::Output {
-        T::vec_not(self)
+        match_simdness! {
+            for self;
+
+            Simd => |vec: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_not(vec)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                vec.map(|x| x.not())
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Add<Output = T> + Scalar<N, S>, S: Simdness> Add for Vector<N, T, S> {
+impl<const N: usize, T: Add<Output = T> + Scalar<N>, S: Simdness> Add for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn add(self, rhs: Self) -> Self::Output {
-        T::vec_add(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_add(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].add(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Sub<Output = T> + Scalar<N, S>, S: Simdness> Sub for Vector<N, T, S> {
+impl<const N: usize, T: Sub<Output = T> + Scalar<N>, S: Simdness> Sub for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
-        T::vec_sub(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_sub(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].sub(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Mul<Output = T> + Scalar<N, S>, S: Simdness> Mul for Vector<N, T, S> {
+impl<const N: usize, T: Mul<Output = T> + Scalar<N>, S: Simdness> Mul for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn mul(self, rhs: Self) -> Self::Output {
-        T::vec_mul(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_mul(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].mul(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Div<Output = T> + Scalar<N, S>, S: Simdness> Div for Vector<N, T, S> {
+impl<const N: usize, T: Div<Output = T> + Scalar<N>, S: Simdness> Div for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn div(self, rhs: Self) -> Self::Output {
-        T::vec_div(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_div(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].div(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Rem<Output = T> + Scalar<N, S>, S: Simdness> Rem for Vector<N, T, S> {
+impl<const N: usize, T: Rem<Output = T> + Scalar<N>, S: Simdness> Rem for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn rem(self, rhs: Self) -> Self::Output {
-        T::vec_rem(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_rem(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].rem(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Shl<Output = T> + Scalar<N, S>, S: Simdness> Shl for Vector<N, T, S> {
+impl<const N: usize, T: Shl<Output = T> + Scalar<N>, S: Simdness> Shl for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn shl(self, rhs: Self) -> Self::Output {
-        T::vec_shl(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_shl(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].shl(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Shr<Output = T> + Scalar<N, S>, S: Simdness> Shr for Vector<N, T, S> {
+impl<const N: usize, T: Shr<Output = T> + Scalar<N>, S: Simdness> Shr for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn shr(self, rhs: Self) -> Self::Output {
-        T::vec_shr(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_shr(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].shr(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: BitAnd<Output = T> + Scalar<N, S>, S: Simdness> BitAnd for Vector<N, T, S> {
+impl<const N: usize, T: BitAnd<Output = T> + Scalar<N>, S: Simdness> BitAnd for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn bitand(self, rhs: Self) -> Self::Output {
-        T::vec_bitand(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_bitand(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].bitand(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: BitOr<Output = T> + Scalar<N, S>, S: Simdness> BitOr for Vector<N, T, S> {
+impl<const N: usize, T: BitOr<Output = T> + Scalar<N>, S: Simdness> BitOr for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn bitor(self, rhs: Self) -> Self::Output {
-        T::vec_bitor(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_bitor(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].bitor(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: BitXor<Output = T> + Scalar<N, S>, S: Simdness> BitXor for Vector<N, T, S> {
+impl<const N: usize, T: BitXor<Output = T> + Scalar<N>, S: Simdness> BitXor for Vector<N, T, S> {
     type Output = Self;
 
     #[inline(always)]
     fn bitxor(self, rhs: Self) -> Self::Output {
-        T::vec_bitxor(self, rhs)
+        match_simdness! {
+            for self, rhs;
+
+            Simd => |vec: Vector<N, T, Simd>, rhs: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
+                T::vec_bitxor(vec, rhs)
+            },
+            NonSimd => |vec: Vector<N, T, NonSimd>, rhs: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
+                Vector::from_fn(|i| vec[i].bitxor(rhs[i]))
+            }
+        }
     }
 }
 
-impl<const N: usize, T: Add<Output = T> + Scalar<N, S>, S: Simdness> AddAssign for Vector<N, T, S> {
+impl<const N: usize, T: Add<Output = T> + Scalar<N>, S: Simdness> AddAssign for Vector<N, T, S> {
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
-        *self = T::vec_add(*self, rhs);
+        *self = self.add(rhs);
     }
 }
 
-impl<const N: usize, T: Sub<Output = T> + Scalar<N, S>, S: Simdness> SubAssign for Vector<N, T, S> {
+impl<const N: usize, T: Sub<Output = T> + Scalar<N>, S: Simdness> SubAssign for Vector<N, T, S> {
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
-        *self = T::vec_sub(*self, rhs);
+        *self = self.sub(rhs);
     }
 }
 
-impl<const N: usize, T: Mul<Output = T> + Scalar<N, S>, S: Simdness> MulAssign for Vector<N, T, S> {
+impl<const N: usize, T: Mul<Output = T> + Scalar<N>, S: Simdness> MulAssign for Vector<N, T, S> {
     #[inline(always)]
     fn mul_assign(&mut self, rhs: Self) {
-        *self = T::vec_mul(*self, rhs);
+        *self = self.mul(rhs);
     }
 }
 
-impl<const N: usize, T: Div<Output = T> + Scalar<N, S>, S: Simdness> DivAssign for Vector<N, T, S> {
+impl<const N: usize, T: Div<Output = T> + Scalar<N>, S: Simdness> DivAssign for Vector<N, T, S> {
     #[inline(always)]
     fn div_assign(&mut self, rhs: Self) {
-        *self = T::vec_div(*self, rhs);
+        *self = self.div(rhs);
     }
 }
 
-impl<const N: usize, T: Rem<Output = T> + Scalar<N, S>, S: Simdness> RemAssign for Vector<N, T, S> {
+impl<const N: usize, T: Rem<Output = T> + Scalar<N>, S: Simdness> RemAssign for Vector<N, T, S> {
     #[inline(always)]
     fn rem_assign(&mut self, rhs: Self) {
-        *self = T::vec_rem(*self, rhs);
+        *self = self.rem(rhs);
     }
 }
 
-impl<const N: usize, T: Shl<Output = T> + Scalar<N, S>, S: Simdness> ShlAssign for Vector<N, T, S> {
+impl<const N: usize, T: Shl<Output = T> + Scalar<N>, S: Simdness> ShlAssign for Vector<N, T, S> {
     #[inline(always)]
     fn shl_assign(&mut self, rhs: Self) {
-        *self = T::vec_shl(*self, rhs);
+        *self = self.shl(rhs);
     }
 }
 
-impl<const N: usize, T: Shr<Output = T> + Scalar<N, S>, S: Simdness> ShrAssign for Vector<N, T, S> {
+impl<const N: usize, T: Shr<Output = T> + Scalar<N>, S: Simdness> ShrAssign for Vector<N, T, S> {
     #[inline(always)]
     fn shr_assign(&mut self, rhs: Self) {
-        *self = T::vec_shr(*self, rhs);
+        *self = self.shr(rhs);
     }
 }
 
-impl<const N: usize, T: BitAnd<Output = T> + Scalar<N, S>, S: Simdness> BitAndAssign
+impl<const N: usize, T: BitAnd<Output = T> + Scalar<N>, S: Simdness> BitAndAssign
     for Vector<N, T, S>
 {
     #[inline(always)]
     fn bitand_assign(&mut self, rhs: Self) {
-        *self = T::vec_bitand(*self, rhs);
+        *self = self.bitand(rhs);
     }
 }
 
-impl<const N: usize, T: BitOr<Output = T> + Scalar<N, S>, S: Simdness> BitOrAssign
+impl<const N: usize, T: BitOr<Output = T> + Scalar<N>, S: Simdness> BitOrAssign
     for Vector<N, T, S>
 {
     #[inline(always)]
     fn bitor_assign(&mut self, rhs: Self) {
-        *self = T::vec_bitor(*self, rhs);
+        *self = self.bitor(rhs);
     }
 }
 
-impl<const N: usize, T: BitXor<Output = T> + Scalar<N, S>, S: Simdness> BitXorAssign
+impl<const N: usize, T: BitXor<Output = T> + Scalar<N>, S: Simdness> BitXorAssign
     for Vector<N, T, S>
 {
     #[inline(always)]
     fn bitxor_assign(&mut self, rhs: Self) {
-        *self = T::vec_bitxor(*self, rhs);
+        *self = self.bitxor(rhs);
     }
 }

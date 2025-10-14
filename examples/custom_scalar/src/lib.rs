@@ -4,10 +4,7 @@
 
 use std::ops::{Add, Sub};
 
-use ggmath::{
-    Scalar, Scalar, ScalarNegOne, ScalarOne, ScalarZero, Simd, Vector,
-    declare_vector_aliases,
-};
+use ggmath::*;
 
 /// A fixed-point number type with 8 fractional bits.
 #[repr(transparent)]
@@ -52,9 +49,6 @@ impl Sub for FixedPoint {
     }
 }
 
-// Implement `Scalar` for `FixedPoint` to use it as a vector element type.
-impl Scalar for FixedPoint {}
-
 // These implementations automatically add `ZERO`/`ONE`/`NEG_ONE` constants to `FixedPoint` vectors,
 // as well as `RIGHT`/`LEFT`/`UP`/`DOWN`/`FORWARDS`/`BACKWARDS` constants.
 
@@ -76,16 +70,11 @@ impl ScalarNegOne for FixedPoint {
 // SAFETY:
 // We directly wrap the appropriate `i32` vector type and padding.
 // This is sound because `FixedPoint` is `repr(transparent)` around `i32`.
-unsafe impl<const N: usize> Scalar<N, Simd> for FixedPoint
+impl<const N: usize> Scalar<N> for FixedPoint
 where
-    i32: Scalar<N, Simd>,
+    i32: Scalar<N>,
 {
-    type InnerVectorType = Vector<N, i32, Simd>;
-
-    const VECTOR_PADDING: Option<Vector<N, Self, Simd>> = match i32::VECTOR_PADDING {
-        Some(padding) => Some(Vector(padding)),
-        None => None,
-    };
+    type InnerSimdVectorType = Vector<N, i32, Simd>;
 
     // Override the implementation of `Add` for `FixedPoint` vectors to use SIMD.
     fn vec_add(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
@@ -120,3 +109,5 @@ mod tests {
         let _ = a + b - vec2!(FixedPoint::from_i32(3));
     }
 }
+
+unsafe impl TransmuteTo<i32> for FixedPoint {}

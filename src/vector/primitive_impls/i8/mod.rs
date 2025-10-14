@@ -1,15 +1,19 @@
-use crate::{Scalar, Simd};
+use crate::Scalar;
 
-// i8 is only 8 bits, so none of its vectors benefit from SIMD
+// I8Vec2 is only 16 bits long, so it doesn't benefit from SIMD
 
-impl Scalar<2, Simd> for i8 {
-    type InnerVectorType = [i8; 2];
+impl Scalar<2> for i8 {
+    type InnerSimdVectorType = [i8; 2];
 }
 
-impl Scalar<3, Simd> for i8 {
-    type InnerVectorType = [i8; 3];
+// I8Vec3 is only 24 bits long, so it doesn't benefit from SIMD
+
+impl Scalar<3> for i8 {
+    type InnerSimdVectorType = [i8; 3];
 }
 
-impl Scalar<4, Simd> for i8 {
-    type InnerVectorType = [i8; 4];
+// I8Vec4 is only 32 bits long, so it doesn't benefit from SIMD
+
+impl Scalar<4> for i8 {
+    type InnerSimdVectorType = [i8; 4];
 }

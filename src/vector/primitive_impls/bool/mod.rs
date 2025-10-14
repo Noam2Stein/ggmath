@@ -1,15 +1,19 @@
-use crate::{Scalar, Simd};
+use crate::Scalar;
 
-// bool is only 8 bits, so none of its vectors benefit from SIMD
+// BVec2 is only 16 bits long, so it doesn't benefit from SIMD
 
-impl Scalar<2, Simd> for bool {
-    type InnerVectorType = [bool; 2];
+impl Scalar<2> for bool {
+    type InnerSimdVectorType = [bool; 2];
 }
 
-impl Scalar<3, Simd> for bool {
-    type InnerVectorType = [bool; 3];
+// BVec3 is only 24 bits long, so it doesn't benefit from SIMD
+
+impl Scalar<3> for bool {
+    type InnerSimdVectorType = [bool; 3];
 }
 
-impl Scalar<4, Simd> for bool {
-    type InnerVectorType = [bool; 4];
+// BVec4 is only 32 bits long, so it doesn't benefit from SIMD
+
+impl Scalar<4> for bool {
+    type InnerSimdVectorType = [bool; 4];
 }
