@@ -1,235 +1,332 @@
-use crate::{Scalar, VecAlignment, Vector};
+use crate::{Scalar, Simdness, SupportedVecLen, VecLen, Vector};
 
-/// Constructs an aligned vec2 from the given values.
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 2.
-/// This means that the options are:
-/// - (scalar, scalar)
-/// - (vec2)
-#[macro_export]
-macro_rules! vec2 {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<2, _, $crate::vector::VecAligned>::from(($($expr),*,))
+////////////////////////////////////////////////////////////////////////////////
+// Constructor Macros
+////////////////////////////////////////////////////////////////////////////////
+
+declare_constructor! {$
+    /// Creates a [`Simd`] vector2 from two elements.
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly two
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec2, vec2};
+    ///
+    /// let v: Vec2<f32> = vec2!(1.0, 2.0);
+    /// let v: Vec2<f32> = vec2!(vec2!(1.0, 2.0));
+    /// let v: Vec2<f32> = vec2!(1.0);
+    /// ```
+    vec2 => Vector<2, _, Simd>
+}
+
+declare_constructor! {$
+    /// Creates a [`Simd`] vector3 from three elements.
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly three
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec3, vec2, vec3};
+    ///
+    /// let v: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
+    /// let v: Vec3<f32> = vec3!(vec2!(1.0, 2.0), 3.0);
+    /// let v: Vec3<f32> = vec3!(1.0);
+    /// ```
+    vec3 => Vector<3, _, Simd>
+}
+
+declare_constructor! {$
+    /// Creates a [`Simd`] vector4 from four elements.
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly four
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec4, vec2, vec4};
+    ///
+    /// let v: Vec4<f32> = vec4!(1.0, 2.0, 3.0, 4.0);
+    /// let v: Vec4<f32> = vec4!(1.0, vec2!(2.0, 3.0), 4.0);
+    /// let v: Vec4<f32> = vec4!(1.0);
+    /// ```
+    vec4 => Vector<4, _, Simd>
+}
+
+declare_constructor! {$
+    /// Creates a [`NonSimd`] vector2 from two elements.
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly two
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec2S, vec2s};
+    ///
+    /// let v: Vec2S<f32> = vec2s!(1.0, 2.0);
+    /// let v: Vec2S<f32> = vec2s!(vec2s!(1.0, 2.0));
+    /// let v: Vec2S<f32> = vec2s!(1.0);
+    /// ```
+    vec2s => Vector<2, _, NonSimd>
+}
+
+declare_constructor! {$
+    /// Creates a [`NonSimd`] vector3 from three elements.
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly three
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec3S, vec2s, vec3s};
+    ///
+    /// let v: Vec3S<f32> = vec3s!(1.0, 2.0, 3.0);
+    /// let v: Vec3S<f32> = vec3s!(vec2s!(1.0, 2.0), 3.0);
+    /// let v: Vec3S<f32> = vec3s!(1.0);
+    /// ```
+    vec3s => Vector<3, _, NonSimd>
+}
+
+declare_constructor! {$
+    /// Creates a [`NonSimd`] vector4 from four elements.
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly four
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec4S, vec2s, vec4s};
+    ///
+    /// let v: Vec4S<f32> = vec4s!(1.0, 2.0, 3.0, 4.0);
+    /// let v: Vec4S<f32> = vec4s!(1.0, vec2s!(2.0, 3.0), 4.0);
+    /// let v: Vec4S<f32> = vec4s!(1.0);
+    /// ```
+    vec4s => Vector<4, _, NonSimd>
+}
+
+declare_constructor! {$
+    /// Creates a `vector2` from two elements, where type inference determines if it
+    /// is [`Simd`] or [`NonSimd`].
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly two
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec2, Vec2S, vec2g};
+    ///
+    /// let v: Vec2<f32> = vec2g!(1.0, 2.0);
+    /// let v: Vec2<f32> = vec2g!(vec2g!(1.0, 2.0));
+    /// let v: Vec2<f32> = vec2g!(1.0);
+    ///
+    /// let v: Vec2S<f32> = vec2g!(1.0, 2.0);
+    /// let v: Vec2S<f32> = vec2g!(vec2g!(1.0, 2.0));
+    /// let v: Vec2S<f32> = vec2g!(1.0);
+    /// ```
+    vec2g => Vector<2, _, _>
+}
+
+declare_constructor! {$
+    /// Creates a `vector3` from three elements, where type inference determines if it
+    /// is [`Simd`] or [`NonSimd`].
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly three
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec3, Vec3S, vec2g, vec3g};
+    ///
+    /// let v: Vec3<f32> = vec3g!(1.0, 2.0, 3.0);
+    /// let v: Vec3<f32> = vec3g!(vec2g!(1.0, 2.0), 3.0);
+    /// let v: Vec3<f32> = vec3g!(1.0);
+    ///
+    /// let v: Vec3S<f32> = vec3g!(1.0, 2.0, 3.0);
+    /// let v: Vec3S<f32> = vec3g!(vec2g!(1.0, 2.0), 3.0);
+    /// let v: Vec3S<f32> = vec3g!(1.0);
+    /// ```
+    vec3g => Vector<3, _, _>
+}
+
+declare_constructor! {$
+    /// Creates a `vector4` from four elements, where type inference determines if it
+    /// is [`Simd`] or [`NonSimd`].
+    ///
+    /// Also accepts vectors as arguments, as long as they contain exactly four
+    /// elements in total. If only a single element is provided, it will be
+    /// repeated across all elements.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec4, Vec4S, vec2g, vec4g};
+    ///
+    /// let v: Vec4<f32> = vec4g!(1.0, 2.0, 3.0, 4.0);
+    /// let v: Vec4<f32> = vec4g!(1.0, vec2g!(2.0, 3.0), 4.0);
+    /// let v: Vec4<f32> = vec4g!(1.0);
+    ///
+    /// let v: Vec4S<f32> = vec4g!(1.0, 2.0, 3.0, 4.0);
+    /// let v: Vec4S<f32> = vec4g!(1.0, vec2g!(2.0, 3.0), 4.0);
+    /// let v: Vec4S<f32> = vec4g!(1.0);
+    /// ```
+    vec4g => Vector<4, _, _>
+}
+
+macro_rules! declare_constructor {
+    ($dollar:tt $(#[$meta:meta])* $name:ident => Vector<$N:expr, _, $S:ident>) => {
+        $(#[$meta])*
+        #[macro_export]
+        macro_rules! $name {
+            ($dollar($dollar arg:expr),* $dollar (,)?) => {
+                $crate::Vector::<$N, _, $crate::$S>::from(($dollar ($dollar arg,)*))
+            }
+        }
+
+        pub use $name;
+    };
+
+    ($dollar:tt $(#[$meta:meta])* $name:ident => Vector<$N:expr, _, _>) => {
+        $(#[$meta])*
+        #[macro_export]
+        macro_rules! $name {
+            ($dollar($dollar arg:expr),* $dollar (,)?) => {
+                $crate::Vector::<$N, _, _>::from(($dollar ($dollar arg,)*))
+            }
+        }
+
+        pub use $name;
     };
 }
 
-/// Constructs an aligned vec3 from the given values.
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 3.
-/// This means that the options are:
-/// - (scalar, scalar, scalar)
-/// - (vec2, scalar)
-/// - (scalar, vec2)
-/// - (vec3)
-#[macro_export]
-macro_rules! vec3 {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<3, _, $crate::vector::VecAligned>::from(($($expr),*,))
-    };
+use declare_constructor;
+
+////////////////////////////////////////////////////////////////////////////////
+// Generic Length Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+impl<const N: usize, T: Scalar, S: Simdness> From<(Vector<N, T, S>,)> for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn from(value: (Vector<N, T, S>,)) -> Self {
+        value.0
+    }
 }
 
-/// Constructs an aligned vec4 from the given values.
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 4.
-/// This means that the options are:
-/// - (scalar, scalar, scalar, scalar)
-/// - (vec2, scalar, scalar)
-/// - (scalar, vec2, scalar)
-/// - (scalar, scalar, vec2)
-/// - (vec2, vec2)
-/// - (vec3, scalar)
-/// - (scalar, vec3)
-/// - (vec4)
-#[macro_export]
-macro_rules! vec4 {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<4, _, $crate::vector::VecAligned>::from(($($expr),*,))
-    };
+impl<const N: usize, T: Scalar, S: Simdness> From<(T,)> for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn from(value: (T,)) -> Self {
+        Vector::splat(value.0)
+    }
 }
 
-/// Constructs a packed vec2 from the given values.
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 2.
-/// This means that the options are:
-/// - (scalar, scalar)
-/// - (vec2)
-#[macro_export]
-macro_rules! vec2p {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<2, _, $crate::vector::VecPacked>::from(($($expr),*,))
-    };
-}
+////////////////////////////////////////////////////////////////////////////////
+// Vector2 Constructor
+////////////////////////////////////////////////////////////////////////////////
 
-/// Constructs a packed vec3 from the given values.
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 3.
-/// This means that the options are:
-/// - (scalar, scalar, scalar)
-/// - (vec2, scalar)
-/// - (scalar, vec2)
-/// - (vec3)
-#[macro_export]
-macro_rules! vec3p {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<3, _, $crate::vector::VecPacked>::from(($($expr),*,))
-    };
-}
-
-/// Constructs a packed vec4 from the given values.
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 4.
-/// This means that the options are:
-/// - (scalar, scalar, scalar, scalar)
-/// - (vec2, scalar, scalar)
-/// - (scalar, vec2, scalar)
-/// - (scalar, scalar, vec2)
-/// - (vec2, vec2)
-/// - (vec3, scalar)
-/// - (scalar, vec3)
-/// - (vec4)
-#[macro_export]
-macro_rules! vec4p {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<4, _, $crate::vector::VecPacked>::from(($($expr),*,))
-    };
-}
-
-/// Constructs a vec2 from the given values that needs type inference to decide if its [`VecAligned`] or [`VecPacked`].
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 2.
-/// This means that the options are:
-/// - (scalar, scalar)
-/// - (vec2)
-#[macro_export]
-macro_rules! vec2g {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<2, _, _>::from(($($expr),*,))
-    };
-}
-
-/// Constructs a vec3 from the given values that needs type inference to decide if its [`VecAligned`] or [`VecPacked`].
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 3.
-/// This means that the options are:
-/// - (scalar, scalar, scalar)
-/// - (vec2, scalar)
-/// - (scalar, vec2)
-/// - (vec3)
-#[macro_export]
-macro_rules! vec3g {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<3, _, _>::from(($($expr),*,))
-    };
-}
-
-/// Constructs a vec4 from the given values that needs type inference to decide if its [`VecAligned`] or [`VecPacked`].
-///
-/// This macro accepts any mix of scalars and vectors that sum up to a length of 4.
-/// This means that the options are:
-/// - (scalar, scalar, scalar, scalar)
-/// - (vec2, scalar, scalar)
-/// - (scalar, vec2, scalar)
-/// - (scalar, scalar, vec2)
-/// - (vec2, vec2)
-/// - (vec3, scalar)
-/// - (scalar, vec3)
-/// - (vec4)
-#[macro_export]
-macro_rules! vec4g {
-    ($($expr:expr),* $(,)?) => {
-        $crate::vector::Vector::<4, _, _>::from(($($expr),*,))
-    };
-}
-
-impl<T: Scalar, A: VecAlignment> From<(T, T)> for Vector<2, T, A> {
+impl<T: Scalar, S: Simdness> From<(T, T)> for Vector<2, T, S> {
     #[inline(always)]
     fn from(value: (T, T)) -> Self {
-        Self::from_array([value.0, value.1])
+        Vector::from_array([value.0, value.1])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>,)> for Vector<2, T, A> {
-    #[inline(always)]
-    fn from(value: (Vector<2, T, A0>,)) -> Self {
-        Self::from_array([value.0[0], value.0[1]])
-    }
-}
-impl<T: Scalar, A: VecAlignment> From<(T, T, T)> for Vector<3, T, A> {
+
+////////////////////////////////////////////////////////////////////////////////
+// Vector3 Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+impl<T: Scalar, S: Simdness> From<(T, T, T)> for Vector<3, T, S> {
     #[inline(always)]
     fn from(value: (T, T, T)) -> Self {
-        Self::from_array([value.0, value.1, value.2])
+        Vector::from_array([value.0, value.1, value.2])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, Vector<2, T, A0>)> for Vector<3, T, A> {
+
+impl<T: Scalar, S: Simdness> From<(T, Vector<2, T, S>)> for Vector<3, T, S> {
     #[inline(always)]
-    fn from(value: (T, Vector<2, T, A0>)) -> Self {
-        Self::from_array([value.0, value.1[0], value.1[1]])
+    fn from(value: (T, Vector<2, T, S>)) -> Self {
+        Vector::from_array([value.0, value.1[0], value.1[1]])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, T)> for Vector<3, T, A> {
+
+impl<T: Scalar, S: Simdness> From<(Vector<2, T, S>, T)> for Vector<3, T, S> {
     #[inline(always)]
-    fn from(value: (Vector<2, T, A0>, T)) -> Self {
-        Self::from_array([value.0[0], value.0[1], value.1])
+    fn from(value: (Vector<2, T, S>, T)) -> Self {
+        Vector::from_array([value.0[0], value.0[1], value.1])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<3, T, A0>,)> for Vector<3, T, A> {
-    #[inline(always)]
-    fn from(value: (Vector<3, T, A0>,)) -> Self {
-        Self::from_array([value.0[0], value.0[1], value.0[2]])
-    }
-}
-impl<T: Scalar, A: VecAlignment> From<(T, T, T, T)> for Vector<4, T, A> {
+
+////////////////////////////////////////////////////////////////////////////////
+// Vector4 Constructor
+////////////////////////////////////////////////////////////////////////////////
+
+impl<T: Scalar, S: Simdness> From<(T, T, T, T)> for Vector<4, T, S> {
     #[inline(always)]
     fn from(value: (T, T, T, T)) -> Self {
-        Self::from_array([value.0, value.1, value.2, value.3])
+        Vector::from_array([value.0, value.1, value.2, value.3])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, T, Vector<2, T, A0>)>
-    for Vector<4, T, A>
-{
+
+impl<T: Scalar, S: Simdness> From<(T, T, Vector<2, T, S>)> for Vector<4, T, S> {
     #[inline(always)]
-    fn from(value: (T, T, Vector<2, T, A0>)) -> Self {
-        Self::from_array([value.0, value.1, value.2[0], value.2[1]])
+    fn from(value: (T, T, Vector<2, T, S>)) -> Self {
+        Vector::from_array([value.0, value.1, value.2[0], value.2[1]])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, Vector<2, T, A0>, T)>
-    for Vector<4, T, A>
-{
+
+impl<T: Scalar, S: Simdness> From<(T, Vector<2, T, S>, T)> for Vector<4, T, S> {
     #[inline(always)]
-    fn from(value: (T, Vector<2, T, A0>, T)) -> Self {
-        Self::from_array([value.0, value.1[0], value.1[1], value.2])
+    fn from(value: (T, Vector<2, T, S>, T)) -> Self {
+        Vector::from_array([value.0, value.1[0], value.1[1], value.2])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(T, Vector<3, T, A0>)> for Vector<4, T, A> {
+
+impl<T: Scalar, S: Simdness> From<(T, Vector<3, T, S>)> for Vector<4, T, S> {
     #[inline(always)]
-    fn from(value: (T, Vector<3, T, A0>)) -> Self {
-        Self::from_array([value.0, value.1[0], value.1[1], value.1[2]])
+    fn from(value: (T, Vector<3, T, S>)) -> Self {
+        Vector::from_array([value.0, value.1[0], value.1[1], value.1[2]])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, T, T)>
-    for Vector<4, T, A>
-{
+
+impl<T: Scalar, S: Simdness> From<(Vector<2, T, S>, T, T)> for Vector<4, T, S> {
     #[inline(always)]
-    fn from(value: (Vector<2, T, A0>, T, T)) -> Self {
-        Self::from_array([value.0[0], value.0[1], value.1, value.2])
+    fn from(value: (Vector<2, T, S>, T, T)) -> Self {
+        Vector::from_array([value.0[0], value.0[1], value.1, value.2])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<2, T, A0>, Vector<2, T, A0>)>
-    for Vector<4, T, A>
-{
+
+impl<T: Scalar, S: Simdness> From<(Vector<2, T, S>, Vector<2, T, S>)> for Vector<4, T, S> {
     #[inline(always)]
-    fn from(value: (Vector<2, T, A0>, Vector<2, T, A0>)) -> Self {
-        Self::from_array([value.0[0], value.0[1], value.1[0], value.1[1]])
+    fn from(value: (Vector<2, T, S>, Vector<2, T, S>)) -> Self {
+        Vector::from_array([value.0[0], value.0[1], value.1[0], value.1[1]])
     }
 }
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<3, T, A0>, T)> for Vector<4, T, A> {
+
+impl<T: Scalar, S: Simdness> From<(Vector<3, T, S>, T)> for Vector<4, T, S> {
     #[inline(always)]
-    fn from(value: (Vector<3, T, A0>, T)) -> Self {
-        Self::from_array([value.0[0], value.0[1], value.0[2], value.1])
-    }
-}
-impl<T: Scalar, A: VecAlignment, A0: VecAlignment> From<(Vector<4, T, A0>,)> for Vector<4, T, A> {
-    #[inline(always)]
-    fn from(value: (Vector<4, T, A0>,)) -> Self {
-        Self::from_array([value.0[0], value.0[1], value.0[2], value.0[3]])
+    fn from(value: (Vector<3, T, S>, T)) -> Self {
+        Vector::from_array([value.0[0], value.0[1], value.0[2], value.1])
     }
 }

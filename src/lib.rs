@@ -1,38 +1,44 @@
 #![deny(missing_docs)]
-#![deny(unconditional_recursion)]
 #![doc = include_str!("../README.md")]
-#![cfg_attr(not(feature = "std"), no_std)]
 
-use core::panic::{RefUnwindSafe, UnwindSafe};
-
-#[cfg(feature = "aliases")]
-pub mod aliases;
-
-#[cfg(feature = "vector")]
 pub mod vector;
-#[cfg(feature = "vector")]
 pub use vector::*;
 
-mod generated;
-#[allow(unused_imports)]
-pub use generated::*;
+#[cfg(any(
+    feature = "right",
+    feature = "left",
+    feature = "up",
+    feature = "down",
+    feature = "forwards",
+    feature = "backwards"
+))]
+mod dir;
+#[cfg(any(
+    feature = "right",
+    feature = "left",
+    feature = "up",
+    feature = "down",
+    feature = "forwards",
+    feature = "backwards"
+))]
+pub use dir::*;
 
-/// An auto trait for types that can be sent anywhere anytime.
-///
-/// This trait is required for all `ggmath` types,
-/// like scalars, vectors, matrices, etc.
-pub trait Construct: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe {}
+#[cfg(feature = "primitive_aliases")]
+mod primitive_aliases;
+#[cfg(feature = "primitive_aliases")]
+pub use primitive_aliases::*;
 
-/// A simple marker type that is generic over a `usize` constant.
-///
-/// This is used to implement traits for specific `usize` values.
-/// As is used in vectors with the [`VecLen`][vector::VecLen] trait.
-pub struct Usize<const N: usize>;
+/// The base trait for all `ggmath` types. Is automatically implemented for all
+/// types that implement [`Send`], [`Sync`], [`Copy`], and [`'static`].
+pub trait Construct: Send + Sync + Copy + 'static {}
 
-#[doc(hidden)]
-pub mod _hidden_ {
-    #[cfg(feature = "aliases")]
-    pub use paste;
+impl<T: Send + Sync + Copy + 'static> Construct for T {}
+
+mod sealed {
+    pub trait Sealed {}
 }
 
-impl<T: Sized + Send + Sync + 'static + Copy + UnwindSafe + RefUnwindSafe> Construct for T {}
+#[doc(hidden)]
+pub mod hidden {
+    pub use paste::paste;
+}

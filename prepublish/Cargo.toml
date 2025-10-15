@@ -1,8 +1,0 @@
-[package]
-edition = "2024"
-name    = "prepublish"
-version = "0.1.0"
-
-[dependencies]
-bench_checker = { path = "../bench_checker" }
-colored       = "3.0.0"

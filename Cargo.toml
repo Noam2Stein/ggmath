@@ -1,6 +1,3 @@
-[workspace]
-members = [ ".", "bench_checker", "codegen", "prepublish", "sandbox" ]
-
 [package]
 categories = [
     "data-structures",
@@ -9,73 +6,72 @@ categories = [
     "mathematics",
     "no-std",
 ]
-description = "A math crate for games and graphics with heavy generics and full SIMD support"
+description = "A math library for games and graphics with generic SIMD types."
 edition = "2024"
-keywords = [ "gamedev", "math", "matrix", "quaternion", "vector" ]
+keywords = ["aabb", "math", "matrix", "simd", "vector"]
 license = "MIT OR Apache-2.0"
 name = "ggmath"
+readme = "README.md"
 repository = "https://github.com/Noam2Stein/ggmath"
-rust-version = "1.89.0"
+rust-version = "1.90.0"
 version = "0.13.0"
 
 [features]
-aabb              = [ "vector" ]
-aliases           = [ "paste" ]
-matrix            = [ "vector" ]
-primitive_aliases = [ "aliases" ]
-quaternion        = [ "vector" ]
-vector            = [  ]
+backwards         = []
+down              = []
+forwards          = []
+left              = []
+primitive_aliases = []
+right             = []
+std               = []
+swizzle           = []
+up                = []
 
-backwards = [  ]
-down      = [  ]
-forwards  = [  ]
-left      = [  ]
-right     = [  ]
-std       = [  ]
-up        = [  ]
-
-default = [
-    "aliases",
-    "matrix",
-    "primitive_aliases",
-    "quaternion",
-    "std",
-    "vector",
-]
+default = ["primitive_aliases", "std", "swizzle"]
 full = [
-    "aabb",
-    "aliases",
-    "matrix",
+    "backwards",
+    "down",
+    "forwards",
+    "left",
     "primitive_aliases",
-    "quaternion",
-    "vector",
+    "right",
+    "std",
+    "swizzle",
+    "up",
 ]
 
 [dependencies]
-cfg-if = "1.0.3"
-paste  = { version = "1.0.14", optional = true }
-wide   = "0.7.33"
+paste = "1.0.15"
 
-crevice = { version = "0.18.0", optional = true }
-serde   = { version = "1.0.219", optional = true }
-
-[build-dependencies]
-cfg_aliases = "0.2.1"
-codegen     = { path = "codegen" }
+[workspace]
+members = [".", "examples/custom_scalar", "examples/no_std", "examples/sandbox"]
 
 [dev-dependencies]
 criterion = "0.7.0"
-glam      = "0.30.5"
-wide      = "0.7.33"
+glam      = "0.30.8"
+gungraun  = "0.17.0"
+
+[[bench]]
+harness = false
+name    = "f32_random_math"
+path    = "benches/f32/random_math.rs"
 
 [[bench]]
 harness = false
 name    = "fvec2"
+path    = "benches/f32/vec2.rs"
 
 [[bench]]
 harness = false
 name    = "fvec3"
+path    = "benches/f32/vec3.rs"
 
 [[bench]]
 harness = false
 name    = "fvec4"
+path    = "benches/f32/vec4.rs"
+
+[[bench]]
+harness = false
+name    = "fvec3s"
+path    = "benches/f32/vec3s.rs"
