@@ -3,7 +3,7 @@ use std::hint::black_box;
 use criterion::{Criterion, criterion_group, criterion_main};
 
 #[inline(never)]
-fn ggmath_random_math(input: [f32; 12]) -> ggmath::f32_aliases::FVec4 {
+fn ggmath_random_math(input: [f32; 12]) -> ggmath::f32::FVec4 {
     use ggmath::*;
 
     let a = vec2!(input[0], input[1]);

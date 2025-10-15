@@ -1,17 +1,12 @@
-//! A module with vector related items
+//! Vector related items.
 
-use std::array::IntoIter;
-use std::fmt::{Debug, Display};
-use std::mem::{ManuallyDrop, transmute, transmute_copy};
-use std::ops::{
-    Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub,
+use core::{
+    fmt::{Debug, Display},
+    mem::{MaybeUninit, transmute, transmute_copy},
+    ops::{Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub},
 };
-use std::slice::IterMut;
 
-use crate::match_simdness;
 use crate::{Construct, sealed::Sealed};
-
-pub use crate::declare_vector_aliases;
 
 mod constructor;
 mod deref;
@@ -27,183 +22,795 @@ mod swizzle;
 
 /// A generic vector type.
 ///
-/// Is generic over 3 parameters:
-/// - `N` - the number of elements in the vector
-/// - `T` - the type of elements in the vector
-/// - `S` - whether or not the vector is SIMD-backed
+/// This type is parameterized over:
+/// - `N`: The number of elements in the vector.
+/// - `T`: The element type.
+/// - `S`: Whether the vector uses SIMD acceleration.
 ///
-/// ## SIMD
+/// ## Type Aliases
 ///
-/// - [`Simd`] vectors are SIMD aligned and use explicit SIMD instructions.
-/// Their inner implementation is controlled by [`T as Scalar<N, Simd>`][Scalar].
+/// This type provides the following convenient aliases:
+/// - `Vec{N}<T>` — shorthand for [`Vector<N, T, Simd>`], e.g. [`Vec2<f32>`] =
+///   [`Vector<2, f32, Simd>`].
+/// - `Vec{N}S<T>` — shorthand for [`Vector<N, T, NonSimd>`], e.g. [`Vec2S<f32>`] =
+///   [`Vector<2, f32, NonSimd>`].
 ///
-/// - [`NonSimd`] vectors are stored as arrays and don't use SIMD instructions
+/// ## SIMD Acceleration
 ///
-/// It is recommended to use [`Simd`] as the default, and to only use [`NonSimd`] in memory-critical scenarios.
+/// The `S` parameter determines whether the vector uses SIMD.  
+/// It can be either [`Simd`] or [`NonSimd`].
 ///
-/// ## Type aliases
+/// You might wonder: if SIMD makes operations faster, why disable it?  
 ///
-/// There are type aliases for both [`Simd`] and [`NonSimd`] vectors (e.g., [`Vec2<T>`], and [`Vec2S<T>`]).
+/// While SIMD provides significant performance benefits, SIMD-backed vectors also
+/// require higher memory alignment. Using [`NonSimd`] can be beneficial when
+/// minimizing memory usage is more important than maximizing performance.
 ///
-/// Additionaly, the `primitive_aliases` feature enables type aliases for primitive vectors
-/// (e.g., [`FVec2`], [`DVec4S`], and [`U8Vec3`]).
+/// The implementation of [`Simd`] vectors is controlled by the [`SimdBehaviour`] trait,
+/// which is implemented for `T`. Each implementation can choose how to store and
+/// operate on the vector, and may use SIMD instructions when doing so improves
+/// performance.
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar<N>, S: Simdness>(pub S::InnerVectorType<N, T>);
+pub struct Vector<const N: usize, T: Scalar, S: Simdness>(<Self as VectorReprExt>::Repr)
+where
+    VecLen<N>: SupportedVecLen;
 
-/// Type alias for [`Vector<2, T, Simd>`].
+impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    specialized_vector_api! {
+        VectorApi for <N, T, S>:
+
+        /// Creates a vector from an array.
+        pub fn from_array(array: [T; N]) -> Self;
+
+        /// Creates a vector with all elements set to the same value.
+        pub fn splat(value: T) -> Self;
+
+        /// Creates a vector2 from `(self[X_SRC], self[Y_SRC])`.
+        ///
+        /// ## Examples
+        ///
+        /// ```
+        /// use ggmath::{Vec4, vec2, vec4};
+        ///
+        /// let v: Vec4<f32> = vec4!(1.0, 2.0, 3.0, 4.0);
+        ///
+        /// assert_eq!(v.swizzle2::<0, 1>(), vec2!(1.0, 2.0));
+        /// assert_eq!(v.swizzle2::<2, 3>(), vec2!(3.0, 4.0));
+        /// assert_eq!(v.swizzle2::<3, 0>(), vec2!(4.0, 1.0));
+        ///
+        /// // Elements can be repeated
+        /// assert_eq!(v.swizzle2::<1, 1>(), vec2!(2.0, 2.0));
+        /// ```
+        pub fn swizzle2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, S>;
+
+        /// Creates a vector3 from `(self[X_SRC], self[Y_SRC], self[Z_SRC])`.
+        ///
+        /// ## Examples
+        ///
+        /// ```
+        /// use ggmath::{Vec4, vec3, vec4};
+        ///
+        /// let v: Vec4<f32> = vec4!(1.0, 2.0, 3.0, 4.0);
+        ///
+        /// assert_eq!(v.swizzle3::<0, 1, 2>(), vec3!(1.0, 2.0, 3.0));
+        /// assert_eq!(v.swizzle3::<2, 1, 0>(), vec3!(3.0, 2.0, 1.0));
+        /// assert_eq!(v.swizzle3::<3, 0, 1>(), vec3!(4.0, 1.0, 2.0));
+        ///
+        /// // Elements can be repeated
+        /// assert_eq!(v.swizzle3::<1, 1, 1>(), vec3!(2.0, 2.0, 2.0));
+        /// ```
+        pub fn swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(self) -> Vector<3, T, S>;
+
+        /// Creates a vector4 from `(self[X_SRC], self[Y_SRC], self[Z_SRC], self[W_SRC])`.
+        ///
+        /// ## Examples
+        ///
+        /// ```
+        /// use ggmath::{Vec4, vec4};
+        ///
+        /// let v: Vec4<f32> = vec4!(1.0, 2.0, 3.0, 4.0);
+        ///
+        /// assert_eq!(v.swizzle4::<0, 1, 2, 3>(), vec4!(1.0, 2.0, 3.0, 4.0));
+        /// assert_eq!(v.swizzle4::<3, 2, 1, 0>(), vec4!(4.0, 3.0, 2.0, 1.0));
+        /// assert_eq!(v.swizzle4::<3, 0, 1, 2>(), vec4!(4.0, 1.0, 2.0, 3.0));
+        ///
+        /// // Elements can be repeated
+        /// assert_eq!(v.swizzle4::<1, 1, 1, 1>(), vec4!(2.0, 2.0, 2.0, 2.0));
+        /// ```
+        pub fn swizzle4<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize, const W_SRC: usize>(self) -> Vector<4, T, S>;
+    }
+
+    /// Creates a vector where each element is produced by calling `f` with that
+    /// element's index.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec4, vec4};
+    ///
+    /// let v: Vec4<f32> = Vec4::from_fn(|i| i as f32);
+    /// assert_eq!(v, vec4!(0.0, 1.0, 2.0, 3.0));
+    /// ```
+    #[inline(always)]
+    pub fn from_fn(f: impl FnMut(usize) -> T) -> Self {
+        Vector::from_array(core::array::from_fn(f))
+    }
+
+    /// Creates a vector from an array, *in a const context*.
+    ///
+    /// [`Vector::from_array`] performs the same operation but cannot be used in const
+    /// contexts. This function is intended for initializing constants and should not
+    /// be used at runtime, as it is slower than [`Vector::from_array`].
+    #[inline(always)]
+    pub const fn const_from_array(array: [T; N]) -> Self {
+        const {
+            assert!(size_of::<Vector<N, T, S>>() % size_of::<T>() == 0);
+            assert!(size_of::<Vector<N, T, S>>() / size_of::<T>() >= N);
+        }
+
+        // SAFETY: Vector<N, MaybeUninit<T>, S> is transparent to [MaybeUninit<T>; N] which allows all bit patterns
+        let mut result =
+            unsafe { MaybeUninit::<Vector<N, MaybeUninit<T>, S>>::uninit().assume_init() };
+
+        let mut i = 0;
+        while i < N {
+            result.as_mut_array()[i] = MaybeUninit::new(array[i]);
+            i += 1;
+        }
+
+        let mut i = N;
+        while i < size_of::<Vector<N, T, S>>() / size_of::<T>() {
+            unsafe {
+                *result.as_mut_array().as_mut_ptr().add(i) = MaybeUninit::new(array[N - 1]);
+            }
+            i += 1;
+        }
+
+        // SAFETY:
+        // Vector<N, MaybeUninit<T>, S> is guaranteed to begin with N MaybeUninit<T>'s, so it also begins with N T's,
+        // and all elements are initialized.
+        unsafe { transmute_copy::<Vector<N, MaybeUninit<T>, S>, Vector<N, T, S>>(&result) }
+    }
+
+    /// Returns the number of elements in the vector, which is a statically known
+    /// constant.
+    #[inline(always)]
+    pub const fn len(self) -> usize {
+        N
+    }
+
+    /// Returns true for [`Simd`] vectors, false for [`NonSimd`] vectors.
+    #[inline(always)]
+    pub const fn is_simd(self) -> bool {
+        S::IS_SIMD
+    }
+
+    /// Converts `self` to a vector of a different [`Simdness`].
+    #[inline(always)]
+    pub fn as_simdness<S2: Simdness>(self) -> Vector<N, T, S2> {
+        if S::IS_SIMD == S2::IS_SIMD {
+            // SAFETY: S and S2 are the same type, so we are transmuting a type to itself
+            unsafe { transmute_copy::<Vector<N, T, S>, Vector<N, T, S2>>(&self) }
+        } else {
+            Vector::from_array(self.as_array())
+        }
+    }
+
+    /// Converts `self` to a [`Simd`] vector.
+    #[inline(always)]
+    pub fn as_simd(self) -> Vector<N, T, Simd> {
+        self.as_simdness::<Simd>()
+    }
+
+    /// Converts `self` to a [`NonSimd`] vector.
+    #[inline(always)]
+    pub fn as_nonsimd(self) -> Vector<N, T, NonSimd> {
+        self.as_simdness::<NonSimd>()
+    }
+
+    /// Converts `self` to an owned array.
+    #[inline(always)]
+    pub const fn as_array(self) -> [T; N] {
+        *self.as_array_ref()
+    }
+
+    /// Converts a vector reference to an array reference.
+    #[inline(always)]
+    pub const fn as_array_ref(&self) -> &[T; N] {
+        // SAFETY: Vector<N, T, S> is guaranteed to begin with N T's
+        unsafe { transmute::<&Vector<N, T, S>, &[T; N]>(self) }
+    }
+
+    /// Converts a mutable vector reference to an mutable array reference.
+    #[inline(always)]
+    pub const fn as_mut_array(&mut self) -> &mut [T; N] {
+        // SAFETY: Vector<N, T, S> is guaranteed to begin with N T's
+        unsafe { transmute::<&mut Vector<N, T, S>, &mut [T; N]>(self) }
+    }
+
+    /// Returns the element at the given index, or `None` if the index is out of
+    /// bounds.
+    #[inline(always)]
+    pub const fn get(self, index: usize) -> Option<T> {
+        if index < N {
+            // SAFETY: index is guaranteed to be in bounds
+            Some(unsafe { *self.as_array_ref().as_ptr().add(index) })
+        } else {
+            None
+        }
+    }
+
+    /// Returns a mutable reference to the element at the given index, or `None`
+    /// if the index is out of bounds.
+    #[inline(always)]
+    pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+        if index < N {
+            // SAFETY: index is guaranteed to be in bounds
+            Some(unsafe { &mut *self.as_mut_array().as_mut_ptr().add(index) })
+        } else {
+            None
+        }
+    }
+
+    /// Returns a new vector with the elements of `self` in reverse order.
+    #[inline(always)]
+    pub fn reverse(self) -> Self {
+        (const {
+            match N {
+                // SAFETY: N is guaranteed to be 2, so we are transmuting a type to itself
+                2 => unsafe {
+                    let func: fn(_) -> _ = Vector::<2, T, S>::swizzle2::<1, 0>;
+
+                    transmute_copy::<
+                        fn(Vector<2, T, S>) -> Vector<2, T, S>,
+                        fn(Vector<N, T, S>) -> Vector<N, T, S>,
+                    >(&func)
+                },
+                // SAFETY: N is guaranteed to be 3, so we are transmuting a type to itself
+                3 => unsafe {
+                    let func: fn(_) -> _ = Vector::<3, T, S>::swizzle3::<2, 1, 0>;
+
+                    transmute_copy::<
+                        fn(Vector<3, T, S>) -> Vector<3, T, S>,
+                        fn(Vector<N, T, S>) -> Vector<N, T, S>,
+                    >(&func)
+                },
+                // SAFETY: N is guaranteed to be 4, so we are transmuting a type to itself
+                4 => unsafe {
+                    let func: fn(_) -> _ = Vector::<4, T, S>::swizzle4::<3, 2, 1, 0>;
+
+                    transmute_copy::<
+                        fn(Vector<4, T, S>) -> Vector<4, T, S>,
+                        fn(Vector<N, T, S>) -> Vector<N, T, S>,
+                    >(&func)
+                },
+                ..2 | 5.. => panic!("N must be 2, 3, or 4"),
+            }
+        })(self)
+    }
+
+    /// Returns an iterator over the elements of the vector.
+    #[inline(always)]
+    pub fn iter(self) -> <[T; N] as IntoIterator>::IntoIter {
+        self.as_array().into_iter()
+    }
+
+    /// Returns an iterator over mutable references to the elements of the vector.
+    #[inline(always)]
+    pub fn iter_mut(&mut self) -> <&mut [T; N] as IntoIterator>::IntoIter {
+        self.as_mut_array().iter_mut()
+    }
+
+    /// Returns a new vector with function `f` applied to each element.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use ggmath::{Vec2, vec2};
+    ///
+    /// let v: Vec2<f32> = vec2!(1.0, 2.0);
+    /// assert_eq!(v.map(|x| x * 2.0), vec2!(2.0, 4.0));
+    /// ```
+    #[inline(always)]
+    pub fn map<U: Scalar>(self, f: impl Fn(T) -> U) -> Vector<N, U, S> {
+        Vector::from_array(self.as_array().map(f))
+    }
+
+    specialized_vector_api! {
+        VectorApi for <N, T, S>:
+
+        fn eq(self, other: Self) -> bool where T: PartialEq;
+        fn ne(self, other: Self) -> bool where T: PartialEq;
+    }
+}
+
+impl<T: Scalar, S: Simdness> Vector<2, T, S> {
+    /// Returns a vector with the same elements as `self`, but with the x component replaced with `value`.
+    #[inline(always)]
+    pub fn with_x(self, value: T) -> Self {
+        let mut result = self;
+        result.x = value;
+
+        result
+    }
+
+    /// Returns a vector with the same elements as `self`, but with the y component replaced with `value`.
+    #[inline(always)]
+    pub fn with_y(self, value: T) -> Self {
+        let mut result = self;
+        result.y = value;
+
+        result
+    }
+}
+
+impl<T: Scalar, S: Simdness> Vector<3, T, S> {
+    /// Returns a vector with the same elements as `self`, but with the x component replaced with `value`.
+    #[inline(always)]
+    pub fn with_x(self, value: T) -> Self {
+        let mut result = self;
+        result.x = value;
+
+        result
+    }
+
+    /// Returns a vector with the same elements as `self`, but with the y component replaced with `value`.
+    #[inline(always)]
+    pub fn with_y(self, value: T) -> Self {
+        let mut result = self;
+        result.y = value;
+
+        result
+    }
+
+    /// Returns a vector with the same elements as `self`, but with the z component replaced with `value`.
+    #[inline(always)]
+    pub fn with_z(self, value: T) -> Self {
+        let mut result = self;
+        result.z = value;
+
+        result
+    }
+}
+
+impl<T: Scalar, S: Simdness> Vector<4, T, S> {
+    /// Returns a vector with the same elements as `self`, but with the x component replaced with `value`.
+    #[inline(always)]
+    pub fn with_x(self, value: T) -> Self {
+        let mut result = self;
+        result.x = value;
+
+        result
+    }
+
+    /// Returns a vector with the same elements as `self`, but with the y component replaced with `value`.
+    #[inline(always)]
+    pub fn with_y(self, value: T) -> Self {
+        let mut result = self;
+        result.y = value;
+
+        result
+    }
+
+    /// Returns a vector with the same elements as `self`, but with the z component replaced with `value`.
+    #[inline(always)]
+    pub fn with_z(self, value: T) -> Self {
+        let mut result = self;
+        result.z = value;
+
+        result
+    }
+
+    /// Returns a vector with the same elements as `self`, but with the w component replaced with `value`.
+    #[inline(always)]
+    pub fn with_w(self, value: T) -> Self {
+        let mut result = self;
+        result.w = value;
+
+        result
+    }
+}
+
+impl<const N: usize, T: Scalar> Vector<N, T, Simd>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    /// Creates a [`Simd`] vector from its internal representation, which is
+    /// [`<T as SimdBehaviour<N>>::VectorRepr`][SimdBehaviour::VectorRepr].
+    ///
+    /// This function is useful when implementing SIMD optimizations for custom
+    /// scalar types.
+    #[inline(always)]
+    pub const fn from_repr(repr: <T as SimdBehaviour<N>>::VectorRepr) -> Self
+    where
+        T: SimdBehaviour<N>,
+    {
+        const {
+            assert!(
+                size_of::<Vector<N, T, Simd>>() == size_of::<<T as SimdBehaviour<N>>::VectorRepr>()
+            );
+            assert!(
+                align_of::<Vector<N, T, Simd>>()
+                    == align_of::<<T as SimdBehaviour<N>>::VectorRepr>()
+            );
+        }
+
+        // SAFETY: Vector<N, T, Simd> is transparent to <T as SimdBehaviour<N>>::VectorRepr
+        unsafe { transmute_copy::<<T as SimdBehaviour<N>>::VectorRepr, Vector<N, T, Simd>>(&repr) }
+    }
+
+    /// Returns the internal representation of a [`Simd`] vector, which is
+    /// [`<T as SimdBehaviour<N>>::VectorRepr`][SimdBehaviour::VectorRepr].
+    ///
+    /// This function is useful when implementing SIMD optimizations for custom
+    /// scalar types.
+    #[inline(always)]
+    pub const fn repr(self) -> <T as SimdBehaviour<N>>::VectorRepr
+    where
+        T: SimdBehaviour<N>,
+    {
+        const {
+            assert!(
+                size_of::<Vector<N, T, Simd>>() == size_of::<<T as SimdBehaviour<N>>::VectorRepr>()
+            );
+            assert!(
+                align_of::<Vector<N, T, Simd>>()
+                    == align_of::<<T as SimdBehaviour<N>>::VectorRepr>()
+            );
+        }
+
+        // SAFETY: Vector<N, T, Simd> is transparent to <T as SimdBehaviour<N>>::VectorRepr
+        unsafe { transmute_copy::<Vector<N, T, Simd>, <T as SimdBehaviour<N>>::VectorRepr>(&self) }
+    }
+}
+
+impl<const N: usize, T: Scalar> Vector<N, T, NonSimd>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    /// Converts an array reference to a [`NonSimd`] vector reference.
+    #[inline(always)]
+    pub const fn from_array_ref(array: &[T; N]) -> &Self {
+        // SAFETY: Vector<N, T, NonSimd> is transparent to [T; N]
+        unsafe { transmute::<&[T; N], &Vector<N, T, NonSimd>>(array) }
+    }
+
+    /// Converts a mutable array reference to a mutable [`NonSimd`] vector reference.
+    #[inline(always)]
+    pub const fn from_mut_array(array: &mut [T; N]) -> &mut Self {
+        // SAFETY: Vector<N, T, NonSimd> is transparent to [T; N]
+        unsafe { transmute::<&mut [T; N], &mut Vector<N, T, NonSimd>>(array) }
+    }
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> Clone for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> Copy for Vector<N, T, S> where
+    VecLen<N>: SupportedVecLen
+{
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> Index<usize> for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    type Output = T;
+
+    #[inline(always)]
+    fn index(&self, index: usize) -> &Self::Output {
+        self.as_array_ref().index(index)
+    }
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> IndexMut<usize> for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        self.as_mut_array().index_mut(index)
+    }
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> IntoIterator for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    type Item = T;
+    type IntoIter = <[T; N] as IntoIterator>::IntoIter;
+
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, const N: usize, T: Scalar, S: Simdness> IntoIterator for &'a Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    type Item = &'a T;
+    type IntoIter = <&'a [T; N] as IntoIterator>::IntoIter;
+
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        self.as_array_ref().iter()
+    }
+}
+
+impl<'a, const N: usize, T: Scalar, S: Simdness> IntoIterator for &'a mut Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    type Item = &'a mut T;
+    type IntoIter = <&'a mut [T; N] as IntoIterator>::IntoIter;
+
+    #[inline(always)]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<const N: usize, T: Scalar + PartialEq, S: Simdness> PartialEq for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        (*self).eq(*other)
+    }
+
+    #[inline(always)]
+    fn ne(&self, other: &Self) -> bool {
+        (*self).ne(*other)
+    }
+}
+
+impl<const N: usize, T: Scalar + Debug, S: Simdness> Debug for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "(")?;
+
+        for i in 0..N {
+            write!(f, "{:?}", self[i])?;
+
+            if i < N - 1 {
+                write!(f, ", ")?;
+            }
+        }
+
+        write!(f, ")")
+    }
+}
+
+impl<const N: usize, T: Scalar + Display, S: Simdness> Display for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "(")?;
+
+        for i in 0..N {
+            write!(f, "{}", self[i])?;
+
+            if i < N - 1 {
+                write!(f, ", ")?;
+            }
+        }
+
+        write!(f, ")")
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Type Aliases
+////////////////////////////////////////////////////////////////////////////////
+
+/// Shorthand for [`Vector<2, T, Simd>`].
 pub type Vec2<T> = Vector<2, T, Simd>;
-/// Type alias for [`Vector<3, T, Simd>`].
+/// Shorthand for [`Vector<3, T, Simd>`].
 pub type Vec3<T> = Vector<3, T, Simd>;
-/// Type alias for [`Vector<4, T, Simd>`].
+/// Shorthand for [`Vector<4, T, Simd>`].
 pub type Vec4<T> = Vector<4, T, Simd>;
 
-/// Type alias for [`Vector<2, T, NonSimd>`] ("s" stands for "scalar").
+/// Shorthand for [`Vector<2, T, NonSimd>`]
+/// ("s" stands for "scalar").
 pub type Vec2S<T> = Vector<2, T, NonSimd>;
-/// Type alias for [`Vector<3, T, NonSimd>`] ("s" stands for "scalar").
+/// Shorthand for [`Vector<3, T, NonSimd>`]
+/// ("s" stands for "scalar").
 pub type Vec3S<T> = Vector<3, T, NonSimd>;
-/// Type alias for [`Vector<4, T, NonSimd>`] ("s" stands for "scalar").
+/// Shorthand for [`Vector<4, T, NonSimd>`]
+/// ("s" stands for "scalar").
 pub type Vec4S<T> = Vector<4, T, NonSimd>;
 
-/// Macro to declare type-aliases for vectors of a specific element type with a given prefix.
+/// Declares vector type aliases for a custom scalar type.
 ///
-/// # Example
+/// ## Example
 ///
 /// ```
 /// use ggmath::declare_vector_aliases;
 ///
-/// declare_vector_aliases!(pub type F => f32);
+/// struct CustomScalar(f32);
 ///
-/// // Generates:
-/// // pub type FVec2 = Vector<2, f32, Simd>;
-/// // pub type FVec3 = Vector<3, f32, Simd>;
-/// // pub type FVec4 = Vector<4, f32, Simd>;
-/// // pub type FVec2S = Vector<2, f32, NonSimd>;
-/// // pub type FVec3S = Vector<3, f32, NonSimd>;
-/// // pub type FVec4S = Vector<4, f32, NonSimd>;
+/// declare_vector_aliases!(type C => CustomScalar);
+///
+/// // Generated aliases:
+/// // type CVec2 = Vector<2, CustomScalar, Simd>;
+/// // type CVec3 = Vector<3, CustomScalar, Simd>;
+/// // type CVec4 = Vector<4, CustomScalar, Simd>;
+/// // type CVec2S = Vector<2, CustomScalar, NonSimd>;
+/// // type CVec3S = Vector<3, CustomScalar, NonSimd>;
+/// // type CVec4S = Vector<4, CustomScalar, NonSimd>;
 /// ```
 #[macro_export]
 macro_rules! declare_vector_aliases {
     ($vis:vis type $prefix:ident => $T:ty) => {
         $crate::hidden::paste! {
-            #[doc = "Type alias for [`Vector<2, " $T ", Simd>`]."]
+            #[doc = "Type alias for `Vector<2, " $T ", Simd>`."]
             $vis type [<$prefix Vec2>] = $crate::Vector<2, $T, $crate::Simd>;
-            #[doc = "Type alias for [`Vector<3, " $T ", Simd>`]."]
+            #[doc = "Type alias for `Vector<3, " $T ", Simd>`."]
             $vis type [<$prefix Vec3>] = $crate::Vector<3, $T, $crate::Simd>;
-            #[doc = "Type alias for [`Vector<4, " $T ", Simd>`]."]
+            #[doc = "Type alias for `Vector<4, " $T ", Simd>`."]
             $vis type [<$prefix Vec4>] = $crate::Vector<4, $T, $crate::Simd>;
 
-            #[doc = "Type alias for [`Vector<2, " $T ", NonSimd>`] (\"s\" stands for \"scalar\")."]
+            #[doc = "Type alias for `Vector<2, " $T ", NonSimd>` (\"s\" stands for \"scalar\")."]
             $vis type [<$prefix Vec2S>] = $crate::Vector<2, $T, $crate::NonSimd>;
-            #[doc = "Type alias for [`Vector<3, " $T ", NonSimd>`] (\"s\" stands for \"scalar\")."]
+            #[doc = "Type alias for `Vector<3, " $T ", NonSimd>` (\"s\" stands for \"scalar\")."]
             $vis type [<$prefix Vec3S>] = $crate::Vector<3, $T, $crate::NonSimd>;
-            #[doc = "Type alias for [`Vector<4, " $T ", NonSimd>`] (\"s\" stands for \"scalar\")."]
+            #[doc = "Type alias for `Vector<4, " $T ", NonSimd>` (\"s\" stands for \"scalar\")."]
             $vis type [<$prefix Vec4S>] = $crate::Vector<4, $T, $crate::NonSimd>;
         }
     };
 }
 
-/// TODO
-pub unsafe trait TransmuteTo<T>: Sized {
-    /// Safely transmutes `self` to `T`.
-    fn transmute_to(self) -> T {
-        const { assert!(size_of::<Self>() == size_of::<T>()) }
-        const { assert!(align_of::<Self>() >= align_of::<T>()) }
+pub use declare_vector_aliases;
 
-        let value = ManuallyDrop::new(self);
+////////////////////////////////////////////////////////////////////////////////
+// Scalar
+////////////////////////////////////////////////////////////////////////////////
 
-        unsafe { transmute_copy::<ManuallyDrop<Self>, T>(&value) }
-    }
-}
-
-/// A trait for types that are safe to use as inner vector types for a given element type and number of elements.
-pub unsafe trait InnerVectorType<const N: usize, T: Construct>: Construct {
-    /// TODO
-    const PADDING: Option<Self>;
-}
-
-/// A trait for elements of [`Vector`] of a given length.
-/// This trait is nessesary to implement in order to use a type inside a vector.
+/// A trait for types that can be used as elements in a [`Vector`].
 ///
-/// ## SIMD
+/// To implement this trait, you must also implement the [`SimdBehaviour<N>`] trait
+/// for `N = 2, 3, 4`. The [`SimdBehaviour`] trait controls the implementation
+/// details of [`Vector<N, Self, Simd>`].
 ///
-/// This trait controls:
-/// - The inner type contained inside [`Vector<N, T, Simd>`]
-/// - The implementations of [`Vector<N, T, Simd>`] functions
-///
-/// This allows implementations to add SIMD optimizations to vectors.
+/// For an example of a SIMD-optimized implementation, see the
+/// `fixed_point_scalar` example.
 ///
 /// ## Example
 ///
-/// TODO: add example
-pub trait Scalar<const N: usize>: Construct {
-    /// The inner type contained inside [`Vector<N, Self, S>`].
-    type InnerSimdVectorType: InnerVectorType<N, Self>;
+/// ```
+/// #[derive(Clone, Copy)]
+/// struct CustomScalar(f32);
+///
+/// impl Scalar for CustomScalar {}
+///
+/// impl SimdBehaviour<2> for CustomScalar {
+///     type VectorRepr = [CustomScalar; 2];
+/// }
+///
+/// impl SimdBehaviour<3> for CustomScalar {
+///     type VectorRepr = [CustomScalar; 3];
+/// }
+///
+/// impl SimdBehaviour<4> for CustomScalar {
+///     type VectorRepr = [CustomScalar; 4];
+/// }
+///
+/// // Now `CustomScalar` can be used as a vector element type.
+/// ```
+pub trait Scalar: SimdBehaviour<2> + SimdBehaviour<3> + SimdBehaviour<4> {}
+
+/// Controls the implementation details of [`Vector<N, Self, Simd>`]. For
+/// example, `f32` implementing `SimdBehaviour<4>` controls
+/// `Vector<4, f32, Simd>`.
+///
+/// The goal of implementing this trait is to enable SIMD optimizations,
+/// but it's acceptable not to use SIMD if it doesn't provide a performance
+/// benefit, or if it's only a placeholder implementation.
+pub trait SimdBehaviour<const N: usize>: Construct
+where
+    VecLen<N>: SupportedVecLen,
+{
+    /// The internal representation of the vector.
+    ///
+    /// There are two ways to define the internal representation:
+    ///
+    /// 1. Array:  
+    ///    If the internal representation is `[Self; N]`, there is no SIMD alignment.  
+    ///    In this case, the behavior of [`Simd`] and [`NonSimd`] is the same, with no SIMD optimizations.
+    ///
+    /// 2. Wrapped Vector Type:  
+    ///    If `Self` is a wrapper around an existing scalar type,  
+    ///    the internal representation can be a vector of that scalar type.  
+    ///    This allows you to leverage the SIMD-optimized API of the base type.  
+    ///    To enable this, `Self` must implement [`ScalarWrapper<TInner>`].
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// use ggmath::*;
+    ///
+    /// #[repr(transparent)]
+    /// #[derive(Copy, Clone)]
+    /// struct CustomScalar(f32);
+    ///
+    /// impl Scalar for CustomScalar {}
+    ///
+    /// // SAFETY: CustomScalar is a direct wrapper around f32, so it's safe to
+    /// // implement ScalarWrapper<f32> for it.
+    /// unsafe impl ScalarWrapper<f32> for CustomScalar {}
+    ///
+    /// impl<const N: usize> SimdBehaviour<N> for CustomScalar
+    /// where
+    ///     VecLen<N>: SupportedVecLen,
+    /// {
+    ///     type VectorRepr = Vector<N, f32, Simd>;
+    ///
+    ///     // Now you can use f32's SIMD-optimized vector API to optimize your vector
+    ///     // implementation.
+    /// }
+    /// ```
+    #[expect(private_bounds)]
+    type VectorRepr: SoundVectorRepr<N, Self>;
 
     /// Overridable implementation of [`Vector::from_array`].
     #[inline(always)]
-    fn vec_from_array(array: [Self; N]) -> Vector<N, Self, Simd> {
+    fn vec_from_array(array: [Self; N]) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar,
+    {
         Vector::const_from_array(array)
     }
 
-    /// Overridable implementation of [`Vector`] splat, which can be used through the [`vec2!`], [`vec3!`], etc. macros.
+    /// Overridable implementation of [`Vector::splat`].
     #[inline(always)]
-    fn vec_splat(value: Self) -> Vector<N, Self, Simd> {
+    fn vec_splat(value: Self) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar,
+    {
         Vector::from_array([value; N])
     }
 
-    /// Overridable implementation of [`Vector::as_array`].
+    /// Overridable implementation of [`Vector::swizzle2`].
     #[inline(always)]
-    fn vec_as_array(vec: Vector<N, Self, Simd>) -> [Self; N] {
-        *vec.as_array_ref()
-    }
-
-    /// Overridable implementation of [`Vector::reverse`].
-    #[inline(always)]
-    fn vec_reverse(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd> {
-        // SAFETY: index is in bounds because (N - 1) is the last valid index and i is in 0..=N-1.
-        Vector::from_fn(|i| unsafe { vec.get_unchecked((N - 1) - i) })
-    }
-
-    /// Overridable implementation of [`Vector::get_const_vec2`].
-    ///
-    /// ## Safety
-    ///
-    /// Calling this function with out of bounds indices is undefined behavior.
-    /// Implementations can assume that the indices are in bounds.
-    #[inline(always)]
-    unsafe fn vec_get_const_vec2<const X_SRC: usize, const Y_SRC: usize>(
+    unsafe fn vec_swizzle2<const X_SRC: usize, const Y_SRC: usize>(
         vec: Vector<N, Self, Simd>,
     ) -> Vector<2, Self, Simd>
     where
-        Self: Scalar<2>,
+        Self: Scalar,
     {
-        vec2g!(vec[X_SRC], vec[Y_SRC])
+        Vector::<2, _, _>::from_array([vec[X_SRC], vec[Y_SRC]])
     }
 
-    /// Overridable implementation of [`Vector::get_const_vec3`].
-    ///
-    /// ## Safety
-    ///
-    /// Calling this function with out of bounds indices is undefined behavior.
-    /// Implementations can assume that the indices are in bounds.
+    /// Overridable implementation of [`Vector::swizzle3`].
     #[inline(always)]
-    unsafe fn vec_get_const_vec3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+    unsafe fn vec_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
         vec: Vector<N, Self, Simd>,
     ) -> Vector<3, Self, Simd>
     where
-        Self: Scalar<3>,
+        Self: Scalar,
     {
-        vec3g!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC])
+        Vector::<3, _, _>::from_array([vec[X_SRC], vec[Y_SRC], vec[Z_SRC]])
     }
 
-    /// Overridable implementation of [`Vector::get_const_vec4`].
-    ///
-    /// ## Safety
-    ///
-    /// Calling this function with out of bounds indices is undefined behavior.
-    /// Implementations can assume that the indices are in bounds.
+    /// Overridable implementation of [`Vector::swizzle4`].
     #[inline(always)]
-    unsafe fn vec_get_const_vec4<
+    unsafe fn vec_swizzle4<
         const X_SRC: usize,
         const Y_SRC: usize,
         const Z_SRC: usize,
@@ -212,131 +819,751 @@ pub trait Scalar<const N: usize>: Construct {
         vec: Vector<N, Self, Simd>,
     ) -> Vector<4, Self, Simd>
     where
-        Self: Scalar<4>,
+        Self: Scalar,
     {
-        vec4g!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC])
+        Vector::<4, _, _>::from_array([vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC]])
     }
 
     /// Overridable implementation of [`Vector::eq`].
     #[inline(always)]
     fn vec_eq(vec: Vector<N, Self, Simd>, other: Vector<N, Self, Simd>) -> bool
     where
-        Self: PartialEq,
+        Self: Scalar + PartialEq,
     {
-        vec.as_array() == other.as_array()
+        vec.iter().zip(other).all(|(a, b)| a == b)
     }
 
     /// Overridable implementation of [`Vector::ne`].
     #[inline(always)]
     fn vec_ne(vec: Vector<N, Self, Simd>, other: Vector<N, Self, Simd>) -> bool
     where
-        Self: PartialEq,
+        Self: Scalar + PartialEq,
     {
-        !(vec == other)
+        vec.iter().zip(other).any(|(a, b)| a != b)
     }
 
     /// Overridable implementation of [`Vector::neg`].
+    ///
+    /// Implementations may deviate from `Self as Neg` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Neg`.
+    #[inline(always)]
+    fn vec_neg(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Neg<Output = Self>,
+    {
+        vec.map(Self::neg)
+    }
+
+    /// Overridable implementation of [`Vector::not`].
+    ///
+    /// Implementations may deviate from `Self as Not` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Not`.
+    #[inline(always)]
+    fn vec_not(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Not<Output = Self>,
+    {
+        vec.map(Self::not)
+    }
+
+    /// Overridable implementation of [`Vector::add`].
+    ///
+    /// Implementations may deviate from `Self as Add` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Add`.
+    #[inline(always)]
+    fn vec_add(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Add<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] + rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::sub`].
+    ///
+    /// Implementations may deviate from `Self as Sub` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Sub`.
+    #[inline(always)]
+    fn vec_sub(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Sub<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] - rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::mul`].
+    ///
+    /// Implementations may deviate from `Self as Mul` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Mul`.
+    #[inline(always)]
+    fn vec_mul(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Mul<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] * rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::div`].
+    ///
+    /// Implementations may deviate from `Self as Div` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Div`.
+    #[inline(always)]
+    fn vec_div(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Div<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] / rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::rem`].
+    ///
+    /// Implementations may deviate from `Self as Rem` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Rem`.
+    #[inline(always)]
+    fn vec_rem(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Rem<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] % rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::shl`].
+    ///
+    /// Implementations may deviate from `Self as Shl` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Shl`.
+    #[inline(always)]
+    fn vec_shl(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Shl<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] << rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::shr`].
+    ///
+    /// Implementations may deviate from `Self as Shr` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as Shr`.
+    #[inline(always)]
+    fn vec_shr(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + Shr<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] >> rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::bitand`].
+    ///
+    /// Implementations may deviate from `Self as BitAnd` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as BitAnd`.
+    #[inline(always)]
+    fn vec_bitand(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + BitAnd<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] & rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::bitor`].
+    ///
+    /// Implementations may deviate from `Self as BitOr` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as BitOr`.
+    #[inline(always)]
+    fn vec_bitor(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + BitOr<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] | rhs[i])
+    }
+
+    /// Overridable implementation of [`Vector::bitxor`].
+    ///
+    /// Implementations may deviate from `Self as BitXor` in edge cases, but should
+    /// otherwise closely follow the behavior of `Self as BitXor`.
+    #[inline(always)]
+    fn vec_bitxor(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Scalar + BitXor<Output = Self>,
+    {
+        Vector::from_fn(|i| vec[i] ^ rhs[i])
+    }
+}
+
+/// Unsafe trait for scalar types that are direct wrappers around another scalar type.
+///
+/// This trait is used by [`SimdBehaviour::VectorRepr`].
+///
+/// ## Example
+///
+/// ```
+/// use ggmath::*;
+///
+/// #[repr(transparent)]
+/// #[derive(Copy, Clone)]
+/// struct CustomScalar(f32);
+///
+/// // SAFETY: CustomScalar is a direct wrapper around f32, so it's safe to
+/// // implement ScalarWrapper<f32> for it.
+/// unsafe impl ScalarWrapper<f32> for CustomScalar {}
+/// ```
+pub unsafe trait ScalarWrapper<T: Scalar> {}
+
+////////////////////////////////////////////////////////////////////////////////
+// Length
+////////////////////////////////////////////////////////////////////////////////
+
+/// A type that represents the length of a vector, and allows for this pattern:
+///
+/// ```
+/// impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
+/// where
+///     VecLen<N>: SupportedVecLen,
+/// {
+/// }
+/// ```
+pub struct VecLen<const N: usize>;
+
+/// A trait that marks supported [`Vector`] lengths.
+pub trait SupportedVecLen: Sealed {
+    #[doc(hidden)]
+    type Pick<T2: Construct, T3: Construct, T4: Construct>: Construct;
+}
+
+impl SupportedVecLen for VecLen<2> {
+    type Pick<T2: Construct, T3: Construct, T4: Construct> = T2;
+}
+impl SupportedVecLen for VecLen<3> {
+    type Pick<T2: Construct, T3: Construct, T4: Construct> = T3;
+}
+impl SupportedVecLen for VecLen<4> {
+    type Pick<T2: Construct, T3: Construct, T4: Construct> = T4;
+}
+
+impl Sealed for VecLen<2> {}
+impl Sealed for VecLen<3> {}
+impl Sealed for VecLen<4> {}
+
+////////////////////////////////////////////////////////////////////////////////
+// Simdness
+////////////////////////////////////////////////////////////////////////////////
+
+/// A type that marks a [`Vector`] as SIMD-backed.
+pub struct Simd;
+
+/// A type that marks a [`Vector`] as not SIMD-backed.
+pub struct NonSimd;
+
+/// A trait that is implemented for [`Simd`] and [`NonSimd`].
+pub trait Simdness: Sealed + 'static {
+    #[doc(hidden)]
+    type Pick<TSimd: Construct, TNonSimd: Construct>: Construct;
+
+    /// Is true for [`Simd`], and false for [`NonSimd`].
+    const IS_SIMD: bool;
+}
+
+impl Simdness for Simd {
+    type Pick<TSimd: Construct, TNonSimd: Construct> = TSimd;
+
+    const IS_SIMD: bool = true;
+}
+impl Simdness for NonSimd {
+    type Pick<TSimd: Construct, TNonSimd: Construct> = TNonSimd;
+
+    const IS_SIMD: bool = false;
+}
+
+impl Sealed for Simd {}
+impl Sealed for NonSimd {}
+
+////////////////////////////////////////////////////////////////////////////////
+// Vector Representation
+////////////////////////////////////////////////////////////////////////////////
+
+trait VectorReprExt {
+    type Repr: Construct;
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> VectorReprExt for Vector<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    type Repr = <S as Simdness>::Pick<
+        <VecLen<N> as SupportedVecLen>::Pick<
+            <T as SimdBehaviour<2>>::VectorRepr,
+            <T as SimdBehaviour<3>>::VectorRepr,
+            <T as SimdBehaviour<4>>::VectorRepr,
+        >,
+        [T; N],
+    >;
+}
+
+unsafe trait SoundVectorRepr<const N: usize, T: Construct>: Construct {}
+
+// SAFETY: [T; N] begins with N T's
+unsafe impl<const N: usize, T: Scalar> SoundVectorRepr<N, T> for [T; N] {}
+
+// SAFETY: Vector<N, InsideT, InsideS> begins with N InsideT's, so it also begins with N T's
+unsafe impl<const N: usize, T: Scalar, InsideT: Scalar, InsideS: Simdness> SoundVectorRepr<N, T>
+    for Vector<N, InsideT, InsideS>
+where
+    T: ScalarWrapper<InsideT>,
+    VecLen<N>: SupportedVecLen,
+{
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Specialization
+////////////////////////////////////////////////////////////////////////////////
+
+trait VectorApi<const N: usize, S: Simdness>: Scalar
+where
+    VecLen<N>: SupportedVecLen,
+{
+    fn vec_from_array(array: [Self; N]) -> Vector<N, Self, S>;
+
+    fn vec_splat(value: Self) -> Vector<N, Self, S>;
+
+    fn vec_swizzle2<const X_SRC: usize, const Y_SRC: usize>(
+        vec: Vector<N, Self, S>,
+    ) -> Vector<2, Self, S>;
+
+    fn vec_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vector<N, Self, S>,
+    ) -> Vector<3, Self, S>;
+
+    fn vec_swizzle4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vector<N, Self, S>,
+    ) -> Vector<4, Self, S>;
+
+    fn vec_eq(vec: Vector<N, Self, S>, other: Vector<N, Self, S>) -> bool
+    where
+        Self: PartialEq;
+
+    fn vec_ne(vec: Vector<N, Self, S>, other: Vector<N, Self, S>) -> bool
+    where
+        Self: PartialEq;
+
+    fn vec_neg(vec: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Neg<Output = Self>;
+
+    fn vec_not(vec: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Not<Output = Self>;
+
+    fn vec_add(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Add<Output = Self>;
+
+    fn vec_sub(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Sub<Output = Self>;
+
+    fn vec_mul(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Mul<Output = Self>;
+
+    fn vec_div(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Div<Output = Self>;
+
+    fn vec_rem(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Rem<Output = Self>;
+
+    fn vec_shl(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Shl<Output = Self>;
+
+    fn vec_shr(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: Shr<Output = Self>;
+
+    fn vec_bitand(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: BitAnd<Output = Self>;
+
+    fn vec_bitor(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: BitOr<Output = Self>;
+
+    fn vec_bitxor(vec: Vector<N, Self, S>, rhs: Vector<N, Self, S>) -> Vector<N, Self, S>
+    where
+        Self: BitXor<Output = Self>;
+}
+
+impl<const N: usize, T: Scalar + SimdBehaviour<N>> VectorApi<N, Simd> for T
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn vec_from_array(array: [Self; N]) -> Vector<N, Self, Simd> {
+        <T as SimdBehaviour<N>>::vec_from_array(array)
+    }
+
+    #[inline(always)]
+    fn vec_splat(value: Self) -> Vector<N, Self, Simd> {
+        <T as SimdBehaviour<N>>::vec_splat(value)
+    }
+
+    #[inline(always)]
+    fn vec_swizzle2<const X_SRC: usize, const Y_SRC: usize>(
+        vec: Vector<N, Self, Simd>,
+    ) -> Vector<2, Self, Simd> {
+        const {
+            assert!(X_SRC < N);
+            assert!(Y_SRC < N);
+        }
+
+        // SAFETY: it is guaranteed that X_SRC and Y_SRC are in bounds
+        unsafe { <T as SimdBehaviour<N>>::vec_swizzle2::<X_SRC, Y_SRC>(vec) }
+    }
+
+    #[inline(always)]
+    fn vec_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vector<N, Self, Simd>,
+    ) -> Vector<3, Self, Simd> {
+        const {
+            assert!(X_SRC < N);
+            assert!(Y_SRC < N);
+            assert!(Z_SRC < N);
+        }
+
+        // SAFETY: it is guaranteed that X_SRC, Y_SRC, and Z_SRC are in bounds
+        unsafe { <T as SimdBehaviour<N>>::vec_swizzle3::<X_SRC, Y_SRC, Z_SRC>(vec) }
+    }
+
+    #[inline(always)]
+    fn vec_swizzle4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vector<N, Self, Simd>,
+    ) -> Vector<4, Self, Simd> {
+        const {
+            assert!(X_SRC < N);
+            assert!(Y_SRC < N);
+            assert!(Z_SRC < N);
+            assert!(W_SRC < N);
+        }
+
+        // SAFETY: it is guaranteed that X_SRC, Y_SRC, Z_SRC, and W_SRC are in bounds
+        unsafe { <T as SimdBehaviour<N>>::vec_swizzle4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec) }
+    }
+
+    #[inline(always)]
+    fn vec_eq(vec: Vector<N, Self, Simd>, other: Vector<N, Self, Simd>) -> bool
+    where
+        Self: PartialEq,
+    {
+        <T as SimdBehaviour<N>>::vec_eq(vec, other)
+    }
+
+    #[inline(always)]
+    fn vec_ne(vec: Vector<N, Self, Simd>, other: Vector<N, Self, Simd>) -> bool
+    where
+        Self: PartialEq,
+    {
+        <T as SimdBehaviour<N>>::vec_ne(vec, other)
+    }
+
     #[inline(always)]
     fn vec_neg(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
     where
         Self: Neg<Output = Self>,
     {
-        vec.map(Neg::neg)
+        <T as SimdBehaviour<N>>::vec_neg(vec)
     }
 
-    /// Overridable implementation of [`Vector::not`].
     #[inline(always)]
     fn vec_not(vec: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
     where
         Self: Not<Output = Self>,
     {
-        vec.map(Not::not)
+        <T as SimdBehaviour<N>>::vec_not(vec)
     }
 
-    /// Overridable implementation of [`Vector::add`].
     #[inline(always)]
     fn vec_add(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Add<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_add(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_sub(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Sub<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_sub(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_mul(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Mul<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_mul(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_div(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Div<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_div(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_rem(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Rem<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_rem(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_shl(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Shl<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_shl(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_shr(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: Shr<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_shr(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_bitand(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: BitAnd<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_bitand(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_bitor(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: BitOr<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_bitor(vec, rhs)
+    }
+
+    #[inline(always)]
+    fn vec_bitxor(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    where
+        Self: BitXor<Output = Self>,
+    {
+        <T as SimdBehaviour<N>>::vec_bitxor(vec, rhs)
+    }
+}
+
+impl<const N: usize, T: Scalar> VectorApi<N, NonSimd> for T
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn vec_from_array(array: [Self; N]) -> Vector<N, Self, NonSimd> {
+        Vector(array)
+    }
+
+    #[inline(always)]
+    fn vec_splat(value: Self) -> Vector<N, Self, NonSimd> {
+        Vector([value; N])
+    }
+
+    #[inline(always)]
+    fn vec_swizzle2<const X_SRC: usize, const Y_SRC: usize>(
+        vec: Vector<N, Self, NonSimd>,
+    ) -> Vector<2, Self, NonSimd> {
+        const {
+            assert!(X_SRC < N);
+            assert!(Y_SRC < N);
+        }
+
+        Vector::<2, _, _>([vec[X_SRC], vec[Y_SRC]])
+    }
+
+    #[inline(always)]
+    fn vec_swizzle3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
+        vec: Vector<N, Self, NonSimd>,
+    ) -> Vector<3, Self, NonSimd> {
+        const {
+            assert!(X_SRC < N);
+            assert!(Y_SRC < N);
+            assert!(Z_SRC < N);
+        }
+
+        Vector::<3, _, _>([vec[X_SRC], vec[Y_SRC], vec[Z_SRC]])
+    }
+
+    #[inline(always)]
+    fn vec_swizzle4<
+        const X_SRC: usize,
+        const Y_SRC: usize,
+        const Z_SRC: usize,
+        const W_SRC: usize,
+    >(
+        vec: Vector<N, Self, NonSimd>,
+    ) -> Vector<4, Self, NonSimd> {
+        const {
+            assert!(X_SRC < N);
+            assert!(Y_SRC < N);
+            assert!(Z_SRC < N);
+            assert!(W_SRC < N);
+        }
+
+        Vector::<4, _, _>([vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC]])
+    }
+
+    #[inline(always)]
+    fn vec_eq(vec: Vector<N, Self, NonSimd>, other: Vector<N, Self, NonSimd>) -> bool
+    where
+        Self: PartialEq,
+    {
+        vec.iter().zip(other).all(|(a, b)| a == b)
+    }
+
+    #[inline(always)]
+    fn vec_ne(vec: Vector<N, Self, NonSimd>, other: Vector<N, Self, NonSimd>) -> bool
+    where
+        Self: PartialEq,
+    {
+        vec.iter().zip(other).any(|(a, b)| a != b)
+    }
+
+    #[inline(always)]
+    fn vec_neg(vec: Vector<N, Self, NonSimd>) -> Vector<N, Self, NonSimd>
+    where
+        Self: Neg<Output = Self>,
+    {
+        vec.map(Self::neg)
+    }
+
+    #[inline(always)]
+    fn vec_not(vec: Vector<N, Self, NonSimd>) -> Vector<N, Self, NonSimd>
+    where
+        Self: Not<Output = Self>,
+    {
+        vec.map(Self::not)
+    }
+
+    #[inline(always)]
+    fn vec_add(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: Add<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] + rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::sub`].
     #[inline(always)]
-    fn vec_sub(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_sub(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: Sub<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] - rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::mul`].
     #[inline(always)]
-    fn vec_mul(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_mul(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: Mul<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] * rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::div`].
     #[inline(always)]
-    fn vec_div(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_div(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: Div<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] / rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::rem`].
     #[inline(always)]
-    fn vec_rem(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_rem(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: Rem<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] % rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::shl`].
     #[inline(always)]
-    fn vec_shl(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_shl(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: Shl<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] << rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::shr`].
     #[inline(always)]
-    fn vec_shr(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_shr(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: Shr<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] >> rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::bitand`].
     #[inline(always)]
-    fn vec_bitand(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_bitand(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: BitAnd<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] & rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::bitor`].
     #[inline(always)]
-    fn vec_bitor(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_bitor(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: BitOr<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] | rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::bitxor`].
     #[inline(always)]
-    fn vec_bitxor(vec: Vector<N, Self, Simd>, rhs: Vector<N, Self, Simd>) -> Vector<N, Self, Simd>
+    fn vec_bitxor(
+        vec: Vector<N, Self, NonSimd>,
+        rhs: Vector<N, Self, NonSimd>,
+    ) -> Vector<N, Self, NonSimd>
     where
         Self: BitXor<Output = Self>,
     {
@@ -344,557 +1571,155 @@ pub trait Scalar<const N: usize>: Construct {
     }
 }
 
-/// Sealed trait implemented by [`Simd`] and [`NonSimd`].
-/// This trait is used to mark vectors as either SIMD-backed or not.
-pub trait Simdness: Sealed + 'static {
-    #[doc(hidden)]
-    type InnerVectorType<const N: usize, T: Scalar<N>>: InnerVectorType<N, T>;
-
-    /// Is true for [`Simd`] and false for [`NonSimd`].
-    const IS_SIMD: bool;
-}
-
-/// Marker type for SIMD vectors.
-pub struct Simd;
-
-/// Marker type for non-SIMD vectors.
-pub struct NonSimd;
-
-impl<const N: usize, T: Scalar<N>, S: Simdness> Vector<N, T, S> {
-    /// Creates a vector from an array.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{vec2, Vec2};
-    ///
-    /// assert_eq!(Vec2::from_array([1.0, 2.0]), vec2!(1.0, 2.0));
-    /// ```
-    #[inline(always)]
-    pub fn from_array(array: [T; N]) -> Self {
-        match_simdness! {
-            for array;
-
-            Simd => |array: [T; N]| -> Vector<N, T, Simd> {
-                T::vec_from_array(array)
-            },
-            NonSimd => |array: [T; N]| -> Vector<N, T, NonSimd> {
-                Vector(array)
-            }
-        }
-    }
-
-    /// Creates a vector by calling a function for each element.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{vec4, Vec4};
-    ///
-    /// assert_eq!(Vec4::from_fn(|i| i as f32), vec4!(0.0, 1.0, 2.0, 3.0));
-    /// ```
-    #[inline(always)]
-    pub fn from_fn(f: impl FnMut(usize) -> T) -> Self {
-        Vector::from_array(core::array::from_fn(f))
-    }
-
-    /// Creates a vector from an array in a const context.
-    /// This is slower than [`Vector::from_array`] and should only be used for const evaluation.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{Vec3};
-    ///
-    /// const CONST_VECTOR: Vec3<f32> = Vec3::const_from_array([1.0, 2.0, 3.0]);
-    /// ```
-    #[inline(always)]
-    pub const fn const_from_array(array: [T; N]) -> Self {
-        if let Some(padding) = S::InnerVectorType::PADDING {
-            let mut output = Self(padding);
-            *output.as_mut_array() = array;
-
-            output
-        } else {
-            let inner_vector = unsafe {
-                // SAFETY:
-                // Because PADDING is None, we know that S::InnerVectorType has the memory layout of [T; N]
-                transmute_copy::<[T; N], S::InnerVectorType<N, T>>(&array)
-            };
-
-            Self(inner_vector)
-        }
-    }
-
-    /// Converts a vector to an array.
-    #[inline(always)]
-    pub fn as_array(self) -> [T; N] {
-        match_simdness! {
-            for self;
-
-            Simd => |vec: Vector<N, T, Simd>| -> [T; N] {
-                T::vec_as_array(vec)
-            },
-            NonSimd => |vec: Vector<N, T, NonSimd>| -> [T; N] {
-                vec.0
-            }
-        }
-    }
-
-    /// Converts a vector reference to an array reference.
-    #[inline(always)]
-    pub const fn as_array_ref(&self) -> &[T; N] {
-        // SAFETY: It is guaranteed that Vector<N, T, S> starts with N T elements in memory
-        unsafe { transmute::<&Vector<N, T, S>, &[T; N]>(self) }
-    }
-
-    /// Converts a mutable vector reference to a mutable array reference.
-    #[inline(always)]
-    pub const fn as_mut_array(&mut self) -> &mut [T; N] {
-        // SAFETY: It is guaranteed that Vector<N, T, S> starts with N T elements in memory
-        unsafe { transmute::<&mut Vector<N, T, S>, &mut [T; N]>(self) }
-    }
-
-    /// Converts a vector to a vector with a different "simdness".
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{NonSimd, vec3, Vec3, Vec3S};
-    ///
-    /// let simd_vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
-    /// let nonsimd_vec: Vec3S<f32> = simd_vec.as_storage::<NonSimd>();
-    /// ```
-    #[inline(always)]
-    pub fn as_storage<S2: Simdness>(self) -> Vector<N, T, S2> {
-        Vector::from_array(self.as_array())
-    }
-
-    /// Converts a vector to a SIMD vector.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{vec3s, Vec3, Vec3S};
-    ///
-    /// let nonsimd_vec: Vec3S<f32> = vec3s!(1.0, 2.0, 3.0);
-    /// let simd_vec: Vec3<f32> = nonsimd_vec.as_simd();
-    /// ```
-    #[inline(always)]
-    pub fn as_simd(self) -> Vector<N, T, Simd> {
-        self.as_storage::<Simd>()
-    }
-
-    /// Converts a vector to a non-SIMD vector.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{vec3, Vec3, Vec3S};
-    ///
-    /// let simd_vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
-    /// let nonsimd_vec: Vec3S<f32> = simd_vec.as_nonsimd();
-    /// ```
-    #[inline(always)]
-    pub fn as_nonsimd(self) -> Vector<N, T, NonSimd> {
-        self.as_storage::<NonSimd>()
-    }
-
-    /// Returns the number of elements in the vector.
-    #[inline(always)]
-    pub const fn len(self) -> usize {
-        N
-    }
-
-    /// Returns true for [`Simd`] vectors and false for [`NonSimd`] vectors.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{vec3, vec3s, Vec3, Vec3S};
-    ///
-    /// let simd_vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
-    /// let nonsimd_vec: Vec3S<f32> = vec3s!(1.0, 2.0, 3.0);
-    ///
-    /// assert!(simd_vec.is_simd());
-    /// assert!(!nonsimd_vec.is_simd());
-    /// ```
-    #[inline(always)]
-    pub fn is_simd(self) -> bool {
-        S::IS_SIMD
-    }
-
-    /// Returns the element at the given index, or `None` if the index is out of bounds.
-    #[inline(always)]
-    pub fn get(self, index: usize) -> Option<T> {
-        if index < N {
-            // SAFETY: index is in bounds
-            Some(unsafe { self.get_unchecked(index) })
-        } else {
-            None
-        }
-    }
-
-    /// Returns a mutable reference to the element at the given index, or `None` if the index is out of bounds.
-    #[inline(always)]
-    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
-        if index < N {
-            // SAFETY: index is in bounds
-            Some(unsafe { self.as_mut_array().get_unchecked_mut(index) })
-        } else {
-            None
-        }
-    }
-
-    /// Returns the element at the given index, without checking if the index is in bounds.
-    ///
-    /// ## Safety
-    ///
-    /// Calling this function with an out of bounds index is undefined behavior.
-    #[inline(always)]
-    pub unsafe fn get_unchecked(self, index: usize) -> T {
-        // SAFETY: index is in bounds
-        unsafe { *self.as_array_ref().get_unchecked(index) }
-    }
-
-    /// Returns a mutable reference to the element at the given index, without checking if the index is in bounds.
-    ///
-    /// ## Safety
-    ///
-    /// Calling this function with an out of bounds index is undefined behavior.
-    #[inline(always)]
-    pub unsafe fn get_unchecked_mut(&mut self, index: usize) -> &mut T {
-        // SAFETY: index is in bounds
-        unsafe { self.as_mut_array().get_unchecked_mut(index) }
-    }
-
-    /// Returns an iterator over the elements of the vector.
-    #[inline(always)]
-    pub fn iter(self) -> IntoIter<T, N> {
-        self.as_array().into_iter()
-    }
-
-    /// Returns a mutable iterator over the elements of the vector.
-    #[inline(always)]
-    pub fn iter_mut<'a>(&'a mut self) -> IterMut<'a, T> {
-        self.as_mut_array().iter_mut()
-    }
-
-    /// Maps a vector to a new vector by applying a function to each element.
-    #[inline(always)]
-    pub fn map<T2: Scalar<N>>(self, f: impl FnMut(T) -> T2) -> Vector<N, T2, S> {
-        Vector::from_array(self.as_array().map(f))
-    }
-
-    /// Creates a vector with the elements in reverse order.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// use ggmath::{vec3, Vec3};
-    ///
-    /// let vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
-    /// let reversed_vec: Vec3<f32> = vec.reverse();
-    ///
-    /// assert_eq!(reversed_vec, vec3!(3.0, 2.0, 1.0));
-    /// ```
-    #[inline(always)]
-    pub fn reverse(self) -> Self {
-        match_simdness! {
-            for self;
-
-            Simd => |vec: Vector<N, T, Simd>| -> Vector<N, T, Simd> {
-                T::vec_reverse(vec)
-            },
-            NonSimd => |vec: Vector<N, T, NonSimd>| -> Vector<N, T, NonSimd> {
-                Vector::from_fn(|i| vec[N - 1 - i])
-            }
-        }
-    }
-
-    /// Returns a vector2 with the elements at the given indices which are known at compile time.
-    pub fn get_const_vec2<const X_SRC: usize, const Y_SRC: usize>(self) -> Vector<2, T, S>
-    where
-        T: Scalar<2>,
+macro_rules! specialized_vector_api {
     {
-        const {
-            assert!(X_SRC < N, "X Index out of bounds");
-            assert!(Y_SRC < N, "Y Index out of bounds");
-        }
+        $VectorApi:ident for <$N:expr, $T:ty, $S:ty>:
 
-        match_simdness! {
-            for self;
+        $(
+            $(#[$meta:meta])* $vis:vis fn $func:ident$(<$(const $const_arg:ident: $const_arg_ty:ty),* $(,)?>)?($($args_tt:tt)*) -> $return_tt:ty
+            $(where $($BoundType:ty: $BoundTrait:path),*)? $(,)?;
+        )*
+    } => {
+        $(
+            specialized_vector_api! {
+                @individual_fn $VectorApi for <$N, $T, $S>:
 
-            Simd => |vec: Vector<N, T, Simd>| -> Vector<2, T, Simd> {
-                // SAFETY: indices are in bounds
-                unsafe { T::vec_get_const_vec2::<X_SRC, Y_SRC>(vec) }
-            },
-            NonSimd => |vec: Vector<N, T, NonSimd>| -> Vector<2, T, NonSimd> {
-                vec2s!(vec[X_SRC], vec[Y_SRC])
+                $(#[$meta])*
+                $vis fn $func$(<$(const $const_arg: $const_arg_ty),*>)?($($args_tt)*) -> $return_tt
+                $(where $($BoundType: $BoundTrait),*)?;
             }
-        }
-    }
-
-    /// Returns a vector3 with the elements at the given indices which are known at compile time.
-    pub fn get_const_vec3<const X_SRC: usize, const Y_SRC: usize, const Z_SRC: usize>(
-        self,
-    ) -> Vector<3, T, S>
-    where
-        T: Scalar<3>,
-    {
-        const {
-            assert!(X_SRC < N, "X Index out of bounds");
-            assert!(Y_SRC < N, "Y Index out of bounds");
-            assert!(Z_SRC < N, "Z Index out of bounds");
-        }
-
-        match_simdness! {
-            for self;
-
-            Simd => |vec: Vector<N, T, Simd>| -> Vector<3, T, Simd> {
-                // SAFETY: indices are in bounds
-                unsafe { T::vec_get_const_vec3::<X_SRC, Y_SRC, Z_SRC>(vec) }
-            },
-            NonSimd => |vec: Vector<N, T, NonSimd>| -> Vector<3, T, NonSimd> {
-                vec3s!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC])
-            }
-        }
-    }
-
-    /// Returns a vector4 with the elements at the given indices which are known at compile time.
-    pub fn get_const_vec4<
-        const X_SRC: usize,
-        const Y_SRC: usize,
-        const Z_SRC: usize,
-        const W_SRC: usize,
-    >(
-        self,
-    ) -> Vector<4, T, S>
-    where
-        T: Scalar<4>,
-    {
-        const {
-            assert!(X_SRC < N, "X Index out of bounds");
-            assert!(Y_SRC < N, "Y Index out of bounds");
-            assert!(Z_SRC < N, "Z Index out of bounds");
-            assert!(W_SRC < N, "W Index out of bounds");
-        }
-
-        match_simdness! {
-            for self;
-
-            Simd => |vec: Vector<N, T, Simd>| -> Vector<4, T, Simd> {
-                // SAFETY: indices are in bounds
-                unsafe { T::vec_get_const_vec4::<X_SRC, Y_SRC, Z_SRC, W_SRC>(vec) }
-            },
-            NonSimd => |vec: Vector<N, T, NonSimd>| -> Vector<4, T, NonSimd> {
-                vec4s!(vec[X_SRC], vec[Y_SRC], vec[Z_SRC], vec[W_SRC])
-            }
-        }
-    }
-}
-
-impl<const N: usize, T: Scalar<N>, S: Simdness> Clone for Vector<N, T, S> {
-    #[inline(always)]
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl<const N: usize, T: Scalar<N>, S: Simdness> Copy for Vector<N, T, S> {}
-
-impl<const N: usize, T: Scalar<N>, S: Simdness> Index<usize> for Vector<N, T, S> {
-    type Output = T;
-
-    #[inline(always)]
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.as_array_ref()[index]
-    }
-}
-
-impl<const N: usize, T: Scalar<N>, S: Simdness> IndexMut<usize> for Vector<N, T, S> {
-    #[inline(always)]
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.as_mut_array()[index]
-    }
-}
-
-impl<const N: usize, T: Scalar<N>, S: Simdness> IntoIterator for Vector<N, T, S> {
-    type Item = T;
-    type IntoIter = IntoIter<T, N>;
-
-    #[inline(always)]
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-
-impl<'a, const N: usize, T: Scalar<N>, S: Simdness> IntoIterator for &'a mut Vector<N, T, S> {
-    type Item = &'a mut T;
-    type IntoIter = IterMut<'a, T>;
-
-    #[inline(always)]
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter_mut()
-    }
-}
-
-impl<const N: usize, T: PartialEq + Scalar<N>, S: Simdness> PartialEq for Vector<N, T, S> {
-    #[inline(always)]
-    fn eq(&self, other: &Self) -> bool {
-        match_simdness! {
-            for *self, *other;
-
-            Simd => |vec: Vector<N, T, Simd>, other: Vector<N, T, Simd>| -> bool {
-                T::vec_eq(vec, other)
-            },
-            NonSimd => |vec: Vector<N, T, NonSimd>, other: Vector<N, T, NonSimd>| -> bool {
-                (0..N).all(|i| vec[i] == other[i])
-            }
-        }
-    }
-
-    #[inline(always)]
-    fn ne(&self, other: &Self) -> bool {
-        match_simdness! {
-            for *self, *other;
-
-            Simd => |vec: Vector<N, T, Simd>, other: Vector<N, T, Simd>| -> bool {
-                T::vec_ne(vec, other)
-            },
-            NonSimd => |vec: Vector<N, T, NonSimd>, other: Vector<N, T, NonSimd>| -> bool {
-                (0..N).any(|i| vec[i] != other[i])
-            }
-        }
-    }
-}
-
-impl<const N: usize, T: Eq + Scalar<N>, S: Simdness> Eq for Vector<N, T, S> {}
-
-impl<const N: usize, T: Debug + Scalar<N>, S: Simdness> Debug for Vector<N, T, S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "(")?;
-
-        for i in 0..N {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-
-            write!(f, "{:?}", self[i])?;
-        }
-
-        write!(f, ")")?;
-
-        Ok(())
-    }
-}
-
-impl<const N: usize, T: Display + Scalar<N>, S: Simdness> Display for Vector<N, T, S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "(")?;
-
-        for i in 0..N {
-            if i > 0 {
-                write!(f, ", ")?;
-            }
-
-            write!(f, "{}", self[i])?;
-        }
-
-        write!(f, ")")?;
-
-        Ok(())
-    }
-}
-
-impl<const N: usize, T: Construct> Scalar<N> for Option<T> {
-    type InnerSimdVectorType = [Option<T>; N];
-}
-
-// SAFETY:
-// [T; N] starts with exactly N Ts which guarantees:
-// - that it does exactly that (requirement of InnerVectorType)
-// - that it does not have padding
-unsafe impl<const N: usize, T: Construct> InnerVectorType<N, T> for [T; N] {
-    const PADDING: Option<Self> = None;
-}
-
-// SAFETY:
-// Because T is transmutable to TInner, they share the same layout.
-// Because of that, their vectors also share their layout.
-unsafe impl<const N: usize, T: Construct + TransmuteTo<TInner>, TInner: Scalar<N>>
-    InnerVectorType<N, T> for Vector<N, TInner, Simd>
-{
-    const PADDING: Option<Self> = match TInner::InnerSimdVectorType::PADDING {
-        Some(padding) => Some(Self(padding)),
-        None => None,
-    };
-}
-
-impl Simdness for Simd {
-    type InnerVectorType<const N: usize, T: Scalar<N>> = T::InnerSimdVectorType;
-
-    const IS_SIMD: bool = true;
-}
-
-impl Simdness for NonSimd {
-    type InnerVectorType<const N: usize, T: Scalar<N>> = [T; N];
-
-    const IS_SIMD: bool = false;
-}
-
-#[doc(hidden)]
-impl Sealed for Simd {}
-#[doc(hidden)]
-impl Sealed for NonSimd {}
-
-const _VERIFY_VECTOR_IS_CONSTRUCT: () = {
-    fn verify_t_is_construct<T: Construct>() {}
-
-    fn _helper<const N: usize, T: Scalar<N>, S: Simdness>() {
-        verify_t_is_construct::<Vector<N, T, S>>();
-    }
-};
-
-#[doc(hidden)]
-#[macro_export(local_inner_macros)]
-macro_rules! match_simdness {
-    { for $($arg:expr),*; Simd => $simd_closure:expr, NonSimd => $non_simd_closure:expr $(,)? } => {
-        (const {
-            if S::IS_SIMD {
-                let closure: $crate::match_simdness!(@fn_ty $($arg),*) = $simd_closure;
-                unsafe {
-                    core::mem::transmute_copy::<
-                        $crate::match_simdness!(@fn_ty $($arg),*),
-                        $crate::match_simdness!(@fn_ty $($arg),*),
-                    >(&closure)
-                }
-            } else {
-                let closure: $crate::match_simdness!(@fn_ty $($arg),*) = $non_simd_closure;
-                unsafe {
-                    core::mem::transmute_copy::<
-                        $crate::match_simdness!(@fn_ty $($arg),*),
-                        $crate::match_simdness!(@fn_ty $($arg),*),
-                    >(&closure)
-                }
-            }
-        })
-        ($($arg),*)
+        )*
     };
 
-    (@fn_ty) => {
+    {
+        @individual_fn $VectorApi:ident for <$N:expr, $T:ty, $S:ty>:
+
+        $(#[$meta:meta])* $vis:vis fn $func:ident$(<$(const $const_arg:ident: $const_arg_ty:ty),*>)?(self $(, $arg:ident: $arg_ty:ty)* $(,)?) -> $return_tt:ty
+        $(where $($BoundType:ty: $BoundTrait:path),*)? $(,)?;
+    } => {
+        $crate::hidden::paste! {
+            #[inline(always)]
+            $(#[$meta])*
+            $vis fn $func$(<$(const $const_arg: $const_arg_ty),*>)?(self, $($arg: $arg_ty),*) -> $return_tt
+            $(where $($BoundType: $BoundTrait),*)?
+            {
+                (const {
+                    unsafe {
+                        match $S::IS_SIMD {
+                            true => match $N {
+                                2 => {
+                                    let func: specialized_vector_api!(@fn_ty self $($arg)*) = <$T as $VectorApi<2, $crate::Simd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                    core::mem::transmute_copy::<
+                                        specialized_vector_api!(@fn_ty self $($arg)*),
+                                        specialized_vector_api!(@fn_ty self $($arg)*),
+                                    >(&func)
+                                }
+                                3 => {
+                                    let func: specialized_vector_api!(@fn_ty self $($arg)*) = <$T as $VectorApi<3, $crate::Simd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                    core::mem::transmute_copy::<
+                                        specialized_vector_api!(@fn_ty self $($arg)*),
+                                        specialized_vector_api!(@fn_ty self $($arg)*),
+                                    >(&func)
+                                }
+                                4 => {
+                                    let func: specialized_vector_api!(@fn_ty self $($arg)*) = <$T as $VectorApi<4, $crate::Simd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                    core::mem::transmute_copy::<
+                                        specialized_vector_api!(@fn_ty self $($arg)*),
+                                        specialized_vector_api!(@fn_ty self $($arg)*),
+                                    >(&func)
+                                }
+                                ..2 | 5.. => panic!("N must be 2, 3, or 4"),
+                            }
+                            false => {
+                                let func: specialized_vector_api!(@fn_ty self $($arg)*) = <$T as $VectorApi<N, $crate::NonSimd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                core::mem::transmute_copy::<
+                                    specialized_vector_api!(@fn_ty self $($arg)*),
+                                    specialized_vector_api!(@fn_ty self $($arg)*),
+                                >(&func)
+                            }
+                        }
+                    }
+                })(self, $($arg),*)
+            }
+        }
+    };
+
+    {
+        @individual_fn $VectorApi:ident for <$N:expr, $T:ty, $S:ty>:
+
+        $(#[$meta:meta])* $vis:vis fn $func:ident$(<$(const $const_arg:ident: $const_arg_ty:ty),*>)?($($arg:ident: $arg_ty:ty),* $(,)?) -> $return_tt:ty
+        $(where $($BoundType:ty: $BoundTrait:path),*)? $(,)?;
+    } => {
+        $crate::hidden::paste! {
+            #[inline(always)]
+            $(#[$meta])*
+            $vis fn $func$(<$(const $const_arg: $const_arg_ty),*>)?($($arg: $arg_ty),*) -> $return_tt
+            $(where $($BoundType: $BoundTrait),*)?
+            {
+                (const {
+                    unsafe {
+                        match $S::IS_SIMD {
+                            true => match $N {
+                                2 => {
+                                    let func: specialized_vector_api!(@fn_ty $($arg)*) = <$T as $VectorApi<2, Simd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                    transmute_copy::<
+                                        specialized_vector_api!(@fn_ty $($arg)*),
+                                        specialized_vector_api!(@fn_ty $($arg)*),
+                                    >(&func)
+                                }
+                                3 => {
+                                    let func: specialized_vector_api!(@fn_ty $($arg)*) = <$T as $VectorApi<3, Simd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                    transmute_copy::<
+                                        specialized_vector_api!(@fn_ty $($arg)*),
+                                        specialized_vector_api!(@fn_ty $($arg)*),
+                                    >(&func)
+                                }
+                                4 => {
+                                    let func: specialized_vector_api!(@fn_ty $($arg)*) = <$T as $VectorApi<4, Simd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                    transmute_copy::<
+                                        specialized_vector_api!(@fn_ty $($arg)*),
+                                        specialized_vector_api!(@fn_ty $($arg)*),
+                                    >(&func)
+                                }
+                                ..2 | 5.. => panic!("N must be 2, 3, or 4"),
+                            }
+                            false => {
+                                let func: specialized_vector_api!(@fn_ty $($arg)*) = <$T as $VectorApi<N, NonSimd>>::[<vec_$func>]$(::<$($const_arg),*>)?;
+
+                                transmute_copy::<
+                                    specialized_vector_api!(@fn_ty $($arg)*),
+                                    specialized_vector_api!(@fn_ty $($arg)*),
+                                >(&func)
+                            }
+                        }
+                    }
+                })($($arg),*)
+            }
+        }
+    };
+
+    { @fn_ty } => {
         fn() -> _
     };
-    (@fn_ty $_arg0:expr) => {
+    { @fn_ty $_0:tt } => {
         fn(_) -> _
     };
-    (@fn_ty $_arg0:expr, $_arg1:expr) => {
+    { @fn_ty $_0:tt $_1:tt } => {
         fn(_, _) -> _
     };
-    (@fn_ty $_arg0:expr, $_arg1:expr, $_arg2:expr) => {
+    { @fn_ty $_0:tt $_1:tt $_2:tt } => {
         fn(_, _, _) -> _
     };
-    (@fn_ty $_arg0:expr, $_arg1:expr, $_arg2:expr, $_arg3:expr) => {
+    { @fn_ty $_0:tt $_1:tt $_2:tt $_3:tt } => {
         fn(_, _, _, _) -> _
     };
 }
+
+use specialized_vector_api;
