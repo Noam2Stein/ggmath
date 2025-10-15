@@ -124,6 +124,9 @@ impl F32VectorApi<4, Simd> for f32 {
 
     #[inline(always)]
     fn vec_mul_add(vec: Vec4<Self>, a: Vec4<Self>, b: Vec4<Self>) -> Vec4<Self> {
+        /*
+        TODO: test fma implementation
+
         #[cfg(target_feature = "fma")]
         {
             Vector::from_repr(unsafe { _mm_fmadd_ps(vec.repr(), a.repr(), b.repr()) })
@@ -138,6 +141,13 @@ impl F32VectorApi<4, Simd> for f32 {
                 vec.w.mul_add(a.w, b.w),
             )
         }
+        */
+        vec4!(
+            vec.x.mul_add(a.x, b.x),
+            vec.y.mul_add(a.y, b.y),
+            vec.z.mul_add(a.z, b.z),
+            vec.w.mul_add(a.w, b.w),
+        )
     }
 
     // TODO: determine if div_euclid can be optimized
@@ -254,6 +264,9 @@ impl F32VectorApi<4, Simd> for f32 {
 
     #[inline(always)]
     fn vec_sum(vec: Vec4<Self>) -> Self {
+        /*
+        TODO: test hadd implementation
+
         #[cfg(target_feature = "sse3")]
         unsafe {
             let xplusy_zplusw__ = _mm_hadd_ps(vec.repr(), vec.repr());
@@ -272,6 +285,14 @@ impl F32VectorApi<4, Simd> for f32 {
 
             sum___.x
         }
+        */
+        let xy__ = vec;
+        let zw__ = vec.swizzle4::<2, 3, 0, 1>();
+        let xplusz_yplusw__ = xy__ + zw__;
+        let yplusw_xplusz__ = xplusz_yplusw__.swizzle4::<1, 0, 3, 2>();
+        let sum___ = xplusz_yplusw__ + yplusw_xplusz__;
+
+        sum___.x
     }
 
     #[inline(always)]
@@ -393,6 +414,9 @@ impl F32VectorApi<3, Simd> for f32 {
 
     #[inline(always)]
     fn vec_mul_add(vec: Vec3<Self>, a: Vec3<Self>, b: Vec3<Self>) -> Vec3<Self> {
+        /*
+        TODO: test fma implementation
+
         #[cfg(target_feature = "fma")]
         {
             Vector::from_repr(unsafe { _mm_fmadd_ps(vec.repr(), a.repr(), b.repr()) })
@@ -406,6 +430,12 @@ impl F32VectorApi<3, Simd> for f32 {
                 vec.z.mul_add(a.z, b.z),
             )
         }
+        */
+        vec3!(
+            vec.x.mul_add(a.x, b.x),
+            vec.y.mul_add(a.y, b.y),
+            vec.z.mul_add(a.z, b.z),
+        )
     }
 
     // TODO: determine if div_euclid can be optimized
@@ -517,6 +547,9 @@ impl F32VectorApi<3, Simd> for f32 {
 
     #[inline(always)]
     fn vec_sum(vec: Vec3<Self>) -> Self {
+        /*
+        TODO: test hadd implementation
+
         #[cfg(target_feature = "sse3")]
         unsafe {
             const NO_W_MASK: Vec4<f32> = Vector::const_from_array([
@@ -537,6 +570,8 @@ impl F32VectorApi<3, Simd> for f32 {
         {
             vec.x + vec.y + vec.z
         }
+        */
+        vec.x + vec.y + vec.z
     }
 
     #[inline(always)]
