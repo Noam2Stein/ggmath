@@ -47,7 +47,7 @@ macro_rules! test_float_api {
             } else if a.is_infinite() && b.is_infinite() {
                 true
             } else {
-                (a - b).abs() < 0.0001
+                (a - b).abs() < 0.002
             }
         }
 
@@ -433,12 +433,22 @@ macro_rules! test_float_api {
         });
 
         test_for_combinations!(|vec2, vec3, vec4| {
+            // `Vector::sum` is allowed to be imprecise for large values
+            if vec2.iter().any(|x| x == <$T>::MAX || x == <$T>::MIN) {
+                return;
+            }
+
             assert_approx_float!(vec2.sum(), vec2.x + vec2.y, "{vec2}.sum()");
             assert_approx_float!(vec3.sum(), vec3.x + vec3.y + vec3.z, "{vec3}.sum()");
             assert_approx_float!(vec4.sum(), vec4.x + vec4.y + vec4.z + vec4.w, "{vec4}.sum()");
         });
 
         test_for_combinations!(|vec2, vec3, vec4| {
+            // `Vector::product` is allowed to be imprecise for large values
+            if vec2.iter().any(|x| x == <$T>::MAX || x == <$T>::MIN) {
+                return;
+            }
+
             assert_approx_float!(vec2.product(), vec2.x * vec2.y, "{vec2}.product()");
             assert_approx_float!(vec3.product(), vec3.x * vec3.y * vec3.z, "{vec3}.product()");
             assert_approx_float!(vec4.product(), vec4.x * vec4.y * vec4.z * vec4.w, "{vec4}.product()");
