@@ -1,12 +1,14 @@
+use crate::{Scalar, Simdness, Vector};
+
 impl<T: Scalar, S: Simdness> Vector<2, T, S> {
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xx => { 0, 0 },
         xy => { 0, 1 },
         yx => { 1, 0 },
         yy => { 1, 1 },
     }
 
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xxx => { 0, 0, 0 },
         xxy => { 0, 0, 1 },
         xyx => { 0, 1, 0 },
@@ -17,7 +19,7 @@ impl<T: Scalar, S: Simdness> Vector<2, T, S> {
         yyy => { 1, 1, 1 },
     }
 
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xxxx => { 0, 0, 0, 0 }, xxxy => { 0, 0, 0, 1 },
         xxyx => { 0, 0, 1, 0 }, xxyy => { 0, 0, 1, 1 },
         xyxx => { 0, 1, 0, 0 }, xyxy => { 0, 1, 0, 1 },
@@ -30,7 +32,7 @@ impl<T: Scalar, S: Simdness> Vector<2, T, S> {
 }
 
 impl<T: Scalar, S: Simdness> Vector<3, T, S> {
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xx => { 0, 0 },
         xy => { 0, 1 },
         xz => { 0, 2 },
@@ -42,7 +44,7 @@ impl<T: Scalar, S: Simdness> Vector<3, T, S> {
         zz => { 2, 2 },
     }
 
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xxx => { 0, 0, 0 }, xxy => { 0, 0, 1 }, xxz => { 0, 0, 2 },
         xyx => { 0, 1, 0 }, xyy => { 0, 1, 1 }, xyz => { 0, 1, 2 },
         xzx => { 0, 2, 0 }, xzy => { 0, 2, 1 }, xzz => { 0, 2, 2 },
@@ -54,7 +56,7 @@ impl<T: Scalar, S: Simdness> Vector<3, T, S> {
         zzx => { 2, 2, 0 }, zzy => { 2, 2, 1 }, zzz => { 2, 2, 2 },
     }
 
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xxxx => { 0, 0, 0, 0 }, xxxy => { 0, 0, 0, 1 }, xxxz => { 0, 0, 0, 2 }, xxyx => { 0, 0, 1, 0 },
         xxyy => { 0, 0, 1, 1 }, xxyz => { 0, 0, 1, 2 }, xxzx => { 0, 0, 2, 0 }, xxzy => { 0, 0, 2, 1 },
         xxzz => { 0, 0, 2, 2 }, xyxx => { 0, 1, 0, 0 }, xyxy => { 0, 1, 0, 1 }, xyxz => { 0, 1, 0, 2 },
@@ -80,7 +82,7 @@ impl<T: Scalar, S: Simdness> Vector<3, T, S> {
 }
 
 impl<T: Scalar, S: Simdness> Vector<4, T, S> {
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xx => { 0, 0 }, xy => { 0, 1 },
         xz => { 0, 2 }, xw => { 0, 3 },
         yx => { 1, 0 }, yy => { 1, 1 },
@@ -91,7 +93,7 @@ impl<T: Scalar, S: Simdness> Vector<4, T, S> {
         wz => { 3, 2 }, ww => { 3, 3 },
     }
 
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xxx => { 0, 0, 0 }, xxy => { 0, 0, 1 }, xxz => { 0, 0, 2 }, xxw => { 0, 0, 3 },
         xyx => { 0, 1, 0 }, xyy => { 0, 1, 1 }, xyz => { 0, 1, 2 }, xyw => { 0, 1, 3 },
         xzx => { 0, 2, 0 }, xzy => { 0, 2, 1 }, xzz => { 0, 2, 2 }, xzw => { 0, 2, 3 },
@@ -110,7 +112,7 @@ impl<T: Scalar, S: Simdness> Vector<4, T, S> {
         wwx => { 3, 3, 0 }, wwy => { 3, 3, 1 }, wwz => { 3, 3, 2 }, www => { 3, 3, 3 },
     }
 
-    declare_swizzles! {
+    declare_swizzle_fns! {
         xxxx => { 0, 0, 0, 0 }, xxxy => { 0, 0, 0, 1 }, xxxz => { 0, 0, 0, 2 }, xxxw => { 0, 0, 0, 3 }, xxyx => { 0, 0, 1, 0 },
         xxyy => { 0, 0, 1, 1 }, xxyz => { 0, 0, 1, 2 }, xxyw => { 0, 0, 1, 3 }, xxzx => { 0, 0, 2, 0 }, xxzy => { 0, 0, 2, 1 },
         xxzz => { 0, 0, 2, 2 }, xxzw => { 0, 0, 2, 3 }, xxwx => { 0, 0, 3, 0 }, xxwy => { 0, 0, 3, 1 }, xxwz => { 0, 0, 3, 2 },
@@ -166,7 +168,7 @@ impl<T: Scalar, S: Simdness> Vector<4, T, S> {
     }
 }
 
-macro_rules! declare_swizzles {
+macro_rules! declare_swizzle_fns {
     ($($name:ident => { $x_src:literal, $y_src:literal }),* $(,)?) => {
         crate::hidden::paste! {
             $(
@@ -199,6 +201,4 @@ macro_rules! declare_swizzles {
     };
 }
 
-use declare_swizzles;
-
-use crate::{Scalar, Simdness, Vector};
+use declare_swizzle_fns;
