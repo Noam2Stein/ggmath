@@ -1573,96 +1573,54 @@ where
 
 macro_rules! specialized_vector_api {
     {
-        $VectorApi:ident for <$N:expr, $T:ty, $S:ty>:
+        $Api:ident for <$N:expr, $T:ty, $S:ty>:
 
         $(
-            $(#[$meta:meta])* $vis:vis fn $func:ident$(<$(const $ARG:ident: $ConstArgTy:ty),* $(,)?>)?($($args_tt:tt)*) -> $return_tt:ty
-            $(where $($BoundType:ty: $BoundTrait:path),*)? $(,)?;
+            $(#[$meta:meta])*
+            $vis:vis fn $fn_name:ident$(<$(const $CONST_PARAM:ident: $ConstParam:ty),* $(,)?>)?(
+                $($param:ident$(: $Param:ty)?),* $(,)?
+            ) -> $return_tt:ty
+            $(where
+                $($BoundType:ty: $BoundTrait:path),*)?;
         )*
     } => {
         $(
-            specialized_vector_api! {
-                @individual_fn $VectorApi for <$N, $T, $S>:
-
-                $(#[$meta])*
-                $vis fn $func$(<$(const $ARG: $ConstArgTy),*>)?($($args_tt)*) -> $return_tt
-                $(where $($BoundType: $BoundTrait),*)?;
+            $(#[$meta])*
+            $vis fn $fn_name$(<$(const $CONST_PARAM: $ConstParam),*>)?(
+                $($param $(: $Param)?),*
+            ) -> $return_tt
+            $(where
+                $($BoundType: $BoundTrait),*)?
+            {
+                (const {
+                    match <$S>::IS_SIMD {
+                        true => match $N {
+                            2 => specialized_vector_api!(@transmute_fnptr($($param),*) <$T as $Api<2, crate::Simd>>::vec_$fn_name$(::<$($CONST_PARAM),*>)?),
+                            3 => specialized_vector_api!(@transmute_fnptr($($param),*) <$T as $Api<3, crate::Simd>>::vec_$fn_name$(::<$($CONST_PARAM),*>)?),
+                            4 => specialized_vector_api!(@transmute_fnptr($($param),*) <$T as $Api<4, crate::Simd>>::vec_$fn_name$(::<$($CONST_PARAM),*>)?),
+                            ..2 | 5.. => panic!("N must be 2, 3, or 4"),
+                        }
+                        false => specialized_vector_api!(@transmute_fnptr($($param),*) <$T as $Api<N, crate::NonSimd>>::vec_$fn_name$(::<$($CONST_PARAM),*>)?),
+                    }
+                })($($param),*)
             }
         )*
     };
 
-    {
-        @individual_fn $VectorApi:ident for <$N:expr, $T:ty, $S:ty>:
-
-        $(#[$meta:meta])* $vis:vis fn $func:ident$(<$(const $ARG:ident: $ConstArgTy:ty),*>)?(self $(, $arg:ident: $arg_ty:ty)* $(,)?) -> $return_tt:ty
-        $(where $($BoundType:ty: $BoundTrait:path),*)? $(,)?;
-    } => {
-        #[inline(always)]
-        $(#[$meta])*
-        $vis fn $func$(<$(const $ARG: $ConstArgTy),*>)?(self, $($arg: $arg_ty),*) -> $return_tt
-        $(where $($BoundType: $BoundTrait),*)?
-        {
-            specialized_vector_api!(@body <$T as $VectorApi<$N, $S>>::vec_$func$(::<$($ARG),*>)?(self $(, $arg)*))
-        }
-    };
-
-    {
-        @individual_fn $VectorApi:ident for <$N:expr, $T:ty, $S:ty>:
-
-        $(#[$meta:meta])* $vis:vis fn $func:ident$(<$(const $ARG:ident: $ConstArgTy:ty),*>)?($($arg:ident: $arg_ty:ty),* $(,)?) -> $return_tt:ty
-        $(where $($BoundType:ty: $BoundTrait:path),*)? $(,)?;
-    } => {
-        #[inline(always)]
-        $(#[$meta])*
-        $vis fn $func$(<$(const $ARG: $ConstArgTy),*>)?($($arg: $arg_ty),*) -> $return_tt
-        $(where $($BoundType: $BoundTrait),*)?
-        {
-            specialized_vector_api!(@body <$T as $VectorApi<$N, $S>>::vec_$func$(::<$($ARG),*>)?($($arg),*))
-        }
-    };
-
-    { @body <$T:ty as $VectorApi:ident<$N:expr, $S:ty>>::vec_$func:ident$(::<$($ARG:ident),*>)?($($arg:tt),*) } => {
-        (const {
-            match <$S>::IS_SIMD {
-                true => match $N {
-                    2 => specialized_vector_api!(@transmute_fn <$T as $VectorApi<2, crate::Simd>>::vec_$func$(::<$($ARG),*>)?($($arg),*)),
-                    3 => specialized_vector_api!(@transmute_fn <$T as $VectorApi<3, crate::Simd>>::vec_$func$(::<$($ARG),*>)?($($arg),*)),
-                    4 => specialized_vector_api!(@transmute_fn <$T as $VectorApi<4, crate::Simd>>::vec_$func$(::<$($ARG),*>)?($($arg),*)),
-                    ..2 | 5.. => panic!("N must be 2, 3, or 4"),
-                }
-                false => specialized_vector_api!(@transmute_fn <$T as $VectorApi<N, crate::NonSimd>>::vec_$func$(::<$($ARG),*>)?($($arg),*)),
-            }
-        })($($arg),*)
-    };
-
-    { @transmute_fn <$T:ty as $VectorApi:ident<$N:expr, $S:ty>>::vec_$func:ident$(::<$($ARG:ident),*>)?($($arg:tt),*) } => {
+    { @transmute_fnptr($($param:ident),*) <$T:ty as $VectorApi:ident<$N:expr, $S:ty>>::vec_$fn_name:ident$(::<$($CONST_PARAM:ident),*>)? } => {
         crate::hidden::paste! {
             unsafe {
-                let func: specialized_vector_api!(@fn_ty $($arg)*) = <$T as $VectorApi<$N, $S>>::[<vec_$func>]$(::<$($ARG),*>)?;
+                let fnptr: fn($(specialized_vector_api!(@_ $param)),*) -> _ = <$T as $VectorApi<$N, $S>>::[<vec_$fn_name>]$(::<$($CONST_PARAM),*>)?;
 
                 core::mem::transmute_copy::<
-                    specialized_vector_api!(@fn_ty $($arg)*),
-                    specialized_vector_api!(@fn_ty $($arg)*),
-                >(&func)
+                    fn($(specialized_vector_api!(@_ $param)),*) -> _,
+                    fn($(specialized_vector_api!(@_ $param)),*) -> _,
+                >(&fnptr)
             }
         }
     };
 
-    { @fn_ty } => {
-        fn() -> _
-    };
-    { @fn_ty $_0:tt } => {
-        fn(_) -> _
-    };
-    { @fn_ty $_0:tt $_1:tt } => {
-        fn(_, _) -> _
-    };
-    { @fn_ty $_0:tt $_1:tt $_2:tt } => {
-        fn(_, _, _) -> _
-    };
-    { @fn_ty $_0:tt $_1:tt $_2:tt $_3:tt } => {
-        fn(_, _, _, _) -> _
-    };
+    { @_ $_:tt } => { _ }
 }
 
 use specialized_vector_api;
