@@ -4,7 +4,7 @@ use crate::{Scalar, Simdness, SupportedVecLen, VecLen, Vector};
 // Constructor Macros
 ////////////////////////////////////////////////////////////////////////////////
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a [`Simd`] vector2 from two elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly two
@@ -23,7 +23,7 @@ declare_constructor! {$
     vec2 => Vector<2, _, Simd>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a [`Simd`] vector3 from three elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly three
@@ -42,7 +42,7 @@ declare_constructor! {$
     vec3 => Vector<3, _, Simd>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a [`Simd`] vector4 from four elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly four
@@ -61,7 +61,7 @@ declare_constructor! {$
     vec4 => Vector<4, _, Simd>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a [`NonSimd`] vector2 from two elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly two
@@ -80,7 +80,7 @@ declare_constructor! {$
     vec2s => Vector<2, _, NonSimd>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a [`NonSimd`] vector3 from three elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly three
@@ -99,7 +99,7 @@ declare_constructor! {$
     vec3s => Vector<3, _, NonSimd>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a [`NonSimd`] vector4 from four elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly four
@@ -118,7 +118,7 @@ declare_constructor! {$
     vec4s => Vector<4, _, NonSimd>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a `vector2` from two elements, where type inference determines if it
     /// is [`Simd`] or [`NonSimd`].
     ///
@@ -142,7 +142,7 @@ declare_constructor! {$
     vec2g => Vector<2, _, _>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a `vector3` from three elements, where type inference determines if it
     /// is [`Simd`] or [`NonSimd`].
     ///
@@ -166,7 +166,7 @@ declare_constructor! {$
     vec3g => Vector<3, _, _>
 }
 
-declare_constructor! {$
+declare_constructor_macro! {
     /// Creates a `vector4` from four elements, where type inference determines if it
     /// is [`Simd`] or [`NonSimd`].
     ///
@@ -190,25 +190,21 @@ declare_constructor! {$
     vec4g => Vector<4, _, _>
 }
 
-macro_rules! declare_constructor {
-    ($dollar:tt $(#[$meta:meta])* $name:ident => Vector<$N:expr, _, $S:ident>) => {
-        $(#[$meta])*
-        #[macro_export]
-        macro_rules! $name {
-            ($dollar($dollar arg:expr),* $dollar (,)?) => {
-                $crate::Vector::<$N, _, $crate::$S>::from(($dollar ($dollar arg,)*))
-            }
-        }
-
-        pub use $name;
+macro_rules! declare_constructor_macro {
+    { $(#[$meta:meta])* $name:ident => Vector<$N:expr, _, $S:ident> } => {
+        declare_constructor_macro! { @core $i $(#[$meta])* $name => Vector<$N, _, $crate::$S> }
     };
 
-    ($dollar:tt $(#[$meta:meta])* $name:ident => Vector<$N:expr, _, _>) => {
+    { $(#[$meta:meta])* $name:ident => Vector<$N:expr, _, _> } => {
+        declare_constructor_macro! { @core $i $(#[$meta])* $name => Vector<$N, _, _> }
+    };
+
+    { @core $dollar:tt i $(#[$meta:meta])* $name:ident => Vector<$N:expr, _, $S:ty> } => {
         $(#[$meta])*
         #[macro_export]
         macro_rules! $name {
             ($dollar($dollar arg:expr),* $dollar (,)?) => {
-                $crate::Vector::<$N, _, _>::from(($dollar ($dollar arg,)*))
+                $crate::Vector::<$N, _, $S>::from(($dollar ($dollar arg,)*))
             }
         }
 
@@ -216,7 +212,7 @@ macro_rules! declare_constructor {
     };
 }
 
-use declare_constructor;
+use declare_constructor_macro;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Generic Length Constructor
