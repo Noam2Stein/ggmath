@@ -50,6 +50,11 @@ members = [".", "examples/custom_scalar", "examples/no_std", "examples/sandbox"]
 criterion = "0.7.0"
 glam      = "0.30.8"
 gungraun  = "0.17.0"
+wide      = "0.8.1"
+
+################################################################
+# f32 benchmarks
+################################################################
 
 [[bench]]
 harness = false
@@ -75,3 +80,27 @@ path    = "benches/f32/vec4.rs"
 harness = false
 name    = "fvec3s"
 path    = "benches/f32/vec3s.rs"
+
+################################################################
+# i32 benchmarks
+################################################################
+
+[[bench]]
+harness = false
+name    = "ivec2"
+path    = "benches/i32/vec2.rs"
+
+[[bench]]
+harness = false
+name    = "ivec3"
+path    = "benches/i32/vec3.rs"
+
+[[bench]]
+harness = false
+name    = "ivec4"
+path    = "benches/i32/vec4.rs"
+
+[[bench]]
+harness = false
+name    = "ivec3s"
+path    = "benches/i32/vec3s.rs"
