@@ -21,8 +21,17 @@ use_core_arch_x86! {
 
 use crate::{
     Simd, SimdBehaviour, Vec2, Vec3, Vec4, Vector,
-    vector::{SoundVectorRepr, primitive_api::F32VectorApi, vec3, vec4},
+    vector::{
+        SoundVectorRepr, primitive_api::F32VectorApi, primitive_impls::use_core_arch_x86, vec3,
+        vec4,
+    },
 };
+
+// SAFETY: __m128 contains exactly 4 f32s
+unsafe impl SoundVectorRepr<4, f32> for __m128 {}
+
+// SAFETY: __m128 contains exactly 4 f32s, so it does begin with 3 f32s
+unsafe impl SoundVectorRepr<3, f32> for __m128 {}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vector4
@@ -65,6 +74,7 @@ impl SimdBehaviour<4> for f32 {
         vec: Vec4<Self>,
     ) -> Vec4<Self> {
         let result: __m128;
+        // SAFETY: shufps is part of sse, so it is safe to use here.
         unsafe {
             asm!("shufps {0}, {0}, {1}", inout(xmm_reg) vec.repr() => result, const {
                 let x_src_bits = (X_SRC as u32) << 0;
@@ -78,6 +88,8 @@ impl SimdBehaviour<4> for f32 {
 
         Vector::from_repr(result)
     }
+
+    // TODO: optimize eq and ne once masks are implemented
 
     #[inline(always)]
     fn vec_neg(vec: Vec4<Self>) -> Vec4<Self> {
@@ -371,9 +383,6 @@ impl F32VectorApi<4, Simd> for f32 {
     }
 }
 
-// SAFETY: __m128 contains exactly 4 f32s
-unsafe impl SoundVectorRepr<4, f32> for __m128 {}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Vector3
 ////////////////////////////////////////////////////////////////////////////////
@@ -418,6 +427,8 @@ impl SimdBehaviour<3> for f32 {
 
         vec_as_vec4.swizzle4::<X_SRC, Y_SRC, Z_SRC, W_SRC>()
     }
+
+    // TODO: optimize eq and ne once masks are implemented
 
     #[inline(always)]
     fn vec_neg(vec: Vec3<Self>) -> Vec3<Self> {
@@ -693,21 +704,3 @@ impl F32VectorApi<3, Simd> for f32 {
         vec.x * vec.y * vec.z
     }
 }
-
-// SAFETY: __m128 contains exactly 4 f32s, so it does begin with 3 f32s
-unsafe impl SoundVectorRepr<3, f32> for __m128 {}
-
-////////////////////////////////////////////////////////////////////////////////
-// Helper macros
-////////////////////////////////////////////////////////////////////////////////
-
-macro_rules! use_core_arch_x86 {
-    { $($x:path),* $(,)? } => {
-        #[cfg(target_arch = "x86")]
-        use core::arch::x86::{$($x),*};
-        #[cfg(target_arch = "x86_64")]
-        use core::arch::x86_64::{$($x),*};
-    };
-}
-
-use use_core_arch_x86;
