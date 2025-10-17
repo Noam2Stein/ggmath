@@ -9,8 +9,24 @@ use ggmath::{
 
 use crate::assert_panic;
 
+test_primitive_api!(f32 { 1.0, 2.0, 3.0, 4.0 });
+test_primitive_api!(f64 { 1.0, 2.0, 3.0, 4.0 });
+test_primitive_api!(i8 { 1, 2, 3, 4 });
+test_primitive_api!(i16 { 1, 2, 3, 4 });
+test_primitive_api!(i32 { 1, 2, 3, 4 });
+test_primitive_api!(i64 { 1, 2, 3, 4 });
+test_primitive_api!(i128 { 1, 2, 3, 4 });
+test_primitive_api!(isize { 1, 2, 3, 4 });
+test_primitive_api!(u8 { 1, 2, 3, 4 });
+test_primitive_api!(u16 { 1, 2, 3, 4 });
+test_primitive_api!(u32 { 1, 2, 3, 4 });
+test_primitive_api!(u64 { 1, 2, 3, 4 });
+test_primitive_api!(u128 { 1, 2, 3, 4 });
+test_primitive_api!(usize { 1, 2, 3, 4 });
+test_primitive_api!(bool { false, true, false, true });
+
 /// In order for these tests to be correct, `b` must be greater than `a`, and `d` must be greater than `c`.
-fn test_primitive_api<T: Scalar, S: Simdness>(a: T, b: T, c: T, d: T)
+fn test_primitive_api_for_simdness<T: Scalar, S: Simdness>(a: T, b: T, c: T, d: T)
 where
     T: Debug + Display + PartialEq + PartialOrd + UnwindSafe + RefUnwindSafe,
 {
@@ -372,137 +388,20 @@ where
     }
 }
 
-#[test]
-fn test_f32_simd_primitive_api() {
-    test_primitive_api::<f32, Simd>(1.0, 2.0, 3.0, 4.0);
-}
-#[test]
-fn test_f32_nonsimd_primitive_api() {
-    test_primitive_api::<f32, NonSimd>(1.0, 2.0, 3.0, 4.0);
+macro_rules! test_primitive_api {
+    ($T:ty { $a:expr, $b:expr, $c:expr, $d:expr }) => {
+        paste::paste! {
+            #[test]
+            fn [<test_ $T _simd_primitive_api>]() {
+                test_primitive_api_for_simdness::<$T, Simd>($a, $b, $c, $d);
+            }
+
+            #[test]
+            fn [<test_ $T _nonsimd_primitive_api>]() {
+                test_primitive_api_for_simdness::<$T, NonSimd>($a, $b, $c, $d);
+            }
+        }
+    };
 }
 
-#[test]
-fn test_f64_simd_primitive_api() {
-    test_primitive_api::<f64, Simd>(1.0, 2.0, 3.0, 4.0);
-}
-#[test]
-fn test_f64_nonsimd_primitive_api() {
-    test_primitive_api::<f64, NonSimd>(1.0, 2.0, 3.0, 4.0);
-}
-
-#[test]
-fn test_i8_simd_primitive_api() {
-    test_primitive_api::<i8, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_i8_nonsimd_primitive_api() {
-    test_primitive_api::<i8, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_i16_simd_primitive_api() {
-    test_primitive_api::<i16, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_i16_nonsimd_primitive_api() {
-    test_primitive_api::<i16, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_i32_simd_primitive_api() {
-    test_primitive_api::<i32, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_i32_nonsimd_primitive_api() {
-    test_primitive_api::<i32, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_i64_simd_primitive_api() {
-    test_primitive_api::<i64, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_i64_nonsimd_primitive_api() {
-    test_primitive_api::<i64, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_i128_simd_primitive_api() {
-    test_primitive_api::<i128, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_i128_nonsimd_primitive_api() {
-    test_primitive_api::<i128, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_isize_simd_primitive_api() {
-    test_primitive_api::<isize, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_isize_nonsimd_primitive_api() {
-    test_primitive_api::<isize, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_u8_simd_primitive_api() {
-    test_primitive_api::<u8, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_u8_nonsimd_primitive_api() {
-    test_primitive_api::<u8, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_u16_simd_primitive_api() {
-    test_primitive_api::<u16, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_u16_nonsimd_primitive_api() {
-    test_primitive_api::<u16, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_u32_simd_primitive_api() {
-    test_primitive_api::<u32, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_u32_nonsimd_primitive_api() {
-    test_primitive_api::<u32, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_u64_simd_primitive_api() {
-    test_primitive_api::<u64, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_u64_nonsimd_primitive_api() {
-    test_primitive_api::<u64, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_u128_simd_primitive_api() {
-    test_primitive_api::<u128, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_u128_nonsimd_primitive_api() {
-    test_primitive_api::<u128, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_usize_simd_primitive_api() {
-    test_primitive_api::<usize, Simd>(1, 2, 3, 4);
-}
-#[test]
-fn test_usize_nonsimd_primitive_api() {
-    test_primitive_api::<usize, NonSimd>(1, 2, 3, 4);
-}
-
-#[test]
-fn test_bool_simd_primitive_api() {
-    test_primitive_api::<bool, Simd>(false, true, false, true);
-}
-#[test]
-fn test_bool_nonsimd_primitive_api() {
-    test_primitive_api::<bool, NonSimd>(false, true, false, true);
-}
+use test_primitive_api;
