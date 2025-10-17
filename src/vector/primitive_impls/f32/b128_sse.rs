@@ -1,9 +1,23 @@
-#[cfg(target_arch = "x86")]
-use core::arch::x86::*;
-#[cfg(target_arch = "x86_64")]
-use core::arch::x86_64::*;
-
 use core::arch::asm;
+
+// This module is only cfged by `target_feature = "sse"`.
+// DO NOT add intrinsics that depend on SSE2 or later to this list.
+use_core_arch_x86! {
+    __m128,
+    _mm_add_ps,
+    _mm_and_ps,
+    _mm_andnot_ps,
+    _mm_div_ps,
+    _mm_max_ps,
+    _mm_min_ps,
+    _mm_mul_ps,
+    _mm_or_ps,
+    _mm_set1_ps,
+    _mm_set_ps,
+    _mm_sqrt_ps,
+    _mm_sub_ps,
+    _mm_xor_ps,
+}
 
 use crate::{
     Simd, SimdBehaviour, Vec2, Vec3, Vec4, Vector,
@@ -99,22 +113,72 @@ impl SimdBehaviour<4> for f32 {
 impl F32VectorApi<4, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vec4<Self>) -> Vec4<Self> {
-        Vector::from_repr(unsafe { _mm_floor_ps(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_floor_ps,
+            }
+
+            Vector::from_repr(unsafe { _mm_floor_ps(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::floor)
+        }
     }
 
     #[inline(always)]
     fn vec_ceil(vec: Vec4<Self>) -> Vec4<Self> {
-        Vector::from_repr(unsafe { _mm_ceil_ps(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_ceil_ps,
+            }
+
+            Vector::from_repr(unsafe { _mm_ceil_ps(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::ceil)
+        }
     }
 
     #[inline(always)]
     fn vec_round(vec: Vec4<Self>) -> Vec4<Self> {
-        Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_NEAREST_INT>(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_round_ps,
+                _MM_FROUND_TO_NEAREST_INT,
+            }
+
+            Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_NEAREST_INT>(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::round)
+        }
     }
 
     #[inline(always)]
     fn vec_trunc(vec: Vec4<Self>) -> Vec4<Self> {
-        Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_ZERO>(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_round_ps,
+                _MM_FROUND_TO_ZERO,
+            }
+
+            Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_ZERO>(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::trunc)
+        }
     }
 
     #[inline(always)]
@@ -389,22 +453,72 @@ impl SimdBehaviour<3> for f32 {
 impl F32VectorApi<3, Simd> for f32 {
     #[inline(always)]
     fn vec_floor(vec: Vec3<Self>) -> Vec3<Self> {
-        Vector::from_repr(unsafe { _mm_floor_ps(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_floor_ps,
+            }
+
+            Vector::from_repr(unsafe { _mm_floor_ps(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::floor)
+        }
     }
 
     #[inline(always)]
     fn vec_ceil(vec: Vec3<Self>) -> Vec3<Self> {
-        Vector::from_repr(unsafe { _mm_ceil_ps(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_ceil_ps,
+            }
+
+            Vector::from_repr(unsafe { _mm_ceil_ps(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::ceil)
+        }
     }
 
     #[inline(always)]
     fn vec_round(vec: Vec3<Self>) -> Vec3<Self> {
-        Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_NEAREST_INT>(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_round_ps,
+                _MM_FROUND_TO_NEAREST_INT,
+            }
+
+            Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_NEAREST_INT>(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::round)
+        }
     }
 
     #[inline(always)]
     fn vec_trunc(vec: Vec3<Self>) -> Vec3<Self> {
-        Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_ZERO>(vec.repr()) })
+        #[cfg(target_feature = "sse4.1")]
+        {
+            use_core_arch_x86! {
+                _mm_round_ps,
+                _MM_FROUND_TO_ZERO,
+            }
+
+            Vector::from_repr(unsafe { _mm_round_ps::<_MM_FROUND_TO_ZERO>(vec.repr()) })
+        }
+
+        #[cfg(not(target_feature = "sse4.1"))]
+        {
+            vec.map(f32::trunc)
+        }
     }
 
     #[inline(always)]
@@ -582,3 +696,18 @@ impl F32VectorApi<3, Simd> for f32 {
 
 // SAFETY: __m128 contains exactly 4 f32s, so it does begin with 3 f32s
 unsafe impl SoundVectorRepr<3, f32> for __m128 {}
+
+////////////////////////////////////////////////////////////////////////////////
+// Helper macros
+////////////////////////////////////////////////////////////////////////////////
+
+macro_rules! use_core_arch_x86 {
+    { $($x:path),* $(,)? } => {
+        #[cfg(target_arch = "x86")]
+        use core::arch::x86::{$($x),*};
+        #[cfg(target_arch = "x86_64")]
+        use core::arch::x86_64::{$($x),*};
+    };
+}
+
+use use_core_arch_x86;
