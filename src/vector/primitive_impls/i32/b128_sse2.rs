@@ -89,17 +89,25 @@ impl SimdBehaviour<4> for i32 {
 
     #[inline(always)]
     fn vec_not(vec: Vec4<Self>) -> Vec4<Self> {
-        Vector::from_repr(unsafe { _mm_xor_si128(vec.repr(), vec4!(0b11111111).repr()) })
+        Vector::from_repr(unsafe { _mm_xor_si128(vec.repr(), vec4!(-1).repr()) })
     }
 
     #[inline(always)]
     fn vec_add(vec: Vec4<Self>, rhs: Vec4<Self>) -> Vec4<Self> {
-        Vector::from_repr(unsafe { _mm_add_epi32(vec.repr(), rhs.repr()) })
+        if cfg!(debug_assertions) {
+            vec4!(vec.x + rhs.x, vec.y + rhs.y, vec.z + rhs.z, vec.w + rhs.w)
+        } else {
+            Vector::from_repr(unsafe { _mm_add_epi32(vec.repr(), rhs.repr()) })
+        }
     }
 
     #[inline(always)]
     fn vec_sub(vec: Vec4<Self>, rhs: Vec4<Self>) -> Vec4<Self> {
-        Vector::from_repr(unsafe { _mm_sub_epi32(vec.repr(), rhs.repr()) })
+        if cfg!(debug_assertions) {
+            vec4!(vec.x - rhs.x, vec.y - rhs.y, vec.z - rhs.z, vec.w - rhs.w)
+        } else {
+            Vector::from_repr(unsafe { _mm_sub_epi32(vec.repr(), rhs.repr()) })
+        }
     }
 
     #[inline(always)]
@@ -200,17 +208,25 @@ impl SimdBehaviour<3> for i32 {
 
     #[inline(always)]
     fn vec_not(vec: Vec3<Self>) -> Vec3<Self> {
-        Vector::from_repr(unsafe { _mm_xor_si128(vec.repr(), vec3!(0b11111111).repr()) })
+        Vector::from_repr(unsafe { _mm_xor_si128(vec.repr(), vec3!(-1).repr()) })
     }
 
     #[inline(always)]
     fn vec_add(vec: Vec3<Self>, rhs: Vec3<Self>) -> Vec3<Self> {
-        Vector::from_repr(unsafe { _mm_add_epi32(vec.repr(), rhs.repr()) })
+        if cfg!(debug_assertions) {
+            vec3!(vec.x + rhs.x, vec.y + rhs.y, vec.z + rhs.z)
+        } else {
+            Vector::from_repr(unsafe { _mm_add_epi32(vec.repr(), rhs.repr()) })
+        }
     }
 
     #[inline(always)]
     fn vec_sub(vec: Vec3<Self>, rhs: Vec3<Self>) -> Vec3<Self> {
-        Vector::from_repr(unsafe { _mm_sub_epi32(vec.repr(), rhs.repr()) })
+        if cfg!(debug_assertions) {
+            vec3!(vec.x - rhs.x, vec.y - rhs.y, vec.z - rhs.z)
+        } else {
+            Vector::from_repr(unsafe { _mm_sub_epi32(vec.repr(), rhs.repr()) })
+        }
     }
 
     #[inline(always)]
