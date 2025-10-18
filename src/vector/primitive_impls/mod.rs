@@ -148,3 +148,20 @@ impl SimdBehaviour<3> for u128 {
 impl SimdBehaviour<4> for u128 {
     type VectorRepr = [u128; 4];
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Helper Macros
+////////////////////////////////////////////////////////////////////////////////
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+macro_rules! use_core_arch_x86 {
+    { $($x:path),* $(,)? } => {
+        #[cfg(target_arch = "x86")]
+        use core::arch::x86::{$($x),*};
+        #[cfg(target_arch = "x86_64")]
+        use core::arch::x86_64::{$($x),*};
+    };
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+use use_core_arch_x86;

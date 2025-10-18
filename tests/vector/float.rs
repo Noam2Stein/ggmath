@@ -2,8 +2,25 @@ use ggmath::{NonSimd, Simd, SupportedVecLen, VecLen, Vector, vec2g, vec3g, vec4g
 
 use crate::assert_debug_panic;
 
+test_float_api!(f32);
+test_float_api!(f64);
+
 macro_rules! test_float_api {
-    ($dollar:tt $T:ty, $S:ident) => {{
+    ($T:ty) => {
+        paste::paste! {
+            #[test]
+            fn [<test_ $T _simd_float_api>]() {
+                test_float_api!(@body $dollar $T, Simd);
+            }
+
+            #[test]
+            fn [<test_ $T _nonsimd_float_api>]() {
+                test_float_api!(@body $dollar $T, NonSimd);
+            }
+        }
+    };
+
+    (@body $dollar:tt dollar $T:ty, $S:ident) => {{
         type Vec2T = Vector<2, $T, $S>;
         type Vec3T = Vector<3, $T, $S>;
         type Vec4T = Vector<4, $T, $S>;
@@ -456,20 +473,4 @@ macro_rules! test_float_api {
     }};
 }
 
-#[test]
-fn test_f32_simd_float_api() {
-    test_float_api!($f32, Simd);
-}
-#[test]
-fn test_f32_nonsimd_float_api() {
-    test_float_api!($f32, NonSimd);
-}
-
-#[test]
-fn test_f64_simd_float_api() {
-    test_float_api!($f64, Simd);
-}
-#[test]
-fn test_f64_nonsimd_float_api() {
-    test_float_api!($f64, NonSimd);
-}
+use test_float_api;
