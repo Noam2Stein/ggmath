@@ -694,6 +694,8 @@ pub use declare_vector_aliases;
 /// ## Example
 ///
 /// ```
+/// use ggmath::*;
+///
 /// #[derive(Clone, Copy)]
 /// struct CustomScalar(f32);
 ///
@@ -1012,7 +1014,7 @@ pub unsafe trait ScalarWrapper<T: Scalar> {}
 
 /// A type that represents the length of a vector, and allows for this pattern:
 ///
-/// ```
+/// ```ignore
 /// impl<const N: usize, T: Scalar, S: Simdness> Vector<N, T, S>
 /// where
 ///     VecLen<N>: SupportedVecLen,
