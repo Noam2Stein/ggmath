@@ -5,8 +5,8 @@
 
 A games/graphics math library with generic SIMD types.
 
-* This crate is a work in progress, so features like matrices and quaternions
-  are missing.
+> This crate is a work in progress, so features like matrices and quaternions
+> are missing.
 
 ## Generics
 
@@ -34,22 +34,22 @@ intrinsics by reusing existing primitive vector types as backends.
 
 ## Features
 
-- vectors: vectors of length 2, 3, or 4, with either SIMD or scalar backends.
-- type aliases: Convenient primitive type aliases like `FVec3`.
-- simd: `f32`, `i32`, and `u32` are SIMD optimized on x86 targets.
+- Vectors of length 2, 3, or 4, with either SIMD or scalar backends
+- Type aliases for primitive vectors
+- Optimized SIMD backends for `f32`, `i32` and `u32`
 
 Planned Features:
-- matrices (non-square, column-major or row-major)
-- aabb (multiple representations, e.g., min+max or center+extents)
-- quaternions
-- possibly rotors
+- Matrices (non-square, column-major or row-major)
+- Aabb (multiple representations, e.g., min+max or center+extents)
+- Quaternions
+- Possibly rotors
 
 ## Benchmarks & Testing
 
-`ggmath` is closely benchmarked against [`glam`][https://github.com/bitshifter/glam-rs]
-and [`wide`][https://github.com/Lokathor/wide], using both microbenchmarks
-(with [`gungraun`][https://github.com/gungraun/gungraun]) and larger,
-composite benchmarks (with [`criterion`][https://github.com/bheisler/criterion.rs]).
+`ggmath` is closely benchmarked against [`glam`](https://github.com/bitshifter/glam-rs)
+and [`wide`](https://github.com/Lokathor/wide), using both microbenchmarks
+(with [`gungraun`](https://github.com/gungraun/gungraun)) and larger,
+composite benchmarks (with [`criterion`](https://github.com/bheisler/criterion.rs)).
 
 `ggmath` aims for high test coverage that ensures SIMD optimizations behave
 correctly.
