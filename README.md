@@ -36,7 +36,7 @@ intrinsics by reusing existing primitive vector types as backends.
 
 - Vectors of length 2, 3, or 4, with either SIMD or scalar backends
 - Type aliases for primitive vectors
-- Optimized SIMD backends for `f32`, `i32` and `u32`
+- Partially optimized SIMD backends for `f32`, `i32` and `u32`
 
 Planned Features:
 - Matrices (non-square, column-major or row-major)
@@ -46,10 +46,11 @@ Planned Features:
 
 ## Benchmarks & Testing
 
-`ggmath` is closely benchmarked against [`glam`](https://github.com/bitshifter/glam-rs)
+`ggmath` is benchmarked against [`glam`](https://github.com/bitshifter/glam-rs)
 and [`wide`](https://github.com/Lokathor/wide), using both microbenchmarks
 (with [`gungraun`](https://github.com/gungraun/gungraun)) and larger,
 composite benchmarks (with [`criterion`](https://github.com/bheisler/criterion.rs)).
+Currently `ggmath` is not optimized and benchmarked enough to beat glam.
 
 `ggmath` aims for high test coverage that ensures SIMD optimizations behave
 correctly.
