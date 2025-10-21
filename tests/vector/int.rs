@@ -63,9 +63,9 @@ test! {
     assert_debug_panic_val!(vec3t!(21, T::MAX, 1) * vec3t!(2), vec3t!(42, T::MAX * 2, 2), "overflowing mul");
     assert_debug_panic_val!(vec4t!(21, T::MAX, 1, 1) * vec4t!(2), vec4t!(42, T::MAX * 2, 2, 2), "overflowing mul");
 
-    assert_debug_panic_val!(vec2t!(21, T::MAX) * vec2t!(-2), vec2t!(42, T::MAX * -2), "overflowing mul");
-    assert_debug_panic_val!(vec3t!(21, T::MAX, 1) * vec3t!(-2), vec3t!(42, T::MAX * -2, 2), "overflowing mul");
-    assert_debug_panic_val!(vec4t!(21, T::MAX, 1, 1) * vec4t!(-2), vec4t!(42, T::MAX * -2, 2, 2), "overflowing mul");
+    assert_debug_panic_val!(vec2t!(21, T::MAX) * vec2t!(-2), vec2t!(-42, T::MAX * -2), "overflowing mul");
+    assert_debug_panic_val!(vec3t!(21, T::MAX, 1) * vec3t!(-2), vec3t!(-42, T::MAX * -2, -2), "overflowing mul");
+    assert_debug_panic_val!(vec4t!(21, T::MAX, 1, 1) * vec4t!(-2), vec4t!(-42, T::MAX * -2, -2, -2), "overflowing mul");
 
     assert_debug_panic_val!(vec2t!(21, T::MIN) * vec2t!(-1), vec2t!(-21, -T::MIN), "overflowing mul");
     assert_debug_panic_val!(vec3t!(21, T::MIN, 1) * vec3t!(-1), vec3t!(-21, -T::MIN, -1), "overflowing mul");
@@ -83,9 +83,9 @@ test! {
     assert_panic!(vec3t!(1, 2, 3) / vec3t!(4, 0, 6), "vec3 div by zero");
     assert_panic!(vec4t!(1, 2, 3, 4) / vec4t!(5, 0, 7, 8), "vec4 div by zero");
 
-    assert_debug_panic_val!(vec2t!(1, T::MIN) / vec2t!(1, -1), vec2t!(1, -T::MIN), "vec2 overflowing div");
-    assert_debug_panic_val!(vec3t!(1, T::MIN, 1) / vec3t!(1, -1, 1), vec3t!(1, -T::MIN, 1), "vec3 overflowing div");
-    assert_debug_panic_val!(vec4t!(1, T::MIN, 1, 1) / vec4t!(1, -1, 1, 1), vec4t!(1, -T::MIN, 1, 1), "vec4 overflowing div");
+    assert_panic!(vec2t!(1, T::MIN) / vec2t!(1, -1), "vec2 overflowing div");
+    assert_panic!(vec3t!(1, T::MIN, 1) / vec3t!(1, -1, 1), "vec3 overflowing div");
+    assert_panic!(vec4t!(1, T::MIN, 1, 1) / vec4t!(1, -1, 1, 1), "vec4 overflowing div");
 
     assert_eq!(vec2t!(31, 41) % vec2t!(5, 12), vec2t!(1, 5), "vec2 rem");
     assert_eq!(vec3t!(31, 41, 51) % vec3t!(5, 12, 13), vec3t!(1, 5, 12), "vec3 rem");
