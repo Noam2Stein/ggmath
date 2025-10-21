@@ -263,7 +263,7 @@ macro_rules! declare_float_api {
                 debug_assert!(!max.iter().any(<$T>::is_nan));
                 debug_assert!(min.iter().zip(max).all(|(min, max)| min <= max));
 
-                Vector::from_fn(|i| vec[i].clamp(min[i], max[i]))
+                Vector::from_fn(|i| vec[i].max(min[i]).min(max[i]))
             }
 
             #[inline(always)]
