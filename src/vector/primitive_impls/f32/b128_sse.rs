@@ -339,7 +339,7 @@ impl F32VectorApi<4, Simd> for f32 {
     }
 
     #[inline(always)]
-    fn vec_sum(vec: Vec4<Self>) -> Self {
+    fn vec_element_sum(vec: Vec4<Self>) -> Self {
         /*
         TODO: test hadd implementation
 
@@ -372,7 +372,7 @@ impl F32VectorApi<4, Simd> for f32 {
     }
 
     #[inline(always)]
-    fn vec_product(vec: Vec4<Self>) -> Self {
+    fn vec_element_product(vec: Vec4<Self>) -> Self {
         let xy__ = vec;
         let zw__ = vec.swizzle4::<2, 3, 0, 1>();
         let xtimesz_ytimesw__ = xy__ * zw__;
@@ -671,7 +671,7 @@ impl F32VectorApi<3, Simd> for f32 {
     }
 
     #[inline(always)]
-    fn vec_sum(vec: Vec3<Self>) -> Self {
+    fn vec_element_sum(vec: Vec3<Self>) -> Self {
         /*
         TODO: test hadd implementation
 
@@ -700,7 +700,7 @@ impl F32VectorApi<3, Simd> for f32 {
     }
 
     #[inline(always)]
-    fn vec_product(vec: Vec3<Self>) -> Self {
+    fn vec_element_product(vec: Vec3<Self>) -> Self {
         vec.x * vec.y * vec.z
     }
 }

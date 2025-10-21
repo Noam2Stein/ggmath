@@ -315,9 +315,9 @@ test! {
             return;
         }
 
-        assert_approx_val!(vec2.sum(), vec2.x + vec2.y, "{vec2}.sum()");
-        assert_approx_val!(vec3.sum(), vec3.x + vec3.y + vec3.z, "{vec3}.sum()");
-        assert_approx_val!(vec4.sum(), vec4.x + vec4.y + vec4.z + vec4.w, "{vec4}.sum()");
+        assert_approx_val!(vec2.element_sum(), vec2.x + vec2.y, "{vec2}.sum()");
+        assert_approx_val!(vec3.element_sum(), vec3.x + vec3.y + vec3.z, "{vec3}.sum()");
+        assert_approx_val!(vec4.element_sum(), vec4.x + vec4.y + vec4.z + vec4.w, "{vec4}.sum()");
     });
 
     test_for_combinations!(|vec2, vec3, vec4| {
@@ -326,8 +326,8 @@ test! {
             return;
         }
 
-        assert_approx_val!(vec2.product(), vec2.x * vec2.y, "{vec2}.product()");
-        assert_approx_val!(vec3.product(), vec3.x * vec3.y * vec3.z, "{vec3}.product()");
-        assert_approx_val!(vec4.product(), vec4.x * vec4.y * vec4.z * vec4.w, "{vec4}.product()");
+        assert_approx_val!(vec2.element_product(), vec2.x * vec2.y, "{vec2}.product()");
+        assert_approx_val!(vec3.element_product(), vec3.x * vec3.y * vec3.z, "{vec3}.product()");
+        assert_approx_val!(vec4.element_product(), vec4.x * vec4.y * vec4.z * vec4.w, "{vec4}.product()");
     });
 }
