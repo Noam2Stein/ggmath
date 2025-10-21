@@ -128,6 +128,26 @@ macro_rules! declare_float_api {
                 ///
                 /// This function may be imprecise for large values.
                 pub fn element_product(self) -> $T;
+
+                /// Returns the maximum element of `self`.
+                ///
+                /// This function may be inconsistent with the standard library's definition
+                /// in regards to `-0.0`, and NaN in release mode.
+                ///
+                /// ## Panics
+                ///
+                /// Panics *in debug mode* if any element is NaN.
+                pub fn max_element(self) -> $T;
+
+                /// Returns the minimum element of `self`.
+                ///
+                /// This function may be inconsistent with the standard library's definition
+                /// in regards to `-0.0`, and NaN in release mode.
+                ///
+                /// ## Panics
+                ///
+                /// Panics *in debug mode* if any element is NaN.
+                pub fn min_element(self) -> $T;
             }
         }
 
@@ -289,6 +309,20 @@ macro_rules! declare_float_api {
             #[inline(always)]
             fn vec_element_product(vec: Vector<N, $T, S>) -> $T {
                 vec.as_array().iter().product()
+            }
+            
+            #[inline(always)]
+            fn vec_max_element(vec: Vector<N, $T, S>) -> $T {
+                debug_assert!(!vec.iter().any(|x| x.is_nan()));
+
+                vec.iter().reduce(|a, b| a.max(b)).unwrap()
+            }
+            
+            #[inline(always)]
+            fn vec_min_element(vec: Vector<N, $T, S>) -> $T {
+                debug_assert!(!vec.iter().any(|x| x.is_nan()));
+                
+                vec.iter().reduce(|a, b| a.min(b)).unwrap()
             }
         }
 

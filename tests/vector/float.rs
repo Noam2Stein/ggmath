@@ -330,4 +330,34 @@ test! {
         assert_approx_val!(vec3.element_product(), vec3.x * vec3.y * vec3.z, "{vec3}.product()");
         assert_approx_val!(vec4.element_product(), vec4.x * vec4.y * vec4.z * vec4.w, "{vec4}.product()");
     });
+
+    test_for_combinations!(|vec2, vec3, vec4| {
+        // `Vector::max_element` is allowed to be incorrect for NaN values
+        if vec2.iter().any(|x| x.is_nan()) {
+            return;
+        }
+
+        assert_val_logic!(reset_zero_sign(vec2.max_element()), reset_zero_sign(vec2.x.max(vec2.y)), "{vec2}.max_element()");
+        assert_val_logic!(reset_zero_sign(vec3.max_element()), reset_zero_sign(vec3.x.max(vec3.y.max(vec3.z))), "{vec3}.max_element()");
+        assert_val_logic!(reset_zero_sign(vec4.max_element()), reset_zero_sign(vec4.x.max(vec4.y.max(vec4.z.max(vec4.w)))), "{vec4}.max_element()");
+    });
+
+    assert_debug_panic!(vec2t!(1.0, T::NAN).max_element(), "(1.0, NaN).max_element()");
+    assert_debug_panic!(vec3t!(1.0, T::NAN, 1.0).max_element(), "(1.0, NaN, 1.0).max_element()");
+    assert_debug_panic!(vec4t!(1.0, T::NAN, 1.0, 1.0).max_element(), "(1.0, NaN, 1.0).max_element()");
+
+    test_for_combinations!(|vec2, vec3, vec4| {
+        // `Vector::min_element` is allowed to be incorrect for NaN values
+        if vec2.iter().any(|x| x.is_nan()) {
+            return;
+        }
+
+        assert_val_logic!(reset_zero_sign(vec2.min_element()), reset_zero_sign(vec2.x.min(vec2.y)), "{vec2}.min_element()");
+        assert_val_logic!(reset_zero_sign(vec3.min_element()), reset_zero_sign(vec3.x.min(vec3.y.min(vec3.z))), "{vec3}.min_element()");
+        assert_val_logic!(reset_zero_sign(vec4.min_element()), reset_zero_sign(vec4.x.min(vec4.y.min(vec4.z.min(vec4.w)))), "{vec4}.min_element()");
+    });
+
+    assert_debug_panic!(vec2t!(1.0, T::NAN).min_element(), "(1.0, NaN).min_element()");
+    assert_debug_panic!(vec3t!(1.0, T::NAN, 1.0).min_element(), "(1.0, NaN, 1.0).min_element()");
+    assert_debug_panic!(vec4t!(1.0, T::NAN, 1.0, 1.0).min_element(), "(1.0, NaN, 1.0).min_element()");
 }
