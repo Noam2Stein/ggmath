@@ -1,10 +1,3 @@
-## 0.13.0 (Unreleased)
+## 0.13.0
 
-This version attempts to make `ggmath` production ready.
-
-Added:
-- high test coverage
-- high benchmark coverage
-
-Modified:
-- optimized everything
+This version completely rewrites the crate to improve its quality.
