@@ -28,6 +28,9 @@ mod primitive_aliases;
 #[cfg(feature = "primitive_aliases")]
 pub use primitive_aliases::*;
 
+#[cfg(feature = "rsshader")]
+mod rsshader;
+
 /// The base trait for all `ggmath` types. Is automatically implemented for all
 /// types that implement [`Send`], [`Sync`], [`Copy`], and [`'static`].
 pub trait Construct: Send + Sync + Copy + 'static {}

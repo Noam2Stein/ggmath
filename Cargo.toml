@@ -43,6 +43,8 @@ full = [
 [dependencies]
 paste = "1.0.15"
 
+rsshader = { path = "../rsshader", optional = true }
+
 [workspace]
 members = [".", "examples/custom_scalar", "examples/no_std", "examples/sandbox"]
 

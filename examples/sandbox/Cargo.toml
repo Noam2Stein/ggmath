@@ -4,4 +4,4 @@ name    = "sandbox"
 version = "0.1.0"
 
 [dependencies]
-ggmath = { path = "../../", features = ["full"] }
+ggmath = { path = "../../", features = ["full", "rsshader"] }
