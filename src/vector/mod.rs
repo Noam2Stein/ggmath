@@ -619,21 +619,42 @@ where
 // Type Aliases
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Shorthand for [`Vector<2, T, Simd>`].
+/// A 2D vector of `T` elements.
+///
+/// This is a type alias for [`Vector<2, T, Simd>`]. For appropriate `T`s,
+/// this type is SIMD-aligned and uses performant SIMD instructions.
 pub type Vec2<T> = Vector<2, T, Simd>;
-/// Shorthand for [`Vector<3, T, Simd>`].
+
+/// A 3D vector of `T` elements.
+///
+/// This is a type alias for [`Vector<3, T, Simd>`]. For appropriate `T`s,
+/// this type is SIMD-aligned and uses performant SIMD instructions.
 pub type Vec3<T> = Vector<3, T, Simd>;
-/// Shorthand for [`Vector<4, T, Simd>`].
+
+/// A 4D vector of `T` elements.
+///
+/// This is a type alias for [`Vector<4, T, Simd>`]. For appropriate `T`s,
+/// this type is SIMD-aligned and uses performant SIMD instructions.
 pub type Vec4<T> = Vector<4, T, Simd>;
 
-/// Shorthand for [`Vector<2, T, NonSimd>`]
-/// ("s" stands for "scalar").
+/// A 2D vector of `T` elements.
+///
+/// Unlike [`Vec2`], this type is never SIMD-aligned ("s" stands for
+/// "scalar"). This is a type alias for [`Vector<2, T, NonSimd>`].
 pub type Vec2S<T> = Vector<2, T, NonSimd>;
-/// Shorthand for [`Vector<3, T, NonSimd>`]
-/// ("s" stands for "scalar").
+
+/// A 3D vector of `T` elements.
+///
+/// Unlike [`Vec3`], this type is never SIMD-aligned ("s" stands for
+/// "scalar").
+/// This is a type alias for [`Vector<3, T, NonSimd>`].
 pub type Vec3S<T> = Vector<3, T, NonSimd>;
-/// Shorthand for [`Vector<4, T, NonSimd>`]
-/// ("s" stands for "scalar").
+
+/// A 4D vector of `T` elements.
+///
+/// Unlike [`Vec4`], this type is never SIMD-aligned ("s" stands for
+/// "scalar").
+/// This is a type alias for [`Vector<4, T, NonSimd>`].
 pub type Vec4S<T> = Vector<4, T, NonSimd>;
 
 /// Declares vector type aliases for a custom scalar type.
@@ -659,18 +680,40 @@ pub type Vec4S<T> = Vector<4, T, NonSimd>;
 macro_rules! declare_vector_aliases {
     ($vis:vis type $prefix:ident => $T:ty) => {
         $crate::hidden::paste! {
-            #[doc = "Type alias for `Vector<2, " $T ", Simd>`."]
+            #[doc = "A 2D vector of `" $T "` elements."]
+            #[doc = ""]
+            #[doc = "This is a type alias for `Vector<2, " $T ", Simd>`."]
+            #[doc = "This type may be SIMD-aligned to use performant SIMD instructions."]
             $vis type [<$prefix Vec2>] = $crate::Vector<2, $T, $crate::Simd>;
-            #[doc = "Type alias for `Vector<3, " $T ", Simd>`."]
+
+            #[doc = "A 3D vector of `" $T "` elements."]
+            #[doc = ""]
+            #[doc = "This is a type alias for `Vector<3, " $T ", Simd>`."]
+            #[doc = "This type may be SIMD-aligned to use performant SIMD instructions."]
             $vis type [<$prefix Vec3>] = $crate::Vector<3, $T, $crate::Simd>;
-            #[doc = "Type alias for `Vector<4, " $T ", Simd>`."]
+
+            #[doc = "A 4D vector of `" $T "` elements."]
+            #[doc = ""]
+            #[doc = "This is a type alias for `Vector<4, " $T ", Simd>`."]
+            #[doc = "This type may be SIMD-aligned to use performant SIMD instructions."]
             $vis type [<$prefix Vec4>] = $crate::Vector<4, $T, $crate::Simd>;
 
-            #[doc = "Type alias for `Vector<2, " $T ", NonSimd>` (\"s\" stands for \"scalar\")."]
+            #[doc = "A 2D vector of `" $T "` elements."]
+            #[doc = ""]
+            #[doc = "Unlike [`" $prefix "Vec2`], this type is never SIMD-aligned (\"s\" stands for \"scalar\")."]
+            #[doc = "This is a type alias for `Vector<2, " $T ", NonSimd>`."]
             $vis type [<$prefix Vec2S>] = $crate::Vector<2, $T, $crate::NonSimd>;
-            #[doc = "Type alias for `Vector<3, " $T ", NonSimd>` (\"s\" stands for \"scalar\")."]
+
+            #[doc = "A 3D vector of `" $T "` elements."]
+            #[doc = ""]
+            #[doc = "Unlike [`" $prefix "Vec3`], this type is never SIMD-aligned (\"s\" stands for \"scalar\")."]
+            #[doc = "This is a type alias for `Vector<3, " $T ", NonSimd>`."]
             $vis type [<$prefix Vec3S>] = $crate::Vector<3, $T, $crate::NonSimd>;
-            #[doc = "Type alias for `Vector<4, " $T ", NonSimd>` (\"s\" stands for \"scalar\")."]
+
+            #[doc = "A 4D vector of `" $T "` elements."]
+            #[doc = ""]
+            #[doc = "Unlike [`" $prefix "Vec4`], this type is never SIMD-aligned (\"s\" stands for \"scalar\")."]
+            #[doc = "This is a type alias for `Vector<4, " $T ", NonSimd>`."]
             $vis type [<$prefix Vec4S>] = $crate::Vector<4, $T, $crate::NonSimd>;
         }
     };
