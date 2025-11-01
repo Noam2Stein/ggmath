@@ -149,6 +149,27 @@ macro_rules! declare_float_api {
                 /// Panics *in debug mode* if any element is NaN.
                 pub fn min_element(self) -> $T;
             }
+
+            /// Returns the dot product of `self` and `other`.
+            #[inline(always)]
+            pub fn dot(self, other: Self) -> $T {
+                (self * other).element_sum()
+            }
+
+            /// Returns the length of `self`.
+            #[inline(always)]
+            pub fn length(self) -> $T {
+                self.dot(self).sqrt()
+            }
+
+            /// Returns the length of `self` squared.
+            ///
+            /// This is faster to compute than `self.length()` because it avoids a square
+            /// root operation.
+            #[inline(always)]
+            pub fn length_squared(self) -> $T {
+                self.dot(self)
+            }
         }
 
         impl ScalarZero for $T {
@@ -310,18 +331,18 @@ macro_rules! declare_float_api {
             fn vec_element_product(vec: Vector<N, $T, S>) -> $T {
                 vec.as_array().iter().product()
             }
-            
+
             #[inline(always)]
             fn vec_max_element(vec: Vector<N, $T, S>) -> $T {
                 debug_assert!(!vec.iter().any(|x| x.is_nan()));
 
                 vec.iter().reduce(|a, b| a.max(b)).unwrap()
             }
-            
+
             #[inline(always)]
             fn vec_min_element(vec: Vector<N, $T, S>) -> $T {
                 debug_assert!(!vec.iter().any(|x| x.is_nan()));
-                
+
                 vec.iter().reduce(|a, b| a.min(b)).unwrap()
             }
         }

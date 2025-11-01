@@ -360,4 +360,32 @@ test! {
     assert_debug_panic!(vec2t!(1.0, T::NAN).min_element(), "(1.0, NaN).min_element()");
     assert_debug_panic!(vec3t!(1.0, T::NAN, 1.0).min_element(), "(1.0, NaN, 1.0).min_element()");
     assert_debug_panic!(vec4t!(1.0, T::NAN, 1.0, 1.0).min_element(), "(1.0, NaN, 1.0).min_element()");
+
+    test_for_combinations!(|vec2, vec3, vec4|, |other2, other3, other4| {
+        // `Vector::dot` is allowed to be incorrect for NaN values
+        if vec2.iter().any(|x| x.is_nan()) || other2.iter().any(|x| x.is_nan()) {
+            return;
+        }
+
+        // `Vector::dot` is allowed to be imprecise for large values
+        if vec2.iter().any(|x| x == T::MAX || x == T::MIN) || other2.iter().any(|x| x == T::MAX || x == T::MIN) {
+            return;
+        }
+
+        assert_approx_val!(vec2.dot(other2), vec2.x * other2.x + vec2.y * other2.y, "{vec2}.dot({other2})");
+        assert_approx_val!(vec3.dot(other3), vec3.x * other3.x + vec3.y * other3.y + vec3.z * other3.z, "{vec3}.dot({other3})");
+        assert_approx_val!(vec4.dot(other4), vec4.x * other4.x + vec4.y * other4.y + vec4.z * other4.z + vec4.w * other4.w, "{vec4}.dot({other4})");
+    });
+
+    test_for_combinations!(|vec2, vec3, vec4| {
+        assert_approx_val!(vec2.length(), (vec2.x * vec2.x + vec2.y * vec2.y).sqrt(), "{vec2}.length()");
+        assert_approx_val!(vec3.length(), (vec3.x * vec3.x + vec3.y * vec3.y + vec3.z * vec3.z).sqrt(), "{vec3}.length()");
+        assert_approx_val!(vec4.length(), (vec4.x * vec4.x + vec4.y * vec4.y + vec4.z * vec4.z + vec4.w * vec4.w).sqrt(), "{vec4}.length()");
+    });
+
+    test_for_combinations!(|vec2, vec3, vec4| {
+        assert_approx_val!(vec2.length_squared(), vec2.x * vec2.x + vec2.y * vec2.y, "{vec2}.length_squared()");
+        assert_approx_val!(vec3.length_squared(), vec3.x * vec3.x + vec3.y * vec3.y + vec3.z * vec3.z, "{vec3}.length_squared()");
+        assert_approx_val!(vec4.length_squared(), vec4.x * vec4.x + vec4.y * vec4.y + vec4.z * vec4.z + vec4.w * vec4.w, "{vec4}.length_squared()");
+    });
 }
