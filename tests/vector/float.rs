@@ -388,4 +388,45 @@ test! {
         assert_approx_val!(vec3.length_squared(), vec3.x * vec3.x + vec3.y * vec3.y + vec3.z * vec3.z, "{vec3}.length_squared()");
         assert_approx_val!(vec4.length_squared(), vec4.x * vec4.x + vec4.y * vec4.y + vec4.z * vec4.z + vec4.w * vec4.w, "{vec4}.length_squared()");
     });
+
+    test_for_combinations!(|vec2, vec3, vec4| {
+        // `Vector::normalize` is allowed to be incorrect for non finite values
+        if vec2.iter().any(|x| !x.is_finite()) {
+            return;
+        }
+
+        // `Vector::normalize` is allowed to be incorrect for zero vectors
+        if vec2 == Vec2T::ZERO {
+            return;
+        }
+
+        // `Vector::normalize` is allowed to be imprecise for large values
+        if vec2.iter().any(|x| x == T::MAX || x == T::MIN) {
+            return;
+        }
+
+        assert_approx_val!(vec2.normalize(), vec2 / vec2.length(), "{vec2}.normalize()");
+        assert_approx_val!(vec3.normalize(), vec3 / vec3.length(), "{vec3}.normalize()");
+        assert_approx_val!(vec4.normalize(), vec4 / vec4.length(), "{vec4}.normalize()");
+
+        assert_approx_val!(vec2.try_normalize(), Some(vec2 / vec2.length()), "{vec2}.try_normalize()");
+        assert_approx_val!(vec3.try_normalize(), Some(vec3 / vec3.length()), "{vec3}.try_normalize()");
+        assert_approx_val!(vec4.try_normalize(), Some(vec4 / vec4.length()), "{vec4}.try_normalize()");
+    });
+
+    assert_debug_panic!(vec2t!(0.0).normalize(), "(0.0, 0.0).normalize()");
+    assert_debug_panic!(vec3t!(0.0).normalize(), "(0.0, 0.0, 0.0).normalize()");
+    assert_debug_panic!(vec4t!(0.0).normalize(), "(0.0, 0.0, 0.0, 0.0).normalize()");
+
+    assert_debug_panic!(vec2t!(1.0, T::NAN).normalize(), "(1.0, NaN).normalize()");
+    assert_debug_panic!(vec3t!(1.0, T::NAN, 1.0).normalize(), "(1.0, NaN, 1.0).normalize()");
+    assert_debug_panic!(vec4t!(1.0, T::NAN, 1.0, 1.0).normalize(), "(1.0, NaN, 1.0, 1.0).normalize()");
+
+    assert_val_logic!(vec2t!(0.0).try_normalize(), None, "(0.0, 0.0).normalize()");
+    assert_val_logic!(vec3t!(0.0).try_normalize(), None, "(0.0, 0.0, 0.0).normalize()");
+    assert_val_logic!(vec4t!(0.0).try_normalize(), None, "(0.0, 0.0, 0.0, 0.0).normalize()");
+
+    assert_val_logic!(vec2t!(1.0, T::NAN).try_normalize(), None, "(1.0, NaN).normalize()");
+    assert_val_logic!(vec3t!(1.0, T::NAN, 1.0).try_normalize(), None, "(1.0, NaN, 1.0).normalize()");
+    assert_val_logic!(vec4t!(1.0, T::NAN, 1.0, 1.0).try_normalize(), None, "(1.0, NaN, 1.0, 1.0).normalize()");
 }

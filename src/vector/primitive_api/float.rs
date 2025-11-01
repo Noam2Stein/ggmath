@@ -170,6 +170,36 @@ macro_rules! declare_float_api {
             pub fn length_squared(self) -> $T {
                 self.dot(self)
             }
+
+            /// Returns `self` normalized to length `1.0`.
+            ///
+            /// The result may be invalid if `self` is not finite, zero, or very close to
+            /// zero.
+            ///
+            /// ## Panics
+            ///
+            /// Panics *in debug mode* if `self` is a zero vector, or non finite.
+            #[must_use]
+            #[inline(always)]
+            pub fn normalize(self) -> Self {
+                let result = self / self.length();
+
+                debug_assert!(result.iter().all(<$T>::is_finite));
+
+                result
+            }
+
+            /// Returns `self` normalized to length `1.0`, or `None` for invalid values.
+            #[must_use]
+            #[inline(always)]
+            pub fn try_normalize(self) -> Option<Self> {
+                let rcp = 1.0 / self.length();
+                if rcp.is_finite() && rcp > 0.0 {
+                    Some(self * rcp)
+                } else {
+                    None
+                }
+            }
         }
 
         impl ScalarZero for $T {

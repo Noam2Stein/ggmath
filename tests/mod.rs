@@ -339,3 +339,23 @@ impl ApproxEq for f64 {
         }
     }
 }
+
+impl<T: LogicEq> LogicEq for Option<T> {
+    fn logic_eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Some(a), Some(b)) => a.logic_eq(b),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+}
+
+impl<T: ApproxEq> ApproxEq for Option<T> {
+    fn approx_eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Some(a), Some(b)) => a.approx_eq(b),
+            (None, None) => true,
+            _ => false,
+        }
+    }
+}
