@@ -5,7 +5,7 @@ use crate::{Scalar, Simdness, SupportedVecLen, VecLen, Vector};
 ////////////////////////////////////////////////////////////////////////////////
 
 declare_constructor_macro! {
-    /// Creates a [`Simd`] vector2 from two elements.
+    /// Creates a [`Vec2`](crate::Vec2) from two elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly two
     /// elements in total. If only a single element is provided, it will be
@@ -24,7 +24,7 @@ declare_constructor_macro! {
 }
 
 declare_constructor_macro! {
-    /// Creates a [`Simd`] vector3 from three elements.
+    /// Creates a [`Vec3`](crate::Vec3) from three elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly three
     /// elements in total. If only a single element is provided, it will be
@@ -43,7 +43,7 @@ declare_constructor_macro! {
 }
 
 declare_constructor_macro! {
-    /// Creates a [`Simd`] vector4 from four elements.
+    /// Creates a [`Vec4`](crate::Vec4) from four elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly four
     /// elements in total. If only a single element is provided, it will be
@@ -62,7 +62,7 @@ declare_constructor_macro! {
 }
 
 declare_constructor_macro! {
-    /// Creates a [`NonSimd`] vector2 from two elements.
+    /// Creates a [`Vec2S`](crate::Vec2S) from two elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly two
     /// elements in total. If only a single element is provided, it will be
@@ -81,7 +81,7 @@ declare_constructor_macro! {
 }
 
 declare_constructor_macro! {
-    /// Creates a [`NonSimd`] vector3 from three elements.
+    /// Creates a [`Vec3S`](crate::Vec3S) from three elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly three
     /// elements in total. If only a single element is provided, it will be
@@ -100,7 +100,7 @@ declare_constructor_macro! {
 }
 
 declare_constructor_macro! {
-    /// Creates a [`NonSimd`] vector4 from four elements.
+    /// Creates a [`Vec4S`](crate::Vec4S) from four elements.
     ///
     /// Also accepts vectors as arguments, as long as they contain exactly four
     /// elements in total. If only a single element is provided, it will be
