@@ -5,8 +5,9 @@
 
 A games/graphics math library with generic SIMD types.
 
-> This crate is a work in progress, so features like matrices and quaternions
-> are missing.
+> This crate is a work in progress. currently only vectors are implemented,
+> matrices and quaternions are missing, many geometric vector functions are
+> missing, and performance does not match `glam`.
 
 ## Generics
 
@@ -32,6 +33,23 @@ build targets.
 Custom element types can also take advantage of SIMD without using low-level
 intrinsics by reusing existing primitive vector types as backends.
 
+## When to Use This Crate
+
+`ggmath` is a good choice for projects that need functionality similar to
+[`glam`], but with **generic types** and support for **custom scalar types**.
+If your project involves general-purpose linear algebra, you may find
+[`nalgebra`] more suitable.
+
+Compared to `glam`, `ggmath` can be a better option when your project requires
+any form of generics, custom numeric types, or SIMD optimizations for integer
+types. On the other hand, `glam` is often a better choice for projects that
+primarily use `f32` types and don't rely on generics, as it compiles faster
+and offers a simpler API when working exclusively with `f32`.
+
+Note that these recommendations reflect the intended, more complete version of
+`ggmath`. In its current state, missing features and optimizations may be deal
+breakers for ***many*** projects.
+
 ## Features
 
 - Vectors of length 2, 3, or 4, with either SIMD or scalar backends
@@ -39,9 +57,9 @@ intrinsics by reusing existing primitive vector types as backends.
 - Partially optimized SIMD backends for `f32`, `i32` and `u32`
 
 Planned Features:
-- Matrices (non-square, column-major or row-major)
-- Aabb (multiple representations, e.g., min+max or center+extents)
+- Matrices
 - Quaternions
+- Aabbs
 - Possibly rotors
 
 ## Benchmarks & Testing
@@ -63,7 +81,7 @@ Simply add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ggmath = "0.13.0"
+ggmath = "0.13.1"
 ```
 
 ## Cargo Features
@@ -77,3 +95,8 @@ Optional Features:
 - `right`, `left`, `up`, `down`, `forwards`, and `backwards`: enable direction
   constants where the given direction is positive. For example, `right` enables
   `RIGHT` and `LEFT` constants where right is positive.
+
+## License
+
+Like most Rust crates, `ggmath` is licensed under the MIT License and the
+Apache-2.0 License.
