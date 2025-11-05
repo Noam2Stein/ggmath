@@ -200,6 +200,13 @@ macro_rules! declare_float_api {
                     None
                 }
             }
+
+            /// Returns `self` normalized to length `1.0`, or `fallback` if `self` is invalid.
+            #[must_use]
+            #[inline(always)]
+            pub fn normalize_or(self, fallback: Self) -> Self {
+                self.try_normalize().unwrap_or(fallback)
+            }
         }
 
         impl ScalarZero for $T {
