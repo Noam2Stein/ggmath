@@ -116,7 +116,8 @@ macro_rules! declare_float_api {
                 /// Returns a vector with the signum of each element of `self`.
                 pub fn signum(self) -> Self;
 
-                /// Returns a vector with the same elements as `self`, but with the sign of each element replaced with the sign of `sign`.
+                /// Returns a vector with the same elements as `self`, but with the sign of each
+                /// element replaced with the sign of `sign`.
                 pub fn copysign(self, sign: Self) -> Self;
 
                 /// Returns the sum of all elements of `self`.
@@ -173,12 +174,12 @@ macro_rules! declare_float_api {
 
             /// Returns `self` normalized to length `1.0`.
             ///
-            /// The result may be invalid if `self` is not finite, zero, or very close to
-            /// zero.
+            /// The result may be invalid if `self` is zero, very close to zero, or not
+            /// finite.
             ///
             /// ## Panics
             ///
-            /// Panics *in debug mode* if `self` is a zero vector, or non finite.
+            /// Panics *in debug mode* if the result is invalid as specified above.
             #[must_use]
             #[inline(always)]
             pub fn normalize(self) -> Self {
@@ -190,6 +191,9 @@ macro_rules! declare_float_api {
             }
 
             /// Returns `self` normalized to length `1.0`, or `None` for invalid values.
+            ///
+            /// More specifically, returns `None` if the result is not finite. For example
+            /// if `self` is zero.
             #[must_use]
             #[inline(always)]
             pub fn try_normalize(self) -> Option<Self> {
@@ -201,7 +205,10 @@ macro_rules! declare_float_api {
                 }
             }
 
-            /// Returns `self` normalized to length `1.0`, or `fallback` if `self` is invalid.
+            /// Returns `self` normalized to length `1.0`, or `fallback` for invalid values.
+            ///
+            /// More specifically, returns `fallback` if the result is not finite. For
+            /// example if `self` is zero.
             #[must_use]
             #[inline(always)]
             pub fn normalize_or(self, fallback: Self) -> Self {
