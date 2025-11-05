@@ -5,7 +5,7 @@
 
 A games/graphics math library with generic SIMD types.
 
-> This crate is a work in progress. currently only vectors are implemented,
+> This crate is a work in progress. Currently only vectors are implemented,
 > matrices and quaternions are missing, many geometric vector functions are
 > missing, and performance does not match `glam`.
 
@@ -36,9 +36,9 @@ intrinsics by reusing existing primitive vector types as backends.
 ## When to Use This Crate
 
 `ggmath` is a good choice for projects that need functionality similar to
-[`glam`], but with **generic types** and support for **custom scalar types**.
-If your project involves general-purpose linear algebra, you may find
-[`nalgebra`] more suitable.
+`glam`, but with generic types and support for custom scalar types. If
+your project involves general-purpose linear algebra, you may find
+`nalgebra` more suitable.
 
 Compared to `glam`, `ggmath` can be a better option when your project requires
 any form of generics, custom numeric types, or SIMD optimizations for integer
