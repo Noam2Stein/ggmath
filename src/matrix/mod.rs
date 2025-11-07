@@ -5,6 +5,7 @@ use crate::{
 };
 
 mod constructor;
+mod deref;
 pub use constructor::*;
 
 #[repr(transparent)]
