@@ -1,9 +1,6 @@
-use std::{
-    mem::{offset_of, transmute},
-    ops::{Deref, DerefMut},
-};
+use std::ops::{Deref, DerefMut};
 
-use crate::{Matrix, Scalar, Simd, Simdness, Vector};
+use crate::{Matrix, Scalar, Simdness, Vector};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Matrix2
@@ -22,20 +19,18 @@ impl<T: Scalar, S: Simdness> Deref for Matrix<2, T, S> {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        // SAFETY: Matrix<2, T, S> is guaranteed to begin with 2 vec2's.
-        // The offset of the y vector is guaranteed to be `size_of::<T>() * 2`,
-        // which correctly maps to the `zw` of the internal mat2 as vec4 repr.
-        unsafe { transmute::<&Matrix<2, T, S>, &Xy<T, S>>(self) }
+        // SAFETY: Xy is 2 vector2s
+        unsafe { core::mem::transmute::<&[Vector<2, T, S>; 2], &Xy<T, S>>(self.as_vectors_ref()) }
     }
 }
 
 impl<T: Scalar, S: Simdness> DerefMut for Matrix<2, T, S> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: Matrix<2, T, S> is guaranteed to begin with 2 vec2's.
-        // The offset of the y vector is guaranteed to be `size_of::<T>() * 2`,
-        // which correctly maps to the `zw` of the internal mat2 as vec4 repr.
-        unsafe { transmute::<&mut Matrix<2, T, S>, &mut Xy<T, S>>(self) }
+        // SAFETY: Xy is 2 vector2s
+        unsafe {
+            core::mem::transmute::<&mut [Vector<2, T, S>; 2], &mut Xy<T, S>>(self.as_vectors_mut())
+        }
     }
 }
 
@@ -58,16 +53,16 @@ impl<T: Scalar, S: Simdness> Deref for Matrix<3, T, S> {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        // SAFETY: Matrix<3, T, S> is guaranteed to begin with 3 vec3's.
-        unsafe { transmute::<&Matrix<3, T, S>, &Xyz<T, S>>(self) }
+        // SAFETY: Xyz is 3 vector3s
+        unsafe { core::mem::transmute::<&Matrix<3, T, S>, &Xyz<T, S>>(self) }
     }
 }
 
 impl<T: Scalar, S: Simdness> DerefMut for Matrix<3, T, S> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: Matrix<3, T, S> is guaranteed to begin with 3 vec3's.
-        unsafe { transmute::<&mut Matrix<3, T, S>, &mut Xyz<T, S>>(self) }
+        // SAFETY: Xyz is 3 vector3s
+        unsafe { core::mem::transmute::<&mut Matrix<3, T, S>, &mut Xyz<T, S>>(self) }
     }
 }
 
@@ -92,25 +87,15 @@ impl<T: Scalar, S: Simdness> Deref for Matrix<4, T, S> {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        // SAFETY: Matrix<4, T, S> is guaranteed to begin with 4 vec4's.
-        unsafe { transmute::<&Matrix<4, T, S>, &Xyzw<T, S>>(self) }
+        // SAFETY: Xyzw is 4 vector4s
+        unsafe { core::mem::transmute::<&Matrix<4, T, S>, &Xyzw<T, S>>(self) }
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Ensure Safety
-////////////////////////////////////////////////////////////////////////////////
-
-const _: () = assert!(offset_of!(Xy<f32, Simd>, y) == size_of::<f32>() * 2);
-const _: () = assert!(offset_of!(Xy<f64, Simd>, y) == size_of::<f64>() * 2);
-const _: () = assert!(offset_of!(Xy<i8, Simd>, y) == size_of::<i8>() * 2);
-const _: () = assert!(offset_of!(Xy<i16, Simd>, y) == size_of::<i16>() * 2);
-const _: () = assert!(offset_of!(Xy<i32, Simd>, y) == size_of::<i32>() * 2);
-const _: () = assert!(offset_of!(Xy<i64, Simd>, y) == size_of::<i64>() * 2);
-const _: () = assert!(offset_of!(Xy<isize, Simd>, y) == size_of::<isize>() * 2);
-const _: () = assert!(offset_of!(Xy<u8, Simd>, y) == size_of::<u8>() * 2);
-const _: () = assert!(offset_of!(Xy<u16, Simd>, y) == size_of::<u16>() * 2);
-const _: () = assert!(offset_of!(Xy<u32, Simd>, y) == size_of::<u32>() * 2);
-const _: () = assert!(offset_of!(Xy<u64, Simd>, y) == size_of::<u64>() * 2);
-const _: () = assert!(offset_of!(Xy<usize, Simd>, y) == size_of::<usize>() * 2);
-const _: () = assert!(offset_of!(Xy<bool, Simd>, y) == size_of::<bool>() * 2);
+impl<T: Scalar, S: Simdness> DerefMut for Matrix<4, T, S> {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: Xyzw is 4 vector4s
+        unsafe { core::mem::transmute::<&mut Matrix<4, T, S>, &mut Xyzw<T, S>>(self) }
+    }
+}

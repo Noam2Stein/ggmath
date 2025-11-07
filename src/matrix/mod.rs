@@ -1,7 +1,13 @@
 #![expect(missing_docs)]
 
+use std::{
+    mem::MaybeUninit,
+    ops::{Index, IndexMut},
+};
+
 use crate::{
-    Construct, NonSimd, Scalar, Simd, Simdness, SupportedVecLen, VecLen, Vector, vector::vec4g,
+    Construct, NonSimd, Scalar, Simd, Simdness, SupportedVecLen, Vec2, VecLen, Vector,
+    vector::vec4g,
 };
 
 mod constructor;
@@ -23,6 +29,138 @@ where
         pub fn from_vectors(vectors: [Vector<N, T, S>; N]) -> Self;
 
         pub fn from_arrays(arrays: [[T; N]; N]) -> Self;
+    }
+
+    #[inline(always)]
+    pub const fn const_from_vectors(vectors: [Vector<N, T, S>; N]) -> Self {
+        let mut result = MaybeUninit::<Matrix<N, T, S>>::uninit();
+
+        let mut i = 0;
+        while i < N {
+            unsafe {
+                *result.as_mut_ptr().cast::<Vector<N, T, S>>().add(i) = vectors[i];
+            }
+
+            i += 1;
+        }
+
+        unsafe { result.assume_init() }
+    }
+
+    #[inline(always)]
+    pub const fn is_simd(self) -> bool {
+        S::IS_SIMD
+    }
+
+    #[inline(always)]
+    pub fn as_simdness<S2: Simdness>(self) -> Matrix<N, T, S2> {
+        if S::IS_SIMD == S2::IS_SIMD {
+            // SAFETY: S and S2 are the same type, so we are transmuting a type to itself
+            unsafe { core::mem::transmute_copy::<Matrix<N, T, S>, Matrix<N, T, S2>>(&self) }
+        } else {
+            Matrix::from_vectors(self.as_vectors().map(|vec| vec.as_simdness()))
+        }
+    }
+
+    #[inline(always)]
+    pub fn as_simd(self) -> Matrix<N, T, Simd> {
+        self.as_simdness::<Simd>()
+    }
+
+    #[inline(always)]
+    pub fn as_nonsimd(self) -> Matrix<N, T, NonSimd> {
+        self.as_simdness::<NonSimd>()
+    }
+
+    #[inline(always)]
+    pub const fn as_vectors(self) -> [Vector<N, T, S>; N] {
+        *self.as_vectors_ref()
+    }
+
+    #[inline(always)]
+    pub const fn as_vectors_ref(&self) -> &[Vector<N, T, S>; N] {
+        const { assert!(size_of::<Matrix<N, T, S>>() == size_of::<[Vector<N, T, S>; N]>()) }
+        const { assert!(align_of::<Matrix<N, T, S>>() >= size_of::<[Vector<N, T, S>; N]>()) }
+
+        // SAFETY: Matrix<N, T, S> must be transmutable to [Vector<N, T, S>; N], even if it has higher alignment
+        unsafe { core::mem::transmute::<&Matrix<N, T, S>, &[Vector<N, T, S>; N]>(self) }
+    }
+
+    #[inline(always)]
+    pub const fn as_vectors_mut(&mut self) -> &mut [Vector<N, T, S>; N] {
+        const { assert!(size_of::<Matrix<N, T, S>>() == size_of::<[Vector<N, T, S>; N]>()) }
+        const { assert!(align_of::<Matrix<N, T, S>>() >= size_of::<[Vector<N, T, S>; N]>()) }
+
+        // SAFETY: Matrix<N, T, S> must be transmutable to [Vector<N, T, S>; N], even if it has higher alignment
+        unsafe { core::mem::transmute::<&mut Matrix<N, T, S>, &mut [Vector<N, T, S>; N]>(self) }
+    }
+
+    #[inline(always)]
+    pub const fn as_arrays(self) -> [[T; N]; N] {
+        let mut result = MaybeUninit::<[[T; N]; N]>::uninit();
+
+        let mut i = 0;
+        while i < N {
+            unsafe {
+                *result.as_mut_ptr().cast::<[T; N]>().add(i) = self.as_vectors_ref()[i].as_array();
+            }
+
+            i += 1;
+        }
+
+        unsafe { result.assume_init() }
+    }
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> Clone for Matrix<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> Copy for Matrix<N, T, S> where
+    VecLen<N>: SupportedVecLen
+{
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> Index<usize> for Matrix<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    type Output = Vector<N, T, S>;
+
+    #[inline(always)]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.as_vectors_ref()[index]
+    }
+}
+
+impl<const N: usize, T: Scalar, S: Simdness> IndexMut<usize> for Matrix<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.as_vectors_mut()[index]
+    }
+}
+
+impl<const N: usize, T: Scalar + PartialEq, S: Simdness> PartialEq for Matrix<N, T, S>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[inline(always)]
+    fn eq(&self, other: &Self) -> bool {
+        (0..N).all(|c| self[c] == other[c])
+    }
+
+    #[inline(always)]
+    fn ne(&self, other: &Self) -> bool {
+        (0..N).any(|c| self[c] != other[c])
     }
 }
 
@@ -174,3 +312,21 @@ macro_rules! specialized_matrix_api {
 }
 
 use specialized_matrix_api;
+
+////////////////////////////////////////////////////////////////////////////////
+// Ensure Layout Safety
+////////////////////////////////////////////////////////////////////////////////
+
+const _: () = assert!(size_of::<Vec2<f32>>() == size_of::<f32>() * 2);
+const _: () = assert!(size_of::<Vec2<f64>>() == size_of::<f64>() * 2);
+const _: () = assert!(size_of::<Vec2<i8>>() == size_of::<i8>() * 2);
+const _: () = assert!(size_of::<Vec2<i16>>() == size_of::<i16>() * 2);
+const _: () = assert!(size_of::<Vec2<i32>>() == size_of::<i32>() * 2);
+const _: () = assert!(size_of::<Vec2<i64>>() == size_of::<i64>() * 2);
+const _: () = assert!(size_of::<Vec2<isize>>() == size_of::<isize>() * 2);
+const _: () = assert!(size_of::<Vec2<u8>>() == size_of::<u8>() * 2);
+const _: () = assert!(size_of::<Vec2<u16>>() == size_of::<u16>() * 2);
+const _: () = assert!(size_of::<Vec2<u32>>() == size_of::<u32>() * 2);
+const _: () = assert!(size_of::<Vec2<u64>>() == size_of::<u64>() * 2);
+const _: () = assert!(size_of::<Vec2<usize>>() == size_of::<usize>() * 2);
+const _: () = assert!(size_of::<Vec2<bool>>() == size_of::<bool>() * 2);
