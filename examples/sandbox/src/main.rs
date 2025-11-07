@@ -6,5 +6,7 @@ fn main() {
     let v = vec4!(v.xyy().with_z(3.0), 4.0);
     let v = v * 1.5;
 
+    let _ = mat2!(v.xz(), v.xx());
+
     println!("{}", v.ceil().recip() + FVec4::RIGHT);
 }
