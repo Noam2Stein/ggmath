@@ -19,9 +19,10 @@ macro_rules! declare_primitive_aliases {
         crate::hidden::paste! {
             #[doc = "Type aliases for `" $T "` math types."]
             pub mod $T {
-                use crate::declare_vector_aliases;
+                crate::declare_vector_aliases!($vis type $prefix => $T);
 
-                declare_vector_aliases!($vis type $prefix => $T);
+                #[cfg(feature = "matrix")]
+                crate::declare_matrix_aliases!($vis type $prefix => $T);
             }
         }
     };
