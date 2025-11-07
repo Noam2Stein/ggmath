@@ -4,6 +4,11 @@
 pub mod vector;
 pub use vector::*;
 
+#[cfg(feature = "matrix")]
+pub mod matrix;
+#[cfg(feature = "matrix")]
+pub use matrix::*;
+
 #[cfg(any(
     feature = "right",
     feature = "left",

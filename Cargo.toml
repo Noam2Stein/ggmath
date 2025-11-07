@@ -17,27 +17,29 @@ rust-version = "1.90.0"
 version = "0.13.1"
 
 [features]
-backwards         = []
-down              = []
-forwards          = []
-left              = []
+matrix = []
 primitive_aliases = []
-right             = []
-std               = []
-swizzle           = []
-up                = []
+swizzle = []
+std = []
+right = []
+left = []
+up = []
+down = []
+forwards = []
+backwards = []
 
-default = ["primitive_aliases", "std", "swizzle"]
+default = ["matrix", "primitive_aliases", "swizzle", "std"]
 full = [
-    "backwards",
+    "matrix",
+    "primitive_aliases",
+    "swizzle",
+    "std",
+    "right",
+    "left",
+    "up",
     "down",
     "forwards",
-    "left",
-    "primitive_aliases",
-    "right",
-    "std",
-    "swizzle",
-    "up",
+    "backwards",
 ]
 
 [dependencies]
@@ -48,9 +50,9 @@ members = [".", "examples/custom_scalar", "examples/no_std", "examples/sandbox"]
 
 [dev-dependencies]
 criterion = "0.7.0"
-glam      = "0.30.8"
-gungraun  = "0.17.0"
-wide      = "0.8.1"
+glam = "0.30.8"
+gungraun = "0.17.0"
+wide = "0.8.1"
 
 ################################################################
 # f32 benchmarks
@@ -58,28 +60,28 @@ wide      = "0.8.1"
 
 [[bench]]
 harness = false
-name    = "f32_random_math"
-path    = "benches/f32/random_math.rs"
+name = "f32_random_math"
+path = "benches/f32/random_math.rs"
 
 [[bench]]
 harness = false
-name    = "fvec2"
-path    = "benches/f32/vec2.rs"
+name = "fvec2"
+path = "benches/f32/vec2.rs"
 
 [[bench]]
 harness = false
-name    = "fvec3"
-path    = "benches/f32/vec3.rs"
+name = "fvec3"
+path = "benches/f32/vec3.rs"
 
 [[bench]]
 harness = false
-name    = "fvec4"
-path    = "benches/f32/vec4.rs"
+name = "fvec4"
+path = "benches/f32/vec4.rs"
 
 [[bench]]
 harness = false
-name    = "fvec3s"
-path    = "benches/f32/vec3s.rs"
+name = "fvec3s"
+path = "benches/f32/vec3s.rs"
 
 ################################################################
 # i32 benchmarks
@@ -87,20 +89,20 @@ path    = "benches/f32/vec3s.rs"
 
 [[bench]]
 harness = false
-name    = "ivec2"
-path    = "benches/i32/vec2.rs"
+name = "ivec2"
+path = "benches/i32/vec2.rs"
 
 [[bench]]
 harness = false
-name    = "ivec3"
-path    = "benches/i32/vec3.rs"
+name = "ivec3"
+path = "benches/i32/vec3.rs"
 
 [[bench]]
 harness = false
-name    = "ivec4"
-path    = "benches/i32/vec4.rs"
+name = "ivec4"
+path = "benches/i32/vec4.rs"
 
 [[bench]]
 harness = false
-name    = "ivec3s"
-path    = "benches/i32/vec3s.rs"
+name = "ivec3s"
+path = "benches/i32/vec3s.rs"
