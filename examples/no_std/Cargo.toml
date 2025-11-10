@@ -1,7 +1,0 @@
-[package]
-edition = "2024"
-name    = "no_std"
-version = "0.1.0"
-
-[dependencies]
-ggmath = { path = "../../", default-features = false }

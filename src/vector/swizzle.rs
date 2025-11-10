@@ -1,6 +1,6 @@
-use crate::{Scalar, Simdness, Vector};
+use crate::{Scalar, Vector};
 
-impl<T: Scalar, S: Simdness> Vector<2, T, S> {
+impl<T: Scalar> Vector<2, T> {
     declare_swizzle_fns! {
         xx => { 0, 0 },
         xy => { 0, 1 },
@@ -31,7 +31,7 @@ impl<T: Scalar, S: Simdness> Vector<2, T, S> {
     }
 }
 
-impl<T: Scalar, S: Simdness> Vector<3, T, S> {
+impl<T: Scalar> Vector<3, T> {
     declare_swizzle_fns! {
         xx => { 0, 0 },
         xy => { 0, 1 },
@@ -81,7 +81,7 @@ impl<T: Scalar, S: Simdness> Vector<3, T, S> {
     }
 }
 
-impl<T: Scalar, S: Simdness> Vector<4, T, S> {
+impl<T: Scalar> Vector<4, T> {
     declare_swizzle_fns! {
         xx => { 0, 0 }, xy => { 0, 1 },
         xz => { 0, 2 }, xw => { 0, 3 },
@@ -169,35 +169,29 @@ impl<T: Scalar, S: Simdness> Vector<4, T, S> {
 }
 
 macro_rules! declare_swizzle_fns {
-    ($($name:ident => { $x_src:literal, $y_src:literal }),* $(,)?) => {
-        crate::hidden::paste! {
-            $(
-                #[doc = "Creates a vector2 from `(self[" $x_src "], self[" $y_src "])`"]
-                pub fn $name(self) -> Vector<2, T, S> {
-                    self.swizzle2::<$x_src, $y_src>()
-                }
-            )*
-        }
+    ($($name:ident => { $x:literal, $y:literal }),* $(,)?) => {
+        $(
+            #[doc = concat!("Creates a vector2 from `(self[", $x, "], self[", $y, "])`")]
+            pub fn $name(self) -> Vector<2, T> {
+                self.swizzle2::<$x, $y>()
+            }
+        )*
     };
-    ($($name:ident => { $x_src:literal, $y_src:literal, $z_src:literal }),* $(,)?) => {
-        crate::hidden::paste! {
-            $(
-                #[doc = "Creates a vector3 from `(self[" $x_src "], self[" $y_src "], self[" $z_src "])`"]
-                pub fn $name(self) -> Vector<3, T, S> {
-                    self.swizzle3::<$x_src, $y_src, $z_src>()
-                }
-            )*
-        }
+    ($($name:ident => { $x:literal, $y:literal, $z:literal }),* $(,)?) => {
+        $(
+            #[doc = concat!("Creates a vector3 from `(self[", $x, "], self[", $y, "], self[", $z, "])`")]
+            pub fn $name(self) -> Vector<3, T> {
+                self.swizzle3::<$x, $y, $z>()
+            }
+        )*
     };
-    ($($name:ident => { $x_src:literal, $y_src:literal, $z_src:literal, $w_src:literal }),* $(,)?) => {
-        crate::hidden::paste! {
-            $(
-                #[doc = "Creates a vector4 from `(self[" $x_src "], self[" $y_src "], self[" $z_src "], self[" $w_src "])`"]
-                pub fn $name(self) -> Vector<4, T, S> {
-                    self.swizzle4::<$x_src, $y_src, $z_src, $w_src>()
-                }
-            )*
-        }
+    ($($name:ident => { $x:literal, $y:literal, $z:literal, $w:literal }),* $(,)?) => {
+        $(
+            #[doc = concat!("Creates a vector4 from `(self[", $x, "], self[", $y, "], self[", $z, "], self[", $w, "])`")]
+            pub fn $name(self) -> Vector<4, T> {
+                self.swizzle4::<$x, $y, $z, $w>()
+            }
+        )*
     };
 }
 

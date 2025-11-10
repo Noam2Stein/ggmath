@@ -1,399 +1,386 @@
 use crate::{
-    NonSimd, ScalarNegOne, ScalarOne, ScalarZero, Simdness, SupportedVecLen, VecLen, Vector,
-    vector::specialized_vector_api,
+    ScalarNegOne, ScalarOne, ScalarZero, SupportedVecLen, VecLen, Vector, vector::specialize,
 };
 
-macro_rules! declare_float_api {
-    ($T:ty: $TVectorApi:ident) => {
-        impl<const N: usize, S: Simdness> Vector<N, $T, S>
-        where
-            VecLen<N>: SupportedVecLen,
-        {
-            specialized_vector_api! {
-                $TVectorApi for <N, $T, S>:
+impl<const N: usize> Vector<N, f>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn floor(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_floor(self))
+    }
 
-                /// Returns a vector with the largest integer less than or equal to each
-                /// element of `self`.
-                pub fn floor(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn ceil(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_ceil(self))
+    }
 
-                /// Returns a vector with the smallest integer greater than or equal to each
-                /// element of `self`.
-                pub fn ceil(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn round(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_round(self))
+    }
 
-                /// Returns a vector with the nearest integer to each element of `self`.
-                pub fn round(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn trunc(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_trunc(self))
+    }
 
-                /// Returns a vector with the integer part of each element of `self`.
-                pub fn trunc(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn fract(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_fract(self))
+    }
 
-                /// Returns a vector with the fractional part of each element of `self`.
-                /// Is equivalent to `self - self.trunc()`.
-                pub fn fract(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn mul_add(self, a: Self, b: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_mul_add(self, a, b))
+    }
 
-                /// Fused multiply-add. Computes (self * a) + b with only one rounding error,
-                /// yielding a more accurate result than an unfused multiply-add.
-                ///
-                /// Using `mul_add` *may* be more performant than an unfused multiply-add if
-                /// the target architecture has a dedicated `fma` CPU instruction. However,
-                /// this is not always true and depends on designing algorithms with specific
-                /// target hardware in mind.
-                ///
-                /// ## Precision
-                /// The result of this operation is guaranteed to be the rounded
-                /// infinite-precision result. It is specified by IEEE 754 as `fusedMultiplyAdd`
-                /// and guaranteed not to change.
-                pub fn mul_add(self, a: Self, b: Self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn div_euclid(self, rhs: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_div_euclid(self, rhs))
+    }
 
-                /// Calculates Euclidean division following the standard library's definition.
-                pub fn div_euclid(self, rhs: Self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn rem_euclid(self, rhs: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_rem_euclid(self, rhs))
+    }
 
-                /// Calculates Euclidean remainder following the standard library's definition.
-                pub fn rem_euclid(self, rhs: Self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn sqrt(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_sqrt(self))
+    }
 
-                /// Calculates the square root of each element of `self`.
-                pub fn sqrt(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn sin(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_sin(self))
+    }
 
-                /// Calculates the sine of each element of `self`.
-                pub fn sin(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn cos(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_cos(self))
+    }
 
-                /// Calculates the cosine of each element of `self`.
-                pub fn cos(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn tan(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_tan(self))
+    }
 
-                /// Calculates the tangent of each element of `self`.
-                pub fn tan(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn asin(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_asin(self))
+    }
 
-                /// Calculates the arcsine of each element of `self`.
-                pub fn asin(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn acos(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_acos(self))
+    }
 
-                /// Calculates the arccosine of each element of `self`.
-                pub fn acos(self) -> Self;
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn atan(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_atan(self))
+    }
 
-                /// Calculates the arctangent of each element of `self`.
-                pub fn atan(self) -> Self;
+    #[inline(always)]
+    pub fn recip(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_recip(self))
+    }
 
-                /// Calculates the reciprocal (`1.0 / x`) of each element of `self`.
-                pub fn recip(self) -> Self;
+    #[inline(always)]
+    pub fn max(self, other: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_max(self, other))
+    }
 
-                /// Returns the largest of each element of `self` and `other`.
-                ///
-                /// This function may be inconsistent with the standard library's definition
-                /// in regards to `-0.0`, and NaN in release mode.
-                ///
-                /// ## Panics
-                ///
-                /// Panics *in debug mode* if either `self` or `other` contains NaN.
-                pub fn max(self, other: Self) -> Self;
+    #[inline(always)]
+    pub fn min(self, other: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_min(self, other))
+    }
 
-                /// Returns the smallest of each element of `self` and `other`.
-                ///
-                /// This function may be inconsistent with the standard library's definition
-                /// in regards to `-0.0`, and NaN in release mode.
-                ///
-                /// ## Panics
-                ///
-                /// Panics *in debug mode* if either `self` or `other` contains NaN.
-                pub fn min(self, other: Self) -> Self;
+    #[inline(always)]
+    pub fn midpoint(self, other: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_midpoint(self, other))
+    }
 
-                /// Calculates the midpoint (average) of each element of `self` and `other`.
-                ///
-                /// This function may be imprecise for very large values.
-                pub fn midpoint(self, other: Self) -> Self;
+    #[inline(always)]
+    pub fn clamp(self, min: Self, max: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_clamp(self, min, max))
+    }
 
-                /// Clamps each element of `self` to the range `[min, max]`.
-                ///
-                /// This function may be inconsistent with the standard library's definition
-                /// in regards to `-0.0`, and NaN in release mode.
-                ///
-                /// ## Panics
-                ///
-                /// Panics *in debug mode* if either `self`, `min`, or `max` contains NaN,
-                /// or if `min` is greater than `max`.
-                pub fn clamp(self, min: Self, max: Self) -> Self;
+    #[inline(always)]
+    pub fn abs(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_abs(self))
+    }
 
-                /// Returns a vector with the absolute value of each element of `self`.
-                pub fn abs(self) -> Self;
+    #[inline(always)]
+    pub fn signum(self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_signum(self))
+    }
 
-                /// Returns a vector with the signum of each element of `self`.
-                pub fn signum(self) -> Self;
+    #[inline(always)]
+    pub fn copysign(self, sign: Self) -> Self {
+        specialize!(<f as FloatBackend<N>>::vec_copysign(self, sign))
+    }
 
-                /// Returns a vector with the same elements as `self`, but with the sign of each
-                /// element replaced with the sign of `sign`.
-                pub fn copysign(self, sign: Self) -> Self;
+    #[inline(always)]
+    pub fn element_sum(self) -> f {
+        specialize!(<f as FloatBackend<N>>::vec_element_sum(self))
+    }
 
-                /// Returns the sum of all elements of `self`.
-                ///
-                /// This function may be imprecise for large values.
-                pub fn element_sum(self) -> $T;
+    #[inline(always)]
+    pub fn element_product(self) -> f {
+        specialize!(<f as FloatBackend<N>>::vec_element_product(self))
+    }
 
-                /// Returns the product of all elements of `self`.
-                ///
-                /// This function may be imprecise for large values.
-                pub fn element_product(self) -> $T;
+    #[inline(always)]
+    pub fn max_element(self) -> f {
+        specialize!(<f as FloatBackend<N>>::vec_max_element(self))
+    }
 
-                /// Returns the maximum element of `self`.
-                ///
-                /// This function may be inconsistent with the standard library's definition
-                /// in regards to `-0.0`, and NaN in release mode.
-                ///
-                /// ## Panics
-                ///
-                /// Panics *in debug mode* if any element is NaN.
-                pub fn max_element(self) -> $T;
+    #[inline(always)]
+    pub fn min_element(self) -> f {
+        specialize!(<f as FloatBackend<N>>::vec_min_element(self))
+    }
 
-                /// Returns the minimum element of `self`.
-                ///
-                /// This function may be inconsistent with the standard library's definition
-                /// in regards to `-0.0`, and NaN in release mode.
-                ///
-                /// ## Panics
-                ///
-                /// Panics *in debug mode* if any element is NaN.
-                pub fn min_element(self) -> $T;
-            }
+    #[inline(always)]
+    pub fn dot(self, other: Self) -> f {
+        (self * other).element_sum()
+    }
 
-            /// Returns the dot product of `self` and `other`.
-            #[inline(always)]
-            pub fn dot(self, other: Self) -> $T {
-                (self * other).element_sum()
-            }
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    pub fn length(self) -> f {
+        self.dot(self).sqrt()
+    }
 
-            /// Returns the length of `self`.
-            #[inline(always)]
-            pub fn length(self) -> $T {
-                self.dot(self).sqrt()
-            }
+    #[inline(always)]
+    pub fn length_squared(self) -> f {
+        self.dot(self)
+    }
 
-            /// Returns the length of `self` squared.
-            ///
-            /// This is faster to compute than `self.length()` because it avoids a square
-            /// root operation.
-            #[inline(always)]
-            pub fn length_squared(self) -> $T {
-                self.dot(self)
-            }
+    #[cfg(feature = "std")]
+    #[must_use]
+    #[inline(always)]
+    pub fn normalize(self) -> Self {
+        let result = self / self.length();
 
-            /// Returns `self` normalized to length `1.0`.
-            ///
-            /// The result may be invalid if `self` is zero, very close to zero, or not
-            /// finite.
-            ///
-            /// ## Panics
-            ///
-            /// Panics *in debug mode* if the result is invalid as specified above.
-            #[must_use]
-            #[inline(always)]
-            pub fn normalize(self) -> Self {
-                let result = self / self.length();
+        debug_assert!(result.iter().all(<f>::is_finite));
 
-                debug_assert!(result.iter().all(<$T>::is_finite));
+        result
+    }
 
-                result
-            }
-
-            /// Returns `self` normalized to length `1.0`, or `None` for invalid values.
-            ///
-            /// More specifically, returns `None` if the result is not finite. For example
-            /// if `self` is zero.
-            #[must_use]
-            #[inline(always)]
-            pub fn try_normalize(self) -> Option<Self> {
-                let rcp = 1.0 / self.length();
-                if rcp.is_finite() && rcp > 0.0 {
-                    Some(self * rcp)
-                } else {
-                    None
-                }
-            }
-
-            /// Returns `self` normalized to length `1.0`, or `fallback` for invalid values.
-            ///
-            /// More specifically, returns `fallback` if the result is not finite. For
-            /// example if `self` is zero.
-            #[must_use]
-            #[inline(always)]
-            pub fn normalize_or(self, fallback: Self) -> Self {
-                self.try_normalize().unwrap_or(fallback)
-            }
+    #[cfg(feature = "std")]
+    #[must_use]
+    #[inline(always)]
+    pub fn try_normalize(self) -> Option<Self> {
+        let rcp = 1.0 / self.length();
+        if rcp.is_finite() && rcp > 0.0 {
+            Some(self * rcp)
+        } else {
+            None
         }
+    }
 
-        impl ScalarZero for $T {
-            const ZERO: Self = 0.0;
-        }
-
-        impl ScalarOne for $T {
-            const ONE: Self = 1.0;
-        }
-
-        impl ScalarNegOne for $T {
-            const NEG_ONE: Self = -1.0;
-        }
-
-        pub(in crate::vector) trait $TVectorApi<const N: usize, S: Simdness>
-        where
-            VecLen<N>: SupportedVecLen,
-        {
-            #[inline(always)]
-            fn vec_floor(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::floor)
-            }
-
-            #[inline(always)]
-            fn vec_ceil(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::ceil)
-            }
-
-            #[inline(always)]
-            fn vec_round(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::round)
-            }
-
-            #[inline(always)]
-            fn vec_trunc(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::trunc)
-            }
-
-            #[inline(always)]
-            fn vec_fract(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::fract)
-            }
-
-            #[inline(always)]
-            fn vec_mul_add(
-                vec: Vector<N, $T, S>,
-                a: Vector<N, $T, S>,
-                b: Vector<N, $T, S>,
-            ) -> Vector<N, $T, S> {
-                Vector::from_fn(|i| vec[i].mul_add(a[i], b[i]))
-            }
-
-            #[inline(always)]
-            fn vec_div_euclid(vec: Vector<N, $T, S>, rhs: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                Vector::from_fn(|i| vec[i].div_euclid(rhs[i]))
-            }
-
-            #[inline(always)]
-            fn vec_rem_euclid(vec: Vector<N, $T, S>, rhs: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                Vector::from_fn(|i| vec[i].rem_euclid(rhs[i]))
-            }
-
-            #[inline(always)]
-            fn vec_sqrt(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::sqrt)
-            }
-
-            #[inline(always)]
-            fn vec_sin(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::sin)
-            }
-
-            #[inline(always)]
-            fn vec_cos(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::cos)
-            }
-
-            #[inline(always)]
-            fn vec_tan(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::tan)
-            }
-
-            #[inline(always)]
-            fn vec_asin(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::asin)
-            }
-
-            #[inline(always)]
-            fn vec_acos(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::acos)
-            }
-
-            #[inline(always)]
-            fn vec_atan(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::atan)
-            }
-
-            #[inline(always)]
-            fn vec_recip(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::recip)
-            }
-
-            #[inline(always)]
-            fn vec_max(vec: Vector<N, $T, S>, other: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                debug_assert!(!vec.iter().any(<$T>::is_nan));
-                debug_assert!(!other.iter().any(<$T>::is_nan));
-
-                Vector::from_fn(|i| vec[i].max(other[i]))
-            }
-
-            #[inline(always)]
-            fn vec_min(vec: Vector<N, $T, S>, other: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                debug_assert!(!vec.iter().any(<$T>::is_nan));
-                debug_assert!(!other.iter().any(<$T>::is_nan));
-
-                Vector::from_fn(|i| vec[i].min(other[i]))
-            }
-
-            #[inline(always)]
-            fn vec_midpoint(vec: Vector<N, $T, S>, other: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                Vector::from_fn(|i| vec[i].midpoint(other[i]))
-            }
-
-            #[inline(always)]
-            fn vec_clamp(
-                vec: Vector<N, $T, S>,
-                min: Vector<N, $T, S>,
-                max: Vector<N, $T, S>,
-            ) -> Vector<N, $T, S> {
-                debug_assert!(!vec.iter().any(<$T>::is_nan));
-                debug_assert!(!min.iter().any(<$T>::is_nan));
-                debug_assert!(!max.iter().any(<$T>::is_nan));
-                debug_assert!(min.iter().zip(max).all(|(min, max)| min <= max));
-
-                Vector::from_fn(|i| vec[i].max(min[i]).min(max[i]))
-            }
-
-            #[inline(always)]
-            fn vec_abs(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::abs)
-            }
-
-            #[inline(always)]
-            fn vec_signum(vec: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                vec.map(<$T>::signum)
-            }
-
-            #[inline(always)]
-            fn vec_copysign(vec: Vector<N, $T, S>, sign: Vector<N, $T, S>) -> Vector<N, $T, S> {
-                Vector::from_fn(|i| vec[i].copysign(sign[i]))
-            }
-
-            #[inline(always)]
-            fn vec_element_sum(vec: Vector<N, $T, S>) -> $T {
-                vec.as_array().iter().sum()
-            }
-
-            #[inline(always)]
-            fn vec_element_product(vec: Vector<N, $T, S>) -> $T {
-                vec.as_array().iter().product()
-            }
-
-            #[inline(always)]
-            fn vec_max_element(vec: Vector<N, $T, S>) -> $T {
-                debug_assert!(!vec.iter().any(|x| x.is_nan()));
-
-                vec.iter().reduce(|a, b| a.max(b)).unwrap()
-            }
-
-            #[inline(always)]
-            fn vec_min_element(vec: Vector<N, $T, S>) -> $T {
-                debug_assert!(!vec.iter().any(|x| x.is_nan()));
-
-                vec.iter().reduce(|a, b| a.min(b)).unwrap()
-            }
-        }
-
-        impl<const N: usize> $TVectorApi<N, NonSimd> for $T where VecLen<N>: SupportedVecLen {}
-    };
+    #[cfg(feature = "std")]
+    #[must_use]
+    #[inline(always)]
+    pub fn normalize_or(self, fallback: Self) -> Self {
+        self.try_normalize().unwrap_or(fallback)
+    }
 }
 
-declare_float_api!(f32: F32VectorApi);
-declare_float_api!(f64: F64VectorApi);
+impl ScalarZero for f {
+    const ZERO: Self = 0.0;
+}
+
+impl ScalarOne for f {
+    const ONE: Self = 1.0;
+}
+
+impl ScalarNegOne for f {
+    const NEG_ONE: Self = -1.0;
+}
+
+pub(in crate::vector) trait FloatBackend<const N: usize>
+where
+    VecLen<N>: SupportedVecLen,
+{
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_floor(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::floor)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_ceil(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::ceil)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_round(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::round)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_trunc(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::trunc)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_fract(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::fract)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_mul_add(vec: Vector<N, f>, a: Vector<N, f>, b: Vector<N, f>) -> Vector<N, f> {
+        Vector::from_fn(|i| vec[i].mul_add(a[i], b[i]))
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_div_euclid(vec: Vector<N, f>, rhs: Vector<N, f>) -> Vector<N, f> {
+        Vector::from_fn(|i| vec[i].div_euclid(rhs[i]))
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_rem_euclid(vec: Vector<N, f>, rhs: Vector<N, f>) -> Vector<N, f> {
+        Vector::from_fn(|i| vec[i].rem_euclid(rhs[i]))
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_sqrt(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::sqrt)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_sin(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::sin)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_cos(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::cos)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_tan(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::tan)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_asin(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::asin)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_acos(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::acos)
+    }
+
+    #[cfg(feature = "std")]
+    #[inline(always)]
+    fn vec_atan(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::atan)
+    }
+
+    #[inline(always)]
+    fn vec_recip(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::recip)
+    }
+
+    #[inline(always)]
+    fn vec_max(vec: Vector<N, f>, other: Vector<N, f>) -> Vector<N, f> {
+        debug_assert!(!vec.iter().any(f::is_nan));
+        debug_assert!(!other.iter().any(f::is_nan));
+
+        Vector::from_fn(|i| vec[i].max(other[i]))
+    }
+
+    #[inline(always)]
+    fn vec_min(vec: Vector<N, f>, other: Vector<N, f>) -> Vector<N, f> {
+        debug_assert!(!vec.iter().any(f::is_nan));
+        debug_assert!(!other.iter().any(f::is_nan));
+
+        Vector::from_fn(|i| vec[i].min(other[i]))
+    }
+
+    #[inline(always)]
+    fn vec_midpoint(vec: Vector<N, f>, other: Vector<N, f>) -> Vector<N, f> {
+        Vector::from_fn(|i| vec[i].midpoint(other[i]))
+    }
+
+    #[inline(always)]
+    fn vec_clamp(vec: Vector<N, f>, min: Vector<N, f>, max: Vector<N, f>) -> Vector<N, f> {
+        debug_assert!(!vec.iter().any(f::is_nan));
+        debug_assert!(!min.iter().any(f::is_nan));
+        debug_assert!(!max.iter().any(f::is_nan));
+        debug_assert!(min.iter().zip(max).all(|(min, max)| min <= max));
+
+        Vector::from_fn(|i| vec[i].max(min[i]).min(max[i]))
+    }
+
+    #[inline(always)]
+    fn vec_abs(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::abs)
+    }
+
+    #[inline(always)]
+    fn vec_signum(vec: Vector<N, f>) -> Vector<N, f> {
+        vec.map(f::signum)
+    }
+
+    #[inline(always)]
+    fn vec_copysign(vec: Vector<N, f>, sign: Vector<N, f>) -> Vector<N, f> {
+        Vector::from_fn(|i| vec[i].copysign(sign[i]))
+    }
+
+    #[inline(always)]
+    fn vec_element_sum(vec: Vector<N, f>) -> f {
+        vec.to_array().iter().sum()
+    }
+
+    #[inline(always)]
+    fn vec_element_product(vec: Vector<N, f>) -> f {
+        vec.to_array().iter().product()
+    }
+
+    #[inline(always)]
+    fn vec_max_element(vec: Vector<N, f>) -> f {
+        debug_assert!(!vec.iter().any(|x| x.is_nan()));
+
+        vec.iter().reduce(|a, b| a.max(b)).unwrap()
+    }
+
+    #[inline(always)]
+    fn vec_min_element(vec: Vector<N, f>) -> f {
+        debug_assert!(!vec.iter().any(|x| x.is_nan()));
+
+        vec.iter().reduce(|a, b| a.min(b)).unwrap()
+    }
+}
