@@ -36,3 +36,19 @@ macro_rules! assert_panic {
 }
 
 use assert_panic;
+
+macro_rules! ggmath_assert_panic {
+    ($e:expr $(,)?) => {{
+        #[cfg(any(feature = "assert", all(feature = "debug_assert", debug_assertions)))]
+        {
+            $crate::assert_panic!($e);
+        }
+
+        #[cfg(not(any(feature = "assert", all(feature = "debug_assert", debug_assertions))))]
+        {
+            let _ = $e;
+        }
+    }};
+}
+
+use ggmath_assert_panic;
