@@ -26,3 +26,15 @@ mod dir;
     feature = "backwards"
 ))]
 pub use dir::*;
+
+macro_rules! ggmath_assert {
+    ($e:expr, $msg:literal $(, $arg:expr)* $(,)?) => {
+        #[allow(unused_braces)]
+        {
+            #[cfg(any(feature = "assert", all(feature = "debug_assert", debug_assertions)))]
+            assert!($e, $msg, $($arg),*);
+        }
+    };
+}
+
+use ggmath_assert;

@@ -1,5 +1,6 @@
 use crate::{
-    ScalarNegOne, ScalarOne, ScalarZero, SupportedVecLen, VecLen, Vector, vector::specialize,
+    ScalarNegOne, ScalarOne, ScalarZero, SupportedVecLen, VecLen, Vector, ggmath_assert,
+    vector::specialize,
 };
 
 impl<const N: usize> Vector<N, f>
@@ -221,9 +222,17 @@ where
     #[must_use]
     #[inline(always)]
     pub fn normalize(self) -> Self {
+        ggmath_assert!(
+            self != Self::ZERO,
+            "cannot normalize zero vector: {self}.normalize()"
+        );
+
         let result = self / self.length();
 
-        debug_assert!(result.iter().all(<f>::is_finite));
+        ggmath_assert!(
+            result.iter().all(<f>::is_finite),
+            "result is not finite: {self}.normalize() = {result}"
+        );
 
         result
     }
@@ -365,16 +374,28 @@ where
 
     #[inline(always)]
     fn vec_max(vec: Vector<N, f>, other: Vector<N, f>) -> Vector<N, f> {
-        debug_assert!(!vec.iter().any(f::is_nan));
-        debug_assert!(!other.iter().any(f::is_nan));
+        ggmath_assert!(
+            !vec.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.max({other})"
+        );
+        ggmath_assert!(
+            !other.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.max({other})"
+        );
 
         Vector::from_fn(|i| vec[i].max(other[i]))
     }
 
     #[inline(always)]
     fn vec_min(vec: Vector<N, f>, other: Vector<N, f>) -> Vector<N, f> {
-        debug_assert!(!vec.iter().any(f::is_nan));
-        debug_assert!(!other.iter().any(f::is_nan));
+        ggmath_assert!(
+            !vec.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.min({other})"
+        );
+        ggmath_assert!(
+            !other.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.min({other})"
+        );
 
         Vector::from_fn(|i| vec[i].min(other[i]))
     }
@@ -386,10 +407,22 @@ where
 
     #[inline(always)]
     fn vec_clamp(vec: Vector<N, f>, min: Vector<N, f>, max: Vector<N, f>) -> Vector<N, f> {
-        debug_assert!(!vec.iter().any(f::is_nan));
-        debug_assert!(!min.iter().any(f::is_nan));
-        debug_assert!(!max.iter().any(f::is_nan));
-        debug_assert!(min.iter().zip(max).all(|(min, max)| min <= max));
+        ggmath_assert!(
+            !vec.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.clamp({min}, {max})"
+        );
+        ggmath_assert!(
+            !min.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.clamp({min}, {max})"
+        );
+        ggmath_assert!(
+            !max.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.clamp({min}, {max})"
+        );
+        ggmath_assert!(
+            min.iter().zip(max).all(|(min, max)| min <= max),
+            "min > max: {vec}.clamp({min}, {max})"
+        );
 
         Vector::from_fn(|i| vec[i].max(min[i]).min(max[i]))
     }
@@ -421,14 +454,20 @@ where
 
     #[inline(always)]
     fn vec_max_element(vec: Vector<N, f>) -> f {
-        debug_assert!(!vec.iter().any(|x| x.is_nan()));
+        ggmath_assert!(
+            !vec.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.max_element()"
+        );
 
         vec.iter().reduce(|a, b| a.max(b)).unwrap()
     }
 
     #[inline(always)]
     fn vec_min_element(vec: Vector<N, f>) -> f {
-        debug_assert!(!vec.iter().any(|x| x.is_nan()));
+        ggmath_assert!(
+            !vec.iter().any(|x| x.is_nan()),
+            "vector contains NaN: {vec}.min_element()"
+        );
 
         vec.iter().reduce(|a, b| a.min(b)).unwrap()
     }

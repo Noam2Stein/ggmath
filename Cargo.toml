@@ -28,7 +28,10 @@ backwards = []
 
 std = []
 
-default = ["std"]
+assert = []
+debug_assert = []
+
+default = ["std", "debug_assert"]
 full = ["right", "left", "up", "down", "forwards", "backwards"]
 
 [workspace]
