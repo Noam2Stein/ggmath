@@ -3,7 +3,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    mem::{MaybeUninit, transmute},
+    mem::{MaybeUninit, transmute, transmute_copy},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub},
 };
 
@@ -42,7 +42,7 @@ pub use dir::*;
 /// then convert it to a [`Vector`] when needing to use it.
 #[repr(transparent)]
 #[derive(Clone, Copy)]
-pub struct Vector<const N: usize, T: Scalar>(pub VectorRepr<N, T>)
+pub struct Vector<const N: usize, T: Scalar>(VectorRepr<N, T>)
 where
     VecLen<N>: SupportedVecLen;
 
@@ -256,6 +256,28 @@ where
                 }
             }
         })(self)
+    }
+
+    /// Creates a vector from its internal representation.
+    #[inline(always)]
+    pub const fn from_repr(repr: <T as ScalarBackend<N>>::VectorRepr) -> Self
+    where
+        T: ScalarBackend<N>,
+    {
+        // SAFETY: This is safe because the transmution is from a type to itself.
+        Vector(unsafe {
+            transmute_copy::<<T as ScalarBackend<N>>::VectorRepr, VectorRepr<N, T>>(&repr)
+        })
+    }
+
+    /// Returns the vector's internal representation.
+    #[inline(always)]
+    pub const fn repr(self) -> <T as ScalarBackend<N>>::VectorRepr
+    where
+        T: ScalarBackend<N>,
+    {
+        // SAFETY: This is safe because the transmution is from a type to itself.
+        unsafe { transmute_copy::<VectorRepr<N, T>, <T as ScalarBackend<N>>::VectorRepr>(&self.0) }
     }
 }
 
@@ -619,7 +641,7 @@ pub trait Scalar:
 ///
 ///     #[inline(always)]
 ///      fn vec_add(vec: Vector<N, Self>, rhs: Vector<N, Self>) -> Vector<N, Self> {
-///          Vector(vec.0 + rhs.0)
+///          Vector::from_repr(vec.repr() + rhs.repr())
 ///      }
 /// }
 ///
