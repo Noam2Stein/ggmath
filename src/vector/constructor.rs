@@ -1,6 +1,5 @@
 use crate::{Scalar, SupportedVecLen, VecLen, Vector};
 
-////////////////////////////////////////////////////////////////////////////////
 /// Creates a vector2 from 2 scalar values.
 ///
 /// If only a single argument is provided, it is used for all components.

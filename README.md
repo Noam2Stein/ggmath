@@ -9,8 +9,6 @@ A games/graphics math library with generic SIMD types.
 > matrices and quaternions are missing, many geometric vector functions are
 > missing, and performance does not match `glam`.
 
-////////////////////////////////////////////////////////////////////////////////
-
 `ggmath` serves a similar purpose to [`glam`](https://crates.io/crates/glam) and  
 [`nalgebra`](https://crates.io/crates/nalgebra). However, `ggmath` stands out by  
 combining both **SIMD alignment** *and* **generic types**.
