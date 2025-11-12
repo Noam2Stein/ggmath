@@ -161,16 +161,10 @@ where
     }
 
     /// Returns an iterator over the vector's ***copied*** elements. To iterate over
-    /// references, use [`Vector::iter_ref`].
+    /// references, do `self.as_array_ref().iter()`.
     #[inline(always)]
     pub fn iter(self) -> core::array::IntoIter<T, N> {
         self.to_array().into_iter()
-    }
-
-    /// Returns an iterator over references to the vector's elements.
-    #[inline(always)]
-    pub fn iter_ref(&self) -> core::slice::Iter<'_, T> {
-        self.as_array_ref().iter()
     }
 
     /// Returns an iterator over mutable references to the vector's elements.
