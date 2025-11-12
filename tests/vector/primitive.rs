@@ -10,6 +10,9 @@ type Vec4t = Vector<4, T>;
 /// - `b` must be greater than `a`
 /// - `d` must be greater than `c`
 pub fn primitive_tests(a: T, b: T, c: T, d: T) {
+    assert!(b > a);
+    assert!(d > c);
+
     assert!(Vec2t::from_array([a, b]).to_array() == [a, b]);
     assert!(Vec3t::from_array([a, b, c]).to_array() == [a, b, c]);
     assert!(Vec4t::from_array([a, b, c, d]).to_array() == [a, b, c, d]);
