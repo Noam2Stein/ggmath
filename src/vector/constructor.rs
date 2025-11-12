@@ -10,8 +10,8 @@ use crate::{Scalar, SupportedVecLen, VecLen, Vector};
 /// ```
 /// use ggmath::{Vector, vec2};
 ///
-/// assert_eq(vec2!(1.0, 2.0), Vector::from_array([1.0, 2.0]));
-/// assert_eq(vec2!(1.0), Vector::from_array([1.0, 1.0]));
+/// assert_eq!(vec2!(1.0, 2.0), Vector::from_array([1.0, 2.0]));
+/// assert_eq!(vec2!(1.0), Vector::from_array([1.0, 1.0]));
 /// ```
 #[macro_export]
 macro_rules! vec2 {
@@ -32,9 +32,9 @@ pub use vec2;
 /// ```
 /// use ggmath::{Vector, vec2, vec3};
 ///
-/// assert_eq(vec3!(1.0, 2.0, 3.0), Vector::from_array([1.0, 2.0, 3.0]));
-/// assert_eq(vec3!(vec2!(1.0, 2.0), 3.0), Vector::from_array([1.0, 2.0, 3.0]));
-/// assert_eq(vec3!(1.0), Vector::from_array([1.0, 1.0, 1.0]));
+/// assert_eq!(vec3!(1.0, 2.0, 3.0), Vector::from_array([1.0, 2.0, 3.0]));
+/// assert_eq!(vec3!(vec2!(1.0, 2.0), 3.0), Vector::from_array([1.0, 2.0, 3.0]));
+/// assert_eq!(vec3!(1.0), Vector::from_array([1.0, 1.0, 1.0]));
 /// ```
 #[macro_export]
 macro_rules! vec3 {
@@ -55,9 +55,9 @@ pub use vec3;
 /// ```
 /// use ggmath::{Vector, vec2, vec4};
 ///
-/// assert_eq(vec4!(1.0, 2.0, 3.0, 4.0), Vector::from_array([1.0, 2.0, 3.0, 4.0]));
-/// assert_eq(vec4!(1.0, vec2!(2.0, 3.0), 4.0), Vector::from_array([1.0, 2.0, 3.0, 4.0]));
-/// assert_eq(vec4!(1.0), Vector::from_array([1.0, 1.0, 1.0, 1.0]));
+/// assert_eq!(vec4!(1.0, 2.0, 3.0, 4.0), Vector::from_array([1.0, 2.0, 3.0, 4.0]));
+/// assert_eq!(vec4!(1.0, vec2!(2.0, 3.0), 4.0), Vector::from_array([1.0, 2.0, 3.0, 4.0]));
+/// assert_eq!(vec4!(1.0), Vector::from_array([1.0, 1.0, 1.0, 1.0]));
 /// ```
 #[macro_export]
 macro_rules! vec4 {
