@@ -1,4 +1,4 @@
-//! vector related items
+//! Types and traits related to the [`Vector`] type.
 
 use core::{
     fmt::{Debug, Display},
@@ -17,29 +17,27 @@ mod swizzle;
 pub use constructor::*;
 pub use dir::*;
 
-/// A vector of `N` elements of type `T`.
+/// A vector of `N` elements of type `T`. The type `T` must implement the
+/// [`Scalar`] trait, and `N` must be one of 2, 3, or 4.
 ///
-/// `T` must implement the [`Scalar`] trait, and `N` must be either 2, 3, or 4.
-///
-/// To initialize a [`Vector`], use the [`vec2`], [`vec3`], and [`vec4`] macros.
+/// You can initialize a [`Vector`] using the [`vec2`], [`vec3`], or [`vec4`] macros.
 ///
 /// ## SIMD
 ///
-/// This type may be SIMD-aligned if [`<T as Scalar>`](Scalar) is implemented
-/// with SIMD optimizations.
-///
-/// All primitive vectors are SIMD-aligned and SIMD-optimized on appropriate
-/// targets, and custom scalar types can also enable SIMD optimizations in their
-/// implementations of [`Scalar`].
+/// If the [`Scalar`] trait for `T` is implemented with performance
+/// optimizations, this type may be SIMD-aligned and use explicit SIMD
+/// instructions to accelerate operations. This applies to all primitive vector
+/// types.
 ///
 /// ## Padding
 ///
-/// This type may have padding to enable SIMD optimizations. This can be a bad
-/// thing for memory critical code.
+/// This type may include padding to enable SIMD optimizations. While this can
+/// improve performance, it may increase memory usage, which could be
+/// problematic in memory-sensitive code.
 ///
-/// `ggmath` doesn't have a `Vec3` and `Vec3a` type like some other math
-/// libraries. Instead, to store an unaligned vector, you should use an array,
-/// then convert it to a [`Vector`] when needing to use it.
+/// Unlike some other math libraries, `ggmath` does not provide separate `Vec3`
+/// and `Vec3a` types. If you need an unaligned vector, consider using an array
+/// and converting it to a [`Vector`] when needed.
 #[repr(transparent)]
 #[derive(Clone, Copy)]
 pub struct Vector<const N: usize, T: Scalar>(VectorRepr<N, T>)
@@ -58,9 +56,9 @@ where
 {
     /// Converts an array into a [`Vector`].
     ///
-    /// This function is useful when initializing a [`Vector`] of an unknown length.
-    /// When initializing a [`Vector`] of a known length, it is better to use the
-    /// [`vec2`], [`vec3`], and [`vec4`] macros.
+    /// This function is useful for initializing a [`Vector`] when the length is
+    /// unknown. For vectors of known length, it is recommended to use the
+    /// [`vec2`], [`vec3`], or [`vec4`] macros instead.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
         const {
@@ -84,9 +82,9 @@ where
 
     /// Creates a [`Vector`] with all components set to `value`.
     ///
-    /// This function is useful when initializing a [`Vector`] of an unknown length.
-    /// When initializing a [`Vector`] of a known length, it is better to use the
-    /// [`vec2`], [`vec3`], and [`vec4`] macros (they can accept a single value).
+    /// This function is useful for initializing a [`Vector`] when the length is
+    /// unknown. For vectors of known length, it is recommended to use the
+    /// [`vec2`], [`vec3`], or [`vec4`] macros, which can also accept a single value.
     #[inline(always)]
     pub const fn splat(value: T) -> Self {
         const {
@@ -113,13 +111,13 @@ where
         unsafe { result.assume_init() }
     }
 
-    /// Creates a [`Vector`] by calling function `f` for each element in order.
+    /// Creates a [`Vector`] by applying function `f` to the index of each element in order.
     #[inline(always)]
     pub fn from_fn(f: impl FnMut(usize) -> T) -> Self {
         Vector::from_array(core::array::from_fn(f))
     }
 
-    /// Returns the number of elements in the vector, which is a staticly known
+    /// Returns the number of elements in the vector, which is a statically known
     /// constant.
     #[inline(always)]
     pub const fn len(self) -> usize {
@@ -132,7 +130,7 @@ where
         *self.as_array_ref()
     }
 
-    /// Returns a reference to the vector's elements as an array.
+    /// Returns a reference to the vector's elements as a fixed-size array.
     #[inline(always)]
     pub const fn as_array_ref(&self) -> &[T; N] {
         const {
@@ -146,7 +144,7 @@ where
         unsafe { &*(self as *const Self as *const [T; N]) }
     }
 
-    /// Returns a mutable reference to the vector's elements as an array.
+    /// Returns a mutable reference to the vector's elements as a fixed-size array.
     #[inline(always)]
     pub const fn as_mut_array(&mut self) -> &mut [T; N] {
         const {
@@ -160,8 +158,8 @@ where
         unsafe { &mut *(self as *mut Self as *mut [T; N]) }
     }
 
-    /// Returns an iterator over the vector's ***copied*** elements. To iterate over
-    /// references, do `self.as_array_ref().iter()`.
+    /// Returns an iterator over the vector's copied elements. To iterate over
+    /// references, use `self.as_array_ref().iter()`.
     #[inline(always)]
     pub fn iter(self) -> core::array::IntoIter<T, N> {
         self.to_array().into_iter()
@@ -201,28 +199,27 @@ where
         }
     }
 
-    /// Returns a vector 2 with `(self[X], self[Y])`, where `X` and `Y` are known at
-    /// compile time.
+    /// Returns a 2D vector with `(self[X], self[Y])`, where `X` and `Y` are known at compile time.
     ///
-    /// If either `X` or `Y` are out of bounds, the function won't compile.
+    /// The function will not compile if either `X` or `Y` is out of bounds.
     #[inline(always)]
     pub fn swizzle2<const X: usize, const Y: usize>(self) -> Vector<2, T> {
         specialize!(<T as ScalarBackend<N>>::vec_swizzle2::<X, Y>(self))
     }
 
-    /// Returns a vector 3 with `(self[X], self[Y], self[Z])`, where `X`, `Y` and
-    /// `Z` are known at compile time.
+    /// Returns a 3D vector with `(self[X], self[Y], self[Z])`, where `X`, `Y`, and `Z`
+    /// are known at compile time.
     ///
-    /// If either `X`, `Y` or `Z` are out of bounds, the function won't compile.
+    /// The function will not compile if any of `X`, `Y`, or `Z` are out of bounds.
     #[inline(always)]
     pub fn swizzle3<const X: usize, const Y: usize, const Z: usize>(self) -> Vector<3, T> {
         specialize!(<T as ScalarBackend<N>>::vec_swizzle3::<X, Y, Z>(self))
     }
 
-    /// Returns a vector 4 with `(self[X], self[Y], self[Z], self[W])`, where `X`,
-    /// `Y`, `Z` and `W` are known at compile time.
+    /// Returns a 4D vector with `(self[X], self[Y], self[Z], self[W])`, where `X`,
+    /// `Y`, `Z`, and `W` are known at compile time.
     ///
-    /// If either `X`, `Y`, `Z` or `W` are out of bounds, the function won't compile.
+    /// The function will not compile if any of `X`, `Y`, `Z`, or `W` are out of bounds.
     #[inline(always)]
     pub fn swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
         self,
