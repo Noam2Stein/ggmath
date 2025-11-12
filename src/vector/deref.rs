@@ -11,7 +11,9 @@ use crate::{Scalar, Vector};
 
 #[repr(C)]
 pub struct Xy<T: Scalar> {
+    /// The 1st element of the vector
     pub x: T,
+    /// The 2nd element of the vector
     pub y: T,
 }
 
@@ -42,8 +44,11 @@ impl<T: Scalar> DerefMut for Vector<2, T> {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Xyz<T: Scalar> {
+    /// The 1st element of the vector
     pub x: T,
+    /// The 2nd element of the vector
     pub y: T,
+    /// The 3rd element of the vector
     pub z: T,
 }
 
@@ -74,9 +79,13 @@ impl<T: Scalar> DerefMut for Vector<3, T> {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Xyzw<T: Scalar> {
+    /// The 1st element of the vector
     pub x: T,
+    /// The 2nd element of the vector
     pub y: T,
+    /// The 3rd element of the vector
     pub z: T,
+    /// The 4th element of the vector
     pub w: T,
 }
 

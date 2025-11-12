@@ -1,5 +1,18 @@
 use crate::{Scalar, SupportedVecLen, VecLen, Vector};
 
+////////////////////////////////////////////////////////////////////////////////
+/// Creates a vector2 from 2 scalar values.
+///
+/// If only a single argument is provided, it is used for all components.
+///
+/// ## Examples
+///
+/// ```
+/// use ggmath::{Vector, vec2};
+///
+/// assert_eq(vec2!(1.0, 2.0), Vector::from_array([1.0, 2.0]));
+/// assert_eq(vec2!(1.0), Vector::from_array([1.0, 1.0]));
+/// ```
 #[macro_export]
 macro_rules! vec2 {
     ($($arg:expr),* $(,)?) => {
@@ -9,6 +22,20 @@ macro_rules! vec2 {
 
 pub use vec2;
 
+/// Creates a vector3 from 3 scalar values. Also accepts vectors as arguments as
+/// long as their lengths sum up to 3.
+///
+/// If only a single argument is provided, it is used for all components.
+///
+/// ## Examples
+///
+/// ```
+/// use ggmath::{Vector, vec2, vec3};
+///
+/// assert_eq(vec3!(1.0, 2.0, 3.0), Vector::from_array([1.0, 2.0, 3.0]));
+/// assert_eq(vec3!(vec2!(1.0, 2.0), 3.0), Vector::from_array([1.0, 2.0, 3.0]));
+/// assert_eq(vec3!(1.0), Vector::from_array([1.0, 1.0, 1.0]));
+/// ```
 #[macro_export]
 macro_rules! vec3 {
     ($($arg:expr),* $(,)?) => {
@@ -18,6 +45,20 @@ macro_rules! vec3 {
 
 pub use vec3;
 
+/// Creates a vector4 from 4 scalar values. Also accepts vectors as arguments as
+/// long as their lengths sum up to 4.
+///
+/// If only a single argument is provided, it is used for all components.
+///
+/// ## Examples
+///
+/// ```
+/// use ggmath::{Vector, vec2, vec4};
+///
+/// assert_eq(vec4!(1.0, 2.0, 3.0, 4.0), Vector::from_array([1.0, 2.0, 3.0, 4.0]));
+/// assert_eq(vec4!(1.0, vec2!(2.0, 3.0), 4.0), Vector::from_array([1.0, 2.0, 3.0, 4.0]));
+/// assert_eq(vec4!(1.0), Vector::from_array([1.0, 1.0, 1.0, 1.0]));
+/// ```
 #[macro_export]
 macro_rules! vec4 {
     ($($arg:expr),* $(,)?) => {

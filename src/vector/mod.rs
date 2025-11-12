@@ -1,3 +1,5 @@
+//! vector related items
+
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
@@ -15,6 +17,29 @@ mod swizzle;
 pub use constructor::*;
 pub use dir::*;
 
+/// A vector of `N` elements of type `T`.
+///
+/// `T` must implement the [`Scalar`] trait, and `N` must be either 2, 3, or 4.
+///
+/// To initialize a [`Vector`], use the [`vec2`], [`vec3`], and [`vec4`] macros.
+///
+/// ## SIMD
+///
+/// This type may be SIMD-aligned if [`<T as Scalar>`](Scalar) is implemented
+/// with SIMD optimizations.
+///
+/// All primitive vectors are SIMD-aligned and SIMD-optimized on appropriate
+/// targets, and custom scalar types can also enable SIMD optimizations in their
+/// implementations of [`Scalar`].
+///
+/// ## Padding
+///
+/// This type may have padding to enable SIMD optimizations. This can be a bad
+/// thing for memory critical code.
+///
+/// `ggmath` doesn't have a `Vec3` and `Vec3a` type like some other math
+/// libraries. Instead, to store an unaligned vector, you should use an array,
+/// then convert it to a [`Vector`] when needing to use it.
 #[repr(transparent)]
 #[derive(Clone, Copy)]
 pub struct Vector<const N: usize, T: Scalar>(pub VectorRepr<N, T>)
@@ -31,6 +56,11 @@ impl<const N: usize, T: Scalar> Vector<N, T>
 where
     VecLen<N>: SupportedVecLen,
 {
+    /// Converts an array into a [`Vector`].
+    ///
+    /// This function is useful when initializing a [`Vector`] of an unknown length.
+    /// When initializing a [`Vector`] of a known length, it is better to use the
+    /// [`vec2`], [`vec3`], and [`vec4`] macros.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
         const {
@@ -52,6 +82,11 @@ where
         unsafe { result.assume_init() }
     }
 
+    /// Creates a [`Vector`] with all components set to `value`.
+    ///
+    /// This function is useful when initializing a [`Vector`] of an unknown length.
+    /// When initializing a [`Vector`] of a known length, it is better to use the
+    /// [`vec2`], [`vec3`], and [`vec4`] macros (they can accept a single value).
     #[inline(always)]
     pub const fn splat(value: T) -> Self {
         const {
@@ -78,21 +113,26 @@ where
         unsafe { result.assume_init() }
     }
 
+    /// Creates a [`Vector`] by calling function `f` for each element in order.
     #[inline(always)]
     pub fn from_fn(f: impl FnMut(usize) -> T) -> Self {
         Vector::from_array(core::array::from_fn(f))
     }
 
+    /// Returns the number of elements in the vector, which is a staticly known
+    /// constant.
     #[inline(always)]
     pub const fn len(self) -> usize {
         N
     }
 
+    /// Converts a [`Vector`] into an array.
     #[inline(always)]
     pub const fn to_array(self) -> [T; N] {
         *self.as_array_ref()
     }
 
+    /// Returns a reference to the vector's elements as an array.
     #[inline(always)]
     pub const fn as_array_ref(&self) -> &[T; N] {
         const {
@@ -106,6 +146,7 @@ where
         unsafe { &*(self as *const Self as *const [T; N]) }
     }
 
+    /// Returns a mutable reference to the vector's elements as an array.
     #[inline(always)]
     pub const fn as_mut_array(&mut self) -> &mut [T; N] {
         const {
@@ -119,26 +160,33 @@ where
         unsafe { &mut *(self as *mut Self as *mut [T; N]) }
     }
 
+    /// Returns an iterator over the vector's ***copied*** elements. To iterate over
+    /// references, use [`Vector::iter_ref`].
     #[inline(always)]
     pub fn iter(self) -> core::array::IntoIter<T, N> {
         self.to_array().into_iter()
     }
 
+    /// Returns an iterator over references to the vector's elements.
     #[inline(always)]
     pub fn iter_ref(&self) -> core::slice::Iter<'_, T> {
         self.as_array_ref().iter()
     }
 
+    /// Returns an iterator over mutable references to the vector's elements.
     #[inline(always)]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
         self.as_mut_array().iter_mut()
     }
 
+    /// Returns a new [`Vector`] by calling function `f` for each element of `self`.
     #[inline(always)]
     pub fn map<U: Scalar>(self, f: impl FnMut(T) -> U) -> Vector<N, U> {
         Vector::from_array(self.to_array().map(f))
     }
 
+    /// Returns the element at the given index, or `None` if the index is out of
+    /// bounds.
     #[inline(always)]
     pub const fn get(self, index: usize) -> Option<T> {
         if index < N {
@@ -148,6 +196,9 @@ where
         }
     }
 
+    /// Returns a mutable reference to the element at the given index, or `None` if
+    /// the index is out of bounds.
+    #[inline(always)]
     pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
         if index < N {
             Some(&mut self.as_mut_array()[index])
@@ -156,16 +207,28 @@ where
         }
     }
 
+    /// Returns a vector 2 with `(self[X], self[Y])`, where `X` and `Y` are known at
+    /// compile time.
+    ///
+    /// If either `X` or `Y` are out of bounds, the function won't compile.
     #[inline(always)]
     pub fn swizzle2<const X: usize, const Y: usize>(self) -> Vector<2, T> {
         specialize!(<T as ScalarBackend<N>>::vec_swizzle2::<X, Y>(self))
     }
 
+    /// Returns a vector 3 with `(self[X], self[Y], self[Z])`, where `X`, `Y` and
+    /// `Z` are known at compile time.
+    ///
+    /// If either `X`, `Y` or `Z` are out of bounds, the function won't compile.
     #[inline(always)]
     pub fn swizzle3<const X: usize, const Y: usize, const Z: usize>(self) -> Vector<3, T> {
         specialize!(<T as ScalarBackend<N>>::vec_swizzle3::<X, Y, Z>(self))
     }
 
+    /// Returns a vector 4 with `(self[X], self[Y], self[Z], self[W])`, where `X`,
+    /// `Y`, `Z` and `W` are known at compile time.
+    ///
+    /// If either `X`, `Y`, `Z` or `W` are out of bounds, the function won't compile.
     #[inline(always)]
     pub fn swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
         self,
@@ -173,6 +236,7 @@ where
         specialize!(<T as ScalarBackend<N>>::vec_swizzle4::<X, Y, Z, W>(self))
     }
 
+    /// Returns a vector with the elements of `self` in reverse order.
     #[inline(always)]
     pub fn reverse(self) -> Self {
         (const {
@@ -202,6 +266,7 @@ where
 }
 
 impl<T: Scalar> Vector<2, T> {
+    /// Returns `self` with the `x` component replaced by `value`.
     #[inline(always)]
     pub fn with_x(self, value: T) -> Self {
         let mut result = self;
@@ -210,6 +275,7 @@ impl<T: Scalar> Vector<2, T> {
         result
     }
 
+    /// Returns `self` with the `y` component replaced by `value`.
     #[inline(always)]
     pub fn with_y(self, value: T) -> Self {
         let mut result = self;
@@ -220,6 +286,7 @@ impl<T: Scalar> Vector<2, T> {
 }
 
 impl<T: Scalar> Vector<3, T> {
+    /// Returns `self` with the `x` component replaced by `value`.
     #[inline(always)]
     pub fn with_x(self, value: T) -> Self {
         let mut result = self;
@@ -228,6 +295,7 @@ impl<T: Scalar> Vector<3, T> {
         result
     }
 
+    /// Returns `self` with the `y` component replaced by `value`.
     #[inline(always)]
     pub fn with_y(self, value: T) -> Self {
         let mut result = self;
@@ -236,6 +304,7 @@ impl<T: Scalar> Vector<3, T> {
         result
     }
 
+    /// Returns `self` with the `z` component replaced by `value`.
     #[inline(always)]
     pub fn with_z(self, value: T) -> Self {
         let mut result = self;
@@ -246,6 +315,7 @@ impl<T: Scalar> Vector<3, T> {
 }
 
 impl<T: Scalar> Vector<4, T> {
+    /// Returns `self` with the `x` component replaced by `value`.
     #[inline(always)]
     pub fn with_x(self, value: T) -> Self {
         let mut result = self;
@@ -254,6 +324,7 @@ impl<T: Scalar> Vector<4, T> {
         result
     }
 
+    /// Returns `self` with the `y` component replaced by `value`.
     #[inline(always)]
     pub fn with_y(self, value: T) -> Self {
         let mut result = self;
@@ -262,6 +333,7 @@ impl<T: Scalar> Vector<4, T> {
         result
     }
 
+    /// Returns `self` with the `z` component replaced by `value`.
     #[inline(always)]
     pub fn with_z(self, value: T) -> Self {
         let mut result = self;
@@ -270,6 +342,7 @@ impl<T: Scalar> Vector<4, T> {
         result
     }
 
+    /// Returns `self` with the `w` component replaced by `value`.
     #[inline(always)]
     pub fn with_w(self, value: T) -> Self {
         let mut result = self;
@@ -441,18 +514,142 @@ impl<const N: usize, T: Scalar + Eq> Eq for Vector<N, T> where VecLen<N>: Suppor
 // Scalar
 ////////////////////////////////////////////////////////////////////////////////
 
+/// A trait for [`Vector`] element types.
+///
+/// To implement this trait, you must also implement [`ScalarBackend<N>`] for
+/// lengths `2`, `3`, and `4`. That trait is used to implement vector
+/// optimizations, but can also have a simple unoptimized implementation.
+///
+/// Note that this trait requires the type to implement [`Copy`], which means
+/// that boxed types cannot implement it.
+///
+/// ## Examples
+///
+/// This is an unoptimized implementation of [`Scalar`]:
+///
+/// ```
+/// use ggmath::{Scalar, ScalarBackend, SupportedVecLen, VecLen};
+///
+/// #[derive(Clone, Copy)]
+/// struct Num(f32, bool);
+///
+/// impl Scalar for Num {}
+///
+/// impl<const N: usize> ScalarBackend<N> for Num
+/// where
+///     VecLen<N>: SupportedVecLen,
+/// {
+///     type VectorRepr = [Num; N];
+/// }
+///
+/// // Now we can use `Vector<N, Num>`.
+/// ```
+///
+/// For an implementation with SIMD optimizations, see the documentation for
+/// [`ScalarBackend`].
 pub trait Scalar:
     Send + Sync + Copy + 'static + ScalarBackend<2> + ScalarBackend<3> + ScalarBackend<4>
 {
 }
 
+/// This trait must be implemented for all [`Scalar`] types, and defines the
+/// behind the scenes layout and implementation of [`Vector<N, Self>`].
+///
+/// ## SIMD
+///
+/// To enable SIMD optimizations, your scalar type must be a transparent wrapper
+/// of an existing scalar type.
+///
+/// For example, an [`f32`] wrapper could implement [`ScalarBackend<N>`] with the
+/// vector representation set to [`Vector<N, f32>`]. This then allows function
+/// implementations to use [`Vector<N, f32>`] functions.
+///
+/// This method inherits the SIMD optimizations of the wrapped type. You
+/// currently cannot implement this trait with custom intrinsic types.
+///
+/// ## Examples
+///
+/// This is an unoptimized implementation of [`ScalarBackend`]:
+///
+/// ```
+/// use ggmath::{Scalar, ScalarBackend, SupportedVecLen, VecLen};
+///
+/// #[derive(Clone, Copy)]
+/// struct Num(f32, bool);
+///
+/// impl Scalar for Num {}
+///
+/// impl<const N: usize> ScalarBackend<N> for Num
+/// where
+///     VecLen<N>: SupportedVecLen,
+/// {
+///     type VectorRepr = [Num; N];
+/// }
+///
+/// // Now we can use `Vector<N, Num>`.
+/// ```
+///
+/// This is an optimized implementation of [`ScalarBackend`]:
+///
+/// ```
+/// use core::ops::Add;
+///
+/// use ggmath::{Scalar, ScalarBackend, ScalarWrapper, SupportedVecLen, VecLen, Vector};
+///
+/// #[repr(transparent)]
+/// #[derive(Clone, Copy)]
+/// struct Num(f32);
+///
+/// // Implement an operator for `Num`.
+/// //
+/// // This automatically implements `Add` for `Vector<N, Num>`, but we are going to
+/// // override its implementation to optimize it.
+/// impl Add for Num {
+///     type Output = Self;
+///
+///     fn add(self, rhs: Self) -> Self::Output {
+///         Num(self.0 + rhs.0)
+///     }
+/// }
+///
+/// impl Scalar for Num {}
+///
+/// // SAFETY: `Num` is a transparent wrapper of `f32`, so this is safe
+/// unsafe impl ScalarWrapper<f32> for Num {}
+///
+/// impl<const N: usize> ScalarBackend<N> for Num
+/// where
+///     VecLen<N>: SupportedVecLen,
+/// {
+///     type VectorRepr = Vector<N, f32>;
+///
+///     #[inline(always)]
+///      fn vec_add(vec: Vector<N, Self>, rhs: Vector<N, Self>) -> Vector<N, Self> {
+///          Vector(vec.0 + rhs.0)
+///      }
+/// }
+///
+/// // Now we can use `Vector<N, Num>`.
+/// ```
 pub trait ScalarBackend<const N: usize>: Send + Sync + Copy + 'static
 where
     VecLen<N>: SupportedVecLen,
 {
+    /// The inner representation of [`Vector<N, Self>`].
+    ///
+    /// This cannot be any type, as that would be very unsafe. Instead, this must be
+    /// either:
+    ///
+    /// 1.
+    /// `[Self; N]` (not SIMD-aligned)
+    ///
+    /// 2.
+    /// [`Vector<N, InnerT>`] where `Self` is a [`ScalarWrapper`] of `InnerT`. This
+    /// inherits the SIMD alignment of `InnerT` vectors.
     #[expect(private_bounds)]
     type VectorRepr: SoundVectorRepr<N, Self>;
 
+    /// Overriable implementation of [`Vector::swizzle2`]
     #[inline(always)]
     fn vec_swizzle2<const X: usize, const Y: usize>(vec: Vector<N, Self>) -> Vector<2, Self>
     where
@@ -461,6 +658,7 @@ where
         vec2!(vec[X], vec[Y])
     }
 
+    /// Overriable implementation of [`Vector::swizzle3`]
     #[inline(always)]
     fn vec_swizzle3<const X: usize, const Y: usize, const Z: usize>(
         vec: Vector<N, Self>,
@@ -471,6 +669,7 @@ where
         vec3!(vec[X], vec[Y], vec[Z])
     }
 
+    /// Overriable implementation of [`Vector::swizzle4`]
     #[inline(always)]
     fn vec_swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
         vec: Vector<N, Self>,
@@ -481,6 +680,7 @@ where
         vec4!(vec[X], vec[Y], vec[Z], vec[W])
     }
 
+    /// Overriable implementation of [`Vector::eq`]
     #[inline(always)]
     fn vec_eq(vec: Vector<N, Self>, other: Vector<N, Self>) -> bool
     where
@@ -489,6 +689,7 @@ where
         (0..N).all(|i| vec[i] == other[i])
     }
 
+    /// Overriable implementation of [`Vector::ne`]
     #[inline(always)]
     fn vec_ne(vec: Vector<N, Self>, other: Vector<N, Self>) -> bool
     where
@@ -497,6 +698,7 @@ where
         (0..N).any(|i| vec[i] != other[i])
     }
 
+    /// Overriable implementation of [`Vector::neg`]
     #[inline(always)]
     fn vec_neg(vec: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -505,6 +707,7 @@ where
         vec.map(|x| -x)
     }
 
+    /// Overriable implementation of [`Vector::not`]
     #[inline(always)]
     fn vec_not(vec: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -513,6 +716,7 @@ where
         vec.map(|x| !x)
     }
 
+    /// Overriable implementation of [`Vector::add`]
     #[inline(always)]
     fn vec_add(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -521,6 +725,7 @@ where
         Vector::from_fn(|i| vec[i] + other[i])
     }
 
+    /// Overriable implementation of [`Vector::sub`]
     #[inline(always)]
     fn vec_sub(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -529,6 +734,7 @@ where
         Vector::from_fn(|i| vec[i] - other[i])
     }
 
+    /// Overriable implementation of [`Vector::mul`]
     #[inline(always)]
     fn vec_mul(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -537,6 +743,7 @@ where
         Vector::from_fn(|i| vec[i] * other[i])
     }
 
+    /// Overriable implementation of [`Vector::div`]
     #[inline(always)]
     fn vec_div(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -545,6 +752,7 @@ where
         Vector::from_fn(|i| vec[i] / other[i])
     }
 
+    /// Overriable implementation of [`Vector::rem`]
     #[inline(always)]
     fn vec_rem(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -553,6 +761,7 @@ where
         Vector::from_fn(|i| vec[i] % other[i])
     }
 
+    /// Overriable implementation of [`Vector::shl`]
     #[inline(always)]
     fn vec_shl(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -561,6 +770,7 @@ where
         Vector::from_fn(|i| vec[i] << other[i])
     }
 
+    /// Overriable implementation of [`Vector::shr`]
     #[inline(always)]
     fn vec_shr(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -569,6 +779,7 @@ where
         Vector::from_fn(|i| vec[i] >> other[i])
     }
 
+    /// Overriable implementation of [`Vector::bitand`]
     #[inline(always)]
     fn vec_bitand(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -577,6 +788,7 @@ where
         Vector::from_fn(|i| vec[i] & other[i])
     }
 
+    /// Overriable implementation of [`Vector::bitor`]
     #[inline(always)]
     fn vec_bitor(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -585,6 +797,7 @@ where
         Vector::from_fn(|i| vec[i] | other[i])
     }
 
+    /// Overriable implementation of [`Vector::bitxor`]
     #[inline(always)]
     fn vec_bitxor(vec: Vector<N, Self>, other: Vector<N, Self>) -> Vector<N, Self>
     where
@@ -594,6 +807,7 @@ where
     }
 }
 
+/// Marks a scalar type as a wrapper for another scalar type.
 pub unsafe trait ScalarWrapper<T: Scalar>: Scalar {}
 
 // SAFETY: this trait has these safety requirements:
@@ -666,9 +880,13 @@ use specialize;
 // Length
 ////////////////////////////////////////////////////////////////////////////////
 
+/// A marker type for the length of a [`Vector`]
 pub struct VecLen<const N: usize>;
 
+/// A trait for supported vector lengths, to be implemented by [`VecLen<2>`],
+/// [`VecLen<3>`], and [`VecLen<4>`].
 pub trait SupportedVecLen {
+    #[doc(hidden)]
     type Pick<
         For2: Send + Sync + Copy + 'static,
         For3: Send + Sync + Copy + 'static,
