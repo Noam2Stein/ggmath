@@ -23,3 +23,16 @@ macro_rules! vec4 {
 }
 
 use vec4;
+
+macro_rules! assert_panic {
+    ($e:expr $(,)?) => {{
+        ::std::panic::catch_unwind(|| -> () {
+            let _ = $e;
+        })
+        .expect_err("assert_panic! argument did not panic");
+
+        println!("argument paniced as expected ... {}", colored::Colorize::green("ok"));
+    }};
+}
+
+use assert_panic;

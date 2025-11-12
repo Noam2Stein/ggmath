@@ -34,5 +34,8 @@ debug_assert = []
 default = ["std", "debug_assert"]
 full = ["right", "left", "up", "down", "forwards", "backwards"]
 
+[dev-dependencies]
+colored = "3.0.0"
+
 [workspace]
 members = [".", "examples/sandbox"]
