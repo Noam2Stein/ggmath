@@ -36,6 +36,13 @@ full = ["right", "left", "up", "down", "forwards", "backwards"]
 
 [dev-dependencies]
 colored = "3.0.0"
+criterion = "0.7.0"
+glam = "0.30.9"
+
+[[bench]]
+name = "vec4f"
+path = "benches/vec4f.rs"
+harness = false
 
 [workspace]
 members = [".", "examples/sandbox"]
