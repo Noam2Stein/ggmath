@@ -88,193 +88,85 @@ pub fn float_tests() {
         0.00001
     );
 
-    assert_float_eq!(vec2!(1.0, 0.0).normalize(), vec2!(1.0, 0.0));
-    assert_float_eq!(vec3!(1.0, 0.0, 0.0).normalize(), vec3!(1.0, 0.0, 0.0));
-    assert_float_eq!(
-        vec4!(1.0, 0.0, 0.0, 0.0).normalize(),
-        vec4!(1.0, 0.0, 0.0, 0.0)
-    );
-    assert_approx_eq!(
-        vec2!(1.0, 1.0).normalize(),
-        vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0)),
-        0.0001
-    );
-    assert_approx_eq!(
-        vec3!(1.0, 1.0, 0.0).normalize(),
-        vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0),
-        0.0001
-    );
-    assert_approx_eq!(
-        vec4!(1.0, 1.0, 0.0, 0.0).normalize(),
-        vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0),
-        0.0001
-    );
+    #[cfg(feature = "std")]
+    {
+        assert_float_eq!(vec2!(1.0, 0.0).normalize(), vec2!(1.0, 0.0));
+        assert_float_eq!(vec3!(1.0, 0.0, 0.0).normalize(), vec3!(1.0, 0.0, 0.0));
+        assert_float_eq!(
+            vec4!(1.0, 0.0, 0.0, 0.0).normalize(),
+            vec4!(1.0, 0.0, 0.0, 0.0)
+        );
+        assert_approx_eq!(
+            vec2!(1.0, 1.0).normalize(),
+            vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0)),
+            0.0001
+        );
+        assert_approx_eq!(
+            vec3!(1.0, 1.0, 0.0).normalize(),
+            vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0),
+            0.0001
+        );
+        assert_approx_eq!(
+            vec4!(1.0, 1.0, 0.0, 0.0).normalize(),
+            vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0),
+            0.0001
+        );
 
-    assert_float_eq!(vec2!(1.0, 0.0).try_normalize(), Some(vec2!(1.0, 0.0)));
-    assert_float_eq!(
-        vec3!(1.0, 0.0, 0.0).try_normalize(),
-        Some(vec3!(1.0, 0.0, 0.0))
-    );
-    assert_float_eq!(
-        vec4!(1.0, 0.0, 0.0, 0.0).try_normalize(),
-        Some(vec4!(1.0, 0.0, 0.0, 0.0))
-    );
-    assert_approx_eq!(
-        vec2!(1.0, 1.0).try_normalize(),
-        Some(vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0))),
-        0.0001
-    );
-    assert_approx_eq!(
-        vec3!(1.0, 1.0, 0.0).try_normalize(),
-        Some(vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0)),
-        0.0001
-    );
-    assert_approx_eq!(
-        vec4!(1.0, 1.0, 0.0, 0.0).try_normalize(),
-        Some(vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0)),
-        0.0001
-    );
+        assert_float_eq!(vec2!(1.0, 0.0).try_normalize(), Some(vec2!(1.0, 0.0)));
+        assert_float_eq!(
+            vec3!(1.0, 0.0, 0.0).try_normalize(),
+            Some(vec3!(1.0, 0.0, 0.0))
+        );
+        assert_float_eq!(
+            vec4!(1.0, 0.0, 0.0, 0.0).try_normalize(),
+            Some(vec4!(1.0, 0.0, 0.0, 0.0))
+        );
+        assert_approx_eq!(
+            vec2!(1.0, 1.0).try_normalize(),
+            Some(vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0))),
+            0.0001
+        );
+        assert_approx_eq!(
+            vec3!(1.0, 1.0, 0.0).try_normalize(),
+            Some(vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0)),
+            0.0001
+        );
+        assert_approx_eq!(
+            vec4!(1.0, 1.0, 0.0, 0.0).try_normalize(),
+            Some(vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0)),
+            0.0001
+        );
 
-    assert_float_eq!(vec2!(1.0, 0.0).normalize_or(vec2!(T::NAN)), vec2!(1.0, 0.0));
-    assert_float_eq!(
-        vec3!(1.0, 0.0, 0.0).normalize_or(vec3!(T::NAN)),
-        vec3!(1.0, 0.0, 0.0)
-    );
-    assert_float_eq!(
-        vec4!(1.0, 0.0, 0.0, 0.0).normalize_or(vec4!(T::NAN)),
-        vec4!(1.0, 0.0, 0.0, 0.0)
-    );
-    assert_approx_eq!(
-        vec2!(1.0, 1.0).normalize_or(vec2!(T::NAN)),
-        vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0)),
-        0.0001
-    );
-    assert_approx_eq!(
-        vec3!(1.0, 1.0, 0.0).normalize_or(vec3!(T::NAN)),
-        vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0),
-        0.0001
-    );
-    assert_approx_eq!(
-        vec4!(1.0, 1.0, 0.0, 0.0).normalize_or(vec4!(T::NAN)),
-        vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0),
-        0.0001
-    );
+        assert_float_eq!(vec2!(1.0, 0.0).normalize_or(vec2!(T::NAN)), vec2!(1.0, 0.0));
+        assert_float_eq!(
+            vec3!(1.0, 0.0, 0.0).normalize_or(vec3!(T::NAN)),
+            vec3!(1.0, 0.0, 0.0)
+        );
+        assert_float_eq!(
+            vec4!(1.0, 0.0, 0.0, 0.0).normalize_or(vec4!(T::NAN)),
+            vec4!(1.0, 0.0, 0.0, 0.0)
+        );
+        assert_approx_eq!(
+            vec2!(1.0, 1.0).normalize_or(vec2!(T::NAN)),
+            vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0)),
+            0.0001
+        );
+        assert_approx_eq!(
+            vec3!(1.0, 1.0, 0.0).normalize_or(vec3!(T::NAN)),
+            vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0),
+            0.0001
+        );
+        assert_approx_eq!(
+            vec4!(1.0, 1.0, 0.0, 0.0).normalize_or(vec4!(T::NAN)),
+            vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0),
+            0.0001
+        );
+    }
 
     for (x1, y1) in VALUES {
         assert_float_eq!(-vec2!(x1, y1), vec2!(-x1, -y1));
         assert_float_eq!(-vec3!(x1, y1, x1), vec3!(-x1, -y1, -x1));
         assert_float_eq!(-vec4!(x1, y1, x1, y1), vec4!(-x1, -y1, -x1, -y1));
-
-        assert_float_eq!(vec2!(x1, y1).floor(), vec2!(x1.floor(), y1.floor()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).floor(),
-            vec3!(x1.floor(), y1.floor(), x1.floor())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).floor(),
-            vec4!(x1.floor(), y1.floor(), x1.floor(), y1.floor())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).ceil(), vec2!(x1.ceil(), y1.ceil()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).ceil(),
-            vec3!(x1.ceil(), y1.ceil(), x1.ceil())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).ceil(),
-            vec4!(x1.ceil(), y1.ceil(), x1.ceil(), y1.ceil())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).round(), vec2!(x1.round(), y1.round()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).round(),
-            vec3!(x1.round(), y1.round(), x1.round())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).round(),
-            vec4!(x1.round(), y1.round(), x1.round(), y1.round())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).trunc(), vec2!(x1.trunc(), y1.trunc()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).trunc(),
-            vec3!(x1.trunc(), y1.trunc(), x1.trunc())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).trunc(),
-            vec4!(x1.trunc(), y1.trunc(), x1.trunc(), y1.trunc())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).fract(), vec2!(x1.fract(), y1.fract()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).fract(),
-            vec3!(x1.fract(), y1.fract(), x1.fract())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).fract(),
-            vec4!(x1.fract(), y1.fract(), x1.fract(), y1.fract())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).sqrt(), vec2!(x1.sqrt(), y1.sqrt()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).sqrt(),
-            vec3!(x1.sqrt(), y1.sqrt(), x1.sqrt())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).sqrt(),
-            vec4!(x1.sqrt(), y1.sqrt(), x1.sqrt(), y1.sqrt())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).sin(), vec2!(x1.sin(), y1.sin()));
-        assert_float_eq!(vec3!(x1, y1, x1).sin(), vec3!(x1.sin(), y1.sin(), x1.sin()));
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).sin(),
-            vec4!(x1.sin(), y1.sin(), x1.sin(), y1.sin())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).cos(), vec2!(x1.cos(), y1.cos()));
-        assert_float_eq!(vec3!(x1, y1, x1).cos(), vec3!(x1.cos(), y1.cos(), x1.cos()));
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).cos(),
-            vec4!(x1.cos(), y1.cos(), x1.cos(), y1.cos())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).tan(), vec2!(x1.tan(), y1.tan()));
-        assert_float_eq!(vec3!(x1, y1, x1).tan(), vec3!(x1.tan(), y1.tan(), x1.tan()));
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).tan(),
-            vec4!(x1.tan(), y1.tan(), x1.tan(), y1.tan())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).asin(), vec2!(x1.asin(), y1.asin()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).asin(),
-            vec3!(x1.asin(), y1.asin(), x1.asin())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).asin(),
-            vec4!(x1.asin(), y1.asin(), x1.asin(), y1.asin())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).acos(), vec2!(x1.acos(), y1.acos()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).acos(),
-            vec3!(x1.acos(), y1.acos(), x1.acos())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).acos(),
-            vec4!(x1.acos(), y1.acos(), x1.acos(), y1.acos())
-        );
-
-        assert_float_eq!(vec2!(x1, y1).atan(), vec2!(x1.atan(), y1.atan()));
-        assert_float_eq!(
-            vec3!(x1, y1, x1).atan(),
-            vec3!(x1.atan(), y1.atan(), x1.atan())
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).atan(),
-            vec4!(x1.atan(), y1.atan(), x1.atan(), y1.atan())
-        );
 
         assert_float_eq!(vec2!(x1, y1).recip(), vec2!(x1.recip(), y1.recip()));
         assert_float_eq!(
@@ -329,16 +221,6 @@ pub fn float_tests() {
             assert_float_eq!(vec4!(x1, y1, x1, y1).min_element(), x1.min(y1));
         }
 
-        assert_float_eq!(vec2!(x1, y1).length(), (x1 * x1 + y1 * y1).sqrt());
-        assert_float_eq!(
-            vec3!(x1, y1, x1).length(),
-            (x1 * x1 + y1 * y1 + x1 * x1).sqrt()
-        );
-        assert_float_eq!(
-            vec4!(x1, y1, x1, y1).length(),
-            (x1 * x1 + y1 * y1 + x1 * x1 + y1 * y1).sqrt()
-        );
-
         assert_float_eq!(vec2!(x1, y1).length_squared(), x1 * x1 + y1 * y1);
         assert_float_eq!(
             vec3!(x1, y1, x1).length_squared(),
@@ -349,23 +231,147 @@ pub fn float_tests() {
             x1 * x1 + y1 * y1 + x1 * x1 + y1 * y1
         );
 
-        // `Vector::normalize` panics for the zero vector.
-        // if `assert` is disabled, the result is unspecified.
-        if x1 == 0.0 && y1 == 0.0 {
-            ggmath_assert_panic!(vec2!(x1, y1).normalize());
-            ggmath_assert_panic!(vec3!(x1, y1, x1).normalize());
-            ggmath_assert_panic!(vec4!(x1, y1, x1, y1).normalize());
-
-            assert_eq!(vec2!(x1, y1).try_normalize(), None);
-            assert_eq!(vec3!(x1, y1, x1).try_normalize(), None);
-            assert_eq!(vec4!(x1, y1, x1, y1).try_normalize(), None);
-
-            assert_float_eq!(vec2!(x1, y1).normalize_or(vec2!(2401.0)), vec2!(2401.0));
-            assert_float_eq!(vec3!(x1, y1, x1).normalize_or(vec3!(2401.0)), vec3!(2401.0));
+        #[cfg(feature = "std")]
+        {
+            assert_float_eq!(vec2!(x1, y1).floor(), vec2!(x1.floor(), y1.floor()));
             assert_float_eq!(
-                vec4!(x1, y1, x1, y1).normalize_or(vec4!(2401.0)),
-                vec4!(2401.0)
+                vec3!(x1, y1, x1).floor(),
+                vec3!(x1.floor(), y1.floor(), x1.floor())
             );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).floor(),
+                vec4!(x1.floor(), y1.floor(), x1.floor(), y1.floor())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).ceil(), vec2!(x1.ceil(), y1.ceil()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).ceil(),
+                vec3!(x1.ceil(), y1.ceil(), x1.ceil())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).ceil(),
+                vec4!(x1.ceil(), y1.ceil(), x1.ceil(), y1.ceil())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).round(), vec2!(x1.round(), y1.round()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).round(),
+                vec3!(x1.round(), y1.round(), x1.round())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).round(),
+                vec4!(x1.round(), y1.round(), x1.round(), y1.round())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).trunc(), vec2!(x1.trunc(), y1.trunc()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).trunc(),
+                vec3!(x1.trunc(), y1.trunc(), x1.trunc())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).trunc(),
+                vec4!(x1.trunc(), y1.trunc(), x1.trunc(), y1.trunc())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).fract(), vec2!(x1.fract(), y1.fract()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).fract(),
+                vec3!(x1.fract(), y1.fract(), x1.fract())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).fract(),
+                vec4!(x1.fract(), y1.fract(), x1.fract(), y1.fract())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).sqrt(), vec2!(x1.sqrt(), y1.sqrt()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).sqrt(),
+                vec3!(x1.sqrt(), y1.sqrt(), x1.sqrt())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).sqrt(),
+                vec4!(x1.sqrt(), y1.sqrt(), x1.sqrt(), y1.sqrt())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).sin(), vec2!(x1.sin(), y1.sin()));
+            assert_float_eq!(vec3!(x1, y1, x1).sin(), vec3!(x1.sin(), y1.sin(), x1.sin()));
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).sin(),
+                vec4!(x1.sin(), y1.sin(), x1.sin(), y1.sin())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).cos(), vec2!(x1.cos(), y1.cos()));
+            assert_float_eq!(vec3!(x1, y1, x1).cos(), vec3!(x1.cos(), y1.cos(), x1.cos()));
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).cos(),
+                vec4!(x1.cos(), y1.cos(), x1.cos(), y1.cos())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).tan(), vec2!(x1.tan(), y1.tan()));
+            assert_float_eq!(vec3!(x1, y1, x1).tan(), vec3!(x1.tan(), y1.tan(), x1.tan()));
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).tan(),
+                vec4!(x1.tan(), y1.tan(), x1.tan(), y1.tan())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).asin(), vec2!(x1.asin(), y1.asin()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).asin(),
+                vec3!(x1.asin(), y1.asin(), x1.asin())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).asin(),
+                vec4!(x1.asin(), y1.asin(), x1.asin(), y1.asin())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).acos(), vec2!(x1.acos(), y1.acos()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).acos(),
+                vec3!(x1.acos(), y1.acos(), x1.acos())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).acos(),
+                vec4!(x1.acos(), y1.acos(), x1.acos(), y1.acos())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).atan(), vec2!(x1.atan(), y1.atan()));
+            assert_float_eq!(
+                vec3!(x1, y1, x1).atan(),
+                vec3!(x1.atan(), y1.atan(), x1.atan())
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).atan(),
+                vec4!(x1.atan(), y1.atan(), x1.atan(), y1.atan())
+            );
+
+            assert_float_eq!(vec2!(x1, y1).length(), (x1 * x1 + y1 * y1).sqrt());
+            assert_float_eq!(
+                vec3!(x1, y1, x1).length(),
+                (x1 * x1 + y1 * y1 + x1 * x1).sqrt()
+            );
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).length(),
+                (x1 * x1 + y1 * y1 + x1 * x1 + y1 * y1).sqrt()
+            );
+
+            // `Vector::normalize` panics for the zero vector.
+            // if `assert` is disabled, the result is unspecified.
+            if x1 == 0.0 && y1 == 0.0 {
+                ggmath_assert_panic!(vec2!(x1, y1).normalize());
+                ggmath_assert_panic!(vec3!(x1, y1, x1).normalize());
+                ggmath_assert_panic!(vec4!(x1, y1, x1, y1).normalize());
+
+                assert_eq!(vec2!(x1, y1).try_normalize(), None);
+                assert_eq!(vec3!(x1, y1, x1).try_normalize(), None);
+                assert_eq!(vec4!(x1, y1, x1, y1).try_normalize(), None);
+
+                assert_float_eq!(vec2!(x1, y1).normalize_or(vec2!(2401.0)), vec2!(2401.0));
+                assert_float_eq!(vec3!(x1, y1, x1).normalize_or(vec3!(2401.0)), vec3!(2401.0));
+                assert_float_eq!(
+                    vec4!(x1, y1, x1, y1).normalize_or(vec4!(2401.0)),
+                    vec4!(2401.0)
+                );
+            }
         }
 
         for (x2, y2) in VALUES {
@@ -431,42 +437,6 @@ pub fn float_tests() {
             assert_float_eq!(
                 vec4!(x1, y1, x1, y1) % vec4!(x2, y2, x2, y2),
                 vec4!(x1 % x2, y1 % y2, x1 % x2, y1 % y2)
-            );
-
-            assert_float_eq!(
-                vec2!(x1, y1).div_euclid(vec2!(x2, y2)),
-                vec2!(x1.div_euclid(x2), y1.div_euclid(y2))
-            );
-            assert_float_eq!(
-                vec3!(x1, y1, x1).div_euclid(vec3!(x2, y2, x2)),
-                vec3!(x1.div_euclid(x2), y1.div_euclid(y2), x1.div_euclid(x2))
-            );
-            assert_float_eq!(
-                vec4!(x1, y1, x1, y1).div_euclid(vec4!(x2, y2, x2, y2)),
-                vec4!(
-                    x1.div_euclid(x2),
-                    y1.div_euclid(y2),
-                    x1.div_euclid(x2),
-                    y1.div_euclid(y2)
-                )
-            );
-
-            assert_float_eq!(
-                vec2!(x1, y1).rem_euclid(vec2!(x2, y2)),
-                vec2!(x1.rem_euclid(x2), y1.rem_euclid(y2))
-            );
-            assert_float_eq!(
-                vec3!(x1, y1, x1).rem_euclid(vec3!(x2, y2, x2)),
-                vec3!(x1.rem_euclid(x2), y1.rem_euclid(y2), x1.rem_euclid(x2))
-            );
-            assert_float_eq!(
-                vec4!(x1, y1, x1, y1).rem_euclid(vec4!(x2, y2, x2, y2)),
-                vec4!(
-                    x1.rem_euclid(x2),
-                    y1.rem_euclid(y2),
-                    x1.rem_euclid(x2),
-                    y1.rem_euclid(y2)
-                )
             );
 
             // `Vector::max` and `Vector::min` panic if any element is NaN.
@@ -543,25 +513,46 @@ pub fn float_tests() {
                 )
             );
 
-            for (x3, y3) in VALUES {
+            #[cfg(feature = "std")]
+            {
                 assert_float_eq!(
-                    vec2!(x1, y1).mul_add(vec2!(x2, y2), vec2!(x3, y3)),
-                    vec2!(x1.mul_add(x2, x3), y1.mul_add(y2, y3))
+                    vec2!(x1, y1).div_euclid(vec2!(x2, y2)),
+                    vec2!(x1.div_euclid(x2), y1.div_euclid(y2))
                 );
                 assert_float_eq!(
-                    vec3!(x1, y1, x1).mul_add(vec3!(x2, y2, x2), vec3!(x3, y3, x3)),
-                    vec3!(x1.mul_add(x2, x3), y1.mul_add(y2, y3), x1.mul_add(x2, x3))
+                    vec3!(x1, y1, x1).div_euclid(vec3!(x2, y2, x2)),
+                    vec3!(x1.div_euclid(x2), y1.div_euclid(y2), x1.div_euclid(x2))
                 );
                 assert_float_eq!(
-                    vec4!(x1, y1, x1, y1).mul_add(vec4!(x2, y2, x2, y2), vec4!(x3, y3, x3, y3)),
+                    vec4!(x1, y1, x1, y1).div_euclid(vec4!(x2, y2, x2, y2)),
                     vec4!(
-                        x1.mul_add(x2, x3),
-                        y1.mul_add(y2, y3),
-                        x1.mul_add(x2, x3),
-                        y1.mul_add(y2, y3)
+                        x1.div_euclid(x2),
+                        y1.div_euclid(y2),
+                        x1.div_euclid(x2),
+                        y1.div_euclid(y2)
                     )
                 );
 
+                assert_float_eq!(
+                    vec2!(x1, y1).rem_euclid(vec2!(x2, y2)),
+                    vec2!(x1.rem_euclid(x2), y1.rem_euclid(y2))
+                );
+                assert_float_eq!(
+                    vec3!(x1, y1, x1).rem_euclid(vec3!(x2, y2, x2)),
+                    vec3!(x1.rem_euclid(x2), y1.rem_euclid(y2), x1.rem_euclid(x2))
+                );
+                assert_float_eq!(
+                    vec4!(x1, y1, x1, y1).rem_euclid(vec4!(x2, y2, x2, y2)),
+                    vec4!(
+                        x1.rem_euclid(x2),
+                        y1.rem_euclid(y2),
+                        x1.rem_euclid(x2),
+                        y1.rem_euclid(y2)
+                    )
+                );
+            }
+
+            for (x3, y3) in VALUES {
                 // `Vector::clamp` panics when either theres a NaN or `min` > `max`.
                 // if `assert` is disabled, the result is unspecified.
                 if [x1, y1, x2, y2, x3, y3].into_iter().any(T::is_nan) || x2 > x3 || y2 > y3 {
@@ -588,6 +579,27 @@ pub fn float_tests() {
                             y1.clamp(y2, y3),
                             x1.clamp(x2, x3),
                             y1.clamp(y2, y3)
+                        )
+                    );
+                }
+
+                #[cfg(feature = "std")]
+                {
+                    assert_float_eq!(
+                        vec2!(x1, y1).mul_add(vec2!(x2, y2), vec2!(x3, y3)),
+                        vec2!(x1.mul_add(x2, x3), y1.mul_add(y2, y3))
+                    );
+                    assert_float_eq!(
+                        vec3!(x1, y1, x1).mul_add(vec3!(x2, y2, x2), vec3!(x3, y3, x3)),
+                        vec3!(x1.mul_add(x2, x3), y1.mul_add(y2, y3), x1.mul_add(x2, x3))
+                    );
+                    assert_float_eq!(
+                        vec4!(x1, y1, x1, y1).mul_add(vec4!(x2, y2, x2, y2), vec4!(x3, y3, x3, y3)),
+                        vec4!(
+                            x1.mul_add(x2, x3),
+                            y1.mul_add(y2, y3),
+                            x1.mul_add(x2, x3),
+                            y1.mul_add(y2, y3)
                         )
                     );
                 }
