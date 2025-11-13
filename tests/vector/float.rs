@@ -35,6 +35,131 @@ pub fn float_tests() {
         (0.0000001, T::MAX),
     ];
 
+    assert_float_eq!(Vec2t::ZERO, vec2!(0.0));
+    assert_float_eq!(Vec3t::ZERO, vec3!(0.0));
+    assert_float_eq!(Vec4t::ZERO, vec4!(0.0));
+    assert_float_eq!(Vec2t::ONE, vec2!(1.0));
+    assert_float_eq!(Vec3t::ONE, vec3!(1.0));
+    assert_float_eq!(Vec4t::ONE, vec4!(1.0));
+    assert_float_eq!(Vec2t::X, vec2!(1.0, 0.0));
+    assert_float_eq!(Vec3t::X, vec3!(1.0, 0.0, 0.0));
+    assert_float_eq!(Vec4t::X, vec4!(1.0, 0.0, 0.0, 0.0));
+    assert_float_eq!(Vec2t::NEG_X, vec2!(-1.0, 0.0));
+    assert_float_eq!(Vec3t::NEG_X, vec3!(-1.0, 0.0, 0.0));
+    assert_float_eq!(Vec4t::NEG_X, vec4!(-1.0, 0.0, 0.0, 0.0));
+    assert_float_eq!(Vec2t::Y, vec2!(0.0, 1.0));
+    assert_float_eq!(Vec3t::Y, vec3!(0.0, 1.0, 0.0));
+    assert_float_eq!(Vec4t::Y, vec4!(0.0, 1.0, 0.0, 0.0));
+    assert_float_eq!(Vec2t::NEG_Y, vec2!(0.0, -1.0));
+    assert_float_eq!(Vec3t::NEG_Y, vec3!(0.0, -1.0, 0.0));
+    assert_float_eq!(Vec4t::NEG_Y, vec4!(0.0, -1.0, 0.0, 0.0));
+    assert_float_eq!(Vec3t::Z, vec3!(0.0, 0.0, 1.0));
+    assert_float_eq!(Vec4t::Z, vec4!(0.0, 0.0, 1.0, 0.0));
+    assert_float_eq!(Vec3t::NEG_Z, vec3!(0.0, 0.0, -1.0));
+    assert_float_eq!(Vec4t::NEG_Z, vec4!(0.0, 0.0, -1.0, 0.0));
+    assert_float_eq!(Vec4t::W, vec4!(0.0, 0.0, 0.0, 1.0));
+    assert_float_eq!(Vec4t::NEG_W, vec4!(0.0, 0.0, 0.0, -1.0));
+
+    assert_float_eq!(
+        vec2!(1.0, 0.0).dot(vec2!(1.0, 0.0)),
+        1.0 * 1.0 * T::to_radians(0.0).cos()
+    );
+    assert_float_eq!(
+        vec3!(1.0, 0.0, 0.0).dot(vec3!(1.0, 0.0, 0.0)),
+        1.0 * 1.0 * T::to_radians(0.0).cos()
+    );
+    assert_float_eq!(
+        vec4!(1.0, 0.0, 0.0, 0.0).dot(vec4!(1.0, 0.0, 0.0, 0.0)),
+        1.0 * 1.0 * T::to_radians(0.0).cos()
+    );
+    assert_approx_eq!(
+        vec2!(1.0, 1.0).dot(vec2!(1.0, 0.0)),
+        T::sqrt(2.0) * 1.0 * T::to_radians(45.0).cos(),
+        0.00001
+    );
+    assert_approx_eq!(
+        vec3!(1.0, 1.0, 0.0).dot(vec3!(1.0, 0.0, 0.0)),
+        T::sqrt(2.0) * 1.0 * T::to_radians(45.0).cos(),
+        0.00001
+    );
+    assert_approx_eq!(
+        vec4!(1.0, 1.0, 0.0, 0.0).dot(vec4!(1.0, 0.0, 0.0, 0.0)),
+        T::sqrt(2.0) * 1.0 * T::to_radians(45.0).cos(),
+        0.00001
+    );
+
+    assert_float_eq!(vec2!(1.0, 0.0).normalize(), vec2!(1.0, 0.0));
+    assert_float_eq!(vec3!(1.0, 0.0, 0.0).normalize(), vec3!(1.0, 0.0, 0.0));
+    assert_float_eq!(
+        vec4!(1.0, 0.0, 0.0, 0.0).normalize(),
+        vec4!(1.0, 0.0, 0.0, 0.0)
+    );
+    assert_approx_eq!(
+        vec2!(1.0, 1.0).normalize(),
+        vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0)),
+        0.0001
+    );
+    assert_approx_eq!(
+        vec3!(1.0, 1.0, 0.0).normalize(),
+        vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0),
+        0.0001
+    );
+    assert_approx_eq!(
+        vec4!(1.0, 1.0, 0.0, 0.0).normalize(),
+        vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0),
+        0.0001
+    );
+
+    assert_float_eq!(vec2!(1.0, 0.0).try_normalize(), Some(vec2!(1.0, 0.0)));
+    assert_float_eq!(
+        vec3!(1.0, 0.0, 0.0).try_normalize(),
+        Some(vec3!(1.0, 0.0, 0.0))
+    );
+    assert_float_eq!(
+        vec4!(1.0, 0.0, 0.0, 0.0).try_normalize(),
+        Some(vec4!(1.0, 0.0, 0.0, 0.0))
+    );
+    assert_approx_eq!(
+        vec2!(1.0, 1.0).try_normalize(),
+        Some(vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0))),
+        0.0001
+    );
+    assert_approx_eq!(
+        vec3!(1.0, 1.0, 0.0).try_normalize(),
+        Some(vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0)),
+        0.0001
+    );
+    assert_approx_eq!(
+        vec4!(1.0, 1.0, 0.0, 0.0).try_normalize(),
+        Some(vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0)),
+        0.0001
+    );
+
+    assert_float_eq!(vec2!(1.0, 0.0).normalize_or(vec2!(T::NAN)), vec2!(1.0, 0.0));
+    assert_float_eq!(
+        vec3!(1.0, 0.0, 0.0).normalize_or(vec3!(T::NAN)),
+        vec3!(1.0, 0.0, 0.0)
+    );
+    assert_float_eq!(
+        vec4!(1.0, 0.0, 0.0, 0.0).normalize_or(vec4!(T::NAN)),
+        vec4!(1.0, 0.0, 0.0, 0.0)
+    );
+    assert_approx_eq!(
+        vec2!(1.0, 1.0).normalize_or(vec2!(T::NAN)),
+        vec2!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0)),
+        0.0001
+    );
+    assert_approx_eq!(
+        vec3!(1.0, 1.0, 0.0).normalize_or(vec3!(T::NAN)),
+        vec3!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0),
+        0.0001
+    );
+    assert_approx_eq!(
+        vec4!(1.0, 1.0, 0.0, 0.0).normalize_or(vec4!(T::NAN)),
+        vec4!(1.0 / T::sqrt(2.0), 1.0 / T::sqrt(2.0), 0.0, 0.0),
+        0.0001
+    );
+
     for (x1, y1) in VALUES {
         assert_float_eq!(-vec2!(x1, y1), vec2!(-x1, -y1));
         assert_float_eq!(-vec3!(x1, y1, x1), vec3!(-x1, -y1, -x1));
@@ -177,6 +302,71 @@ pub fn float_tests() {
             vec4!(x1, y1, x1, y1).signum(),
             vec4!(x1.signum(), y1.signum(), x1.signum(), y1.signum())
         );
+
+        assert_float_eq!(vec2!(x1, y1).element_sum(), x1 + y1);
+        assert_float_eq!(vec3!(x1, y1, x1).element_sum(), x1 + y1 + x1);
+        assert_float_eq!(vec4!(x1, y1, x1, y1).element_sum(), x1 + y1 + x1 + y1);
+
+        assert_float_eq!(vec2!(x1, y1).element_product(), x1 * y1);
+        assert_float_eq!(vec3!(x1, y1, x1).element_product(), x1 * y1 * x1);
+        assert_float_eq!(vec4!(x1, y1, x1, y1).element_product(), x1 * y1 * x1 * y1);
+
+        if [x1, y1].into_iter().any(T::is_nan) {
+            ggmath_assert_panic!(vec2!(x1, y1).max_element());
+            ggmath_assert_panic!(vec3!(x1, y1, x1).max_element());
+            ggmath_assert_panic!(vec4!(x1, y1, x1, y1).max_element());
+
+            ggmath_assert_panic!(vec2!(x1, y1).min_element());
+            ggmath_assert_panic!(vec3!(x1, y1, x1).min_element());
+            ggmath_assert_panic!(vec4!(x1, y1, x1, y1).min_element());
+        } else {
+            assert_float_eq!(vec2!(x1, y1).max_element(), x1.max(y1));
+            assert_float_eq!(vec3!(x1, y1, x1).max_element(), x1.max(y1));
+            assert_float_eq!(vec4!(x1, y1, x1, y1).max_element(), x1.max(y1));
+
+            assert_float_eq!(vec2!(x1, y1).min_element(), x1.min(y1));
+            assert_float_eq!(vec3!(x1, y1, x1).min_element(), x1.min(y1));
+            assert_float_eq!(vec4!(x1, y1, x1, y1).min_element(), x1.min(y1));
+        }
+
+        assert_float_eq!(vec2!(x1, y1).length(), (x1 * x1 + y1 * y1).sqrt());
+        assert_float_eq!(
+            vec3!(x1, y1, x1).length(),
+            (x1 * x1 + y1 * y1 + x1 * x1).sqrt()
+        );
+        assert_float_eq!(
+            vec4!(x1, y1, x1, y1).length(),
+            (x1 * x1 + y1 * y1 + x1 * x1 + y1 * y1).sqrt()
+        );
+
+        assert_float_eq!(vec2!(x1, y1).length_squared(), x1 * x1 + y1 * y1);
+        assert_float_eq!(
+            vec3!(x1, y1, x1).length_squared(),
+            x1 * x1 + y1 * y1 + x1 * x1
+        );
+        assert_float_eq!(
+            vec4!(x1, y1, x1, y1).length_squared(),
+            x1 * x1 + y1 * y1 + x1 * x1 + y1 * y1
+        );
+
+        // `Vector::normalize` panics for the zero vector.
+        // if `assert` is disabled, the result is unspecified.
+        if x1 == 0.0 && y1 == 0.0 {
+            ggmath_assert_panic!(vec2!(x1, y1).normalize());
+            ggmath_assert_panic!(vec3!(x1, y1, x1).normalize());
+            ggmath_assert_panic!(vec4!(x1, y1, x1, y1).normalize());
+
+            assert_eq!(vec2!(x1, y1).try_normalize(), None);
+            assert_eq!(vec3!(x1, y1, x1).try_normalize(), None);
+            assert_eq!(vec4!(x1, y1, x1, y1).try_normalize(), None);
+
+            assert_float_eq!(vec2!(x1, y1).normalize_or(vec2!(2401.0)), vec2!(2401.0));
+            assert_float_eq!(vec3!(x1, y1, x1).normalize_or(vec3!(2401.0)), vec3!(2401.0));
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).normalize_or(vec4!(2401.0)),
+                vec4!(2401.0)
+            );
+        }
 
         for (x2, y2) in VALUES {
             assert_eq!(vec2!(x1, y1) == vec2!(x2, y2), x1 == x2 && y1 == y2);
@@ -406,18 +596,37 @@ pub fn float_tests() {
     }
 }
 
+type Vec2t = Vector<2, T>;
+type Vec3t = Vector<3, T>;
+type Vec4t = Vector<4, T>;
+
 trait FloatEq {
     fn float_eq(self, other: Self, ignore_zero_sign: bool) -> bool;
-    #[expect(unused)]
     fn approx_eq(self, other: Self, epsilon: T, ignore_zero_sign: bool) -> bool;
 }
 
 macro_rules! assert_float_eq {
     ($a:expr, $b:expr $(,)?) => {
-        assert!($a.float_eq($b, false));
+        if !$a.float_eq($b, false) {
+            panic!(
+                "assertion failed: {} == {}\n\nexpected: {:?}\nfound: {:?}",
+                stringify!($a),
+                stringify!($b),
+                $b,
+                $a
+            );
+        }
     };
     ($a:expr, $b:expr, 0.0 = -0.0, $(,)?) => {
-        assert!($a.float_eq($b, true));
+        if !$a.float_eq($b, true) {
+            panic!(
+                "assertion failed: {} == {}\n\nexpected: {:?}\nfound: {:?}",
+                stringify!($a),
+                stringify!($b),
+                $b,
+                $a
+            );
+        }
     };
 }
 
@@ -426,14 +635,29 @@ use assert_float_eq;
 #[expect(unused)]
 macro_rules! assert_approx_eq {
     ($a:expr, $b:expr, $e:expr $(,)?) => {
-        assert!($a.approx_eq($b, $e, false));
+        if !$a.approx_eq($b, $e, false) {
+            panic!(
+                "assertion failed: {} == {}\n\nexpected: {:?}\nfound: {:?}",
+                stringify!($a),
+                stringify!($b),
+                $b,
+                $a
+            );
+        }
     };
     ($a:expr, $b:expr, $e:expr, 0.0 = -0.0, $(,)?) => {
-        assert!($a.approx_eq($b, $e, true));
+        if !$a.approx_eq($b, $e, true) {
+            panic!(
+                "assertion failed: {} == {}\n\nexpected: {:?}\nfound: {:?}",
+                stringify!($a),
+                stringify!($b),
+                $b,
+                $a
+            );
+        }
     };
 }
 
-#[expect(unused)]
 use assert_approx_eq;
 
 impl FloatEq for T {
@@ -480,5 +704,25 @@ where
         self.iter()
             .zip(other.iter())
             .all(|(a, b)| a.approx_eq(b, epsilon, ignore_zero_sign))
+    }
+}
+
+impl<S: FloatEq> FloatEq for Option<S> {
+    fn float_eq(self, other: Self, ignore_zero_sign: bool) -> bool {
+        match (self, other) {
+            (Some(value), Some(other)) => value.float_eq(other, ignore_zero_sign),
+            (None, None) => true,
+            (None, Some(_)) => false,
+            (Some(_), None) => false,
+        }
+    }
+
+    fn approx_eq(self, other: Self, epsilon: T, ignore_zero_sign: bool) -> bool {
+        match (self, other) {
+            (Some(value), Some(other)) => value.approx_eq(other, epsilon, ignore_zero_sign),
+            (None, None) => true,
+            (None, Some(_)) => false,
+            (Some(_), None) => false,
+        }
     }
 }
