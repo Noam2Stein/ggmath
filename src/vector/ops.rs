@@ -4,36 +4,34 @@ use core::ops::{
 };
 
 use crate::{
-    Scalar, Simdness, SupportedVecLen, VecLen, Vector,
-    vector::{VectorApi, specialized_vector_api},
+    Alignment, Length, Scalar, ScalarBackend, SupportedLength, Vector, vector::specialize,
 };
 
-impl_unary_op!(Neg { neg });
-impl_unary_op!(Not { not });
+impl_unary_op!(Neg, neg, vec_neg);
+impl_unary_op!(Not, not, vec_not);
 
-impl_binary_op!(Add { add }, AddAssign { add_assign });
-impl_binary_op!(Sub { sub }, SubAssign { sub_assign });
-impl_binary_op!(Mul { mul }, MulAssign { mul_assign });
-impl_binary_op!(Div { div }, DivAssign { div_assign });
-impl_binary_op!(Rem { rem }, RemAssign { rem_assign });
-impl_binary_op!(Shl { shl }, ShlAssign { shl_assign });
-impl_binary_op!(Shr { shr }, ShrAssign { shr_assign });
-impl_binary_op!(BitAnd { bitand }, BitAndAssign { bitand_assign });
-impl_binary_op!(BitOr { bitor }, BitOrAssign { bitor_assign });
-impl_binary_op!(BitXor { bitxor }, BitXorAssign { bitxor_assign });
+impl_binary_op!(Add, add, vec_add, AddAssign, add_assign);
+impl_binary_op!(Sub, sub, vec_sub, SubAssign, sub_assign);
+impl_binary_op!(Mul, mul, vec_mul, MulAssign, mul_assign);
+impl_binary_op!(Div, div, vec_div, DivAssign, div_assign);
+impl_binary_op!(Rem, rem, vec_rem, RemAssign, rem_assign);
+impl_binary_op!(Shl, shl, vec_shl, ShlAssign, shl_assign);
+impl_binary_op!(Shr, shr, vec_shr, ShrAssign, shr_assign);
+impl_binary_op!(BitAnd, bitand, vec_bitand, BitAndAssign, bitand_assign);
+impl_binary_op!(BitOr, bitor, vec_bitor, BitOrAssign, bitor_assign);
+impl_binary_op!(BitXor, bitxor, vec_bitxor, BitXorAssign, bitxor_assign);
 
 macro_rules! impl_unary_op {
-    ($Op:ident { $op:ident }) => {
-        impl<const N: usize, T: Scalar + $Op<Output = T>, S: Simdness> $Op for Vector<N, T, S>
+    ($Op:ident, $op:ident, $vec_op:ident) => {
+        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op for Vector<N, T, A>
         where
-            VecLen<N>: SupportedVecLen,
+            Length<N>: SupportedLength,
         {
             type Output = Self;
 
-            specialized_vector_api! {
-                VectorApi for <N, T, S>:
-
-                fn $op(self) -> Self;
+            #[inline(always)]
+            fn $op(self) -> Self {
+                specialize!(unsafe { <T as ScalarBackend<N, A>>::$vec_op(self) })
             }
         }
     };
@@ -42,33 +40,22 @@ macro_rules! impl_unary_op {
 use impl_unary_op;
 
 macro_rules! impl_binary_op {
-    ($Op:ident { $op:ident }, $OpAssign:ident { $op_assign:ident }) => {
-        impl<const N: usize, T: Scalar + $Op<Output = T>, S: Simdness> $Op for Vector<N, T, S>
+    ($Op:ident, $op:ident, $vec_op:ident, $OpAssign:ident, $op_assign:ident) => {
+        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op for Vector<N, T, A>
         where
-            VecLen<N>: SupportedVecLen,
+            Length<N>: SupportedLength,
         {
             type Output = Self;
 
-            specialized_vector_api! {
-                VectorApi for <N, T, S>:
-
-                fn $op(self, rhs: Self) -> Self;
-            }
-        }
-
-        impl<const N: usize, T: Scalar + $Op<Output = T>, S: Simdness> $OpAssign for Vector<N, T, S>
-        where
-            VecLen<N>: SupportedVecLen,
-        {
             #[inline(always)]
-            fn $op_assign(&mut self, rhs: Self) {
-                *self = self.$op(rhs);
+            fn $op(self, rhs: Self) -> Self {
+                specialize!(unsafe { <T as ScalarBackend<N, A>>::$vec_op(self, rhs) })
             }
         }
 
-        impl<const N: usize, T: Scalar + $Op<Output = T>, S: Simdness> $Op<T> for Vector<N, T, S>
+        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op<T> for Vector<N, T, A>
         where
-            VecLen<N>: SupportedVecLen,
+            Length<N>: SupportedLength,
         {
             type Output = Self;
 
@@ -78,10 +65,21 @@ macro_rules! impl_binary_op {
             }
         }
 
-        impl<const N: usize, T: Scalar + $Op<Output = T>, S: Simdness> $OpAssign<T>
-            for Vector<N, T, S>
+        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $OpAssign
+            for Vector<N, T, A>
         where
-            VecLen<N>: SupportedVecLen,
+            Length<N>: SupportedLength,
+        {
+            #[inline(always)]
+            fn $op_assign(&mut self, rhs: Self) {
+                *self = self.$op(rhs);
+            }
+        }
+
+        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $OpAssign<T>
+            for Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
         {
             #[inline(always)]
             fn $op_assign(&mut self, rhs: T) {

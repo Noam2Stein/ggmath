@@ -1,361 +1,317 @@
-#![allow(arithmetic_overflow)]
-
-use ggmath::*;
+use ggmath::{Alignment, Length, Scalar, SupportedLength, Vector};
 
 mod vector;
 
-macro_rules! test {
-    {
-        $api:ident for T, S in [$($T:ty),* $(,)*], [Simd, NonSimd $(,)*]:
+////////////////////////////////////////////////////////////////////////////////
+// Float Equality
+////////////////////////////////////////////////////////////////////////////////
 
-        $($test:tt)*
-    } => {
-        crate::test! {
-            $dollar
-            $api for T, S in [$($T),*], [Simd, NonSimd] {
-                $($test)*
-            }
+trait FloatEq {
+    type Float: Copy;
+
+    fn float_eq(self, other: Self, ignore_zero_sign: bool) -> bool;
+    fn approx_eq(self, other: Self, epsilon: Self::Float, ignore_zero_sign: bool) -> bool;
+}
+
+impl FloatEq for f32 {
+    type Float = Self;
+
+    fn float_eq(self, other: Self, ignore_zero_sign: bool) -> bool {
+        if self.is_nan() && other.is_nan() {
+            true
+        } else if self == 0.0 && other == 0.0 && ignore_zero_sign {
+            true
+        } else if self.is_sign_positive() != other.is_sign_positive() {
+            false
+        } else if self.is_infinite() && other.is_infinite() {
+            true
+        } else {
+            self == other
         }
+    }
+
+    fn approx_eq(self, other: Self, epsilon: Self, ignore_zero_sign: bool) -> bool {
+        let epsilon = epsilon.max(Self::EPSILON * 2.0);
+
+        if self.is_nan() && other.is_nan() {
+            true
+        } else if self == 0.0 && other == 0.0 && ignore_zero_sign {
+            true
+        } else if self.is_sign_positive() != other.is_sign_positive() {
+            false
+        } else if self.is_infinite() && other.is_infinite() {
+            true
+        } else {
+            (self - other).abs() <= epsilon
+        }
+    }
+}
+
+impl FloatEq for f64 {
+    type Float = Self;
+
+    fn float_eq(self, other: Self, ignore_zero_sign: bool) -> bool {
+        if self.is_nan() && other.is_nan() {
+            true
+        } else if self == 0.0 && other == 0.0 && ignore_zero_sign {
+            true
+        } else if self.is_sign_positive() != other.is_sign_positive() {
+            false
+        } else if self.is_infinite() && other.is_infinite() {
+            true
+        } else {
+            self == other
+        }
+    }
+
+    fn approx_eq(self, other: Self, epsilon: Self, ignore_zero_sign: bool) -> bool {
+        let epsilon = epsilon.max(Self::EPSILON * 2.0);
+
+        if self.is_nan() && other.is_nan() {
+            true
+        } else if self == 0.0 && other == 0.0 && ignore_zero_sign {
+            true
+        } else if self.is_sign_positive() != other.is_sign_positive() {
+            false
+        } else if self.is_infinite() && other.is_infinite() {
+            true
+        } else {
+            (self - other).abs() <= epsilon
+        }
+    }
+}
+
+impl<const N: usize, T: Scalar + FloatEq, A: Alignment> FloatEq for Vector<N, T, A>
+where
+    Length<N>: SupportedLength,
+{
+    type Float = T::Float;
+
+    fn float_eq(self, other: Self, ignore_zero_sign: bool) -> bool {
+        self.iter()
+            .zip(other.iter())
+            .all(|(a, b)| a.float_eq(b, ignore_zero_sign))
+    }
+
+    fn approx_eq(self, other: Self, epsilon: T::Float, ignore_zero_sign: bool) -> bool {
+        self.iter()
+            .zip(other.iter())
+            .all(|(a, b)| a.approx_eq(b, epsilon, ignore_zero_sign))
+    }
+}
+
+impl<T: FloatEq> FloatEq for Option<T> {
+    type Float = T::Float;
+
+    fn float_eq(self, other: Self, ignore_zero_sign: bool) -> bool {
+        match (self, other) {
+            (Some(value), Some(other)) => value.float_eq(other, ignore_zero_sign),
+            (None, None) => true,
+            (None, Some(_)) => false,
+            (Some(_), None) => false,
+        }
+    }
+
+    fn approx_eq(self, other: Self, epsilon: T::Float, ignore_zero_sign: bool) -> bool {
+        match (self, other) {
+            (Some(value), Some(other)) => value.approx_eq(other, epsilon, ignore_zero_sign),
+            (None, None) => true,
+            (None, Some(_)) => false,
+            (Some(_), None) => false,
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Helper Macros
+////////////////////////////////////////////////////////////////////////////////
+
+macro_rules! vec2 {
+    ($($arg:expr),*$(,)?) => {
+        Vector::<2, T, A>::from(($($arg,)*))
+    };
+}
+
+use vec2;
+
+macro_rules! vec3 {
+    ($($arg:expr),*$(,)?) => {
+        Vector::<3, T, A>::from(($($arg,)*))
+    };
+}
+
+use vec3;
+
+macro_rules! vec4 {
+    ($($arg:expr),*$(,)?) => {
+        Vector::<4, T, A>::from(($($arg,)*))
+    };
+}
+
+use vec4;
+
+macro_rules! assert_eq {
+    ($a:expr, $b:expr$(,)?) => {
+        $crate::assert_eq!(@$a, $b, "");
+    };
+    ($a:expr, $b:expr, $ctx:ident$(,)?) => {
+        $crate::assert_eq!(@$a, $b, format_args!("\n\n{}", $ctx));
     };
 
-    {
-        $dollar:tt dollar
-        $api:ident for T, S in [$($T:ty),* $(,)*], [Simd, NonSimd $(,)*] $test:expr
-    } => {
-        paste::paste! {$(
-            #[test]
-            fn [<test_ $T _simd_ $api>]() {
-                #[allow(unused)]
-                type T = $T;
-                #[allow(unused)]
-                type S = ggmath::Simd;
-                #[allow(unused)]
-                type Vec2T = ggmath::Vector<2, $T, ggmath::Simd>;
-                #[allow(unused)]
-                type Vec3T = ggmath::Vector<3, $T, ggmath::Simd>;
-                #[allow(unused)]
-                type Vec4T = ggmath::Vector<4, $T, ggmath::Simd>;
+    (@$a:expr, $b:expr, $ctx:expr) => {{
+        let [a, b] = [$a, $b];
+        if !(a == b) {
+            panic!(
+                "assertion failed: {} == {}\n\nexpected: {:?}\nfound: {:?}{}",
+                stringify!($a),
+                stringify!($b),
+                b,
+                a,
+                $ctx
+            );
+        }
+    }};
+}
 
-                #[allow(unused)]
-                macro_rules! vec2t {
-                    ($dollar($tt:tt)*) => {{
-                        let v: Vec2T = ggmath::vec2!($dollar($tt)*);
-                        v
-                    }};
-                }
-                #[allow(unused)]
-                macro_rules! vec3t {
-                    ($dollar($tt:tt)*) => {{
-                        let v: Vec3T = ggmath::vec3!($dollar($tt)*);
-                        v
-                    }};
-                }
-                #[allow(unused)]
-                macro_rules! vec4t {
-                    ($dollar($tt:tt)*) => {{
-                        let v: Vec4T = ggmath::vec4!($dollar($tt)*);
-                        v
-                    }};
-                }
+use assert_eq;
 
-                $test
-            }
+macro_rules! assert_float_eq {
+    ($a:expr, $b:expr$(,)?) => {
+        $crate::assert_float_eq!(@$a, $b, false, "");
+    };
+    ($a:expr, $b:expr, 0.0 = -0.0$(,)?) => {
+        $crate::assert_float_eq!(@$a, $b, true, "");
+    };
+    ($a:expr, $b:expr, $ctx:ident$(,)?) => {
+        $crate::assert_float_eq!(@$a, $b, false, format_args!("\n\n{}", $ctx));
+    };
+    ($a:expr, $b:expr, 0.0 = -0.0, $ctx:ident$(,)?) => {
+        $crate::assert_float_eq!(@$a, $b, true, format_args!("\n\n{}", $ctx));
+    };
 
-            #[test]
-            fn [<test_ $T _nonsimd_ $api>]() {
-                #[allow(unused)]
-                type T = $T;
-                #[allow(unused)]
-                type S = ggmath::NonSimd;
-                #[allow(unused)]
-                type Vec2T = ggmath::Vector<2, $T, ggmath::NonSimd>;
-                #[allow(unused)]
-                type Vec3T = ggmath::Vector<3, $T, ggmath::NonSimd>;
-                #[allow(unused)]
-                type Vec4T = ggmath::Vector<4, $T, ggmath::NonSimd>;
-
-                #[allow(unused)]
-                macro_rules! vec2t {
-                    ($dollar($tt:tt)*) => {{
-                        let v: Vec2T = ggmath::vec2s!($dollar($tt)*);
-                        v
-                    }};
-                }
-                #[allow(unused)]
-                macro_rules! vec3t {
-                    ($dollar($tt:tt)*) => {{
-                        let v: Vec3T = ggmath::vec3s!($dollar($tt)*);
-                        v
-                    }};
-                }
-                #[allow(unused)]
-                macro_rules! vec4t {
-                    ($dollar($tt:tt)*) => {{
-                        let v: Vec4T = ggmath::vec4s!($dollar($tt)*);
-                        v
-                    }};
-                }
-
-                $test
-            }
-        )*}
+    (@$a:expr, $b:expr, $ignore_zero_sign:literal, $ctx:expr) => {
+        if !$crate::FloatEq::float_eq($a, $b, $ignore_zero_sign) {
+            panic!(
+                "assertion failed: {} == {}\n\nexpected: {:?}\nfound: {:?}{}",
+                stringify!($a),
+                stringify!($b),
+                $b,
+                $a,
+                $ctx
+            );
+        }
     };
 }
 
-macro_rules! assert_val {
-    ($val:expr, $expected:expr, $val_str:literal) => {{
-        let val = $val;
-        let expected = $expected;
+use assert_float_eq;
 
-        #[allow(unused_parens)]
-        if !(val == expected) {
+#[expect(unused)]
+macro_rules! assert_approx_eq {
+    ($a:expr, $b:expr, $epsilon:expr$(,)?) => {
+        $crate::assert_approx_eq!(@$a, $b, $epsilon, false, "");
+    };
+    ($a:expr, $b:expr, $epsilon:expr, 0.0 = -0.0$(,)?) => {
+        $crate::assert_approx_eq!(@$a, $b, $epsilon, true, "");
+    };
+    ($a:expr, $b:expr, $epsilon:expr, $ctx:ident$(,)?) => {
+        $crate::assert_approx_eq!(@$a, $b, $epsilon, false, format_args!("\n\n{}", $ctx));
+    };
+    ($a:expr, $b:expr, $epsilon:expr, 0.0 = -0.0, $ctx:ident$(,)?) => {
+        $crate::assert_approx_eq!(@$a, $b, $epsilon, true, format_args!("\n\n{}", $ctx));
+    };
+
+    (@$a:expr, $b:expr, $epsilon:expr, $ignore_zero_sign:literal, $ctx:expr) => {
+        if !$crate::FloatEq::approx_eq($a, $b, $epsilon, $ignore_zero_sign) {
             panic!(
-                "wrong value for: {}\n\nexpected: {expected:?}\nactual: {val:?}",
-                format_args!($val_str),
+                "assertion failed: {} == {}\n\nexpected: {:?}\nfound: {:?}{}",
+                stringify!($a),
+                stringify!($b),
+                $b,
+                $a,
+                $ctx
             );
         }
-    }};
+    };
 }
 
-macro_rules! assert_val_logic {
-    ($val:expr, $expected:expr, $val_str:literal) => {{
-        let val = $val;
-        let expected = $expected;
-
-        #[allow(unused_parens)]
-        if !crate::LogicEq::logic_eq(&val, &expected) {
-            panic!(
-                "wrong value for: {}\n\nexpected: {expected:?}\nactual: {val:?}",
-                format_args!($val_str),
-            );
-        }
-    }};
-}
-
-macro_rules! assert_approx_val {
-    ($val:expr, $expected:expr, $val_str:literal) => {{
-        let val = $val;
-        let expected = $expected;
-
-        #[allow(unused_parens)]
-        if !crate::ApproxEq::approx_eq(&val, &expected) {
-            panic!(
-                "wrong approximate value for: {}\n\nexpected: {expected:?}\nactual: {val:?}",
-                format_args!($val_str),
-            );
-        }
-    }};
-}
+use assert_approx_eq;
 
 macro_rules! assert_panic {
-    ($val:expr, $val_str:literal) => {{
-        match std::panic::catch_unwind(|| {
-            let _ = $val;
+    ($e:expr $(,)?) => {
+        $crate::assert_panic!(@$e, "");
+    };
+    ($e:expr, $ctx:ident$(,)?) => {
+        $crate::assert_panic!(@$e, format_args!("\n\n{}", $ctx));
+    };
+
+    (@$e:expr, $ctx:expr) => {
+        match ::std::panic::catch_unwind(|| -> () {
+            let _ = $e;
         }) {
-            Ok(_) => panic!(
-                "function did not panic as expected: {}",
-                format_args!($val_str)
-            ),
-            Err(_) => {}
-        };
-    }};
+            Ok(_) => panic!("assert_panic! argument did not panic{}", $ctx),
+            Err(_) => println!("argument paniced as expected ... {}", colored::Colorize::green("ok")),
+        }
+    }
 }
 
-macro_rules! assert_debug_panic {
-    ($e:expr, $val_str:literal) => {{
-        #[cfg(debug_assertions)]
-        crate::assert_panic!($e, $val_str);
-
-        #[cfg(not(debug_assertions))]
-        $e;
-    }};
-}
-
-macro_rules! assert_debug_panic_val {
-    ($val:expr, $expected:expr, $val_str:literal) => {
-        assert_debug_panic!(crate::assert_val!($val, $expected, $val_str), $val_str)
-    };
-}
-
-#[expect(unused)]
-macro_rules! assert_debug_panic_val_logic {
-    ($val:expr, $expected:expr, $val_str:literal) => {
-        assert_debug_panic!(
-            crate::assert_val_logic!($val, $expected, $val_str),
-            $val_str
-        )
-    };
-}
-
-#[expect(unused)]
-macro_rules! assert_debug_panic_approx_val {
-    ($val:expr, $expected:expr, $val_str:literal) => {
-        assert_debug_panic!(
-            crate::assert_approx_val!($val, $expected, $val_str),
-            $val_str
-        )
-    };
-}
-
-use assert_approx_val;
-use assert_debug_panic;
-#[expect(unused)]
-use assert_debug_panic_approx_val;
-use assert_debug_panic_val;
-#[expect(unused)]
-use assert_debug_panic_val_logic;
 use assert_panic;
-use assert_val;
-use assert_val_logic;
-use test;
 
-trait TestScalar: Scalar {
-    /// `TEST_VALUES[1]` must be greater than `TEST_VALUES[0]`, and `TEST_VALUES[3]` must be greater than `TEST_VALUES[2]`.
-    const TEST_VALUES: [Self; 4];
-}
-
-trait LogicEq {
-    fn logic_eq(&self, other: &Self) -> bool;
-}
-
-trait ApproxEq {
-    fn approx_eq(&self, other: &Self) -> bool;
-}
-
-impl<const N: usize, T: Scalar + LogicEq, S: Simdness> LogicEq for Vector<N, T, S>
-where
-    VecLen<N>: SupportedVecLen,
-{
-    fn logic_eq(&self, other: &Self) -> bool {
-        (0..N).all(|i| self[i].logic_eq(&other[i]))
-    }
-}
-
-impl<const N: usize, T: Scalar + ApproxEq, S: Simdness> ApproxEq for Vector<N, T, S>
-where
-    VecLen<N>: SupportedVecLen,
-{
-    fn approx_eq(&self, other: &Self) -> bool {
-        (0..N).all(|i| self[i].approx_eq(&other[i]))
-    }
-}
-
-impl TestScalar for f32 {
-    const TEST_VALUES: [Self; 4] = [0.0, 1.0, 2.0, 3.0];
-}
-impl TestScalar for f64 {
-    const TEST_VALUES: [Self; 4] = [0.0, 1.0, 2.0, 3.0];
-}
-impl TestScalar for i8 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for i16 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for i32 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for i64 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for i128 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for isize {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for u8 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for u16 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for u32 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for u64 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for u128 {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for usize {
-    const TEST_VALUES: [Self; 4] = [0, 1, 2, 3];
-}
-impl TestScalar for bool {
-    const TEST_VALUES: [Self; 4] = [false, true, false, true];
-}
-
-impl LogicEq for f32 {
-    fn logic_eq(&self, other: &Self) -> bool {
-        if self.is_nan() && other.is_nan() {
-            true
-        } else if self.signum() != other.signum() {
-            false
-        } else if self.is_infinite() && other.is_infinite() {
-            true
+macro_rules! assert_assertion_panic {
+    ($e:expr$(, $ctx:ident)?$(,)?) => {
+        if cfg!(feature = "assertions")
+            || cfg!(feature = "debug_assertions") && cfg!(debug_assertions)
+        {
+            $crate::assert_panic!($e$(, $ctx)?);
         } else {
-            self == other
+            let _ = $e;
         }
-    }
-}
-impl LogicEq for f64 {
-    fn logic_eq(&self, other: &Self) -> bool {
-        if self.is_nan() && other.is_nan() {
-            true
-        } else if self.signum() != other.signum() {
-            false
-        } else if self.is_infinite() && other.is_infinite() {
-            true
-        } else {
-            self == other
-        }
-    }
+    };
 }
 
-impl ApproxEq for f32 {
-    fn approx_eq(&self, other: &Self) -> bool {
-        if self.is_nan() && other.is_nan() {
-            true
-        } else if self.signum() != other.signum() {
-            false
-        } else if self.is_infinite() && other.is_infinite() {
-            true
-        } else {
-            (self - other).abs() < 0.002
+use assert_assertion_panic;
+
+macro_rules! assert_eq_or_panic {
+    ($a:expr, $b:expr$(,)?) => {
+        $crate::assert_eq_or_panic!(@$a, $b, "");
+    };
+    ($a:expr, $b:expr, $ctx:ident$(,)?) => {
+        $crate::assert_eq_or_panic!(@$a, $b, format_args!("\n\n{}", $ctx));
+    };
+
+    (@$a:expr, $b:expr, $ctx:expr) => {
+        match (
+            ::std::panic::catch_unwind(|| $a),
+            ::std::panic::catch_unwind(|| $b),
+        ) {
+            (Ok(a), Ok(b)) => {
+                if !(a == b) {
+                    panic!(
+                        "assertion failed: {} != {}\n\nexpected: {:?}\nfound: {:?}{}",
+                        stringify!($a),
+                        stringify!($b),
+                        b,
+                        a,
+                        $ctx
+                    );
+                }
+            }
+            (Ok(_), Err(_)) => {
+                panic!(
+                    "assert_eq_or_panic! argument did not panic as expected{}",
+                    $ctx
+                );
+            }
+            (Err(_), Ok(_)) => {
+                panic!("assert_eq_or_panic! argument paniced unexpectedly{}", $ctx);
+            }
+            (Err(_), Err(_)) => {
+                println!(
+                    "arguments paniced as expected ... {}",
+                    colored::Colorize::green("ok")
+                );
+            }
         }
-    }
-}
-impl ApproxEq for f64 {
-    fn approx_eq(&self, other: &Self) -> bool {
-        if self.is_nan() && other.is_nan() {
-            true
-        } else if self.signum() != other.signum() {
-            false
-        } else if self.is_infinite() && other.is_infinite() {
-            true
-        } else {
-            (self - other).abs() < 0.002
-        }
-    }
+    };
 }
 
-impl<T: LogicEq> LogicEq for Option<T> {
-    fn logic_eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Some(a), Some(b)) => a.logic_eq(b),
-            (None, None) => true,
-            _ => false,
-        }
-    }
-}
-
-impl<T: ApproxEq> ApproxEq for Option<T> {
-    fn approx_eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Some(a), Some(b)) => a.approx_eq(b),
-            (None, None) => true,
-            _ => false,
-        }
-    }
-}
+use assert_eq_or_panic;

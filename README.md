@@ -1,102 +1,91 @@
-[![Crates.io](https://img.shields.io/crates/v/ggmath.svg)](https://crates.io/crates/ggmath)
-[![Docs.rs](https://docs.rs/ggmath/badge.svg)](https://docs.rs/ggmath)
+# `ggmath`
 
-## `ggmath`
+A math crate for games/graphics with generics and SIMD.
 
-A games/graphics math library with generic SIMD types.
+Note: This crate is a work in progress, and several features are missing.
 
-> This crate is a work in progress. Currently only vectors are implemented,
-> matrices and quaternions are missing, many geometric vector functions are
-> missing, and performance does not match `glam`.
+# Overview
 
-## Generics
+### Generics
 
-Instead of having a separate vector/matrix/etc type for each combination of
-dimensions and element type, `ggmath` has single `Vector`, `Matrix`,
-`Quaternion`, and `Aabb` types that are parameterized over their properties.
+`ggmath` provides generic math types such as `Vector<N, T, A>`, with convenient
+type aliases like `Vec2f`, `Vec3fA`, and others.
 
-This approach has several advantages: it allows code to be generic over
-dimensions or element type, and makes it easy for users to define their own
-custom element types.
+The API is familiar, resembling other math libraries, but the use of generics:
+- enables usage in generic contexts
+- adds support for user-defined scalar types
 
-For non-generic use cases, `ggmath` has convenient type aliases like `FVec3`,
-that make the API simpler to use.
+### SIMD
 
-## SIMD
+Most math crates with generics do not support SIMD-aligned types, making them
+slower than SIMD-based crates that lack generics.
 
-`ggmath` allows vector element types to override the storage and function
-implementations of vectors in order to enable SIMD optimizations.
+`ggmath` supports both:
+- SIMD-aligned types (`Vector<N, T, Aligned>`, e.g., `Vec3fA`)
+- unaligned types (`Vector<N, T, Unaligned>`, e.g., `Vec3f`)
 
-Primitive types like `f32`, `f64`, and `u64` have SIMD backends on appropriate
-build targets.
+This flexibility allows `ggmath` to match the performance of SIMD-backed math
+crates that lack generics.
 
-Custom element types can also take advantage of SIMD without using low-level
-intrinsics by reusing existing primitive vector types as backends.
+# Features
 
-## When to Use This Crate
+- vectors
+- `no_std` support
 
-`ggmath` is a good choice for projects that need functionality similar to
-`glam`, but with generic types and support for custom scalar types. If
-your project involves general-purpose linear algebra, you may find
-`nalgebra` more suitable.
+### Missing Features
 
-Compared to `glam`, `ggmath` can be a better option when your project requires
-any form of generics, custom numeric types, or SIMD optimizations for integer
-types. On the other hand, `glam` is often a better choice for projects that
-primarily use `f32` types and don't rely on generics, as it compiles faster
-and offers a simpler API when working exclusively with `f32`.
+- vectors: geometric functions for floats
+- vectors: functions for integers
+- vectors: functions for `bool`
+- matrices
+- quaternions
+- masks
+- `libm` support
 
-Note that these recommendations reflect the intended, more complete version of
-`ggmath`. In its current state, missing features and optimizations may be deal
-breakers for ***many*** projects.
+# Performance
 
-## Features
+`ggmath` is designed to match the performance of highly optimized SIMD math
+crates (like [glam](https://github.com/bitshifter/glam-rs)), though some (many!)
+optimizations are still missing.
 
-- Vectors of length 2, 3, or 4, with either SIMD or scalar backends
-- Type aliases for primitive vectors
-- Partially optimized SIMD backends for `f32`, `i32` and `u32`
+|       | x86 | ARM | WASM |
+| ----- | --- | --- | ---- |
+| `f32` | ❌ | ❌ | ❌ |
+| `f64` | ❌ | ❌ | ❌ |
+| `i32` | ❌ | ❌ | ❌ |
+| `i64` | ❌ | ❌ | ❌ |
+| `u32` | ❌ | ❌ | ❌ |
+| `u64` | ❌ | ❌ | ❌ |
 
-Planned Features:
-- Matrices
-- Quaternions
-- Aabbs
-- Possibly rotors
+# `no_std` Support
 
-## Benchmarks & Testing
-
-`ggmath` is benchmarked against [`glam`](https://github.com/bitshifter/glam-rs)
-and [`wide`](https://github.com/Lokathor/wide), using both microbenchmarks
-(with [`gungraun`](https://github.com/gungraun/gungraun)) and larger,
-composite benchmarks (with [`criterion`](https://github.com/bheisler/criterion.rs)).
-Currently `ggmath` is not optimized and benchmarked enough to beat glam.
-
-`ggmath` aims for high test coverage that ensures SIMD optimizations behave
-correctly.
-
-## Installation
-
-A Rust compiler version of at least `1.90.0` is required.
-
-Simply add the following to your `Cargo.toml`:
+`no_std` support can be enabled by turning off default features:
 
 ```toml
 [dependencies]
-ggmath = "0.13.1"
+ggmath = { version = "0.14.0", default-features = false, features = ["debug_assertions", "debug_overflow_checks"] }
 ```
 
-## Cargo Features
+Note: `libm` support is currently missing.
 
-Default Features:
-- `primitive_aliases`: enables type aliases for primitives (e.g., `FVec3`).
-- `std`: enables features that depend on `std` (disable for `no_std`).
-- `swizzle`: enables functions for all swizzle combinations (e.g., `wzyx`).
+# Cargo Features
 
-Optional Features:
-- `right`, `left`, `up`, `down`, `forwards`, and `backwards`: enable direction
-  constants where the given direction is positive. For example, `right` enables
-  `RIGHT` and `LEFT` constants where right is positive.
+- `std`: uses `std` as a backend for floats.
 
-## License
+- `assertions`: enables assertions which check the validity of arguments.
 
-Like most Rust crates, `ggmath` is licensed under the MIT License and the
-Apache-2.0 License.
+- `debug_assertions`: enables `assertions` in debug builds.
+
+- `overflow_checks`: enables overflow checks for integer types.
+
+- `debug_overflow_checks`: enables `overflow_checks` in debug builds.
+
+`std`, `debug_assertions`, and `debug_overflow_checks` are enabled by default.
+
+# Minimum Supported Rust Version
+
+`ggmath` requires Rust `1.90.0`.
+
+# License
+
+`ggmath` is licensed under MIT OR Apache-2.0

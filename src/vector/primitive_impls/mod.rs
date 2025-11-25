@@ -1,4 +1,4 @@
-use crate::{Scalar, SimdBehaviour};
+use crate::{Alignment, Length, ScalarBackend, SupportedLength};
 
 mod f32;
 mod f64;
@@ -10,158 +10,84 @@ mod u64;
 mod usize;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Bool
+// Unoptimizable Scalars
 ////////////////////////////////////////////////////////////////////////////////
 
-// All bool vectors are too small for SIMD
-
-impl Scalar for bool {}
-
-impl SimdBehaviour<2> for bool {
-    type VectorRepr = [bool; 2];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for i8
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [i8; N];
 }
 
-impl SimdBehaviour<3> for bool {
-    type VectorRepr = [bool; 3];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for i16
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [i16; N];
 }
 
-impl SimdBehaviour<4> for bool {
-    type VectorRepr = [bool; 4];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for i128
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [i128; N];
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// I8
-////////////////////////////////////////////////////////////////////////////////
-
-// All i8 vectors are too small for SIMD
-
-impl Scalar for i8 {}
-
-impl SimdBehaviour<2> for i8 {
-    type VectorRepr = [i8; 2];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for u8
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [u8; N];
 }
 
-impl SimdBehaviour<3> for i8 {
-    type VectorRepr = [i8; 3];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for u16
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [u16; N];
 }
 
-impl SimdBehaviour<4> for i8 {
-    type VectorRepr = [i8; 4];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for u128
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [u128; N];
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// I16
-////////////////////////////////////////////////////////////////////////////////
-
-// All i16 vectors are too small for SIMD
-
-impl Scalar for i16 {}
-
-impl SimdBehaviour<2> for i16 {
-    type VectorRepr = [i16; 2];
-}
-
-impl SimdBehaviour<3> for i16 {
-    type VectorRepr = [i16; 3];
-}
-
-impl SimdBehaviour<4> for i16 {
-    type VectorRepr = [i16; 4];
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// I128
-////////////////////////////////////////////////////////////////////////////////
-
-// There are currently no SIMD instructions for i128
-
-impl Scalar for i128 {}
-
-impl SimdBehaviour<2> for i128 {
-    type VectorRepr = [i128; 2];
-}
-
-impl SimdBehaviour<3> for i128 {
-    type VectorRepr = [i128; 3];
-}
-
-impl SimdBehaviour<4> for i128 {
-    type VectorRepr = [i128; 4];
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// U8
-////////////////////////////////////////////////////////////////////////////////
-
-// All u8 vectors are too small for SIMD
-
-impl Scalar for u8 {}
-
-impl SimdBehaviour<2> for u8 {
-    type VectorRepr = [u8; 2];
-}
-
-impl SimdBehaviour<3> for u8 {
-    type VectorRepr = [u8; 3];
-}
-
-impl SimdBehaviour<4> for u8 {
-    type VectorRepr = [u8; 4];
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// U16
-////////////////////////////////////////////////////////////////////////////////
-
-// All u16 vectors are too small for SIMD
-
-impl Scalar for u16 {}
-
-impl SimdBehaviour<2> for u16 {
-    type VectorRepr = [u16; 2];
-}
-
-impl SimdBehaviour<3> for u16 {
-    type VectorRepr = [u16; 3];
-}
-
-impl SimdBehaviour<4> for u16 {
-    type VectorRepr = [u16; 4];
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// U128
-////////////////////////////////////////////////////////////////////////////////
-
-// There are currently no SIMD instructions for u128
-
-impl Scalar for u128 {}
-
-impl SimdBehaviour<2> for u128 {
-    type VectorRepr = [u128; 2];
-}
-
-impl SimdBehaviour<3> for u128 {
-    type VectorRepr = [u128; 3];
-}
-
-impl SimdBehaviour<4> for u128 {
-    type VectorRepr = [u128; 4];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for bool
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [bool; N];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helper Macros
 ////////////////////////////////////////////////////////////////////////////////
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-macro_rules! use_core_arch_x86 {
-    { $($x:path),* $(,)? } => {
-        #[cfg(target_arch = "x86")]
-        use core::arch::x86::{$($x),*};
-        #[cfg(target_arch = "x86_64")]
-        use core::arch::x86_64::{$($x),*};
+macro_rules! safe_arch {
+    (
+        for $feature:literal:
+
+        $($(#[$attr:meta])* fn $f:ident$(<$(const $PARAM:ident: $PARAM_TY:ty),*$(,)?>)?($($param:ident: $_param_ty:ty),*$(,)?) -> $ret_ty:ty $b:block)*
+    ) => {
+        $(
+            $(#[$attr])*
+            fn $f$(<$(const $PARAM: $PARAM_TY),*>)?($($param: $_param_ty),*) -> $ret_ty {
+                #[inline]
+                #[target_feature(enable = $feature)]
+                fn $f$(<$(const $PARAM: $PARAM_TY),*>)?($($param: $_param_ty),*) -> $ret_ty $b
+
+                #[cfg(not(target_feature = $feature))]
+                compile_error!(concat!("target feature `", $feature, "` is not enabled"));
+
+                unsafe {
+                    $f$(::<$($PARAM),*>)?($($param),*)
+                }
+            }
+        )*
     };
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-use use_core_arch_x86;
+use safe_arch;

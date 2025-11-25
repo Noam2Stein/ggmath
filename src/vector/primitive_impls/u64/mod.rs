@@ -1,21 +1,8 @@
-use crate::{Scalar, SimdBehaviour};
+use crate::{Alignment, Length, ScalarBackend, SupportedLength};
 
-impl Scalar for u64 {}
-
-// TODO: add SIMD optimizations
-
-impl SimdBehaviour<2> for u64 {
-    type VectorRepr = [u64; 2];
-}
-
-// TODO: add SIMD optimizations
-
-impl SimdBehaviour<3> for u64 {
-    type VectorRepr = [u64; 3];
-}
-
-// TODO: add SIMD optimizations
-
-impl SimdBehaviour<4> for u64 {
-    type VectorRepr = [u64; 4];
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for u64
+where
+    Length<N>: SupportedLength,
+{
+    type VectorRepr = [u64; N];
 }

@@ -1,65 +1,216 @@
-use crate::{assert_debug_panic, assert_debug_panic_val, assert_panic, test};
+use ggmath::Vector;
 
-test! {
-    uint_api for T, S in [u8, u16, u32, u64, u128, usize], [Simd, NonSimd]:
+use crate::{assert_eq, assert_eq_or_panic, vec2, vec3, vec4};
 
-    assert_eq!(!vec2t!(1, 2), vec2t!(!1, !2), "vec2 bitwise not");
-    assert_eq!(!vec3t!(1, 2, 3), vec3t!(!1, !2, !3), "vec3 bitwise not");
-    assert_eq!(!vec4t!(1, 2, 3, 4), vec4t!(!1, !2, !3, !4), "vec4 bitwise not");
+pub fn uint_tests() {
+    const VALUES: [(T, T); 24] = [
+        (0, 0),
+        (0, 1),
+        (1, 0),
+        (1, 1),
+        (0, 2),
+        (3, 0),
+        (5, 23),
+        (23, 0),
+        (0, 23),
+        (13, 1),
+        (100, 200),
+        (T::MAX, 23),
+        (23, T::MAX),
+        (T::MAX, 1),
+        (1, T::MAX),
+        (T::MAX, 0),
+        (0, T::MAX),
+        (T::MAX, T::MAX),
+        (200, 100),
+        (100, 200),
+        (100, 250),
+        (250, 100),
+        (150, 255),
+        (255, 150),
+    ];
 
-    assert_eq!(vec2t!(1, 2) + vec2t!(3, 4), vec2t!(4, 6), "vec2 add");
-    assert_eq!(vec3t!(1, 2, 3) + vec3t!(4, 5, 6), vec3t!(5, 7, 9), "vec3 add");
-    assert_eq!(vec4t!(1, 2, 3, 4) + vec4t!(5, 6, 7, 8), vec4t!(6, 8, 10, 12), "vec4 add");
+    assert_eq!(Vec2::ZERO, vec2!(0));
+    assert_eq!(Vec3::ZERO, vec3!(0));
+    assert_eq!(Vec4::ZERO, vec4!(0));
+    assert_eq!(Vec2::ONE, vec2!(1));
+    assert_eq!(Vec3::ONE, vec3!(1));
+    assert_eq!(Vec4::ONE, vec4!(1));
+    assert_eq!(Vec2::X, vec2!(1, 0));
+    assert_eq!(Vec3::X, vec3!(1, 0, 0));
+    assert_eq!(Vec4::X, vec4!(1, 0, 0, 0));
+    assert_eq!(Vec2::Y, vec2!(0, 1));
+    assert_eq!(Vec3::Y, vec3!(0, 1, 0));
+    assert_eq!(Vec4::Y, vec4!(0, 1, 0, 0));
+    assert_eq!(Vec3::Z, vec3!(0, 0, 1));
+    assert_eq!(Vec4::Z, vec4!(0, 0, 1, 0));
+    assert_eq!(Vec4::W, vec4!(0, 0, 0, 1));
 
-    assert_debug_panic_val!(vec2t!(1, T::MAX) + vec2t!(3, 1), vec2t!(4, T::MIN), "vec2 overflowing add");
-    assert_debug_panic_val!(vec3t!(1, T::MAX, 1) + vec3t!(3, 1, 1), vec3t!(4, T::MIN, 2), "vec3 overflowing add");
-    assert_debug_panic_val!(vec4t!(1, T::MAX, 1, 1) + vec4t!(3, 1, 1, 1), vec4t!(4, T::MIN, 2, 2), "vec4 overflowing add");
+    for (x1, y1) in VALUES {
+        let ctx = format_args!("x1: {x1:?}, y1: {y1:?}");
 
-    assert_debug_panic_val!(vec2t!(1, T::MAX) + vec2t!(3, 3), vec2t!(4, T::MIN + 2), "vec2 overflowing add");
-    assert_debug_panic_val!(vec3t!(1, T::MAX, 1) + vec3t!(3, 3, 1), vec3t!(4, T::MIN + 2, 2), "vec3 overflowing add");
-    assert_debug_panic_val!(vec4t!(1, T::MAX, 1, 1) + vec4t!(3, 3, 1, 1), vec4t!(4, T::MIN + 2, 2, 2), "vec4 overflowing add");
+        assert_eq!(!vec2!(x1, y1), vec2!(!x1, !y1), ctx);
+        assert_eq!(!vec3!(x1, y1, x1), vec3!(!x1, !y1, !x1), ctx);
+        assert_eq!(!vec4!(x1, y1, x1, y1), vec4!(!x1, !y1, !x1, !y1), ctx);
 
-    assert_eq!(vec2t!(3, 4) - vec2t!(1, 3), vec2t!(2, 1), "vec2 sub");
-    assert_eq!(vec3t!(3, 4, 5) - vec3t!(1, 3, 2), vec3t!(2, 1, 3), "vec3 sub");
-    assert_eq!(vec4t!(3, 4, 5, 6) - vec4t!(1, 3, 2, 1), vec4t!(2, 1, 3, 5), "vec4 sub");
+        for (x2, y2) in VALUES {
+            let ctx = format_args!("x1: {x1:?}, y1: {y1:?}, x2: {x2:?}, y2: {y2:?}");
 
-    assert_debug_panic_val!(vec2t!(21, T::MIN) - vec2t!(3, 1), vec2t!(18, T::MAX), "overflowing sub");
-    assert_debug_panic_val!(vec3t!(21, T::MIN, 1) - vec3t!(3, 1, 1), vec3t!(18, T::MAX, 0), "overflowing sub");
-    assert_debug_panic_val!(vec4t!(21, T::MIN, 1, 1) - vec4t!(3, 1, 1, 1), vec4t!(18, T::MAX, 0, 0), "overflowing sub");
+            assert_eq!(vec2!(x1, y1) == vec2!(x2, y2), x1 == x2 && y1 == y2, ctx);
+            assert_eq!(
+                vec3!(x1, y1, x1) == vec3!(x2, y2, x2),
+                x1 == x2 && y1 == y2,
+                ctx
+            );
+            assert_eq!(
+                vec4!(x1, y1, x1, y1) == vec4!(x2, y2, x2, y2),
+                x1 == x2 && y1 == y2,
+                ctx
+            );
 
-    assert_debug_panic_val!(vec2t!(21, T::MIN) - vec2t!(3, 3), vec2t!(18, T::MAX - 2), "overflowing sub");
-    assert_debug_panic_val!(vec3t!(21, T::MIN, 1) - vec3t!(3, 3, 1), vec3t!(18, T::MAX - 2, 0), "overflowing sub");
-    assert_debug_panic_val!(vec4t!(21, T::MIN, 1, 1) - vec4t!(3, 3, 1, 1), vec4t!(18, T::MAX - 2, 0, 0), "overflowing sub");
+            assert_eq!(vec2!(x1, y1) != vec2!(x2, y2), x1 != x2 || y1 != y2, ctx);
+            assert_eq!(
+                vec3!(x1, y1, x1) != vec3!(x2, y2, x2),
+                x1 != x2 || y1 != y2,
+                ctx
+            );
+            assert_eq!(
+                vec4!(x1, y1, x1, y1) != vec4!(x2, y2, x2, y2),
+                x1 != x2 || y1 != y2,
+                ctx
+            );
 
-    assert_eq!(vec2t!(1, 2) * vec2t!(3, 4), vec2t!(3, 8), "vec2 mul");
-    assert_eq!(vec3t!(1, 2, 3) * vec3t!(4, 5, 6), vec3t!(4, 10, 18), "vec3 mul");
-    assert_eq!(vec4t!(1, 2, 3, 4) * vec4t!(5, 6, 7, 8), vec4t!(5, 12, 21, 32), "vec4 mul");
+            assert_eq_or_panic!(vec2!(x1, y1) + vec2!(x2, y2), vec2!(x1 + x2, y1 + y2), ctx);
+            assert_eq_or_panic!(
+                vec3!(x1, y1, x1) + vec3!(x2, y2, x2),
+                vec3!(x1 + x2, y1 + y2, x1 + x2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec4!(x1, y1, x1, y1) + vec4!(x2, y2, x2, y2),
+                vec4!(x1 + x2, y1 + y2, x1 + x2, y1 + y2),
+                ctx
+            );
 
-    assert_debug_panic_val!(vec2t!(21, T::MAX) * vec2t!(2), vec2t!(42, T::MAX * 2), "overflowing mul");
-    assert_debug_panic_val!(vec3t!(21, T::MAX, 1) * vec3t!(2), vec3t!(42, T::MAX * 2, 2), "overflowing mul");
-    assert_debug_panic_val!(vec4t!(21, T::MAX, 1, 1) * vec4t!(2), vec4t!(42, T::MAX * 2, 2, 2), "overflowing mul");
+            assert_eq_or_panic!(vec2!(x1, y1) - vec2!(x2, y2), vec2!(x1 - x2, y1 - y2), ctx);
+            assert_eq_or_panic!(
+                vec3!(x1, y1, x1) - vec3!(x2, y2, x2),
+                vec3!(x1 - x2, y1 - y2, x1 - x2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec4!(x1, y1, x1, y1) - vec4!(x2, y2, x2, y2),
+                vec4!(x1 - x2, y1 - y2, x1 - x2, y1 - y2),
+                ctx
+            );
 
-    assert_eq!(vec2t!(31, 41) / vec2t!(5, 12), vec2t!(6, 3), "vec2 div");
-    assert_eq!(vec3t!(31, 41, 51) / vec3t!(5, 12, 13), vec3t!(6, 3, 3), "vec3 div");
-    assert_eq!(vec4t!(31, 41, 51, 61) / vec4t!(5, 12, 13, 14), vec4t!(6, 3, 3, 4), "vec4 div");
+            assert_eq_or_panic!(vec2!(x1, y1) * vec2!(x2, y2), vec2!(x1 * x2, y1 * y2), ctx);
+            assert_eq_or_panic!(
+                vec3!(x1, y1, x1) * vec3!(x2, y2, x2),
+                vec3!(x1 * x2, y1 * y2, x1 * x2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec4!(x1, y1, x1, y1) * vec4!(x2, y2, x2, y2),
+                vec4!(x1 * x2, y1 * y2, x1 * x2, y1 * y2),
+                ctx
+            );
 
-    assert_eq!(vec2t!(1, 2) / vec2t!(3, 4), vec2t!(0), "vec2 div");
-    assert_eq!(vec3t!(1, 2, 3) / vec3t!(4, 5, 6), vec3t!(0), "vec3 div");
-    assert_eq!(vec4t!(1, 2, 3, 4) / vec4t!(5, 6, 7, 8), vec4t!(0), "vec4 div");
+            assert_eq_or_panic!(vec2!(x1, y1) / vec2!(x2, y2), vec2!(x1 / x2, y1 / y2), ctx);
+            assert_eq_or_panic!(
+                vec3!(x1, y1, x1) / vec3!(x2, y2, x2),
+                vec3!(x1 / x2, y1 / y2, x1 / x2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec4!(x1, y1, x1, y1) / vec4!(x2, y2, x2, y2),
+                vec4!(x1 / x2, y1 / y2, x1 / x2, y1 / y2),
+                ctx
+            );
 
-    assert_panic!(vec2t!(1, 2) / vec2t!(3, 0), "vec2 div by zero");
-    assert_panic!(vec3t!(1, 2, 3) / vec3t!(4, 0, 6), "vec3 div by zero");
-    assert_panic!(vec4t!(1, 2, 3, 4) / vec4t!(5, 0, 7, 8), "vec4 div by zero");
+            assert_eq_or_panic!(vec2!(x1, y1) % vec2!(x2, y2), vec2!(x1 % x2, y1 % y2), ctx);
+            assert_eq_or_panic!(
+                vec3!(x1, y1, x1) % vec3!(x2, y2, x2),
+                vec3!(x1 % x2, y1 % y2, x1 % x2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec4!(x1, y1, x1, y1) % vec4!(x2, y2, x2, y2),
+                vec4!(x1 % x2, y1 % y2, x1 % x2, y1 % y2),
+                ctx
+            );
 
-    assert_eq!(vec2t!(31, 41) % vec2t!(5, 12), vec2t!(1, 5), "vec2 rem");
-    assert_eq!(vec3t!(31, 41, 51) % vec3t!(5, 12, 13), vec3t!(1, 5, 12), "vec3 rem");
-    assert_eq!(vec4t!(31, 41, 51, 61) % vec4t!(5, 12, 13, 14), vec4t!(1, 5, 12, 5), "vec4 rem");
+            assert_eq_or_panic!(
+                vec2!(x1, y1) << vec2!(x2, y2),
+                vec2!(x1 << x2, y1 << y2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec3!(x1, y1, x1) << vec3!(x2, y2, x2),
+                vec3!(x1 << x2, y1 << y2, x1 << x2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec4!(x1, y1, x1, y1) << vec4!(x2, y2, x2, y2),
+                vec4!(x1 << x2, y1 << y2, x1 << x2, y1 << y2),
+                ctx
+            );
 
-    assert_eq!(vec2t!(1, 2) % vec2t!(3, 4), vec2t!(1, 2), "vec2 rem");
-    assert_eq!(vec3t!(1, 2, 3) % vec3t!(4, 5, 1), vec3t!(1, 2, 0), "vec3 rem");
-    assert_eq!(vec4t!(1, 2, 3, 4) % vec4t!(5, 6, 1, 1), vec4t!(1, 2, 0, 0), "vec4 rem");
+            assert_eq_or_panic!(
+                vec2!(x1, y1) >> vec2!(x2, y2),
+                vec2!(x1 >> x2, y1 >> y2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec3!(x1, y1, x1) >> vec3!(x2, y2, x2),
+                vec3!(x1 >> x2, y1 >> y2, x1 >> x2),
+                ctx
+            );
+            assert_eq_or_panic!(
+                vec4!(x1, y1, x1, y1) >> vec4!(x2, y2, x2, y2),
+                vec4!(x1 >> x2, y1 >> y2, x1 >> x2, y1 >> y2),
+                ctx
+            );
 
-    assert_panic!(vec2t!(1, 2) % vec2t!(3, 0), "vec2 rem by zero");
-    assert_panic!(vec3t!(1, 2, 3) % vec3t!(4, 0, 6), "vec3 rem by zero");
-    assert_panic!(vec4t!(1, 2, 3, 4) % vec4t!(5, 0, 7, 8), "vec4 rem by zero");
+            assert_eq!(vec2!(x1, y1) & vec2!(x2, y2), vec2!(x1 & x2, y1 & y2), ctx);
+            assert_eq!(
+                vec3!(x1, y1, x1) & vec3!(x2, y2, x2),
+                vec3!(x1 & x2, y1 & y2, x1 & x2),
+                ctx
+            );
+            assert_eq!(
+                vec4!(x1, y1, x1, y1) & vec4!(x2, y2, x2, y2),
+                vec4!(x1 & x2, y1 & y2, x1 & x2, y1 & y2),
+                ctx
+            );
+
+            assert_eq!(vec2!(x1, y1) | vec2!(x2, y2), vec2!(x1 | x2, y1 | y2), ctx);
+            assert_eq!(
+                vec3!(x1, y1, x1) | vec3!(x2, y2, x2),
+                vec3!(x1 | x2, y1 | y2, x1 | x2),
+                ctx
+            );
+            assert_eq!(
+                vec4!(x1, y1, x1, y1) | vec4!(x2, y2, x2, y2),
+                vec4!(x1 | x2, y1 | y2, x1 | x2, y1 | y2),
+                ctx
+            );
+
+            assert_eq!(vec2!(x1, y1) ^ vec2!(x2, y2), vec2!(x1 ^ x2, y1 ^ y2), ctx);
+            assert_eq!(
+                vec3!(x1, y1, x1) ^ vec3!(x2, y2, x2),
+                vec3!(x1 ^ x2, y1 ^ y2, x1 ^ x2),
+                ctx
+            );
+            assert_eq!(
+                vec4!(x1, y1, x1, y1) ^ vec4!(x2, y2, x2, y2),
+                vec4!(x1 ^ x2, y1 ^ y2, x1 ^ x2, y1 ^ y2),
+                ctx
+            );
+        }
+    }
 }
+
+type Vec2 = Vector<2, T, A>;
+type Vec3 = Vector<3, T, A>;
+type Vec4 = Vector<4, T, A>;

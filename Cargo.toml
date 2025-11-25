@@ -1,106 +1,18 @@
 [package]
-categories = [
-    "data-structures",
-    "game-development",
-    "graphics",
-    "mathematics",
-    "no-std",
-]
-description = "A math library for games and graphics with generic SIMD types."
-edition = "2024"
-keywords = ["aabb", "math", "matrix", "simd", "vector"]
-license = "MIT OR Apache-2.0"
 name = "ggmath"
-readme = "README.md"
-repository = "https://github.com/Noam2Stein/ggmath"
-rust-version = "1.90.0"
-version = "0.13.1"
+version = "0.14.0"
+edition = "2024"
 
 [features]
-backwards         = []
-down              = []
-forwards          = []
-left              = []
-primitive_aliases = []
-right             = []
-std               = []
-swizzle           = []
-up                = []
+std = []
 
-default = ["primitive_aliases", "std", "swizzle"]
-full = [
-    "backwards",
-    "down",
-    "forwards",
-    "left",
-    "primitive_aliases",
-    "right",
-    "std",
-    "swizzle",
-    "up",
-]
+assertions = []
+debug_assertions = []
+overflow_checks = []
+debug_overflow_checks = []
 
-[dependencies]
-paste = "1.0.15"
-
-[workspace]
-members = [".", "examples/custom_scalar", "examples/no_std", "examples/sandbox"]
+default = ["std", "debug_assertions", "debug_overflow_checks"]
 
 [dev-dependencies]
-criterion = "0.7.0"
-glam      = "0.30.8"
-gungraun  = "0.17.0"
-wide      = "0.8.1"
-
-################################################################
-# f32 benchmarks
-################################################################
-
-[[bench]]
-harness = false
-name    = "f32_random_math"
-path    = "benches/f32/random_math.rs"
-
-[[bench]]
-harness = false
-name    = "fvec2"
-path    = "benches/f32/vec2.rs"
-
-[[bench]]
-harness = false
-name    = "fvec3"
-path    = "benches/f32/vec3.rs"
-
-[[bench]]
-harness = false
-name    = "fvec4"
-path    = "benches/f32/vec4.rs"
-
-[[bench]]
-harness = false
-name    = "fvec3s"
-path    = "benches/f32/vec3s.rs"
-
-################################################################
-# i32 benchmarks
-################################################################
-
-[[bench]]
-harness = false
-name    = "ivec2"
-path    = "benches/i32/vec2.rs"
-
-[[bench]]
-harness = false
-name    = "ivec3"
-path    = "benches/i32/vec3.rs"
-
-[[bench]]
-harness = false
-name    = "ivec4"
-path    = "benches/i32/vec4.rs"
-
-[[bench]]
-harness = false
-name    = "ivec3s"
-path    = "benches/i32/vec3s.rs"
+pastey = "0.2.0"
+colored = "3.0.0"

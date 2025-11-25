@@ -1,21 +1,113 @@
-use crate::{Scalar, SimdBehaviour};
+use crate::{Alignment, Length, ScalarBackend, ScalarWrapper, SupportedLength, Vector};
 
-impl Scalar for isize {}
+impl<const N: usize, A: Alignment> ScalarBackend<N, A> for isize
+where
+    Length<N>: SupportedLength,
+{
+    #[cfg(target_pointer_width = "16")]
+    type VectorRepr = Vector<N, i16, A>;
 
-// TODO: use other ints as backend
+    #[cfg(target_pointer_width = "32")]
+    type VectorRepr = Vector<N, i32, A>;
 
-impl SimdBehaviour<2> for isize {
-    type VectorRepr = [isize; 2];
+    #[cfg(target_pointer_width = "64")]
+    type VectorRepr = Vector<N, i64, A>;
+
+    #[inline(always)]
+    fn vec_swizzle2<const X: usize, const Y: usize>(vec: Vector<N, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::from_repr(vec.repr().swizzle2::<X, Y>())
+    }
+
+    #[inline(always)]
+    fn vec_swizzle3<const X: usize, const Y: usize, const Z: usize>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::from_repr(vec.repr().swizzle3::<X, Y, Z>())
+    }
+
+    #[inline(always)]
+    fn vec_swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
+        vec: Vector<N, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::from_repr(vec.repr().swizzle4::<X, Y, Z, W>())
+    }
+
+    #[inline(always)]
+    fn vec_eq(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> bool {
+        vec.repr() == other.repr()
+    }
+
+    #[inline(always)]
+    fn vec_ne(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> bool {
+        vec.repr() != other.repr()
+    }
+
+    #[inline(always)]
+    fn vec_neg(vec: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(-vec.repr())
+    }
+
+    #[inline(always)]
+    fn vec_not(vec: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(!vec.repr())
+    }
+
+    #[inline(always)]
+    fn vec_add(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() + rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_sub(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() - rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_mul(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() * rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_div(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() / rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_rem(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() % rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_shl(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() << rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_shr(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() >> rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_bitand(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() & rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_bitor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() | rhs.repr())
+    }
+
+    #[inline(always)]
+    fn vec_bitxor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        Vector::from_repr(vec.repr() ^ rhs.repr())
+    }
 }
 
-// TODO: use other ints as backend
+#[cfg(target_pointer_width = "16")]
+unsafe impl ScalarWrapper<i16> for isize {}
 
-impl SimdBehaviour<3> for isize {
-    type VectorRepr = [isize; 3];
-}
+#[cfg(target_pointer_width = "32")]
+unsafe impl ScalarWrapper<i32> for isize {}
 
-// TODO: use other ints as backend
-
-impl SimdBehaviour<4> for isize {
-    type VectorRepr = [isize; 4];
-}
+#[cfg(target_pointer_width = "64")]
+unsafe impl ScalarWrapper<i64> for isize {}
