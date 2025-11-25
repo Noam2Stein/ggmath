@@ -1,7 +1,22 @@
 [package]
 name = "ggmath"
+readme = "README.md"
+repository = "https://github.com/Noam2Stein/ggmath"
+
 version = "0.14.0"
 edition = "2024"
+rust-version = "1.90.0"
+
+description = "A math library for games and graphics with generic SIMD types."
+categories = [
+    "data-structures",
+    "game-development",
+    "graphics",
+    "mathematics",
+    "no-std",
+]
+keywords = ["math", "matrix", "simd", "vector"]
+license = "MIT OR Apache-2.0"
 
 [features]
 std = []
