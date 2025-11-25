@@ -1,7 +1,6 @@
-## 0.14.0 (Unreleased)
+## 0.14.0
 
-- simplifies all types & traits of the crate
-- renames items & improves documentation
+- simplifies the API
 - adds methods to float vectors: `normalize_or`
 - removes support for `Option<T>` and `MaybeUninit<T>` as scalars
 
