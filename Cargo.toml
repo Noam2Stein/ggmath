@@ -29,5 +29,13 @@ debug_overflow_checks = []
 default = ["std", "debug_assertions", "debug_overflow_checks"]
 
 [dev-dependencies]
-pastey = "0.2.0"
 colored = "3.0.0"
+criterion = "0.7.0"
+glam = "0.30.9"
+pastey = "0.2.0"
+wide = "0.8.3"
+
+[[bench]]
+name = "vector_f32"
+path = "benches/vector/f32.rs"
+harness = false
