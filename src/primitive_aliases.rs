@@ -1,5 +1,11 @@
 /// [`f32`] type aliases.
 pub mod f32 {
+    #[cfg(feature = "affine")]
+    use crate::Affine;
+    #[cfg(feature = "matrix")]
+    use crate::Matrix;
+    #[cfg(feature = "quaternion")]
+    use crate::Quaternion;
     use crate::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`f32`] elements.
@@ -24,10 +30,90 @@ pub mod f32 {
     ///
     /// This type is aligned to 16 bytes if the target platform supports `sse`.
     pub type Vec4fA = Vector<4, f32, Aligned>;
+
+    /// A 2x2 column major matrix of [`f32`] elements.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Mat2fA`] instead.
+    #[cfg(feature = "matrix")]
+    pub type Mat2f = Matrix<2, f32, Unaligned>;
+
+    /// A 3x3 column major matrix of [`f32`] elements.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Mat3fA`] instead.
+    #[cfg(feature = "matrix")]
+    pub type Mat3f = Matrix<3, f32, Unaligned>;
+
+    /// A 4x4 column major matrix of [`f32`] elements.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Mat4fA`] instead.
+    #[cfg(feature = "matrix")]
+    pub type Mat4f = Matrix<4, f32, Unaligned>;
+
+    /// A 2x2 column major matrix of [`f32`] elements.
+    ///
+    /// This type is internally stored as a [`Vec4fA`].
+    #[cfg(feature = "matrix")]
+    pub type Mat2fA = Matrix<2, f32, Aligned>;
+
+    /// A 3x3 column major matrix of [`f32`] elements.
+    ///
+    /// This type is internally stored as a `[Vec3fA; 3]`.
+    #[cfg(feature = "matrix")]
+    pub type Mat3fA = Matrix<3, f32, Aligned>;
+
+    /// A 4x4 column major matrix of [`f32`] elements.
+    ///
+    /// This type is internally stored as a `[Vec4fA; 4]`.
+    #[cfg(feature = "matrix")]
+    pub type Mat4fA = Matrix<4, f32, Aligned>;
+
+    /// A quaternion stored using [`f32`]s.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`QuatfA`] instead.
+    #[cfg(feature = "quaternion")]
+    pub type Quatf = Quaternion<f32, Unaligned>;
+
+    /// A quaternion stored using [`f32`]s.
+    ///
+    /// This type is internally stored as a [`Vec4fA`].
+    #[cfg(feature = "quaternion")]
+    pub type QuatfA = Quaternion<f32, Aligned>;
+
+    /// An [`f32`] 2D affine transform, which can represent translation, rotation,
+    /// scaling, shear.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Affine2fA`] instead.
+    #[cfg(feature = "affine")]
+    pub type Affine2f = Affine<2, f32, Unaligned>;
+
+    /// An [`f32`] 3D affine transform, which can represent translation, rotation,
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Affine3fA`] instead.
+    #[cfg(feature = "affine")]
+    pub type Affine3f = Affine<3, f32, Unaligned>;
+
+    /// An [`f32`] 2D affine transform, which can represent translation, rotation,
+    /// scaling, shear.
+    ///
+    /// This type is internally stored with a [`Vec4fA`] for its matrix.
+    #[cfg(feature = "affine")]
+    pub type Affine2fA = Affine<2, f32, Aligned>;
+
+    /// An [`f32`] 3D affine transform, which can represent translation, rotation,
+    ///
+    /// This type is internally stored as `[Vec3fA; 4]`.
+    #[cfg(feature = "affine")]
+    pub type Affine3fA = Affine<3, f32, Aligned>;
 }
 
 /// [`f64`] type aliases.
 pub mod f64 {
+    #[cfg(feature = "affine")]
+    use crate::Affine;
+    #[cfg(feature = "matrix")]
+    use crate::Matrix;
+    #[cfg(feature = "quaternion")]
+    use crate::Quaternion;
     use crate::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`f64`] elements.
@@ -59,6 +145,82 @@ pub mod f64 {
     ///
     /// This type is aligned to 32 bytes if the target platform supports `avx`.
     pub type Vec4dA = Vector<4, f64, Aligned>;
+
+    /// A 2D column major matrix of [`f64`] elements.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Mat2dA`] instead.
+    #[cfg(feature = "matrix")]
+    pub type Mat2d = Matrix<2, f64, Unaligned>;
+
+    /// A 3D column major matrix of [`f64`] elements.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Mat3dA`] instead.
+    #[cfg(feature = "matrix")]
+    pub type Mat3d = Matrix<3, f64, Unaligned>;
+
+    /// A 4D column major matrix of [`f64`] elements.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Mat4dA`] instead.
+    #[cfg(feature = "matrix")]
+    pub type Mat4d = Matrix<4, f64, Unaligned>;
+
+    /// A 2D column major matrix of [`f64`] elements.
+    ///
+    /// This type is internally stored as [`Vec4dA`].
+    #[cfg(feature = "matrix")]
+    pub type Mat2dA = Matrix<2, f64, Aligned>;
+
+    /// A 3D column major matrix of [`f64`] elements.
+    ///
+    /// This type is internally stored as `[Vec3dA; 3]`.
+    #[cfg(feature = "matrix")]
+    pub type Mat3dA = Matrix<3, f64, Aligned>;
+
+    /// A 4D column major matrix of [`f64`] elements.
+    ///
+    /// This type is internally stored as `[Vec4dA; 4]`.
+    #[cfg(feature = "matrix")]
+    pub type Mat4dA = Matrix<4, f64, Aligned>;
+
+    /// A quaternion stored using [`f64`]s.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`QuatdA`] instead.
+    #[cfg(feature = "quaternion")]
+    pub type Quatd = Quaternion<f64, Unaligned>;
+
+    /// A quaternion stored using [`f64`]s.
+    ///
+    /// This type is internally stored as a [`Vec4dA`].
+    #[cfg(feature = "quaternion")]
+    pub type QuatdA = Quaternion<f64, Aligned>;
+
+    /// An [`f64`] 2D affine transform, which can represent translation, rotation,
+    /// scaling, shear.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Affine2dA`] instead.
+    #[cfg(feature = "affine")]
+    pub type Affine2d = Affine<2, f64, Unaligned>;
+
+    /// An [`f64`] 3D affine transform, which can represent translation, rotation,
+    /// scaling, shear.
+    ///
+    /// This type is *not* SIMD-aligned. For SIMD-alignment, use [`Affine3dA`] instead.
+    #[cfg(feature = "affine")]
+    pub type Affine3d = Affine<3, f64, Unaligned>;
+
+    /// An [`f64`] 2D affine transform, which can represent translation, rotation,
+    /// scaling, shear.
+    ///
+    /// This type is internally stored with a [`Vec4dA`] for its matrix.
+    #[cfg(feature = "affine")]
+    pub type Affine2dA = Affine<2, f64, Aligned>;
+
+    /// An [`f64`] 3D affine transform, which can represent translation, rotation,
+    /// scaling, shear.
+    ///
+    /// This type is internally stored as `[Vec3dA; 4]`.
+    #[cfg(feature = "affine")]
+    pub type Affine3dA = Affine<3, f64, Aligned>;
 }
 
 /// [`i8`] type aliases.
