@@ -5,6 +5,21 @@
 pub mod vector;
 pub use vector::*;
 
+#[cfg(feature = "matrix")]
+pub mod matrix;
+#[cfg(feature = "matrix")]
+pub use matrix::*;
+
+#[cfg(feature = "quaternion")]
+pub mod quaternion;
+#[cfg(feature = "quaternion")]
+pub use quaternion::*;
+
+#[cfg(feature = "affine")]
+pub mod affine;
+#[cfg(feature = "affine")]
+pub use affine::*;
+
 mod dir;
 mod primitive_aliases;
 pub use dir::*;

@@ -19,6 +19,10 @@ keywords = ["math", "matrix", "simd", "vector"]
 license = "MIT OR Apache-2.0"
 
 [features]
+matrix = []
+quaternion = []
+affine = []
+
 std = []
 
 assertions = []
@@ -26,7 +30,14 @@ debug_assertions = []
 overflow_checks = []
 debug_overflow_checks = []
 
-default = ["std", "debug_assertions", "debug_overflow_checks"]
+default = [
+    "matrix",
+    "quaternion",
+    "affine",
+    "std",
+    "debug_assertions",
+    "debug_overflow_checks",
+]
 
 [dev-dependencies]
 colored = "3.0.0"
