@@ -123,13 +123,23 @@ pub fn float_tests() {
             assert_assertion_panic!(vec3!(x1, y1, x1).min_element(), ctx);
             assert_assertion_panic!(vec4!(x1, y1, x1, y1).min_element(), ctx);
         } else {
-            assert_float_eq!(vec2!(x1, y1).max_element(), x1.max(y1), ctx);
-            assert_float_eq!(vec3!(x1, y1, x1).max_element(), x1.max(y1), ctx);
-            assert_float_eq!(vec4!(x1, y1, x1, y1).max_element(), x1.max(y1), ctx);
+            assert_float_eq!(vec2!(x1, y1).max_element(), x1.max(y1), 0.0 = -0.0, ctx);
+            assert_float_eq!(vec3!(x1, y1, x1).max_element(), x1.max(y1), 0.0 = -0.0, ctx);
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).max_element(),
+                x1.max(y1),
+                0.0 = -0.0,
+                ctx
+            );
 
-            assert_float_eq!(vec2!(x1, y1).min_element(), x1.min(y1), ctx);
-            assert_float_eq!(vec3!(x1, y1, x1).min_element(), x1.min(y1), ctx);
-            assert_float_eq!(vec4!(x1, y1, x1, y1).min_element(), x1.min(y1), ctx);
+            assert_float_eq!(vec2!(x1, y1).min_element(), x1.min(y1), 0.0 = -0.0, ctx);
+            assert_float_eq!(vec3!(x1, y1, x1).min_element(), x1.min(y1), 0.0 = -0.0, ctx);
+            assert_float_eq!(
+                vec4!(x1, y1, x1, y1).min_element(),
+                x1.min(y1),
+                0.0 = -0.0,
+                ctx
+            );
         }
 
         assert_float_eq!(vec2!(x1, y1).length_squared(), x1 * x1 + y1 * y1, ctx);

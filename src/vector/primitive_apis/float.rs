@@ -131,6 +131,8 @@ where
     ///
     /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
     ///
+    /// If `assertions` is disabled, NaN propagation is unspecified.
+    ///
     /// ## Panics
     ///
     /// Panics if any element of `self` or `other` is NaN.
@@ -157,6 +159,8 @@ where
     /// ## Precision
     ///
     /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    ///
+    /// If `assertions` is disabled, NaN propagation is unspecified.
     ///
     /// ## Panics
     ///
@@ -185,7 +189,7 @@ where
     ///
     /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
     ///
-    /// If `assertions` is disabled, the output for NaN is unspecified.
+    /// If `assertions` is disabled, NaN propagation is unspecified.
     ///
     /// ## Panics
     ///
@@ -251,6 +255,19 @@ where
     }
 
     /// Returns the maximum element of `self`.
+    ///
+    /// ## Precision
+    ///
+    /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    ///
+    /// If `assertions` is disabled, NaN propagation is unspecified.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if any element of `self` is NaN.
+    ///
+    /// Note: this only panics if `assertions` is enabled (is enabled by default in
+    /// debug mode).
     #[inline(always)]
     pub fn max_element(self) -> T {
         assertion!(
@@ -262,6 +279,19 @@ where
     }
 
     /// Returns the minimum element of `self`.
+    ///
+    /// ## Precision
+    ///
+    /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    ///
+    /// If `assertions` is disabled, NaN propagation is unspecified.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if any element of `self` is NaN.
+    ///
+    /// Note: this only panics if `assertions` is enabled (is enabled by default in
+    /// debug mode).
     #[inline(always)]
     pub fn min_element(self) -> T {
         assertion!(
@@ -457,12 +487,12 @@ where
 
     #[inline(always)]
     fn vec_max(vec: Vector<N, T, A>, other: Vector<N, T, A>) -> Vector<N, T, A> {
-        Vector::from_fn(|i| vec[i].max(other[i]))
+        Vector::from_fn(|i| if vec[i] > other[i] { vec[i] } else { other[i] })
     }
 
     #[inline(always)]
     fn vec_min(vec: Vector<N, T, A>, other: Vector<N, T, A>) -> Vector<N, T, A> {
-        Vector::from_fn(|i| vec[i].min(other[i]))
+        Vector::from_fn(|i| if vec[i] < other[i] { vec[i] } else { other[i] })
     }
 
     #[inline(always)]
@@ -471,7 +501,7 @@ where
         min: Vector<N, T, A>,
         max: Vector<N, T, A>,
     ) -> Vector<N, T, A> {
-        Vector::from_fn(|i| vec[i].max(min[i]).min(max[i]))
+        vec.max(min).min(max)
     }
 
     #[inline(always)]
@@ -501,11 +531,11 @@ where
 
     #[inline(always)]
     fn vec_max_element(vec: Vector<N, T, A>) -> T {
-        vec.iter().reduce(|a, b| a.max(b)).unwrap()
+        vec.iter().reduce(|a, b| if a > b { a } else { b }).unwrap()
     }
 
     #[inline(always)]
     fn vec_min_element(vec: Vector<N, T, A>) -> T {
-        vec.iter().reduce(|a, b| a.min(b)).unwrap()
+        vec.iter().reduce(|a, b| if a < b { a } else { b }).unwrap()
     }
 }
