@@ -3,10 +3,13 @@
 set -e
 
 FEATURE_SETS=(
-    ""
-    "assertions"
     "std"
-    "std assertions"
+    "matrix std"
+    "quaternion std"
+    "affine std"
+    "matrix quaternion affine"
+    "matrix quaternion affine assertions"
+    "matrix quaternion affine std assertions"
 )
 
 WARNINGS=""
