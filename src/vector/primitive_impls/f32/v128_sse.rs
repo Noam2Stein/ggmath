@@ -377,8 +377,12 @@ impl FloatBackend<4, Aligned> for f32 {
     }
 }
 
-unsafe impl SoundVectorRepr<3, f32> for __m128 {}
-unsafe impl SoundVectorRepr<4, f32> for __m128 {}
+unsafe impl SoundVectorRepr<3, f32> for __m128 {
+    type ActualRepr = Self;
+}
+unsafe impl SoundVectorRepr<4, f32> for __m128 {
+    type ActualRepr = Self;
+}
 
 #[inline]
 #[target_feature(enable = "sse")]

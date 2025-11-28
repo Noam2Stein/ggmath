@@ -3,7 +3,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    mem::{MaybeUninit, transmute, transmute_copy},
+    mem::{transmute, transmute_copy},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub},
 };
 
@@ -52,14 +52,14 @@ where
 
 type VectorRepr<const N: usize, T, A> = <A as Alignment>::Select<
     <Length<N> as SupportedLength>::Select<
-        <T as ScalarBackend<2, Aligned>>::VectorRepr,
-        <T as ScalarBackend<3, Aligned>>::VectorRepr,
-        <T as ScalarBackend<4, Aligned>>::VectorRepr,
+        <<T as ScalarBackend<2, Aligned>>::VectorRepr as SoundVectorRepr<2, T>>::ActualRepr,
+        <<T as ScalarBackend<3, Aligned>>::VectorRepr as SoundVectorRepr<3, T>>::ActualRepr,
+        <<T as ScalarBackend<4, Aligned>>::VectorRepr as SoundVectorRepr<4, T>>::ActualRepr,
     >,
     <Length<N> as SupportedLength>::Select<
-        <T as ScalarBackend<2, Unaligned>>::VectorRepr,
-        <T as ScalarBackend<3, Unaligned>>::VectorRepr,
-        <T as ScalarBackend<4, Unaligned>>::VectorRepr,
+        <<T as ScalarBackend<2, Unaligned>>::VectorRepr as SoundVectorRepr<2, T>>::ActualRepr,
+        <<T as ScalarBackend<3, Unaligned>>::VectorRepr as SoundVectorRepr<3, T>>::ActualRepr,
+        <<T as ScalarBackend<4, Unaligned>>::VectorRepr as SoundVectorRepr<4, T>>::ActualRepr,
     >,
 >;
 
@@ -72,38 +72,23 @@ where
     pub const fn from_array(array: [T; N]) -> Self {
         Self::verify_type_layout();
 
-        let mut result = MaybeUninit::<Vector<N, T, A>>::zeroed();
-
-        // SAFETY: `Vector<N, T, A>` is guaranteed to begin with a `[T; N]`.
-        unsafe {
-            *result.as_mut_ptr().cast::<[T; N]>() = array;
+        if size_of::<Vector<N, T, A>>() == size_of::<[T; N]>() {
+            // SAFETY: `Vector<N, T, A>` is guaranteed to contain [T; N] exactly.
+            unsafe { transmute_copy::<[T; N], Vector<N, T, A>>(&array) }
+        } else {
+            unsafe {
+                // SAFETY: `Vector<N, T, A>` is guaranteed to contain [T; 4] exactly because the
+                // only case where a size mismatch is allowed is when `N == 3` and the vector is
+                // stored with a padding element.
+                transmute_copy::<[T; 4], Vector<N, T, A>>(&[array[0], array[1], array[2], array[2]])
+            }
         }
-
-        // SAFETY: If `Vector<N, T, A>` has padding, it's guaranteed to accept all
-        // bit patterns.
-        unsafe { result.assume_init() }
     }
 
     /// Creates a [`Vector`] with all elements set to `value`.
     #[inline(always)]
     pub const fn splat(value: T) -> Self {
-        Self::verify_type_layout();
-
-        let mut result = MaybeUninit::<Vector<N, T, A>>::uninit();
-
-        let mut i = 0;
-        while i < size_of::<Vector<N, T, A>>() / size_of::<T>() {
-            // SAFETY: `Vector<N, T, A>` is guaranteed to be made of `T`s, and `i` is
-            // guaranteed to be in its bounds.
-            unsafe {
-                *result.as_mut_ptr().cast::<T>().add(i) = value;
-            }
-
-            i += 1;
-        }
-
-        // SAFETY: All slots of the vector have been initialized, including padding.
-        unsafe { result.assume_init() }
+        Self::from_array([value; N])
     }
 
     /// Creates a [`Vector`] by calling function `f` for the index of each element.
@@ -875,35 +860,49 @@ pub unsafe trait ScalarWrapper<T> {}
 ///
 /// ## Safety
 ///
-/// Implementations must ensure that:
+/// If `N == 2` or `N == 4`, `Self::ActualRepr` must contain exactly `N` `T`
+/// elements, meaning:
+/// - `size_of::<Self::ActualRepr>()` is `N * size_of::<T>()`
+/// - `align_of::<Self::ActualRepr>()` is either `align_of::<T>()` or `N * size_of::<T>()`
 ///
-/// - `*const Self as *const [T; N]` and `*mut Self as *mut [T; N]` are sound
-/// - `align_of::<Self>()` is either `align_of::<T>()` or `size_of::<Self>()`
-/// - For `N == 2`: `size_of::<Self>()` is `2 * size_of::<T>()`
-/// - For `N == 3`: `size_of::<Self>()` is either `3 * size_of::<T>()` or `4 * size_of::<T>()`
-/// - For `N == 3`, the optional padding element accepts all bit patterns
-/// - For `N == 4`: `size_of::<Self>()` is `4 * size_of::<T>()`
+/// If `N == 3`, either `Self::ActualRepr` contains exactly `N` `T` elements
+/// with only the alignment of `T`, or `Self::ActualRepr` contains 4 `T`s with
+/// an alignment of `4 * size_of::<T>()`.
 #[diagnostic::on_unimplemented(message = "`Vector<{N}, {T}, A>` cannot be represented by `{Self}`")]
-unsafe trait SoundVectorRepr<const N: usize, T> {}
-
-// SAFETY: `[T; N]` follows the rules of `SoundVectorRepr`:
-// - `size_of::<[T; N]>() == N * size_of::<T>()`
-// - `align_of::<[T; N]>() == align_of::<T>()`
-// - no padding
-unsafe impl<const N: usize, T: Scalar> SoundVectorRepr<N, T> for [T; N] where
-    Length<N>: SupportedLength
-{
+unsafe trait SoundVectorRepr<const N: usize, T>: Send + Sync + Copy + 'static {
+    type ActualRepr: Send + Sync + Copy + 'static;
 }
 
-// SAFETY: `Vector<N, TInner, A>` follows the rules of `SoundVectorRepr` as any
-// rule regarding `T` is followed in regard to `TInner`, which is equivalent to
-// `T`.
+#[repr(C)]
+#[derive(Copy, Clone)]
+struct Hfa2<T>(T, T);
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+struct Hfa3<T>(T, T, T);
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+struct Hfa4<T>(T, T, T, T);
+
+// SAFETY:
+// - `size_of::<Self::ActualRepr>()` is `N * size_of::<T>()`
+// - `align_of::<Self::ActualRepr>()` is `align_of::<T>()`
+unsafe impl<const N: usize, T: Scalar> SoundVectorRepr<N, T> for [T; N]
+where
+    Length<N>: SupportedLength,
+{
+    type ActualRepr = <Length<N> as SupportedLength>::Select<Hfa2<T>, Hfa3<T>, Hfa4<T>>;
+}
+
+// SAFETY: Any type that is `SoundVectorRepr<N, TInner>` is also `SoundVectorRepr<N, T>`.
 unsafe impl<const N: usize, T, TInner: Scalar, A: Alignment> SoundVectorRepr<N, T>
     for Vector<N, TInner, A>
 where
     Length<N>: SupportedLength,
     T: ScalarWrapper<TInner>,
 {
+    type ActualRepr = VectorRepr<N, TInner, A>;
 }
 
 /// Calls the scalar backend function for the correct length and alignment.
