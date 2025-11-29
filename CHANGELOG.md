@@ -1,3 +1,8 @@
+## 0.14.1 (Unreleased)
+
+- deprecates vector functions: `swizzle2`, `swizzle3`, and `swizzle4`
+- improves performance
+
 ## 0.14.0
 
 - simplifies the API
