@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector};
+use crate::{Alignment, Scalar, Vector};
 
 /// Creates a [`Vector`]2 with the given elements.
 ///
@@ -84,37 +84,27 @@ macro_rules! vec4 {
 pub use vec4;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Generic Length Implementations
-////////////////////////////////////////////////////////////////////////////////
-
-impl<const N: usize, T: Scalar, A: Alignment> From<(Vector<N, T, A>,)> for Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-{
-    #[inline(always)]
-    fn from(value: (Vector<N, T, A>,)) -> Self {
-        value.0
-    }
-}
-
-impl<const N: usize, T: Scalar, A: Alignment> From<(T,)> for Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-{
-    #[inline(always)]
-    fn from(value: (T,)) -> Self {
-        Vector::splat(value.0)
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Vector2 Implementations
 ////////////////////////////////////////////////////////////////////////////////
+
+impl<T: Scalar, A: Alignment> From<(T,)> for Vector<2, T, A> {
+    #[inline(always)]
+    fn from(value: (T,)) -> Self {
+        Self::new(value.0, value.0)
+    }
+}
 
 impl<T: Scalar, A: Alignment> From<(T, T)> for Vector<2, T, A> {
     #[inline(always)]
     fn from(value: (T, T)) -> Self {
-        Vector::from_array([value.0, value.1])
+        Self::new(value.0, value.1)
+    }
+}
+
+impl<T: Scalar, A: Alignment> From<(Vector<2, T, A>,)> for Vector<2, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<2, T, A>,)) -> Self {
+        value.0
     }
 }
 
@@ -122,24 +112,38 @@ impl<T: Scalar, A: Alignment> From<(T, T)> for Vector<2, T, A> {
 // Vector3 Implementations
 ////////////////////////////////////////////////////////////////////////////////
 
+impl<T: Scalar, A: Alignment> From<(T,)> for Vector<3, T, A> {
+    #[inline(always)]
+    fn from(value: (T,)) -> Self {
+        Self::new(value.0, value.0, value.0)
+    }
+}
+
 impl<T: Scalar, A: Alignment> From<(T, T, T)> for Vector<3, T, A> {
     #[inline(always)]
     fn from(value: (T, T, T)) -> Self {
-        Vector::from_array([value.0, value.1, value.2])
+        Self::new(value.0, value.1, value.2)
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(T, Vector<2, T, A>)> for Vector<3, T, A> {
     #[inline(always)]
     fn from(value: (T, Vector<2, T, A>)) -> Self {
-        Vector::from_array([value.0, value.1[0], value.1[1]])
+        Self::new(value.0, value.1[0], value.1[1])
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(Vector<2, T, A>, T)> for Vector<3, T, A> {
     #[inline(always)]
     fn from(value: (Vector<2, T, A>, T)) -> Self {
-        Vector::from_array([value.0[0], value.0[1], value.1])
+        Self::new(value.0[0], value.0[1], value.1)
+    }
+}
+
+impl<T: Scalar, A: Alignment> From<(Vector<3, T, A>,)> for Vector<3, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<3, T, A>,)) -> Self {
+        value.0
     }
 }
 
@@ -147,51 +151,65 @@ impl<T: Scalar, A: Alignment> From<(Vector<2, T, A>, T)> for Vector<3, T, A> {
 // Vector4 Implementations
 ////////////////////////////////////////////////////////////////////////////////
 
+impl<T: Scalar, A: Alignment> From<(T,)> for Vector<4, T, A> {
+    #[inline(always)]
+    fn from(value: (T,)) -> Self {
+        Self::new(value.0, value.0, value.0, value.0)
+    }
+}
+
 impl<T: Scalar, A: Alignment> From<(T, T, T, T)> for Vector<4, T, A> {
     #[inline(always)]
     fn from(value: (T, T, T, T)) -> Self {
-        Vector::from_array([value.0, value.1, value.2, value.3])
+        Self::new(value.0, value.1, value.2, value.3)
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(T, T, Vector<2, T, A>)> for Vector<4, T, A> {
     #[inline(always)]
     fn from(value: (T, T, Vector<2, T, A>)) -> Self {
-        Vector::from_array([value.0, value.1, value.2[0], value.2[1]])
+        Self::new(value.0, value.1, value.2[0], value.2[1])
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(T, Vector<2, T, A>, T)> for Vector<4, T, A> {
     #[inline(always)]
     fn from(value: (T, Vector<2, T, A>, T)) -> Self {
-        Vector::from_array([value.0, value.1[0], value.1[1], value.2])
+        Self::new(value.0, value.1[0], value.1[1], value.2)
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(T, Vector<3, T, A>)> for Vector<4, T, A> {
     #[inline(always)]
     fn from(value: (T, Vector<3, T, A>)) -> Self {
-        Vector::from_array([value.0, value.1[0], value.1[1], value.1[2]])
+        Self::new(value.0, value.1[0], value.1[1], value.1[2])
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(Vector<2, T, A>, T, T)> for Vector<4, T, A> {
     #[inline(always)]
     fn from(value: (Vector<2, T, A>, T, T)) -> Self {
-        Vector::from_array([value.0[0], value.0[1], value.1, value.2])
+        Self::new(value.0[0], value.0[1], value.1, value.2)
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(Vector<2, T, A>, Vector<2, T, A>)> for Vector<4, T, A> {
     #[inline(always)]
     fn from(value: (Vector<2, T, A>, Vector<2, T, A>)) -> Self {
-        Vector::from_array([value.0[0], value.0[1], value.1[0], value.1[1]])
+        Self::new(value.0[0], value.0[1], value.1[0], value.1[1])
     }
 }
 
 impl<T: Scalar, A: Alignment> From<(Vector<3, T, A>, T)> for Vector<4, T, A> {
     #[inline(always)]
     fn from(value: (Vector<3, T, A>, T)) -> Self {
-        Vector::from_array([value.0[0], value.0[1], value.0[2], value.1])
+        Self::new(value.0[0], value.0[1], value.0[2], value.1)
+    }
+}
+
+impl<T: Scalar, A: Alignment> From<(Vector<4, T, A>,)> for Vector<4, T, A> {
+    #[inline(always)]
+    fn from(value: (Vector<4, T, A>,)) -> Self {
+        value.0
     }
 }

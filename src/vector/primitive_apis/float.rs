@@ -11,14 +11,14 @@ where
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn floor(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_floor(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_floor(self))
     }
 
     /// Returns a new [`Vector`] with the elements of `self` rounded up.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn ceil(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_ceil(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_ceil(self))
     }
 
     /// Returns a new [`Vector`] with the elements of `self` rounded to the nearest
@@ -26,14 +26,14 @@ where
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn round(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_round(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_round(self))
     }
 
     /// Returns a new [`Vector`] with the elements of `self` rounded towards zero.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn trunc(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_trunc(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_trunc(self))
     }
 
     /// Returns a new [`Vector`] with the fractional part of `self`.
@@ -42,7 +42,7 @@ where
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn fract(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_fract(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_fract(self))
     }
 
     /// Computes `self * a + b` with only a single rounding error instead of two.
@@ -52,76 +52,76 @@ where
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn mul_add(self, a: Self, b: Self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_mul_add(self, a, b) })
+        specialize!(<T as FloatBackend<N, A>>::vec_mul_add(self, a, b))
     }
 
     /// Computes element-wise euclidean division.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn div_euclid(self, rhs: Self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_div_euclid(self, rhs) })
+        specialize!(<T as FloatBackend<N, A>>::vec_div_euclid(self, rhs))
     }
 
     /// Computes element-wise euclidean remainder.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn rem_euclid(self, rhs: Self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_rem_euclid(self, rhs) })
+        specialize!(<T as FloatBackend<N, A>>::vec_rem_euclid(self, rhs))
     }
 
     /// Returns a new [`Vector`] with the square root of the elements of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn sqrt(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_sqrt(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_sqrt(self))
     }
 
     /// Returns a new [`Vector`] with the sine of the elements of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn sin(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_sin(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_sin(self))
     }
 
     /// Returns a new [`Vector`] with the cosine of the elements of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn cos(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_cos(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_cos(self))
     }
 
     /// Returns a new [`Vector`] with the tangent of the elements of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn tan(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_tan(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_tan(self))
     }
 
     /// Returns a new [`Vector`] with the arcsine of the elements of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn asin(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_asin(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_asin(self))
     }
 
     /// Returns a new [`Vector`] with the arccosine of the elements of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn acos(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_acos(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_acos(self))
     }
 
     /// Returns a new [`Vector`] with the arctangent of the elements of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn atan(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_atan(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_atan(self))
     }
 
     /// Computes `1.0 / self`.
     #[inline(always)]
     pub fn recip(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_recip(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_recip(self))
     }
 
     /// Returns a new [`Vector`] with the greater elements between the elements of
@@ -150,7 +150,7 @@ where
             "vector contains NaN: {self:?}.max({other:?})"
         );
 
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_max(self, other) })
+        specialize!(<T as FloatBackend<N, A>>::vec_max(self, other))
     }
 
     /// Returns a new [`Vector`] with the lesser elements between the elements of
@@ -179,7 +179,7 @@ where
             "vector contains NaN: {self:?}.min({other:?})"
         );
 
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_min(self, other) })
+        specialize!(<T as FloatBackend<N, A>>::vec_min(self, other))
     }
 
     /// Returns a new [`Vector`] with the elements of `self` clamped between the
@@ -216,13 +216,13 @@ where
             "vector contains NaN: {self:?}.clamp({min:?}, {max:?})"
         );
 
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_clamp(self, min, max) })
+        specialize!(<T as FloatBackend<N, A>>::vec_clamp(self, min, max))
     }
 
     /// Returns a new [`Vector`] with the absolute value of the elements of `self`.
     #[inline(always)]
     pub fn abs(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_abs(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_abs(self))
     }
 
     /// Returns a new [`Vector`] with the sign of the elements of `self`:
@@ -232,26 +232,26 @@ where
     /// - `NAN` if the number is `NAN`
     #[inline(always)]
     pub fn signum(self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_signum(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_signum(self))
     }
 
     /// Returns a new [`Vector`] with the elements of `self` with the sign of the
     /// elements of `sign`.
     #[inline(always)]
     pub fn copysign(self, sign: Self) -> Self {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_copysign(self, sign) })
+        specialize!(<T as FloatBackend<N, A>>::vec_copysign(self, sign))
     }
 
     /// Returns the sum of the elements of `self`.
     #[inline(always)]
     pub fn element_sum(self) -> T {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_element_sum(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_element_sum(self))
     }
 
     /// Returns the product of the elements of `self`.
     #[inline(always)]
     pub fn element_product(self) -> T {
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_element_product(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_element_product(self))
     }
 
     /// Returns the maximum element of `self`.
@@ -275,7 +275,7 @@ where
             "vector contains NaN: {self:?}.max_element()"
         );
 
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_max_element(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_max_element(self))
     }
 
     /// Returns the minimum element of `self`.
@@ -299,7 +299,7 @@ where
             "vector contains NaN: {self:?}.min_element()"
         );
 
-        specialize!(unsafe { <T as FloatBackend<N, A>>::vec_min_element(self) })
+        specialize!(<T as FloatBackend<N, A>>::vec_min_element(self))
     }
 
     /// Returns the dot product of `self` and `other`.
@@ -521,12 +521,12 @@ where
 
     #[inline(always)]
     fn vec_element_sum(vec: Vector<N, T, A>) -> T {
-        vec.to_array().iter().sum()
+        vec.as_array_ref().iter().copied().sum()
     }
 
     #[inline(always)]
     fn vec_element_product(vec: Vector<N, T, A>) -> T {
-        vec.to_array().iter().product()
+        vec.as_array_ref().iter().copied().product()
     }
 
     #[inline(always)]

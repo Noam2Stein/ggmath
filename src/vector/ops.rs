@@ -31,7 +31,7 @@ macro_rules! impl_unary_op {
 
             #[inline(always)]
             fn $op(self) -> Self {
-                specialize!(unsafe { <T as ScalarBackend<N, A>>::$vec_op(self) })
+                specialize!(<T as ScalarBackend<N, A>>::$vec_op(self))
             }
         }
     };
@@ -49,7 +49,7 @@ macro_rules! impl_binary_op {
 
             #[inline(always)]
             fn $op(self, rhs: Self) -> Self {
-                specialize!(unsafe { <T as ScalarBackend<N, A>>::$vec_op(self, rhs) })
+                specialize!(<T as ScalarBackend<N, A>>::$vec_op(self, rhs))
             }
         }
 

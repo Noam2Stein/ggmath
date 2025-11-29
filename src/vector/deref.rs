@@ -1,9 +1,6 @@
-use core::{
-    mem::transmute,
-    ops::{Deref, DerefMut},
-};
+use core::ops::{Deref, DerefMut};
 
-use crate::{Alignment, Scalar, Vector};
+use crate::{Alignment, Scalar, Vector, transmute_mut, transmute_ref};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vector2
@@ -22,16 +19,14 @@ impl<T: Scalar, A: Alignment> Deref for Vector<2, T, A> {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        // SAFETY: The layout of `Xy<T>` is the same as `[T; 2]`.
-        unsafe { transmute::<&[T; 2], &Xy<T>>(self.as_array_ref()) }
+        unsafe { transmute_ref::<Vector<2, T, A>, Xy<T>>(self) }
     }
 }
 
 impl<T: Scalar, A: Alignment> DerefMut for Vector<2, T, A> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: The layout of `Xy<T>` is the same as `[T; 2]`.
-        unsafe { transmute::<&mut [T; 2], &mut Xy<T>>(self.as_array_mut()) }
+        unsafe { transmute_mut::<Vector<2, T, A>, Xy<T>>(self) }
     }
 }
 
@@ -54,16 +49,14 @@ impl<T: Scalar, A: Alignment> Deref for Vector<3, T, A> {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        // SAFETY: The layout of `Xyz<T>` is the same as `[T; 3]`.
-        unsafe { transmute::<&[T; 3], &Xyz<T>>(self.as_array_ref()) }
+        unsafe { transmute_ref::<Vector<3, T, A>, Xyz<T>>(self) }
     }
 }
 
 impl<T: Scalar, A: Alignment> DerefMut for Vector<3, T, A> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: The layout of `Xyz<T>` is the same as `[T; 3]`.
-        unsafe { transmute::<&mut [T; 3], &mut Xyz<T>>(self.as_array_mut()) }
+        unsafe { transmute_mut::<Vector<3, T, A>, Xyz<T>>(self) }
     }
 }
 
@@ -88,15 +81,13 @@ impl<T: Scalar, A: Alignment> Deref for Vector<4, T, A> {
 
     #[inline(always)]
     fn deref(&self) -> &Self::Target {
-        // SAFETY: The layout of `Xyzw<T>` is the same as `[T; 4]`.
-        unsafe { transmute::<&[T; 4], &Xyzw<T>>(self.as_array_ref()) }
+        unsafe { transmute_ref::<Vector<4, T, A>, Xyzw<T>>(self) }
     }
 }
 
 impl<T: Scalar, A: Alignment> DerefMut for Vector<4, T, A> {
     #[inline(always)]
     fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: The layout of `Xyzw<T>` is the same as `[T; 4]`.
-        unsafe { transmute::<&mut [T; 4], &mut Xyzw<T>>(self.as_array_mut()) }
+        unsafe { transmute_mut::<Vector<4, T, A>, Xyzw<T>>(self) }
     }
 }

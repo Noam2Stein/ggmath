@@ -3,9 +3,10 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    mem::{transmute, transmute_copy},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub},
 };
+
+use crate::{cast, transmute, transmute_align, transmute_mut, transmute_ref};
 
 mod constructor;
 mod deref;
@@ -70,17 +71,18 @@ where
     /// Converts an array into a [`Vector`].
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
-        Self::verify_type_layout();
-
-        if size_of::<Vector<N, T, A>>() == size_of::<[T; N]>() {
-            // SAFETY: `Vector<N, T, A>` is guaranteed to contain [T; N] exactly.
-            unsafe { transmute_copy::<[T; N], Vector<N, T, A>>(&array) }
-        } else {
-            unsafe {
-                // SAFETY: `Vector<N, T, A>` is guaranteed to contain [T; 4] exactly because the
-                // only case where a size mismatch is allowed is when `N == 3` and the vector is
-                // stored with a padding element.
-                transmute_copy::<[T; 4], Vector<N, T, A>>(&[array[0], array[1], array[2], array[2]])
+        unsafe {
+            match N {
+                2 => transmute::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
+                    array[0], array[1],
+                )),
+                3 => transmute::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
+                    array[0], array[1], array[2],
+                )),
+                4 => transmute::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
+                    array[0], array[1], array[2], array[3],
+                )),
+                _ => unreachable!(),
             }
         }
     }
@@ -88,13 +90,31 @@ where
     /// Creates a [`Vector`] with all elements set to `value`.
     #[inline(always)]
     pub const fn splat(value: T) -> Self {
-        Self::from_array([value; N])
+        unsafe {
+            match N {
+                2 => transmute::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
+                    value, value,
+                )),
+                3 => transmute::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
+                    value, value, value,
+                )),
+                4 => transmute::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
+                    value, value, value, value,
+                )),
+                _ => unreachable!(),
+            }
+        }
     }
 
     /// Creates a [`Vector`] by calling function `f` for the index of each element.
     #[inline(always)]
-    pub fn from_fn(f: impl FnMut(usize) -> T) -> Self {
-        Vector::from_array(core::array::from_fn(f))
+    pub fn from_fn(mut f: impl FnMut(usize) -> T) -> Self {
+        match N {
+            2 => cast::<Vector<2, T, A>, Vector<N, T, A>>(vec2!(f(0), f(1))),
+            3 => cast::<Vector<3, T, A>, Vector<N, T, A>>(vec3!(f(0), f(1), f(2))),
+            4 => cast::<Vector<4, T, A>, Vector<N, T, A>>(vec4!(f(0), f(1), f(2), f(3))),
+            _ => unreachable!(),
+        }
     }
 
     /// Returns the number of elements in the [`Vector`].
@@ -115,12 +135,17 @@ where
     /// Converts the [`Vector`] into the specified [`Alignment`].
     #[inline(always)]
     pub const fn to_alignment<A2: Alignment>(self) -> Vector<N, T, A2> {
-        match (A::IS_ALIGNED, A2::IS_ALIGNED) {
-            (false, true) | (true, false) => Vector::from_array(self.to_array()),
-            // SAFETY: `Vector<N, T, A>` and `Vector<N, T, A2>` are the same type.
-            (true, true) | (false, false) => unsafe {
-                downcast::<Vector<N, T, A>, Vector<N, T, A2>>(self)
-            },
+        unsafe {
+            match N {
+                2 => transmute_align::<Vector<N, T, A>, Vector<N, T, A2>>(self),
+                3 => transmute::<Vector<3, T, A2>, Vector<N, T, A2>>(Vector::<3, T, A2>::new(
+                    self.as_array_ref()[0],
+                    self.as_array_ref()[1],
+                    self.as_array_ref()[2],
+                )),
+                4 => transmute_align::<Vector<N, T, A>, Vector<N, T, A2>>(self),
+                _ => unreachable!(),
+            }
         }
     }
 
@@ -145,19 +170,13 @@ where
     /// Returns a reference to the [`Vector`]'s elements as an array.
     #[inline(always)]
     pub const fn as_array_ref(&self) -> &[T; N] {
-        Self::verify_type_layout();
-
-        // SAFETY: `Vector<N, T, A>` is guaranteed to begin with a `[T; N]`.
-        unsafe { transmute::<&Vector<N, T, A>, &[T; N]>(self) }
+        unsafe { transmute_ref::<Vector<N, T, A>, [T; N]>(self) }
     }
 
     /// Returns a mutable reference to the [`Vector`]'s elements as a mutable array.
     #[inline(always)]
     pub const fn as_array_mut(&mut self) -> &mut [T; N] {
-        Self::verify_type_layout();
-
-        // SAFETY: `Vector<N, T, A>` is guaranteed to begin with a `[T; N]`.
-        unsafe { transmute::<&mut Vector<N, T, A>, &mut [T; N]>(self) }
+        unsafe { transmute_mut::<Vector<N, T, A>, [T; N]>(self) }
     }
 
     /// Returns an iterator over the [`Vector`]'s elements.
@@ -178,7 +197,7 @@ where
     /// Creates a new [`Vector`] by applying function `f` to each element of `self`.
     #[inline(always)]
     pub fn map<T2: Scalar>(self, f: impl Fn(T) -> T2) -> Vector<N, T2, A> {
-        Vector::from_array(self.to_array().map(f))
+        Vector::from_fn(|i| f(self[i]))
     }
 
     /// Returns the element at `index`, or `None` if `index` is out of bounds.
@@ -208,7 +227,7 @@ where
     /// If `X` or `Y` are out of bounds, this function will not compile.
     #[inline(always)]
     pub fn swizzle2<const X: usize, const Y: usize>(self) -> Vector<2, T, A> {
-        specialize!(unsafe { <T as ScalarBackend<N, A>>::vec_swizzle2::<X, Y>(self) })
+        specialize!(<T as ScalarBackend<N, A>>::vec_swizzle2::<X, Y>(self))
     }
 
     /// Returns a vector3 with `(self[X], self[Y], self[Z])`, where `X`, `Y`, and
@@ -217,7 +236,7 @@ where
     /// If `X`, `Y`, or `Z` are out of bounds, this function will not compile.
     #[inline(always)]
     pub fn swizzle3<const X: usize, const Y: usize, const Z: usize>(self) -> Vector<3, T, A> {
-        specialize!(unsafe { <T as ScalarBackend<N, A>>::vec_swizzle3::<X, Y, Z>(self) })
+        specialize!(<T as ScalarBackend<N, A>>::vec_swizzle3::<X, Y, Z>(self))
     }
 
     /// Returns a vector4 with `(self[X], self[Y], self[Z], self[W])`, where `X`,
@@ -228,37 +247,17 @@ where
     pub fn swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
         self,
     ) -> Vector<4, T, A> {
-        specialize!(unsafe { <T as ScalarBackend<N, A>>::vec_swizzle4::<X, Y, Z, W>(self) })
+        specialize!(<T as ScalarBackend<N, A>>::vec_swizzle4::<X, Y, Z, W>(self))
     }
 
     /// Returns a new [`Vector`] with the elements of `self` in reverse order.
     #[inline(always)]
     pub fn reverse(self) -> Self {
-        (const {
-            match N {
-                // SAFETY: `N` is 2
-                2 => unsafe {
-                    downcast::<
-                        fn(Vector<2, T, A>) -> Vector<2, T, A>,
-                        fn(Vector<N, T, A>) -> Vector<N, T, A>,
-                    >(|v| v.yx())
-                },
-                // SAFETY: `N` is 3
-                3 => unsafe {
-                    downcast::<
-                        fn(Vector<3, T, A>) -> Vector<3, T, A>,
-                        fn(Vector<N, T, A>) -> Vector<N, T, A>,
-                    >(|v| v.zyx())
-                },
-                // SAFETY: `N` is 4
-                4 => unsafe {
-                    downcast::<
-                        fn(Vector<4, T, A>) -> Vector<4, T, A>,
-                        fn(Vector<N, T, A>) -> Vector<N, T, A>,
-                    >(|v| v.wzyx())
-                },
-                ..2 | 5.. => panic!("unsupported vector length"),
-            }
+        (match N {
+            2 => cast::<fn(_) -> _, fn(_) -> _>(Vector::<2, T, A>::swizzle2::<1, 0>),
+            3 => cast::<fn(_) -> _, fn(_) -> _>(Vector::<3, T, A>::swizzle3::<2, 1, 0>),
+            4 => cast::<fn(_) -> _, fn(_) -> _>(Vector::<4, T, A>::swizzle4::<3, 2, 1, 0>),
+            _ => unreachable!(),
         })(self)
     }
 
@@ -272,10 +271,7 @@ where
     where
         T: ScalarBackend<N, A>,
     {
-        Self::verify_type_layout();
-
-        // SAFETY: `VectorRepr` always redirects to `T::VectorRepr`.
-        unsafe { downcast::<VectorRepr<N, T, A>, <T as ScalarBackend<N, A>>::VectorRepr>(self.0) }
+        unsafe { transmute::<VectorRepr<N, T, A>, <T as ScalarBackend<N, A>>::VectorRepr>(self.0) }
     }
 
     /// Creates a [`Vector`] from its underlying type, as defined by the
@@ -288,41 +284,9 @@ where
     where
         T: ScalarBackend<N, A>,
     {
-        Self::verify_type_layout();
-
-        // SAFETY: `VectorRepr` always redirects to `T::VectorRepr`.
         Vector(unsafe {
-            downcast::<<T as ScalarBackend<N, A>>::VectorRepr, VectorRepr<N, T, A>>(repr)
+            transmute::<<T as ScalarBackend<N, A>>::VectorRepr, VectorRepr<N, T, A>>(repr)
         })
-    }
-
-    #[inline(always)]
-    const fn verify_type_layout() {
-        const {
-            if A::IS_ALIGNED {
-                match N {
-                    2 | 4 => {
-                        assert!(size_of::<Vector<N, T, A>>() == size_of::<[T; N]>());
-                        assert!(
-                            align_of::<Vector<N, T, A>>() == align_of::<[T; N]>()
-                                || align_of::<Vector<N, T, A>>() == size_of::<[T; N]>()
-                        );
-                    }
-                    3 => {
-                        assert!(
-                            size_of::<Vector<N, T, A>>() == size_of::<[T; 3]>()
-                                && align_of::<Vector<N, T, A>>() == align_of::<[T; 3]>()
-                                || size_of::<Vector<N, T, A>>() == size_of::<[T; 4]>()
-                                    && align_of::<Vector<N, T, A>>() == size_of::<[T; 4]>()
-                        );
-                    }
-                    ..2 | 5.. => panic!("unsupported vector length"),
-                }
-            } else {
-                assert!(size_of::<Vector<N, T, A>>() == size_of::<[T; N]>());
-                assert!(align_of::<Vector<N, T, A>>() == align_of::<[T; N]>());
-            }
-        }
     }
 }
 
@@ -339,6 +303,11 @@ impl<T: Scalar, A: Alignment> Vector<2, T, A> {
     pub const fn with_y(mut self, value: T) -> Self {
         self.as_array_mut()[1] = value;
         self
+    }
+
+    #[inline(always)]
+    const fn new(x: T, y: T) -> Self {
+        unsafe { transmute_align::<Xy<T>, Vector<2, T, A>>(Xy(x, y)) }
     }
 }
 
@@ -362,6 +331,15 @@ impl<T: Scalar, A: Alignment> Vector<3, T, A> {
     pub const fn with_z(mut self, value: T) -> Self {
         self.as_array_mut()[2] = value;
         self
+    }
+
+    #[inline(always)]
+    const fn new(x: T, y: T, z: T) -> Self {
+        match size_of::<Vector<3, T, A>>() / size_of::<T>() {
+            3 => unsafe { transmute_align::<Xyz<T>, Vector<3, T, A>>(Xyz(x, y, z)) },
+            4 => unsafe { transmute_align::<Xyzw<T>, Vector<3, T, A>>(Xyzw(x, y, z, z)) },
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -392,6 +370,11 @@ impl<T: Scalar, A: Alignment> Vector<4, T, A> {
     pub const fn with_w(mut self, value: T) -> Self {
         self.as_array_mut()[3] = value;
         self
+    }
+
+    #[inline(always)]
+    const fn new(x: T, y: T, z: T, w: T) -> Self {
+        unsafe { transmute_align::<Xyzw<T>, Vector<4, T, A>>(Xyzw(x, y, z, w)) }
     }
 }
 
@@ -518,12 +501,12 @@ where
 {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(unsafe { <T as ScalarBackend<N, A>>::vec_eq(*self, *other) })
+        specialize!(<T as ScalarBackend<N, A>>::vec_eq(*self, *other))
     }
 
     #[inline(always)]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(unsafe { <T as ScalarBackend<N, A>>::vec_ne(*self, *other) })
+        specialize!(<T as ScalarBackend<N, A>>::vec_ne(*self, *other))
     }
 }
 
@@ -875,27 +858,23 @@ unsafe trait SoundVectorRepr<const N: usize, T>: Send + Sync + Copy + 'static {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-struct Hfa2<T>(T, T);
+struct Xy<T>(T, T);
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-struct Hfa3<T>(T, T, T);
+struct Xyz<T>(T, T, T);
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-struct Hfa4<T>(T, T, T, T);
+struct Xyzw<T>(T, T, T, T);
 
-// SAFETY:
-// - `size_of::<Self::ActualRepr>()` is `N * size_of::<T>()`
-// - `align_of::<Self::ActualRepr>()` is `align_of::<T>()`
 unsafe impl<const N: usize, T: Scalar> SoundVectorRepr<N, T> for [T; N]
 where
     Length<N>: SupportedLength,
 {
-    type ActualRepr = <Length<N> as SupportedLength>::Select<Hfa2<T>, Hfa3<T>, Hfa4<T>>;
+    type ActualRepr = <Length<N> as SupportedLength>::Select<Xy<T>, Xyz<T>, Xyzw<T>>;
 }
 
-// SAFETY: Any type that is `SoundVectorRepr<N, TInner>` is also `SoundVectorRepr<N, T>`.
 unsafe impl<const N: usize, T, TInner: Scalar, A: Alignment> SoundVectorRepr<N, T>
     for Vector<N, TInner, A>
 where
@@ -912,62 +891,32 @@ where
 /// The caller must ensure that the type of the function and the call site
 /// expression is the same, as that is not checked automatically.
 macro_rules! specialize {
-    (unsafe { <$T:ty as $Backend:ident<$N:tt, $A:ident>>::$f:ident$(::<$($ARG:ty),*$(,)?>)?($($arg:expr),*$(,)?) }) => {
-        (const {
-            // SAFETY: The caller must ensure that the output type is correct.
-            unsafe {
-                match ($N, $A::IS_ALIGNED) {
-                    (2, true) => $crate::vector::downcast::<
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                    >(<$T as $Backend<2, $crate::Aligned>>::$f$(::<$($ARG),*>)?),
-
-                    (3, true) => $crate::vector::downcast::<
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                    >(<$T as $Backend<3, $crate::Aligned>>::$f$(::<$($ARG),*>)?),
-
-                    (4, true) => $crate::vector::downcast::<
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                    >(<$T as $Backend<4, $crate::Aligned>>::$f$(::<$($ARG),*>)?),
-
-                    (2, false) => $crate::vector::downcast::<
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                    >(<$T as $Backend<2, $crate::Unaligned>>::$f$(::<$($ARG),*>)?),
-
-                    (3, false) => $crate::vector::downcast::<
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                    >(<$T as $Backend<3, $crate::Unaligned>>::$f$(::<$($ARG),*>)?),
-
-                    (4, false) => $crate::vector::downcast::<
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                        fn($(specialize!(@_ $arg)),*) -> _,
-                    >(<$T as $Backend<4, $crate::Unaligned>>::$f$(::<$($ARG),*>)?),
-
-                    (..2 | 5.., _) => panic!("unsupported vector length"),
-                }
-            }
-        })($($arg),*)
-    };
-
-    (@_ $_arg:expr) => {
-        _
+    (<$T:ty as $Backend:ident<$N:tt, $A:ident>>::$f:ident$(::<$($ARG:ty),*$(,)?>)?($($arg:expr),*$(,)?)) => {
+        match ($N, $A::IS_ALIGNED) {
+            (2, true) => $crate::cast(<$T as $Backend<2, $crate::Aligned>>::$f$(::<$($ARG),*>)?(
+                $($crate::cast($arg)),*
+            )),
+            (3, true) => $crate::cast(<$T as $Backend<3, $crate::Aligned>>::$f$(::<$($ARG),*>)?(
+                $($crate::cast($arg)),*
+            )),
+            (4, true) => $crate::cast(<$T as $Backend<4, $crate::Aligned>>::$f$(::<$($ARG),*>)?(
+                $($crate::cast($arg)),*
+            )),
+            (2, false) => $crate::cast(<$T as $Backend<2, $crate::Unaligned>>::$f$(::<$($ARG),*>)?(
+                $($crate::cast($arg)),*
+            )),
+            (3, false) => $crate::cast(<$T as $Backend<3, $crate::Unaligned>>::$f$(::<$($ARG),*>)?(
+                $($crate::cast($arg)),*
+            )),
+            (4, false) => $crate::cast(<$T as $Backend<4, $crate::Unaligned>>::$f$(::<$($ARG),*>)?(
+                $($crate::cast($arg)),*
+            )),
+            _ => unreachable!(),
+        }
     };
 }
 
 use specialize;
-
-/// Downcasts the input argument's type from `I` to `O`.
-///
-/// ## Safety
-///
-/// The caller must ensure that `I` and `O` are the same type.
-const unsafe fn downcast<I: Copy + 'static, O: Copy + 'static>(value: I) -> O {
-    unsafe { transmute_copy::<I, O>(&value) }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Length
