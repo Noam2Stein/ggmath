@@ -512,7 +512,7 @@ where
 /// ## Example
 ///
 /// ```
-/// use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
+/// use ggmath::vector::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
 ///
 /// #[derive(Clone, Copy)]
 /// struct MyScalar;
@@ -550,7 +550,7 @@ pub trait Scalar:
 /// ## Example
 ///
 /// ```
-/// use ggmath::{Alignment, Length, Scalar, ScalarBackend, ScalarWrapper, SupportedLength};
+/// use ggmath::vector::{Alignment, Length, Scalar, ScalarBackend, ScalarWrapper, SupportedLength};
 ///
 /// #[derive(Clone, Copy)]
 /// struct MyScalar;
@@ -585,7 +585,7 @@ pub trait Scalar:
 /// ```
 /// use core::ops::Add;
 ///
-/// use ggmath::{Alignment, Length, Scalar, ScalarBackend, ScalarWrapper, SupportedLength, Vector};
+/// use ggmath::vector::{Alignment, Length, Scalar, ScalarBackend, ScalarWrapper, SupportedLength, Vector};
 ///
 /// #[repr(transparent)]
 /// #[derive(Clone, Copy)]
@@ -828,22 +828,22 @@ where
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:ident>>::$f:ident$(::<$($ARG:ty),*$(,)?>)?($($arg:expr),*$(,)?)) => {
         match ($N, $A::IS_ALIGNED) {
-            (2, true) => $crate::cast(<$T as $Backend<2, $crate::Aligned>>::$f$(::<$($ARG),*>)?(
+            (2, true) => $crate::cast(<$T as $Backend<2, $crate::vector::Aligned>>::$f$(::<$($ARG),*>)?(
                 $($crate::cast($arg)),*
             )),
-            (3, true) => $crate::cast(<$T as $Backend<3, $crate::Aligned>>::$f$(::<$($ARG),*>)?(
+            (3, true) => $crate::cast(<$T as $Backend<3, $crate::vector::Aligned>>::$f$(::<$($ARG),*>)?(
                 $($crate::cast($arg)),*
             )),
-            (4, true) => $crate::cast(<$T as $Backend<4, $crate::Aligned>>::$f$(::<$($ARG),*>)?(
+            (4, true) => $crate::cast(<$T as $Backend<4, $crate::vector::Aligned>>::$f$(::<$($ARG),*>)?(
                 $($crate::cast($arg)),*
             )),
-            (2, false) => $crate::cast(<$T as $Backend<2, $crate::Unaligned>>::$f$(::<$($ARG),*>)?(
+            (2, false) => $crate::cast(<$T as $Backend<2, $crate::vector::Unaligned>>::$f$(::<$($ARG),*>)?(
                 $($crate::cast($arg)),*
             )),
-            (3, false) => $crate::cast(<$T as $Backend<3, $crate::Unaligned>>::$f$(::<$($ARG),*>)?(
+            (3, false) => $crate::cast(<$T as $Backend<3, $crate::vector::Unaligned>>::$f$(::<$($ARG),*>)?(
                 $($crate::cast($arg)),*
             )),
-            (4, false) => $crate::cast(<$T as $Backend<4, $crate::Unaligned>>::$f$(::<$($ARG),*>)?(
+            (4, false) => $crate::cast(<$T as $Backend<4, $crate::vector::Unaligned>>::$f$(::<$($ARG),*>)?(
                 $($crate::cast($arg)),*
             )),
             _ => unreachable!(),

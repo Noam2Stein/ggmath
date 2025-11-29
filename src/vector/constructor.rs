@@ -1,4 +1,4 @@
-use crate::{Alignment, Scalar, Vector};
+use crate::vector::{Alignment, Scalar, Vector};
 
 /// Creates a [`Vector`]2 with the given elements.
 ///
@@ -19,7 +19,7 @@ use crate::{Alignment, Scalar, Vector};
 #[macro_export]
 macro_rules! vec2 {
     ($($arg:expr),*$(,)?) => {
-        $crate::Vector::<2, _, _>::from(($($arg,)*))
+        $crate::vector::Vector::<2, _, _>::from(($($arg,)*))
     };
 }
 
@@ -48,7 +48,7 @@ pub use vec2;
 #[macro_export]
 macro_rules! vec3 {
     ($($arg:expr),*$(,)?) => {
-        $crate::Vector::<3, _, _>::from(($($arg,)*))
+        $crate::vector::Vector::<3, _, _>::from(($($arg,)*))
     };
 }
 
@@ -77,7 +77,7 @@ pub use vec3;
 #[macro_export]
 macro_rules! vec4 {
     ($($arg:expr),*$(,)?) => {
-        $crate::Vector::<4, _, _>::from(($($arg,)*))
+        $crate::vector::Vector::<4, _, _>::from(($($arg,)*))
     };
 }
 

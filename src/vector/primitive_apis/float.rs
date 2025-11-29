@@ -1,6 +1,9 @@
 use crate::{
-    Alignment, Length, Scalar, ScalarNegOne, ScalarOne, ScalarZero, SupportedLength, Vector,
-    assertion, vector::specialize,
+    assertion,
+    vector::{
+        Alignment, Length, Scalar, ScalarNegOne, ScalarOne, ScalarZero, SupportedLength, Vector,
+        specialize,
+    },
 };
 
 impl<const N: usize, A: Alignment> Vector<N, T, A>

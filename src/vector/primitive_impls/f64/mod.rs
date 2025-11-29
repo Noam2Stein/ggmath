@@ -1,5 +1,5 @@
-use crate::{
-    Alignment, Length, ScalarBackend, SupportedLength, vector::primitive_apis::f64::FloatBackend,
+use crate::vector::{
+    Alignment, Length, ScalarBackend, SupportedLength, primitive_apis::f64::FloatBackend,
 };
 
 impl<const N: usize, A: Alignment> ScalarBackend<N, A> for f64

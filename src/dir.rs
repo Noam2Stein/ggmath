@@ -1,6 +1,6 @@
 /// `RIGHT` and `LEFT` constants where right is positive.
 pub mod right {
-    use crate::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
+    use crate::vector::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
 
     /// `RIGHT` constant where right is positive.
     pub trait RightExt {
@@ -49,7 +49,7 @@ pub mod right {
 
 /// `LEFT` and `RIGHT` constants where left is positive.
 pub mod left {
-    use crate::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
+    use crate::vector::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
 
     /// `LEFT` constant where left is positive.
     pub trait LeftExt {
@@ -98,7 +98,7 @@ pub mod left {
 
 /// `UP` and `DOWN` constants where up is positive.
 pub mod up {
-    use crate::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
+    use crate::vector::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
 
     /// `UP` constant where up is positive.
     pub trait UpExt {
@@ -147,7 +147,7 @@ pub mod up {
 
 /// `DOWN` and `UP` constants where down is positive.
 pub mod down {
-    use crate::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
+    use crate::vector::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
 
     /// `DOWN` constant where down is positive.
     pub trait DownExt {
@@ -196,7 +196,7 @@ pub mod down {
 
 /// `FORWARD` and `BACKWARD` constants where forwards is positive.
 pub mod forward {
-    use crate::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
+    use crate::vector::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
 
     /// `FORWARD` constant where forwards is positive.
     pub trait ForwardExt {
@@ -237,7 +237,7 @@ pub mod forward {
 
 /// `BACKWARD` and `FORWARD` constants where backwards is positive.
 pub mod backward {
-    use crate::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
+    use crate::vector::{Alignment, ScalarNegOne, ScalarOne, ScalarZero, Vector};
 
     /// `BACKWARD` constant where backwards is positive.
     pub trait BackwardExt {

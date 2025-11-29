@@ -1,6 +1,6 @@
 #![allow(deprecated)]
 
-use ggmath::{Alignment, Length, Scalar, SupportedLength, Vector};
+use ggmath::vector::{Alignment, Length, Scalar, SupportedLength, Vector};
 
 mod vector;
 

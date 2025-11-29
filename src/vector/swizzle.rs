@@ -1,4 +1,4 @@
-use crate::{Alignment, Scalar, Vector, vec2, vec3, vec4};
+use crate::vector::{Alignment, Scalar, Vector, vec2, vec3, vec4};
 
 impl<T: Scalar, A: Alignment> Vector<2, T, A> {
     declare_swizzle_fns! {

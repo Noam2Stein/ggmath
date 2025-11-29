@@ -107,14 +107,14 @@ macro_rules! test {
             $(
                 mod [<$T _aligned_ $m _tests>] {
                     type T = $T;
-                    type A = ggmath::Aligned;
+                    type A = ggmath::vector::Aligned;
 
                     include!(concat!(stringify!($m), ".rs"));
                 }
 
                 mod [<$T _unaligned_ $m _tests>] {
                     type T = $T;
-                    type A = ggmath::Unaligned;
+                    type A = ggmath::vector::Unaligned;
 
                     include!(concat!(stringify!($m), ".rs"));
                 }

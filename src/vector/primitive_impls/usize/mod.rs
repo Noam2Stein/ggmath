@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, ScalarBackend, ScalarWrapper, SupportedLength, Vector};
+use crate::vector::{Alignment, Length, ScalarBackend, ScalarWrapper, SupportedLength, Vector};
 
 impl<const N: usize, A: Alignment> ScalarBackend<N, A> for usize
 where

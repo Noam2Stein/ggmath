@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, ScalarBackend, SupportedLength};
+use crate::vector::{Alignment, Length, ScalarBackend, SupportedLength};
 
 mod f32;
 mod f64;

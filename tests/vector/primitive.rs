@@ -1,4 +1,4 @@
-use ggmath::Vector;
+use ggmath::vector::Vector;
 
 use crate::{assert_panic, vec2, vec3, vec4};
 

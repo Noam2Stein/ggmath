@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, ScalarBackend, SupportedLength};
+use crate::vector::{Alignment, Length, ScalarBackend, SupportedLength};
 
 impl<const N: usize, A: Alignment> ScalarBackend<N, A> for u32
 where

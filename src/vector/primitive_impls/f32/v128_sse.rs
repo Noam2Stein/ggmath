@@ -3,9 +3,9 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
-use crate::{
-    Aligned, ScalarBackend, Vector,
-    vector::{SoundVectorRepr, primitive_apis::f32::FloatBackend, primitive_impls::safe_arch},
+use crate::vector::{
+    Aligned, ScalarBackend, SoundVectorRepr, Vector, primitive_apis::f32::FloatBackend,
+    primitive_impls::safe_arch,
 };
 
 impl ScalarBackend<3, Aligned> for f32 {

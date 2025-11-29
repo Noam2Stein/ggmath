@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector};
+use crate::vector::{Alignment, Length, Scalar, SupportedLength, Vector};
 
 /// A trait for [`Scalar`] types that have `0` value.
 pub trait ScalarZero: Scalar {

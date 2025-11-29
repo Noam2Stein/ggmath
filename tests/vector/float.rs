@@ -1,4 +1,4 @@
-use ggmath::Vector;
+use ggmath::vector::Vector;
 
 use crate::{
     assert_approx_eq, assert_assertion_panic, assert_eq, assert_float_eq, vec2, vec3, vec4,

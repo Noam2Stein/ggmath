@@ -1,6 +1,6 @@
 /// [`f32`] type aliases.
 pub mod f32 {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`f32`] elements.
     pub type Vec2f = Vector<2, f32, Unaligned>;
@@ -28,7 +28,7 @@ pub mod f32 {
 
 /// [`f64`] type aliases.
 pub mod f64 {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`f64`] elements.
     ///
@@ -63,7 +63,7 @@ pub mod f64 {
 
 /// [`i8`] type aliases.
 pub mod i8 {
-    use crate::{Unaligned, Vector};
+    use crate::vector::{Unaligned, Vector};
 
     /// A 2D vector of [`i8`] elements.
     pub type Vec2i8 = Vector<2, i8, Unaligned>;
@@ -77,7 +77,7 @@ pub mod i8 {
 
 /// [`i16`] type aliases.
 pub mod i16 {
-    use crate::{Unaligned, Vector};
+    use crate::vector::{Unaligned, Vector};
 
     /// A 2D vector of [`i16`] elements.
     pub type Vec2i16 = Vector<2, i16, Unaligned>;
@@ -91,7 +91,7 @@ pub mod i16 {
 
 /// [`i32`] type aliases.
 pub mod i32 {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`i32`] elements.
     pub type Vec2i = Vector<2, i32, Unaligned>;
@@ -119,7 +119,7 @@ pub mod i32 {
 
 /// [`i64`] type aliases.
 pub mod i64 {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`i64`] elements.
     ///
@@ -154,7 +154,7 @@ pub mod i64 {
 
 /// [`i128`] type aliases.
 pub mod i128 {
-    use crate::{Unaligned, Vector};
+    use crate::vector::{Unaligned, Vector};
 
     /// A 2D vector of [`i128`] elements.
     pub type Vec2i128 = Vector<2, i128, Unaligned>;
@@ -168,7 +168,7 @@ pub mod i128 {
 
 /// [`isize`] type aliases.
 pub mod isize {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`isize`] elements.
     ///
@@ -203,7 +203,7 @@ pub mod isize {
 
 /// [`u8`] type aliases.
 pub mod u8 {
-    use crate::{Unaligned, Vector};
+    use crate::vector::{Unaligned, Vector};
 
     /// A 2D vector of [`u8`] elements.
     pub type Vec2u8 = Vector<2, u8, Unaligned>;
@@ -217,7 +217,7 @@ pub mod u8 {
 
 /// [`u16`] type aliases.
 pub mod u16 {
-    use crate::{Unaligned, Vector};
+    use crate::vector::{Unaligned, Vector};
 
     /// A 2D vector of [`u16`] elements.
     pub type Vec2u16 = Vector<2, u16, Unaligned>;
@@ -231,7 +231,7 @@ pub mod u16 {
 
 /// [`u32`] type aliases.
 pub mod u32 {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`u32`] elements.
     pub type Vec2u = Vector<2, u32, Unaligned>;
@@ -259,7 +259,7 @@ pub mod u32 {
 
 /// [`u64`] type aliases.
 pub mod u64 {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`u64`] elements.
     ///
@@ -294,7 +294,7 @@ pub mod u64 {
 
 /// [`u128`] type aliases.
 pub mod u128 {
-    use crate::{Unaligned, Vector};
+    use crate::vector::{Unaligned, Vector};
 
     /// A 2D vector of [`u128`] elements.
     pub type Vec2u128 = Vector<2, u128, Unaligned>;
@@ -308,7 +308,7 @@ pub mod u128 {
 
 /// [`usize`] type aliases.
 pub mod usize {
-    use crate::{Aligned, Unaligned, Vector};
+    use crate::vector::{Aligned, Unaligned, Vector};
 
     /// A 2D vector of [`usize`] elements.
     ///
@@ -343,7 +343,7 @@ pub mod usize {
 
 /// [`bool`] type aliases.
 pub mod bool {
-    use crate::{Unaligned, Vector};
+    use crate::vector::{Unaligned, Vector};
 
     /// A 2D vector of [`bool`] elements.
     pub type Vec2b = Vector<2, bool, Unaligned>;

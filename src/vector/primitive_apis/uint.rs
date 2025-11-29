@@ -1,4 +1,4 @@
-use crate::{Scalar, ScalarOne, ScalarZero};
+use crate::vector::{Scalar, ScalarOne, ScalarZero};
 
 impl Scalar for T {}
 

@@ -3,8 +3,8 @@ use core::ops::{
     Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 
-use crate::{
-    Alignment, Length, Scalar, ScalarBackend, SupportedLength, Vector, vector::specialize,
+use crate::vector::{
+    Alignment, Length, Scalar, ScalarBackend, SupportedLength, Vector, specialize,
 };
 
 impl_unary_op!(Neg, neg, vec_neg);

@@ -1,6 +1,9 @@
 use core::ops::{Deref, DerefMut};
 
-use crate::{Alignment, Scalar, Vector, transmute_mut, transmute_ref};
+use crate::{
+    transmute_mut, transmute_ref,
+    vector::{Alignment, Scalar, Vector},
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vector2

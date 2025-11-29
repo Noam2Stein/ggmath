@@ -1,4 +1,4 @@
-use crate::{Aligned, ScalarBackend, vector::primitive_apis::f32::FloatBackend};
+use crate::vector::{Aligned, ScalarBackend, primitive_apis::f32::FloatBackend};
 
 impl ScalarBackend<3, Aligned> for f32 {
     type VectorRepr = [f32; 3];

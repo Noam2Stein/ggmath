@@ -1,6 +1,5 @@
-use crate::{
-    Aligned, Length, ScalarBackend, SupportedLength, Unaligned,
-    vector::primitive_apis::f32::FloatBackend,
+use crate::vector::{
+    Aligned, Length, ScalarBackend, SupportedLength, Unaligned, primitive_apis::f32::FloatBackend,
 };
 
 #[cfg(not(any(target_feature = "sse")))]
