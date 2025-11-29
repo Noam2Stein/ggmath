@@ -50,6 +50,14 @@ pub fn primitive_tests(a: T, b: T, c: T, d: T) {
     assert_eq!(vec3!(a).len(), 3);
     assert_eq!(vec4!(a).len(), 4);
 
+    assert_eq!(vec2!(a).align(), ggmath::vec2!(a));
+    assert_eq!(vec3!(a).align(), ggmath::vec3!(a));
+    assert_eq!(vec4!(a).align(), ggmath::vec4!(a));
+
+    assert_eq!(vec2!(a).unalign(), ggmath::vec2!(a));
+    assert_eq!(vec3!(a).unalign(), ggmath::vec3!(a));
+    assert_eq!(vec4!(a).unalign(), ggmath::vec4!(a));
+
     assert_eq!(vec2!(a, b).as_array_ref(), &[a, b]);
     assert_eq!(vec3!(a, b, c).as_array_ref(), &[a, b, c]);
     assert_eq!(vec4!(a, b, c, d).as_array_ref(), &[a, b, c, d]);
