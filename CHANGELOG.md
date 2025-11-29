@@ -1,3 +1,8 @@
+## 0.15.0 (Unreleased)
+
+- removes vector functions: `swizzle2`, `swizzle3`, and `swizzle4`
+- removes crate root imports to `crate::vector::*`
+
 ## 0.14.1 (Unreleased)
 
 - deprecates vector functions: `swizzle2`, `swizzle3`, and `swizzle4`
