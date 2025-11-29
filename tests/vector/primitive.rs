@@ -149,58 +149,6 @@ pub fn primitive_tests(a: T, b: T, c: T, d: T) {
     assert_eq!(vec4!(a, b, c, d).get_mut(4), None);
     assert_eq!(vec4!(a, b, c, d).get_mut(5), None);
 
-    assert_eq!(vec2!(a, b).swizzle2::<0, 1>(), vec2!(a, b));
-    assert_eq!(vec3!(a, b, c).swizzle2::<0, 1>(), vec2!(a, b));
-    assert_eq!(vec4!(a, b, c, d).swizzle2::<0, 1>(), vec2!(a, b));
-    assert_eq!(vec2!(a, b).swizzle2::<0, 0>(), vec2!(a, a));
-    assert_eq!(vec3!(a, b, c).swizzle2::<0, 0>(), vec2!(a, a));
-    assert_eq!(vec4!(a, b, c, d).swizzle2::<0, 0>(), vec2!(a, a));
-    assert_eq!(vec2!(a, b).swizzle2::<1, 1>(), vec2!(b, b));
-    assert_eq!(vec3!(a, b, c).swizzle2::<1, 1>(), vec2!(b, b));
-    assert_eq!(vec4!(a, b, c, d).swizzle2::<1, 1>(), vec2!(b, b));
-    assert_eq!(vec2!(a, b).swizzle2::<1, 0>(), vec2!(b, a));
-    assert_eq!(vec3!(a, b, c).swizzle2::<1, 0>(), vec2!(b, a));
-    assert_eq!(vec4!(a, b, c, d).swizzle2::<1, 0>(), vec2!(b, a));
-
-    assert_eq!(vec2!(a, b).swizzle3::<0, 1, 0>(), vec3!(a, b, a));
-    assert_eq!(vec3!(a, b, c).swizzle3::<0, 1, 2>(), vec3!(a, b, c));
-    assert_eq!(vec4!(a, b, c, d).swizzle3::<0, 1, 2>(), vec3!(a, b, c));
-    assert_eq!(vec2!(a, b).swizzle3::<1, 0, 1>(), vec3!(b, a, b));
-    assert_eq!(vec3!(a, b, c).swizzle3::<2, 1, 0>(), vec3!(c, b, a));
-    assert_eq!(vec4!(a, b, c, d).swizzle3::<3, 2, 1>(), vec3!(d, c, b));
-    assert_eq!(vec3!(a, b, c).swizzle3::<1, 1, 1>(), vec3!(b, b, b));
-    assert_eq!(vec4!(a, b, c, d).swizzle3::<2, 2, 2>(), vec3!(c, c, c));
-    assert_eq!(vec4!(a, b, c, d).swizzle3::<0, 2, 3>(), vec3!(a, c, d));
-    assert_eq!(vec4!(a, b, c, d).swizzle3::<3, 0, 1>(), vec3!(d, a, b));
-
-    assert_eq!(vec2!(a, b).swizzle4::<0, 1, 0, 1>(), vec4!(a, b, a, b));
-    assert_eq!(vec3!(a, b, c).swizzle4::<0, 1, 2, 0>(), vec4!(a, b, c, a));
-    assert_eq!(
-        vec4!(a, b, c, d).swizzle4::<0, 1, 2, 3>(),
-        vec4!(a, b, c, d)
-    );
-    assert_eq!(vec3!(a, b, c).swizzle4::<2, 1, 0, 0>(), vec4!(c, b, a, a));
-    assert_eq!(
-        vec4!(a, b, c, d).swizzle4::<3, 2, 1, 0>(),
-        vec4!(d, c, b, a)
-    );
-    assert_eq!(
-        vec4!(a, b, c, d).swizzle4::<1, 1, 1, 1>(),
-        vec4!(b, b, b, b)
-    );
-    assert_eq!(
-        vec4!(a, b, c, d).swizzle4::<2, 3, 2, 3>(),
-        vec4!(c, d, c, d)
-    );
-    assert_eq!(
-        vec4!(a, b, c, d).swizzle4::<0, 0, 2, 3>(),
-        vec4!(a, a, c, d)
-    );
-    assert_eq!(
-        vec4!(a, b, c, d).swizzle4::<3, 3, 0, 1>(),
-        vec4!(d, d, a, b)
-    );
-
     assert_eq!(vec2!(a, b).xy(), vec2!(a, b));
     assert_eq!(vec3!(a, b, c).xy(), vec2!(a, b));
     assert_eq!(vec4!(a, b, c, d).xy(), vec2!(a, b));

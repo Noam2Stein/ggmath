@@ -254,42 +254,6 @@ where
             transmute::<<T as ScalarBackend<N, A>>::VectorRepr, VectorRepr<N, T, A>>(repr)
         })
     }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Deprecated
-    ////////////////////////////////////////////////////////////////////////////////
-
-    /// Returns a vector2 with `(self[X], self[Y])`, where `X` and `Y` are known at
-    /// compile-time.
-    ///
-    /// If `X` or `Y` are out of bounds, this function will not compile.
-    #[deprecated = "use `vec2` instead"]
-    #[inline(always)]
-    pub fn swizzle2<const X: usize, const Y: usize>(self) -> Vector<2, T, A> {
-        vec2!(self[X], self[Y])
-    }
-
-    /// Returns a vector3 with `(self[X], self[Y], self[Z])`, where `X`, `Y`, and
-    /// `Z` are known at compile-time.
-    ///
-    /// If `X`, `Y`, or `Z` are out of bounds, this function will not compile.
-    #[deprecated = "use `vec3` instead"]
-    #[inline(always)]
-    pub fn swizzle3<const X: usize, const Y: usize, const Z: usize>(self) -> Vector<3, T, A> {
-        vec3!(self[X], self[Y], self[Z])
-    }
-
-    /// Returns a vector4 with `(self[X], self[Y], self[Z], self[W])`, where `X`,
-    /// `Y`, `Z`, and `W` are known at compile-time.
-    ///
-    /// If `X`, `Y`, `Z`, or `W` are out of bounds, this function will not compile.
-    #[deprecated = "use `vec4` instead"]
-    #[inline(always)]
-    pub fn swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
-        self,
-    ) -> Vector<4, T, A> {
-        vec4!(self[X], self[Y], self[Z], self[W])
-    }
 }
 
 impl<T: Scalar, A: Alignment> Vector<2, T, A> {
@@ -794,44 +758,6 @@ where
         Self: Scalar + BitXor<Output = Self>,
     {
         Vector::from_fn(|i| vec[i] ^ rhs[i])
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Deprecated
-    ////////////////////////////////////////////////////////////////////////////////
-
-    /// Overridable implementation of [`Vector::swizzle2`].
-    #[deprecated = "the compiler automatically optimizes swizzles well"]
-    #[inline(always)]
-    fn vec_swizzle2<const X: usize, const Y: usize>(vec: Vector<N, Self, A>) -> Vector<2, Self, A>
-    where
-        Self: Scalar,
-    {
-        vec2!(vec[X], vec[Y])
-    }
-
-    /// Overridable implementation of [`Vector::swizzle3`].
-    #[deprecated = "the compiler automatically optimizes swizzles well"]
-    #[inline(always)]
-    fn vec_swizzle3<const X: usize, const Y: usize, const Z: usize>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<3, Self, A>
-    where
-        Self: Scalar,
-    {
-        vec3!(vec[X], vec[Y], vec[Z])
-    }
-
-    /// Overridable implementation of [`Vector::swizzle4`].
-    #[deprecated = "the compiler automatically optimizes swizzles well"]
-    #[inline(always)]
-    fn vec_swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<4, Self, A>
-    where
-        Self: Scalar,
-    {
-        vec4!(vec[X], vec[Y], vec[Z], vec[W])
     }
 }
 
