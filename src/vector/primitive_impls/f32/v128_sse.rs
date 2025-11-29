@@ -1,11 +1,10 @@
-use core::arch::asm;
 #[cfg(target_arch = "x86")]
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
 use crate::{
-    Aligned, ScalarBackend, Vector, vec2,
+    Aligned, ScalarBackend, Vector,
     vector::{SoundVectorRepr, primitive_apis::f32::FloatBackend, primitive_impls::safe_arch},
 };
 
@@ -14,27 +13,6 @@ impl ScalarBackend<3, Aligned> for f32 {
 
     safe_arch! {
         for "sse":
-
-        #[inline(always)]
-        fn vec_swizzle2<const X: usize, const Y: usize>(
-            vec: Vector<3, f32, Aligned>,
-        ) -> Vector<2, f32, Aligned> {
-            vec2!(vec[X], vec[Y])
-        }
-
-        #[inline(always)]
-        fn vec_swizzle3<const X: usize, const Y: usize, const Z: usize>(
-            vec: Vector<3, f32, Aligned>,
-        ) -> Vector<3, f32, Aligned> {
-            Vector::from_repr(swizzle::<X, Y, Z, Z>(vec.repr()))
-        }
-
-        #[inline(always)]
-        fn vec_swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
-            vec: Vector<3, f32, Aligned>,
-        ) -> Vector<4, f32, Aligned> {
-            Vector::from_repr(swizzle::<X, Y, Z, W>(vec.repr()))
-        }
 
         #[inline(always)]
         fn vec_eq(vec: Vector<3, f32, Aligned>, other: Vector<3, f32, Aligned>) -> bool {
@@ -103,27 +81,6 @@ impl ScalarBackend<4, Aligned> for f32 {
 
     safe_arch! {
         for "sse":
-
-        #[inline(always)]
-        fn vec_swizzle2<const X: usize, const Y: usize>(
-            vec: Vector<4, f32, Aligned>,
-        ) -> Vector<2, f32, Aligned> {
-            vec2!(vec[X], vec[Y])
-        }
-
-        #[inline(always)]
-        fn vec_swizzle3<const X: usize, const Y: usize, const Z: usize>(
-            vec: Vector<4, f32, Aligned>,
-        ) -> Vector<3, f32, Aligned> {
-            Vector::from_repr(swizzle::<X, Y, Z, Z>(vec.repr()))
-        }
-
-        #[inline(always)]
-        fn vec_swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
-            vec: Vector<4, f32, Aligned>,
-        ) -> Vector<4, f32, Aligned> {
-            Vector::from_repr(swizzle::<X, Y, Z, W>(vec.repr()))
-        }
 
         #[inline(always)]
         fn vec_eq(vec: Vector<4, f32, Aligned>, other: Vector<4, f32, Aligned>) -> bool {
@@ -382,24 +339,6 @@ unsafe impl SoundVectorRepr<3, f32> for __m128 {
 }
 unsafe impl SoundVectorRepr<4, f32> for __m128 {
     type ActualRepr = Self;
-}
-
-#[inline]
-#[target_feature(enable = "sse")]
-fn swizzle<const X: usize, const Y: usize, const Z: usize, const W: usize>(v: __m128) -> __m128 {
-    let result: __m128;
-    unsafe {
-        asm!("shufps {0}, {0}, {1}", inout(xmm_reg) v => result, const {
-            let x_bits = (X as u32) << 0;
-            let y_bits = (Y as u32) << 2;
-            let z_bits = (Z as u32) << 4;
-            let w_bits = (W as u32) << 6;
-
-            (x_bits | y_bits | z_bits | w_bits).cast_signed()
-        });
-    }
-
-    result
 }
 
 #[inline]

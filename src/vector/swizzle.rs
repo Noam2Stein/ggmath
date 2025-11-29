@@ -1,4 +1,4 @@
-use crate::{Alignment, Scalar, Vector};
+use crate::{Alignment, Scalar, Vector, vec2, vec3, vec4};
 
 impl<T: Scalar, A: Alignment> Vector<2, T, A> {
     declare_swizzle_fns! {
@@ -519,7 +519,7 @@ macro_rules! declare_swizzle_fns {
         #[doc = concat!("Returns a new vector2 with `(self[", stringify!($X), "], self[", stringify!($Y), "])`.")]
         #[inline(always)]
         pub fn $f(self) -> Vector<2, T, A> {
-            self.swizzle2::<$X, $Y>()
+            vec2!(self[$X], self[$Y])
         }
     )*};
 
@@ -527,7 +527,7 @@ macro_rules! declare_swizzle_fns {
         #[doc = concat!("Returns a new vector3 with `(self[", stringify!($X), "], self[", stringify!($Y), "], self[", stringify!($Z), "])`.")]
         #[inline(always)]
         pub fn $f(self) -> Vector<3, T, A> {
-            self.swizzle3::<$X, $Y, $Z>()
+            vec3!(self[$X], self[$Y], self[$Z])
         }
     )*};
 
@@ -535,7 +535,7 @@ macro_rules! declare_swizzle_fns {
         #[doc = concat!("Returns a new vector4 with `(self[", stringify!($X), "], self[", stringify!($Y), "], self[", stringify!($Z), "], self[", stringify!($W), "])`.")]
         #[inline(always)]
         pub fn $f(self) -> Vector<4, T, A> {
-            self.swizzle4::<$X, $Y, $Z, $W>()
+            vec4!(self[$X], self[$Y], self[$Z], self[$W])
         }
     )*};
 }

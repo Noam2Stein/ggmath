@@ -14,25 +14,6 @@ where
     type VectorRepr = Vector<N, u64, A>;
 
     #[inline(always)]
-    fn vec_swizzle2<const X: usize, const Y: usize>(vec: Vector<N, Self, A>) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::from_repr(vec.repr().swizzle2::<X, Y>())
-    }
-
-    #[inline(always)]
-    fn vec_swizzle3<const X: usize, const Y: usize, const Z: usize>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::from_repr(vec.repr().swizzle3::<X, Y, Z>())
-    }
-
-    #[inline(always)]
-    fn vec_swizzle4<const X: usize, const Y: usize, const Z: usize, const W: usize>(
-        vec: Vector<N, Self, A>,
-    ) -> Vector<4, Self, A> {
-        Vector::<4, Self, A>::from_repr(vec.repr().swizzle4::<X, Y, Z, W>())
-    }
-
-    #[inline(always)]
     fn vec_eq(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> bool {
         vec.repr() == other.repr()
     }

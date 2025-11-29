@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use ggmath::{Alignment, Length, Scalar, SupportedLength, Vector};
 
 mod vector;
