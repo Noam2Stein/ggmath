@@ -467,11 +467,33 @@ where
 {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
+        // This is a temporary workaround to optimize the function without creating
+        // breaking changes.
+        if align_of::<Self>() == align_of::<T>() {
+            return match N {
+                2 => self[0] == other[0] && self[1] == other[1],
+                3 => self[0] == other[0] && self[1] == other[1] && self[2] == other[2],
+                4 => {
+                    self[0] == other[0]
+                        && self[1] == other[1]
+                        && self[2] == other[2]
+                        && self[3] == other[3]
+                }
+                _ => unreachable!(),
+            };
+        }
+
         specialize!(<T as ScalarBackend<N, A>>::vec_eq(*self, *other))
     }
 
     #[inline(always)]
     fn ne(&self, other: &Self) -> bool {
+        // This is a temporary workaround to optimize the function without creating
+        // breaking changes.
+        if align_of::<Self>() == align_of::<T>() {
+            return !(self == other);
+        }
+
         specialize!(<T as ScalarBackend<N, A>>::vec_ne(*self, *other))
     }
 }
