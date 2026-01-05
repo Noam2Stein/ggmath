@@ -8,13 +8,13 @@ use crate::vector::{Alignment, Scalar, Vector};
 /// ## Examples
 ///
 /// ```
-/// use ggmath::{f32::Vec2f, vec2};
+/// use ggmath::{Vec2, vec2};
 ///
-/// let v: Vec2f = vec2!(1.0, 2.0);
-/// assert_eq!(v, Vec2f::from_array([1.0, 2.0]));
+/// let v: Vec2 = vec2!(1.0, 2.0);
+/// assert_eq!(v, Vec2::from_array([1.0, 2.0]));
 ///
-/// let v: Vec2f = vec2!(1.0);
-/// assert_eq!(v, Vec2f::from_array([1.0, 1.0]));
+/// let v: Vec2 = vec2!(1.0);
+/// assert_eq!(v, Vec2::from_array([1.0, 1.0]));
 /// ```
 #[macro_export]
 macro_rules! vec2 {
@@ -34,16 +34,16 @@ pub use vec2;
 /// ## Examples
 ///
 /// ```
-/// use ggmath::{f32::Vec3f, vec2, vec3};
+/// use ggmath::{Vec3, vec2, vec3};
 ///
-/// let v: Vec3f = vec3!(1.0, 2.0, 3.0);
-/// assert_eq!(v, Vec3f::from_array([1.0, 2.0, 3.0]));
+/// let v: Vec3 = vec3!(1.0, 2.0, 3.0);
+/// assert_eq!(v, Vec3::from_array([1.0, 2.0, 3.0]));
 ///
-/// let v: Vec3f = vec3!(1.0, vec2!(2.0, 3.0));
-/// assert_eq!(v, Vec3f::from_array([1.0, 2.0, 3.0]));
+/// let v: Vec3 = vec3!(1.0, vec2!(2.0, 3.0));
+/// assert_eq!(v, Vec3::from_array([1.0, 2.0, 3.0]));
 ///
-/// let v: Vec3f = vec3!(1.0);
-/// assert_eq!(v, Vec3f::from_array([1.0, 1.0, 1.0]));
+/// let v: Vec3 = vec3!(1.0);
+/// assert_eq!(v, Vec3::from_array([1.0, 1.0, 1.0]));
 /// ```
 #[macro_export]
 macro_rules! vec3 {
@@ -63,16 +63,16 @@ pub use vec3;
 /// ## Examples
 ///
 /// ```
-/// use ggmath::{f32::Vec4f, vec2, vec4};
+/// use ggmath::{Vec4, vec2, vec4};
 ///
-/// let v: Vec4f = vec4!(1.0, 2.0, 3.0, 4.0);
-/// assert_eq!(v, Vec4f::from_array([1.0, 2.0, 3.0, 4.0]));
+/// let v: Vec4 = vec4!(1.0, 2.0, 3.0, 4.0);
+/// assert_eq!(v, Vec4::from_array([1.0, 2.0, 3.0, 4.0]));
 ///
-/// let v: Vec4f = vec4!(1.0, vec2!(2.0, 3.0), 4.0);
-/// assert_eq!(v, Vec4f::from_array([1.0, 2.0, 3.0, 4.0]));
+/// let v: Vec4 = vec4!(1.0, vec2!(2.0, 3.0), 4.0);
+/// assert_eq!(v, Vec4::from_array([1.0, 2.0, 3.0, 4.0]));
 ///
-/// let v: Vec4f = vec4!(1.0);
-/// assert_eq!(v, Vec4f::from_array([1.0, 1.0, 1.0, 1.0]));
+/// let v: Vec4 = vec4!(1.0);
+/// assert_eq!(v, Vec4::from_array([1.0, 1.0, 1.0, 1.0]));
 /// ```
 #[macro_export]
 macro_rules! vec4 {

@@ -4,7 +4,7 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 use crate::{
-    f32::{Vec3fA, Vec4fA},
+    Vec3A, Vec4A,
     vector::{
         Aligned, ScalarBackend, SoundVectorRepr, Vector, primitive_apis::f32::FloatBackend,
         primitive_impls::safe_arch,
@@ -18,37 +18,37 @@ impl ScalarBackend<3, Aligned> for f32 {
         for "sse":
 
         #[inline(always)]
-        fn vec_eq(vec: Vec3fA, other: Vec3fA) -> bool {
+        fn vec_eq(vec: Vec3A, other: Vec3A) -> bool {
             _mm_movemask_ps(_mm_cmpeq_ps(vec.repr(), other.repr())) as u32 & 0b111 == 0b111
         }
 
         #[inline(always)]
-        fn vec_ne(vec: Vec3fA, other: Vec3fA) -> bool {
+        fn vec_ne(vec: Vec3A, other: Vec3A) -> bool {
             _mm_movemask_ps(_mm_cmpneq_ps(vec.repr(), other.repr())) as u32 & 0b111 != 0
         }
 
         #[inline(always)]
-        fn vec_neg(vec: Vec3fA) -> Vec3fA {
+        fn vec_neg(vec: Vec3A) -> Vec3A {
             Vector::from_repr(neg(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_add(vec: Vec3fA, rhs: Vec3fA) -> Vec3fA {
+        fn vec_add(vec: Vec3A, rhs: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_add_ps(vec.repr(), rhs.repr()))
         }
 
         #[inline(always)]
-        fn vec_sub(vec: Vec3fA, rhs: Vec3fA) -> Vec3fA {
+        fn vec_sub(vec: Vec3A, rhs: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_sub_ps(vec.repr(), rhs.repr()))
         }
 
         #[inline(always)]
-        fn vec_mul(vec: Vec3fA, rhs: Vec3fA) -> Vec3fA {
+        fn vec_mul(vec: Vec3A, rhs: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_mul_ps(vec.repr(), rhs.repr()))
         }
 
         #[inline(always)]
-        fn vec_div(vec: Vec3fA, rhs: Vec3fA) -> Vec3fA {
+        fn vec_div(vec: Vec3A, rhs: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_div_ps(vec.repr(), rhs.repr()))
         }
     }
@@ -58,7 +58,7 @@ impl ScalarBackend<3, Aligned> for f32 {
         for "sse2":
 
         #[inline(always)]
-        fn vec_rem(vec: Vec3fA, rhs: Vec3fA) -> Vec3fA {
+        fn vec_rem(vec: Vec3A, rhs: Vec3A) -> Vec3A {
             Vector::from_repr(rem(vec.repr(), rhs.repr()))
         }
     }
@@ -71,37 +71,37 @@ impl ScalarBackend<4, Aligned> for f32 {
         for "sse":
 
         #[inline(always)]
-        fn vec_eq(vec: Vec4fA, other: Vec4fA) -> bool {
+        fn vec_eq(vec: Vec4A, other: Vec4A) -> bool {
             _mm_movemask_ps(_mm_cmpeq_ps(vec.repr(), other.repr())) as u32 == 0xf
         }
 
         #[inline(always)]
-        fn vec_ne(vec: Vec4fA, other: Vec4fA) -> bool {
+        fn vec_ne(vec: Vec4A, other: Vec4A) -> bool {
             _mm_movemask_ps(_mm_cmpneq_ps(vec.repr(), other.repr())) as u32 != 0
         }
 
         #[inline(always)]
-        fn vec_neg(vec: Vec4fA) -> Vec4fA {
+        fn vec_neg(vec: Vec4A) -> Vec4A {
             Vector::from_repr(neg(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_add(vec: Vec4fA, rhs: Vec4fA) -> Vec4fA {
+        fn vec_add(vec: Vec4A, rhs: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_add_ps(vec.repr(), rhs.repr()))
         }
 
         #[inline(always)]
-        fn vec_sub(vec: Vec4fA, rhs: Vec4fA) -> Vec4fA {
+        fn vec_sub(vec: Vec4A, rhs: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_sub_ps(vec.repr(), rhs.repr()))
         }
 
         #[inline(always)]
-        fn vec_mul(vec: Vec4fA, rhs: Vec4fA) -> Vec4fA {
+        fn vec_mul(vec: Vec4A, rhs: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_mul_ps(vec.repr(), rhs.repr()))
         }
 
         #[inline(always)]
-        fn vec_div(vec: Vec4fA, rhs: Vec4fA) -> Vec4fA {
+        fn vec_div(vec: Vec4A, rhs: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_div_ps(vec.repr(), rhs.repr()))
         }
     }
@@ -111,7 +111,7 @@ impl ScalarBackend<4, Aligned> for f32 {
         for "sse2":
 
         #[inline(always)]
-        fn vec_rem(vec: Vec4fA, rhs: Vec4fA) -> Vec4fA {
+        fn vec_rem(vec: Vec4A, rhs: Vec4A) -> Vec4A {
             Vector::from_repr(rem(vec.repr(), rhs.repr()))
         }
     }
@@ -123,48 +123,48 @@ impl FloatBackend<3, Aligned> for f32 {
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_round(vec: Vec3fA) -> Vec3fA {
+        fn vec_round(vec: Vec3A) -> Vec3A {
             Vector::from_repr(round(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_sqrt(vec: Vec3fA) -> Vec3fA {
+        fn vec_sqrt(vec: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_sqrt_ps(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_recip(vec: Vec3fA) -> Vec3fA {
+        fn vec_recip(vec: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_div_ps(_mm_set1_ps(1.0), vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_max(vec: Vec3fA, other: Vec3fA) -> Vec3fA {
+        fn vec_max(vec: Vec3A, other: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_max_ps(vec.repr(), other.repr()))
         }
 
         #[inline(always)]
-        fn vec_min(vec: Vec3fA, other: Vec3fA) -> Vec3fA {
+        fn vec_min(vec: Vec3A, other: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_min_ps(vec.repr(), other.repr()))
         }
 
         #[inline(always)]
-        fn vec_clamp(vec: Vec3fA, min: Vec3fA, max: Vec3fA) -> Vec3fA {
+        fn vec_clamp(vec: Vec3A, min: Vec3A, max: Vec3A) -> Vec3A {
             Vector::from_repr(_mm_min_ps(_mm_max_ps(vec.repr(), min.repr()), max.repr()))
         }
 
         #[inline(always)]
-        fn vec_abs(vec: Vec3fA) -> Vec3fA {
+        fn vec_abs(vec: Vec3A) -> Vec3A {
             Vector::from_repr(abs(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_signum(vec: Vec3fA) -> Vec3fA {
+        fn vec_signum(vec: Vec3A) -> Vec3A {
             Vector::from_repr(signum(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_copysign(vec: Vec3fA, sign: Vec3fA) -> Vec3fA {
+        fn vec_copysign(vec: Vec3A, sign: Vec3A) -> Vec3A {
             Vector::from_repr(copysign(vec.repr(), sign.repr()))
         }
     }
@@ -175,25 +175,25 @@ impl FloatBackend<3, Aligned> for f32 {
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_floor(vec: Vec3fA) -> Vec3fA {
+        fn vec_floor(vec: Vec3A) -> Vec3A {
             Vector::from_repr(floor(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_ceil(vec: Vec3fA) -> Vec3fA {
+        fn vec_ceil(vec: Vec3A) -> Vec3A {
             Vector::from_repr(ceil(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_trunc(vec: Vec3fA) -> Vec3fA {
+        fn vec_trunc(vec: Vec3A) -> Vec3A {
             Vector::from_repr(trunc(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_fract(vec: Vec3fA) -> Vec3fA {
+        fn vec_fract(vec: Vec3A) -> Vec3A {
             Vector::from_repr(fract(vec.repr()))
         }
     }
@@ -205,48 +205,48 @@ impl FloatBackend<4, Aligned> for f32 {
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_round(vec: Vec4fA) -> Vec4fA {
+        fn vec_round(vec: Vec4A) -> Vec4A {
             Vector::from_repr(round(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_sqrt(vec: Vec4fA) -> Vec4fA {
+        fn vec_sqrt(vec: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_sqrt_ps(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_recip(vec: Vec4fA) -> Vec4fA {
+        fn vec_recip(vec: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_div_ps(_mm_set1_ps(1.0), vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_max(vec: Vec4fA, other: Vec4fA) -> Vec4fA {
+        fn vec_max(vec: Vec4A, other: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_max_ps(vec.repr(), other.repr()))
         }
 
         #[inline(always)]
-        fn vec_min(vec: Vec4fA, other: Vec4fA) -> Vec4fA {
+        fn vec_min(vec: Vec4A, other: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_min_ps(vec.repr(), other.repr()))
         }
 
         #[inline(always)]
-        fn vec_clamp(vec: Vec4fA, min: Vec4fA, max: Vec4fA) -> Vec4fA {
+        fn vec_clamp(vec: Vec4A, min: Vec4A, max: Vec4A) -> Vec4A {
             Vector::from_repr(_mm_min_ps(_mm_max_ps(vec.repr(), min.repr()), max.repr()))
         }
 
         #[inline(always)]
-        fn vec_abs(vec: Vec4fA) -> Vec4fA {
+        fn vec_abs(vec: Vec4A) -> Vec4A {
             Vector::from_repr(abs(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_signum(vec: Vec4fA) -> Vec4fA {
+        fn vec_signum(vec: Vec4A) -> Vec4A {
             Vector::from_repr(signum(vec.repr()))
         }
 
         #[inline(always)]
-        fn vec_copysign(vec: Vec4fA, sign: Vec4fA) -> Vec4fA {
+        fn vec_copysign(vec: Vec4A, sign: Vec4A) -> Vec4A {
             Vector::from_repr(copysign(vec.repr(), sign.repr()))
         }
     }
@@ -257,25 +257,25 @@ impl FloatBackend<4, Aligned> for f32 {
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_floor(vec: Vec4fA) -> Vec4fA {
+        fn vec_floor(vec: Vec4A) -> Vec4A {
             Vector::from_repr(floor(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_ceil(vec: Vec4fA) -> Vec4fA {
+        fn vec_ceil(vec: Vec4A) -> Vec4A {
             Vector::from_repr(ceil(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_trunc(vec: Vec4fA) -> Vec4fA {
+        fn vec_trunc(vec: Vec4A) -> Vec4A {
             Vector::from_repr(trunc(vec.repr()))
         }
 
         #[cfg(feature = "std")]
         #[inline(always)]
-        fn vec_fract(vec: Vec4fA) -> Vec4fA {
+        fn vec_fract(vec: Vec4A) -> Vec4A {
             Vector::from_repr(fract(vec.repr()))
         }
     }

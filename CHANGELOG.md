@@ -2,6 +2,7 @@
 
 - removes vector functions: `swizzle2`, `swizzle3`, and `swizzle4`
 - removes crate root imports to `crate::vector::*`
+- changes type alias structure
 
 ## 0.14.1 (Unreleased)
 
