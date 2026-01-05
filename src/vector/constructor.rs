@@ -23,8 +23,6 @@ macro_rules! vec2 {
     };
 }
 
-pub use vec2;
-
 /// Creates a [`Vector`]3 with the given elements. Also accepts [`Vector`]s as
 /// arguments, as long as their lengths sum up to 3.
 ///
@@ -52,8 +50,6 @@ macro_rules! vec3 {
     };
 }
 
-pub use vec3;
-
 /// Creates a [`Vector`]4 with the given elements. Also accepts [`Vector`]s as
 /// arguments, as long as their lengths sum up to 4.
 ///
@@ -80,8 +76,6 @@ macro_rules! vec4 {
         $crate::vector::Vector::<4, _, _>::from(($($arg,)*))
     };
 }
-
-pub use vec4;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vector2 Implementations

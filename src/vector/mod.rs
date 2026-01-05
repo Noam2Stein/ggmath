@@ -6,7 +6,7 @@ use core::{
     ops::{Add, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Neg, Not, Rem, Shl, Shr, Sub},
 };
 
-use crate::{cast, transmute, transmute_align, transmute_mut, transmute_ref};
+use crate::{cast, transmute, transmute_align, transmute_mut, transmute_ref, vec2, vec3, vec4};
 
 mod constructor;
 mod deref;
@@ -15,7 +15,6 @@ mod ops;
 mod primitive_apis;
 mod primitive_impls;
 mod swizzle;
-pub use constructor::*;
 pub use dir::*;
 
 /// A generic vector type.
