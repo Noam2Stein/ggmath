@@ -23,6 +23,8 @@ let v4a: Vec4A = vec4!(1.0, 2.0, 3.0, 4.0);
 let result = v2.abs() * 2.0 + v3.xy();
 ```
 
+The unique feature of this crate is that it supports both generics and SIMD:
+
 ## Generics
 
 Types like `Vec2` and `IVec3` are aliases for the generic type `Vector<N, T,
@@ -41,7 +43,8 @@ This crate provides both scalar-backed types and SIMD-aligned types:
 - `Vec2`, `Vec3`, `Vec4`, etc., are `Vector<N, T, Unaligned>`
 - `Vec3A`, `Vec4A`, etc., are `Vector<N, T, Aligned>`
 
-SIMD types make operations faster, but have higher memory alignment.
+SIMD types make operations faster, but have higher memory alignment. Correct use
+of SIMD types can significantly improve performance.
 
 ## Development Status
 
