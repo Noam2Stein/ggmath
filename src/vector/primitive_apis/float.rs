@@ -10,138 +10,163 @@ impl<const N: usize, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Returns a new [`Vector`] with the elements of `self` rounded down.
+    /// Returns a vector with each element of `self` rounded down.
+    ///
+    /// This function always produces the same result as `T::floor`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn floor(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_floor(self))
     }
 
-    /// Returns a new [`Vector`] with the elements of `self` rounded up.
+    /// Returns a vector with each element of `self` rounded up.
+    ///
+    /// This function always produces the same result as `T::ceil`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn ceil(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_ceil(self))
     }
 
-    /// Returns a new [`Vector`] with the elements of `self` rounded to the nearest
+    /// Returns a vector with each element of `self` rounded to the nearest
     /// integer.
+    ///
+    /// This function always produces the same result as `T::round`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn round(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_round(self))
     }
 
-    /// Returns a new [`Vector`] with the elements of `self` rounded towards zero.
+    /// Returns a vector with each element of `self` rounded towards zero.
+    ///
+    /// This function always produces the same result as `T::trunc`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn trunc(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_trunc(self))
     }
 
-    /// Returns a new [`Vector`] with the fractional part of `self`.
+    /// Returns a vector with the fractional part of each element of `self`.
     ///
-    /// This is equivalent to `self - self.trunc()`.
+    /// This function always produces the same result as `T::fract`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn fract(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_fract(self))
     }
 
-    /// Computes `self * a + b` with only a single rounding error instead of two.
+    /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
+    /// error instead of two.
     ///
-    /// This may be faster on specific target architectures but is usually slower
-    /// than `self * a + b`.
+    /// This function always produces the same result as `T::mul_add`.
+    ///
+    /// Using this function is slower than `(self * a) + b` on most platforms.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn mul_add(self, a: Self, b: Self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_mul_add(self, a, b))
     }
 
-    /// Computes element-wise euclidean division.
+    /// Returns a vector containing the euclidean division of numbers for each
+    /// element of `self` and `rhs`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn div_euclid(self, rhs: Self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_div_euclid(self, rhs))
     }
 
-    /// Computes element-wise euclidean remainder.
+    /// Returns a vector containing the euclidean remainder of numbers for each
+    /// element of `self` and `rhs`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn rem_euclid(self, rhs: Self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_rem_euclid(self, rhs))
     }
 
-    /// Returns a new [`Vector`] with the square root of the elements of `self`.
+    /// Returns a vector containing the square root of a number for each element
+    /// of `self`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn sqrt(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_sqrt(self))
     }
 
-    /// Returns a new [`Vector`] with the sine of the elements of `self`.
+    /// Returns a vector containing the sine of a number for each element of
+    /// `self`.
+    ///
+    /// This function may not produce the same result as `T::sin`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn sin(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_sin(self))
     }
 
-    /// Returns a new [`Vector`] with the cosine of the elements of `self`.
+    /// Returns a vector containing the cosine of a number for each element of
+    /// `self`.
+    ///
+    /// This function may not produce the same result as `T::cos`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn cos(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_cos(self))
     }
 
-    /// Returns a new [`Vector`] with the tangent of the elements of `self`.
+    /// Returns a vector containing the tangent of a number for each element of
+    /// `self`.
+    ///
+    /// This function may not produce the same result as `T::tan`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn tan(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_tan(self))
     }
 
-    /// Returns a new [`Vector`] with the arcsine of the elements of `self`.
+    /// Returns a vector containing the arcsine of a number for each element of
+    /// `self`.
+    ///
+    /// This function may not produce the same result as `T::asin`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn asin(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_asin(self))
     }
 
-    /// Returns a new [`Vector`] with the arccosine of the elements of `self`.
+    /// Returns a vector containing the arccosine of a number for each element
+    /// of `self`.
+    ///
+    /// This function may not produce the same result as `T::acos`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn acos(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_acos(self))
     }
 
-    /// Returns a new [`Vector`] with the arctangent of the elements of `self`.
+    /// Returns a vector containing the arctangent of a number for each element
+    /// of `self`.
+    ///
+    /// This function may not produce the same result as `T::atan`.
     #[cfg(feature = "std")]
     #[inline(always)]
     pub fn atan(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_atan(self))
     }
 
-    /// Computes `1.0 / self`.
+    /// Computes `1.0 / vec`.
     #[inline(always)]
     pub fn recip(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_recip(self))
     }
 
-    /// Returns a new [`Vector`] with the greater elements between the elements of
-    /// `self` and `other`.
+    /// Returns a vector with the larger elements between `self` and `other`.
     ///
-    /// ## Precision
+    /// This function may produce a different result from `T::max` in regards to
+    /// `-0.0` and NaN propagation.
     ///
-    /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    /// # Panics
     ///
-    /// If `assertions` is disabled, NaN propagation is unspecified.
-    ///
-    /// ## Panics
-    ///
-    /// Panics if any element of `self` or `other` is NaN.
-    ///
-    /// Note: this only panics if `assertions` is enabled (is enabled by default in
-    /// debug mode).
+    /// If `assertions` are enabled, this function will panic when any input is
+    /// NaN.
     #[inline(always)]
     pub fn max(self, other: Self) -> Self {
         assertion!(
@@ -156,21 +181,15 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_max(self, other))
     }
 
-    /// Returns a new [`Vector`] with the lesser elements between the elements of
-    /// `self` and `other`.
+    /// Returns a vector with the smaller elements between `self` and `other`.
     ///
-    /// ## Precision
+    /// This function may produce a different result from `T::min` in regards to
+    /// `-0.0` and NaN propagation.
     ///
-    /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    /// # Panics
     ///
-    /// If `assertions` is disabled, NaN propagation is unspecified.
-    ///
-    /// ## Panics
-    ///
-    /// Panics if any element of `self` or `other` is NaN.
-    ///
-    /// Note: this only panics if `assertions` is enabled (is enabled by default in
-    /// debug mode).
+    /// If `assertions` are enabled, this function will panic when any input is
+    /// NaN.
     #[inline(always)]
     pub fn min(self, other: Self) -> Self {
         assertion!(
@@ -185,21 +204,17 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_min(self, other))
     }
 
-    /// Returns a new [`Vector`] with the elements of `self` clamped between the
-    /// elements of `min` and `max`.
+    /// Returns a vector with the elements of `self` clamped between `min` and
+    /// `max`.
     ///
-    /// ## Precision
+    /// This function may produce a different result from `T::clamp` in regards
+    /// to `-0.0` and NaN propagation.
     ///
-    /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    /// # Panics
     ///
-    /// If `assertions` is disabled, NaN propagation is unspecified.
-    ///
-    /// ## Panics
-    ///
-    /// Panics if `min` is greater than `max`, or if any value is NaN.
-    ///
-    /// Note: this only panics if `assertions` is enabled (is enabled by default in
-    /// debug mode).
+    /// If `assertions` are enabled, this function will panic when:
+    /// - Any input is NaN.
+    /// - `min` is greater than `max`.
     #[inline(always)]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         assertion!(
@@ -222,24 +237,23 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_clamp(self, min, max))
     }
 
-    /// Returns a new [`Vector`] with the absolute value of the elements of `self`.
+    /// Returns a vector with the absolute value the elements of `self`.
     #[inline(always)]
     pub fn abs(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_abs(self))
     }
 
-    /// Returns a new [`Vector`] with the sign of the elements of `self`:
+    /// Returns a vector with the sign of each element of `self`.
     ///
-    /// - `1.0` if the number is positive, `+0.0` or `INFINITY`
-    /// - `-1.0` if the number is negative, `-0.0` or `NEG_INFINITY`
-    /// - `NAN` if the number is `NAN`
+    /// - `1.0` if the element is positive, `+0.0` or `INFINITY`
+    /// - `-1.0` if the element is negative, `-0.0` or `NEG_INFINITY`
+    /// - `NAN` if the element is `NAN`
     #[inline(always)]
     pub fn signum(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_signum(self))
     }
 
-    /// Returns a new [`Vector`] with the elements of `self` with the sign of the
-    /// elements of `sign`.
+    /// Returns a vector with the magnitudes of `self` and the signs of `sign`.
     #[inline(always)]
     pub fn copysign(self, sign: Self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_copysign(self, sign))
@@ -259,18 +273,13 @@ where
 
     /// Returns the maximum element of `self`.
     ///
-    /// ## Precision
+    /// This function may produce a different result from `T::max` in regards to
+    /// `-0.0` and NaN propagation.
     ///
-    /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    /// # Panics
     ///
-    /// If `assertions` is disabled, NaN propagation is unspecified.
-    ///
-    /// ## Panics
-    ///
-    /// Panics if any element of `self` is NaN.
-    ///
-    /// Note: this only panics if `assertions` is enabled (is enabled by default in
-    /// debug mode).
+    /// If `assertions` are enabled, this function will panic when any element
+    /// is NaN.
     #[inline(always)]
     pub fn max_element(self) -> T {
         assertion!(
@@ -283,18 +292,13 @@ where
 
     /// Returns the minimum element of `self`.
     ///
-    /// ## Precision
+    /// This function may produce a different result from `T::min` in regards to
+    /// `-0.0` and NaN propagation.
     ///
-    /// This may return `-0.0` instead of `0.0` or `0.0` instead of `-0.0`.
+    /// # Panics
     ///
-    /// If `assertions` is disabled, NaN propagation is unspecified.
-    ///
-    /// ## Panics
-    ///
-    /// Panics if any element of `self` is NaN.
-    ///
-    /// Note: this only panics if `assertions` is enabled (is enabled by default in
-    /// debug mode).
+    /// If `assertions` are enabled, this function will panic when any element
+    /// is NaN.
     #[inline(always)]
     pub fn min_element(self) -> T {
         assertion!(
@@ -320,13 +324,18 @@ where
 
     /// Returns the square of the magnitude of `self`.
     ///
-    /// This is faster than [`Self::length`] as it avoids a square root.
+    /// This is faster than `vec.length()` as it avoids a square root.
     #[inline(always)]
     pub fn length_squared(self) -> T {
         self.dot(self)
     }
 
-    /// Returns a new [`Vector`] with the direction of `self` and a length of `1.0`.
+    /// Returns a vector with the direction of `self` and a length of `1.0`.
+    ///
+    /// # Panics
+    ///
+    /// If `assertions` are enabled, this function will panic if `self` is a
+    /// zero vector or is non finite.
     #[cfg(feature = "std")]
     #[must_use]
     #[inline(always)]
@@ -342,10 +351,10 @@ where
         result
     }
 
-    /// Returns a new [`Vector`] with the direction of `self` and a length of `1.0`,
-    /// or `None` if the operation fails.
+    /// Returns a vector with the direction of `self` and a length of `1.0`, or
+    /// `None` if the operation fails.
     ///
-    /// The operation fails if `self` is a zero vector or is not finite.
+    /// The operation fails if `self` is a zero vector or is non finite.
     #[cfg(feature = "std")]
     #[must_use]
     #[inline(always)]
@@ -358,10 +367,10 @@ where
         }
     }
 
-    /// Returns a new [`Vector`] with the direction of `self` and a length of `1.0`,
-    /// or `fallback` if the operation fails.
+    /// Returns a vector with the direction of `self` and a length of `1.0`, or
+    /// `fallback` if the operation fails.
     ///
-    /// The operation fails if `self` is a zero vector or is not finite.
+    /// The operation fails if `self` is a zero vector or is non finite.
     #[cfg(feature = "std")]
     #[must_use]
     #[inline(always)]

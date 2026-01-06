@@ -1,11 +1,11 @@
 use crate::vector::{Alignment, Scalar, Vector};
 
-/// Creates a [`Vector`]2 with the given elements.
+/// Creates a vector2 from elements.
 ///
-/// If only a single element is given, it will be used for all elements of the
-/// [`Vector`].
+/// If only a single element is provided, it will be used for all elements of
+/// the output.
 ///
-/// ## Examples
+/// # Examples
 ///
 /// ```
 /// use ggmath::{Vec2, vec2};
@@ -23,13 +23,13 @@ macro_rules! vec2 {
     };
 }
 
-/// Creates a [`Vector`]3 with the given elements. Also accepts [`Vector`]s as
-/// arguments, as long as their lengths sum up to 3.
+/// Creates a vector3 from elements. Also accepts vectors as arguments, as long
+/// as their lengths sum up to 3.
 ///
 /// If only a single element is given, it will be used for all elements of the
-/// [`Vector`].
+/// output.
 ///
-/// ## Examples
+/// # Examples
 ///
 /// ```
 /// use ggmath::{Vec3, vec2, vec3};
@@ -50,13 +50,13 @@ macro_rules! vec3 {
     };
 }
 
-/// Creates a [`Vector`]4 with the given elements. Also accepts [`Vector`]s as
-/// arguments, as long as their lengths sum up to 4.
+/// Creates a vector4 from elements. Also accepts vectors as arguments, as long
+/// as their lengths sum up to 4.
 ///
 /// If only a single element is given, it will be used for all elements of the
-/// [`Vector`].
+/// output.
 ///
-/// ## Examples
+/// # Examples
 ///
 /// ```
 /// use ggmath::{Vec4, vec2, vec4};

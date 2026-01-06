@@ -15,12 +15,12 @@ pub type Vec4 = Vector<4, f32, Unaligned>;
 
 /// A 3D vector of [`f32`] elements.
 ///
-/// This type is 16 byte aligned on most platforms.
+/// This type is 16-byte aligned on most platforms.
 pub type Vec3A = Vector<3, f32, Aligned>;
 
 /// A 4D vector of [`f32`] elements.
 ///
-/// This type is 16 byte aligned on most platforms.
+/// This type is 16-byte aligned on most platforms.
 pub type Vec4A = Vector<4, f32, Aligned>;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -77,12 +77,12 @@ pub type IVec4 = Vector<4, i32, Unaligned>;
 
 /// A 3D vector of [`i32`] elements.
 ///
-/// This type is 16 byte aligned on most platforms.
+/// This type is 16-byte aligned on most platforms.
 pub type IVec3A = Vector<3, i32, Aligned>;
 
 /// A 4D vector of [`i32`] elements.
 ///
-/// This type is 16 byte aligned on most platforms.
+/// This type is 16-byte aligned on most platforms.
 pub type IVec4A = Vector<4, i32, Aligned>;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,12 +152,12 @@ pub type UVec4 = Vector<4, u32, Unaligned>;
 
 /// A 3D vector of [`u32`] elements.
 ///
-/// This type is 16 byte aligned on most platforms.
+/// This type is 16-byte aligned on most platforms.
 pub type UVec3A = Vector<3, u32, Aligned>;
 
 /// A 4D vector of [`u32`] elements.
 ///
-/// This type is 16 byte aligned on most platforms.
+/// This type is 16-byte aligned on most platforms.
 pub type UVec4A = Vector<4, u32, Aligned>;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -200,14 +200,19 @@ pub type BVec3 = Vector<3, bool, Unaligned>;
 pub type BVec4 = Vector<4, bool, Unaligned>;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Special Types
+// Rare
 ////////////////////////////////////////////////////////////////////////////////
 
-/// This module contains type aliases that are not useful for the average user.
+/// A module containing rarely used type aliases.
 ///
-/// This includes aligned variants of 64-bit types, which are only different
-/// from their unaligned counterparts on platforms with 256-bit SIMD. This also
-/// includes 128-bit types which are rarely needed.
+/// This includes:
+///
+/// - Aligned types for 64-bit primitives (e.g.,
+///   [`DVec3A`](crate::rare::DVec3A)) which are only useful on platforms with
+///   256-bit SIMD.
+///
+/// - Types for 128-bit primitives (e.g., [`I128Vec2`](crate::rare::I128Vec2))
+///   which are rarely needed in games or graphics.
 pub mod rare {
     use crate::vector::{Aligned, Unaligned, Vector};
 
@@ -217,12 +222,12 @@ pub mod rare {
 
     /// A 3D vector of [`f64`] elements.
     ///
-    /// This type is 32 byte aligned on platforms with 256-bit SIMD.
+    /// This type is 32-byte aligned on platforms with 256-bit SIMD.
     pub type DVec3A = Vector<3, f64, Aligned>;
 
     /// A 4D vector of [`f64`] elements.
     ///
-    /// This type is 32 byte aligned on platforms with 256-bit SIMD.
+    /// This type is 32-byte aligned on platforms with 256-bit SIMD.
     pub type DVec4A = Vector<4, f64, Aligned>;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -231,12 +236,12 @@ pub mod rare {
 
     /// A 3D vector of [`i64`] elements.
     ///
-    /// This type is 32 byte aligned on platforms with 256-bit SIMD.
+    /// This type is 32-byte aligned on platforms with 256-bit SIMD.
     pub type I64Vec3A = Vector<3, i64, Aligned>;
 
     /// A 4D vector of [`i64`] elements.
     ///
-    /// This type is 32 byte aligned on platforms with 256-bit SIMD.
+    /// This type is 32-byte aligned on platforms with 256-bit SIMD.
     pub type I64Vec4A = Vector<4, i64, Aligned>;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -258,14 +263,14 @@ pub mod rare {
 
     /// A 3D vector of [`isize`] elements.
     ///
-    /// On 64-bit platforms, this type matches [`I64Vec3A`].
-    /// On 32-bit platforms, this type matches [`IVec3A`](crate::IVec3A).
+    /// On most 32-bit platforms, this type is 16-byte aligned. On 64-bit
+    /// platforms with 256-bit SIMD, it is 32-byte aligned.
     pub type ISizeVec3A = Vector<3, isize, Aligned>;
 
     /// A 4D vector of [`isize`] elements.
     ///
-    /// On 64-bit platforms, this type matches [`I64Vec4A`].
-    /// On 32-bit platforms, this type matches [`IVec4A`](crate::IVec4A).
+    /// On most 32-bit platforms, this type is 16-byte aligned. On 64-bit
+    /// platforms with 256-bit SIMD, it is 32-byte aligned.
     pub type ISizeVec4A = Vector<4, isize, Aligned>;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -274,12 +279,12 @@ pub mod rare {
 
     /// A 3D vector of [`u64`] elements.
     ///
-    /// This type is 32 byte aligned on platforms with 256-bit SIMD.
+    /// This type is 32-byte aligned on platforms with 256-bit SIMD.
     pub type U64Vec3A = Vector<3, u64, Aligned>;
 
     /// A 4D vector of [`u64`] elements.
     ///
-    /// This type is 32 byte aligned on platforms with 256-bit SIMD.
+    /// This type is 32-byte aligned on platforms with 256-bit SIMD.
     pub type U64Vec4A = Vector<4, u64, Aligned>;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -301,13 +306,13 @@ pub mod rare {
 
     /// A 3D vector of [`usize`] elements.
     ///
-    /// On 64-bit platforms, this type matches [`U64Vec3A`].
-    /// On 32-bit platforms, this type matches [`UVec3A`](crate::UVec3A).
+    /// On most 32-bit platforms, this type is 16-byte aligned. On 64-bit
+    /// platforms with 256-bit SIMD, it is 32-byte aligned.
     pub type USizeVec3A = Vector<3, usize, Aligned>;
 
     /// A 4D vector of [`usize`] elements.
     ///
-    /// On 64-bit platforms, this type matches [`U64Vec4A`].
-    /// On 32-bit platforms, this type matches [`UVec4A`](crate::UVec4A).
+    /// On most 32-bit platforms, this type is 16-byte aligned. On 64-bit
+    /// platforms with 256-bit SIMD, it is 32-byte aligned.
     pub type USizeVec4A = Vector<4, usize, Aligned>;
 }

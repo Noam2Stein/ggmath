@@ -1,25 +1,34 @@
-## 0.15.0 (Unreleased)
+# Changelog
 
-- removes vector functions: `swizzle2`, `swizzle3`, and `swizzle4`
-- removes crate root imports to `crate::vector::*`
-- changes type alias structure
+## 0.15.0
 
-## 0.14.1 (Unreleased)
-
-- deprecates vector functions: `swizzle2`, `swizzle3`, and `swizzle4`
-- improves performance
+- Improved performance.
+- Removed vector functions:
+  - `swizzle2`
+  - `swizzle3`
+  - `swizzle4`
+- Removed reexport of `crate::vector::*`
+- Renamed type aliases.
 
 ## 0.14.0
 
-- simplifies the API
-- adds methods to float vectors: `normalize_or`
-- removes support for `Option<T>` and `MaybeUninit<T>` as scalars
+- Simplified API.
+- Added methods to float vectors:
+  - `normalize_or`
+- Removed support for element types:
+  - `Option<T>`
+  - `MaybeUninit<T>`
 
 ## 0.13.1
 
-- improves documentation of some items
-- adds methods to float vectors: `dot`, `length`, `length_squared`, `normalize`, and `try_normalize`
+- Improved documentation.
+- Added methods to float vectors:
+  - `dot`
+  - `length`
+  - `length_squared`
+  - `normalize`
+  - `try_normalize`
 
 ## 0.13.0
 
-This version completely rewrites the crate to improve its quality.
+This version completely rewrote the crate.

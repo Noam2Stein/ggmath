@@ -11,9 +11,9 @@ use crate::{
 
 #[repr(C)]
 pub struct Xy<T> {
-    /// The first element of the vector.
+    /// The 1st element of the vector.
     pub x: T,
-    /// The second element of the vector.
+    /// The 2nd element of the vector.
     pub y: T,
 }
 
@@ -39,11 +39,11 @@ impl<T: Scalar, A: Alignment> DerefMut for Vector<2, T, A> {
 
 #[repr(C)]
 pub struct Xyz<T> {
-    /// The first element of the vector.
+    /// The 1st element of the vector.
     pub x: T,
-    /// The second element of the vector.
+    /// The 2nd element of the vector.
     pub y: T,
-    /// The third element of the vector.
+    /// The 3rd element of the vector.
     pub z: T,
 }
 
@@ -69,13 +69,13 @@ impl<T: Scalar, A: Alignment> DerefMut for Vector<3, T, A> {
 
 #[repr(C)]
 pub struct Xyzw<T> {
-    /// The first element of the vector.
+    /// The 1st element of the vector.
     pub x: T,
-    /// The second element of the vector.
+    /// The 2nd element of the vector.
     pub y: T,
-    /// The third element of the vector.
+    /// The 3rd element of the vector.
     pub z: T,
-    /// The fourth element of the vector.
+    /// The 4th element of the vector.
     pub w: T,
 }
 

@@ -19,32 +19,34 @@ pub use dir::*;
 
 /// A generic vector type.
 ///
-/// This type is parameterized by:
-/// - `N` - the number of elements in the vector.
-/// - `T` - the type of elements in the vector.
-/// - `A` - whether or not the vector is SIMD-aligned.
+/// This type is generic over:
+/// - `N`: The number of elements in the vector.
+/// - `T`: The type of elements in the vector.
+/// - `A`: Whether or not the vector is SIMD-aligned.
 ///
-/// ## Type Aliases
+/// Where:
+/// - `N` must be either `2`, `3`, or `4`.
+/// - `T` must implement [`Scalar`].
+/// - `A` must be either [`Unaligned`] or [`Aligned`].
 ///
-/// For convenience, vectors of common primitives have type aliases (e.g.,
-/// [`Vec2f`](crate::f32::Vec2f), [`Vec3fA`](crate::f32::Vec3fA), and
-/// [`Vec4usizeA`](crate::usize::Vec4usizeA)).
+/// # Type Layout
 ///
-/// ## Layout
+/// | Type | Size | Alignment |
+/// |------|------|-----------|
+/// | `Vector<2, T, Unaligned>` | `size_of::<T>() * 2` | `align_of::<T>()` |
+/// | `Vector<3, T, Unaligned>` | `size_of::<T>() * 3` | `align_of::<T>()` |
+/// | `Vector<4, T, Unaligned>` | `size_of::<T>() * 4` | `align_of::<T>()` |
+/// | `Vector<2, T, Aligned>` | `size_of::<T>() * 2` | See below |
+/// | `Vector<3, T, Aligned>` | See below | See below |
+/// | `Vector<4, T, Aligned>` | `size_of::<T>() * 4` | See below |
 ///
-/// The layout of `Vector<N, T, A>` is controlled by `A`, which can be either
-/// [`Aligned`] or [`Unaligned`].
+/// **Unaligned** vectors are guaranteed to have the type layout of `[T; N]`.
 ///
-/// `Vector<N, T, Unaligned>` is stored as an array, meaning:
-/// - `size_of::<Self>() = size_of::<T>() * N`
-/// - `align_of::<Self>() = align_of::<T>()`
+/// **Aligned** vectors may be SIMD-aligned depending on their element type and
+/// the target architecture.
 ///
-/// `Vector<N, T, Aligned>` is SIMD-aligned when appropriate, meaning:
-/// - it may have increased alignment
-/// - if `N == 3`, it may have increased size
-///
-/// The exact underlying type of a [`Vector`] is controlled by the
-/// [`ScalarBackend`] trait.
+/// **Note:** many SIMD optimizations are still missing so many **Aligned**
+/// vectors aren't actually SIMD-aligned.
 #[repr(transparent)]
 pub struct Vector<const N: usize, T: Scalar, A: Alignment>(VectorRepr<N, T, A>)
 where
@@ -67,7 +69,7 @@ impl<const N: usize, T: Scalar, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Converts an array into a [`Vector`].
+    /// Converts an array to a vector.
     #[inline(always)]
     pub const fn from_array(array: [T; N]) -> Self {
         unsafe {
@@ -86,7 +88,7 @@ where
         }
     }
 
-    /// Creates a [`Vector`] with all elements set to `value`.
+    /// Creates a vector with all elements set to `value`.
     #[inline(always)]
     pub const fn splat(value: T) -> Self {
         unsafe {
@@ -105,7 +107,7 @@ where
         }
     }
 
-    /// Creates a [`Vector`] by calling function `f` for the index of each element.
+    /// Creates a vector by calling function `f` for the index of each element.
     #[inline(always)]
     pub fn from_fn(mut f: impl FnMut(usize) -> T) -> Self {
         match N {
@@ -116,7 +118,7 @@ where
         }
     }
 
-    /// Returns the number of elements in the [`Vector`].
+    /// Returns the number of elements in the vector.
     ///
     /// This is a staticly known constant.
     #[inline(always)]
@@ -124,14 +126,16 @@ where
         N
     }
 
-    /// Returns `true` for [`A = Aligned`](Aligned) and `false` for
-    /// [`A = Unaligned`](Unaligned).
+    /// Returns `true` for **Aligned** vectors and `false` for **Unaligned**
+    /// vectors.
+    ///
+    /// For more details see the documentation for [`Vector`].
     #[inline(always)]
     pub const fn is_aligned(self) -> bool {
         A::IS_ALIGNED
     }
 
-    /// Converts the [`Vector`] into the specified [`Alignment`].
+    /// Converts the vector to the specified **Alignment**.
     #[inline(always)]
     pub const fn to_alignment<A2: Alignment>(self) -> Vector<N, T, A2> {
         unsafe {
@@ -148,52 +152,53 @@ where
         }
     }
 
-    /// Converts the [`Vector`] into a SIMD-aligned [`Vector`].
+    /// Converts the vector to an **Aligned** vector.
     #[inline(always)]
     pub const fn align(self) -> Vector<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Converts the [`Vector`] into a non SIMD-aligned [`Vector`].
+    /// Converts the vector to an **Unaligned** vector.
     #[inline(always)]
     pub const fn unalign(self) -> Vector<N, T, Unaligned> {
         self.to_alignment()
     }
 
-    /// Converts the [`Vector`] into an array.
+    /// Converts the vector to an array.
     #[inline(always)]
     pub const fn to_array(self) -> [T; N] {
         *self.as_array_ref()
     }
 
-    /// Returns a reference to the [`Vector`]'s elements as an array.
+    /// Returns a reference to the vector's elements.
     #[inline(always)]
     pub const fn as_array_ref(&self) -> &[T; N] {
         unsafe { transmute_ref::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns a mutable reference to the [`Vector`]'s elements as a mutable array.
+    /// Returns a mutable reference to the [`Vector`]'s elements.
     #[inline(always)]
     pub const fn as_array_mut(&mut self) -> &mut [T; N] {
         unsafe { transmute_mut::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns an iterator over the [`Vector`]'s elements.
+    /// Returns an iterator over the vector's elements.
     ///
     /// This returns an iterator over `T`, not `&T`. To iterate over `&T`, use
-    /// `self.as_array_ref().iter()`.
+    /// `vec.as_array_ref().iter()`.
     #[inline(always)]
     pub fn iter(self) -> core::array::IntoIter<T, N> {
         self.to_array().into_iter()
     }
 
-    /// Returns an iterator over mutable references to the [`Vector`]'s elements.
+    /// Returns an iterator over mutable references to the vector's elements.
     #[inline(always)]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
         self.as_array_mut().iter_mut()
     }
 
-    /// Creates a new [`Vector`] by applying function `f` to each element of `self`.
+    /// Applies function `f` to each element of the vector and returns the
+    /// result.
     #[inline(always)]
     pub fn map<T2: Scalar>(self, f: impl Fn(T) -> T2) -> Vector<N, T2, A> {
         Vector::from_fn(|i| f(self[i]))
@@ -209,8 +214,8 @@ where
         }
     }
 
-    /// Returns a mutable reference to the element at `index`, or `None` if `index`
-    /// is out of bounds.
+    /// Returns a mutable reference to the element at `index`, or `None` if
+    /// `index` is out of bounds.
     #[inline(always)]
     pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
         if index < N {
@@ -220,17 +225,17 @@ where
         }
     }
 
-    /// Returns a new [`Vector`] with the elements of `self` in reverse order.
+    /// Returns the vector with its elements in reverse order.
     #[inline(always)]
     pub fn reverse(self) -> Self {
         Self::from_fn(|i| self[N - 1 - i])
     }
 
-    /// Returns the underlying type contained in the [`Vector`], as defined by the
-    /// [`ScalarBackend`] trait.
+    /// Returns the underlying type contained inside the vector, as defined by
+    /// the [`ScalarBackend`] trait.
     ///
-    /// Do not use this function outside of [`ScalarBackend`] implementations, as
-    /// the underlying type of a [`Scalar`]'s [`Vector`] may change quietly.
+    /// Do not use this function outside of [`ScalarBackend`] implementations,
+    /// as the underlying type of a [`Scalar`]'s [`Vector`] may change quietly.
     #[inline(always)]
     pub const fn repr(self) -> <T as ScalarBackend<N, A>>::VectorRepr
     where
@@ -242,8 +247,8 @@ where
     /// Creates a [`Vector`] from its underlying type, as defined by the
     /// [`ScalarBackend`] trait.
     ///
-    /// Do not use this function outside of [`ScalarBackend`] implementations, as
-    /// the underlying type of a [`Scalar`]'s [`Vector`] may change quietly.
+    /// Do not use this function outside of [`ScalarBackend`] implementations,
+    /// as the underlying type of a [`Scalar`]'s [`Vector`] may change quietly.
     #[inline(always)]
     pub const fn from_repr(repr: <T as ScalarBackend<N, A>>::VectorRepr) -> Self
     where
@@ -256,14 +261,16 @@ where
 }
 
 impl<T: Scalar, A: Alignment> Vector<2, T, A> {
-    /// Returns `self` with the first element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 1st
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_x(mut self, value: T) -> Self {
         self.as_array_mut()[0] = value;
         self
     }
 
-    /// Returns `self` with the second element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 2nd
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_y(mut self, value: T) -> Self {
         self.as_array_mut()[1] = value;
@@ -277,21 +284,24 @@ impl<T: Scalar, A: Alignment> Vector<2, T, A> {
 }
 
 impl<T: Scalar, A: Alignment> Vector<3, T, A> {
-    /// Returns `self` with the first element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 1st
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_x(mut self, value: T) -> Self {
         self.as_array_mut()[0] = value;
         self
     }
 
-    /// Returns `self` with the second element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 2nd
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_y(mut self, value: T) -> Self {
         self.as_array_mut()[1] = value;
         self
     }
 
-    /// Returns `self` with the third element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 3rd
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_z(mut self, value: T) -> Self {
         self.as_array_mut()[2] = value;
@@ -309,28 +319,32 @@ impl<T: Scalar, A: Alignment> Vector<3, T, A> {
 }
 
 impl<T: Scalar, A: Alignment> Vector<4, T, A> {
-    /// Returns `self` with the first element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 1st
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_x(mut self, value: T) -> Self {
         self.as_array_mut()[0] = value;
         self
     }
 
-    /// Returns `self` with the second element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 2nd
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_y(mut self, value: T) -> Self {
         self.as_array_mut()[1] = value;
         self
     }
 
-    /// Returns `self` with the third element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 3rd
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_z(mut self, value: T) -> Self {
         self.as_array_mut()[2] = value;
         self
     }
 
-    /// Returns `self` with the fourth element replaced with `value`.
+    /// Returns a vector with the elements of the input except for the 4th
+    /// element which is replaced with `value`.
     #[inline(always)]
     pub const fn with_w(mut self, value: T) -> Self {
         self.as_array_mut()[3] = value;
@@ -426,8 +440,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Debug, A: Alignment> Debug for Vector<N, T, A>
+impl<const N: usize, T: Scalar, A: Alignment> Debug for Vector<N, T, A>
 where
+    T: Debug,
     Length<N>: SupportedLength,
 {
     #[inline(always)]
@@ -445,8 +460,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Display, A: Alignment> Display for Vector<N, T, A>
+impl<const N: usize, T: Scalar, A: Alignment> Display for Vector<N, T, A>
 where
+    T: Display,
     Length<N>: SupportedLength,
 {
     #[inline(always)]
@@ -460,14 +476,15 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + PartialEq, A: Alignment> PartialEq for Vector<N, T, A>
+impl<const N: usize, T: Scalar, A: Alignment> PartialEq for Vector<N, T, A>
 where
+    T: PartialEq,
     Length<N>: SupportedLength,
 {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
-        // This is a temporary workaround to optimize the function without creating
-        // breaking changes.
+        // This is a temporary workaround to optimize the function without
+        // creating breaking changes.
         if align_of::<Self>() == align_of::<T>() {
             return match N {
                 2 => self[0] == other[0] && self[1] == other[1],
@@ -487,8 +504,8 @@ where
 
     #[inline(always)]
     fn ne(&self, other: &Self) -> bool {
-        // This is a temporary workaround to optimize the function without creating
-        // breaking changes.
+        // This is a temporary workaround to optimize the function without
+        // creating breaking changes.
         if align_of::<Self>() == align_of::<T>() {
             return !(self == other);
         }
@@ -497,13 +514,16 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Eq, A: Alignment> Eq for Vector<N, T, A> where
-    Length<N>: SupportedLength
+impl<const N: usize, T: Scalar, A: Alignment> Eq for Vector<N, T, A>
+where
+    T: Eq,
+    Length<N>: SupportedLength,
 {
 }
 
-impl<const N: usize, T: Scalar + Hash, A: Alignment> Hash for Vector<N, T, A>
+impl<const N: usize, T: Scalar, A: Alignment> Hash for Vector<N, T, A>
 where
+    T: Hash,
     Length<N>: SupportedLength,
 {
     #[inline(always)]
@@ -512,8 +532,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Default, A: Alignment> Default for Vector<N, T, A>
+impl<const N: usize, T: Scalar, A: Alignment> Default for Vector<N, T, A>
 where
+    T: Default,
     Length<N>: SupportedLength,
 {
     #[inline(always)]
@@ -530,7 +551,7 @@ where
 ///
 /// To implement this trait, you must implement the [`ScalarBackend`].
 ///
-/// ## Example
+/// # Example
 ///
 /// ```
 /// use ggmath::vector::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
@@ -568,7 +589,7 @@ pub trait Scalar:
 /// This trait is where SIMD optimizations are implemented, but the trait can
 /// also be implemented quickly without optimizations.
 ///
-/// ## Example
+/// # Example
 ///
 /// ```
 /// use ggmath::vector::{Alignment, Length, Scalar, ScalarBackend, ScalarWrapper, SupportedLength};
@@ -588,7 +609,7 @@ pub trait Scalar:
 /// // You can then use MyScalar in Vectors
 /// ```
 ///
-/// ## SIMD Optimizations
+/// # SIMD Optimizations
 ///
 /// To implement SIMD optimizations for a [`Scalar`] type, it must be a wrapper
 /// of an existing type. This is specified with the [`ScalarWrapper`] trait.
@@ -597,11 +618,11 @@ pub trait Scalar:
 /// `<Self as ScalarBackend<N, A>>::VectorRepr` type. This inherits the SIMD
 /// alignment of `T`.
 ///
-/// After that, we can override the implementations of [`Vector`] functions
-/// to optimize them using the [`Vector::repr`] and [`Vector::from_repr`]
+/// After that, we can override the implementations of [`Vector`] functions to
+/// optimize them using the [`Vector::repr`] and [`Vector::from_repr`]
 /// functions.
 ///
-/// ### Example
+/// ## Example
 ///
 /// ```
 /// use core::ops::Add;
@@ -650,12 +671,12 @@ where
     /// - `[Self; N]`
     /// - `Vector<N, TInner, A>` where `Self: ScalarWrapper<TInner>`
     ///
-    /// To have SIMD alignment, use the second option as it inherits the alignment
-    /// of `TInner` vectors.
+    /// To have SIMD alignment, use the second option as it inherits the
+    /// alignment of `TInner` vectors.
     #[expect(private_bounds)]
     type VectorRepr: Send + Sync + Copy + 'static + SoundVectorRepr<N, Self>;
 
-    /// Overridable implementation of [`Vector::eq`].
+    /// Overridable implementation for vector equality.
     #[inline(always)]
     fn vec_eq(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> bool
     where
@@ -664,7 +685,7 @@ where
         vec.iter().zip(other).all(|(a, b)| a == b)
     }
 
-    /// Overridable implementation of [`Vector::ne`].
+    /// Overridable implementation for vector inequality.
     #[inline(always)]
     fn vec_ne(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> bool
     where
@@ -673,7 +694,7 @@ where
         vec.iter().zip(other).any(|(a, b)| a != b)
     }
 
-    /// Overridable implementation of [`Vector::neg`].
+    /// Overridable implementation for vector negation.
     #[inline(always)]
     fn vec_neg(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -682,7 +703,7 @@ where
         vec.map(Self::neg)
     }
 
-    /// Overridable implementation of [`Vector::not`].
+    /// Overridable implementation for vector bitwise NOT.
     #[inline(always)]
     fn vec_not(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -691,7 +712,7 @@ where
         vec.map(Self::not)
     }
 
-    /// Overridable implementation of [`Vector::add`].
+    /// Overridable implementation for vector addition.
     #[inline(always)]
     fn vec_add(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -700,7 +721,7 @@ where
         Vector::from_fn(|i| vec[i] + rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::sub`].
+    /// Overridable implementation for vector subtraction.
     #[inline(always)]
     fn vec_sub(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -709,7 +730,7 @@ where
         Vector::from_fn(|i| vec[i] - rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::mul`].
+    /// Overridable implementation for vector multiplication.
     #[inline(always)]
     fn vec_mul(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -718,7 +739,7 @@ where
         Vector::from_fn(|i| vec[i] * rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::div`].
+    /// Overridable implementation for vector division.
     #[inline(always)]
     fn vec_div(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -727,7 +748,7 @@ where
         Vector::from_fn(|i| vec[i] / rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::rem`].
+    /// Overridable implementation for vector remainder.
     #[inline(always)]
     fn vec_rem(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -736,7 +757,7 @@ where
         Vector::from_fn(|i| vec[i] % rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::shl`].
+    /// Overridable implementation for vector bitwise left shift.
     #[inline(always)]
     fn vec_shl(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -745,7 +766,7 @@ where
         Vector::from_fn(|i| vec[i] << rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::shr`].
+    /// Overridable implementation for vector bitwise right shift.
     #[inline(always)]
     fn vec_shr(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -754,7 +775,7 @@ where
         Vector::from_fn(|i| vec[i] >> rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::bitand`].
+    /// Overridable implementation for vector bitwise AND.
     #[inline(always)]
     fn vec_bitand(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -763,7 +784,7 @@ where
         Vector::from_fn(|i| vec[i] & rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::bitor`].
+    /// Overridable implementation for vector bitwise OR.
     #[inline(always)]
     fn vec_bitor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -772,7 +793,7 @@ where
         Vector::from_fn(|i| vec[i] | rhs[i])
     }
 
-    /// Overridable implementation of [`Vector::bitxor`].
+    /// Overridable implementation for vector bitwise XOR.
     #[inline(always)]
     fn vec_bitxor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -787,7 +808,7 @@ where
 /// This trait is used to add SIMD alignment to user defined [`Scalar`] types in
 /// [`ScalarBackend`].
 ///
-/// ## Safety
+/// # Safety
 ///
 /// Implementations must ensure that `Self` is a transparent wrapper of `T`,
 /// meaning:
@@ -797,12 +818,13 @@ pub unsafe trait ScalarWrapper<T> {}
 
 /// This is an internal trait used by [`ScalarBackend`].
 ///
-/// ## Safety
+/// # Safety
 ///
 /// If `N == 2` or `N == 4`, `Self::ActualRepr` must contain exactly `N` `T`
 /// elements, meaning:
 /// - `size_of::<Self::ActualRepr>()` is `N * size_of::<T>()`
-/// - `align_of::<Self::ActualRepr>()` is either `align_of::<T>()` or `N * size_of::<T>()`
+/// - `align_of::<Self::ActualRepr>()` is either `align_of::<T>()` or `N *
+///   size_of::<T>()`
 ///
 /// If `N == 3`, either `Self::ActualRepr` contains exactly `N` `T` elements
 /// with only the alignment of `T`, or `Self::ActualRepr` contains 4 `T`s with
@@ -840,12 +862,6 @@ where
     type ActualRepr = VectorRepr<N, TInner, A>;
 }
 
-/// Calls the scalar backend function for the correct length and alignment.
-///
-/// ## Safety
-///
-/// The caller must ensure that the type of the function and the call site
-/// expression is the same, as that is not checked automatically.
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:ident>>::$f:ident$(::<$($ARG:ty),*$(,)?>)?($($arg:expr),*$(,)?)) => {
         match ($N, $A::IS_ALIGNED) {
@@ -878,10 +894,28 @@ use specialize;
 // Length
 ////////////////////////////////////////////////////////////////////////////////
 
-/// A marker type the length of a [`Vector`].
+/// A marker type representing the length of a vector.
+///
+/// [`Vector`] does not support arbitrary lengths, as it only supports `2`, `3`,
+/// and `4`. This is enforced via the following where-clause:
+///
+/// ```ignore
+/// pub struct Vector<const N: usize, T: Scalar, A: Alignment>(/* ... */)
+/// where
+///     Length<N>: SupportedLength; // restricts `N` to `2`, `3`, or `4`
+/// ```
 pub struct Length<const N: usize>;
 
-/// A marker trait for supported [`Vector`] lengths (`2`, `3`, and `4`).
+/// A marker trait to validate the length of a vector.
+///
+/// [`Vector`] does not support arbitrary lengths, as it only supports `2`, `3`,
+/// and `4`. This is enforced via the following where-clause:
+///
+/// ```ignore
+/// pub struct Vector<const N: usize, T: Scalar, A: Alignment>(/* ... */)
+/// where
+///     Length<N>: SupportedLength; // restricts `N` to `2`, `3`, or `4`
+/// ```
 pub trait SupportedLength {
     #[doc(hidden)]
     type Select<
@@ -919,13 +953,22 @@ impl SupportedLength for Length<4> {
 // Alignment
 ////////////////////////////////////////////////////////////////////////////////
 
-/// A marker type for SIMD-aligned [`Vector`]s.
+/// A marker type used by [`Vector`].
+///
+/// See the documentation for [`Vector`] for more details.
 pub struct Aligned;
 
-/// A marker type for non SIMD-aligned [`Vector`]s.
+/// A marker type used by [`Vector`].
+///
+/// See the documentation for [`Vector`] for more details.
 pub struct Unaligned;
 
-/// A marker trait for SIMD-aligned and non SIMD-aligned [`Vector`]s.
+/// A marker trait used by [`Vector`].
+///
+/// See the documentation for [`Vector`] for more details.
+///
+/// Note: This trait is only implemented for [`Unaligned`] and [`Aligned`]. Do
+/// **NOT** implement this trait yourself.
 pub trait Alignment: 'static {
     /// Is `true` for [`Aligned`] and `false` for [`Unaligned`].
     const IS_ALIGNED: bool;

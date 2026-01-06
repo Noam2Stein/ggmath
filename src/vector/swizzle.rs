@@ -516,7 +516,7 @@ impl<T: Scalar, A: Alignment> Vector<4, T, A> {
 
 macro_rules! declare_swizzle_fns {
     ($($f:ident = [$X:literal, $Y:literal]),*$(,)?) => {$(
-        #[doc = concat!("Returns a new vector2 with `(self[", stringify!($X), "], self[", stringify!($Y), "])`.")]
+        #[doc = concat!("`(self[", stringify!($X), "], self[", stringify!($Y), "])`.")]
         #[inline(always)]
         pub fn $f(self) -> Vector<2, T, A> {
             vec2!(self[$X], self[$Y])
@@ -524,7 +524,7 @@ macro_rules! declare_swizzle_fns {
     )*};
 
     ($($f:ident = [$X:literal, $Y:literal, $Z:literal]),*$(,)?) => {$(
-        #[doc = concat!("Returns a new vector3 with `(self[", stringify!($X), "], self[", stringify!($Y), "], self[", stringify!($Z), "])`.")]
+        #[doc = concat!("`(self[", stringify!($X), "], self[", stringify!($Y), "], self[", stringify!($Z), "])`.")]
         #[inline(always)]
         pub fn $f(self) -> Vector<3, T, A> {
             vec3!(self[$X], self[$Y], self[$Z])
@@ -532,7 +532,7 @@ macro_rules! declare_swizzle_fns {
     )*};
 
     ($($f:ident = [$X:literal, $Y:literal, $Z:literal, $W:literal]),*$(,)?) => {$(
-        #[doc = concat!("Returns a new vector4 with `(self[", stringify!($X), "], self[", stringify!($Y), "], self[", stringify!($Z), "], self[", stringify!($W), "])`.")]
+        #[doc = concat!("`(self[", stringify!($X), "], self[", stringify!($Y), "], self[", stringify!($Z), "], self[", stringify!($W), "])`.")]
         #[inline(always)]
         pub fn $f(self) -> Vector<4, T, A> {
             vec4!(self[$X], self[$Y], self[$Z], self[$W])

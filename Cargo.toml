@@ -3,11 +3,11 @@ name = "ggmath"
 readme = "README.md"
 repository = "https://github.com/Noam2Stein/ggmath"
 
-version = "0.14.0"
+version = "0.15.0"
 edition = "2024"
 rust-version = "1.90.0"
 
-description = "A math library for games and graphics with generic SIMD types."
+description = "A math crate for games and graphics that supports both SIMD and generics."
 categories = [
     "data-structures",
     "game-development",

@@ -23,8 +23,9 @@ impl_binary_op!(BitXor, bitxor, vec_bitxor, BitXorAssign, bitxor_assign);
 
 macro_rules! impl_unary_op {
     ($Op:ident, $op:ident, $vec_op:ident) => {
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op for Vector<N, T, A>
+        impl<const N: usize, T: Scalar, A: Alignment> $Op for Vector<N, T, A>
         where
+            T: $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             type Output = Self;
@@ -41,8 +42,9 @@ use impl_unary_op;
 
 macro_rules! impl_binary_op {
     ($Op:ident, $op:ident, $vec_op:ident, $OpAssign:ident, $op_assign:ident) => {
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op for Vector<N, T, A>
+        impl<const N: usize, T: Scalar, A: Alignment> $Op for Vector<N, T, A>
         where
+            T: $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             type Output = Self;
@@ -53,8 +55,9 @@ macro_rules! impl_binary_op {
             }
         }
 
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op<T> for Vector<N, T, A>
+        impl<const N: usize, T: Scalar, A: Alignment> $Op<T> for Vector<N, T, A>
         where
+            T: $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             type Output = Self;
@@ -65,9 +68,9 @@ macro_rules! impl_binary_op {
             }
         }
 
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $OpAssign
-            for Vector<N, T, A>
+        impl<const N: usize, T: Scalar, A: Alignment> $OpAssign for Vector<N, T, A>
         where
+            T: $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             #[inline(always)]
@@ -76,9 +79,9 @@ macro_rules! impl_binary_op {
             }
         }
 
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $OpAssign<T>
-            for Vector<N, T, A>
+        impl<const N: usize, T: Scalar, A: Alignment> $OpAssign<T> for Vector<N, T, A>
         where
+            T: $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             #[inline(always)]

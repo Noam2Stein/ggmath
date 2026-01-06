@@ -36,7 +36,7 @@ fn cast<T: 'static, U: 'static>(value: T) -> U {
 
 /// Transmutes a value from one type to another.
 ///
-/// ## Safety
+/// # Safety
 ///
 /// The caller must ensure that `value` is valid for `U`. However, the caller
 /// does not need to ensure layout compatibility, as the function automatically
@@ -53,7 +53,7 @@ const unsafe fn transmute<T, U>(value: T) -> U {
 /// Transmutes a value from one type to another and copies it if necessary to
 /// ensure alignment.
 ///
-/// ## Safety
+/// # Safety
 ///
 /// The caller must ensure that `value` is valid for `U`. However, the caller
 /// does not need to ensure layout compatibility, as the function automatically
@@ -68,7 +68,7 @@ const unsafe fn transmute_align<T, U>(value: T) -> U {
 
 /// Transmutes a reference from one type to another.
 ///
-/// ## Safety
+/// # Safety
 ///
 /// The caller must ensure that `value` is valid for `U`. However, the caller
 /// does not need to ensure layout compatibility, as the function automatically
@@ -84,7 +84,7 @@ const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
 
 /// Transmutes a mutable reference from one type to another.
 ///
-/// ## Safety
+/// # Safety
 ///
 /// The caller must ensure that `value` is valid for `U`. However, the caller
 /// does not need to ensure layout compatibility, as the function automatically

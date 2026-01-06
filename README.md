@@ -1,54 +1,68 @@
-# `ggmath`
+# ggmath
 
-A math crate for games/graphics with generics and SIMD.
+A math crate for games and graphics.
 
-Note: This crate is a work in progress, and several features are missing.
+> **Note:** This crate is a work in progress, and several features are still
+> missing.
 
-# Overview
+This crate is similar to most math libraries, with types like `Vec2`, `Vec3`,
+`IVec3`, and SIMD-aligned types such as `Vec3A`.
 
-### Generics
+```rust
+use ggmath::{Vec2, Vec3, Vec3A, Vec4, Vec4A, vec2, vec3, vec4};
 
-`ggmath` provides generic math types such as `Vector<N, T, A>`, with convenient
-type aliases like `Vec2f`, `Vec3fA`, and others.
+let v2: Vec2 = vec2!(1.0, 2.0);
+let v3: Vec3 = vec3!(1.0, 2.0, 3.0);
+let v4: Vec4 = vec4!(1.0, 2.0, 3.0, 4.0);
 
-The API is familiar, resembling other math libraries, but the use of generics:
-- enables usage in generic contexts
-- adds support for user-defined scalar types
+// SIMD-aligned vectors
+let v3a: Vec3A = vec3!(1.0, 2.0, 3.0);
+let v4a: Vec4A = vec4!(1.0, 2.0, 3.0, 4.0);
 
-### SIMD
+// Math
+let result = v2.abs() * 2.0 + v3.xy();
+```
 
-Most math crates with generics do not support SIMD-aligned types, making them
-slower than SIMD-based crates that lack generics.
+## Generics
 
-`ggmath` supports both:
-- SIMD-aligned types (`Vector<N, T, Aligned>`, e.g., `Vec3fA`)
-- unaligned types (`Vector<N, T, Unaligned>`, e.g., `Vec3f`)
+Types like `Vec2` and `IVec3` are aliases for the generic type `Vector<N, T,
+A>`, which enables:
 
-This flexibility allows `ggmath` to match the performance of SIMD-backed math
-crates that lack generics.
+- Custom element types (e.g., `Vector<N, MyScalar, A>`)
+- Generic code over:
+  - The number of elements in the vector (`N`)
+  - The type of elements in the vector (`T`)
+  - Whether or not the vector is SIMD-aligned (`A`)
 
-# Features
+## SIMD
 
-- vectors
-- `no_std` support
+This crate provides both scalar-backed types and SIMD-aligned types:
+
+- `Vec2`, `Vec3`, `Vec4`, etc., are `Vector<N, T, Unaligned>`
+- `Vec3A`, `Vec4A`, etc., are `Vector<N, T, Aligned>`
+
+SIMD types make operations faster, but have higher memory alignment.
+
+## Development Status
 
 ### Missing Features
 
-- vectors: geometric functions for floats
-- vectors: functions for integers
-- vectors: functions for `bool`
-- matrices
-- quaternions
-- masks
+- Vectors:
+  - Geometric floats functions
+  - Integer functions
+  - Bool functions
+- Matrices
+- Quaternions
+- Masks
 - `libm` support
 
-# Performance
+### Performance
 
-`ggmath` is designed to match the performance of highly optimized SIMD math
-crates (like [glam](https://github.com/bitshifter/glam-rs)), though some (many!)
+`ggmath` is designed to match the performance of other SIMD-optimized math
+crates (e.g., **[glam](https://github.com/bitshifter/glam-rs)**), although many
 optimizations are still missing.
 
-|       | x86 | ARM | WASM |
+| | x86 | ARM | WASM |
 | ----- | --- | --- | ---- |
 | `f32` | ✅ | ❌ | ❌ |
 | `f64` | ❌ | ❌ | ❌ |
@@ -57,35 +71,40 @@ optimizations are still missing.
 | `u32` | ❌ | ❌ | ❌ |
 | `u64` | ❌ | ❌ | ❌ |
 
-# `no_std` Support
+## Usage
 
-`no_std` support can be enabled by turning off default features:
+Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ggmath = { version = "0.14.0", default-features = false, features = ["debug_assertions", "debug_overflow_checks"] }
+ggmath = "0.15.0"
 ```
 
-Note: `libm` support is currently missing.
+Make sure Rust is at least at version `1.90.0`.
 
-# Cargo Features
+### `no_std`
 
-- `std`: uses `std` as a backend for floats.
+```toml
+[dependencies]
+ggmath = { version = "0.15.0", default-features = false, features = ["debug_assertions", "debug_overflow_checks"] }
+```
 
-- `assertions`: enables assertions which check the validity of arguments.
+> **Note:** `libm` support is currently missing.
 
-- `debug_assertions`: enables `assertions` in debug builds.
+### Default Features
 
-- `overflow_checks`: enables overflow checks for integer types.
+- **`std`**: Uses `std` as the backend for float ops.
 
-- `debug_overflow_checks`: enables `overflow_checks` in debug builds.
+- **`debug_assertions`**: Enables assertions in debug builds to help catch bugs,
+  though they can slow down functions.
 
-`std`, `debug_assertions`, and `debug_overflow_checks` are enabled by default.
+- **`debug_overflow_checks`**: Enables overflow checks in debug builds for
+  integer types. It should be set to match the `-Z overflow-checks` setting
+  passed to `rustc` in order to work properly.
 
-# Minimum Supported Rust Version
+### Optional Features
 
-`ggmath` requires Rust `1.90.0`.
+- **`assertions`**: Enables assertions in both debug and release builds.
 
-# License
-
-`ggmath` is licensed under MIT OR Apache-2.0
+- **`overflow_checks`**: Enables overflow checks in both debug and release
+  builds.
