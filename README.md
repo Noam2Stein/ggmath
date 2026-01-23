@@ -65,7 +65,7 @@ Crate Support:
 
 - [x] [`bytemuck`](crates.io/crates/bytemuck)
 - [ ] [`libm`](crates.io/crates/libm)
-- [ ] [`mint`](crates.io/crates/mint)
+- [x] [`mint`](crates.io/crates/mint)
 - [x] [`serde`](crates.io/crates/serde)
 - [ ] [`zerocopy`](crates.io/crates/zerocopy)
 
