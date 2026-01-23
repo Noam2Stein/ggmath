@@ -25,6 +25,7 @@ assert_impl!(
         Vector<N, T, A>: IndexMut<usize>,
         Vector<N, T, A>: IntoIterator<Item = T>,
         for<'a> where T: 'a {
+            &'a Vector<N, T, A>: IntoIterator<Item = T>,
             &'a mut Vector<N, T, A>: IntoIterator<Item = &'a mut T>,
         }
 

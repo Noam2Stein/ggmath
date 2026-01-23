@@ -354,6 +354,19 @@ where
     }
 }
 
+impl<const N: usize, T: Scalar, A: Alignment> IntoIterator for &Vector<N, T, A>
+where
+    Length<N>: SupportedLength,
+{
+    type Item = T;
+    type IntoIter = <[T; N] as IntoIterator>::IntoIter;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl<'a, const N: usize, T: Scalar, A: Alignment> IntoIterator for &'a mut Vector<N, T, A>
 where
     Length<N>: SupportedLength,
