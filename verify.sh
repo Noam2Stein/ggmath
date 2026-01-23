@@ -44,7 +44,7 @@ build() {
     # the crate compiles both with and without them.
     if [[ $overflow_checks == "on" ]]
     then
-        command+="--features \"serde\" "
+        command+="--features \"bytemuck serde\" "
     fi
 
     run "$command"
@@ -60,7 +60,7 @@ test() {
 
     command+="RUSTFLAGS=\"-C overflow-checks=$overflow_checks\" "
     command+="cargo test --no-default-features "
-    command+="--features \"$backend $assertions serde\" "
+    command+="--features \"$backend $assertions bytemuck serde\" "
 
     if [[ $profile == "release" ]]
     then

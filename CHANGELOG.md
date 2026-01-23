@@ -2,7 +2,7 @@
 
 ## 0.15.1 (Unreleased)
 
-- Added support for crate `serde`.
+- Added support for crates: `bytemuck`, `serde`.
 
 ## 0.15.0
 
