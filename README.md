@@ -1,113 +1,123 @@
-# ggmath
+# `ggmath`
 
-A math crate for games and graphics.
+A math library for games and graphics with support for generics and SIMD.
 
-> **Note:** This crate is a work in progress, and several features are still
-> missing.
+The library features:
 
-This crate is similar to most math libraries, with types like `Vec2`, `Vec3`,
-`IVec3`, and SIMD-aligned types such as `Vec3A`.
+- Vectors: `Vec2<T>`, `Vec3<T>`, `Vec4<T>`.
+- Square Matrices (todo): `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
+- Quaternion (todo): `Quat<T>`.
+- Affine Transformations (todo): `Affine2<T>`, `Affine3<T>`.
+- Masks (todo): `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
 
-```rust
-use ggmath::{Vec2, Vec3, Vec3A, Vec4, Vec4A, vec2, vec3, vec4};
+For appropriate scalars these types are SIMD aligned and use SIMD
+instructions to maximize performance.
 
-let v2: Vec2 = vec2!(1.0, 2.0);
-let v3: Vec3 = vec3!(1.0, 2.0, 3.0);
-let v4: Vec4 = vec4!(1.0, 2.0, 3.0, 4.0);
+As a result of SIMD alignment, some of these types have padding. For example,
+`Vec3<f32>` is aligned to 16 bytes and as a result has 4-bytes of padding. To
+fix this the library features unaligned types which don't have padding but are
+not backed by SIMD:
 
-// SIMD-aligned vectors
-let v3a: Vec3A = vec3!(1.0, 2.0, 3.0);
-let v4a: Vec4A = vec4!(1.0, 2.0, 3.0, 4.0);
+- Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
+- Square Matrices (todo): `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
+- Quaternion (todo): `QuatU<T>`.
+- Affine Transformations (todo): `Affine2U<T>`, `Affine3U<T>`.
+- Masks (todo): `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
 
-// Math
-let result = v2.abs() * 2.0 + v3.xy();
-```
+Unaligned types are useful for situations where saving memory is high priority,
+for example when storing large arrays of these types.
 
-The unique feature of this crate is that it supports both generics and SIMD:
+All of these types are specific cases of these generic structs:
 
-## Generics
+- `Vector<N, T, A>`.
+- `Matrix<N, T, A>` (todo).
+- `Quaternion<T, A>` (todo).
+- `Affine<N, T, A>` (todo).
+- `Mask<N, T, A>` (todo).
 
-Types like `Vec2` and `IVec3` are aliases for the generic type `Vector<N, T,
-A>`, which enables:
+Where:
 
-- Custom element types (e.g., `Vector<N, MyScalar, A>`)
-- Generic code over:
-  - The number of elements in the vector (`N`)
-  - The type of elements in the vector (`T`)
-  - Whether or not the vector is SIMD-aligned (`A`)
+- `N` is the length (2, 3, or 4).
+- `T` is the scalar type.
+- `A` is either `Aligned` or `Unaligned`.
 
-## SIMD
-
-This crate provides both scalar-backed types and SIMD-aligned types:
-
-- `Vec2`, `Vec3`, `Vec4`, etc., are `Vector<N, T, Unaligned>`
-- `Vec3A`, `Vec4A`, etc., are `Vector<N, T, Aligned>`
-
-SIMD types make operations faster, but have higher memory alignment. Correct use
-of SIMD types can significantly improve performance.
+The full generic form of these types are useful to write code that is generic
+over length and or alignment.
 
 ## Development Status
 
-### Missing Features
+`ggmath` is not mature yet but is under active development.
 
-- Vectors:
-  - Geometric floats functions
-  - Integer functions
-  - Bool functions
-- Matrices
-- Quaternions
-- Masks
-- `libm` support
+Feature List:
 
-### Performance
+- [x] Vectors
+- [ ] Square Matrices
+- [ ] Quaternion
+- [ ] Affine Transformations
+- [ ] Masks
+- [ ] Sufficient Float-Vector functionality
+- [ ] Sufficient Int-Vector functionality
+- [ ] Sufficient Matrix functionality
+- [ ] Sufficient Quaternion functionality
+- [ ] Sufficient Affine functionality
 
-`ggmath` is designed to match the performance of other SIMD-optimized math
-crates (e.g., **[glam](https://github.com/bitshifter/glam-rs)**), although many
-optimizations are still missing.
+Crate Support:
 
-| | x86 | ARM | WASM |
-| ----- | --- | --- | ---- |
-| `f32` | ✅ | ❌ | ❌ |
-| `f64` | ❌ | ❌ | ❌ |
-| `i32` | ❌ | ❌ | ❌ |
-| `i64` | ❌ | ❌ | ❌ |
-| `u32` | ❌ | ❌ | ❌ |
-| `u64` | ❌ | ❌ | ❌ |
+- [ ] [`bytemuck`](crates.io/crates/bytemuck)
+- [ ] [`libm`](crates.io/crates/libm)
+- [ ] [`mint`](crates.io/crates/mint)
+- [ ] [`serde`](crates.io/crates/serde)
+- [ ] [`zerocopy`](crates.io/crates/zerocopy)
+
+Performance:
+
+- [x] `f32` SSE2 optimizations
+- [ ] `f32` SSE4.2+ optimizations
+- [ ] `f64` AVX+ optimizations
+- [ ] `i32` `u32` SSE2+ optimizations
+- [ ] `i8` `u8` `bool` SSE2+ optimizations for `Mat4<T>`
+- [ ] `i16` `u16` AVX2+ optimizations for `Mat4<T>`
+- [ ] `f32` NEON optimizations
+- [ ] `i32` `u32` NEON optimizations
+- [ ] `i8` `u8` `bool` NEON optimizations for `Mat4<T>`
+- [ ] `f32` WASM optimizations
+- [ ] `i32` `u32` WASM optimizations
+- [ ] `i8` `u8` `bool` WASM optimizations for `Mat4<T>`
 
 ## Usage
 
-Add this to your `Cargo.toml`:
+Add this to your Cargo.toml:
 
 ```toml
 [dependencies]
 ggmath = "0.15.0"
 ```
 
-Make sure Rust is at least at version `1.90.0`.
-
-### `no_std`
+For `no_std` support, disable default features:
 
 ```toml
 [dependencies]
-ggmath = { version = "0.15.0", default-features = false, features = ["debug_assertions", "debug_overflow_checks"] }
+ggmath = { version = "0.15.0", default-features = false }
 ```
 
-> **Note:** `libm` support is currently missing.
+While `std` can be disabled, `libm` support is missing so `no_std` doesn't
+support most float functionality.
 
-### Default Features
+## Cargo Features
 
-- **`std`**: Uses `std` as the backend for float ops.
+- `std` (default feature): Uses `std` as the backend for float functionality.
 
-- **`debug_assertions`**: Enables assertions in debug builds to help catch bugs,
-  though they can slow down functions.
+- `assertions`: Enables assertions in release mode. Assertions are panics that
+  catch invalid input and are enabled by default in debug mode.
 
-- **`debug_overflow_checks`**: Enables overflow checks in debug builds for
-  integer types. It should be set to match the `-Z overflow-checks` setting
-  passed to `rustc` in order to work properly.
+- `no-assertions`: Disables assertions in debug mode. Library crates should not
+  directly enable `assertions` or `no-assertions` and should leave the decision
+  to binary crates.
 
-### Optional Features
+## Dependencies
 
-- **`assertions`**: Enables assertions in both debug and release builds.
+`ggmath` has no dependencies.
 
-- **`overflow_checks`**: Enables overflow checks in both debug and release
-  builds.
+## License
+
+Licensed under either Apache License Version 2.0 or MIT license at your option.
