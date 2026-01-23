@@ -1,6 +1,9 @@
 use core::ops::{Deref, DerefMut};
 
-use crate::{Alignment, Scalar, Vector, transmute_mut, transmute_ref};
+use crate::{
+    Alignment, Scalar, Vector,
+    utils::{transmute_mut, transmute_ref},
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vector2
@@ -17,14 +20,14 @@ pub struct Xy<T> {
 impl<T: Scalar, A: Alignment> Deref for Vector<2, T, A> {
     type Target = Xy<T>;
 
-    #[inline(always)]
+    #[inline]
     fn deref(&self) -> &Self::Target {
         unsafe { transmute_ref::<Vector<2, T, A>, Xy<T>>(self) }
     }
 }
 
 impl<T: Scalar, A: Alignment> DerefMut for Vector<2, T, A> {
-    #[inline(always)]
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { transmute_mut::<Vector<2, T, A>, Xy<T>>(self) }
     }
@@ -36,25 +39,25 @@ impl<T: Scalar, A: Alignment> DerefMut for Vector<2, T, A> {
 
 #[repr(C)]
 pub struct Xyz<T> {
-    /// The first element of the vector.
-    pub x: T,
     /// The second element of the vector.
-    pub y: T,
+    pub x: T,
     /// The third element of the vector.
+    pub y: T,
+    /// The fourth element of the vector.
     pub z: T,
 }
 
 impl<T: Scalar, A: Alignment> Deref for Vector<3, T, A> {
     type Target = Xyz<T>;
 
-    #[inline(always)]
+    #[inline]
     fn deref(&self) -> &Self::Target {
         unsafe { transmute_ref::<Vector<3, T, A>, Xyz<T>>(self) }
     }
 }
 
 impl<T: Scalar, A: Alignment> DerefMut for Vector<3, T, A> {
-    #[inline(always)]
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { transmute_mut::<Vector<3, T, A>, Xyz<T>>(self) }
     }
@@ -79,14 +82,14 @@ pub struct Xyzw<T> {
 impl<T: Scalar, A: Alignment> Deref for Vector<4, T, A> {
     type Target = Xyzw<T>;
 
-    #[inline(always)]
+    #[inline]
     fn deref(&self) -> &Self::Target {
         unsafe { transmute_ref::<Vector<4, T, A>, Xyzw<T>>(self) }
     }
 }
 
 impl<T: Scalar, A: Alignment> DerefMut for Vector<4, T, A> {
-    #[inline(always)]
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { transmute_mut::<Vector<4, T, A>, Xyzw<T>>(self) }
     }

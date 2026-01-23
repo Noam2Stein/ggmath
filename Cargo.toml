@@ -1,13 +1,7 @@
 [package]
 name = "ggmath"
-readme = "README.md"
-repository = "https://github.com/Noam2Stein/ggmath"
+version = "0.15.0"
 
-version = "0.14.0"
-edition = "2024"
-rust-version = "1.90.0"
-
-description = "A math library for games and graphics with generic SIMD types."
 categories = [
     "data-structures",
     "game-development",
@@ -15,25 +9,32 @@ categories = [
     "mathematics",
     "no-std",
 ]
+edition = "2024"
 keywords = ["math", "matrix", "simd", "vector"]
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/Noam2Stein/ggmath"
+rust-version = "1.90.0"
+
+description = "A math library for games and graphics with support for generics and SIMD."
 
 [features]
 std = []
 
 assertions = []
-debug_assertions = []
-overflow_checks = []
-debug_overflow_checks = []
+no-assertions = []
 
-default = ["std", "debug_assertions", "debug_overflow_checks"]
+default = ["std"]
 
 [dev-dependencies]
-colored = "3.0.0"
-criterion = "0.7.0"
-glam = "0.30.9"
-pastey = "0.2.0"
-wide = "0.8.3"
+assert-impl-trait = "1.0.0"
+colored = "3.1.1"
+glam = "0.31.0"
+gungraun = "0.17.0"
+itertools = "0.14.0"
+
+[profile.bench]
+lto = "fat"
+codegen-units = 1
 
 [[bench]]
 name = "vector_f32"
