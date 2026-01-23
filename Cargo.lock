@@ -66,6 +66,8 @@ dependencies = [
  "glam",
  "gungraun",
  "itertools",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

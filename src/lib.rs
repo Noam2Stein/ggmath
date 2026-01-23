@@ -16,4 +16,5 @@ pub use scalar::*;
 pub use vector::*;
 
 mod backend_impls;
+mod integrations;
 mod utils;

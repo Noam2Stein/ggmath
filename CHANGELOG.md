@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.1 (Unreleased)
+
+- Added support for crate `serde`.
+
 ## 0.15.0
 
 This update attempts to make the crate more stable so that more math

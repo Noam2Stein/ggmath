@@ -37,7 +37,14 @@ build() {
 
     if [[ $profile == "release" ]]
     then
-        command+="--release"
+        command+="--release "
+    fi
+
+    # enable integration features based on an arbitrary condition to ensure that
+    # the crate compiles both with and without them.
+    if [[ $overflow_checks == "on" ]]
+    then
+        command+="--features \"serde\" "
     fi
 
     run "$command"
@@ -53,11 +60,11 @@ test() {
 
     command+="RUSTFLAGS=\"-C overflow-checks=$overflow_checks\" "
     command+="cargo test --no-default-features "
-    command+="--features \"$backend $assertions\" "
+    command+="--features \"$backend $assertions serde\" "
 
     if [[ $profile == "release" ]]
     then
-        command+="--release"
+        command+="--release "
     fi
 
     run "$command"

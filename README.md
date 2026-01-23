@@ -66,7 +66,7 @@ Crate Support:
 - [ ] [`bytemuck`](crates.io/crates/bytemuck)
 - [ ] [`libm`](crates.io/crates/libm)
 - [ ] [`mint`](crates.io/crates/mint)
-- [ ] [`serde`](crates.io/crates/serde)
+- [x] [`serde`](crates.io/crates/serde)
 - [ ] [`zerocopy`](crates.io/crates/zerocopy)
 
 Performance:
@@ -113,6 +113,8 @@ support most float functionality.
 - `no-assertions`: Disables assertions in debug mode. Library crates should not
   directly enable `assertions` or `no-assertions` and should leave the decision
   to binary crates.
+
+- `serde`: Implements `Serialize` and `Deserialize` for all `ggmath` types.
 
 ## Dependencies
 
