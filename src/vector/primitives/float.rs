@@ -4,21 +4,21 @@ impl<const N: usize, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Returns true if any components of the vector are NaN (Not a Number).
+    /// Returns true if any component of `self` is NaN.
     #[inline]
     #[must_use]
     pub fn is_nan(self) -> bool {
         specialize!(<T as FloatBackend<N, A>>::vec_is_nan(self))
     }
 
-    /// Returns true if all components of the vector are finite.
+    /// Returns true if all components of `self` are finite.
     #[inline]
     #[must_use]
     pub fn is_finite(self) -> bool {
         specialize!(<T as FloatBackend<N, A>>::vec_is_finite(self))
     }
 
-    /// Returns one divided by the vector.
+    /// Computes `1.0 / self`.
     #[inline]
     #[must_use]
     pub fn recip(self) -> Self {
@@ -27,7 +27,7 @@ where
 
     /// Returns the maximum between the components of `self` and `other`.
     ///
-    /// This function is not consistant with IEEE semantics in regards to NaN
+    /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
@@ -47,7 +47,7 @@ where
 
     /// Returns the minimum between the components of `self` and `other`.
     ///
-    /// This function is not consistant with IEEE semantics in regards to NaN
+    /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
@@ -65,9 +65,10 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_min(self, other))
     }
 
-    /// Clamps the component of the vector between `min` and `max`.
+    /// Clamps the components of `self` between the components of `min` and
+    /// `max`.
     ///
-    /// This function is not consistant with IEEE semantics in regards to NaN
+    /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
@@ -92,39 +93,47 @@ where
         self.max(min).min(max)
     }
 
-    /// Element-wise absolute value.
+    /// Returns the absolute values of the components of `self`.
     #[inline]
     #[must_use]
     pub fn abs(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_abs(self))
     }
 
-    /// Element-wise signum.
+    /// Returns the signum of the components of `self`.
+    ///
+    /// For each component:
+    ///
+    /// - `1.0` if the component is positive or `+0.0`.
+    /// - `-1.0` if the component is negative or `-0.0`.
+    /// - `NaN` if the component is NaN.
     #[inline]
     #[must_use]
     pub fn signum(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_signum(self))
     }
 
-    /// Returns the magnitudes of `self` and the signs of `sign`.
+    /// Returns a vector with the magnitudes of `self` and the signs of `sign`.
     #[inline]
     #[must_use]
     pub fn copysign(self, sign: Self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_copysign(self, sign))
     }
 
-    /// Returns the sum of the vector's elements.
+    /// Computes the sum of the vector's elements.
     ///
-    /// The order of additions is unspecified and may differ between targets.
+    /// The order of addition is unspecified and may differ between target
+    /// architectures.
     #[inline]
     #[must_use]
     pub fn element_sum(self) -> T {
         specialize!(<T as FloatBackend<N, A>>::vec_element_sum(self))
     }
 
-    /// Returns the product of the vector's elements.
+    /// Computes the product of the vector's elements.
     ///
-    /// The order of multiplications is unspecified and may differ between targets.
+    /// The order of multiplication is unspecified and may differ between target
+    /// architectures.
     #[inline]
     #[must_use]
     pub fn element_product(self) -> T {
@@ -133,7 +142,7 @@ where
 
     /// Returns the maximum component of the vector.
     ///
-    /// This function is not consistant with IEEE semantics in regards to NaN
+    /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
@@ -150,7 +159,7 @@ where
 
     /// Returns the minimum component of the vector.
     ///
-    /// This function is not consistant with IEEE semantics in regards to NaN
+    /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
@@ -165,18 +174,67 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_min_element(self))
     }
 
-    /// Returns the dot product of `self` and `other`.
+    /// Computes the dot product of `self` and `rhs`.
     #[inline]
     #[must_use]
-    pub fn dot(self, other: Self) -> T {
-        (self * other).element_sum()
+    pub fn dot(self, rhs: Self) -> T {
+        (self * rhs).element_sum()
     }
 
-    /// Returns the square length of the vector.
+    /// Computes the squared length/magnitude of `self`.
     #[inline]
     #[must_use]
     pub fn length_squared(self) -> T {
         (self * self).element_sum()
+    }
+
+    /// Computes the squared euclidean distance between `self` and `other`.
+    #[inline]
+    #[must_use]
+    pub fn distance_squared(self, other: Self) -> T {
+        (self - other).length_squared()
+    }
+
+    /// Computes the linear interpolation between `self` and `other` based on
+    /// the value `t`.
+    ///
+    /// When `t` is `0.0`, the result is `self`.  When `t` is `1.0`, the result
+    /// is `rhs`. When `t` is outside of the range `[0.0, 1.0]`, the result is
+    /// linearly extrapolated.
+    #[inline]
+    #[must_use]
+    pub fn lerp(self, other: Self, t: T) -> Self {
+        self * (1.0 - t) + other * t
+    }
+
+    /// Computes the midpoint between `self` and `other`.
+    ///
+    /// This function is equivalent to `self.lerp(other, 0.5)` but is cheaper to
+    /// compute.
+    ///
+    /// This function may return a slightly different value than `lerp`.
+    #[inline]
+    #[must_use]
+    pub fn midpoint(self, other: Self) -> Self {
+        (self + other) * 0.5
+    }
+
+    /// Returns whether `self` has the length `1.0` or not.
+    ///
+    /// This function uses a precision threshold of approximately `1e-4`.
+    #[inline]
+    #[must_use]
+    pub fn is_normalized(self) -> bool {
+        (self.length_squared() - 1.0).abs() <= 2e-4
+    }
+}
+
+impl<A: Alignment> Vector<3, T, A> {
+    /// Computes the cross product of `self` and `rhs`.
+    #[inline]
+    #[must_use]
+    pub fn cross(self, rhs: Self) -> Self {
+        (self.zxy() * rhs - self * rhs.zxy()).zxy()
     }
 }
 
@@ -185,37 +243,37 @@ impl<const N: usize, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Rounds the vector's components down.
+    /// Rounds the components of `self` down.
     #[inline]
     #[must_use]
     pub fn floor(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_floor(self))
     }
 
-    /// Rounds the vector's components up.
+    /// Rounds the components of `self` up.
     #[inline]
     #[must_use]
     pub fn ceil(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_ceil(self))
     }
 
-    /// Rounds the vector's components to the nearest integer.
+    /// Rounds the components of `self` to the nearest integer.
     #[inline]
     #[must_use]
     pub fn round(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_round(self))
     }
 
-    /// Rounds the vector's components towards zero.
+    /// Rounds the components of `self` towards zero.
     #[inline]
     #[must_use]
     pub fn trunc(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_trunc(self))
     }
 
-    /// Returns the fractional part of the vector.
+    /// Returns the fractional part of `self`.
     ///
-    /// Equivalent to `vec - vec.trunc()`.
+    /// This function is equivalent to `self - self.trunc()`.
     #[inline]
     #[must_use]
     pub fn fract(self) -> Self {
@@ -225,11 +283,11 @@ where
     /// Fused Multiply Add. Computes `self * a + b` with only one rounding error
     /// instead of two.
     ///
-    /// This function is guaranteed to return the exact same value as the
-    /// standard library.
-    ///
     /// This is slower than an unfused multiply add for most target
     /// architectures.
+    ///
+    /// This function is guaranteed to return the exact same value as the
+    /// standard library.
     #[inline]
     #[must_use]
     pub fn mul_add(self, a: Self, b: Self) -> Self {
@@ -237,6 +295,9 @@ where
     }
 
     /// Euclidiean Division.
+    ///
+    /// This function is guaranteed to return the exact same value as the
+    /// standard library.
     #[inline]
     #[must_use]
     pub fn div_euclid(self, rhs: Self) -> Self {
@@ -244,83 +305,127 @@ where
     }
 
     /// Euclidiean Remainder.
+    ///
+    /// This function is guaranteed to return the exact same value as the
+    /// standard library.
     #[inline]
     #[must_use]
     pub fn rem_euclid(self, rhs: Self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_rem_euclid(self, rhs))
     }
 
-    /// Element-wise square root.
+    /// Computes the square root of the components of `self`.
     ///
-    /// This function is guaranteed to return the exact value.
+    /// This function is guaranteed to return the exact same value as the
+    /// standard library.
     #[inline]
     #[must_use]
     pub fn sqrt(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_sqrt(self))
     }
 
-    /// Element-wise sine.
+    /// Computes the sine of the components of `self`.
     ///
-    /// This function may not return the exact same value as the standard library.
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
     #[inline]
     #[must_use]
     pub fn sin(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_sin(self))
     }
 
-    /// Element-wise cosine.
+    /// Computes the cosine of the components of `self`.
     ///
-    /// This function may not return the exact same value as the standard library.
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
     #[inline]
     #[must_use]
     pub fn cos(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_cos(self))
     }
 
-    /// Element-wise tangent.
+    /// Simultaneously computes the sine and cosine of the components of `self`.
     ///
-    /// This function may not return the exact same value as the standard library.
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
+    #[inline]
+    #[must_use]
+    pub fn sin_cos(self) -> (Self, Self) {
+        specialize!(<T as FloatBackend<N, A>>::vec_sin_cos(self))
+    }
+
+    /// Computes the tangent of the components of `self`.
+    ///
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
     #[inline]
     #[must_use]
     pub fn tan(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_tan(self))
     }
 
-    /// Element-wise arc sine.
+    /// Computes the arc sine of the components of `self`.
     ///
-    /// This function may not return the exact same value as the standard library.
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
     #[inline]
     #[must_use]
     pub fn asin(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_asin(self))
     }
 
-    /// Element-wise arc cosine.
+    /// Computes the arc cosine of the components of `self`.
     ///
-    /// This function may not return the exact same value as the standard library.
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
     #[inline]
     #[must_use]
     pub fn acos(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_acos(self))
     }
 
-    /// Element-wise arc tangent.
+    /// Computes the arc tangent of the components of `self`.
     ///
-    /// This function may not return the exact same value as the standard library.
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
     #[inline]
     #[must_use]
     pub fn atan(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_atan(self))
     }
 
-    /// Returns the magnitude of the vector.
+    /// Returns the length/magnitude of `self`.
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
         self.dot(self).sqrt()
     }
 
-    /// Returns a vector with the direction of `self` and length `1`.
+    /// Computes the euclidean distance between `self` and `other`.
+    #[inline]
+    #[must_use]
+    pub fn distance(self, other: Self) -> T {
+        (self - other).length()
+    }
+
+    /// Moves `self` towards `other` by the value `max_delta`.
+    ///
+    /// When `max_delta` is `0.0`, the result is `self`. When `max_delta` is
+    /// equal to or greater than `self.distance(other)`, the result is `other`.
+    #[inline]
+    #[must_use]
+    pub fn move_towards(self, other: Self, max_delta: T) -> Self {
+        let delta = other - self;
+        let delta_length = delta.length();
+
+        if delta_length <= max_delta || delta_length <= 1e-4 {
+            other
+        } else {
+            self + delta / delta_length * max_delta
+        }
+    }
+
+    /// Returns a vector with the direction of `self` and length `1.0`.
     ///
     /// # Panics
     ///
@@ -343,11 +448,8 @@ where
         result
     }
 
-    /// Returns a vector with the direction of `self` and length `1`, or `None`
-    /// if the operation fails.
-    ///
-    /// This function fails if the input is zero
-    /// or if the result is non finite or zero.
+    /// Computes [`self.normalize`](Self::normalize) or returns `None` if the
+    /// input is zero or if the result is non finite or zero.
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
@@ -359,26 +461,233 @@ where
         }
     }
 
-    /// Returns a vector with the direction of `self` and length `1`, or `fallback`
-    /// if the operation fails.
-    ///
-    /// This function fails if the input is zero
-    /// or if the result is non finite or zero.
+    /// Computes [`self.normalize`](Self::normalize) or returns `fallback` if
+    /// the input is zero or if the result is non finite or zero.
     #[inline]
     #[must_use]
     pub fn normalize_or(self, fallback: Self) -> Self {
         self.try_normalize().unwrap_or(fallback)
     }
 
-    /// Returns a vector with the direction of `self` and length `1`, or zero
-    /// if the operation fails.
-    ///
-    /// This function fails if the input is zero
-    /// or if the result is non finite or zero.
+    /// Computes [`self.normalize`](Self::normalize) or returns a zero vector if
+    /// the input is zero or if the result is non finite or zero.
     #[inline]
     #[must_use]
     pub fn normalize_or_zero(self) -> Self {
         self.normalize_or(Self::ZERO)
+    }
+
+    /// Computes [`self.normalize()`](Self::normalize) and
+    /// [`self.length()`](Self::length).
+    ///
+    /// If `self` is a zero vector, the function returns
+    /// `(Self::ZERO, 0.0)`.
+    #[inline]
+    #[must_use]
+    pub fn normalize_and_length(self) -> (Self, T) {
+        let length = self.length();
+        let recip = 1.0 / length;
+
+        if recip.is_finite() && recip > 0.0 {
+            (self * recip, length)
+        } else {
+            (Self::ZERO, 0.0)
+        }
+    }
+
+    /// Returns `self` with a length of no more than `max`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `max` is negative.
+    #[inline]
+    #[must_use]
+    pub fn with_max_length(self, max: T) -> Self {
+        #[cfg(assertions)]
+        assert!(max >= 0.0, "negative maximum length");
+
+        let length_squared = self.length_squared();
+        if length_squared > max * max {
+            self / length_squared.sqrt() * max
+        } else {
+            self
+        }
+    }
+
+    /// Returns `self` with a length of no less than `min`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `min` is negative.
+    #[inline]
+    #[must_use]
+    pub fn with_min_length(self, min: T) -> Self {
+        #[cfg(assertions)]
+        assert!(min >= 0.0, "negative minimum length");
+
+        let length_squared = self.length_squared();
+        if length_squared < min * min {
+            self / length_squared.sqrt() * min
+        } else {
+            self
+        }
+    }
+
+    /// Returns `self` with a length of no less than `min` and no more than
+    /// `max`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `min` is greater
+    /// than `max`, or if either `min` or `max` are negative.
+    #[inline]
+    #[must_use]
+    pub fn clamp_length(self, min: T, max: T) -> Self {
+        #[cfg(assertions)]
+        assert!(min >= 0.0, "negative minimum length");
+
+        #[cfg(assertions)]
+        assert!(min <= max, "minimum length is greater than maximum length");
+
+        let length_squared = self.length_squared();
+        if length_squared < min * min {
+            self / length_squared.sqrt() * min
+        } else if length_squared > max * max {
+            self / length_squared.sqrt() * max
+        } else {
+            self
+        }
+    }
+
+    /// Computes the angle (in radians) between two vectors in the range
+    /// `[0, +π]`.
+    ///
+    /// The vectors do not need to be unit vectors but they do need to be
+    /// non-zero.
+    ///
+    /// This function has unspecified precision.
+    #[inline]
+    #[must_use]
+    pub fn angle_between(self, other: Self) -> T {
+        (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
+    }
+
+    /// Computes the exponential function `e^self` for the components of `self`.
+    ///
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
+    #[inline]
+    #[must_use]
+    pub fn exp(self) -> Self {
+        self.map(T::exp)
+    }
+
+    /// Computes `2^self` for the components of `self`.
+    ///
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
+    #[inline]
+    #[must_use]
+    pub fn exp2(self) -> Self {
+        self.map(T::exp2)
+    }
+
+    /// Computes the natural logarithm for the components of `self`.
+    ///
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
+    #[inline]
+    #[must_use]
+    pub fn ln(self) -> Self {
+        self.map(T::ln)
+    }
+
+    /// Computes the base 2 logarithm for the components of `self`.
+    ///
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
+    #[inline]
+    #[must_use]
+    pub fn log2(self) -> Self {
+        self.map(T::log2)
+    }
+
+    /// Computes `self^n` for the components of `self`.
+    ///
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
+    #[inline]
+    #[must_use]
+    pub fn powf(self, n: T) -> Self {
+        self.map(|x| x.powf(n))
+    }
+}
+
+#[cfg(backend)]
+impl<A: Alignment> Vector<2, T, A> {
+    /// Returns `self` rotated by 90 degrees.
+    #[inline]
+    #[must_use]
+    pub fn perp(self) -> Self {
+        Self::new(-self.y, self.x)
+    }
+
+    /// Rotates `self` by `angle` (in radians).
+    ///
+    /// This function has unspecified precision.
+    #[inline]
+    #[must_use]
+    pub fn rotate(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x * angle_cos - self.y * angle_sin,
+            self.x * angle_sin + self.y * angle_cos,
+        )
+    }
+}
+
+#[cfg(backend)]
+impl<A: Alignment> Vector<3, T, A> {
+    /// Rotates `self` around the x axis by `angle` (in radians).
+    ///
+    /// This function has unspecified precision.
+    #[inline]
+    #[must_use]
+    pub fn rotate_x(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x,
+            self.y * angle_cos - self.z * angle_sin,
+            self.y * angle_sin + self.z * angle_cos,
+        )
+    }
+
+    /// Rotates `self` around the y axis by `angle` (in radians).
+    ///
+    /// This function has unspecified precision.
+    #[inline]
+    #[must_use]
+    pub fn rotate_y(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x * angle_cos + self.z * angle_sin,
+            self.y,
+            self.x * -angle_sin + self.z * angle_cos,
+        )
+    }
+
+    /// Rotates `self` around the z axis by `angle` (in radians).
+    ///
+    /// This function has unspecified precision.
+    #[inline]
+    #[must_use]
+    pub fn rotate_z(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x * angle_cos - self.y * angle_sin,
+            self.x * angle_sin + self.y * angle_cos,
+            self.z,
+        )
     }
 }
 
@@ -503,6 +812,17 @@ where
     #[inline]
     fn vec_cos(vec: Vector<N, T, A>) -> Vector<N, T, A> {
         vec.map(T::cos)
+    }
+
+    #[cfg(backend)]
+    #[inline]
+    fn vec_sin_cos(vec: Vector<N, T, A>) -> (Vector<N, T, A>, Vector<N, T, A>) {
+        let array = vec.to_array().map(|x| x.sin_cos());
+
+        (
+            Vector::from_fn(|i| array[i].0),
+            Vector::from_fn(|i| array[i].1),
+        )
     }
 
     #[cfg(backend)]

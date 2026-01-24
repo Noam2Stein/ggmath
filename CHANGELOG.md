@@ -2,6 +2,31 @@
 
 ## 0.15.1 (Unreleased)
 
+- Added float vector functions:
+  - `angle_between`
+  - `clamp_length`
+  - `cross`
+  - `distance`
+  - `distance_squared`
+  - `exp`
+  - `exp2`
+  - `is_normalized`
+  - `lerp`
+  - `ln`
+  - `log2`
+  - `midpoint`
+  - `move_towards`
+  - `normalize_and_length`
+  - `perp`
+  - `powf`
+  - `rotate`
+  - `rotate_x`
+  - `rotate_y`
+  - `rotate_z`
+  - `sin_cos`
+  - `with_max_length`
+  - `with_min_length`
+
 - Added bool vector functions: `all`, `any`.
 
 - Added support for crates: `bytemuck`, `mint`, `serde`.

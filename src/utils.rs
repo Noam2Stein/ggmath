@@ -208,6 +208,16 @@ where
 {
 }
 
+unsafe impl<Ta, Ta2, Tb, Tb2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<(Ta2, Tb2), N, N2, A, A2> for (Ta, Tb)
+where
+    Ta: Specialize<Ta2, N, N2, A, A2>,
+    Tb: Specialize<Tb2, N, N2, A, A2>,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
 unsafe impl<R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<fn() -> R2, N, N2, A, A2> for fn() -> R
 where

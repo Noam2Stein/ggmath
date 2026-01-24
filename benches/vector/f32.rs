@@ -3,9 +3,10 @@ use gungraun::{library_benchmark, library_benchmark_group, main};
 main!(library_benchmark_groups = benches);
 library_benchmark_group!(
     name = benches;
-    benchmarks = ggmath_arithmetic, glam_arithmetic, ggmath_bitops, glam_bitops, ggmath_swizzle,
-        glam_swizzle, ggmath_horizontal, glam_horizontal, ggmath_round, glam_round, ggmath_trigo,
-        glam_trigo, ggmath_euclid_div, glam_euclid_div,
+    benchmarks = ggmath_arithmetic, glam_arithmetic, ggmath_arithmetic_ext, glam_arithmetic_ext,
+        ggmath_bitops, glam_bitops, ggmath_swizzle, glam_swizzle, ggmath_horizontal,
+        glam_horizontal, ggmath_round, glam_round, ggmath_trigo, glam_trigo, ggmath_exp, glam_exp,
+        ggmath_euclid_div, glam_euclid_div,
 );
 
 #[library_benchmark]
@@ -73,6 +74,60 @@ pub fn glam_arithmetic(x: f32, y: f32, z: f32) -> impl Copy {
         v4a -= v4a * Vec4::splat(y);
         v4a = -v4a / Vec4::splat(z);
         v4a = v4a.recip() + v4a.sqrt();
+    }
+
+    (v2u, v3u, v3a, v4a)
+}
+
+#[library_benchmark]
+#[bench::arbitrary(4.0, 5.0, 6.0)]
+pub fn ggmath_arithmetic_ext(x: f32, y: f32, z: f32) -> impl Copy {
+    use ggmath::{Vec2U, Vec3, Vec3U, Vec4, vec2, vec3, vec4};
+
+    let mut v2u: Vec2U<f32> = vec2!(x, y);
+    let mut v3u: Vec3U<f32> = vec3!(x, y, z);
+    let mut v3a: Vec3<f32> = vec3!(x, y, z);
+    let mut v4a: Vec4<f32> = vec4!(x, y, z, x);
+
+    for _ in 0..2 {
+        v2u = v2u.lerp(v2u.move_towards(vec2!(4.0, 5.0), v2u.y), v2u.x);
+        v2u = v2u.midpoint(v2u.sqrt());
+
+        v3u = v3u.lerp(v3u.move_towards(vec3!(4.0, 5.0, 6.0), v3u.y), v3u.x);
+        v3u = v3u.midpoint(v3u.sqrt()) + v3u.cross(vec3!(4.0, 5.0, 6.0));
+
+        v3a = v3a.lerp(v3a.move_towards(vec3!(4.0, 5.0, 6.0), v3a.y), v3a.x);
+        v3a = v3a.midpoint(v3a.sqrt()) + v3a.cross(vec3!(4.0, 5.0, 6.0));
+
+        v4a = v4a.lerp(v4a.move_towards(vec4!(4.0, 5.0, 6.0, 7.0), v4a.y), v4a.x);
+        v4a = v4a.midpoint(v4a.sqrt());
+    }
+
+    (v2u, v3u, v3a, v4a)
+}
+
+#[library_benchmark]
+#[bench::arbitrary(4.0, 5.0, 6.0)]
+pub fn glam_arithmetic_ext(x: f32, y: f32, z: f32) -> impl Copy {
+    use glam::{Vec2, Vec3, Vec3A, Vec4, vec2, vec3, vec3a, vec4};
+
+    let mut v2u: Vec2 = vec2(x, y);
+    let mut v3u: Vec3 = vec3(x, y, z);
+    let mut v3a: Vec3A = vec3a(x, y, z);
+    let mut v4a: Vec4 = vec4(x, y, z, x);
+
+    for _ in 0..2 {
+        v2u = v2u.lerp(v2u.move_towards(vec2(4.0, 5.0), v2u.y), v2u.x);
+        v2u = v2u.midpoint(v2u.sqrt());
+
+        v3u = v3u.lerp(v3u.move_towards(vec3(4.0, 5.0, 6.0), v3u.y), v3u.x);
+        v3u = v3u.midpoint(v3u.sqrt()) + v3u.cross(vec3(4.0, 5.0, 6.0));
+
+        v3a = v3a.lerp(v3a.move_towards(vec3a(4.0, 5.0, 6.0), v3a.y), v3a.x);
+        v3a = v3a.midpoint(v3a.sqrt()) + v3a.cross(vec3a(4.0, 5.0, 6.0));
+
+        v4a = v4a.lerp(v4a.move_towards(vec4(4.0, 5.0, 6.0, 7.0), v4a.y), v4a.x);
+        v4a = v4a.midpoint(v4a.sqrt());
     }
 
     (v2u, v3u, v3a, v4a)
@@ -222,8 +277,13 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v2u = v2u.try_normalize().unwrap_or(vec2!(0.0));
         v2u = v2u.with_y(v2u.length());
         v2u = v2u.normalize_or(vec2!(0.0));
-        v2u = v2u.with_x(v2u.length_squared());
-        v2u = v2u.normalize_or_zero();
+        v2u = v2u.with_y(v2u.is_normalized() as u8 as f32);
+        v2u = v2u.with_x(v2u.length_squared() + v2u.distance(v2u * 1.5));
+        v2u = v2u.with_y(v2u.distance_squared(v2u * 1.5));
+        v2u = v2u.normalize_or_zero()
+            + v2u.with_max_length(10.0)
+            + v2u.with_min_length(5.0)
+            + v2u.clamp_length(3.0, 4.0);
 
         v3u = v3u.with_x((v3u + 1.0 == v3u - 1.0) as u8 as f32);
         v3u = v3u.with_y((v3u + 1.0 != v3u - 1.0) as u8 as f32);
@@ -238,8 +298,13 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v3u = v3u.try_normalize().unwrap_or(vec3!(0.0));
         v3u = v3u.with_y(v3u.length());
         v3u = v3u.normalize_or(vec3!(0.0));
-        v3u = v3u.with_x(v3u.length_squared());
-        v3u = v3u.normalize_or_zero();
+        v3u = v3u.with_y(v3u.is_normalized() as u8 as f32);
+        v3u = v3u.with_x(v3u.length_squared() + v3u.distance(v3u * 1.5));
+        v3u = v3u.with_y(v3u.distance_squared(v3u * 1.5));
+        v3u = v3u.normalize_or_zero()
+            + v3u.with_max_length(10.0)
+            + v3u.with_min_length(5.0)
+            + v3u.clamp_length(3.0, 4.0);
 
         v3a = v3a.with_x((v3a + 1.0 == v3a - 1.0) as u8 as f32);
         v3a = v3a.with_y((v3a + 1.0 != v3a - 1.0) as u8 as f32);
@@ -254,8 +319,13 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v3a = v3a.try_normalize().unwrap_or(vec3!(0.0));
         v3a = v3a.with_y(v3a.length());
         v3a = v3a.normalize_or(vec3!(0.0));
-        v3a = v3a.with_x(v3a.length_squared());
-        v3a = v3a.normalize_or_zero();
+        v3a = v3a.with_y(v3a.is_normalized() as u8 as f32);
+        v3a = v3a.with_x(v3a.length_squared() + v3a.distance(v3a * 1.5));
+        v3a = v3a.with_y(v3a.distance_squared(v3a * 1.5));
+        v3a = v3a.normalize_or_zero()
+            + v3a.with_max_length(10.0)
+            + v3a.with_min_length(5.0)
+            + v3a.clamp_length(3.0, 4.0);
 
         v4a = v4a.with_x((v4a + 1.0 == v4a - 1.0) as u8 as f32);
         v4a = v4a.with_y((v4a + 1.0 != v4a - 1.0) as u8 as f32);
@@ -270,8 +340,13 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.try_normalize().unwrap_or(vec4!(0.0));
         v4a = v4a.with_y(v4a.length());
         v4a = v4a.normalize_or(vec4!(0.0));
-        v4a = v4a.with_x(v4a.length_squared());
-        v4a = v4a.normalize_or_zero();
+        v4a = v4a.with_y(v4a.is_normalized() as u8 as f32);
+        v4a = v4a.with_x(v4a.length_squared() + v4a.distance(v4a * 1.5));
+        v4a = v4a.with_y(v4a.distance_squared(v4a * 1.5));
+        v4a = v4a.normalize_or_zero()
+            + v4a.with_max_length(10.0)
+            + v4a.with_min_length(5.0)
+            + v4a.clamp_length(3.0, 4.0);
     }
 
     (v2u, v3u, v3a, v4a)
@@ -301,8 +376,13 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v2u = v2u.try_normalize().unwrap_or(Vec2::ZERO);
         v2u = v2u.with_y(v2u.length());
         v2u = v2u.normalize_or(Vec2::ZERO);
-        v2u = v2u.with_x(v2u.length_squared());
-        v2u = v2u.normalize_or_zero();
+        v2u = v2u.with_y(v2u.is_normalized() as u8 as f32);
+        v2u = v2u.with_x(v2u.length_squared() + v2u.distance(v2u * 1.5));
+        v2u = v2u.with_y(v2u.distance_squared(v2u * 1.5));
+        v2u = v2u.normalize_or_zero()
+            + v2u.clamp_length_max(10.0)
+            + v2u.clamp_length_min(5.0)
+            + v2u.clamp_length(3.0, 4.0);
 
         v3u = v3u.with_x((v3u + 1.0 == v3u - 1.0) as u8 as f32);
         v3u = v3u.with_y((v3u + 1.0 != v3u - 1.0) as u8 as f32);
@@ -317,8 +397,13 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v3u = v3u.try_normalize().unwrap_or(Vec3::ZERO);
         v3u = v3u.with_y(v3u.length());
         v3u = v3u.normalize_or(Vec3::ZERO);
-        v3u = v3u.with_x(v3u.length_squared());
-        v3u = v3u.normalize_or_zero();
+        v3u = v3u.with_y(v3u.is_normalized() as u8 as f32);
+        v3u = v3u.with_x(v3u.length_squared() + v3u.distance(v3u * 1.5));
+        v3u = v3u.with_y(v3u.distance_squared(v3u * 1.5));
+        v3u = v3u.normalize_or_zero()
+            + v3u.clamp_length_max(10.0)
+            + v3u.clamp_length_min(5.0)
+            + v3u.clamp_length(3.0, 4.0);
 
         v3a = v3a.with_x((v3a + 1.0 == v3a - 1.0) as u8 as f32);
         v3a = v3a.with_y((v3a + 1.0 != v3a - 1.0) as u8 as f32);
@@ -333,8 +418,13 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v3a = v3a.try_normalize().unwrap_or(Vec3A::ZERO);
         v3a = v3a.with_y(v3a.length());
         v3a = v3a.normalize_or(Vec3A::ZERO);
-        v3a = v3a.with_x(v3a.length_squared());
-        v3a = v3a.normalize_or_zero();
+        v3a = v3a.with_y(v3a.is_normalized() as u8 as f32);
+        v3a = v3a.with_x(v3a.length_squared() + v3a.distance(v3a * 1.5));
+        v3a = v3a.with_y(v3a.distance_squared(v3a * 1.5));
+        v3a = v3a.normalize_or_zero()
+            + v3a.clamp_length_max(10.0)
+            + v3a.clamp_length_min(5.0)
+            + v3a.clamp_length(3.0, 4.0);
 
         v4a = v4a.with_x((v4a + 1.0 == v4a - 1.0) as u8 as f32);
         v4a = v4a.with_y((v4a + 1.0 != v4a - 1.0) as u8 as f32);
@@ -349,8 +439,13 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.try_normalize().unwrap_or(Vec4::ZERO);
         v4a = v4a.with_y(v4a.length());
         v4a = v4a.normalize_or(Vec4::ZERO);
-        v4a = v4a.with_x(v4a.length_squared());
-        v4a = v4a.normalize_or_zero();
+        v4a = v4a.with_y(v4a.is_normalized() as u8 as f32);
+        v4a = v4a.with_x(v4a.length_squared() + v4a.distance(v4a * 1.5));
+        v4a = v4a.with_y(v4a.distance_squared(v4a * 1.5));
+        v4a = v4a.normalize_or_zero()
+            + v4a.clamp_length_max(10.0)
+            + v4a.clamp_length_min(5.0)
+            + v4a.clamp_length(3.0, 4.0);
     }
 
     (v2u, v3u, v3a, v4a)
@@ -408,9 +503,23 @@ pub fn ggmath_trigo(x: f32, y: f32, z: f32) -> impl Copy {
 
     for _ in 0..2 {
         v2u = v2u.sin() + v2u.cos() - v2u.tan() * v2u.asin() / v2u.acos() - v2u.atan();
+        let (sin, cos) = v2u.sin_cos();
+        v2u = sin / cos;
+        v2u = v2u.rotate(5.0) + v2u.perp();
+
         v3u = v3u.sin() + v3u.cos() - v3u.tan() * v3u.asin() / v3u.acos() - v3u.atan();
+        let (sin, cos) = v3u.sin_cos();
+        v3u = sin / cos * sin.angle_between(cos);
+        v3u = v3u.rotate_x(6.0) + v3u.rotate_y(7.0) + v3u.rotate_z(8.0);
+
         v3a = v3a.sin() + v3a.cos() - v3a.tan() * v3a.asin() / v3a.acos() - v3a.atan();
+        let (sin, cos) = v3a.sin_cos();
+        v3a = sin / cos * sin.angle_between(cos);
+        v3a = v3a.rotate_x(6.0) + v3a.rotate_y(7.0) + v3a.rotate_z(8.0);
+
         v4a = v4a.sin() + v4a.cos() - v4a.tan() * v4a.asin() / v4a.acos() - v4a.atan();
+        let (sin, cos) = v4a.sin_cos();
+        v4a = sin / cos;
     }
 
     (v2u, v3u, v3a, v4a)
@@ -431,24 +540,75 @@ pub fn glam_trigo(x: f32, y: f32, z: f32) -> impl Copy {
             - vec2(v2u.x.tan(), v2u.y.tan()) * vec2(v2u.x.asin(), v2u.y.asin())
                 / vec2(v2u.x.acos(), v2u.y.acos())
             - vec2(v2u.x.atan(), v2u.y.atan());
+        let (sin, cos) = v2u.sin_cos();
+        v2u = sin / cos;
+        v2u = Vec2::from_angle(5.0).rotate(v2u) + v2u.perp();
 
         v3u = v3u.sin() + v3u.cos()
             - vec3(v3u.x.tan(), v3u.y.tan(), v3u.z.tan())
                 * vec3(v3u.x.asin(), v3u.y.asin(), v3u.z.asin())
                 / vec3(v3u.x.acos(), v3u.y.acos(), v3u.z.acos())
             - vec3(v3u.x.atan(), v3u.y.atan(), v3u.z.atan());
+        let (sin, cos) = v3u.sin_cos();
+        v3u = sin / cos * sin.angle_between(cos);
+        v3u = v3u.rotate_x(6.0) + v3u.rotate_y(7.0) + v3u.rotate_z(8.0);
 
         v3a = v3a.sin() + v3a.cos()
             - vec3a(v3a.x.tan(), v3a.y.tan(), v3a.z.tan())
                 * vec3a(v3a.x.asin(), v3a.y.asin(), v3a.z.asin())
                 / vec3a(v3a.x.acos(), v3a.y.acos(), v3a.z.acos())
             - vec3a(v3a.x.atan(), v3a.y.atan(), v3a.z.atan());
+        let (sin, cos) = v3a.sin_cos();
+        v3a = sin / cos * sin.angle_between(cos);
+        v3a = v3a.rotate_x(6.0) + v3a.rotate_y(7.0) + v3a.rotate_z(8.0);
 
         v4a = v4a.sin() + v4a.cos()
             - vec4(v4a.x.tan(), v4a.y.tan(), v4a.z.tan(), v4a.w.tan())
                 * vec4(v4a.x.asin(), v4a.y.asin(), v4a.z.asin(), v4a.w.asin())
                 / vec4(v4a.x.acos(), v4a.y.acos(), v4a.z.acos(), v4a.w.acos())
             - vec4(v4a.x.atan(), v4a.y.atan(), v4a.z.atan(), v4a.w.atan());
+        let (sin, cos) = v4a.sin_cos();
+        v4a = sin / cos;
+    }
+
+    (v2u, v3u, v3a, v4a)
+}
+
+#[library_benchmark]
+#[bench::arbitrary(4.0, 5.0, 6.0)]
+pub fn ggmath_exp(x: f32, y: f32, z: f32) -> impl Copy {
+    use ggmath::{Vec2U, Vec3, Vec3U, Vec4, vec2, vec3, vec4};
+
+    let mut v2u: Vec2U<f32> = vec2!(x, y);
+    let mut v3u: Vec3U<f32> = vec3!(x, y, z);
+    let mut v3a: Vec3<f32> = vec3!(x, y, z);
+    let mut v4a: Vec4<f32> = vec4!(x, y, z, x);
+
+    for _ in 0..2 {
+        v2u = v2u.exp() + v2u.exp2() + v2u.ln() + v2u.log2() + v2u.powf(5.0);
+        v3u = v3u.exp() + v3u.exp2() + v3u.ln() + v3u.log2() + v3u.powf(5.0);
+        v3a = v3a.exp() + v3a.exp2() + v3a.ln() + v3a.log2() + v3a.powf(5.0);
+        v4a = v4a.exp() + v4a.exp2() + v4a.ln() + v4a.log2() + v4a.powf(5.0);
+    }
+
+    (v2u, v3u, v3a, v4a)
+}
+
+#[library_benchmark]
+#[bench::arbitrary(4.0, 5.0, 6.0)]
+pub fn glam_exp(x: f32, y: f32, z: f32) -> impl Copy {
+    use glam::{Vec2, Vec3, Vec3A, Vec4, vec2, vec3, vec3a, vec4};
+
+    let mut v2u: Vec2 = vec2(x, y);
+    let mut v3u: Vec3 = vec3(x, y, z);
+    let mut v3a: Vec3A = vec3a(x, y, z);
+    let mut v4a: Vec4 = vec4(x, y, z, x);
+
+    for _ in 0..2 {
+        v2u = v2u.exp() + v2u.exp2() + v2u.ln() + v2u.log2() + v2u.powf(5.0);
+        v3u = v3u.exp() + v3u.exp2() + v3u.ln() + v3u.log2() + v3u.powf(5.0);
+        v3a = v3a.exp() + v3a.exp2() + v3a.ln() + v3a.log2() + v3a.powf(5.0);
+        v4a = v4a.exp() + v4a.exp2() + v4a.ln() + v4a.log2() + v4a.powf(5.0);
     }
 
     (v2u, v3u, v3a, v4a)
