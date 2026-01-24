@@ -67,7 +67,6 @@ Crate Support:
 - [ ] [`libm`](crates.io/crates/libm)
 - [x] [`mint`](crates.io/crates/mint)
 - [x] [`serde`](crates.io/crates/serde)
-- [ ] [`zerocopy`](crates.io/crates/zerocopy)
 
 Performance:
 
