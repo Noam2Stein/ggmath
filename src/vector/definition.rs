@@ -597,12 +597,12 @@ type VectorRepr<const N: usize, T, A> = <A as Alignment>::Select<
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-struct Repr2<T>(pub T, pub T);
+struct Repr2<T>(T, T);
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-struct Repr3<T>(pub T, pub T, pub T);
+struct Repr3<T>(T, T, T);
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-struct Repr4<T>(pub T, pub T, pub T, pub T);
+struct Repr4<T>(T, T, T, T);
