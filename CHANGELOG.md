@@ -2,6 +2,8 @@
 
 ## 0.15.1 (Unreleased)
 
+- Added bool vector functions: `all`, `any`.
+
 - Added support for crates: `bytemuck`, `mint`, `serde`.
 
 ## 0.15.0
