@@ -10,13 +10,8 @@ The library features:
 - Affine Transformations (todo): `Affine2<T>`, `Affine3<T>`.
 - Masks (todo): `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
 
-For appropriate scalars these types are SIMD aligned and use SIMD
-instructions to maximize performance.
-
-As a result of SIMD alignment, some of these types have padding. For example,
-`Vec3<f32>` is aligned to 16 bytes and as a result has 4-bytes of padding. To
-fix this the library features unaligned types which don't have padding but are
-not backed by SIMD:
+For appropriate scalars, these types are aligned for SIMD to improve
+performance. The library also features unaligned types:
 
 - Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
 - Square Matrices (todo): `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
@@ -24,10 +19,10 @@ not backed by SIMD:
 - Affine Transformations (todo): `Affine2U<T>`, `Affine3U<T>`.
 - Masks (todo): `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
 
-Unaligned types are useful for situations where saving memory is high priority,
-for example when storing large arrays of these types.
+Unaligned types have the same functionality as aligned types, but are not
+aligned for SIMD meaning they take less memory but have slower operations.
 
-All of these types are specific cases of these generic structs:
+All types are type aliases to these generic structs:
 
 - `Vector<N, T, A>`.
 - `Matrix<N, T, A>` (todo).
@@ -41,8 +36,8 @@ Where:
 - `T` is the scalar type.
 - `A` is either `Aligned` or `Unaligned`.
 
-The full generic form of these types are useful to write code that is generic
-over length and or alignment.
+Generic structs are used to implement functionality for all lengths and or both
+alignments without duplicating code or using macros.
 
 ## Development Status
 
@@ -64,9 +59,11 @@ Feature List:
 Crate Support:
 
 - [x] [`bytemuck`](crates.io/crates/bytemuck)
+- [ ] [`fixed`](crates.io/crates/fixed)
 - [ ] [`libm`](crates.io/crates/libm)
 - [x] [`mint`](crates.io/crates/mint)
 - [x] [`serde`](crates.io/crates/serde)
+- [ ] [`wide`](crates.io/crates/wide)
 
 Performance:
 
@@ -82,6 +79,51 @@ Performance:
 - [ ] `f32` WASM optimizations
 - [ ] `i32` `u32` WASM optimizations
 - [ ] `i8` `u8` `bool` WASM optimizations for `Mat4<T>`
+
+## Comparison to `glam`
+
+`glam` is more mature than `ggmath`. This comparison assumes `ggmath` has
+reached the maturity of `glam`. If you need any of the features missing
+from `ggmath`, you should use `glam`.
+
+The primary difference between the two crates is that `ggmath` uses generics and
+`glam` intentionally doesn't. You should pick a crate based on these pros and
+cons:
+
+### Code Duplication
+
+Generics eliminate code duplication by enabling code that is generic over scalar
+type, vector length, and alignment.
+
+This is primarily useful for writing math functions that need to work for
+multiple scalar types, all lengths, or both SIMD and no SIMD. For example, a
+cross platform deterministic implementation of `sin` would need to be duplicated
+multiple times when using `glam`, but will only need to be written once using
+`ggmath`.
+
+### Custom Scalar Types
+
+Generics make it possible to define custom scalar types.
+
+This is primarily useful for either fixed point numbers (e.g., support for the
+`fixed` crate), or SoA storage (Struct of Arrays) (e.g., `Vec3<f32x4>` using the
+`wide` crate).
+
+### Compile Times
+
+To properly support generics, `ggmath` internally uses many language tricks that
+unfortunately add work for the compiler not only when compiling `ggmath`, but
+also when compiling math code that uses it.
+
+If you need the fastest compile times possible you should use `glam`.
+
+### Complexity
+
+Generics make `ggmath` harder to understand in advance scenarios.
+
+While the API is mostly similar (`Vec3<f32>` vs `Vec3A`), `ggmath` has some
+advanced features that are harder to understand than anything in `glam` (e.g.,
+the full generic form `Vector<N, T, A>`).
 
 ## Usage
 
@@ -102,7 +144,7 @@ ggmath = { version = "0.15.0", default-features = false }
 While `std` can be disabled, `libm` support is missing so `no_std` doesn't
 support most float functionality.
 
-## Cargo Features
+## Optional Features
 
 - `std` (default feature): Uses `std` as the backend for float functionality.
 
@@ -115,11 +157,13 @@ support most float functionality.
 
 - `bytemuck`: Implements `bytemuck` traits for all `ggmath` types.
 
+- `mint`: Implements conversions between `ggmath` and `mint` types.
+
 - `serde`: Implements `Serialize` and `Deserialize` for all `ggmath` types.
 
-## Dependencies
+## Attribution
 
-`ggmath` has no dependencies.
+`ggmath` is inspired by (and copies code) from `glam` and `wide`.
 
 ## License
 
