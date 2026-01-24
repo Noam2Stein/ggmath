@@ -244,6 +244,7 @@ where
     /// [`ScalarBackend`] because the internal representation could change
     /// silently and cause compile errors.
     #[inline]
+    #[must_use]
     pub fn repr(self) -> <T as ScalarBackend<N, A>>::VectorRepr
     where
         T: ScalarBackend<N, A>,
@@ -267,6 +268,7 @@ where
     /// The provided value must be valid for this vector type, because the
     /// internal type may have less memory safety requirements than `T`.
     #[inline]
+    #[must_use]
     pub unsafe fn from_repr(repr: <T as ScalarBackend<N, A>>::VectorRepr) -> Self
     where
         T: ScalarBackend<N, A>,
@@ -439,6 +441,7 @@ impl<const N: usize, T: Scalar + Hash, A: Alignment> Hash for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
+    #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.as_array_ref().hash(state);
     }

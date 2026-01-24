@@ -375,6 +375,8 @@ where
     ///
     /// This function fails if the input is zero
     /// or if the result is non finite or zero.
+    #[inline]
+    #[must_use]
     pub fn normalize_or_zero(self) -> Self {
         self.normalize_or(Self::ZERO)
     }
