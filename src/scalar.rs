@@ -418,8 +418,9 @@ where
 )]
 pub trait ScalarDefault {}
 
-unsafe impl<const N: usize, T: Scalar + ScalarDefault, A: Alignment> ScalarBackend<N, A> for T
+unsafe impl<const N: usize, T, A: Alignment> ScalarBackend<N, A> for T
 where
+    T: Scalar + ScalarDefault,
     Length<N>: SupportedLength,
 {
     type VectorRepr = Vector<N, T, Unaligned>;

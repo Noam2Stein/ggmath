@@ -7,12 +7,16 @@ Missing implementations are blocked on:
 https://github.com/rust-lang/rust/issues/29864
 */
 
-unsafe impl<const N: usize, T: Scalar + Pod, A: Alignment> Pod for Vector<N, T, A> where
-    Length<N>: SupportedLength
+unsafe impl<const N: usize, T, A: Alignment> Pod for Vector<N, T, A>
+where
+    T: Scalar + Pod,
+    Length<N>: SupportedLength,
 {
 }
 
-unsafe impl<const N: usize, T: Scalar + Zeroable, A: Alignment> Zeroable for Vector<N, T, A> where
-    Length<N>: SupportedLength
+unsafe impl<const N: usize, T, A: Alignment> Zeroable for Vector<N, T, A>
+where
+    T: Scalar + Zeroable,
+    Length<N>: SupportedLength,
 {
 }

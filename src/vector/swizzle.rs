@@ -1,6 +1,9 @@
 use crate::{Alignment, Scalar, Vector};
 
-impl<T: Scalar, A: Alignment> Vector<2, T, A> {
+impl<T, A: Alignment> Vector<2, T, A>
+where
+    T: Scalar,
+{
     declare_swizzle_fns! {
         xx: [x, x],
         xy: [x, y],
@@ -49,7 +52,10 @@ impl<T: Scalar, A: Alignment> Vector<2, T, A> {
     }
 }
 
-impl<T: Scalar, A: Alignment> Vector<3, T, A> {
+impl<T, A: Alignment> Vector<3, T, A>
+where
+    T: Scalar,
+{
     declare_swizzle_fns! {
         xx: [x, x],
         xy: [x, y],
@@ -201,7 +207,10 @@ impl<T: Scalar, A: Alignment> Vector<3, T, A> {
     }
 }
 
-impl<T: Scalar, A: Alignment> Vector<4, T, A> {
+impl<T, A: Alignment> Vector<4, T, A>
+where
+    T: Scalar,
+{
     declare_swizzle_fns! {
         xx: [x, x],
         xy: [x, y],

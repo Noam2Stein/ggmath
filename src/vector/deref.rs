@@ -17,7 +17,10 @@ pub struct Xy<T> {
     pub y: T,
 }
 
-impl<T: Scalar, A: Alignment> Deref for Vector<2, T, A> {
+impl<T, A: Alignment> Deref for Vector<2, T, A>
+where
+    T: Scalar,
+{
     type Target = Xy<T>;
 
     #[inline]
@@ -26,7 +29,10 @@ impl<T: Scalar, A: Alignment> Deref for Vector<2, T, A> {
     }
 }
 
-impl<T: Scalar, A: Alignment> DerefMut for Vector<2, T, A> {
+impl<T, A: Alignment> DerefMut for Vector<2, T, A>
+where
+    T: Scalar,
+{
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { transmute_mut::<Vector<2, T, A>, Xy<T>>(self) }
@@ -47,7 +53,10 @@ pub struct Xyz<T> {
     pub z: T,
 }
 
-impl<T: Scalar, A: Alignment> Deref for Vector<3, T, A> {
+impl<T, A: Alignment> Deref for Vector<3, T, A>
+where
+    T: Scalar,
+{
     type Target = Xyz<T>;
 
     #[inline]
@@ -56,7 +65,10 @@ impl<T: Scalar, A: Alignment> Deref for Vector<3, T, A> {
     }
 }
 
-impl<T: Scalar, A: Alignment> DerefMut for Vector<3, T, A> {
+impl<T, A: Alignment> DerefMut for Vector<3, T, A>
+where
+    T: Scalar,
+{
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { transmute_mut::<Vector<3, T, A>, Xyz<T>>(self) }
@@ -79,7 +91,10 @@ pub struct Xyzw<T> {
     pub w: T,
 }
 
-impl<T: Scalar, A: Alignment> Deref for Vector<4, T, A> {
+impl<T, A: Alignment> Deref for Vector<4, T, A>
+where
+    T: Scalar,
+{
     type Target = Xyzw<T>;
 
     #[inline]
@@ -88,7 +103,10 @@ impl<T: Scalar, A: Alignment> Deref for Vector<4, T, A> {
     }
 }
 
-impl<T: Scalar, A: Alignment> DerefMut for Vector<4, T, A> {
+impl<T, A: Alignment> DerefMut for Vector<4, T, A>
+where
+    T: Scalar,
+{
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { transmute_mut::<Vector<4, T, A>, Xyzw<T>>(self) }

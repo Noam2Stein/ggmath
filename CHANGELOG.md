@@ -70,6 +70,8 @@
 
 - Added missing `must_use` to functions.
 
+- Modified documentation.
+
 ## 0.15.0
 
 This update attempts to make the crate more stable so that more math

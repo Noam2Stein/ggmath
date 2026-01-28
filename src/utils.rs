@@ -184,25 +184,28 @@ where
 {
 }
 
-unsafe impl<T: Scalar, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Vector<N2, T, A2>, N, N2, A, A2> for Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
 }
 
-unsafe impl<'a, T: Scalar, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Vector<N2, T, A2>, N, N2, A, A2> for &'a Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
 }
 
-unsafe impl<'a, T: Scalar, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Vector<N2, T, A2>, N, N2, A, A2> for &'a mut Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {

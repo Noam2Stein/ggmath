@@ -15,8 +15,9 @@ use ggmath::{Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vec
 use crate::assert_panic;
 
 assert_impl!(
-    for<const N: usize, T: Scalar, A: Alignment>
+    for<const N: usize, T, A: Alignment>
     where
+        T: Scalar,
         Length<N>: SupportedLength,
     {
         Vector<N, T, A>: Clone,
@@ -286,15 +287,10 @@ fn bool_unaligned() {
     primitive_tests::<bool, Unaligned>(false, true, false, true);
 }
 
-fn primitive_tests<
+fn primitive_tests<T, A: Alignment>(x: T, y: T, z: T, w: T)
+where
     T: Scalar + Debug + Display + PartialEq + PartialOrd + Default + UnwindSafe + RefUnwindSafe,
-    A: Alignment,
->(
-    x: T,
-    y: T,
-    z: T,
-    w: T,
-) {
+{
     macro_rules! vec2 {
         ($($arg:expr),*$(,)?) => {
             ggmath::Vector::<2, T, A>::from(($($arg,)*))

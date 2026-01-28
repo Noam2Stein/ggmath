@@ -225,8 +225,9 @@ impl FloatEq for f64 {
     }
 }
 
-impl<const N: usize, T: Scalar + FloatEq<Tol = T>, A: Alignment> FloatEq for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> FloatEq for Vector<N, T, A>
 where
+    T: Scalar + FloatEq<Tol = T>,
     Length<N>: SupportedLength,
 {
     type Tol = T;
@@ -276,10 +277,10 @@ pub fn assert_panic_helper(f: impl FnOnce() + UnwindSafe, args: Option<Arguments
 // Padding
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn vec3_with_padding<T: Scalar, A: Alignment>(
-    vec: Vector<3, T, A>,
-    padding: T,
-) -> Vector<3, T, A> {
+pub fn vec3_with_padding<T, A: Alignment>(vec: Vector<3, T, A>, padding: T) -> Vector<3, T, A>
+where
+    T: Scalar,
+{
     match size_of::<Vector<3, T, A>>() / size_of::<T>() {
         3 => vec,
         4 => {

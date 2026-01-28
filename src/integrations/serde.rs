@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::transmute_generic};
 
-impl<const N: usize, T: Scalar + Serialize, A: Alignment> Serialize for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Serialize for Vector<N, T, A>
 where
+    T: Scalar + Serialize,
     Length<N>: SupportedLength,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -14,9 +15,9 @@ where
     }
 }
 
-impl<'de, const N: usize, T: Scalar + Deserialize<'de>, A: Alignment> Deserialize<'de>
-    for Vector<N, T, A>
+impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Vector<N, T, A>
 where
+    T: Scalar + Deserialize<'de>,
     Length<N>: SupportedLength,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

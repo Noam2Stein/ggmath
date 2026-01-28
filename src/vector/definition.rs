@@ -49,12 +49,14 @@ use crate::{
 /// The specific representation of each vector type is controlled by the
 /// [`ScalarBackend`] trait.
 #[repr(transparent)]
-pub struct Vector<const N: usize, T: Scalar, A: Alignment>(VectorRepr<N, T, A>)
+pub struct Vector<const N: usize, T, A: Alignment>(VectorRepr<N, T, A>)
 where
+    T: Scalar,
     Length<N>: SupportedLength;
 
-impl<const N: usize, T: Scalar, A: Alignment> Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
 {
     /// Creates a vector from an array.
@@ -279,14 +281,20 @@ where
     }
 }
 
-impl<T: Scalar, A: Alignment> Vector<2, T, A> {
+impl<T, A: Alignment> Vector<2, T, A>
+where
+    T: Scalar,
+{
     #[inline]
     pub(in crate::vector) const fn new(x: T, y: T) -> Self {
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
     }
 }
 
-impl<T: Scalar, A: Alignment> Vector<3, T, A> {
+impl<T, A: Alignment> Vector<3, T, A>
+where
+    T: Scalar,
+{
     #[inline]
     pub(in crate::vector) const fn new(x: T, y: T, z: T) -> Self {
         unsafe {
@@ -299,15 +307,19 @@ impl<T: Scalar, A: Alignment> Vector<3, T, A> {
     }
 }
 
-impl<T: Scalar, A: Alignment> Vector<4, T, A> {
+impl<T, A: Alignment> Vector<4, T, A>
+where
+    T: Scalar,
+{
     #[inline]
     pub(in crate::vector) const fn new(x: T, y: T, z: T, w: T) -> Self {
         unsafe { transmute_generic::<Repr4<T>, Vector<4, T, A>>(Repr4(x, y, z, w)) }
     }
 }
 
-impl<const N: usize, T: Scalar, A: Alignment> Clone for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Clone for Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
 {
     #[inline]
@@ -316,13 +328,16 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar, A: Alignment> Copy for Vector<N, T, A> where
-    Length<N>: SupportedLength
+impl<const N: usize, T, A: Alignment> Copy for Vector<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
 {
 }
 
-impl<const N: usize, T: Scalar, A: Alignment> Index<usize> for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Index<usize> for Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
 {
     type Output = T;
@@ -333,8 +348,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar, A: Alignment> IndexMut<usize> for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> IndexMut<usize> for Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
 {
     #[inline]
@@ -343,8 +359,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar, A: Alignment> IntoIterator for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> IntoIterator for Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
 {
     type Item = T;
@@ -356,8 +373,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar, A: Alignment> IntoIterator for &Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> IntoIterator for &Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
 {
     type Item = T;
@@ -369,8 +387,9 @@ where
     }
 }
 
-impl<'a, const N: usize, T: Scalar, A: Alignment> IntoIterator for &'a mut Vector<N, T, A>
+impl<'a, const N: usize, T, A: Alignment> IntoIterator for &'a mut Vector<N, T, A>
 where
+    T: Scalar,
     Length<N>: SupportedLength,
 {
     type Item = &'a mut T;
@@ -382,8 +401,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Debug, A: Alignment> Debug for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Debug for Vector<N, T, A>
 where
+    T: Scalar + Debug,
     Length<N>: SupportedLength,
 {
     #[inline]
@@ -401,8 +421,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Display, A: Alignment> Display for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Display for Vector<N, T, A>
 where
+    T: Scalar + Display,
     Length<N>: SupportedLength,
 {
     #[inline]
@@ -416,8 +437,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + PartialEq, A: Alignment> PartialEq for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> PartialEq for Vector<N, T, A>
 where
+    T: Scalar + PartialEq,
     Length<N>: SupportedLength,
 {
     #[inline]
@@ -432,13 +454,16 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Eq, A: Alignment> Eq for Vector<N, T, A> where
-    Length<N>: SupportedLength
+impl<const N: usize, T, A: Alignment> Eq for Vector<N, T, A>
+where
+    T: Scalar + Eq,
+    Length<N>: SupportedLength,
 {
 }
 
-impl<const N: usize, T: Scalar + Hash, A: Alignment> Hash for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Hash for Vector<N, T, A>
 where
+    T: Scalar + Hash,
     Length<N>: SupportedLength,
 {
     #[inline]
@@ -447,8 +472,9 @@ where
     }
 }
 
-impl<const N: usize, T: Scalar + Default, A: Alignment> Default for Vector<N, T, A>
+impl<const N: usize, T, A: Alignment> Default for Vector<N, T, A>
 where
+    T: Scalar + Default,
     Length<N>: SupportedLength,
 {
     #[inline]
@@ -459,8 +485,9 @@ where
 
 macro_rules! impl_unary_op {
     ($Op:ident $op:ident $vec_op:ident) => {
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op for Vector<N, T, A>
+        impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
+            T: Scalar + $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             type Output = Self;
@@ -477,8 +504,9 @@ impl_unary_op!(Not not vec_not);
 
 macro_rules! impl_binary_op {
     ($Op:ident $op:ident $vec_op:ident) => {
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op for Vector<N, T, A>
+        impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
+            T: Scalar + $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             type Output = Self;
@@ -489,8 +517,9 @@ macro_rules! impl_binary_op {
             }
         }
 
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $Op<T> for Vector<N, T, A>
+        impl<const N: usize, T, A: Alignment> $Op<T> for Vector<N, T, A>
         where
+            T: Scalar + $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             type Output = Self;
@@ -515,9 +544,9 @@ impl_binary_op!(BitXor bitxor vec_bitxor);
 
 macro_rules! impl_assign_op {
     ($Op:ident $OpAssign:ident $op_assign:ident $op:ident) => {
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $OpAssign
-            for Vector<N, T, A>
+        impl<const N: usize, T, A: Alignment> $OpAssign for Vector<N, T, A>
         where
+            T: Scalar + $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             #[inline]
@@ -526,9 +555,9 @@ macro_rules! impl_assign_op {
             }
         }
 
-        impl<const N: usize, T: Scalar + $Op<Output = T>, A: Alignment> $OpAssign<T>
-            for Vector<N, T, A>
+        impl<const N: usize, T, A: Alignment> $OpAssign<T> for Vector<N, T, A>
         where
+            T: Scalar + $Op<Output = T>,
             Length<N>: SupportedLength,
         {
             #[inline]
@@ -549,28 +578,38 @@ impl_assign_op!(BitAnd BitAndAssign bitand_assign bitand);
 impl_assign_op!(BitOr BitOrAssign bitor_assign bitor);
 impl_assign_op!(BitXor BitXorAssign bitxor_assign bitxor);
 
-unsafe impl<const N: usize, T: Scalar + Send, A: Alignment> Send for Vector<N, T, A> where
-    Length<N>: SupportedLength
+unsafe impl<const N: usize, T, A: Alignment> Send for Vector<N, T, A>
+where
+    T: Scalar + Send,
+    Length<N>: SupportedLength,
 {
 }
 
-unsafe impl<const N: usize, T: Scalar + Sync, A: Alignment> Sync for Vector<N, T, A> where
-    Length<N>: SupportedLength
+unsafe impl<const N: usize, T, A: Alignment> Sync for Vector<N, T, A>
+where
+    T: Scalar + Sync,
+    Length<N>: SupportedLength,
 {
 }
 
-impl<const N: usize, T: Scalar + Unpin, A: Alignment> Unpin for Vector<N, T, A> where
-    Length<N>: SupportedLength
+impl<const N: usize, T, A: Alignment> Unpin for Vector<N, T, A>
+where
+    T: Scalar + Unpin,
+    Length<N>: SupportedLength,
 {
 }
 
-impl<const N: usize, T: Scalar + UnwindSafe, A: Alignment> UnwindSafe for Vector<N, T, A> where
-    Length<N>: SupportedLength
+impl<const N: usize, T, A: Alignment> UnwindSafe for Vector<N, T, A>
+where
+    T: Scalar + UnwindSafe,
+    Length<N>: SupportedLength,
 {
 }
 
-impl<const N: usize, T: Scalar + RefUnwindSafe, A: Alignment> RefUnwindSafe for Vector<N, T, A> where
-    Length<N>: SupportedLength
+impl<const N: usize, T, A: Alignment> RefUnwindSafe for Vector<N, T, A>
+where
+    T: Scalar + RefUnwindSafe,
+    Length<N>: SupportedLength,
 {
 }
 
@@ -582,7 +621,11 @@ impl<const N: usize, T: Scalar + RefUnwindSafe, A: Alignment> RefUnwindSafe for 
 /// Indirection must be used because the type system cannot prove that this
 /// condition is met:
 /// ```ignore
-/// for<const N: usize, T: Scalar, A: Alignment> where Length<N>: SupportedLength {
+/// for<const N: usize, T, A: Alignment>
+/// where
+///     T: Scalar,
+///     Length<N>: SupportedLength,
+/// {
 ///     T: ScalarBackend<N, A>,
 /// }
 /// ```

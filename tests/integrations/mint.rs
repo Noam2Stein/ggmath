@@ -3,7 +3,7 @@ use ggmath::{Alignment, Scalar, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector, v
 use mint::IntoMint;
 
 assert_impl!(
-    for<T: Scalar, A: Alignment> {
+    for<T, A: Alignment> where T: Scalar {
         Vector<2, T, A>: IntoMint<MintType = mint::Vector2<T>>,
         Vector<2, T, A>: From<mint::Point2<T>>,
         Vector<2, T, A>: Into<mint::Point2<T>>,
