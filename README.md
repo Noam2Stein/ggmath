@@ -50,7 +50,7 @@ Feature List:
 - [ ] Quaternion
 - [ ] Affine Transformations
 - [ ] Masks
-- [ ] Sufficient Float-Vector functionality
+- [x] Sufficient Float-Vector functionality
 - [ ] Sufficient Int-Vector functionality
 - [ ] Sufficient Matrix functionality
 - [ ] Sufficient Quaternion functionality
@@ -163,7 +163,10 @@ support most float functionality.
 
 ## Attribution
 
-`ggmath` is inspired by (and copies code) from `glam` and `wide`.
+The design of `ggmath` is heavily influenced by `glam`, as it serves the same
+purpose as `glam` but with generics.
+
+Most optimizations in `ggmath` are taken directly from `glam` and `wide`.
 
 ## License
 

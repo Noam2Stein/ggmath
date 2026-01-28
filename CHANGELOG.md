@@ -2,6 +2,8 @@
 
 ## 0.15.1 (Unreleased)
 
+- Added a `FloatExt` trait.
+
 - Added float vector functions:
   - `angle_between`
   - `clamp_length`
@@ -26,6 +28,15 @@
   - `sin_cos`
   - `with_max_length`
   - `with_min_length`
+  - `project_onto`
+  - `project_onto_normalized`
+  - `reject_from`
+  - `reject_from_normalized`
+  - `reflect`
+  - `refract`
+  - `any_orthogonal_vector`
+  - `any_orthonormal_vector`
+  - `any_orthonormal_pair`
 
 - Added int vector functions:
   - `max`

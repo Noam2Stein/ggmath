@@ -227,6 +227,96 @@ where
     pub fn is_normalized(self) -> bool {
         (self.length_squared() - 1.0).abs() <= 2e-4
     }
+
+    /// Returns the vector projection of `self` onto `other`.
+    ///
+    /// `other` must not be a zero vector.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `other` is a zero
+    /// vector.
+    #[inline]
+    #[must_use]
+    pub fn project_onto(self, other: Self) -> Self {
+        let other_length_squared_recip = other.length_squared().recip();
+
+        #[cfg(assertions)]
+        assert!(other_length_squared_recip.is_finite());
+
+        other * self.dot(other) * other_length_squared_recip
+    }
+
+    /// Returns the vector projection of `self` onto `other`.
+    ///
+    /// `other` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `other` is not
+    /// normalized.
+    #[inline]
+    #[must_use]
+    pub fn project_onto_normalized(self, other: Self) -> Self {
+        #[cfg(assertions)]
+        assert!(other.is_normalized());
+
+        other * self.dot(other)
+    }
+
+    /// Returns the vector rejection of `self` from `other`.
+    ///
+    /// Vector rejection is the vector pointing from the projection to the
+    /// original vector. Basically: `self - self.project_onto(other)`.
+    ///
+    /// `other` must not be a zero vector.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `other` is a zero
+    /// vector.
+    #[inline]
+    #[must_use]
+    pub fn reject_from(self, other: Self) -> Self {
+        self - self.project_onto(other)
+    }
+
+    /// Returns the vector rejection of `self` from `other`.
+    ///
+    /// Vector rejection is the vector pointing from the projection to the
+    /// original vector. Basically: `self - self.project_onto(other)`.
+    ///
+    /// `other` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `other` is not
+    /// normalized.
+    #[inline]
+    #[must_use]
+    pub fn reject_from_normalized(self, other: Self) -> Self {
+        self - self.project_onto_normalized(other)
+    }
+
+    /// Returns the vector reflection for `self` with `normal`.
+    ///
+    /// Vector reflection is the reflection of the vector on a surface with the
+    /// given normal.
+    ///
+    /// `normal` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `normal` is not
+    /// normalized.
+    #[inline]
+    #[must_use]
+    pub fn reflect(self, normal: Self) -> Self {
+        #[cfg(assertions)]
+        assert!(normal.is_normalized());
+
+        self - normal * (2.0 * self.dot(normal))
+    }
 }
 
 impl<A: Alignment> Vector<3, T, A> {
@@ -235,6 +325,71 @@ impl<A: Alignment> Vector<3, T, A> {
     #[must_use]
     pub fn cross(self, rhs: Self) -> Self {
         (self.zxy() * rhs - self * rhs.zxy()).zxy()
+    }
+
+    /// Returns some vector that is orthogonal to `self`.
+    ///
+    /// `self` must be finite and not a zero vector.
+    ///
+    /// The output vector is not necessarily normalized. For that use
+    /// [`Self::any_orthonormal_vector()`] instead.
+    #[inline]
+    #[must_use]
+    pub fn any_orthogonal_vector(self) -> Self {
+        if self.x.abs() > self.y.abs() {
+            // self.cross(Self::Y)
+            Self::new(-self.z, 0.0, self.x)
+        } else {
+            // self.cross(Self::X)
+            Self::new(0.0, self.z, -self.y)
+        }
+    }
+
+    /// Returns some unit vector that is orthogonal to `self`.
+    ///
+    /// `self` must normalized.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `self` is not
+    /// normalized.
+    #[inline]
+    #[must_use]
+    pub fn any_orthonormal_vector(self) -> Self {
+        #[cfg(assertions)]
+        assert!(self.is_normalized());
+
+        // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+        let sign = self.z.signum();
+        let a = -1.0 / (sign + self.z);
+        let b = self.x * self.y * a;
+        Self::new(b, sign + self.y * self.y * a, -self.y)
+    }
+
+    /// Returns two unit vectors that are orthogonal to `self` and to each
+    /// other.
+    ///
+    /// Together with `self`, they form an orthonormal basis where the three
+    /// vectors are orthogonal to each other and are normalized.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `self` is not
+    /// normalized.
+    #[inline]
+    #[must_use]
+    pub fn any_orthonormal_pair(self) -> (Self, Self) {
+        #[cfg(assertions)]
+        assert!(self.is_normalized());
+
+        // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+        let sign = self.z.signum();
+        let a = -1.0 / (sign + self.z);
+        let b = self.x * self.y * a;
+        (
+            Self::new(1.0 + sign * self.x * self.x * a, sign * b, -sign * self.x),
+            Self::new(b, sign + self.y * self.y * a, -self.y),
+        )
     }
 }
 
@@ -620,6 +775,37 @@ where
     #[must_use]
     pub fn powf(self, n: T) -> Self {
         self.map(|x| x.powf(n))
+    }
+
+    /// Returns the vector refraction of `self` through `normal` and `eta`.
+    ///
+    /// `eta` is the incident index divided by the transmitted index.
+    ///
+    /// When total internal reflection occurs, this function returns a zero
+    /// vector.
+    ///
+    /// `self` and `normal` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if `self` or `normal`
+    /// are not normalized.
+    #[inline]
+    #[must_use]
+    pub fn refract(self, normal: Self, eta: T) -> Self {
+        #[cfg(assertions)]
+        assert!(self.is_normalized());
+
+        #[cfg(assertions)]
+        assert!(normal.is_normalized());
+
+        let self_dot_normal = self.dot(normal);
+        let k = 1.0 - eta * eta * (1.0 - self_dot_normal * self_dot_normal);
+        if k >= 0.0 {
+            self * eta - normal * (eta * self_dot_normal + k.sqrt())
+        } else {
+            Self::ZERO
+        }
     }
 }
 

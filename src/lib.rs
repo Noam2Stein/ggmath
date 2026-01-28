@@ -6,11 +6,13 @@ pub mod constants;
 
 mod aliases;
 mod alignment;
+mod float_ext;
 mod length;
 mod scalar;
 mod vector;
 pub use aliases::*;
 pub use alignment::*;
+pub use float_ext::*;
 pub use length::*;
 pub use scalar::*;
 pub use vector::*;

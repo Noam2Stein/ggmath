@@ -284,6 +284,15 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v2u.with_max_length(10.0)
             + v2u.with_min_length(5.0)
             + v2u.clamp_length(3.0, 4.0);
+        v2u = v2u.project_onto(Vec2U::ONE)
+            + v2u.project_onto_normalized(vec2!(-1.0f32, 2.0f32).normalize()) * 1.5;
+        v2u = v2u.reject_from(Vec2U::ONE)
+            + v2u.reject_from_normalized(vec2!(-1.0f32, 2.0f32).normalize()) * 1.5;
+        v2u = v2u.reflect(vec2!(1.0f32).normalize())
+            + v2u
+                .normalize()
+                .refract(vec2!(-1.0f32, 2.0f32).normalize(), v2u.x * 1.5)
+                * 1.5;
 
         v3u = v3u.with_x((v3u + 1.0 == v3u - 1.0) as u8 as f32);
         v3u = v3u.with_y((v3u + 1.0 != v3u - 1.0) as u8 as f32);
@@ -305,6 +314,20 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v3u.with_max_length(10.0)
             + v3u.with_min_length(5.0)
             + v3u.clamp_length(3.0, 4.0);
+        v3u = v3u.project_onto(Vec3U::ONE)
+            + v3u.project_onto_normalized(vec3!(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3u = v3u.reject_from(Vec3U::ONE)
+            + v3u.reject_from_normalized(vec3!(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3u = v3u.reflect(vec3!(1.0f32).normalize())
+            + v3u
+                .normalize()
+                .refract(vec3!(-1.0f32, 2.0f32, -3.0f32).normalize(), v3u.x * 1.5)
+                * 1.5;
+        let pair = v3u.any_orthonormal_pair();
+        v3u = v3u.any_orthogonal_vector() * 1.2
+            + v3u.any_orthonormal_vector() * 1.4
+            + pair.0 * 1.6
+            + pair.1 * 1.8;
 
         v3a = v3a.with_x((v3a + 1.0 == v3a - 1.0) as u8 as f32);
         v3a = v3a.with_y((v3a + 1.0 != v3a - 1.0) as u8 as f32);
@@ -326,6 +349,20 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v3a.with_max_length(10.0)
             + v3a.with_min_length(5.0)
             + v3a.clamp_length(3.0, 4.0);
+        v3a = v3a.project_onto(Vec3::ONE)
+            + v3a.project_onto_normalized(vec3!(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3a = v3a.reject_from(Vec3::ONE)
+            + v3a.reject_from_normalized(vec3!(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3a = v3a.reflect(vec3!(1.0f32).normalize())
+            + v3a
+                .normalize()
+                .refract(vec3!(-1.0f32, 2.0f32, -3.0f32).normalize(), v3a.x * 1.5)
+                * 1.5;
+        let pair = v3a.any_orthonormal_pair();
+        v3a = v3a.any_orthogonal_vector() * 1.2
+            + v3a.any_orthonormal_vector() * 1.4
+            + pair.0 * 1.6
+            + pair.1 * 1.8;
 
         v4a = v4a.with_x((v4a + 1.0 == v4a - 1.0) as u8 as f32);
         v4a = v4a.with_y((v4a + 1.0 != v4a - 1.0) as u8 as f32);
@@ -347,6 +384,16 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v4a.with_max_length(10.0)
             + v4a.with_min_length(5.0)
             + v4a.clamp_length(3.0, 4.0);
+        v4a = v4a.project_onto(Vec4::ONE)
+            + v4a.project_onto_normalized(vec4!(-1.0f32, 2.0f32, -3.0f32, 4.0f32).normalize())
+                * 1.5;
+        v4a = v4a.reject_from(Vec4::ONE)
+            + v4a.reject_from_normalized(vec4!(-1.0f32, 2.0f32, -3.0f32, 4.0f32).normalize()) * 1.5;
+        v4a = v4a.reflect(vec4!(1.0f32).normalize())
+            + v4a.normalize().refract(
+                vec4!(-1.0f32, 2.0f32, -3.0f32, 4.0f32).normalize(),
+                v4a.x * 1.5,
+            ) * 1.5;
     }
 
     (v2u, v3u, v3a, v4a)
@@ -383,6 +430,15 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v2u.clamp_length_max(10.0)
             + v2u.clamp_length_min(5.0)
             + v2u.clamp_length(3.0, 4.0);
+        v2u = v2u.project_onto(Vec2::ONE)
+            + v2u.project_onto_normalized(vec2(-1.0f32, 2.0f32).normalize()) * 1.5;
+        v2u = v2u.reject_from(Vec2::ONE)
+            + v2u.reject_from_normalized(vec2(-1.0f32, 2.0f32).normalize()) * 1.5;
+        v2u = v2u.reflect(Vec2::ONE.normalize())
+            + v2u
+                .normalize()
+                .refract(vec2(-1.0f32, 2.0f32).normalize(), v2u.x * 1.5)
+                * 1.5;
 
         v3u = v3u.with_x((v3u + 1.0 == v3u - 1.0) as u8 as f32);
         v3u = v3u.with_y((v3u + 1.0 != v3u - 1.0) as u8 as f32);
@@ -404,6 +460,20 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v3u.clamp_length_max(10.0)
             + v3u.clamp_length_min(5.0)
             + v3u.clamp_length(3.0, 4.0);
+        v3u = v3u.project_onto(Vec3::ONE)
+            + v3u.project_onto_normalized(vec3(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3u = v3u.reject_from(Vec3::ONE)
+            + v3u.reject_from_normalized(vec3(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3u = v3u.reflect(Vec3::ONE.normalize())
+            + v3u
+                .normalize()
+                .refract(vec3(-1.0f32, 2.0f32, -3.0f32).normalize(), v3u.x * 1.5)
+                * 1.5;
+        let pair = v3u.any_orthonormal_pair();
+        v3u = v3u.any_orthogonal_vector() * 1.2
+            + v3u.any_orthonormal_vector() * 1.4
+            + pair.0 * 1.6
+            + pair.1 * 1.8;
 
         v3a = v3a.with_x((v3a + 1.0 == v3a - 1.0) as u8 as f32);
         v3a = v3a.with_y((v3a + 1.0 != v3a - 1.0) as u8 as f32);
@@ -425,6 +495,20 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v3a.clamp_length_max(10.0)
             + v3a.clamp_length_min(5.0)
             + v3a.clamp_length(3.0, 4.0);
+        v3a = v3a.project_onto(Vec3A::ONE)
+            + v3a.project_onto_normalized(vec3a(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3a = v3a.reject_from(Vec3A::ONE)
+            + v3a.reject_from_normalized(vec3a(-1.0f32, 2.0f32, -3.0f32).normalize()) * 1.5;
+        v3a = v3a.reflect(Vec3A::ONE.normalize())
+            + v3a
+                .normalize()
+                .refract(vec3a(-1.0f32, 2.0f32, -3.0f32).normalize(), v3a.x * 1.5)
+                * 1.5;
+        let pair = v3a.any_orthonormal_pair();
+        v3a = v3a.any_orthogonal_vector() * 1.2
+            + v3a.any_orthonormal_vector() * 1.4
+            + pair.0 * 1.6
+            + pair.1 * 1.8;
 
         v4a = v4a.with_x((v4a + 1.0 == v4a - 1.0) as u8 as f32);
         v4a = v4a.with_y((v4a + 1.0 != v4a - 1.0) as u8 as f32);
@@ -446,6 +530,15 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v4a.clamp_length_max(10.0)
             + v4a.clamp_length_min(5.0)
             + v4a.clamp_length(3.0, 4.0);
+        v4a = v4a.project_onto(Vec4::ONE)
+            + v4a.project_onto_normalized(vec4(-1.0f32, 2.0f32, -3.0f32, 4.0f32).normalize()) * 1.5;
+        v4a = v4a.reject_from(Vec4::ONE)
+            + v4a.reject_from_normalized(vec4(-1.0f32, 2.0f32, -3.0f32, 4.0f32).normalize()) * 1.5;
+        v4a = v4a.reflect(Vec4::ONE.normalize())
+            + v4a.normalize().refract(
+                vec4(-1.0f32, 2.0f32, -3.0f32, 4.0f32).normalize(),
+                v4a.x * 1.5,
+            ) * 1.5;
     }
 
     (v2u, v3u, v3a, v4a)
