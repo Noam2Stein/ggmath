@@ -132,5 +132,343 @@ pub fn int_tests<A: Alignment>() {
             vec4!(x, y, z, x) ^ vec4!(z, x, y, z),
             vec4!(x ^ z, y ^ x, z ^ y, x ^ z)
         );
+
+        assert_eq!(vec2!(x, y).max(vec2!(z, x)), vec2!(x.max(z), y.max(x)));
+        assert_eq!(
+            vec3!(x, y, z).max(vec3!(z, x, y)),
+            vec3!(x.max(z), y.max(x), z.max(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).max(vec4!(z, x, y, z)),
+            vec4!(x.max(z), y.max(x), z.max(y), x.max(z))
+        );
+
+        assert_eq!(vec2!(x, y).min(vec2!(z, x)), vec2!(x.min(z), y.min(x)));
+        assert_eq!(
+            vec3!(x, y, z).min(vec3!(z, x, y)),
+            vec3!(x.min(z), y.min(x), z.min(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).min(vec4!(z, x, y, z)),
+            vec4!(x.min(z), y.min(x), z.min(y), x.min(z))
+        );
+
+        assert_eq!(
+            vec2!(x, y).clamp(vec2!(z, x), vec2!(y, z)),
+            vec2!(x.clamp(z, y), y.clamp(x, z))
+        );
+        assert_eq!(
+            vec3!(x, y, z).clamp(vec3!(z, x, y), vec3!(y, z, x)),
+            vec3!(x.clamp(z, y), y.clamp(x, z), z.clamp(y, x))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).clamp(vec4!(z, x, y, z), vec4!(y, z, x, y)),
+            vec4!(x.clamp(z, y), y.clamp(x, z), z.clamp(y, x), x.clamp(z, y))
+        );
+
+        assert_eq!(vec2!(x, y).abs(), vec2!(x.abs(), y.abs()));
+        assert_eq!(vec3!(x, y, z).abs(), vec3!(x.abs(), y.abs(), z.abs()));
+        assert_eq!(
+            vec4!(x, y, z, x).abs(),
+            vec4!(x.abs(), y.abs(), z.abs(), x.abs())
+        );
+
+        assert_eq!(vec2!(x, y).signum(), vec2!(x.signum(), y.signum()));
+        assert_eq!(
+            vec3!(x, y, z).signum(),
+            vec3!(x.signum(), y.signum(), z.signum())
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).signum(),
+            vec4!(x.signum(), y.signum(), z.signum(), x.signum())
+        );
+
+        assert_eq!(
+            vec2!(x, y).checked_add(vec2!(z, x)),
+            (|| Some(vec2!(x.checked_add(z)?, y.checked_add(x)?)))()
+        );
+        assert_eq!(
+            vec3!(x, y, z).checked_add(vec3!(z, x, y)),
+            (|| Some(vec3!(
+                x.checked_add(z)?,
+                y.checked_add(x)?,
+                z.checked_add(y)?
+            )))()
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).checked_add(vec4!(z, x, y, z)),
+            (|| Some(vec4!(
+                x.checked_add(z)?,
+                y.checked_add(x)?,
+                z.checked_add(y)?,
+                x.checked_add(z)?
+            )))()
+        );
+
+        assert_eq!(
+            vec2!(x, y).checked_sub(vec2!(z, x)),
+            (|| Some(vec2!(x.checked_sub(z)?, y.checked_sub(x)?)))()
+        );
+        assert_eq!(
+            vec3!(x, y, z).checked_sub(vec3!(z, x, y)),
+            (|| Some(vec3!(
+                x.checked_sub(z)?,
+                y.checked_sub(x)?,
+                z.checked_sub(y)?
+            )))()
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).checked_sub(vec4!(z, x, y, z)),
+            (|| Some(vec4!(
+                x.checked_sub(z)?,
+                y.checked_sub(x)?,
+                z.checked_sub(y)?,
+                x.checked_sub(z)?
+            )))()
+        );
+
+        assert_eq!(
+            vec2!(x, y).checked_mul(vec2!(z, x)),
+            (|| Some(vec2!(x.checked_mul(z)?, y.checked_mul(x)?)))()
+        );
+        assert_eq!(
+            vec3!(x, y, z).checked_mul(vec3!(z, x, y)),
+            (|| Some(vec3!(
+                x.checked_mul(z)?,
+                y.checked_mul(x)?,
+                z.checked_mul(y)?
+            )))()
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).checked_mul(vec4!(z, x, y, z)),
+            (|| Some(vec4!(
+                x.checked_mul(z)?,
+                y.checked_mul(x)?,
+                z.checked_mul(y)?,
+                x.checked_mul(z)?
+            )))()
+        );
+
+        assert_eq!(
+            vec2!(x, y).checked_div(vec2!(z, x)),
+            (|| Some(vec2!(x.checked_div(z)?, y.checked_div(x)?)))()
+        );
+        assert_eq!(
+            vec3!(x, y, z).checked_div(vec3!(z, x, y)),
+            (|| Some(vec3!(
+                x.checked_div(z)?,
+                y.checked_div(x)?,
+                z.checked_div(y)?
+            )))()
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).checked_div(vec4!(z, x, y, z)),
+            (|| Some(vec4!(
+                x.checked_div(z)?,
+                y.checked_div(x)?,
+                z.checked_div(y)?,
+                x.checked_div(z)?
+            )))()
+        );
+
+        assert_eq!(
+            vec2!(x, y).checked_rem(vec2!(z, x)),
+            (|| Some(vec2!(x.checked_rem(z)?, y.checked_rem(x)?)))()
+        );
+        assert_eq!(
+            vec3!(x, y, z).checked_rem(vec3!(z, x, y)),
+            (|| Some(vec3!(
+                x.checked_rem(z)?,
+                y.checked_rem(x)?,
+                z.checked_rem(y)?
+            )))()
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).checked_rem(vec4!(z, x, y, z)),
+            (|| Some(vec4!(
+                x.checked_rem(z)?,
+                y.checked_rem(x)?,
+                z.checked_rem(y)?,
+                x.checked_rem(z)?
+            )))()
+        );
+
+        assert_eq!(
+            vec2!(x, y).saturating_add(vec2!(z, x)),
+            vec2!(x.saturating_add(z), y.saturating_add(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).saturating_add(vec3!(z, x, y)),
+            vec3!(
+                x.saturating_add(z),
+                y.saturating_add(x),
+                z.saturating_add(y)
+            )
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).saturating_add(vec4!(z, x, y, z)),
+            vec4!(
+                x.saturating_add(z),
+                y.saturating_add(x),
+                z.saturating_add(y),
+                x.saturating_add(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).saturating_sub(vec2!(z, x)),
+            vec2!(x.saturating_sub(z), y.saturating_sub(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).saturating_sub(vec3!(z, x, y)),
+            vec3!(
+                x.saturating_sub(z),
+                y.saturating_sub(x),
+                z.saturating_sub(y)
+            )
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).saturating_sub(vec4!(z, x, y, z)),
+            vec4!(
+                x.saturating_sub(z),
+                y.saturating_sub(x),
+                z.saturating_sub(y),
+                x.saturating_sub(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).saturating_mul(vec2!(z, x)),
+            vec2!(x.saturating_mul(z), y.saturating_mul(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).saturating_mul(vec3!(z, x, y)),
+            vec3!(
+                x.saturating_mul(z),
+                y.saturating_mul(x),
+                z.saturating_mul(y)
+            )
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).saturating_mul(vec4!(z, x, y, z)),
+            vec4!(
+                x.saturating_mul(z),
+                y.saturating_mul(x),
+                z.saturating_mul(y),
+                x.saturating_mul(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).saturating_div(vec2!(z, x)),
+            vec2!(x.saturating_div(z), y.saturating_div(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).saturating_div(vec3!(z, x, y)),
+            vec3!(
+                x.saturating_div(z),
+                y.saturating_div(x),
+                z.saturating_div(y)
+            )
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).saturating_div(vec4!(z, x, y, z)),
+            vec4!(
+                x.saturating_div(z),
+                y.saturating_div(x),
+                z.saturating_div(y),
+                x.saturating_div(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).wrapping_add(vec2!(z, x)),
+            vec2!(x.wrapping_add(z), y.wrapping_add(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).wrapping_add(vec3!(z, x, y)),
+            vec3!(x.wrapping_add(z), y.wrapping_add(x), z.wrapping_add(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).wrapping_add(vec4!(z, x, y, z)),
+            vec4!(
+                x.wrapping_add(z),
+                y.wrapping_add(x),
+                z.wrapping_add(y),
+                x.wrapping_add(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).wrapping_sub(vec2!(z, x)),
+            vec2!(x.wrapping_sub(z), y.wrapping_sub(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).wrapping_sub(vec3!(z, x, y)),
+            vec3!(x.wrapping_sub(z), y.wrapping_sub(x), z.wrapping_sub(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).wrapping_sub(vec4!(z, x, y, z)),
+            vec4!(
+                x.wrapping_sub(z),
+                y.wrapping_sub(x),
+                z.wrapping_sub(y),
+                x.wrapping_sub(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).wrapping_mul(vec2!(z, x)),
+            vec2!(x.wrapping_mul(z), y.wrapping_mul(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).wrapping_mul(vec3!(z, x, y)),
+            vec3!(x.wrapping_mul(z), y.wrapping_mul(x), z.wrapping_mul(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).wrapping_mul(vec4!(z, x, y, z)),
+            vec4!(
+                x.wrapping_mul(z),
+                y.wrapping_mul(x),
+                z.wrapping_mul(y),
+                x.wrapping_mul(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).wrapping_div(vec2!(z, x)),
+            vec2!(x.wrapping_div(z), y.wrapping_div(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).wrapping_div(vec3!(z, x, y)),
+            vec3!(x.wrapping_div(z), y.wrapping_div(x), z.wrapping_div(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).wrapping_div(vec4!(z, x, y, z)),
+            vec4!(
+                x.wrapping_div(z),
+                y.wrapping_div(x),
+                z.wrapping_div(y),
+                x.wrapping_div(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).wrapping_rem(vec2!(z, x)),
+            vec2!(x.wrapping_rem(z), y.wrapping_rem(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).wrapping_rem(vec3!(z, x, y)),
+            vec3!(x.wrapping_rem(z), y.wrapping_rem(x), z.wrapping_rem(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).wrapping_rem(vec4!(z, x, y, z)),
+            vec4!(
+                x.wrapping_rem(z),
+                y.wrapping_rem(x),
+                z.wrapping_rem(y),
+                x.wrapping_rem(z)
+            )
+        );
     }
 }

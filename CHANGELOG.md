@@ -27,6 +27,43 @@
   - `with_max_length`
   - `with_min_length`
 
+- Added int vector functions:
+  - `max`
+  - `min`
+  - `clamp`
+  - `abs`
+  - `signum`
+  - `checked_add`
+  - `checked_sub`
+  - `checked_mul`
+  - `checked_div`
+  - `checked_rem`
+  - `saturating_add`
+  - `saturating_sub`
+  - `saturating_mul`
+  - `saturating_div`
+  - `wrapping_add`
+  - `wrapping_sub`
+  - `wrapping_mul`
+  - `wrapping_div`
+  - `wrapping_rem`
+
+- Added uint vector functions:
+  - `max`
+  - `min`
+  - `clamp`
+  - `checked_add`
+  - `checked_sub`
+  - `checked_mul`
+  - `checked_div`
+  - `checked_rem`
+  - `saturating_add`
+  - `saturating_sub`
+  - `saturating_mul`
+  - `wrapping_add`
+  - `wrapping_sub`
+  - `wrapping_mul`
+
 - Added bool vector functions: `all`, `any`.
 
 - Added support for crates: `bytemuck`, `mint`, `serde`.
