@@ -4,8 +4,8 @@ use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::transmute
 
 impl<const N: usize, T, A: Alignment> Serialize for Vector<N, T, A>
 where
-    T: Scalar + Serialize,
     Length<N>: SupportedLength,
+    T: Scalar + Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -17,8 +17,8 @@ where
 
 impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Vector<N, T, A>
 where
-    T: Scalar + Deserialize<'de>,
     Length<N>: SupportedLength,
+    T: Scalar + Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

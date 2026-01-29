@@ -5,8 +5,8 @@ use crate::{
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + Zero,
     Length<N>: SupportedLength,
+    T: Scalar + Zero,
 {
     /// `0`.
     pub const ZERO: Self = Self::splat(T::ZERO);
@@ -14,8 +14,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + One,
     Length<N>: SupportedLength,
+    T: Scalar + One,
 {
     /// All `1`.
     pub const ONE: Self = Self::splat(T::ONE);
@@ -23,8 +23,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + NegOne,
     Length<N>: SupportedLength,
+    T: Scalar + NegOne,
 {
     /// All `-1`.
     pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
@@ -32,8 +32,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + Min,
     Length<N>: SupportedLength,
+    T: Scalar + Min,
 {
     /// The minimum value representable by `T` for all elements.
     pub const MIN: Self = Self::splat(T::MIN);
@@ -41,8 +41,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + Max,
     Length<N>: SupportedLength,
+    T: Scalar + Max,
 {
     /// The maximum value representable by `T` for all elements.
     pub const MAX: Self = Self::splat(T::MAX);
@@ -50,8 +50,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + NaN,
     Length<N>: SupportedLength,
+    T: Scalar + NaN,
 {
     /// All elements set to Not a Number (NaN).
     pub const NAN: Self = Self::splat(T::NAN);
@@ -59,8 +59,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + Infinity,
     Length<N>: SupportedLength,
+    T: Scalar + Infinity,
 {
     /// All elements set to Infinity (∞).
     pub const INFINITY: Self = Self::splat(T::INFINITY);
@@ -68,8 +68,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + NegInfinity,
     Length<N>: SupportedLength,
+    T: Scalar + NegInfinity,
 {
     /// All elements set to Negative Infinity (-∞).
     pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
@@ -77,8 +77,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + True,
     Length<N>: SupportedLength,
+    T: Scalar + True,
 {
     /// All `true`.
     pub const TRUE: Self = Self::splat(T::TRUE);
@@ -86,8 +86,8 @@ where
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
-    T: Scalar + False,
     Length<N>: SupportedLength,
+    T: Scalar + False,
 {
     /// All `false`.
     pub const FALSE: Self = Self::splat(T::FALSE);

@@ -17,8 +17,8 @@ use crate::assert_panic;
 assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
-        T: Scalar,
         Length<N>: SupportedLength,
+        T: Scalar,
     {
         Vector<N, T, A>: Clone,
         Vector<N, T, A>: Copy,

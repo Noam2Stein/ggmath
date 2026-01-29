@@ -9,14 +9,14 @@ https://github.com/rust-lang/rust/issues/29864
 
 unsafe impl<const N: usize, T, A: Alignment> Pod for Vector<N, T, A>
 where
-    T: Scalar + Pod,
     Length<N>: SupportedLength,
+    T: Scalar + Pod,
 {
 }
 
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Vector<N, T, A>
 where
-    T: Scalar + Zeroable,
     Length<N>: SupportedLength,
+    T: Scalar + Zeroable,
 {
 }

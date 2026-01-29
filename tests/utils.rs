@@ -227,8 +227,8 @@ impl FloatEq for f64 {
 
 impl<const N: usize, T, A: Alignment> FloatEq for Vector<N, T, A>
 where
-    T: Scalar + FloatEq<Tol = T>,
     Length<N>: SupportedLength,
+    T: Scalar + FloatEq<Tol = T>,
 {
     type Tol = T;
 

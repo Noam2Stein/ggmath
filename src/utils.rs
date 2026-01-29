@@ -138,13 +138,13 @@ pub const fn specialize_helper<const N: usize, A: Alignment, T2, T3, T4, T2U, T3
     value4u: T4U,
 ) -> T
 where
+    Length<N>: SupportedLength,
     T2: Specialize<T, 2, N, Aligned, A> + Copy,
     T3: Specialize<T, 3, N, Aligned, A> + Copy,
     T4: Specialize<T, 4, N, Aligned, A> + Copy,
     T2U: Specialize<T, 2, N, Unaligned, A> + Copy,
     T3U: Specialize<T, 3, N, Unaligned, A> + Copy,
     T4U: Specialize<T, 4, N, Unaligned, A> + Copy,
-    Length<N>: SupportedLength,
 {
     unsafe {
         match (N, A::IS_ALIGNED) {
