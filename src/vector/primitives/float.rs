@@ -28,6 +28,26 @@ where
         Self::ONE / self
     }
 
+    /// Computes the sum of the vector's elements.
+    ///
+    /// The order of addition is unspecified and may differ between target
+    /// architectures.
+    #[inline]
+    #[must_use]
+    pub fn element_sum(self) -> T {
+        specialize!(<T as FloatBackend<N, A>>::vec_element_sum(self))
+    }
+
+    /// Computes the product of the vector's elements.
+    ///
+    /// The order of multiplication is unspecified and may differ between target
+    /// architectures.
+    #[inline]
+    #[must_use]
+    pub fn element_product(self) -> T {
+        specialize!(<T as FloatBackend<N, A>>::vec_element_product(self))
+    }
+
     /// Returns the maximum between the components of `self` and `other`.
     ///
     /// This function is not consistent with IEEE semantics in regards to NaN
@@ -96,53 +116,6 @@ where
         self.max(min).min(max)
     }
 
-    /// Returns the absolute values of the components of `self`.
-    #[inline]
-    #[must_use]
-    pub fn abs(self) -> Self {
-        specialize!(<T as FloatBackend<N, A>>::vec_abs(self))
-    }
-
-    /// Returns the signum of the components of `self`.
-    ///
-    /// For each component:
-    ///
-    /// - `1.0` if the component is positive or `+0.0`.
-    /// - `-1.0` if the component is negative or `-0.0`.
-    /// - `NaN` if the component is NaN.
-    #[inline]
-    #[must_use]
-    pub fn signum(self) -> Self {
-        specialize!(<T as FloatBackend<N, A>>::vec_signum(self))
-    }
-
-    /// Returns a vector with the magnitudes of `self` and the signs of `sign`.
-    #[inline]
-    #[must_use]
-    pub fn copysign(self, sign: Self) -> Self {
-        specialize!(<T as FloatBackend<N, A>>::vec_copysign(self, sign))
-    }
-
-    /// Computes the sum of the vector's elements.
-    ///
-    /// The order of addition is unspecified and may differ between target
-    /// architectures.
-    #[inline]
-    #[must_use]
-    pub fn element_sum(self) -> T {
-        specialize!(<T as FloatBackend<N, A>>::vec_element_sum(self))
-    }
-
-    /// Computes the product of the vector's elements.
-    ///
-    /// The order of multiplication is unspecified and may differ between target
-    /// architectures.
-    #[inline]
-    #[must_use]
-    pub fn element_product(self) -> T {
-        specialize!(<T as FloatBackend<N, A>>::vec_element_product(self))
-    }
-
     /// Returns the maximum component of the vector.
     ///
     /// This function is not consistent with IEEE semantics in regards to NaN
@@ -175,6 +148,33 @@ where
         assert!(!self.is_nan(), "NaN: {self:?}.min_element()");
 
         specialize!(<T as FloatBackend<N, A>>::vec_min_element(self))
+    }
+
+    /// Returns the absolute values of the components of `self`.
+    #[inline]
+    #[must_use]
+    pub fn abs(self) -> Self {
+        specialize!(<T as FloatBackend<N, A>>::vec_abs(self))
+    }
+
+    /// Returns the signum of the components of `self`.
+    ///
+    /// For each component:
+    ///
+    /// - `1.0` if the component is positive or `+0.0`.
+    /// - `-1.0` if the component is negative or `-0.0`.
+    /// - `NaN` if the component is NaN.
+    #[inline]
+    #[must_use]
+    pub fn signum(self) -> Self {
+        specialize!(<T as FloatBackend<N, A>>::vec_signum(self))
+    }
+
+    /// Returns a vector with the magnitudes of `self` and the signs of `sign`.
+    #[inline]
+    #[must_use]
+    pub fn copysign(self, sign: Self) -> Self {
+        specialize!(<T as FloatBackend<N, A>>::vec_copysign(self, sign))
     }
 
     /// Computes the dot product of `self` and `rhs`.
@@ -502,16 +502,6 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_cos(self))
     }
 
-    /// Simultaneously computes the sine and cosine of the components of `self`.
-    ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
-    #[inline]
-    #[must_use]
-    pub fn sin_cos(self) -> (Self, Self) {
-        specialize!(<T as FloatBackend<N, A>>::vec_sin_cos(self))
-    }
-
     /// Computes the tangent of the components of `self`.
     ///
     /// This function has unspecified precision and may return a different value
@@ -550,6 +540,16 @@ where
     #[must_use]
     pub fn atan(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_atan(self))
+    }
+
+    /// Simultaneously computes the sine and cosine of the components of `self`.
+    ///
+    /// This function has unspecified precision and may return a different value
+    /// than the standard library.
+    #[inline]
+    #[must_use]
+    pub fn sin_cos(self) -> (Self, Self) {
+        specialize!(<T as FloatBackend<N, A>>::vec_sin_cos(self))
     }
 
     /// Returns the length/magnitude of `self`.
@@ -895,6 +895,16 @@ where
     }
 
     #[inline]
+    fn vec_element_sum(vec: Vector<N, T, A>) -> T {
+        vec.as_array_ref().iter().copied().sum()
+    }
+
+    #[inline]
+    fn vec_element_product(vec: Vector<N, T, A>) -> T {
+        vec.as_array_ref().iter().copied().product()
+    }
+
+    #[inline]
     fn vec_max(vec: Vector<N, T, A>, other: Vector<N, T, A>) -> Vector<N, T, A> {
         Vector::from_fn(|i| if vec[i] > other[i] { vec[i] } else { other[i] })
     }
@@ -902,6 +912,16 @@ where
     #[inline]
     fn vec_min(vec: Vector<N, T, A>, other: Vector<N, T, A>) -> Vector<N, T, A> {
         Vector::from_fn(|i| if vec[i] < other[i] { vec[i] } else { other[i] })
+    }
+
+    #[inline]
+    fn vec_max_element(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(|a, b| if a > b { a } else { b }).unwrap()
+    }
+
+    #[inline]
+    fn vec_min_element(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(|a, b| if a < b { a } else { b }).unwrap()
     }
 
     #[inline]
@@ -917,26 +937,6 @@ where
     #[inline]
     fn vec_copysign(vec: Vector<N, T, A>, sign: Vector<N, T, A>) -> Vector<N, T, A> {
         Vector::from_fn(|i| vec[i].copysign(sign[i]))
-    }
-
-    #[inline]
-    fn vec_element_sum(vec: Vector<N, T, A>) -> T {
-        vec.as_array_ref().iter().copied().sum()
-    }
-
-    #[inline]
-    fn vec_element_product(vec: Vector<N, T, A>) -> T {
-        vec.as_array_ref().iter().copied().product()
-    }
-
-    #[inline]
-    fn vec_max_element(vec: Vector<N, T, A>) -> T {
-        vec.iter().reduce(|a, b| if a > b { a } else { b }).unwrap()
-    }
-
-    #[inline]
-    fn vec_min_element(vec: Vector<N, T, A>) -> T {
-        vec.iter().reduce(|a, b| if a < b { a } else { b }).unwrap()
     }
 
     #[cfg(backend)]
@@ -1005,17 +1005,6 @@ where
 
     #[cfg(backend)]
     #[inline]
-    fn vec_sin_cos(vec: Vector<N, T, A>) -> (Vector<N, T, A>, Vector<N, T, A>) {
-        let array = vec.to_array().map(|x| x.sin_cos());
-
-        (
-            Vector::from_fn(|i| array[i].0),
-            Vector::from_fn(|i| array[i].1),
-        )
-    }
-
-    #[cfg(backend)]
-    #[inline]
     fn vec_tan(vec: Vector<N, T, A>) -> Vector<N, T, A> {
         vec.map(T::tan)
     }
@@ -1036,5 +1025,16 @@ where
     #[inline]
     fn vec_atan(vec: Vector<N, T, A>) -> Vector<N, T, A> {
         vec.map(T::atan)
+    }
+
+    #[cfg(backend)]
+    #[inline]
+    fn vec_sin_cos(vec: Vector<N, T, A>) -> (Vector<N, T, A>, Vector<N, T, A>) {
+        let array = vec.to_array().map(|x| x.sin_cos());
+
+        (
+            Vector::from_fn(|i| array[i].0),
+            Vector::from_fn(|i| array[i].1),
+        )
     }
 }

@@ -140,6 +140,33 @@ pub fn float_tests<A: Alignment>() {
             x.is_finite() && y.is_finite() && z.is_finite()
         );
 
+        assert_float_eq!(vec2!(x, y).element_sum(), x + y, 0.0 = -0.0);
+        assert!(
+            float_eq!(vec3!(x, y, z).element_sum(), x + y + z, 0.0 = -0.0)
+                || float_eq!(vec3!(x, y, z).element_sum(), x + z + y, 0.0 = -0.0)
+        );
+        assert!(
+            float_eq!(vec4!(x, y, z, x).element_sum(), x + y + z + x, 0.0 = -0.0)
+                || float_eq!(vec4!(x, y, z, x).element_sum(), x + y + (z + x), 0.0 = -0.0)
+        );
+
+        assert_float_eq!(vec2!(x, y).element_product(), x * y, 0.0 = -0.0);
+        assert!(
+            float_eq!(vec3!(x, y, z).element_product(), x * y * z, 0.0 = -0.0)
+                || float_eq!(vec3!(x, y, z).element_product(), x * z * y, 0.0 = -0.0)
+        );
+        assert!(
+            float_eq!(
+                vec4!(x, y, z, x).element_product(),
+                x * y * z * x,
+                0.0 = -0.0
+            ) || float_eq!(
+                vec4!(x, y, z, x).element_product(),
+                x * y * (z * x),
+                0.0 = -0.0
+            )
+        );
+
         if !x.is_nan() && !y.is_nan() && !z.is_nan() {
             assert_float_eq!(
                 vec2!(x, y).max(vec2!(z, x)),
@@ -206,63 +233,6 @@ pub fn float_tests<A: Alignment>() {
             assert_panic!(vec4!(x, y, z, x).clamp(vec4!(x, y, x, y), vec4!(y, z, y, z)));
         }
 
-        assert_float_eq!(vec2!(x, y).abs(), vec2!(x.abs(), y.abs()));
-        assert_float_eq!(vec3!(x, y, z).abs(), vec3!(x.abs(), y.abs(), z.abs()));
-        assert_float_eq!(
-            vec4!(x, y, z, x).abs(),
-            vec4!(x.abs(), y.abs(), z.abs(), x.abs())
-        );
-
-        assert_float_eq!(vec2!(x, y).signum(), vec2!(x.signum(), y.signum()));
-        assert_float_eq!(
-            vec3!(x, y, z).signum(),
-            vec3!(x.signum(), y.signum(), z.signum())
-        );
-        assert_float_eq!(
-            vec4!(x, y, z, x).signum(),
-            vec4!(x.signum(), y.signum(), z.signum(), x.signum())
-        );
-
-        assert_float_eq!(
-            vec2!(x, y).copysign(vec2!(z, x)),
-            vec2!(x.copysign(z), y.copysign(x))
-        );
-        assert_float_eq!(
-            vec3!(x, y, z).copysign(vec3!(z, x, y)),
-            vec3!(x.copysign(z), y.copysign(x), z.copysign(y))
-        );
-        assert_float_eq!(
-            vec4!(x, y, z, x).copysign(vec4!(z, x, y, z)),
-            vec4!(x.copysign(z), y.copysign(x), z.copysign(y), x.copysign(z))
-        );
-
-        assert_float_eq!(vec2!(x, y).element_sum(), x + y, 0.0 = -0.0);
-        assert!(
-            float_eq!(vec3!(x, y, z).element_sum(), x + y + z, 0.0 = -0.0)
-                || float_eq!(vec3!(x, y, z).element_sum(), x + z + y, 0.0 = -0.0)
-        );
-        assert!(
-            float_eq!(vec4!(x, y, z, x).element_sum(), x + y + z + x, 0.0 = -0.0)
-                || float_eq!(vec4!(x, y, z, x).element_sum(), x + y + (z + x), 0.0 = -0.0)
-        );
-
-        assert_float_eq!(vec2!(x, y).element_product(), x * y, 0.0 = -0.0);
-        assert!(
-            float_eq!(vec3!(x, y, z).element_product(), x * y * z, 0.0 = -0.0)
-                || float_eq!(vec3!(x, y, z).element_product(), x * z * y, 0.0 = -0.0)
-        );
-        assert!(
-            float_eq!(
-                vec4!(x, y, z, x).element_product(),
-                x * y * z * x,
-                0.0 = -0.0
-            ) || float_eq!(
-                vec4!(x, y, z, x).element_product(),
-                x * y * (z * x),
-                0.0 = -0.0
-            )
-        );
-
         if !x.is_nan() && !y.is_nan() && !z.is_nan() {
             assert_float_eq!(vec2!(x, y).max_element(), x.max(y), 0.0 = -0.0);
             assert_float_eq!(vec3!(x, y, z).max_element(), x.max(y).max(z), 0.0 = -0.0);
@@ -296,6 +266,36 @@ pub fn float_tests<A: Alignment>() {
             assert_panic!(vec3!(x, y, z).min_element());
             assert_panic!(vec4!(x, y, z, x).min_element());
         }
+
+        assert_float_eq!(vec2!(x, y).abs(), vec2!(x.abs(), y.abs()));
+        assert_float_eq!(vec3!(x, y, z).abs(), vec3!(x.abs(), y.abs(), z.abs()));
+        assert_float_eq!(
+            vec4!(x, y, z, x).abs(),
+            vec4!(x.abs(), y.abs(), z.abs(), x.abs())
+        );
+
+        assert_float_eq!(vec2!(x, y).signum(), vec2!(x.signum(), y.signum()));
+        assert_float_eq!(
+            vec3!(x, y, z).signum(),
+            vec3!(x.signum(), y.signum(), z.signum())
+        );
+        assert_float_eq!(
+            vec4!(x, y, z, x).signum(),
+            vec4!(x.signum(), y.signum(), z.signum(), x.signum())
+        );
+
+        assert_float_eq!(
+            vec2!(x, y).copysign(vec2!(z, x)),
+            vec2!(x.copysign(z), y.copysign(x))
+        );
+        assert_float_eq!(
+            vec3!(x, y, z).copysign(vec3!(z, x, y)),
+            vec3!(x.copysign(z), y.copysign(x), z.copysign(y))
+        );
+        assert_float_eq!(
+            vec4!(x, y, z, x).copysign(vec4!(z, x, y, z)),
+            vec4!(x.copysign(z), y.copysign(x), z.copysign(y), x.copysign(z))
+        );
 
         assert_float_eq!(vec2!(x, y).floor(), vec2!(x.floor(), y.floor()));
         assert_float_eq!(
