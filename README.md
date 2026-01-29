@@ -51,7 +51,7 @@ Feature List:
 - [ ] Affine Transformations
 - [ ] Masks
 - [x] Sufficient Float-Vector functionality
-- [ ] Sufficient Int-Vector functionality
+- [x] Sufficient Int-Vector functionality
 - [ ] Sufficient Matrix functionality
 - [ ] Sufficient Quaternion functionality
 - [ ] Sufficient Affine functionality

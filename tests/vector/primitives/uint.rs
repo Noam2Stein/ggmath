@@ -113,6 +113,60 @@ pub fn uint_tests<A: Alignment>() {
             vec4!(x ^ z, y ^ x, z ^ y, x ^ z)
         );
 
+        if cfg!(assertions) {
+            assert_eq!(vec2!(x, y).element_sum(), x.checked_add(y).unwrap());
+            assert_eq!(
+                vec3!(x, y, z).element_sum(),
+                x.checked_add(y).unwrap().checked_add(z).unwrap()
+            );
+            assert_eq!(
+                vec4!(x, y, z, x).element_sum(),
+                x.checked_add(y)
+                    .unwrap()
+                    .checked_add(z)
+                    .unwrap()
+                    .checked_add(x)
+                    .unwrap()
+            );
+        } else {
+            assert_eq!(vec2!(x, y).element_sum(), x.wrapping_add(y));
+            assert_eq!(
+                vec3!(x, y, z).element_sum(),
+                x.wrapping_add(y).wrapping_add(z)
+            );
+            assert_eq!(
+                vec4!(x, y, z, x).element_sum(),
+                x.wrapping_add(y).wrapping_add(z).wrapping_add(x)
+            );
+        }
+
+        if cfg!(assertions) {
+            assert_eq!(vec2!(x, y).element_product(), x.checked_mul(y).unwrap());
+            assert_eq!(
+                vec3!(x, y, z).element_product(),
+                x.checked_mul(y).unwrap().checked_mul(z).unwrap()
+            );
+            assert_eq!(
+                vec4!(x, y, z, x).element_product(),
+                x.checked_mul(y)
+                    .unwrap()
+                    .checked_mul(z)
+                    .unwrap()
+                    .checked_mul(x)
+                    .unwrap()
+            );
+        } else {
+            assert_eq!(vec2!(x, y).element_product(), x.wrapping_mul(y));
+            assert_eq!(
+                vec3!(x, y, z).element_product(),
+                x.wrapping_mul(y).wrapping_mul(z)
+            );
+            assert_eq!(
+                vec4!(x, y, z, x).element_product(),
+                x.wrapping_mul(y).wrapping_mul(z).wrapping_mul(x)
+            );
+        }
+
         assert_eq!(vec2!(x, y).max(vec2!(z, x)), vec2!(x.max(z), y.max(x)));
         assert_eq!(
             vec3!(x, y, z).max(vec3!(z, x, y)),
@@ -145,6 +199,14 @@ pub fn uint_tests<A: Alignment>() {
             vec4!(x, y, z, x).clamp(vec4!(z, x, y, z), vec4!(y, z, x, y)),
             vec4!(x.clamp(z, y), y.clamp(x, z), z.clamp(y, x), x.clamp(z, y))
         );
+
+        assert_eq!(vec2!(x, y).max_element(), x.max(y));
+        assert_eq!(vec3!(x, y, z).max_element(), x.max(y).max(z));
+        assert_eq!(vec4!(x, y, z, x).max_element(), x.max(y).max(z).max(x));
+
+        assert_eq!(vec2!(x, y).min_element(), x.min(y));
+        assert_eq!(vec3!(x, y, z).min_element(), x.min(y).min(z));
+        assert_eq!(vec4!(x, y, z, x).min_element(), x.min(y).min(z).min(x));
 
         assert_eq!(
             vec2!(x, y).checked_add(vec2!(z, x)),

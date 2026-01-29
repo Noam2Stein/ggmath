@@ -4,6 +4,38 @@ impl<const N: usize, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
+    /// Computes the sum of the vector's elements.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if any addition
+    /// overflows (addition is performed in order).
+    #[inline]
+    #[must_use]
+    pub fn element_sum(self) -> T {
+        if cfg!(assertions) {
+            specialize!(<T as IntBackend<N, A>>::vec_strict_element_sum(self))
+        } else {
+            specialize!(<T as IntBackend<N, A>>::vec_wrapping_element_sum(self))
+        }
+    }
+
+    /// Computes the product of the vector's elements.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled, this function panics if any multiplication
+    /// overflows (multiplication is performed in order).
+    #[inline]
+    #[must_use]
+    pub fn element_product(self) -> T {
+        if cfg!(assertions) {
+            specialize!(<T as IntBackend<N, A>>::vec_strict_element_product(self))
+        } else {
+            specialize!(<T as IntBackend<N, A>>::vec_wrapping_element_product(self))
+        }
+    }
+
     /// Returns the maximum between the components of `self` and `other`.
     #[inline]
     #[must_use]
@@ -20,6 +52,10 @@ where
 
     /// Clamps the components of `self` between the components of `min` and
     /// `max`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `min > max`.
     #[inline]
     #[must_use]
     pub fn clamp(self, min: Self, max: Self) -> Self {
@@ -28,7 +64,26 @@ where
         self.max(min).min(max)
     }
 
+    /// Returns the maximum out of the elements of `self`.
+    #[inline]
+    #[must_use]
+    pub fn max_element(self) -> T {
+        specialize!(<T as IntBackend<N, A>>::vec_max_element(self))
+    }
+
+    /// Returns the minimum out of the elements of `self`.
+    #[inline]
+    #[must_use]
+    pub fn min_element(self) -> T {
+        specialize!(<T as IntBackend<N, A>>::vec_min_element(self))
+    }
+
     /// Returns the absolute values of the components of `self`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions or overflow checks are enabled, this function panics if
+    /// any input is `T::MIN`.
     #[inline]
     #[must_use]
     pub fn abs(self) -> Self {
@@ -46,6 +101,42 @@ where
     #[must_use]
     pub fn signum(self) -> Self {
         specialize!(<T as IntBackend<N, A>>::vec_signum(self))
+    }
+
+    /// Computes the dot product of `self` and `rhs`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions or overflow checks are enabled, this function panics if
+    /// an overflow occurs.
+    #[inline]
+    #[must_use]
+    pub fn dot(self, rhs: Self) -> T {
+        (self * rhs).element_sum()
+    }
+
+    /// Computes the squared length/magnitude of `self`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions or overflow checks are enabled, this function panics if
+    /// an overflow occurs.
+    #[inline]
+    #[must_use]
+    pub fn length_squared(self) -> T {
+        (self * self).element_sum()
+    }
+
+    /// Computes the squared euclidean distance between `self` and `other`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions or overflow checks are enabled, this function panics if
+    /// an overflow occurs.
+    #[inline]
+    #[must_use]
+    pub fn distance_squared(self, other: Self) -> T {
+        (self - other).length_squared()
     }
 
     /// Computes `self + rhs`, returning `None` if overflow occured.
@@ -165,18 +256,46 @@ where
     }
 }
 
+impl<A: Alignment> Vector<2, T, A> {
+    /// Returns `self` rotated by 90 degrees.
+    #[inline]
+    #[must_use]
+    pub fn perp(self) -> Self {
+        Self::new(-self.y, self.x)
+    }
+}
+
+impl<A: Alignment> Vector<3, T, A> {
+    /// Computes the cross product of `self` and `rhs`.
+    #[inline]
+    #[must_use]
+    pub fn cross(self, rhs: Self) -> Self {
+        (self.zxy() * rhs - self * rhs.zxy()).zxy()
+    }
+}
+
 pub(crate) trait IntBackend<const N: usize, A: Alignment>: Scalar
 where
     Length<N>: SupportedLength,
 {
     #[inline]
     fn vec_max(vec: Vector<N, T, A>, other: Vector<N, T, A>) -> Vector<N, T, A> {
-        Vector::from_fn(|i| if vec[i] > other[i] { vec[i] } else { other[i] })
+        Vector::from_fn(|i| vec[i].max(other[i]))
     }
 
     #[inline]
     fn vec_min(vec: Vector<N, T, A>, other: Vector<N, T, A>) -> Vector<N, T, A> {
-        Vector::from_fn(|i| if vec[i] < other[i] { vec[i] } else { other[i] })
+        Vector::from_fn(|i| vec[i].min(other[i]))
+    }
+
+    #[inline]
+    fn vec_max_element(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(T::max).unwrap()
+    }
+
+    #[inline]
+    fn vec_min_element(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(T::min).unwrap()
     }
 
     #[inline]
@@ -234,6 +353,16 @@ where
     }
 
     #[inline]
+    fn vec_strict_element_sum(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(|a, b| a.checked_add(b).unwrap()).unwrap()
+    }
+
+    #[inline]
+    fn vec_strict_element_product(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(|a, b| a.checked_mul(b).unwrap()).unwrap()
+    }
+
+    #[inline]
     fn vec_saturating_add(vec: Vector<N, T, A>, rhs: Vector<N, T, A>) -> Vector<N, T, A> {
         Vector::from_fn(|i| vec[i].saturating_add(rhs[i]))
     }
@@ -276,5 +405,15 @@ where
     #[inline]
     fn vec_wrapping_rem(vec: Vector<N, T, A>, rhs: Vector<N, T, A>) -> Vector<N, T, A> {
         Vector::from_fn(|i| vec[i].wrapping_rem(rhs[i]))
+    }
+
+    #[inline]
+    fn vec_wrapping_element_sum(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(T::wrapping_add).unwrap()
+    }
+
+    #[inline]
+    fn vec_wrapping_element_product(vec: Vector<N, T, A>) -> T {
+        vec.iter().reduce(T::wrapping_mul).unwrap()
     }
 }

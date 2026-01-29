@@ -39,11 +39,20 @@
   - `any_orthonormal_pair`
 
 - Added int vector functions:
+  - `element_sum`
+  - `element_product`
   - `max`
   - `min`
   - `clamp`
+  - `max_element`
+  - `min_element`
   - `abs`
   - `signum`
+  - `dot`
+  - `length_squared`
+  - `distance_squared`
+  - `perp`
+  - `cross`
   - `checked_add`
   - `checked_sub`
   - `checked_mul`
@@ -60,9 +69,15 @@
   - `wrapping_rem`
 
 - Added uint vector functions:
+  - `element_sum`
+  - `element_product`
   - `max`
   - `min`
   - `clamp`
+  - `max_element`
+  - `min_element`
+  - `dot`
+  - `length_squared`
   - `checked_add`
   - `checked_sub`
   - `checked_mul`
