@@ -1,3 +1,6 @@
+#[cfg(feature = "libm")]
+#[allow(unused_imports)]
+use crate::libm::LibmFloatExt;
 use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
 
 impl<const N: usize, A: Alignment> Vector<N, T, A>

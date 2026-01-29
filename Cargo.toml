@@ -26,11 +26,13 @@ no-assertions = []
 default = ["std"]
 
 bytemuck = ["dep:bytemuck"]
+libm = ["dep:libm"]
 mint = ["dep:mint"]
 serde = ["dep:serde"]
 
 [dependencies]
 bytemuck = { version = "1.24.0", optional = true }
+libm = { version = "0.2.16", optional = true }
 mint = { version = "0.5.9", optional = true }
 serde = { version = "1.0.228", optional = true }
 

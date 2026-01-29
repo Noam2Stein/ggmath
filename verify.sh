@@ -3,7 +3,7 @@
 set -e
 
 PROGRESS=0
-MAX_PROGRESS=40
+MAX_PROGRESS=57
 WARNINGS=false
 
 run() {
@@ -70,12 +70,11 @@ test() {
     run "$command"
 }
 
-
 for target in "x86_64-unknown-linux-gnu" "riscv64gc-unknown-linux-gnu"
 do
     for profile in "debug" "release"
     do
-        for backend in "std" ""
+        for backend in "std" "libm" ""
         do
             for assertions in "assertions" "no-assertions"
             do
@@ -90,17 +89,16 @@ done
 
 for profile in "debug" "release"
 do
-    for backend in "std"
+    for assertions in "assertions" "no-assertions"
     do
-        for assertions in "assertions" "no-assertions"
+        for overflow_checks in "on" "off"
         do
-            for overflow_checks in "on" "off"
-            do
-                test "$profile" "$backend" "$assertions" "$overflow_checks"
-            done
+            test "$profile" "std" "$assertions" "$overflow_checks"
         done
     done
 done
+
+test "release" "libm" "no-assertions" "off"
 
 echo
 echo "Commands: $PROGRESS/$MAX_PROGRESS"

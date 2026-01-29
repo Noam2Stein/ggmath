@@ -77,7 +77,7 @@
 
 - Added bool vector functions: `all`, `any`.
 
-- Added support for crates: `bytemuck`, `mint`, `serde`.
+- Added support for crates: `bytemuck`, `libm`, `mint`, `serde`.
 
 - Added missing `must_use` to functions.
 

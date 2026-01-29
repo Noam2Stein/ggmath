@@ -1,6 +1,6 @@
 #![deny(missing_docs)]
 #![doc = include_str!("../README.md")]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(any(not(feature = "std"), feature = "libm"), no_std)]
 
 pub mod constants;
 
@@ -20,3 +20,6 @@ pub use vector::*;
 mod backend_impls;
 mod integrations;
 mod utils;
+
+#[cfg(feature = "libm")]
+mod libm;

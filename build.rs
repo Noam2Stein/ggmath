@@ -1,6 +1,6 @@
 fn main() {
     println!("cargo::rustc-check-cfg=cfg(backend)");
-    if cfg!(feature = "std") {
+    if cfg!(feature = "std") || cfg!(feature = "libm") {
         println!("cargo::rustc-cfg=backend");
     }
 

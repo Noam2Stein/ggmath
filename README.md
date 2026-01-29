@@ -60,7 +60,7 @@ Crate Support:
 
 - [x] [`bytemuck`](crates.io/crates/bytemuck)
 - [ ] [`fixed`](crates.io/crates/fixed)
-- [ ] [`libm`](crates.io/crates/libm)
+- [x] [`libm`](crates.io/crates/libm)
 - [x] [`mint`](crates.io/crates/mint)
 - [x] [`serde`](crates.io/crates/serde)
 - [ ] [`wide`](crates.io/crates/wide)
@@ -134,15 +134,22 @@ Add this to your Cargo.toml:
 ggmath = "0.15.0"
 ```
 
-For `no_std` support, disable default features:
+For `no_std` support, enable the `libm` feature:
+
+```toml
+[dependencies]
+ggmath = { version = "0.15.0", features = ["libm"] }
+```
+
+For `no_std` without `libm`, disable default features:
 
 ```toml
 [dependencies]
 ggmath = { version = "0.15.0", default-features = false }
 ```
 
-While `std` can be disabled, `libm` support is missing so `no_std` doesn't
-support most float functionality.
+Without `std` or `libm`, the crate compiles but all float functionality that
+relies on a backend is disabled.
 
 ## Optional Features
 
@@ -156,6 +163,9 @@ support most float functionality.
   to binary crates.
 
 - `bytemuck`: Implements `bytemuck` traits for all `ggmath` types.
+
+- `libm`: Uses `libm` as the backend for float functionality. This makes the
+  crate `no_std` even if the `std` feature isn't disabled.
 
 - `mint`: Implements conversions between `ggmath` and `mint` types.
 
