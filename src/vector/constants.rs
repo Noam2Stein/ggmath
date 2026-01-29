@@ -1,6 +1,6 @@
 use crate::{
     Alignment, Length, Scalar, SupportedLength, Vector,
-    constants::{False, Infinity, Max, Min, NaN, NegInfinity, NegOne, One, True, Zero},
+    constants::{False, Infinity, Max, Min, Nan, NegInfinity, NegOne, One, True, Zero},
 };
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
@@ -51,7 +51,7 @@ where
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + NaN,
+    T: Scalar + Nan,
 {
     /// All elements set to Not a Number (NaN).
     pub const NAN: Self = Self::splat(T::NAN);

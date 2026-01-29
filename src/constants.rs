@@ -152,7 +152,7 @@ pub trait Max: Scalar {
 }
 
 /// A `NAN` constant for scalar types.
-pub trait NaN: Scalar {
+pub trait Nan: Scalar {
     /// Not a Number (NaN).
     const NAN: Self;
 }
@@ -204,7 +204,7 @@ macro_rules! impl_float {
                 const MAX: Self = Self::MAX;
             }
 
-            impl NaN for $T {
+            impl Nan for $T {
                 const NAN: Self = Self::NAN;
             }
 
