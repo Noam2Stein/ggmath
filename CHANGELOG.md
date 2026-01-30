@@ -6,6 +6,10 @@ Breaking changes:
 
 - Renamed the `NaN` trait to `Nan`.
 
+Non breaking changes:
+
+- Improved documentation.
+
 ## 0.15.1 (29.1.2025)
 
 - Added a `FloatExt` trait.

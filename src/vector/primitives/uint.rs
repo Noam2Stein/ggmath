@@ -4,12 +4,15 @@ impl<const N: usize, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Computes the sum of the vector's elements.
+    /// Computes the sum of the vector's components.
+    ///
+    /// Equivalent to `self.x + self.y + ...`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if any addition
-    /// overflows (addition is performed in order).
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any addition overflows. Addition is performed in order.
     #[inline]
     #[must_use]
     pub fn element_sum(self) -> T {
@@ -20,12 +23,16 @@ where
         }
     }
 
-    /// Computes the product of the vector's elements.
+    /// Computes the product of the vector's components.
+    ///
+    /// Equivalent to `self.x * self.y * ...`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if any multiplication
-    /// overflows (multiplication is performed in order).
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any multiplication overflows. Multiplication is performed in
+    /// order.
     #[inline]
     #[must_use]
     pub fn element_product(self) -> T {
@@ -37,6 +44,8 @@ where
     }
 
     /// Returns the maximum between the components of `self` and `other`.
+    ///
+    /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
     #[inline]
     #[must_use]
     pub fn max(self, other: Self) -> Self {
@@ -44,14 +53,19 @@ where
     }
 
     /// Returns the minimum between the components of `self` and `other`.
+    ///
+    /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
     #[inline]
     #[must_use]
     pub fn min(self, other: Self) -> Self {
         specialize!(<T as UintBackend<N, A>>::vec_min(self, other))
     }
 
-    /// Clamps the components of `self` between the components of `min` and
+    /// Clamps the vector's components between the components of `min` and
     /// `max`.
+    ///
+    /// Equivalent to
+    /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
     ///
     /// # Panics
     ///
@@ -64,14 +78,18 @@ where
         self.max(min).min(max)
     }
 
-    /// Returns the maximum out of the elements of `self`.
+    /// Returns the maximum between the vector's components.
+    ///
+    /// Equivalent to `self.x.max(self.y).max(self.z)...`.
     #[inline]
     #[must_use]
     pub fn max_element(self) -> T {
         specialize!(<T as UintBackend<N, A>>::vec_max_element(self))
     }
 
-    /// Returns the minimum out of the elements of `self`.
+    /// Returns the minimum between the vector's components.
+    ///
+    /// Equivalent to `self.x.min(self.y).min(self.z)...`.
     #[inline]
     #[must_use]
     pub fn min_element(self) -> T {
@@ -82,20 +100,24 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions or overflow checks are enabled, this function panics if
-    /// an overflow occurs.
+    /// When assertions are enabled (see the crate documentation) or overflow
+    /// checks are enabled:
+    ///
+    /// Panics if an overflow occurs.
     #[inline]
     #[must_use]
     pub fn dot(self, rhs: Self) -> T {
         (self * rhs).element_sum()
     }
 
-    /// Computes the squared length/magnitude of `self`.
+    /// Computes the squared length/magnitude of the vector.
     ///
     /// # Panics
     ///
-    /// When assertions or overflow checks are enabled, this function panics if
-    /// an overflow occurs.
+    /// When assertions are enabled (see the crate documentation) or overflow
+    /// checks are enabled:
+    ///
+    /// Panics if an overflow occurs.
     #[inline]
     #[must_use]
     pub fn length_squared(self) -> T {

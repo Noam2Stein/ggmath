@@ -86,44 +86,28 @@ Performance:
 reached the maturity of `glam`. If you need any of the features missing
 from `ggmath`, you should use `glam`.
 
-The primary difference between the two crates is that `ggmath` uses generics and
-`glam` intentionally doesn't. You should pick a crate based on these pros and
-cons:
+Pros:
 
-### Code Duplication
+- Fixed-point: You can implement `Scalar` for your fixed-point numbers and use
+  them inside vectors.
 
-Generics eliminate code duplication by enabling code that is generic over scalar
-type, vector length, and alignment.
+- SoA (Struct of Arrays): You can implement `Scalar` for your SIMD types and use
+  them inside vectors (e.g., `Vec3<f32x4>`).
 
-This is primarily useful for writing math functions that need to work for
-multiple scalar types, all lengths, or both SIMD and no SIMD. For example, a
-cross platform deterministic implementation of `sin` would need to be duplicated
-multiple times when using `glam`, but will only need to be written once using
-`ggmath`.
+- Generic Code: You can write code that is generic over scalar type (`T`), and
+  dimension (`N`).
 
-### Custom Scalar Types
+Cons:
 
-Generics make it possible to define custom scalar types.
+- Compile Times: Because of generics, `ggmath` code takes longer to compile than
+  `glam` code.
 
-This is primarily useful for either fixed point numbers (e.g., support for the
-`fixed` crate), or SoA storage (Struct of Arrays) (e.g., `Vec3<f32x4>` using the
-`wide` crate).
+- Complexity: `ggmath` isn't as simple as `glam`.
 
-### Compile Times
-
-To properly support generics, `ggmath` internally uses many language tricks that
-unfortunately add work for the compiler not only when compiling `ggmath`, but
-also when compiling math code that uses it.
-
-If you need the fastest compile times possible you should use `glam`.
-
-### Complexity
-
-Generics make `ggmath` harder to understand in advance scenarios.
-
-While the API is mostly similar (`Vec3<f32>` vs `Vec3A`), `ggmath` has some
-advanced features that are harder to understand than anything in `glam` (e.g.,
-the full generic form `Vector<N, T, A>`).
+If your project requires `ggmath`'s features, you should pick `ggmath`. If it
+doesn't, you should pick `glam`. For example, a game engine that needs to
+support a wide range of use cases should pick `ggmath`, while a game that only
+uses `f32` types should pick `glam`.
 
 ## Usage
 

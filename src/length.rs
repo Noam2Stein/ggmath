@@ -1,12 +1,12 @@
 /// Marker type representing the length of a math type.
 ///
-/// For simplicity, math types such as [`Vector`](crate::Vector) do not support
+/// For simplicity's sake, math types like [`Vector`](crate::Vector) do not support
 /// arbitrary lengths. Supporting types like `Vec10<T>` would quickly lead to
 /// excessive API bloat. Instead, all math types must have a length of either 2,
 /// 3, or 4.
 ///
 /// This restriction is enforced in the type system by implementing the
-/// [`SupportedLength`] marker trait for `Length<2>`, `Length<3>`, and
+/// marker trait [`SupportedLength`] for the types `Length<2>`, `Length<3>`,
 /// `Length<4>`.
 ///
 /// # Usage
@@ -25,14 +25,14 @@ pub struct Length<const N: usize>;
 
 /// Marker trait restricting the length of math types.
 ///
-/// For simplicity, math types such as [`Vector`](crate::Vector) do not support
+/// For simplicity's sake, math types like [`Vector`](crate::Vector) do not support
 /// arbitrary lengths. Supporting types like `Vec10<T>` would quickly lead to
 /// excessive API bloat. Instead, all math types must have a length of either 2,
 /// 3, or 4.
 ///
-/// This restriction is enforced in the type system using the [`Length<N>`]
-/// marker type. `SupportedLength` is implemented only for `Length<2>`,
-/// `Length<3>`, and `Length<4>`.
+/// This restriction is enforced in the type system by implementing the
+/// marker trait [`SupportedLength`] for the types `Length<2>`, `Length<3>`,
+/// `Length<4>`.
 ///
 /// # Usage
 ///

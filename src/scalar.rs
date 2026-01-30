@@ -9,7 +9,7 @@ use crate::{Aligned, Alignment, Length, SupportedLength, Unaligned, Vector};
 /// function implementations of the scalar's math types.
 ///
 /// For simple implementations there is the [`ScalarDefault`] trait which
-/// provides a default implementation for [`ScalarBackend`].
+/// provides a default implementation for `ScalarBackend`.
 ///
 /// # Example
 ///
@@ -46,41 +46,36 @@ pub trait Scalar:
 /// function implementations of math types with `N` as their length, `Self` as
 /// their scalar type, and `A` as their alignment.
 ///
-/// This trait is generic over `N` and `A` (length and alignment). This means
-/// that it can be implemented either seperately for each length and alignment,
-/// or using one implementation that is generic over length and alignment.
+/// # Default Implementation
 ///
-/// The [`ScalarDefault`] trait offers a default implementation for
-/// [`ScalarBackend`] that is useful when SIMD optimizations are unneeded or
-/// impossible.
+/// The [`ScalarDefault`] trait provides a default implementation for
+/// `ScalarBackend`.
+///
+/// Manually implementing `ScalarBackend` is *unsafe* and should only be done to
+/// make SIMD optimizations to a scalar's math types.
+///
+/// # Required Items
+///
+/// `ScalarBackend` has only one required item: [`ScalarBackend::VectorRepr`].
+/// This associated type is used as the internal representation for
+/// [`Vector<N, Self, A>`].
 ///
 /// # Safety
 ///
-/// The [`ScalarBackend::VectorRepr`] type must respect the memory-layout
-/// requirements of [`Vector<N, Self, A>`].
-///
-/// # SIMD
-///
-/// SIMD optimizations can be made the hard way or the easy way.
-///
-/// The hard way is using intrinsics. For each target architecture you want to
-/// support you'd need to:
-///
-/// - Implement `ScalarBackend<2, Aligned>` using intrinsics.
-/// - Implement `ScalarBackend<3, Aligned>` using intrinsics.
-/// - Implement `ScalarBackend<4, Aligned>` using intrinsics.
-/// - Write an empty implementation for `ScalarBackend<..., Unaligned>`.
-///
-/// The easy way is using existing math types.
-///
-/// For example, if your scalar type is a wrapper around `f32`, you could use
-/// `Vector<N, f32, A>` as the internal representation for
-/// `Vector<N, { your scalar }, A>`, then convert between the two in
-/// function implementations.
+/// Implementations must respect the requirements of the associated type
+/// [`ScalarBackend::VectorRepr`].
 ///
 /// # Example
 ///
-/// Lets define a custom scalar type that is a wrapper around `f32`:
+/// Technically, SIMD optimizations can be made by implementing `ScalarBackend`
+/// seperately for each length and alignment, using target architecture specific
+/// SIMD intrinsics. This is what primitives like `f32` do.
+///
+/// An easier approach is to make our scalar type a wrapper of a primitive, then
+/// use that primitive's math types as our internal representation and to
+/// implement math functions.
+///
+/// Lets define scalar type `Foo` that is a wrapper around `f32`:
 ///
 /// ```
 /// use ggmath::Scalar;
@@ -91,12 +86,12 @@ pub trait Scalar:
 ///
 /// impl Scalar for Foo {}
 ///
-/// // This needs to be replaced with a manual implementation.
+/// // We will replace this with a manual implementation.
 /// impl ggmath::ScalarDefault for Foo {}
 /// ```
 ///
-/// We got a compile error because `ScalarBackend` isn't implemented. Lets
-/// implement it using `Vector<N, f32, A>` as our `VectorRepr`:
+/// Lets replace the default implementation with a manual one using
+/// `Vector<N, f32, A>` as the internal representation for `Vector<N, Foo, A>`:
 ///
 /// ```
 /// # use ggmath::Scalar;
@@ -110,7 +105,7 @@ pub trait Scalar:
 /// use ggmath::{Alignment, Length, ScalarBackend, SupportedLength, Vector};
 ///
 /// // SAFETY: Because `Foo` is a wrapper around `f32`, any internal
-/// // representation that `Vector<N, f32, A>` may use is also a valid
+/// // representation that `Vector<N, f32, A>` may have is a valid
 /// // representation for `Vector<N, Foo, A>`.
 /// unsafe impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
 /// where
@@ -146,10 +141,10 @@ pub trait Scalar:
 /// should add up the internal `f32` vectors just like `Foo` addition adds up
 /// the internal `f32`s.
 ///
-/// To implement optimized vector addition we need functions for converting
+/// To implement SIMD optimized vector addition we need functions for converting
 /// between `Foo` vectors and `f32` vectors. The builtin functions for
-/// conversions are [`Vector::repr`] and [`Vector::from_repr`]. The latter is an
-/// unsafe function because the internal representation of a vector might have
+/// conversions are [`Vector::repr`] and [`Vector::from_repr`]. The latter is
+/// unsafe because the internal representation of a vector might have
 /// less memory safety guarantees than the outer vector.
 ///
 /// Lets make an extension method for `f32` vectors that converts them to `Foo`
@@ -229,7 +224,7 @@ pub trait Scalar:
 /// # }
 /// #
 /// // SAFETY: Because `Foo` is a wrapper around `f32`, any internal
-/// // representation that `Vector<N, f32, A>` may use is also a valid
+/// // representation that `Vector<N, f32, A>` may have is a valid
 /// // representation for `Vector<N, Foo, A>`.
 /// unsafe impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
 /// where
@@ -245,8 +240,8 @@ pub trait Scalar:
 /// ```
 ///
 /// Now `Foo` vector addition has whatever SIMD optimizations `f32` vectors
-/// have. This pattern can be expanded for all operators and for any
-/// extension-trait `Foo` vectors implement.
+/// have. This pattern can be expanded for all operators to have SIMD
+/// optimizations.
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is missing an implementation for `ScalarBackend`",
     note = "consider implementing `ScalarDefault` for `{Self}`"
@@ -255,10 +250,25 @@ pub unsafe trait ScalarBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
-    /// The internal representation of [`Vector<N, Self, A>`].
+    /// The internal representation for [`Vector<N, Self, A>`].
     ///
-    /// This type must respect the memory layout requirements of
-    /// [`Vector<N, Self, A>`].
+    /// # Safety
+    ///
+    /// The specified type must meet the following requirements:
+    ///
+    /// `Vector<N, T, A>` must be [transmutable](core::mem::transmute) to
+    /// `[T; N2]` where `N2` is `N` plus padding, meaning padding must be an
+    /// initialized value of `T`.
+    ///
+    /// `Vector<N, T, Unaligned>` must have the memory layout of `[T; N]`.
+    ///
+    /// `Vector<2, T, Aligned>` and `Vector<4, T, Aligned>` must have the size
+    /// of `[T; N]`, and may have additional alignment.
+    ///
+    /// `Vector<3, T, Aligned>` must have the size of either `[T; 3]` or
+    /// `[T; 4]`, and may have additional alignment.
+    ///
+    /// Failure to meet these requirements results in undefined behaviour.
     type VectorRepr: Copy;
 
     /// Overridable implementation of the `==` operator for vectors.
@@ -390,12 +400,13 @@ where
 
 /// A default implementation for [`ScalarBackend`].
 ///
-/// This trait is for simple implementations of the [`Scalar`] trait which don't
-/// require any SIMD optimizations.
+/// The `ScalarBackend` trait is required to implement [`Scalar`] but is
+/// *unsafe* and hard to implement. `ScalarDefault` provides a safe default
+/// implementation.
 ///
-/// Don't use this trait as a generic bound because types that implement
-/// [`ScalarDefault`] today might silently switch to manually implementing
-/// [`ScalarBackend`] in the future.
+/// Don't use `ScalarDefault` as a generic bound because types that implement
+/// `ScalarDefault` today might silently switch to a manual implementation of
+/// `ScalarBackend` in the future.
 ///
 /// # Example
 ///
@@ -408,9 +419,6 @@ where
 /// impl Scalar for Foo {}
 ///
 /// impl ScalarDefault for Foo {}
-///
-/// // later we can swap this for a manual implementation of `ScalarBackend` to
-/// // add SIMD optimizations.
 /// ```
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is missing an implementation for `ScalarBackend`",

@@ -3,10 +3,9 @@
 //! Each constant has its own trait which when implemented enables the constant
 //! for vectors.
 //!
-//! # Examples
+//! # Example
 //!
-//! Lets define our own scalar type according to the documentation for
-//! [`Scalar`]:
+//! Lets define our own scalar type (see [`Scalar`]):
 //!
 //! ```
 //! use ggmath::{Scalar, ScalarDefault};
@@ -123,37 +122,37 @@ use crate::Scalar;
 
 /// A `ZERO` constant for scalar types.
 pub trait Zero: Scalar {
-    /// `0.0`.
+    /// `0`.
     const ZERO: Self;
 }
 
 /// A `ONE` constant for scalar types.
 pub trait One: Scalar {
-    /// `1.0`.
+    /// `1`.
     const ONE: Self;
 }
 
 /// A `NEG_ONE` constant for scalar types.
 pub trait NegOne: Scalar {
-    /// `-1.0`.
+    /// `-1`.
     const NEG_ONE: Self;
 }
 
 /// A `MIN` constant for scalar types.
 pub trait Min: Scalar {
-    /// The minimum value representable by `Self`.
+    /// The smallest value that can be represented by this type.
     const MIN: Self;
 }
 
 /// A `MAX` constant for scalar types.
 pub trait Max: Scalar {
-    /// The maximum value representable by `Self`.
+    /// The largest value that can be represented by this type.
     const MAX: Self;
 }
 
 /// A `NAN` constant for scalar types.
 pub trait Nan: Scalar {
-    /// Not a Number (NaN).
+    /// NaN (Not a Number).
     const NAN: Self;
 }
 

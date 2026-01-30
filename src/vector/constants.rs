@@ -8,7 +8,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Zero,
 {
-    /// `0`.
+    /// All `0`.
     pub const ZERO: Self = Self::splat(T::ZERO);
 }
 
@@ -35,7 +35,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Min,
 {
-    /// The minimum value representable by `T` for all elements.
+    /// All [`T::MIN`](Min::MIN).
     pub const MIN: Self = Self::splat(T::MIN);
 }
 
@@ -44,7 +44,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Max,
 {
-    /// The maximum value representable by `T` for all elements.
+    /// All [`T::MAX`](Max::MAX).
     pub const MAX: Self = Self::splat(T::MAX);
 }
 
@@ -53,7 +53,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Nan,
 {
-    /// All elements set to Not a Number (NaN).
+    /// All NaN (Not a Number).
     pub const NAN: Self = Self::splat(T::NAN);
 }
 
@@ -62,7 +62,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Infinity,
 {
-    /// All elements set to Infinity (∞).
+    /// All [`T::INFINITY`](Infinity::INFINITY).
     pub const INFINITY: Self = Self::splat(T::INFINITY);
 }
 
@@ -71,7 +71,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + NegInfinity,
 {
-    /// All elements set to Negative Infinity (-∞).
+    /// All [`T::NEG_INFINITY`](NegInfinity::NEG_INFINITY).
     pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
 }
 

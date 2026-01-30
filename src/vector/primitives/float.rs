@@ -7,14 +7,16 @@ impl<const N: usize, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Returns true if any component of `self` is NaN.
+    /// Returns `true` if any of the vector's components are NaN.
     #[inline]
     #[must_use]
     pub fn is_nan(self) -> bool {
         specialize!(<T as FloatBackend<N, A>>::vec_is_nan(self))
     }
 
-    /// Returns true if all components of `self` are finite.
+    /// Returns `true` if all of the vector's components are finite.
+    ///
+    /// Finite corresponds to not NaN and not positive/negative infinity.
     #[inline]
     #[must_use]
     pub fn is_finite(self) -> bool {
@@ -28,7 +30,9 @@ where
         Self::ONE / self
     }
 
-    /// Computes the sum of the vector's elements.
+    /// Computes the sum of the vector's components.
+    ///
+    /// Equivalent to `self.x + self.y + ...`.
     ///
     /// The order of addition is unspecified and may differ between target
     /// architectures.
@@ -38,7 +42,9 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_element_sum(self))
     }
 
-    /// Computes the product of the vector's elements.
+    /// Computes the product of the vector's components.
+    ///
+    /// Equivalent to `self.x * self.y * ...`.
     ///
     /// The order of multiplication is unspecified and may differ between target
     /// architectures.
@@ -50,12 +56,16 @@ where
 
     /// Returns the maximum between the components of `self` and `other`.
     ///
+    /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
+    ///
     /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if any input is NaN.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any input is NaN.
     #[inline]
     #[must_use]
     pub fn max(self, other: Self) -> Self {
@@ -70,12 +80,16 @@ where
 
     /// Returns the minimum between the components of `self` and `other`.
     ///
+    /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
+    ///
     /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if any input is NaN.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any input is NaN.
     #[inline]
     #[must_use]
     pub fn min(self, other: Self) -> Self {
@@ -88,16 +102,20 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_min(self, other))
     }
 
-    /// Clamps the components of `self` between the components of `min` and
+    /// Clamps the vector's components between the components of `min` and
     /// `max`.
+    ///
+    /// Equivalent to
+    /// `(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y), ...)`.
     ///
     /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if any input is NaN or
-    /// if `min > max`.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any input is NaN, or if `min > max`.
     #[inline]
     #[must_use]
     pub fn clamp(self, min: Self, max: Self) -> Self {
@@ -116,14 +134,18 @@ where
         self.max(min).min(max)
     }
 
-    /// Returns the maximum component of the vector.
+    /// Returns the maximum between the vector's components.
+    ///
+    /// Equivalent to `self.x.max(self.y).max(self.z)...`.
     ///
     /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if any input is NaN.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any input is NaN.
     #[inline]
     #[must_use]
     pub fn max_element(self) -> T {
@@ -133,14 +155,18 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_max_element(self))
     }
 
-    /// Returns the minimum component of the vector.
+    /// Returns the minimum between the vector's components.
+    ///
+    /// Equivalent to `self.x.min(self.y).min(self.z)...`.
     ///
     /// This function is not consistent with IEEE semantics in regards to NaN
     /// propagation and handling of `-0.0`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if any input is NaN.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any input is NaN.
     #[inline]
     #[must_use]
     pub fn min_element(self) -> T {
@@ -150,20 +176,24 @@ where
         specialize!(<T as FloatBackend<N, A>>::vec_min_element(self))
     }
 
-    /// Returns the absolute values of the components of `self`.
+    /// Returns the absolute values of the vector's components.
+    ///
+    /// Equivalent to `(self.x.abs(), self.y.abs(), ...)`.
     #[inline]
     #[must_use]
     pub fn abs(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_abs(self))
     }
 
-    /// Returns the signum of the components of `self`.
+    /// Returns the signum of the vector's components.
+    ///
+    /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
     ///
     /// For each component:
     ///
-    /// - `1.0` if the component is positive or `+0.0`.
-    /// - `-1.0` if the component is negative or `-0.0`.
-    /// - `NaN` if the component is NaN.
+    /// - `1.0` if the component is positive, `+0.0` or `INFINITY`
+    /// - `-1.0` if the component is negative, `-0.0` or `NEG_INFINITY`
+    /// - NaN if the component is NaN
     #[inline]
     #[must_use]
     pub fn signum(self) -> Self {
@@ -171,6 +201,8 @@ where
     }
 
     /// Returns a vector with the magnitudes of `self` and the signs of `sign`.
+    ///
+    /// Equivalent to `(self.x.copysign(sign.x), self.y.copysign(sign.y), ...)`.
     #[inline]
     #[must_use]
     pub fn copysign(self, sign: Self) -> Self {
@@ -184,14 +216,14 @@ where
         (self * rhs).element_sum()
     }
 
-    /// Computes the squared length/magnitude of `self`.
+    /// Computes the squared length/magnitude of the vector.
     #[inline]
     #[must_use]
     pub fn length_squared(self) -> T {
         (self * self).element_sum()
     }
 
-    /// Computes the squared euclidean distance between `self` and `other`.
+    /// Computes the squared Euclidean distance between `self` and `other`.
     #[inline]
     #[must_use]
     pub fn distance_squared(self, other: Self) -> T {
@@ -210,19 +242,17 @@ where
         self * (1.0 - t) + other * t
     }
 
-    /// Computes the midpoint between `self` and `other`.
+    /// Computes the middle point between `self` and `other`.
     ///
-    /// This function is equivalent to `self.lerp(other, 0.5)` but is cheaper to
-    /// compute.
-    ///
-    /// This function may return a slightly different value than `lerp`.
+    /// Equivalent to `self.lerp(other, 0.5)` but is cheaper to compute and may
+    /// return a slightly different value.
     #[inline]
     #[must_use]
     pub fn midpoint(self, other: Self) -> Self {
         (self + other) * 0.5
     }
 
-    /// Returns whether `self` has the length `1.0` or not.
+    /// Returns whether the vector has the length `1.0` or not.
     ///
     /// This function uses a precision threshold of approximately `1e-4`.
     #[inline]
@@ -237,8 +267,9 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `other` is a zero
-    /// vector.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `other` is a zero vector.
     #[inline]
     #[must_use]
     pub fn project_onto(self, other: Self) -> Self {
@@ -256,8 +287,9 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `other` is not
-    /// normalized.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `other` is not normalized.
     #[inline]
     #[must_use]
     pub fn project_onto_normalized(self, other: Self) -> Self {
@@ -269,15 +301,16 @@ where
 
     /// Returns the vector rejection of `self` from `other`.
     ///
-    /// Vector rejection is the vector pointing from the projection to the
-    /// original vector. Basically: `self - self.project_onto(other)`.
+    /// Corresponds to a vector pointing at `self` from the projection of `self`
+    /// onto `other`, or simply `self - self.project_onto(other)`.
     ///
     /// `other` must not be a zero vector.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `other` is a zero
-    /// vector.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `other` is a zero vector.
     #[inline]
     #[must_use]
     pub fn reject_from(self, other: Self) -> Self {
@@ -286,32 +319,41 @@ where
 
     /// Returns the vector rejection of `self` from `other`.
     ///
-    /// Vector rejection is the vector pointing from the projection to the
-    /// original vector. Basically: `self - self.project_onto(other)`.
+    /// Corresponds to a vector pointing at `self` from the projection of `self`
+    /// onto `other`, or simply `self - self.project_onto(other)`.
     ///
     /// `other` must be normalized.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `other` is not
-    /// normalized.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `other` is not normalized.
     #[inline]
     #[must_use]
     pub fn reject_from_normalized(self, other: Self) -> Self {
         self - self.project_onto_normalized(other)
     }
 
-    /// Returns the vector reflection for `self` with `normal`.
-    ///
-    /// Vector reflection is the reflection of the vector on a surface with the
-    /// given normal.
+    /// Returns the reflection of `self` through `normal`.
     ///
     /// `normal` must be normalized.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `normal` is not
-    /// normalized.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `normal` is not normalized.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ggmath::{Vec2, vec2};
+    ///
+    /// let vec: Vec2<f32> = vec2!(1.0, 2.0);
+    ///
+    /// assert_eq!(vec.reflect(Vec2::X), vec2!(-1.0, 2.0));
+    /// ```
     #[inline]
     #[must_use]
     pub fn reflect(self, normal: Self) -> Self {
@@ -334,7 +376,7 @@ impl<A: Alignment> Vector<3, T, A> {
     ///
     /// `self` must be finite and not a zero vector.
     ///
-    /// The output vector is not necessarily normalized. For that use
+    /// The result is not necessarily normalized. For that use
     /// [`Self::any_orthonormal_vector()`] instead.
     #[inline]
     #[must_use]
@@ -354,8 +396,9 @@ impl<A: Alignment> Vector<3, T, A> {
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `self` is not
-    /// normalized.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     pub fn any_orthonormal_vector(self) -> Self {
@@ -373,12 +416,13 @@ impl<A: Alignment> Vector<3, T, A> {
     /// other.
     ///
     /// Together with `self`, they form an orthonormal basis where the three
-    /// vectors are orthogonal to each other and are normalized.
+    /// vectors are all orthogonal to each other and are normalized.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `self` is not
-    /// normalized.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     pub fn any_orthonormal_pair(self) -> (Self, Self) {
@@ -401,51 +445,54 @@ impl<const N: usize, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Rounds the components of `self` down.
+    /// Rounds the vector's components down.
     #[inline]
     #[must_use]
     pub fn floor(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_floor(self))
     }
 
-    /// Rounds the components of `self` up.
+    /// Rounds the vector's components up.
     #[inline]
     #[must_use]
     pub fn ceil(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_ceil(self))
     }
 
-    /// Rounds the components of `self` to the nearest integer.
+    /// Rounds the vector's components to the nearest integer.
     #[inline]
     #[must_use]
     pub fn round(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_round(self))
     }
 
-    /// Rounds the components of `self` towards zero.
+    /// Rounds the vector's components towards zero.
     #[inline]
     #[must_use]
     pub fn trunc(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_trunc(self))
     }
 
-    /// Returns the fractional part of `self`.
+    /// Returns the fractional part of the vector.
     ///
-    /// This function is equivalent to `self - self.trunc()`.
+    /// Equivalent to `self - self.trunc()`.
     #[inline]
     #[must_use]
     pub fn fract(self) -> Self {
         self - self.trunc()
     }
 
-    /// Fused Multiply Add. Computes `self * a + b` with only one rounding error
-    /// instead of two.
+    /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
+    /// error, yielding a more accurate result than an unfused multiply-add.
     ///
-    /// This is slower than an unfused multiply add for most target
+    /// Using `mul_add` is slower than an unfused multiply-add on most target
     /// architectures.
     ///
-    /// This function is guaranteed to return the exact same value as the
-    /// standard library.
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result. It is specified by IEEE 754 as
+    /// `fusedMultiplyAdd` and guaranteed not to change.
     #[inline]
     #[must_use]
     pub fn mul_add(self, a: Self, b: Self) -> Self {
@@ -454,8 +501,12 @@ where
 
     /// Euclidiean Division.
     ///
-    /// This function is guaranteed to return the exact same value as the
-    /// standard library.
+    /// Equivalent to `(self.x.div_euclid(rhs.x), self.y.div_euclid(rhs.y), ...)`.
+    ///
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result.
     #[inline]
     #[must_use]
     pub fn div_euclid(self, rhs: Self) -> Self {
@@ -464,109 +515,142 @@ where
 
     /// Euclidiean Remainder.
     ///
-    /// This function is guaranteed to return the exact same value as the
-    /// standard library.
+    /// Equivalent to `(self.x.rem_euclid(rhs.x), self.y.rem_euclid(rhs.y), ...)`.
+    ///
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result.
     #[inline]
     #[must_use]
     pub fn rem_euclid(self, rhs: Self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_rem_euclid(self, rhs))
     }
 
-    /// Computes the square root of the components of `self`.
+    /// Returns the square root of the vector's components.
     ///
-    /// This function is guaranteed to return the exact same value as the
-    /// standard library.
+    /// Equivalent to `(self.x.sqrt(), self.y.sqrt(), ...)`.
+    ///
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result. It is specified by IEEE 754 as `squareRoot`
+    /// and guaranteed not to change.
     #[inline]
     #[must_use]
     pub fn sqrt(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_sqrt(self))
     }
 
-    /// Computes the sine of the components of `self`.
+    /// Computes the sine of the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn sin(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_sin(self))
     }
 
-    /// Computes the cosine of the components of `self`.
+    /// Computes the cosine of the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn cos(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_cos(self))
     }
 
-    /// Computes the tangent of the components of `self`.
+    /// Computes the tangent of the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn tan(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_tan(self))
     }
 
-    /// Computes the arc sine of the components of `self`.
+    /// Computes the arcsine of the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn asin(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_asin(self))
     }
 
-    /// Computes the arc cosine of the components of `self`.
+    /// Computes the arccosine of the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn acos(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_acos(self))
     }
 
-    /// Computes the arc tangent of the components of `self`.
+    /// Computes the arctangent of the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn atan(self) -> Self {
         specialize!(<T as FloatBackend<N, A>>::vec_atan(self))
     }
 
-    /// Simultaneously computes the sine and cosine of the components of `self`.
+    /// Simultaneously computes the sine and cosine of the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// Equivalent to `(self.sin(), self.cos())` but may be more performant and
+    /// might return a slightly different value.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn sin_cos(self) -> (Self, Self) {
         specialize!(<T as FloatBackend<N, A>>::vec_sin_cos(self))
     }
 
-    /// Returns the length/magnitude of `self`.
+    /// Returns the length/magnitude of the vector.
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
         self.dot(self).sqrt()
     }
 
-    /// Computes the euclidean distance between `self` and `other`.
+    /// Computes the Euclidean distance between `self` and `other`.
     #[inline]
     #[must_use]
     pub fn distance(self, other: Self) -> T {
         (self - other).length()
     }
 
-    /// Moves `self` towards `other` by the value `max_delta`.
+    /// Moves `self` towards `other` by at most `max_delta`.
     ///
     /// When `max_delta` is `0.0`, the result is `self`. When `max_delta` is
     /// equal to or greater than `self.distance(other)`, the result is `other`.
@@ -587,8 +671,9 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if the input is zero
-    /// or if the result is non finite or zero.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the input is a zero vector, or if the result is non finite or zero.
     #[inline]
     #[must_use]
     pub fn normalize(self) -> Self {
@@ -606,8 +691,8 @@ where
         result
     }
 
-    /// Computes [`self.normalize`](Self::normalize) or returns `None` if the
-    /// input is zero or if the result is non finite or zero.
+    /// Returns [`Self::normalize`], or `None` if the input is zero or if the
+    /// result is non finite or zero.
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
@@ -619,27 +704,25 @@ where
         }
     }
 
-    /// Computes [`self.normalize`](Self::normalize) or returns `fallback` if
-    /// the input is zero or if the result is non finite or zero.
+    /// Returns [`Self::normalize`], or `fallback` if the input is zero or if
+    /// the result is non finite or zero.
     #[inline]
     #[must_use]
     pub fn normalize_or(self, fallback: Self) -> Self {
         self.try_normalize().unwrap_or(fallback)
     }
 
-    /// Computes [`self.normalize`](Self::normalize) or returns a zero vector if
-    /// the input is zero or if the result is non finite or zero.
+    /// Returns [`Self::normalize`], or a zero vector if the input is zero or if
+    /// the result is non finite.
     #[inline]
     #[must_use]
     pub fn normalize_or_zero(self) -> Self {
         self.normalize_or(Self::ZERO)
     }
 
-    /// Computes [`self.normalize()`](Self::normalize) and
-    /// [`self.length()`](Self::length).
+    /// Simultaneously computes [`Self::normalize`] and [`Self::length`].
     ///
-    /// If `self` is a zero vector, the function returns
-    /// `(Self::ZERO, 0.0)`.
+    /// If `self` is a zero vector, the result is `(Self::ZERO, 0.0)`.
     #[inline]
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
@@ -653,11 +736,13 @@ where
         }
     }
 
-    /// Returns `self` with a length of no more than `max`.
+    /// Returns the input vector but with a length of no more than `max`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `max` is negative.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `max` is negative.
     #[inline]
     #[must_use]
     pub fn with_max_length(self, max: T) -> Self {
@@ -672,11 +757,13 @@ where
         }
     }
 
-    /// Returns `self` with a length of no less than `min`.
+    /// Returns the input vector but with a length of no less than `min`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `min` is negative.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `min` is negative.
     #[inline]
     #[must_use]
     pub fn with_min_length(self, min: T) -> Self {
@@ -691,13 +778,14 @@ where
         }
     }
 
-    /// Returns `self` with a length of no less than `min` and no more than
-    /// `max`.
+    /// Returns the input vector buth with a length of no less than `min` and no
+    /// more than `max`.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `min` is greater
-    /// than `max`, or if either `min` or `max` are negative.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `min > max`, or if `min` or `max` are negative.
     #[inline]
     #[must_use]
     pub fn clamp_length(self, min: T, max: T) -> Self {
@@ -717,63 +805,82 @@ where
         }
     }
 
-    /// Computes the angle (in radians) between two vectors in the range
+    /// Returns the angle (in radians) between `self` and `other` in the range
     /// `[0, +π]`.
     ///
     /// The vectors do not need to be unit vectors but they do need to be
     /// non-zero.
     ///
-    /// This function has unspecified precision.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn angle_between(self, other: Self) -> T {
         (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
     }
 
-    /// Computes the exponential function `e^self` for the components of `self`.
+    /// Computes the exponential function `e^self` for the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn exp(self) -> Self {
         self.map(T::exp)
     }
 
-    /// Computes `2^self` for the components of `self`.
+    /// Computes `2^self` for the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn exp2(self) -> Self {
         self.map(T::exp2)
     }
 
-    /// Computes the natural logarithm for the components of `self`.
+    /// Computes the natural logarithm for the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn ln(self) -> Self {
         self.map(T::ln)
     }
 
-    /// Computes the base 2 logarithm for the components of `self`.
+    /// Computes the base 2 logarithm for the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn log2(self) -> Self {
         self.map(T::log2)
     }
 
-    /// Computes `self^n` for the components of `self`.
+    /// Computes `self^n` for the vector's components.
     ///
-    /// This function has unspecified precision and may return a different value
-    /// than the standard library.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn powf(self, n: T) -> Self {
@@ -782,17 +889,18 @@ where
 
     /// Returns the vector refraction of `self` through `normal` and `eta`.
     ///
-    /// `eta` is the incident index divided by the transmitted index.
+    /// `eta` is the incident refraction-index divided by the transmitted
+    /// refraction-index.
     ///
-    /// When total internal reflection occurs, this function returns a zero
-    /// vector.
+    /// When total internal reflection occurs, the result is a zero vector.
     ///
     /// `self` and `normal` must be normalized.
     ///
     /// # Panics
     ///
-    /// When assertions are enabled, this function panics if `self` or `normal`
-    /// are not normalized.
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `self` or `normal` are not normalized.
     #[inline]
     #[must_use]
     pub fn refract(self, normal: Self, eta: T) -> Self {
@@ -823,7 +931,11 @@ impl<A: Alignment> Vector<2, T, A> {
 
     /// Rotates `self` by `angle` (in radians).
     ///
-    /// This function has unspecified precision.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn rotate(self, angle: T) -> Self {
@@ -839,7 +951,11 @@ impl<A: Alignment> Vector<2, T, A> {
 impl<A: Alignment> Vector<3, T, A> {
     /// Rotates `self` around the x axis by `angle` (in radians).
     ///
-    /// This function has unspecified precision.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn rotate_x(self, angle: T) -> Self {
@@ -853,7 +969,11 @@ impl<A: Alignment> Vector<3, T, A> {
 
     /// Rotates `self` around the y axis by `angle` (in radians).
     ///
-    /// This function has unspecified precision.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn rotate_y(self, angle: T) -> Self {
@@ -867,7 +987,11 @@ impl<A: Alignment> Vector<3, T, A> {
 
     /// Rotates `self` around the z axis by `angle` (in radians).
     ///
-    /// This function has unspecified precision.
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
     #[inline]
     #[must_use]
     pub fn rotate_z(self, angle: T) -> Self {
