@@ -4,8 +4,8 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 use crate::{
-    Aligned, ScalarBackend, Unaligned, Vec2U, Vec3, Vec3U, Vec4, Vec4U, utils::safe_arch,
-    vector::f32::FloatBackend,
+    Aligned, F32VectorBackend, ScalarBackend, Unaligned, Vec2U, Vec3, Vec3U, Vec4, Vec4U,
+    utils::safe_arch,
 };
 
 unsafe impl ScalarBackend<2, Aligned> for f32 {
@@ -130,9 +130,9 @@ unsafe impl ScalarBackend<4, Unaligned> for f32 {
     type VectorRepr = Vec4U<f32>;
 }
 
-impl FloatBackend<2, Aligned> for f32 {}
+impl F32VectorBackend<2, Aligned> for f32 {}
 
-impl FloatBackend<3, Aligned> for f32 {
+impl F32VectorBackend<3, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse")]
 
@@ -239,7 +239,7 @@ impl FloatBackend<3, Aligned> for f32 {
     }
 }
 
-impl FloatBackend<4, Aligned> for f32 {
+impl F32VectorBackend<4, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse")]
 
@@ -346,9 +346,9 @@ impl FloatBackend<4, Aligned> for f32 {
     }
 }
 
-impl FloatBackend<2, Unaligned> for f32 {}
-impl FloatBackend<3, Unaligned> for f32 {}
-impl FloatBackend<4, Unaligned> for f32 {}
+impl F32VectorBackend<2, Unaligned> for f32 {}
+impl F32VectorBackend<3, Unaligned> for f32 {}
+impl F32VectorBackend<4, Unaligned> for f32 {}
 
 #[inline]
 #[target_feature(enable = "sse")]
