@@ -350,7 +350,7 @@ where
     T: Scalar,
 {
     #[inline]
-    pub(in crate::vector) const fn new(x: T, y: T) -> Self {
+    pub(crate) const fn new(x: T, y: T) -> Self {
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
     }
 }
@@ -360,7 +360,7 @@ where
     T: Scalar,
 {
     #[inline]
-    pub(in crate::vector) const fn new(x: T, y: T, z: T) -> Self {
+    pub(crate) const fn new(x: T, y: T, z: T) -> Self {
         unsafe {
             match size_of::<Vector<3, T, A>>() / size_of::<T>() {
                 3 => transmute_generic::<Repr3<T>, Vector<3, T, A>>(Repr3(x, y, z)),
@@ -376,7 +376,7 @@ where
     T: Scalar,
 {
     #[inline]
-    pub(in crate::vector) const fn new(x: T, y: T, z: T, w: T) -> Self {
+    pub(crate) const fn new(x: T, y: T, z: T, w: T) -> Self {
         unsafe { transmute_generic::<Repr4<T>, Vector<4, T, A>>(Repr4(x, y, z, w)) }
     }
 }

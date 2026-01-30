@@ -8,7 +8,7 @@ The library features:
 - Square Matrices (todo): `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
 - Quaternion (todo): `Quat<T>`.
 - Affine Transformations (todo): `Affine2<T>`, `Affine3<T>`.
-- Masks (todo): `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
+- Masks: `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
 
 For appropriate scalars, these types are aligned for SIMD to improve
 performance. The library also features unaligned types:
@@ -17,7 +17,7 @@ performance. The library also features unaligned types:
 - Square Matrices (todo): `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
 - Quaternion (todo): `QuatU<T>`.
 - Affine Transformations (todo): `Affine2U<T>`, `Affine3U<T>`.
-- Masks (todo): `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
+- Masks: `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
 
 Unaligned types have the same functionality as aligned types, but are not
 aligned for SIMD meaning they take less memory but have slower operations.
@@ -28,7 +28,7 @@ All types are type aliases to these generic structs:
 - `Matrix<N, T, A>` (todo).
 - `Quaternion<T, A>` (todo).
 - `Affine<N, T, A>` (todo).
-- `Mask<N, T, A>` (todo).
+- `Mask<N, T, A>`.
 
 Where:
 
@@ -41,6 +41,9 @@ alignments without duplicating code or using macros.
 
 ## Development Status
 
+TODO: Implement SIMD optimizations for masks, implement mask dependent vector
+functions, implement mask crate integration, and remove this note.
+
 `ggmath` is not mature yet but is under active development.
 
 Feature List:
@@ -49,7 +52,7 @@ Feature List:
 - [ ] Square Matrices
 - [ ] Quaternion
 - [ ] Affine Transformations
-- [ ] Masks
+- [x] Masks
 - [x] Sufficient Float-Vector functionality
 - [x] Sufficient Int-Vector functionality
 - [ ] Sufficient Matrix functionality

@@ -8,6 +8,15 @@ Breaking changes:
 
 Non breaking changes:
 
+- Added mask types:
+  - `Mask2`
+  - `Mask3`
+  - `Mask4`
+  - `Mask2U`
+  - `Mask3U`
+  - `Mask4U`
+  - `Mask`
+
 - Improved documentation.
 
 ## 0.15.1 (29.1.2025)
