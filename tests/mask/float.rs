@@ -1,23 +1,29 @@
 use ggmath::{Alignment, Mask};
 use itertools::iproduct;
 
-pub fn int_tests<A: Alignment>() {
-    const ARGS: [T; 15] = [
-        0,
-        1,
-        -1,
-        2,
-        -2,
-        10,
-        -10,
-        100,
-        -100,
-        T::MAX / 2,
-        T::MIN / 2,
-        T::MAX - 1,
-        T::MIN + 1,
+use crate::utils::vec3_with_padding;
+
+pub fn test<A: Alignment>() {
+    const ARGS: [T; 19] = [
+        0.0,
+        -0.0,
+        1.0,
+        -1.0,
+        8.6,
+        -8.6,
+        20.3,
+        -20.3,
+        1005.2,
+        -1005.2,
+        500000.1,
+        -500000.1,
+        100000000000.5,
+        -100000000000.5,
         T::MAX,
         T::MIN,
+        T::INFINITY,
+        T::NEG_INFINITY,
+        T::NAN,
     ];
 
     for (x, y, z) in iproduct!(ARGS, ARGS, ARGS) {
@@ -35,7 +41,7 @@ pub fn int_tests<A: Alignment>() {
 
         macro_rules! vec3 {
             ($($arg:expr),*$(,)?) => {
-                ggmath::Vector::<3, T, A>::from(($($arg,)*))
+                vec3_with_padding(ggmath::Vector::<3, T, A>::from(($($arg,)*)), T::NAN)
             };
         }
 
@@ -121,6 +127,76 @@ pub fn int_tests<A: Alignment>() {
         assert_eq!(
             vec4!(x, y, z, x).ge_mask(vec4!(z, x, y, z)),
             Mask::<4, T, A>::new(x >= z, y >= x, z >= y, x >= z)
+        );
+
+        assert_eq!(
+            vec2!(x, y).nan_mask(),
+            Mask::<2, T, A>::new(x.is_nan(), y.is_nan())
+        );
+        assert_eq!(
+            vec3!(x, y, z).nan_mask(),
+            Mask::<3, T, A>::new(x.is_nan(), y.is_nan(), z.is_nan())
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).nan_mask(),
+            Mask::<4, T, A>::new(x.is_nan(), y.is_nan(), z.is_nan(), x.is_nan())
+        );
+
+        assert_eq!(
+            vec2!(x, y).finite_mask(),
+            Mask::<2, T, A>::new(x.is_finite(), y.is_finite())
+        );
+        assert_eq!(
+            vec3!(x, y, z).finite_mask(),
+            Mask::<3, T, A>::new(x.is_finite(), y.is_finite(), z.is_finite())
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).finite_mask(),
+            Mask::<4, T, A>::new(x.is_finite(), y.is_finite(), z.is_finite(), x.is_finite())
+        );
+
+        assert_eq!(
+            vec2!(x, y).sign_positive_mask(),
+            Mask::<2, T, A>::new(x.is_sign_positive(), y.is_sign_positive())
+        );
+        assert_eq!(
+            vec3!(x, y, z).sign_positive_mask(),
+            Mask::<3, T, A>::new(
+                x.is_sign_positive(),
+                y.is_sign_positive(),
+                z.is_sign_positive()
+            )
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).sign_positive_mask(),
+            Mask::<4, T, A>::new(
+                x.is_sign_positive(),
+                y.is_sign_positive(),
+                z.is_sign_positive(),
+                x.is_sign_positive()
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).sign_negative_mask(),
+            Mask::<2, T, A>::new(x.is_sign_negative(), y.is_sign_negative())
+        );
+        assert_eq!(
+            vec3!(x, y, z).sign_negative_mask(),
+            Mask::<3, T, A>::new(
+                x.is_sign_negative(),
+                y.is_sign_negative(),
+                z.is_sign_negative()
+            )
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).sign_negative_mask(),
+            Mask::<4, T, A>::new(
+                x.is_sign_negative(),
+                y.is_sign_negative(),
+                z.is_sign_negative(),
+                x.is_sign_negative()
+            )
         );
     }
 }

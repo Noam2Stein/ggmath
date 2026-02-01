@@ -3,7 +3,7 @@ use itertools::iproduct;
 
 use crate::{float_eq, utils::vec3_with_padding};
 
-pub fn float_tests<A: Alignment>() {
+pub fn test<A: Alignment>() {
     const ARGS: [T; 19] = [
         0.0,
         -0.0,

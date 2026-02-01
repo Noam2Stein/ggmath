@@ -1,8 +1,24 @@
 use ggmath::{Alignment, Mask};
 use itertools::iproduct;
 
-pub fn uint_tests<A: Alignment>() {
-    const ARGS: [T; 9] = [0, 1, 2, 10, 100, 200, T::MAX / 2, T::MAX - 1, T::MAX];
+pub fn test<A: Alignment>() {
+    const ARGS: [T; 15] = [
+        0,
+        1,
+        -1,
+        2,
+        -2,
+        10,
+        -10,
+        100,
+        -100,
+        T::MAX / 2,
+        T::MIN / 2,
+        T::MAX - 1,
+        T::MIN + 1,
+        T::MAX,
+        T::MIN,
+    ];
 
     for (x, y, z) in iproduct!(ARGS, ARGS, ARGS) {
         macro_rules! assert_eq {
