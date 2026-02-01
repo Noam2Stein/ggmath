@@ -1,7 +1,7 @@
 #[cfg(feature = "libm")]
 #[allow(unused_imports)]
 use crate::libm::LibmFloatExt;
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
+use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector, utils::specialize};
 
 macro_rules! impl_float {
     ($T:ident, $Backend:ident) => {
@@ -16,6 +16,17 @@ macro_rules! impl_float {
                 specialize!(<$T as $Backend<N, A>>::vec_is_nan(self))
             }
 
+            /// Returns a mask where each component is `true` if the
+            /// corresponding component of `self` is NaN (Not a Number).
+            ///
+            /// Equivalent to `(self.x.is_nan(), self.y.is_nan(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn nan_mask(self) -> Mask<N, $T, A> {
+                // TODO: add specialization.
+                Mask::from_fn(|i| self[i].is_nan())
+            }
+
             /// Returns `true` if all of the vector's components are finite.
             ///
             /// Finite corresponds to not NaN and not positive/negative infinity.
@@ -23,6 +34,43 @@ macro_rules! impl_float {
             #[must_use]
             pub fn is_finite(self) -> bool {
                 specialize!(<$T as $Backend<N, A>>::vec_is_finite(self))
+            }
+
+            /// Returns a mask where each component is `true` if the
+            /// corresponding component of `self` is finite.
+            ///
+            /// Finite corresponds to not NaN and not positive/negative infinity.
+            ///
+            /// Equivalent to `(self.x.is_finite(), self.y.is_finite(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn finite_mask(self) -> Mask<N, $T, A> {
+                // TODO: add specialization.
+                Mask::from_fn(|i| self[i].is_finite())
+            }
+
+            /// Returns a mask where each component is `true` if the
+            /// corresponding component of `self` has a positive sign.
+            ///
+            /// Equivalent to
+            /// `(self.x.is_sign_positive(), self.y.is_sign_positive(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn sign_positive_mask(self) -> Mask<N, $T, A> {
+                // TODO: add specialization.
+                Mask::from_fn(|i| self[i].is_sign_positive())
+            }
+
+            /// Returns a mask where each component is `true` if the
+            /// corresponding component of `self` has a negative sign.
+            ///
+            /// Equivalent to
+            /// `(self.x.is_sign_negative(), self.y.is_sign_negative(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn sign_negative_mask(self) -> Mask<N, $T, A> {
+                // TODO: add specialization.
+                Mask::from_fn(|i| self[i].is_sign_negative())
             }
 
             /// Computes `1.0 / self`.

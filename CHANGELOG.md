@@ -19,6 +19,20 @@ Non breaking changes:
   - `Mask4U`
   - `Mask`
 
+- Added vector functions:
+  - `eq_mask`
+  - `ne_mask`
+  - `lt_mask`
+  - `gt_mask`
+  - `le_mask`
+  - `ge_mask`
+
+- Added float vector functions:
+  - `nan_mask`
+  - `finite_mask`
+  - `sign_positive_mask`
+  - `sign_negative_mask`
+
 - Improved documentation.
 
 ## 0.15.1 (29.1.2025)

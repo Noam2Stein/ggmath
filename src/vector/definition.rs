@@ -10,7 +10,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Scalar, ScalarBackend, SupportedLength, Unaligned,
+    Aligned, Alignment, Length, Mask, Scalar, ScalarBackend, SupportedLength, Unaligned,
     utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -249,6 +249,93 @@ where
     #[must_use]
     pub fn reverse(self) -> Self {
         Self::from_fn(|i| self[N - 1 - i])
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// components of `self` and `other` are equal.
+    ///
+    /// Equivalent to `(self.x == other.x, self.y == other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn eq_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialEq,
+    {
+        // TODO: add specialization.
+        Mask::from_fn(|i| self[i] == other[i])
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// components of `self` and `other` are not equal.
+    ///
+    /// Equivalent to `(self.x != other.x, self.y != other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn ne_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialEq,
+    {
+        // TODO: add specialization.
+        Mask::from_fn(|i| self[i] != other[i])
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is less than the corresponding component of `other`.
+    ///
+    /// Equivalent to `(self.x < other.x, self.y < other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn lt_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        // TODO: add specialization.
+        Mask::from_fn(|i| self[i] < other[i])
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is greater than the corresponding component of
+    /// `other`.
+    ///
+    /// Equivalent to `(self.x > other.x, self.y > other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn gt_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        // TODO: add specialization.
+        Mask::from_fn(|i| self[i] > other[i])
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is less than or equal to the corresponding component
+    /// of `other`.
+    ///
+    /// Equivalent to `(self.x <= other.x, self.y <= other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn le_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        // TODO: add specialization.
+        Mask::from_fn(|i| self[i] <= other[i])
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is greater than or equal to the corresponding
+    /// component of `other`.
+    ///
+    /// Equivalent to `(self.x >= other.x, self.y >= other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn ge_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        // TODO: add specialization.
+        Mask::from_fn(|i| self[i] >= other[i])
     }
 
     /// Returns the internal representation of the vector.
