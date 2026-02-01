@@ -139,69 +139,25 @@ where
         self.0.iter()
     }
 
-    /// Returns the component at the given index, or `None` if the index is out
-    /// of bounds.
+    /// Returns the component at the given index.
     ///
-    /// # Example
+    /// # Panics
     ///
-    /// ```
-    /// use ggmath::Mask3;
-    ///
-    /// let mask: Mask3<f32> = Mask3::new(false, true, false);
-    ///
-    /// assert_eq!(mask.get(0), Some(false));
-    /// assert_eq!(mask.get(1), Some(true));
-    /// assert_eq!(mask.get(2), Some(false));
-    /// assert_eq!(mask.get(3), None);
-    /// ```
+    /// Panics if the index is out of bounds.
     #[inline]
     #[must_use]
-    pub fn get(self, index: usize) -> Option<bool> {
-        self.0.get(index)
+    pub fn get(self, index: usize) -> bool {
+        self.0[index]
     }
 
     /// Sets the component at the given index.
     ///
-    /// Returns `None` if the index is out of bounds.
+    /// # Panics
     ///
-    /// # Example
-    ///
-    /// ```
-    /// use ggmath::Mask3;
-    ///
-    /// let mut mask: Mask3<f32> = Mask3::new(false, true, false);
-    ///
-    /// assert_eq!(mask.set(0, true), Some(()));
-    /// assert_eq!(mask.set(1, false), Some(()));
-    /// assert_eq!(mask.set(2, true), Some(()));
-    /// assert_eq!(mask.set(3, false), None);
-    /// ```
+    /// Panics if the index is out of bounds.
     #[inline]
-    #[must_use]
-    pub fn set(&mut self, index: usize, value: bool) -> Option<()> {
-        if let Some(component) = self.0.get_mut(index) {
-            *component = value;
-            Some(())
-        } else {
-            None
-        }
-    }
-
-    /// Returns the mask's components in reverse order.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ggmath::Mask3;
-    ///
-    /// let mask: Mask3<f32> = Mask3::new(false, true, true);
-    ///
-    /// assert_eq!(mask.reverse(), Mask3::new(true, true, false));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn reverse(self) -> Self {
-        Self(self.0.reverse(), PhantomData)
+    pub fn set(&mut self, index: usize, value: bool) {
+        self.0[index] = value;
     }
 }
 
@@ -215,32 +171,6 @@ where
     pub fn new(x: bool, y: bool) -> Self {
         Self(Vector::<2, bool, A>::new(x, y), PhantomData)
     }
-
-    /// The first component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn x(self) -> bool {
-        self.0.x
-    }
-
-    /// The second component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn y(self) -> bool {
-        self.0.y
-    }
-
-    /// Sets the first component of the mask to the given value.
-    #[inline]
-    pub fn set_x(&mut self, value: bool) {
-        self.0.x = value;
-    }
-
-    /// Sets the second component of the mask to the given value.
-    #[inline]
-    pub fn set_y(&mut self, value: bool) {
-        self.0.y = value;
-    }
 }
 
 impl<T, A: Alignment> Mask<3, T, A>
@@ -253,45 +183,6 @@ where
     pub fn new(x: bool, y: bool, z: bool) -> Self {
         Self(Vector::<3, bool, A>::new(x, y, z), PhantomData)
     }
-
-    /// The first component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn x(self) -> bool {
-        self.0.x
-    }
-
-    /// The second component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn y(self) -> bool {
-        self.0.y
-    }
-
-    /// The third component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn z(self) -> bool {
-        self.0.z
-    }
-
-    /// Sets the first component of the mask to the given value.
-    #[inline]
-    pub fn set_x(&mut self, value: bool) {
-        self.0.x = value;
-    }
-
-    /// Sets the second component of the mask to the given value.
-    #[inline]
-    pub fn set_y(&mut self, value: bool) {
-        self.0.y = value;
-    }
-
-    /// Sets the third component of the mask to the given value.
-    #[inline]
-    pub fn set_z(&mut self, value: bool) {
-        self.0.z = value;
-    }
 }
 
 impl<T, A: Alignment> Mask<4, T, A>
@@ -303,58 +194,6 @@ where
     #[must_use]
     pub fn new(x: bool, y: bool, z: bool, w: bool) -> Self {
         Self(Vector::<4, bool, A>::new(x, y, z, w), PhantomData)
-    }
-
-    /// The first component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn x(self) -> bool {
-        self.0.x
-    }
-
-    /// The second component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn y(self) -> bool {
-        self.0.y
-    }
-
-    /// The third component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn z(self) -> bool {
-        self.0.z
-    }
-
-    /// The fourth component of the mask.
-    #[inline]
-    #[must_use]
-    pub fn w(self) -> bool {
-        self.0.w
-    }
-
-    /// Sets the first component of the mask to the given value.
-    #[inline]
-    pub fn set_x(&mut self, value: bool) {
-        self.0.x = value;
-    }
-
-    /// Sets the second component of the mask to the given value.
-    #[inline]
-    pub fn set_y(&mut self, value: bool) {
-        self.0.y = value;
-    }
-
-    /// Sets the third component of the mask to the given value.
-    #[inline]
-    pub fn set_z(&mut self, value: bool) {
-        self.0.z = value;
-    }
-
-    /// Sets the fourth component of the mask to the given value.
-    #[inline]
-    pub fn set_w(&mut self, value: bool) {
-        self.0.w = value;
     }
 }
 

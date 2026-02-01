@@ -11,6 +11,8 @@ use ggmath::{
 };
 use itertools::iproduct;
 
+use crate::assert_panic;
+
 assert_impl!(
     for<const N: usize, T, A: Alignment>
     where
@@ -302,190 +304,51 @@ where
             vec![x, y, z, w]
         );
 
-        assert_eq!(Mask::<2, T, A>::new(x, y).get(0), Some(x));
-        assert_eq!(Mask::<2, T, A>::new(x, y).get(1), Some(y));
-        assert_eq!(Mask::<2, T, A>::new(x, y).get(2), None);
-        assert_eq!(Mask::<2, T, A>::new(x, y).get(3), None);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(0), Some(x));
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(1), Some(y));
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(2), Some(z));
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(3), None);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(4), None);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(0), Some(x));
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(1), Some(y));
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(2), Some(z));
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(3), Some(w));
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(4), None);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(5), None);
+        assert_eq!(Mask::<2, T, A>::new(x, y).get(0), x);
+        assert_eq!(Mask::<2, T, A>::new(x, y).get(1), y);
+        assert_panic!(Mask::<2, T, A>::new(x, y).get(2));
+        assert_panic!(Mask::<2, T, A>::new(x, y).get(3));
+        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(0), x);
+        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(1), y);
+        assert_eq!(Mask::<3, T, A>::new(x, y, z).get(2), z);
+        assert_panic!(Mask::<3, T, A>::new(x, y, z).get(3));
+        assert_panic!(Mask::<3, T, A>::new(x, y, z).get(4));
+        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(0), x);
+        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(1), y);
+        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(2), z);
+        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(3), w);
+        assert_panic!(Mask::<4, T, A>::new(x, y, z, w).get(4));
+        assert_panic!(Mask::<4, T, A>::new(x, y, z, w).get(5));
 
         let mut m = Mask::<2, T, A>::new(x, y);
-        assert_eq!(m.set(0, y), Some(()));
+        m.set(0, y);
         assert_eq!(m.to_array(), [y, y]);
-        assert_eq!(m.set(1, x), Some(()));
+        m.set(1, x);
         assert_eq!(m.to_array(), [y, x]);
-        assert_eq!(m.set(2, x), None);
-        assert_eq!(m.to_array(), [y, x]);
-        assert_eq!(m.set(3, z), None);
-        assert_eq!(m.to_array(), [y, x]);
+        assert_panic!(m.clone().set(2, x));
+        assert_panic!(m.clone().set(3, z));
 
         let mut m = Mask::<3, T, A>::new(x, y, z);
-        assert_eq!(m.set(0, y), Some(()));
+        m.set(0, y);
         assert_eq!(m.to_array(), [y, y, z]);
-        assert_eq!(m.set(1, x), Some(()));
+        m.set(1, x);
         assert_eq!(m.to_array(), [y, x, z]);
-        assert_eq!(m.set(2, x), Some(()));
+        m.set(2, x);
         assert_eq!(m.to_array(), [y, x, x]);
-        assert_eq!(m.set(3, w), None);
-        assert_eq!(m.to_array(), [y, x, x]);
-        assert_eq!(m.set(4, w), None);
-        assert_eq!(m.to_array(), [y, x, x]);
+        assert_panic!(m.clone().set(3, w));
+        assert_panic!(m.clone().set(4, w));
 
         let mut m = Mask::<4, T, A>::new(x, y, z, w);
-        assert_eq!(m.set(0, y), Some(()));
+        m.set(0, y);
         assert_eq!(m.to_array(), [y, y, z, w]);
-        assert_eq!(m.set(1, x), Some(()));
+        m.set(1, x);
         assert_eq!(m.to_array(), [y, x, z, w]);
-        assert_eq!(m.set(2, x), Some(()));
+        m.set(2, x);
         assert_eq!(m.to_array(), [y, x, x, w]);
-        assert_eq!(m.set(3, x), Some(()));
+        m.set(3, x);
         assert_eq!(m.to_array(), [y, x, x, x]);
-        assert_eq!(m.set(4, w), None);
-        assert_eq!(m.to_array(), [y, x, x, x]);
-        assert_eq!(m.set(5, w), None);
-        assert_eq!(m.to_array(), [y, x, x, x]);
-
-        assert_eq!(Mask::<2, T, A>::new(x, y).xy().to_array(), [x, y]);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).xy().to_array(), [x, y]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).xy().to_array(), [x, y]);
-        assert_eq!(Mask::<2, T, A>::new(x, y).xx().to_array(), [x, x]);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).xx().to_array(), [x, x]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).xx().to_array(), [x, x]);
-        assert_eq!(Mask::<2, T, A>::new(x, y).yy().to_array(), [y, y]);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).yy().to_array(), [y, y]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).yy().to_array(), [y, y]);
-        assert_eq!(Mask::<2, T, A>::new(x, y).yx().to_array(), [y, x]);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).yx().to_array(), [y, x]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).yx().to_array(), [y, x]);
-
-        assert_eq!(Mask::<2, T, A>::new(x, y).xyx().to_array(), [x, y, x]);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).xyz().to_array(), [x, y, z]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).xyz().to_array(), [x, y, z]);
-        assert_eq!(Mask::<2, T, A>::new(x, y).yxy().to_array(), [y, x, y]);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).zyx().to_array(), [z, y, x]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).wzy().to_array(), [w, z, y]);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).yyy().to_array(), [y, y, y]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).zzz().to_array(), [z, z, z]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).xzw().to_array(), [x, z, w]);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).wxy().to_array(), [w, x, y]);
-
-        assert_eq!(Mask::<2, T, A>::new(x, y).xyxy().to_array(), [x, y, x, y]);
-        assert_eq!(
-            Mask::<3, T, A>::new(x, y, z).xyzx().to_array(),
-            [x, y, z, x]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).xyzw().to_array(),
-            [x, y, z, w]
-        );
-        assert_eq!(
-            Mask::<3, T, A>::new(x, y, z).zyxx().to_array(),
-            [z, y, x, x]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).wzyx().to_array(),
-            [w, z, y, x]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).yyyy().to_array(),
-            [y, y, y, y]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).zwzw().to_array(),
-            [z, w, z, w]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).xxzw().to_array(),
-            [x, x, z, w]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).wwxy().to_array(),
-            [w, w, x, y]
-        );
-
-        assert_eq!(Mask::<2, T, A>::new(x, y).reverse().to_array(), [y, x]);
-        assert_eq!(
-            Mask::<3, T, A>::new(x, y, z).reverse().to_array(),
-            [z, y, x]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).reverse().to_array(),
-            [w, z, y, x]
-        );
-
-        assert_eq!(Mask::<2, T, A>::new(x, y).x(), x);
-        assert_eq!(Mask::<2, T, A>::new(x, y).y(), y);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).x(), x);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).y(), y);
-        assert_eq!(Mask::<3, T, A>::new(x, y, z).z(), z);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).x(), x);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).y(), y);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).z(), z);
-        assert_eq!(Mask::<4, T, A>::new(x, y, z, w).w(), w);
-
-        assert_eq!(Mask::<2, T, A>::new(x, y).with_x(z).to_array(), [z, y]);
-        assert_eq!(Mask::<2, T, A>::new(x, y).with_y(z).to_array(), [x, z]);
-        assert_eq!(
-            Mask::<3, T, A>::new(x, y, z).with_x(w).to_array(),
-            [w, y, z]
-        );
-        assert_eq!(
-            Mask::<3, T, A>::new(x, y, z).with_y(w).to_array(),
-            [x, w, z]
-        );
-        assert_eq!(
-            Mask::<3, T, A>::new(x, y, z).with_z(w).to_array(),
-            [x, y, w]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).with_x(y).to_array(),
-            [y, y, z, w]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).with_y(z).to_array(),
-            [x, z, z, w]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).with_z(w).to_array(),
-            [x, y, w, w]
-        );
-        assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).with_w(x).to_array(),
-            [x, y, z, x]
-        );
-
-        let mut m = Mask::<2, T, A>::new(x, y);
-        m.set_x(z);
-        assert_eq!(m.to_array(), [z, y]);
-        m.set_y(w);
-        assert_eq!(m.to_array(), [z, w]);
-
-        let mut m = Mask::<3, T, A>::new(x, y, z);
-        m.set_x(w);
-        assert_eq!(m.to_array(), [w, y, z]);
-        m.set_y(x);
-        assert_eq!(m.to_array(), [w, x, z]);
-        m.set_z(y);
-        assert_eq!(m.to_array(), [w, x, y]);
-
-        let mut m = Mask::<4, T, A>::new(x, y, z, w);
-        m.set_x(y);
-        assert_eq!(m.to_array(), [y, y, z, w]);
-        m.set_y(z);
-        assert_eq!(m.to_array(), [y, z, z, w]);
-        m.set_z(w);
-        assert_eq!(m.to_array(), [y, z, w, w]);
-        m.set_w(x);
-        assert_eq!(m.to_array(), [y, z, w, x]);
+        assert_panic!(m.clone().set(4, w));
+        assert_panic!(m.clone().set(5, w));
 
         assert_eq!(
             Mask::<2, T, A>::new(x, y)

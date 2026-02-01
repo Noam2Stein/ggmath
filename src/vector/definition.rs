@@ -234,56 +234,6 @@ where
         Vector::from_fn(|i| f(self[i]))
     }
 
-    /// Returns the component at the given index, or `None` if the index is out
-    /// of bounds.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ggmath::{Vec3, vec3};
-    ///
-    /// let vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
-    ///
-    /// assert_eq!(vec.get(0), Some(1.0));
-    /// assert_eq!(vec.get(1), Some(2.0));
-    /// assert_eq!(vec.get(2), Some(3.0));
-    /// assert_eq!(vec.get(3), None);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn get(self, index: usize) -> Option<T> {
-        if index < N {
-            Some(self.as_array_ref()[index])
-        } else {
-            None
-        }
-    }
-
-    /// Returns a mutable reference to the component at the given index, or
-    /// `None` if the index is out of bounds.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ggmath::{Vec3, vec3};
-    ///
-    /// let mut vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
-    ///
-    /// assert_eq!(vec.get_mut(0), Some(&mut 1.0));
-    /// assert_eq!(vec.get_mut(1), Some(&mut 2.0));
-    /// assert_eq!(vec.get_mut(2), Some(&mut 3.0));
-    /// assert_eq!(vec.get_mut(3), None);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
-        if index < N {
-            Some(&mut self.as_array_mut()[index])
-        } else {
-            None
-        }
-    }
-
     /// Returns the vector's components in reverse order.
     ///
     /// # Example

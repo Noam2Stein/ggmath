@@ -448,38 +448,6 @@ where
         [false, y == w, false, true]
     );
 
-    assert_eq!(vec2!(x, y).get(0), Some(x));
-    assert_eq!(vec2!(x, y).get(1), Some(y));
-    assert_eq!(vec2!(x, y).get(2), None);
-    assert_eq!(vec2!(x, y).get(3), None);
-    assert_eq!(vec3!(x, y, z).get(0), Some(x));
-    assert_eq!(vec3!(x, y, z).get(1), Some(y));
-    assert_eq!(vec3!(x, y, z).get(2), Some(z));
-    assert_eq!(vec3!(x, y, z).get(3), None);
-    assert_eq!(vec3!(x, y, z).get(4), None);
-    assert_eq!(vec4!(x, y, z, w).get(0), Some(x));
-    assert_eq!(vec4!(x, y, z, w).get(1), Some(y));
-    assert_eq!(vec4!(x, y, z, w).get(2), Some(z));
-    assert_eq!(vec4!(x, y, z, w).get(3), Some(w));
-    assert_eq!(vec4!(x, y, z, w).get(4), None);
-    assert_eq!(vec4!(x, y, z, w).get(5), None);
-
-    assert_eq!(vec2!(x, y).get_mut(0), Some(&mut x.clone()));
-    assert_eq!(vec2!(x, y).get_mut(1), Some(&mut y.clone()));
-    assert_eq!(vec2!(x, y).get_mut(2), None);
-    assert_eq!(vec2!(x, y).get_mut(3), None);
-    assert_eq!(vec3!(x, y, z).get_mut(0), Some(&mut x.clone()));
-    assert_eq!(vec3!(x, y, z).get_mut(1), Some(&mut y.clone()));
-    assert_eq!(vec3!(x, y, z).get_mut(2), Some(&mut z.clone()));
-    assert_eq!(vec3!(x, y, z).get_mut(3), None);
-    assert_eq!(vec3!(x, y, z).get_mut(4), None);
-    assert_eq!(vec4!(x, y, z, w).get_mut(0), Some(&mut x.clone()));
-    assert_eq!(vec4!(x, y, z, w).get_mut(1), Some(&mut y.clone()));
-    assert_eq!(vec4!(x, y, z, w).get_mut(2), Some(&mut z.clone()));
-    assert_eq!(vec4!(x, y, z, w).get_mut(3), Some(&mut w.clone()));
-    assert_eq!(vec4!(x, y, z, w).get_mut(4), None);
-    assert_eq!(vec4!(x, y, z, w).get_mut(5), None);
-
     assert_eq!(vec2!(x, y).xy(), vec2!(x, y));
     assert_eq!(vec3!(x, y, z).xy(), vec2!(x, y));
     assert_eq!(vec4!(x, y, z, w).xy(), vec2!(x, y));

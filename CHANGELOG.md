@@ -6,6 +6,8 @@ Breaking changes:
 
 - Renamed the `NaN` trait to `Nan`.
 
+- Removed vector functions: `get`, `get_mut`.
+
 Non breaking changes:
 
 - Added mask types:
