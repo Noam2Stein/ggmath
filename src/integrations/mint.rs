@@ -1,6 +1,6 @@
 use mint::IntoMint;
 
-use crate::{Alignment, Scalar, Vector, vec2, vec3, vec4};
+use crate::{Alignment, Mask, Scalar, Vector, vec2, vec3, vec4};
 
 impl<T, A: Alignment> IntoMint for Vector<2, T, A>
 where
@@ -138,6 +138,99 @@ where
             y: value.y,
             z: value.z,
             w: value.w,
+        }
+    }
+}
+
+impl<T, A: Alignment> IntoMint for Mask<2, T, A>
+where
+    T: Scalar,
+{
+    type MintType = mint::Vector2<bool>;
+}
+
+impl<T, A: Alignment> From<mint::Vector2<bool>> for Mask<2, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: mint::Vector2<bool>) -> Self {
+        Self::new(value.x, value.y)
+    }
+}
+
+impl<T, A: Alignment> From<Mask<2, T, A>> for mint::Vector2<bool>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: Mask<2, T, A>) -> Self {
+        Self {
+            x: value.get(0),
+            y: value.get(1),
+        }
+    }
+}
+
+impl<T, A: Alignment> IntoMint for Mask<3, T, A>
+where
+    T: Scalar,
+{
+    type MintType = mint::Vector3<bool>;
+}
+
+impl<T, A: Alignment> From<mint::Vector3<bool>> for Mask<3, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: mint::Vector3<bool>) -> Self {
+        Self::new(value.x, value.y, value.z)
+    }
+}
+
+impl<T, A: Alignment> From<Mask<3, T, A>> for mint::Vector3<bool>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: Mask<3, T, A>) -> Self {
+        Self {
+            x: value.get(0),
+            y: value.get(1),
+            z: value.get(2),
+        }
+    }
+}
+
+impl<T, A: Alignment> IntoMint for Mask<4, T, A>
+where
+    T: Scalar,
+{
+    type MintType = mint::Vector4<bool>;
+}
+
+impl<T, A: Alignment> From<mint::Vector4<bool>> for Mask<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: mint::Vector4<bool>) -> Self {
+        Self::new(value.x, value.y, value.z, value.w)
+    }
+}
+
+impl<T, A: Alignment> From<Mask<4, T, A>> for mint::Vector4<bool>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: Mask<4, T, A>) -> Self {
+        Self {
+            x: value.get(0),
+            y: value.get(1),
+            z: value.get(2),
+            w: value.get(3),
         }
     }
 }

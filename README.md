@@ -41,8 +41,7 @@ alignments without duplicating code or using macros.
 
 ## Development Status
 
-TODO: Implement SIMD optimizations for masks, implement mask crate integration,
-and remove this note.
+TODO: Implement SIMD optimizations for masks, and remove this note.
 
 `ggmath` is not mature yet but is under active development.
 

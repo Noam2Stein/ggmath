@@ -20,3 +20,8 @@ where
     T: Scalar + Zeroable,
 {
 }
+
+/*
+TODO: add mask implementations. This depends on the representation rules of
+masks which are not defined yet.
+*/
