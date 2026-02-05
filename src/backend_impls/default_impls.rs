@@ -1,8 +1,9 @@
 use crate::{
     Alignment, F64VectorBackend, I8VectorBackend, I16VectorBackend, I32VectorBackend,
-    I64VectorBackend, I128VectorBackend, IsizeVectorBackend, Length, ScalarBackend,
-    SupportedLength, U8VectorBackend, U16VectorBackend, U32VectorBackend, U64VectorBackend,
-    U128VectorBackend, UsizeVectorBackend,
+    I64VectorBackend, I128VectorBackend, IsizeVectorBackend, Length, Scalar, ScalarBackend,
+    ScalarRepr, SupportedLength, U8VectorBackend, U16VectorBackend, U32VectorBackend,
+    U64VectorBackend, U128VectorBackend, UsizeVectorBackend,
+    utils::{Repr2, Repr3, Repr4},
 };
 
 impl<const N: usize, A: Alignment> ScalarBackend<N, A> for f64 where Length<N>: SupportedLength {}
@@ -64,3 +65,20 @@ impl<const N: usize, A: Alignment> UsizeVectorBackend<N, A> for usize where
     Length<N>: SupportedLength
 {
 }
+
+macro_rules! impl_scalar_repr {
+    ($T:ty) => {
+        unsafe impl ScalarRepr for $T {
+            type VectorRepr<const N: usize, T, A: Alignment>
+                = <Length<N> as SupportedLength>::Select<Repr2<T>, Repr3<T>, Repr4<T>>
+            where
+                Length<N>: SupportedLength,
+                T: Scalar;
+        }
+    };
+}
+impl_scalar_repr!(());
+impl_scalar_repr!(i8);
+impl_scalar_repr!(i16);
+impl_scalar_repr!(i64);
+impl_scalar_repr!(i128);

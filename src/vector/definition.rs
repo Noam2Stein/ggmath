@@ -12,7 +12,7 @@ use core::{
 use crate::{
     Aligned, Alignment, Length, Mask, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
     SupportedLength, Unaligned,
-    utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
+    utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 /// A generic vector type.
@@ -55,7 +55,7 @@ use crate::{
 /// Vectors of scalars with the same [`Scalar::Repr`] are guaranteed to have the
 /// same memory layout (if `Repr` is a signed integer).
 #[repr(transparent)]
-pub struct Vector<const N: usize, T, A: Alignment>(VectorRepr<N, T, A>)
+pub struct Vector<const N: usize, T, A: Alignment>(<T::Repr as ScalarRepr>::VectorRepr<N, T, A>)
 where
     Length<N>: SupportedLength,
     T: Scalar;
@@ -698,24 +698,3 @@ where
     T: Scalar + RefUnwindSafe,
 {
 }
-
-type VectorRepr<const N: usize, T, A> = <A as Alignment>::Select<
-    <Length<N> as SupportedLength>::Select<
-        <<T as Scalar>::Repr as ScalarRepr>::Vec2Repr<T>,
-        <<T as Scalar>::Repr as ScalarRepr>::Vec3Repr<T>,
-        <<T as Scalar>::Repr as ScalarRepr>::Vec4Repr<T>,
-    >,
-    <Length<N> as SupportedLength>::Select<Repr2<T>, Repr3<T>, Repr4<T>>,
->;
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct Repr2<T>(T, T);
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct Repr3<T>(T, T, T);
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct Repr4<T>(T, T, T, T);

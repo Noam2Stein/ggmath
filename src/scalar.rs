@@ -1,10 +1,6 @@
-#[cfg(all(target_arch = "x86", target_feature = "sse"))]
-use core::arch::x86::__m128;
-#[cfg(all(target_arch = "x86_64", target_feature = "sse"))]
-use core::arch::x86_64::__m128;
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
-use crate::{Aligned, Alignment, Length, SupportedLength, Unaligned, Vec2U, Vec3U, Vec4U, Vector};
+use crate::{Aligned, Alignment, Length, SupportedLength, Unaligned, Vector};
 
 /// A trait for elements of math types.
 ///
@@ -540,35 +536,12 @@ where
 ///
 /// # Safety
 ///
-/// All associated types must be set correctly according to their documentation.
+/// All associated types must uphold the guarantees of their math types.
 pub(crate) unsafe trait ScalarRepr {
-    /// # Safety
-    ///
-    /// `Vec2Repr<T>` must accept all bit patterns of `T`.
-    ///
-    /// `Vec2Repr<T>` and `[T; 2]` must have the same size.
-    ///
-    /// `Vec2Repr<T>` must have alignment larger than or equal to the alignment of `T`.
-    type Vec2Repr<T: Scalar>: Copy;
-
-    /// # Safety
-    ///
-    /// `Vec3Repr<T>` must accept all bit patterns of `T`.
-    ///
-    /// `Vec3Repr<T>` must have the size of either `[T; 3]` or `[T; 4]`. If its
-    /// size is of `[T; 4]`, the padding must be an aligned value of `T`.
-    ///
-    /// `Vec3Repr<T>` must have alignment larger than or equal to the alignment of `T`.
-    type Vec3Repr<T: Scalar>: Copy;
-
-    /// # Safety
-    ///
-    /// `Vec4Repr<T>` must accept all bit patterns of `T`.
-    ///
-    /// `Vec4Repr<T>` and `[T; 4]` must have the same size.
-    ///
-    /// `Vec4Repr<T>` must have alignment larger than or equal to the alignment of `T`.
-    type Vec4Repr<T: Scalar>: Copy;
+    type VectorRepr<const N: usize, T, A: Alignment>: Copy
+    where
+        Length<N>: SupportedLength,
+        T: Scalar;
 }
 
 /// Used by [`Vector::to_repr`] to reject transmuting between vectors of `Repr = ()`.
@@ -651,50 +624,6 @@ unsafe impl Scalar for usize {
 
 unsafe impl Scalar for bool {
     type Repr = i8;
-}
-
-unsafe impl ScalarRepr for () {
-    type Vec2Repr<T: Scalar> = Vec2U<T>;
-    type Vec3Repr<T: Scalar> = Vec3U<T>;
-    type Vec4Repr<T: Scalar> = Vec4U<T>;
-}
-
-unsafe impl ScalarRepr for i8 {
-    type Vec2Repr<T: Scalar> = Vec2U<T>;
-    type Vec3Repr<T: Scalar> = Vec3U<T>;
-    type Vec4Repr<T: Scalar> = Vec4U<T>;
-}
-
-unsafe impl ScalarRepr for i16 {
-    type Vec2Repr<T: Scalar> = Vec2U<T>;
-    type Vec3Repr<T: Scalar> = Vec3U<T>;
-    type Vec4Repr<T: Scalar> = Vec4U<T>;
-}
-
-#[cfg(target_feature = "sse")]
-unsafe impl ScalarRepr for i32 {
-    type Vec2Repr<T: Scalar> = Vec2U<T>;
-    type Vec3Repr<T: Scalar> = __m128;
-    type Vec4Repr<T: Scalar> = __m128;
-}
-
-#[cfg(not(target_feature = "sse"))]
-unsafe impl ScalarRepr for i32 {
-    type Vec2Repr<T: Scalar> = Vec2U<T>;
-    type Vec3Repr<T: Scalar> = Vec3U<T>;
-    type Vec4Repr<T: Scalar> = Vec4U<T>;
-}
-
-unsafe impl ScalarRepr for i64 {
-    type Vec2Repr<T: Scalar> = Vec2U<T>;
-    type Vec3Repr<T: Scalar> = Vec3U<T>;
-    type Vec4Repr<T: Scalar> = Vec4U<T>;
-}
-
-unsafe impl ScalarRepr for i128 {
-    type Vec2Repr<T: Scalar> = Vec2U<T>;
-    type Vec3Repr<T: Scalar> = Vec3U<T>;
-    type Vec4Repr<T: Scalar> = Vec4U<T>;
 }
 
 unsafe impl SignedInteger for i8 {}
