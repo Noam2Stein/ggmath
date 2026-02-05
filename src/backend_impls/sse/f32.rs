@@ -2,9 +2,10 @@
 use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
-use core::mem::transmute;
 
-use crate::{Aligned, F32VectorBackend, ScalarBackend, Unaligned, Vec3, Vec4, utils::safe_arch};
+use crate::{
+    Aligned, F32VectorBackend, ScalarBackend, Unaligned, Vec3, Vec4, Vector, utils::safe_arch,
+};
 
 impl ScalarBackend<2, Aligned> for f32 {}
 
@@ -14,37 +15,37 @@ impl ScalarBackend<3, Aligned> for f32 {
 
         #[inline]
         fn vec_eq(vec: &Vec3<f32>, other: &Vec3<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpeq_ps(vec.to_m128(), other.to_m128())) as u32 & 0b111 == 0b111
+            _mm_movemask_ps(_mm_cmpeq_ps(vec.0, other.0)) as u32 & 0b111 == 0b111
         }
 
         #[inline]
         fn vec_ne(vec: &Vec3<f32>, other: &Vec3<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpneq_ps(vec.to_m128(), other.to_m128())) as u32 & 0b111 != 0
+            _mm_movemask_ps(_mm_cmpneq_ps(vec.0, other.0)) as u32 & 0b111 != 0
         }
 
         #[inline]
         fn vec_neg(vec: Vec3<f32>) -> Vec3<f32> {
-            neg(vec.to_m128()).to_vec3()
+            Vector(neg(vec.0))
         }
 
         #[inline]
         fn vec_add(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            _mm_add_ps(vec.to_m128(), rhs.to_m128()).to_vec3()
+            Vector(_mm_add_ps(vec.0, rhs.0))
         }
 
         #[inline]
         fn vec_sub(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            _mm_sub_ps(vec.to_m128(), rhs.to_m128()).to_vec3()
+            Vector(_mm_sub_ps(vec.0, rhs.0))
         }
 
         #[inline]
         fn vec_mul(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            _mm_mul_ps(vec.to_m128(), rhs.to_m128()).to_vec3()
+            Vector(_mm_mul_ps(vec.0, rhs.0))
         }
 
         #[inline]
         fn vec_div(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            _mm_div_ps(vec.to_m128(), rhs.to_m128()).to_vec3()
+            Vector(_mm_div_ps(vec.0, rhs.0))
         }
     }
 
@@ -54,7 +55,7 @@ impl ScalarBackend<3, Aligned> for f32 {
 
         #[inline]
         fn vec_rem(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            rem(vec.to_m128(), rhs.to_m128()).to_vec3()
+            Vector(rem(vec.0, rhs.0))
         }
     }
 }
@@ -65,37 +66,37 @@ impl ScalarBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vec_eq(vec: &Vec4<f32>, other: &Vec4<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpeq_ps(vec.to_m128(), other.to_m128())) as u32 == 0xf
+            _mm_movemask_ps(_mm_cmpeq_ps(vec.0, other.0)) as u32 == 0xf
         }
 
         #[inline]
         fn vec_ne(vec: &Vec4<f32>, other: &Vec4<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpneq_ps(vec.to_m128(), other.to_m128())) as u32 != 0
+            _mm_movemask_ps(_mm_cmpneq_ps(vec.0, other.0)) as u32 != 0
         }
 
         #[inline]
         fn vec_neg(vec: Vec4<f32>) -> Vec4<f32> {
-            neg(vec.to_m128()).to_vec4()
+            Vector(neg(vec.0))
         }
 
         #[inline]
         fn vec_add(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            _mm_add_ps(vec.to_m128(), rhs.to_m128()).to_vec4()
+            Vector(_mm_add_ps(vec.0, rhs.0))
         }
 
         #[inline]
         fn vec_sub(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            _mm_sub_ps(vec.to_m128(), rhs.to_m128()).to_vec4()
+            Vector(_mm_sub_ps(vec.0, rhs.0))
         }
 
         #[inline]
         fn vec_mul(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            _mm_mul_ps(vec.to_m128(), rhs.to_m128()).to_vec4()
+            Vector(_mm_mul_ps(vec.0, rhs.0))
         }
 
         #[inline]
         fn vec_div(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            _mm_div_ps(vec.to_m128(), rhs.to_m128()).to_vec4()
+            Vector(_mm_div_ps(vec.0, rhs.0))
         }
     }
 
@@ -105,7 +106,7 @@ impl ScalarBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vec_rem(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            rem(vec.to_m128(), rhs.to_m128()).to_vec4()
+            Vector(rem(vec.0, rhs.0))
         }
     }
 }
@@ -122,42 +123,42 @@ impl F32VectorBackend<3, Aligned> for f32 {
 
         #[inline]
         fn vec_is_nan(vec: Vec3<f32>) -> bool {
-            _mm_movemask_ps(nan_mask(vec.to_m128())) as u32 & 0b111 != 0
+            _mm_movemask_ps(nan_mask(vec.0)) as u32 & 0b111 != 0
         }
 
         #[inline]
         fn vec_is_finite(vec: Vec3<f32>) -> bool {
-            _mm_movemask_ps(finite_mask(vec.to_m128())) as u32 & 0b111 == 0b111
+            _mm_movemask_ps(finite_mask(vec.0)) as u32 & 0b111 == 0b111
         }
 
         #[inline]
         fn vec_max(vec: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
-            _mm_max_ps(vec.to_m128(), other.to_m128()).to_vec3()
+            Vector(_mm_max_ps(vec.0, other.0))
         }
 
         #[inline]
         fn vec_min(vec: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
-            _mm_min_ps(vec.to_m128(), other.to_m128()).to_vec3()
+            Vector(_mm_min_ps(vec.0, other.0))
         }
 
         #[inline]
         fn vec_abs(vec: Vec3<f32>) -> Vec3<f32> {
-            abs(vec.to_m128()).to_vec3()
+            Vector(abs(vec.0))
         }
 
         #[inline]
         fn vec_signum(vec: Vec3<f32>) -> Vec3<f32> {
-            signum(vec.to_m128()).to_vec3()
+            Vector(signum(vec.0))
         }
 
         #[inline]
         fn vec_copysign(vec: Vec3<f32>, sign: Vec3<f32>) -> Vec3<f32> {
-            copysign(vec.to_m128(), sign.to_m128()).to_vec3()
+            Vector(copysign(vec.0, sign.0))
         }
 
         #[inline]
         fn vec_element_sum(vec: Vec3<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(0.0), 0b00_11_00_01));
             let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
             _mm_cvtss_f32(vec)
@@ -165,7 +166,7 @@ impl F32VectorBackend<3, Aligned> for f32 {
 
         #[inline]
         fn vec_element_product(vec: Vec3<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(1.0), 0b00_11_00_01));
             let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
             _mm_cvtss_f32(vec)
@@ -173,7 +174,7 @@ impl F32VectorBackend<3, Aligned> for f32 {
 
         #[inline]
         fn vec_max_element(vec: Vec3<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_10_10));
             let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
             _mm_cvtss_f32(vec)
@@ -181,7 +182,7 @@ impl F32VectorBackend<3, Aligned> for f32 {
 
         #[inline]
         fn vec_min_element(vec: Vec3<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b01_01_10_10));
             let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
             _mm_cvtss_f32(vec)
@@ -190,13 +191,13 @@ impl F32VectorBackend<3, Aligned> for f32 {
         #[cfg(backend)]
         #[inline(always)]
         fn vec_round(vec: Vec3<f32>) -> Vec3<f32> {
-            round(vec.to_m128()).to_vec3()
+            Vector(round(vec.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
         fn vec_sqrt(vec: Vec3<f32>) -> Vec3<f32> {
-            _mm_sqrt_ps(vec.to_m128()).to_vec3()
+            Vector(_mm_sqrt_ps(vec.0))
         }
     }
 
@@ -206,19 +207,19 @@ impl F32VectorBackend<3, Aligned> for f32 {
         #[cfg(backend)]
         #[inline(always)]
         fn vec_floor(vec: Vec3<f32>) -> Vec3<f32> {
-            floor(vec.to_m128()).to_vec3()
+            Vector(floor(vec.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
         fn vec_ceil(vec: Vec3<f32>) -> Vec3<f32> {
-            ceil(vec.to_m128()).to_vec3()
+            Vector(ceil(vec.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
         fn vec_trunc(vec: Vec3<f32>) -> Vec3<f32> {
-            trunc(vec.to_m128()).to_vec3()
+            Vector(trunc(vec.0))
         }
     }
 }
@@ -229,42 +230,42 @@ impl F32VectorBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vec_is_nan(vec: Vec4<f32>) -> bool {
-            _mm_movemask_ps(nan_mask(vec.to_m128())) as u32 != 0
+            _mm_movemask_ps(nan_mask(vec.0)) as u32 != 0
         }
 
         #[inline]
         fn vec_is_finite(vec: Vec4<f32>) -> bool {
-            _mm_movemask_ps(finite_mask(vec.to_m128())) as u32 == 0xf
+            _mm_movemask_ps(finite_mask(vec.0)) as u32 == 0xf
         }
 
         #[inline]
         fn vec_max(vec: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
-            _mm_max_ps(vec.to_m128(), other.to_m128()).to_vec4()
+            Vector(_mm_max_ps(vec.0, other.0))
         }
 
         #[inline]
         fn vec_min(vec: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
-            _mm_min_ps(vec.to_m128(), other.to_m128()).to_vec4()
+            Vector(_mm_min_ps(vec.0, other.0))
         }
 
         #[inline]
         fn vec_abs(vec: Vec4<f32>) -> Vec4<f32> {
-            abs(vec.to_m128()).to_vec4()
+            Vector(abs(vec.0))
         }
 
         #[inline]
         fn vec_signum(vec: Vec4<f32>) -> Vec4<f32> {
-            signum(vec.to_m128()).to_vec4()
+            Vector(signum(vec.0))
         }
 
         #[inline]
         fn vec_copysign(vec: Vec4<f32>, sign: Vec4<f32>) -> Vec4<f32> {
-            copysign(vec.to_m128(), sign.to_m128()).to_vec4()
+            Vector(copysign(vec.0, sign.0))
         }
 
         #[inline]
         fn vec_element_sum(vec: Vec4<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
             let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
             _mm_cvtss_f32(vec)
@@ -272,7 +273,7 @@ impl F32VectorBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vec_element_product(vec: Vec4<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
             let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
             _mm_cvtss_f32(vec)
@@ -280,7 +281,7 @@ impl F32VectorBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vec_max_element(vec: Vec4<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_11_10));
             let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
             _mm_cvtss_f32(vec)
@@ -288,7 +289,7 @@ impl F32VectorBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vec_min_element(vec: Vec4<f32>) -> f32 {
-            let vec = vec.to_m128();
+            let vec = vec.0;
             let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_11_10));
             let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
             _mm_cvtss_f32(vec)
@@ -297,13 +298,13 @@ impl F32VectorBackend<4, Aligned> for f32 {
         #[cfg(backend)]
         #[inline(always)]
         fn vec_round(vec: Vec4<f32>) -> Vec4<f32> {
-            round(vec.to_m128()).to_vec4()
+            Vector(round(vec.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
         fn vec_sqrt(vec: Vec4<f32>) -> Vec4<f32> {
-            _mm_sqrt_ps(vec.to_m128()).to_vec4()
+            Vector(_mm_sqrt_ps(vec.0))
         }
     }
 
@@ -313,19 +314,19 @@ impl F32VectorBackend<4, Aligned> for f32 {
         #[cfg(backend)]
         #[inline(always)]
         fn vec_floor(vec: Vec4<f32>) -> Vec4<f32> {
-            floor(vec.to_m128()).to_vec4()
+            Vector(floor(vec.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
         fn vec_ceil(vec: Vec4<f32>) -> Vec4<f32> {
-            ceil(vec.to_m128()).to_vec4()
+            Vector(ceil(vec.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
         fn vec_trunc(vec: Vec4<f32>) -> Vec4<f32> {
-            trunc(vec.to_m128()).to_vec4()
+            Vector(trunc(vec.0))
         }
     }
 }
@@ -465,37 +466,4 @@ fn trunc(vec: __m128) -> __m128 {
         result,
         vec,
     )
-}
-
-trait ToM128 {
-    fn to_m128(self) -> __m128;
-}
-
-trait ToVec {
-    fn to_vec3(self) -> Vec3<f32>;
-    fn to_vec4(self) -> Vec4<f32>;
-}
-
-impl ToM128 for Vec3<f32> {
-    fn to_m128(self) -> __m128 {
-        unsafe { transmute::<Vec3<f32>, __m128>(self) }
-    }
-}
-
-impl ToM128 for Vec4<f32> {
-    fn to_m128(self) -> __m128 {
-        unsafe { transmute::<Vec4<f32>, __m128>(self) }
-    }
-}
-
-impl ToVec for __m128 {
-    #[inline]
-    fn to_vec3(self) -> Vec3<f32> {
-        unsafe { transmute::<__m128, Vec3<f32>>(self) }
-    }
-
-    #[inline]
-    fn to_vec4(self) -> Vec4<f32> {
-        unsafe { transmute::<__m128, Vec4<f32>>(self) }
-    }
 }

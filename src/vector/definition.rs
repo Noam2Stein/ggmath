@@ -55,7 +55,9 @@ use crate::{
 /// Vectors of scalars with the same [`Scalar::Repr`] are guaranteed to have the
 /// same memory layout (if `Repr` is a signed integer).
 #[repr(transparent)]
-pub struct Vector<const N: usize, T, A: Alignment>(<T::Repr as ScalarRepr>::VectorRepr<N, T, A>)
+pub struct Vector<const N: usize, T, A: Alignment>(
+    pub(crate) <T::Repr as ScalarRepr>::VectorRepr<N, T, A>,
+)
 where
     Length<N>: SupportedLength,
     T: Scalar;
