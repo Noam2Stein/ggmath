@@ -10,7 +10,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Mask, Scalar, ScalarBackend, SupportedLength, Unaligned,
+    Aligned, Alignment, Length, Mask, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
+    SupportedLength, Unaligned,
     utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -50,6 +51,9 @@ use crate::{
 /// Types containing `Vector` are not guaranteed to have the same memory layout
 /// as types containing `[T; N]`. For example, `Option<Vector<2, T, Aligned>>`
 /// is not guaranteed to have the same size as `Option<[T; 2]>`.
+///
+/// Vectors of scalars with the same [`Scalar::Repr`] are guaranteed to have the
+/// same memory layout (if `Repr` is a signed integer).
 #[repr(transparent)]
 pub struct Vector<const N: usize, T, A: Alignment>(VectorRepr<N, T, A>)
 where
@@ -338,47 +342,28 @@ where
         Mask::from_fn(|i| self[i] >= other[i])
     }
 
-    /// Returns the internal representation of the vector.
+    /// Reinterprets the bits of the vector to a different scalar type.
     ///
-    /// The internal representation is controlled by the implementation of the
-    /// [`ScalarBackend`] trait.
+    /// The two scalar types must have compatible memory layouts. This is
+    /// enforced via trait bounds in this function's signature.
     ///
-    /// This function should not be used outside the implementation of
-    /// [`ScalarBackend`] because the specified internal representation could
-    /// change silently and cause compile errors.
-    #[inline]
-    #[must_use]
-    pub fn repr(self) -> <T as ScalarBackend<N, A>>::VectorRepr
-    where
-        T: ScalarBackend<N, A>,
-    {
-        unsafe {
-            transmute_generic::<Vector<N, T, A>, <T as ScalarBackend<N, A>>::VectorRepr>(self)
-        }
-    }
-
-    /// Creates a vector from its internal representation.
-    ///
-    /// The internal representation is controlled by the implementation of the
-    /// [`ScalarBackend`] trait.
-    ///
-    /// This function should not be used outside the implementation of
-    /// [`ScalarBackend`] because the specified internal representation could
-    /// change silently and cause compile errors.
+    /// This function is used to make SIMD optimizations in implementations of [`Scalar`].
     ///
     /// # Safety
     ///
-    /// If the internal representation has less guarantees than the outer vector
-    /// type, the input value must uphold the guarantees of the latter.
+    /// The input arguments must be valid for the output vector type.
+    ///
+    /// For example, when converting vectors from `u8` to `bool` the
+    /// input arguments must be either, `0` or `1`.
     #[inline]
     #[must_use]
-    pub unsafe fn from_repr(repr: <T as ScalarBackend<N, A>>::VectorRepr) -> Self
+    #[expect(private_bounds)]
+    pub const unsafe fn to_repr<T2>(self) -> Vector<N, T2, A>
     where
-        T: ScalarBackend<N, A>,
+        T2: Scalar<Repr = T::Repr>,
+        T::Repr: SignedInteger,
     {
-        unsafe {
-            transmute_generic::<<T as ScalarBackend<N, A>>::VectorRepr, Vector<N, T, A>>(repr)
-        }
+        unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T2, A>>(self) }
     }
 }
 
@@ -714,18 +699,11 @@ where
 {
 }
 
-/// Selects the correct internal representation for `Vector<N, T, A>`.
-///
-/// For `A = Aligned` this is `<T as ScalarBackend<N, Aligned>>::VectorRepr`.
-///
-/// For `A = Unaligned` this is one of the structs [`Repr2<T>`], [`Repr3<T>`],
-/// [`Repr4<T>`]. This trick lets implementations of
-/// [`ScalarBackend::VectorRepr`] use `Vector<N, Self, Unaligned>`.
 type VectorRepr<const N: usize, T, A> = <A as Alignment>::Select<
     <Length<N> as SupportedLength>::Select<
-        <T as ScalarBackend<2, Aligned>>::VectorRepr,
-        <T as ScalarBackend<3, Aligned>>::VectorRepr,
-        <T as ScalarBackend<4, Aligned>>::VectorRepr,
+        <<T as Scalar>::Repr as ScalarRepr>::Vec2Repr<T>,
+        <<T as Scalar>::Repr as ScalarRepr>::Vec3Repr<T>,
+        <<T as Scalar>::Repr as ScalarRepr>::Vec4Repr<T>,
     >,
     <Length<N> as SupportedLength>::Select<Repr2<T>, Repr3<T>, Repr4<T>>,
 >;

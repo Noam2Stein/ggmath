@@ -8,28 +8,43 @@
 //! Lets define our own scalar type (see [`Scalar`]):
 //!
 //! ```
-//! use ggmath::{Scalar, ScalarDefault};
+//! use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
 //!
 //! #[derive(Debug, Clone, Copy)]
 //! struct Foo(f32);
 //!
-//! impl Scalar for Foo {}
+//! // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
+//! // where `Repr = ()` are safe.
+//! unsafe impl Scalar for Foo {
+//!     type Repr = ();
+//! }
 //!
-//! impl ScalarDefault for Foo {}
+//! impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+//! where
+//!     Length<N>: SupportedLength,
+//! {
+//! }
 //! ```
 //!
 //! Lets implement the traits [`Zero`], [`One`], and [`NegOne`] for it:
 //!
 //! ```
-//! # use ggmath::{Scalar, ScalarDefault};
+//! # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
 //! #
 //! # #[derive(Debug, Clone, Copy)]
 //! # struct Foo(f32);
 //! #
-//! # impl Scalar for Foo {}
+//! # // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
+//! # // where `Repr = ()` are safe.
+//! # unsafe impl Scalar for Foo {
+//! #     type Repr = ();
+//! # }
 //! #
-//! # impl ScalarDefault for Foo {}
-//! #
+//! # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+//! # where
+//! #     Length<N>: SupportedLength,
+//! # {
+//! # }
 //! use ggmath::constants::{NegOne, One, Zero};
 //!
 //! impl Zero for Foo {
@@ -49,14 +64,22 @@
 //! directional constants like `X`, `Y`, `NEG_X`, and `NEG_Y`:
 //!
 //! ```
-//! # use ggmath::{Scalar, ScalarDefault};
+//! # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
 //! #
 //! # #[derive(Debug, Clone, Copy)]
 //! # struct Foo(f32);
 //! #
-//! # impl Scalar for Foo {}
+//! # // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
+//! # // where `Repr = ()` are safe.
+//! # unsafe impl Scalar for Foo {
+//! #     type Repr = ();
+//! # }
 //! #
-//! # impl ScalarDefault for Foo {}
+//! # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+//! # where
+//! #     Length<N>: SupportedLength,
+//! # {
+//! # }
 //! #
 //! # use ggmath::constants::{NegOne, One, Zero};
 //! #
@@ -86,14 +109,22 @@
 //! You can also write generic code where you know `T` has some constant:
 //!
 //! ```
-//! # use ggmath::{Scalar, ScalarDefault};
+//! # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
 //! #
 //! # #[derive(Debug, Clone, Copy)]
 //! # struct Foo(f32);
 //! #
-//! # impl Scalar for Foo {}
+//! # // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
+//! # // where `Repr = ()` are safe.
+//! # unsafe impl Scalar for Foo {
+//! #     type Repr = ();
+//! # }
 //! #
-//! # impl ScalarDefault for Foo {}
+//! # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+//! # where
+//! #     Length<N>: SupportedLength,
+//! # {
+//! # }
 //! #
 //! # use ggmath::constants::{NegOne, One, Zero};
 //! #
