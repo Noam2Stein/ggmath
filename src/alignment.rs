@@ -1,3 +1,9 @@
+/*
+When `adt_const_params` is stabilized, alignment should be made an enum.
+This will change `A: Alignment` to `const A: Alignment`, making it possible to
+use derive macros with math types.
+*/
+
 /// Marker type indicating SIMD-aligned math types.
 ///
 /// For more details, see [`Alignment`].

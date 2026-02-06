@@ -149,6 +149,30 @@
 //! print_zero::<Foo>();
 //! ```
 
+/*
+Originally, constants were defined as:
+
+impl<const N: usize, A: Alignment> Vector<N, f32, A>
+where
+    Length<N>: SupportedLength,
+{
+    pub const ZERO: Self = ...;
+}
+
+impl<const N: usize, A: Alignment> Vector<N, f64, A>
+where
+    Length<N>: SupportedLength,
+{
+    pub const ZERO: Self = ...;
+}
+
+This approach doesn't work because writing `Vector::ZERO` doesn't work with type
+inference, even if you know the output `T` type.
+
+If type inference is fixed to support this scenario, this module and its traits
+should be deleted.
+*/
+
 use crate::Scalar;
 
 /// A `ZERO` constant for scalar types.

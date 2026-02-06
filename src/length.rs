@@ -1,3 +1,8 @@
+/*
+When `generic_const_params` is stabilized, this mechanism should be replaced
+with `where { N == 2 | N == 3 | N == 4 }` or an equivalent predicate.
+*/
+
 /// Marker type representing the length of a math type.
 ///
 /// For simplicity's sake, math types like [`Vector`](crate::Vector) do not support

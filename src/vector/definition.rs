@@ -62,6 +62,12 @@ where
     Length<N>: SupportedLength,
     T: Scalar;
 
+/*
+When the compiler is smart enough to understand type equality based on const
+generic equality, many of the function implementations in this module should
+be simplifyed.
+*/
+
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,

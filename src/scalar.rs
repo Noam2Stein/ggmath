@@ -2,6 +2,10 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 
 use crate::{Aligned, Alignment, Length, Mask, MaskBackend, SupportedLength, Unaligned, Vector};
 
+/*
+When `macro_derive` is stabilized, a derive macro for `Scalar` should be added.
+*/
+
 /// A trait for elements of math types.
 ///
 /// Types that implement `Scalar` can be used as the `T` in math types like

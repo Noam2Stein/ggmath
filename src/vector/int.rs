@@ -1,5 +1,15 @@
 use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
 
+/*
+When `negative_impls` stabilizes, primitive API macros should be replaced with
+generic APIs with private traits `Float`, `Int`, `Uint`.
+*/
+
+/*
+When `cfg(overflow_checks)` is stabilized, this API should be made consistent
+with the overflow checks flag.
+*/
+
 macro_rules! impl_int {
     ($T:ident, $Backend:ident) => {
         impl<const N: usize, A: Alignment> Vector<N, $T, A>

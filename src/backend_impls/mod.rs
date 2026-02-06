@@ -5,3 +5,8 @@ mod sse;
 
 #[cfg(not(target_feature = "sse"))]
 mod fallback;
+
+/*
+When `portable_simd` is stabilized, target-architecture specific implementations
+should be deleted.
+*/

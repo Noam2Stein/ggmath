@@ -2,6 +2,11 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(any(not(feature = "std"), feature = "libm"), no_std)]
 
+/*
+When enough float functions move to `core`, the crate should be made always
+`no_std` and the cargo features `std` and `libm` should be removed.
+*/
+
 pub mod constants;
 
 mod aliases;

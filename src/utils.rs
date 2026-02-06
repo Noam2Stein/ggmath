@@ -88,6 +88,9 @@ pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
 ///
 /// If certain function signatures fails to compile with this macro, its
 /// implementation needs to be adjusted to support those function's types.
+///
+/// When `generic_const_params` stabilizes and the compiler is smart enough to
+/// understand `T: ScalarBackend<N, A>`, this macro should be removed.
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
@@ -397,6 +400,13 @@ pub(crate) use safe_arch;
 ////////////////////////////////////////////////////////////////////////////////
 // Representation Types
 ////////////////////////////////////////////////////////////////////////////////
+
+/*
+These types are used instead of arrays because for some reason arrays lead to
+worse assembly than structs.
+
+When this is fixed, these structs should be removed.
+*/
 
 /// Contains two values of type `T`.
 ///
