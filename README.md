@@ -6,21 +6,22 @@ The library features:
 
 - Vectors: `Vec2<T>`, `Vec3<T>`, `Vec4<T>`.
 - Square Matrices (todo): `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
-- Quaternion (todo): `Quat<T>`.
+- Quaternions (todo): `Quat<T>`.
 - Affine Transformations (todo): `Affine2<T>`, `Affine3<T>`.
 - Masks: `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
 
-For appropriate scalars, these types are aligned for SIMD to improve
-performance. The library also features unaligned types:
+For appropriate scalars, these types are SIMD-aligned to improve
+performance. The library also features unaligned types which are not
+SIMD-aligned:
 
 - Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
 - Square Matrices (todo): `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
-- Quaternion (todo): `QuatU<T>`.
+- Quaternions (todo): `QuatU<T>`.
 - Affine Transformations (todo): `Affine2U<T>`, `Affine3U<T>`.
 - Masks: `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
 
-Unaligned types have the same functionality as aligned types, but are not
-aligned for SIMD meaning they take less memory but have slower operations.
+Because unaligned types are not SIMD-aligned, they take less memory but have
+slower operations.
 
 All types are type aliases to these generic structs:
 
@@ -36,8 +37,39 @@ Where:
 - `T` is the scalar type.
 - `A` is either `Aligned` or `Unaligned`.
 
-Generic structs are used to implement functionality for all lengths and or both
-alignments without duplicating code or using macros.
+The generic structs are used to implement functionality for all lengths and or
+both alignments without duplicating code or using macros.
+
+## Another Math Crate???
+
+`ggmath` distinguishes itself from other math crates by having both generics and
+SIMD. Existing crates either have generics but not SIMD, or have SIMD but not
+generics.
+
+Generics make it possible to use custom types inside math types (e.g.,
+`Vec3<FixedPoint>`), and reduce code duplication when code needs to work for
+multiple types and or dimensions. Keep in mind that generics also increase
+compile times, and are unnecessary if you only intend to use one scalar type
+(e.g., `f32`).
+
+SIMD, or more specifically SIMD-aligned types usually result in better
+performance than normal types.
+
+`ggmath` also (todo, not yet) supports SoA (Struct of Arrays, e.g.,
+`Vec3<f32x4>`) SIMD via integration with the crate `wide`. SoA types are harder
+to use but have even better performance than normal AoS (e.g., SIMD-aligned
+`Vec3<f32>`) types.
+
+`ggmath` doesn't have high level, controversial types (e.g., point types).
+`ggmath` is designed so that an external crate could add those types on top of
+`ggmath`.
+
+| Feature | `ggmath` | `glam` | `ultraviolet` | `cgmath` |
+| ------- | -------- | ------ | ------------- | -------- |
+| Generics | ✅ | ❌ | ❌ | ✅ |
+| SIMD-aligned types | ✅ | ✅ | ✅ | ❌ |
+| SoA | (todo) | ❌ | ✅ | ❌ |
+| Controversial Types | ❌ | ❌ | ✅ | ✅ |
 
 ## Development Status
 
@@ -47,7 +79,7 @@ Feature List:
 
 - [x] Vectors
 - [ ] Square Matrices
-- [ ] Quaternion
+- [ ] Quaternions
 - [ ] Affine Transformations
 - [x] Masks
 - [x] Sufficient Float-Vector functionality
@@ -79,35 +111,6 @@ Performance:
 - [ ] `f32` WASM optimizations
 - [ ] `i32` `u32` WASM optimizations
 - [ ] `i8` `u8` `bool` WASM optimizations for `Mat4<T>`
-
-## Comparison to `glam`
-
-`glam` is more mature than `ggmath`. This comparison assumes `ggmath` has
-reached the maturity of `glam`. If you need any of the features missing
-from `ggmath`, you should use `glam`.
-
-Pros:
-
-- Fixed-point: You can implement `Scalar` for your fixed-point numbers and use
-  them inside vectors.
-
-- SoA (Struct of Arrays): You can implement `Scalar` for your SIMD types and use
-  them inside vectors (e.g., `Vec3<f32x4>`).
-
-- Generic Code: You can write code that is generic over scalar type (`T`), and
-  dimension (`N`).
-
-Cons:
-
-- Compile Times: Because of generics, `ggmath` code takes longer to compile than
-  `glam` code.
-
-- Complexity: `ggmath` isn't as simple as `glam`.
-
-If your project requires `ggmath`'s features, you should pick `ggmath`. If it
-doesn't, you should pick `glam`. For example, a game engine that needs to
-support a wide range of use cases should pick `ggmath`, while a game that only
-uses `f32` types should pick `glam`.
 
 ## Usage
 
