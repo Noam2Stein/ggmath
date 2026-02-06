@@ -75,7 +75,10 @@ where
     /// Equivalent to `(f(0), f(1), f(2), ...)`.
     #[inline]
     #[must_use]
-    pub fn from_fn(f: impl FnMut(usize) -> bool) -> Self {
+    pub fn from_fn<F>(f: F) -> Self
+    where
+        F: FnMut(usize) -> bool,
+    {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_from_fn((f,)))
     }
 

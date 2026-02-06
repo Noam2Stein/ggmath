@@ -8,6 +8,8 @@ Breaking changes:
 
 - Removed vector functions: `get`, `get_mut`.
 
+- Changed signature of vector functions: `from_fn`, `map`.
+
 - Marked the `Scalar` trait unsafe.
 
 - Replaced associated type `ScalarBackend::VectorRepr` with `Scalar::Repr`.

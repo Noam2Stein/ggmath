@@ -118,7 +118,10 @@ where
     /// Equivalent to `(f(0), f(1), f(2), ...)`.
     #[inline]
     #[must_use]
-    pub fn from_fn(mut f: impl FnMut(usize) -> T) -> Self {
+    pub fn from_fn<F>(mut f: F) -> Self
+    where
+        F: FnMut(usize) -> T,
+    {
         unsafe {
             match N {
                 2 => transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
@@ -236,7 +239,11 @@ where
     /// ```
     #[inline]
     #[must_use]
-    pub fn map<T2: Scalar>(self, f: impl Fn(T) -> T2) -> Vector<N, T2, A> {
+    pub fn map<T2, F>(self, f: F) -> Vector<N, T2, A>
+    where
+        T2: Scalar,
+        F: Fn(T) -> T2,
+    {
         Vector::from_fn(|i| f(self[i]))
     }
 
