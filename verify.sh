@@ -31,7 +31,7 @@ build() {
     local command=""
 
     command+="RUSTFLAGS=\"-C overflow-checks=$overflow_checks\" "
-    command+="cargo build --no-default-features "
+    command+="cargo clippy --no-default-features "
     command+="--features \"$backend $assertions\" "
     command+="--target $target "
 

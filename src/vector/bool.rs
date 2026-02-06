@@ -4,7 +4,7 @@ impl<const N: usize, A: Alignment> Vector<N, bool, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Returns true if all components are `true`.
+    /// Returns `true` if all of the vector's components are `true`.
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
@@ -16,7 +16,7 @@ where
         }
     }
 
-    /// Returns true if any component is `true`.
+    /// Returns `true` if any of the vector's components are `true`.
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
@@ -28,8 +28,8 @@ where
         }
     }
 
-    /// Selects elements from `if_true` and `if_false` based on the values of
-    /// the vector.
+    /// Selects between the components of `if_true` and `if_false` based on the
+    /// boolean values of the vector.
     #[inline]
     #[must_use]
     pub fn select<T: Scalar>(

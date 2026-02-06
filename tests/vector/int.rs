@@ -1,8 +1,24 @@
 use ggmath::Alignment;
 use itertools::iproduct;
 
-pub fn uint_tests<A: Alignment>() {
-    const ARGS: [T; 9] = [0, 1, 2, 10, 100, 200, T::MAX / 2, T::MAX - 1, T::MAX];
+pub fn test<A: Alignment>() {
+    const ARGS: [T; 15] = [
+        0,
+        1,
+        -1,
+        2,
+        -2,
+        10,
+        -10,
+        100,
+        -100,
+        T::MAX / 2,
+        T::MIN / 2,
+        T::MAX - 1,
+        T::MIN + 1,
+        T::MAX,
+        T::MIN,
+    ];
 
     for (x, y, z) in iproduct!(ARGS, ARGS, ARGS) {
         macro_rules! assert_eq {
@@ -32,6 +48,10 @@ pub fn uint_tests<A: Alignment>() {
                 ggmath::Vector::<4, T, A>::from(($($arg,)*))
             };
         }
+
+        assert_eq!(-vec2!(x, y), vec2!(-x, -y));
+        assert_eq!(-vec3!(x, y, z), vec3!(-x, -y, -z));
+        assert_eq!(-vec4!(x, y, z, x), vec4!(-x, -y, -z, -x));
 
         assert_eq!(!vec2!(x, y), vec2!(!x, !y));
         assert_eq!(!vec3!(x, y, z), vec3!(!x, !y, !z));
@@ -207,6 +227,23 @@ pub fn uint_tests<A: Alignment>() {
         assert_eq!(vec2!(x, y).min_element(), x.min(y));
         assert_eq!(vec3!(x, y, z).min_element(), x.min(y).min(z));
         assert_eq!(vec4!(x, y, z, x).min_element(), x.min(y).min(z).min(x));
+
+        assert_eq!(vec2!(x, y).abs(), vec2!(x.abs(), y.abs()));
+        assert_eq!(vec3!(x, y, z).abs(), vec3!(x.abs(), y.abs(), z.abs()));
+        assert_eq!(
+            vec4!(x, y, z, x).abs(),
+            vec4!(x.abs(), y.abs(), z.abs(), x.abs())
+        );
+
+        assert_eq!(vec2!(x, y).signum(), vec2!(x.signum(), y.signum()));
+        assert_eq!(
+            vec3!(x, y, z).signum(),
+            vec3!(x.signum(), y.signum(), z.signum())
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).signum(),
+            vec4!(x.signum(), y.signum(), z.signum(), x.signum())
+        );
 
         assert_eq!(
             vec2!(x, y).checked_add(vec2!(z, x)),
@@ -385,6 +422,28 @@ pub fn uint_tests<A: Alignment>() {
         );
 
         assert_eq!(
+            vec2!(x, y).saturating_div(vec2!(z, x)),
+            vec2!(x.saturating_div(z), y.saturating_div(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).saturating_div(vec3!(z, x, y)),
+            vec3!(
+                x.saturating_div(z),
+                y.saturating_div(x),
+                z.saturating_div(y)
+            )
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).saturating_div(vec4!(z, x, y, z)),
+            vec4!(
+                x.saturating_div(z),
+                y.saturating_div(x),
+                z.saturating_div(y),
+                x.saturating_div(z)
+            )
+        );
+
+        assert_eq!(
             vec2!(x, y).wrapping_add(vec2!(z, x)),
             vec2!(x.wrapping_add(z), y.wrapping_add(x))
         );
@@ -435,6 +494,42 @@ pub fn uint_tests<A: Alignment>() {
                 y.wrapping_mul(x),
                 z.wrapping_mul(y),
                 x.wrapping_mul(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).wrapping_div(vec2!(z, x)),
+            vec2!(x.wrapping_div(z), y.wrapping_div(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).wrapping_div(vec3!(z, x, y)),
+            vec3!(x.wrapping_div(z), y.wrapping_div(x), z.wrapping_div(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).wrapping_div(vec4!(z, x, y, z)),
+            vec4!(
+                x.wrapping_div(z),
+                y.wrapping_div(x),
+                z.wrapping_div(y),
+                x.wrapping_div(z)
+            )
+        );
+
+        assert_eq!(
+            vec2!(x, y).wrapping_rem(vec2!(z, x)),
+            vec2!(x.wrapping_rem(z), y.wrapping_rem(x))
+        );
+        assert_eq!(
+            vec3!(x, y, z).wrapping_rem(vec3!(z, x, y)),
+            vec3!(x.wrapping_rem(z), y.wrapping_rem(x), z.wrapping_rem(y))
+        );
+        assert_eq!(
+            vec4!(x, y, z, x).wrapping_rem(vec4!(z, x, y, z)),
+            vec4!(
+                x.wrapping_rem(z),
+                y.wrapping_rem(x),
+                z.wrapping_rem(y),
+                x.wrapping_rem(z)
             )
         );
     }

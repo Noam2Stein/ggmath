@@ -1,6 +1,6 @@
-use bytemuck::{Pod, Zeroable};
+use bytemuck::{NoUninit, Pod, Zeroable};
 
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector};
+use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector};
 
 /*
 Missing implementations are blocked on:
@@ -18,5 +18,19 @@ unsafe impl<const N: usize, T, A: Alignment> Zeroable for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
     T: Scalar + Zeroable,
+{
+}
+
+unsafe impl<const N: usize, T, A: Alignment> NoUninit for Mask<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + 'static,
+{
+}
+
+unsafe impl<const N: usize, T, A: Alignment> Zeroable for Mask<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
 {
 }

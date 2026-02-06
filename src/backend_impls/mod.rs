@@ -1,2 +1,12 @@
 mod default_impls;
-mod f32;
+
+#[cfg(target_feature = "sse")]
+mod sse;
+
+#[cfg(not(target_feature = "sse"))]
+mod fallback;
+
+/*
+When `portable_simd` is stabilized, target-architecture specific implementations
+should be deleted.
+*/

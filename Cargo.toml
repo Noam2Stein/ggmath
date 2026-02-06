@@ -52,3 +52,8 @@ codegen-units = 1
 name = "vector_f32"
 path = "benches/vector/f32.rs"
 harness = false
+
+[[bench]]
+name = "mask_f32"
+path = "benches/mask/f32.rs"
+harness = false

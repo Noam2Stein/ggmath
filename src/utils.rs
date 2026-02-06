@@ -1,6 +1,6 @@
 use core::mem::{ManuallyDrop, transmute, transmute_copy};
 
-use crate::{Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector};
+use crate::{Aligned, Alignment, Length, Mask, Scalar, SupportedLength, Unaligned, Vector};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Transmute
@@ -88,6 +88,9 @@ pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
 ///
 /// If certain function signatures fails to compile with this macro, its
 /// implementation needs to be adjusted to support those function's types.
+///
+/// When `generic_const_params` stabilizes and the compiler is smart enough to
+/// understand `T: ScalarBackend<N, A>`, this macro should be removed.
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
@@ -206,6 +209,50 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Vector<N2, T, A2>, N, N2, A, A2> for &'a mut Vector<N, T, A>
 where
     T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Mask<N2, T, A2>, N, N2, A, A2> for Mask<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Mask<N2, T, A2>, N, N2, A, A2> for &'a Mask<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Mask<N2, T, A2>, N, N2, A, A2> for &'a mut Mask<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<[T2; N2], N, N2, A, A2> for [T; N]
+where
+    T: Specialize<T2, N, N2, A, A2>,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<(T,), N, N2, A, A2> for (T,)
+where
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -349,3 +396,38 @@ macro_rules! safe_arch {
 
 #[allow(unused_imports)]
 pub(crate) use safe_arch;
+
+////////////////////////////////////////////////////////////////////////////////
+// Representation Types
+////////////////////////////////////////////////////////////////////////////////
+
+/*
+These types are used instead of arrays because for some reason arrays lead to
+worse assembly than structs.
+
+When this is fixed, these structs should be removed.
+*/
+
+/// Contains two values of type `T`.
+///
+/// This type is used instead of `[T; 2]` because for some reason arrays lead
+/// to worse assembly than structs.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Repr2<T>(pub T, pub T);
+
+/// Contains three values of type `T`.
+///
+/// This type is used instead of `[T; 3]` because for some reason arrays lead
+/// to worse assembly than structs.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Repr3<T>(pub T, pub T, pub T);
+
+/// Contains four values of type `T`.
+///
+/// This type is used instead of `[T; 4]` because for some reason arrays lead
+/// to worse assembly than structs.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Repr4<T>(pub T, pub T, pub T, pub T);

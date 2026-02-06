@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.16.0 (Unreleased)
+
+Breaking changes:
+
+- Renamed the `NaN` trait to `Nan`.
+
+- Removed vector functions: `get`, `get_mut`.
+
+- Changed signature of vector functions: `from_fn`, `map`.
+
+- Marked the `Scalar` trait unsafe.
+
+- Replaced associated type `ScalarBackend::VectorRepr` with `Scalar::Repr`.
+  
+- Removed the `ScalarDefault` trait.
+
+- Replaced vector functions `repr` and `from_repr` with `to_repr`.
+
+Non breaking changes:
+
+- Added mask types:
+  - `Mask2`
+  - `Mask3`
+  - `Mask4`
+  - `Mask2U`
+  - `Mask3U`
+  - `Mask4U`
+  - `Mask`
+
+- Added vector functions:
+  - `eq_mask`
+  - `ne_mask`
+  - `lt_mask`
+  - `gt_mask`
+  - `le_mask`
+  - `ge_mask`
+
+- Added float vector functions:
+  - `nan_mask`
+  - `finite_mask`
+  - `sign_positive_mask`
+  - `sign_negative_mask`
+
+- Added `ScalarBackend` functions:
+  - `vec_eq_mask`
+  - `vec_ne_mask`
+  - `vec_lt_mask`
+  - `vec_gt_mask`
+  - `vec_le_mask`
+  - `vec_ge_mask`
+
+- Improved documentation.
+
 ## 0.15.1 (29.1.2025)
 
 - Added a `FloatExt` trait.

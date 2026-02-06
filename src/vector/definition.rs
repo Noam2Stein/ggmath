@@ -10,49 +10,63 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Scalar, ScalarBackend, SupportedLength, Unaligned,
-    utils::{specialize, transmute_generic, transmute_mut, transmute_ref},
+    Aligned, Alignment, Length, Mask, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
+    SupportedLength, Unaligned,
+    utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 /// A generic vector type.
 ///
-/// This type is the generic form of these type aliases:
-/// - [`Vec2<T>`](crate::Vec2), [`Vec3<T>`](crate::Vec3),
-///   [`Vec4<T>`](crate::Vec4).
-/// - [`Vec2U<T>`](crate::Vec2U), [`Vec3U<T>`](crate::Vec3U),
-///   [`Vec4U<T>`](crate::Vec4U).
+/// `Vector` is the generic form of:
 ///
-/// This type is generic over:
+/// - [`Vec2<T>`](crate::Vec2)
+/// - [`Vec3<T>`](crate::Vec3)
+/// - [`Vec4<T>`](crate::Vec4)
+/// - [`Vec2U<T>`](crate::Vec2U)
+/// - [`Vec3U<T>`](crate::Vec3U)
+/// - [`Vec4U<T>`](crate::Vec4U)
 ///
-/// - `N`: Length (2, 3, or 4).
-/// - `T`: Scalar type.
-/// - `A`: Alignment (see [`Alignment`]).
+/// `Vector` is generic over:
 ///
-/// # Memory Layout
+/// - `N`: Length (2, 3, or 4)
+/// - `T`: Scalar type (see [`Scalar`])
+/// - `A`: Alignment (see [`Alignment`])
 ///
-/// | Type | Size | Alignment |
-/// | ---- | ---- | --------- |
-/// | [`Vec2<T>`](crate::Vec2) | `size_of::<T>() * 2` | See below |
-/// | [`Vec3<T>`](crate::Vec3) | See below | See below |
-/// | [`Vec4<T>`](crate::Vec4) | `size_of::<T>() * 4` | See below |
-/// | [`Vec2U<T>`](crate::Vec2U) | `size_of::<T>() * 2` | `align_of::<T>()` |
-/// | [`Vec3U<T>`](crate::Vec3U) | `size_of::<T>() * 3` | `align_of::<T>()` |
-/// | [`Vec4U<T>`](crate::Vec4U) | `size_of::<T>() * 4` | `align_of::<T>()` |
+/// To initialize vectors, use the macros [`vec2`](crate::vec2),
+/// [`vec3`](crate::vec3), [`vec4`](crate::vec4). To initialize a vector of an
+/// unknown length, use [`Vector::from_array`].
 ///
-/// The alignment of aligned vectors can be anything from the alignment of `T`
-/// to the size of the vector.
+/// # Guarantees
 ///
-/// The size of `Vec3<T>` can either be `size_of::<T>() * 3` or
-/// `size_of::<T>() * 4`. If its size is times 4, the padding is guaranteed to
-/// be an initialized value of `T`.
+/// `Vector<N, T, Unaligned>` is guaranteed to have the memory layout of
+/// `[T; N]`.
 ///
-/// The specific representation of each vector type is controlled by the
-/// [`ScalarBackend`] trait.
+/// `Vector<2, T, Aligned>` and `Vector<4, T, Aligned>` are guaranteed to have
+/// the size of `[T; N]`, but may have additional alignment.
+///
+/// `Vector<3, T, Aligned>` is guaranteed to have the size of either `[T; 3]` or
+/// `[T; 4]`, and may have additional alignment. When the size is of `[T; 4]`,
+/// the padding is guaranteed to be an initialized value of type `T`.
+///
+/// Types containing `Vector` are not guaranteed to have the same memory layout
+/// as types containing `[T; N]`. For example, `Option<Vector<2, T, Aligned>>`
+/// is not guaranteed to have the same size as `Option<[T; 2]>`.
+///
+/// Vectors of scalars with the same [`Scalar::Repr`] are guaranteed to have the
+/// same memory layout (if `Repr` is a signed integer).
 #[repr(transparent)]
-pub struct Vector<const N: usize, T, A: Alignment>(VectorRepr<N, T, A>)
+pub struct Vector<const N: usize, T, A: Alignment>(
+    pub(crate) <T::Repr as ScalarRepr>::VectorRepr<N, T, A>,
+)
 where
     Length<N>: SupportedLength,
     T: Scalar;
+
+/*
+When the compiler is smart enough to understand type equality based on const
+generic equality, many of the function implementations in this module should
+be simplifyed.
+*/
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
@@ -60,6 +74,12 @@ where
     T: Scalar,
 {
     /// Creates a vector from an array.
+    ///
+    /// The preferable way to create vectors is using the macros
+    /// [`vec2`](crate::vec2), [`vec3`](crate::vec3), [`vec4`](crate::vec4).
+    ///
+    /// `Vector::from_array` should only be used when the length of the vector
+    /// is unknown or when directly converting from an array.
     #[inline]
     #[must_use]
     pub const fn from_array(array: [T; N]) -> Self {
@@ -79,7 +99,7 @@ where
         }
     }
 
-    /// Creates a vector with all elements set to the given value.
+    /// Creates a vector with all components set to the given value.
     #[inline]
     #[must_use]
     pub const fn splat(value: T) -> Self {
@@ -99,12 +119,15 @@ where
         }
     }
 
-    /// Creates a vector by calling function `f` for each element index.
+    /// Creates a vector by calling function `f` for each component index.
     ///
     /// Equivalent to `(f(0), f(1), f(2), ...)`.
     #[inline]
     #[must_use]
-    pub fn from_fn(mut f: impl FnMut(usize) -> T) -> Self {
+    pub fn from_fn<F>(mut f: F) -> Self
+    where
+        F: FnMut(usize) -> T,
+    {
         unsafe {
             match N {
                 2 => transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
@@ -128,6 +151,8 @@ where
     }
 
     /// Converts the vector to the specified alignment.
+    ///
+    /// See [`Alignment`] for more information.
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(self) -> Vector<N, T, A2> {
@@ -146,14 +171,18 @@ where
         }
     }
 
-    /// Converts the alignment of the vector to [`Aligned`].
+    /// Converts the vector to [`Aligned`] alignment.
+    ///
+    /// See [`Alignment`] for more information.
     #[inline]
     #[must_use]
     pub const fn align(self) -> Vector<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Converts the alignment of the vector to [`Unaligned`].
+    /// Converts the vector to [`Unaligned`] alignment.
+    ///
+    /// See [`Alignment`] for more information.
     #[inline]
     #[must_use]
     pub const fn unalign(self) -> Vector<N, T, Unaligned> {
@@ -167,21 +196,21 @@ where
         *self.as_array_ref()
     }
 
-    /// Returns a reference to the vector's elements.
+    /// Returns a reference to the vector's components.
     #[inline]
     #[must_use]
     pub const fn as_array_ref(&self) -> &[T; N] {
         unsafe { transmute_ref::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns a mutable reference to the vector's elements.
+    /// Returns a mutable reference to the vector's components.
     #[inline]
     #[must_use]
     pub const fn as_array_mut(&mut self) -> &mut [T; N] {
         unsafe { transmute_mut::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns an iterator over the vector's elements.
+    /// Returns an iterator over the vector's components.
     ///
     /// This method returns an iterator over `T` and not `&T`. to iterate over
     /// references use `vec.as_array_ref().iter()`.
@@ -191,93 +220,159 @@ where
         self.to_array().into_iter()
     }
 
-    /// Returns an iterator over mutable references to the vector's elements.
+    /// Returns an iterator over mutable references to the vector's components.
     #[inline]
     #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
         self.as_array_mut().iter_mut()
     }
 
-    /// Calls function `f` for each element of the vector and returns the
-    /// result.
+    /// Creates a vector by calling function `f` for each component of the input
+    /// vector.
+    ///
+    /// Equivalent to `(f(vec.x), f(vec.y), f(vec.z), ...)`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ggmath::{Vec3, vec3};
+    ///
+    /// let vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
+    ///
+    /// assert_eq!(vec.map(|x| x * 2.0), vec3!(2.0, 4.0, 6.0));
+    ///
+    /// assert_eq!(vec.map(|x| x.is_sign_negative()), vec3!(false, false, false));
+    /// ```
     #[inline]
     #[must_use]
-    pub fn map<T2: Scalar>(self, f: impl Fn(T) -> T2) -> Vector<N, T2, A> {
+    pub fn map<T2, F>(self, f: F) -> Vector<N, T2, A>
+    where
+        T2: Scalar,
+        F: Fn(T) -> T2,
+    {
         Vector::from_fn(|i| f(self[i]))
     }
 
-    /// Returns the element at the given index, or `None` if the index is out of
-    /// bounds.
-    #[inline]
-    #[must_use]
-    pub const fn get(self, index: usize) -> Option<T> {
-        if index < N {
-            Some(self.as_array_ref()[index])
-        } else {
-            None
-        }
-    }
-
-    /// Returns a mutable reference to the element at the given index, or `None`
-    /// if the index is out of bounds.
-    #[inline]
-    #[must_use]
-    pub const fn get_mut(&mut self, index: usize) -> Option<&mut T> {
-        if index < N {
-            Some(&mut self.as_array_mut()[index])
-        } else {
-            None
-        }
-    }
-
-    /// Returns the vector with its components in reverse order.
+    /// Returns the vector's components in reverse order.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ggmath::{Vec3, vec3};
+    ///
+    /// let vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
+    ///
+    /// assert_eq!(vec.reverse(), vec3!(3.0, 2.0, 1.0));
+    /// ```
     #[inline]
     #[must_use]
     pub fn reverse(self) -> Self {
         Self::from_fn(|i| self[N - 1 - i])
     }
 
-    /// Returns the internal representation of the vector.
+    /// Returns a mask where each component is `true` if the corresponding
+    /// components of `self` and `other` are equal.
     ///
-    /// The internal representation is controlled by the implementation for the
-    /// [`ScalarBackend`] trait.
-    ///
-    /// This function should not be used outside the implementation for
-    /// [`ScalarBackend`] because the internal representation could change
-    /// silently and cause compile errors.
+    /// Equivalent to `(self.x == other.x, self.y == other.y, ...)`.
     #[inline]
     #[must_use]
-    pub fn repr(self) -> <T as ScalarBackend<N, A>>::VectorRepr
+    pub fn eq_mask(self, other: Self) -> Mask<N, T, A>
     where
-        T: ScalarBackend<N, A>,
+        T: PartialEq,
     {
-        unsafe {
-            transmute_generic::<Vector<N, T, A>, <T as ScalarBackend<N, A>>::VectorRepr>(self)
-        }
+        specialize!(<T as ScalarBackend<N, A>>::vec_eq_mask(self, other))
     }
 
-    /// Creates a vector from its internal representation.
+    /// Returns a mask where each component is `true` if the corresponding
+    /// components of `self` and `other` are not equal.
     ///
-    /// The internal representation is controlled by the implementation for the
-    /// [`ScalarBackend`] trait.
+    /// Equivalent to `(self.x != other.x, self.y != other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn ne_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialEq,
+    {
+        specialize!(<T as ScalarBackend<N, A>>::vec_ne_mask(self, other))
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is less than the corresponding component of `other`.
     ///
-    /// This function should not be used outside the implementation for
-    /// [`ScalarBackend`] because the internal representation could change
-    /// silently and cause compile errors.
+    /// Equivalent to `(self.x < other.x, self.y < other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn lt_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        specialize!(<T as ScalarBackend<N, A>>::vec_lt_mask(self, other))
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is greater than the corresponding component of
+    /// `other`.
+    ///
+    /// Equivalent to `(self.x > other.x, self.y > other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn gt_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        specialize!(<T as ScalarBackend<N, A>>::vec_gt_mask(self, other))
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is less than or equal to the corresponding component
+    /// of `other`.
+    ///
+    /// Equivalent to `(self.x <= other.x, self.y <= other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn le_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        specialize!(<T as ScalarBackend<N, A>>::vec_le_mask(self, other))
+    }
+
+    /// Returns a mask where each component is `true` if the corresponding
+    /// component of `self` is greater than or equal to the corresponding
+    /// component of `other`.
+    ///
+    /// Equivalent to `(self.x >= other.x, self.y >= other.y, ...)`.
+    #[inline]
+    #[must_use]
+    pub fn ge_mask(self, other: Self) -> Mask<N, T, A>
+    where
+        T: PartialOrd,
+    {
+        specialize!(<T as ScalarBackend<N, A>>::vec_ge_mask(self, other))
+    }
+
+    /// Reinterprets the bits of the vector to a different scalar type.
+    ///
+    /// The two scalar types must have compatible memory layouts. This is
+    /// enforced via trait bounds in this function's signature.
+    ///
+    /// This function is used to make SIMD optimizations in implementations of [`Scalar`].
     ///
     /// # Safety
     ///
-    /// The provided value must be valid for this vector type, because the
-    /// internal type may have less memory safety requirements than `T`.
+    /// The input arguments must be valid for the output vector type.
+    ///
+    /// For example, when converting vectors from `u8` to `bool` the
+    /// input arguments must be either, `0` or `1`.
     #[inline]
     #[must_use]
-    pub unsafe fn from_repr(repr: <T as ScalarBackend<N, A>>::VectorRepr) -> Self
+    #[expect(private_bounds)]
+    pub const unsafe fn to_repr<T2>(self) -> Vector<N, T2, A>
     where
-        T: ScalarBackend<N, A>,
+        T2: Scalar<Repr = T::Repr>,
+        T::Repr: SignedInteger,
     {
-        unsafe {
-            transmute_generic::<<T as ScalarBackend<N, A>>::VectorRepr, Vector<N, T, A>>(repr)
-        }
+        unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T2, A>>(self) }
     }
 }
 
@@ -286,7 +381,7 @@ where
     T: Scalar,
 {
     #[inline]
-    pub(in crate::vector) const fn new(x: T, y: T) -> Self {
+    pub(crate) const fn new(x: T, y: T) -> Self {
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
     }
 }
@@ -296,7 +391,7 @@ where
     T: Scalar,
 {
     #[inline]
-    pub(in crate::vector) const fn new(x: T, y: T, z: T) -> Self {
+    pub(crate) const fn new(x: T, y: T, z: T) -> Self {
         unsafe {
             match size_of::<Vector<3, T, A>>() / size_of::<T>() {
                 3 => transmute_generic::<Repr3<T>, Vector<3, T, A>>(Repr3(x, y, z)),
@@ -312,7 +407,7 @@ where
     T: Scalar,
 {
     #[inline]
-    pub(in crate::vector) const fn new(x: T, y: T, z: T, w: T) -> Self {
+    pub(crate) const fn new(x: T, y: T, z: T, w: T) -> Self {
         unsafe { transmute_generic::<Repr4<T>, Vector<4, T, A>>(Repr4(x, y, z, w)) }
     }
 }
@@ -612,40 +707,3 @@ where
     T: Scalar + RefUnwindSafe,
 {
 }
-
-/// This type is indirection for:
-///
-/// - `<T as ScalarBackend<N, A>>::VectorRepr` for [`Aligned`].
-/// - `Repr2<T>`, `Repr3<T>`, or `Repr4<T>` for [`Aligned`].
-///
-/// Indirection must be used because the type system cannot prove that this
-/// condition is met:
-/// ```ignore
-/// for<const N: usize, T, A: Alignment>
-/// where
-///     T: Scalar,
-///     Length<N>: SupportedLength,
-/// {
-///     T: ScalarBackend<N, A>,
-/// }
-/// ```
-type VectorRepr<const N: usize, T, A> = <A as Alignment>::Select<
-    <Length<N> as SupportedLength>::Select<
-        <T as ScalarBackend<2, Aligned>>::VectorRepr,
-        <T as ScalarBackend<3, Aligned>>::VectorRepr,
-        <T as ScalarBackend<4, Aligned>>::VectorRepr,
-    >,
-    <Length<N> as SupportedLength>::Select<Repr2<T>, Repr3<T>, Repr4<T>>,
->;
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct Repr2<T>(T, T);
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct Repr3<T>(T, T, T);
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct Repr4<T>(T, T, T, T);

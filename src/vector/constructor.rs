@@ -1,6 +1,6 @@
 use crate::{Alignment, Scalar, Vector};
 
-/// Constructs a 2-dimensional vector from the provided arguments.
+/// Creates a 2-dimensional vector from the provided arguments.
 ///
 /// The macro accepts scalars and vectors as arguments, as long as they can be
 /// combined to form a 2-component vector. If only a single scalar argument is
@@ -22,7 +22,7 @@ macro_rules! vec2 {
     };
 }
 
-/// Constructs a 3-dimensional vector from the provided arguments.
+/// Creates a 3-dimensional vector from the provided arguments.
 ///
 /// The macro accepts scalars and vectors as arguments, as long as they can be
 /// combined to form a 3-component vector. If only a single scalar argument is
@@ -45,7 +45,7 @@ macro_rules! vec3 {
     };
 }
 
-/// Constructs a 4-dimensional vector from the provided arguments.
+/// Creates a 4-dimensional vector from the provided arguments.
 ///
 /// The macro accepts scalars and vectors as arguments, as long as they can be
 /// combined to form a 4-component vector. If only a single scalar argument is

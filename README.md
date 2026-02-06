@@ -6,21 +6,22 @@ The library features:
 
 - Vectors: `Vec2<T>`, `Vec3<T>`, `Vec4<T>`.
 - Square Matrices (todo): `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
-- Quaternion (todo): `Quat<T>`.
+- Quaternions (todo): `Quat<T>`.
 - Affine Transformations (todo): `Affine2<T>`, `Affine3<T>`.
-- Masks (todo): `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
+- Masks: `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
 
-For appropriate scalars, these types are aligned for SIMD to improve
-performance. The library also features unaligned types:
+For appropriate scalars, these types are SIMD-aligned to improve
+performance. The library also features unaligned types which are not
+SIMD-aligned:
 
 - Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
 - Square Matrices (todo): `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
-- Quaternion (todo): `QuatU<T>`.
+- Quaternions (todo): `QuatU<T>`.
 - Affine Transformations (todo): `Affine2U<T>`, `Affine3U<T>`.
-- Masks (todo): `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
+- Masks: `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
 
-Unaligned types have the same functionality as aligned types, but are not
-aligned for SIMD meaning they take less memory but have slower operations.
+Because unaligned types are not SIMD-aligned, they take less memory but have
+slower operations.
 
 All types are type aliases to these generic structs:
 
@@ -28,7 +29,7 @@ All types are type aliases to these generic structs:
 - `Matrix<N, T, A>` (todo).
 - `Quaternion<T, A>` (todo).
 - `Affine<N, T, A>` (todo).
-- `Mask<N, T, A>` (todo).
+- `Mask<N, T, A>`.
 
 Where:
 
@@ -36,8 +37,39 @@ Where:
 - `T` is the scalar type.
 - `A` is either `Aligned` or `Unaligned`.
 
-Generic structs are used to implement functionality for all lengths and or both
-alignments without duplicating code or using macros.
+The generic structs are used to implement functionality for all lengths and or
+both alignments without duplicating code or using macros.
+
+## Another Math Crate???
+
+`ggmath` distinguishes itself from other math crates by having both generics and
+SIMD. Existing crates either have generics but not SIMD, or have SIMD but not
+generics.
+
+Generics make it possible to use custom types inside math types (e.g.,
+`Vec3<FixedPoint>`), and reduce code duplication when code needs to work for
+multiple types and or dimensions. Keep in mind that generics also increase
+compile times, and are unnecessary if you only intend to use one scalar type
+(e.g., `f32`).
+
+SIMD, or more specifically SIMD-aligned types usually result in better
+performance than normal types.
+
+`ggmath` also (todo, not yet) supports SoA (Struct of Arrays, e.g.,
+`Vec3<f32x4>`) SIMD via integration with the crate `wide`. SoA types are harder
+to use but have even better performance than normal AoS (e.g., SIMD-aligned
+`Vec3<f32>`) types.
+
+`ggmath` doesn't have high level, controversial types (e.g., point types).
+`ggmath` is designed so that an external crate could add those types on top of
+`ggmath`.
+
+| Feature | `ggmath` | `glam` | `ultraviolet` | `cgmath` |
+| ------- | -------- | ------ | ------------- | -------- |
+| Generics | ✅ | ❌ | ❌ | ✅ |
+| SIMD-aligned types | ✅ | ✅ | ✅ | ❌ |
+| SoA | (todo) | ❌ | ✅ | ❌ |
+| Controversial Types | ❌ | ❌ | ✅ | ✅ |
 
 ## Development Status
 
@@ -47,9 +79,9 @@ Feature List:
 
 - [x] Vectors
 - [ ] Square Matrices
-- [ ] Quaternion
+- [ ] Quaternions
 - [ ] Affine Transformations
-- [ ] Masks
+- [x] Masks
 - [x] Sufficient Float-Vector functionality
 - [x] Sufficient Int-Vector functionality
 - [ ] Sufficient Matrix functionality
@@ -79,51 +111,6 @@ Performance:
 - [ ] `f32` WASM optimizations
 - [ ] `i32` `u32` WASM optimizations
 - [ ] `i8` `u8` `bool` WASM optimizations for `Mat4<T>`
-
-## Comparison to `glam`
-
-`glam` is more mature than `ggmath`. This comparison assumes `ggmath` has
-reached the maturity of `glam`. If you need any of the features missing
-from `ggmath`, you should use `glam`.
-
-The primary difference between the two crates is that `ggmath` uses generics and
-`glam` intentionally doesn't. You should pick a crate based on these pros and
-cons:
-
-### Code Duplication
-
-Generics eliminate code duplication by enabling code that is generic over scalar
-type, vector length, and alignment.
-
-This is primarily useful for writing math functions that need to work for
-multiple scalar types, all lengths, or both SIMD and no SIMD. For example, a
-cross platform deterministic implementation of `sin` would need to be duplicated
-multiple times when using `glam`, but will only need to be written once using
-`ggmath`.
-
-### Custom Scalar Types
-
-Generics make it possible to define custom scalar types.
-
-This is primarily useful for either fixed point numbers (e.g., support for the
-`fixed` crate), or SoA storage (Struct of Arrays) (e.g., `Vec3<f32x4>` using the
-`wide` crate).
-
-### Compile Times
-
-To properly support generics, `ggmath` internally uses many language tricks that
-unfortunately add work for the compiler not only when compiling `ggmath`, but
-also when compiling math code that uses it.
-
-If you need the fastest compile times possible you should use `glam`.
-
-### Complexity
-
-Generics make `ggmath` harder to understand in advance scenarios.
-
-While the API is mostly similar (`Vec3<f32>` vs `Vec3A`), `ggmath` has some
-advanced features that are harder to understand than anything in `glam` (e.g.,
-the full generic form `Vector<N, T, A>`).
 
 ## Usage
 

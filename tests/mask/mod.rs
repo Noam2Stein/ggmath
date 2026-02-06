@@ -6,7 +6,7 @@ macro_rules! test_primitive {
         mod $T {
             use ggmath::{Aligned, Unaligned};
 
-            use crate::vector::primitive;
+            use crate::mask::primitive;
 
             mod include {
                 type T = $T;

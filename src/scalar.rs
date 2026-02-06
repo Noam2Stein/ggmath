@@ -1,136 +1,103 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
-use crate::{Aligned, Alignment, Length, SupportedLength, Unaligned, Vector};
+use crate::{Aligned, Alignment, Length, Mask, MaskBackend, SupportedLength, Unaligned, Vector};
 
-/// A trait for types that can be stored in vectors.
-///
-/// All scalars must implement the [`Copy`] trait, and the
-/// [`ScalarBackend<N, A>`] trait which controls the internal representation and
-/// function implementations of the scalar's math types.
-///
-/// For simple implementations there is the [`ScalarDefault`] trait which
-/// provides a default implementation for [`ScalarBackend`].
-///
-/// # Example
-///
-/// ```
-/// use ggmath::{Scalar, ScalarDefault, Vec2, Vec3, Vec4, vec2, vec3, vec4};
-///
-/// #[derive(Debug, Clone, Copy)]
-/// struct Foo(f32);
-///
-/// impl Scalar for Foo {}
-///
-/// impl ScalarDefault for Foo {}
-///
-/// let v2: Vec2<Foo> = vec2!(Foo(1.0), Foo(2.0));
-/// let v3: Vec3<Foo> = vec3!(Foo(1.0), Foo(2.0), Foo(3.0));
-/// let v4: Vec4<Foo> = vec4!(Foo(1.0), Foo(2.0), Foo(3.0), Foo(4.0));
-///
-/// println!("{v2:?}, {v3:?}, {v4:?}");
-/// ```
-pub trait Scalar:
-    Copy
-    + ScalarBackend<2, Aligned>
-    + ScalarBackend<3, Aligned>
-    + ScalarBackend<4, Aligned>
-    + ScalarBackend<2, Unaligned>
-    + ScalarBackend<3, Unaligned>
-    + ScalarBackend<4, Unaligned>
-{
-}
+/*
+When `macro_derive` is stabilized, a derive macro for `Scalar` should be added.
+*/
 
-/// A trait to control the implementation of math types.
+/// A trait for elements of math types.
 ///
-/// More specifically, this trait controls the internal representation and
-/// function implementations of math types with `N` as their length, `Self` as
-/// their scalar type, and `A` as their alignment.
+/// Types that implement `Scalar` can be used as the `T` in math types like
+/// [`Vector`].
 ///
-/// This trait is generic over `N` and `A` (length and alignment). This means
-/// that it can be implemented either seperately for each length and alignment,
-/// or using one implementation that is generic over length and alignment.
+/// All scalars must implement [`Copy`].
 ///
-/// The [`ScalarDefault`] trait offers a default implementation for
-/// [`ScalarBackend`] that is useful when SIMD optimizations are unneeded or
-/// impossible.
+/// In order to make SIMD optimizations possible, implementing `Scalar` comes
+/// with boilerplate. See the example below for a simple implementation.
 ///
 /// # Safety
 ///
-/// The [`ScalarBackend::VectorRepr`] type must respect the memory-layout
-/// requirements of [`Vector<N, Self, A>`].
+/// `Scalar` is only unsafe for SIMD implementations. Implementations where
+/// `Repr = ()` (like the example below) are safe.
 ///
-/// # SIMD
+/// If `Scalar::Repr` is a signed integer:
 ///
-/// SIMD optimizations can be made the hard way or the easy way.
-///
-/// The hard way is using intrinsics. For each target architecture you want to
-/// support you'd need to:
-///
-/// - Implement `ScalarBackend<2, Aligned>` using intrinsics.
-/// - Implement `ScalarBackend<3, Aligned>` using intrinsics.
-/// - Implement `ScalarBackend<4, Aligned>` using intrinsics.
-/// - Write an empty implementation for `ScalarBackend<..., Unaligned>`.
-///
-/// The easy way is using existing math types.
-///
-/// For example, if your scalar type is a wrapper around `f32`, you could use
-/// `Vector<N, f32, A>` as the internal representation for
-/// `Vector<N, { your scalar }, A>`, then convert between the two in
-/// function implementations.
+/// - `Self` and `Self::Repr` must have the same size.
+/// - `Self` must have no uninitialized bytes and no padding.
 ///
 /// # Example
 ///
-/// Lets define a custom scalar type that is a wrapper around `f32`:
+/// Implementing without SIMD optimizations:
 ///
 /// ```
-/// use ggmath::Scalar;
+/// use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
 ///
-/// #[repr(transparent)]
 /// #[derive(Clone, Copy)]
 /// struct Foo(f32);
 ///
-/// impl Scalar for Foo {}
+/// // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
+/// // where `Repr = ()` are safe.
+/// unsafe impl Scalar for Foo {
+///     type Repr = ();
+/// }
 ///
-/// // This needs to be replaced with a manual implementation.
-/// impl ggmath::ScalarDefault for Foo {}
-/// ```
-///
-/// We got a compile error because `ScalarBackend` isn't implemented. Lets
-/// implement it using `Vector<N, f32, A>` as our `VectorRepr`:
-///
-/// ```
-/// # use ggmath::Scalar;
-/// #
-/// # #[repr(transparent)]
-/// # #[derive(Clone, Copy)]
-/// # struct Foo(f32);
-/// #
-/// # impl Scalar for Foo {}
-/// #
-/// use ggmath::{Alignment, Length, ScalarBackend, SupportedLength, Vector};
-///
-/// // SAFETY: Because `Foo` is a wrapper around `f32`, any internal
-/// // representation that `Vector<N, f32, A>` may use is also a valid
-/// // representation for `Vector<N, Foo, A>`.
-/// unsafe impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+/// impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
 /// where
 ///     Length<N>: SupportedLength,
 /// {
-///     type VectorRepr = Vector<N, f32, A>;
 /// }
 /// ```
 ///
-/// Now whenever `f32` vectors have SIMD alignment, our vectors have the same
-/// alignment too.
+/// # Making SIMD Optimizations
 ///
-/// Lets implement addition for `Foo` by adding up the internal `f32`s:
+/// `Scalar` implementations can enable SIMD optimizations for their scalar's
+/// math types.
+///
+/// This is done by:
+///
+/// - Enabling SIMD alignment via [`Scalar::Repr`].
+/// - Overriding math function implementations via [`ScalarBackend`].
+///
+/// `Scalar::Repr` is a marker type that controls SIMD alignment. It can be either:
+///
+/// - `()`: There won't be any SIMD alignment.
+/// - A signed integer: There will be SIMD alignment appropriate for that
+///   integer's size, where the integer must have the size of the scalar type.
+///
+/// Let's make a scalar named `Foo` which is a wrapper around `f32`:
+///
+/// ```
+/// use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
+///
+/// #[repr(transparent)]
+/// #[derive(Debug, Clone, Copy, PartialEq)]
+/// struct Foo(f32);
+///
+/// // SAFETY: `Foo` and `i32` are both 4-bytes long, and `Foo` has no
+/// // uninitialized bytes because its a simple wrapper around `f32`.
+/// unsafe impl Scalar for Foo {
+///     type Repr = i32;
+/// }
+///
+/// impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+/// where
+///     Length<N>: SupportedLength,
+/// {
+/// }
+/// ```
+///
+/// Because [`Scalar::Repr`] is `i32`, math types of `Foo` will have SIMD
+/// alignment appropriate for `Foo`'s size, 4-bytes.
+///
+/// Lets implement [`Add`] for `Foo`:
 ///
 /// ```
 /// # #[repr(transparent)]
-/// # #[derive(Clone, Copy)]
+/// # #[derive(Debug, Clone, Copy, PartialEq)]
 /// # struct Foo(f32);
 /// #
-/// use core::ops::Add;
+/// use std::ops::Add;
 ///
 /// impl Add for Foo {
 ///     type Output = Self;
@@ -142,41 +109,145 @@ pub trait Scalar:
 /// }
 /// ```
 ///
-/// An implementation of vector addition that is consistant with `Foo` addition
-/// should add up the internal `f32` vectors just like `Foo` addition adds up
-/// the internal `f32`s.
-///
-/// To implement optimized vector addition we need functions for converting
-/// between `Foo` vectors and `f32` vectors. The builtin functions for
-/// conversions are [`Vector::repr`] and [`Vector::from_repr`]. The latter is an
-/// unsafe function because the internal representation of a vector might have
-/// less memory safety guarantees than the outer vector.
-///
-/// Lets make an extension method for `f32` vectors that converts them to `Foo`
-/// vectors:
+/// Our implementation simply adds the internal `f32` values and returns the
+/// result. Implementing `Add` for `Foo` automatically implements `Add` for
+/// `Foo` vectors:
 ///
 /// ```
-/// # use ggmath::Scalar;
+/// # use std::ops::Add;
+/// #
+/// # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
 /// #
 /// # #[repr(transparent)]
-/// # #[derive(Clone, Copy)]
+/// # #[derive(Debug, Clone, Copy, PartialEq)]
 /// # struct Foo(f32);
 /// #
-/// # impl Scalar for Foo {}
+/// # // SAFETY: `Foo` and `i32` are both 4-bytes long, and `Foo` has no
+/// # // uninitialized bytes because its a simple wrapper around `f32`.
+/// # unsafe impl Scalar for Foo {
+/// #     type Repr = i32;
+/// # }
 /// #
-/// # use ggmath::{Alignment, Length, ScalarBackend, SupportedLength, Vector};
-/// #
-/// # unsafe impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+/// # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
 /// # where
 /// #     Length<N>: SupportedLength,
 /// # {
-/// #     type VectorRepr = Vector<N, f32, A>;
 /// # }
 /// #
+/// # impl Add for Foo {
+/// #     type Output = Self;
+/// #
+/// #     #[inline]
+/// #     fn add(self, rhs: Self) -> Self::Output {
+/// #         Self(self.0 + rhs.0)
+/// #     }
+/// # }
+/// #
+/// use ggmath::{Vec2, vec2};
+///
+/// let result: Vec2<Foo> = vec2!(Foo(1.0), Foo(2.0)) + vec2!(Foo(3.0), Foo(4.0));
+///
+/// assert_eq!(result, vec2!(Foo(1.0 + 3.0), Foo(2.0 + 4.0)));
+/// ```
+///
+/// But currently the implementation for `Foo` vectors doesn't use SIMD. To fix
+/// this, we can override the default implementation for
+/// [`ScalarBackend::vec_add`] which controls vector addition:
+///
+/// ```compile_fail
+/// # use std::ops::Add;
+/// #
+/// # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
+/// #
+/// # #[repr(transparent)]
+/// # #[derive(Debug, Clone, Copy, PartialEq)]
+/// # struct Foo(f32);
+/// #
+/// # // SAFETY: `Foo` and `i32` are both 4-bytes long, and `Foo` has no
+/// # // uninitialized bytes because its a simple wrapper around `f32`.
+/// # unsafe impl Scalar for Foo {
+/// #     type Repr = i32;
+/// # }
+/// #
+/// # impl Add for Foo {
+/// #     type Output = Self;
+/// #
+/// #     #[inline]
+/// #     fn add(self, rhs: Self) -> Self::Output {
+/// #         Self(self.0 + rhs.0)
+/// #     }
+/// # }
+/// #
+/// use ggmath::Vector;
+///
+/// impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+/// where
+///     Length<N>: SupportedLength,
+/// {
+///     #[inline]
+///     fn vec_add(
+///         vec: Vector<N, Self, A>,
+///         rhs: Vector<N, Self, A>,
+///     ) -> Vector<N, Self, A> {
+///         // TODO: implement this function.
+///     }
+/// }
+/// ```
+///
+/// To make a SIMD implementation we need to know the underlying representation
+/// of `Foo` vectors.
+///
+/// Its guaranteed that vectors of scalars with the same `Repr` have the same
+/// memory layout. [`Vector::to_repr`] can be used to reinterpret the bits of
+/// vectors to different scalar types where appropriate.
+///
+/// Lets implement extension methods for `Foo` and `f32` vectors to convert
+/// between the two:
+///
+/// ```
+/// # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
+/// #
+/// # #[repr(transparent)]
+/// # #[derive(Debug, Clone, Copy, PartialEq)]
+/// # struct Foo(f32);
+/// #
+/// # // SAFETY: `Foo` and `i32` are both 4-bytes long, and `Foo` has no
+/// # // uninitialized bytes because its a simple wrapper around `f32`.
+/// # unsafe impl Scalar for Foo {
+/// #     type Repr = i32;
+/// # }
+/// #
+/// # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+/// # where
+/// #     Length<N>: SupportedLength,
+/// # {
+/// # }
+/// #
+/// use ggmath::Vector;
+///
+/// trait ToF32 {
+///     type Output;
+///
+///     fn to_f32(self) -> Self::Output;
+/// }
+///
 /// trait ToFoo {
 ///     type Output;
 ///
 ///     fn to_foo(self) -> Self::Output;
+/// }
+///
+/// impl<const N: usize, A: Alignment> ToF32 for Vector<N, Foo, A>
+/// where
+///     Length<N>: SupportedLength,
+/// {
+///     type Output = Vector<N, f32, A>;
+///
+///     #[inline]
+///     fn to_f32(self) -> Self::Output {
+///         // SAFETY: `f32` accepts all bit-patterns.
+///         unsafe { self.to_repr() }
+///     }
 /// }
 ///
 /// impl<const N: usize, A: Alignment> ToFoo for Vector<N, f32, A>
@@ -187,31 +258,65 @@ pub trait Scalar:
 ///
 ///     #[inline]
 ///     fn to_foo(self) -> Self::Output {
-///         // SAFETY: Any value of `f32` is a valid value of `Foo`, so any
-///         // value of an `f32` vector is a valid value of a `Foo` vector.
-///         unsafe { Vector::from_repr(self) }
+///         // SAFETY: `Foo` accepts all bit-patterns.
+///         unsafe { self.to_repr() }
 ///     }
 /// }
 /// ```
 ///
-/// Now that everything is ready lets implement [`ScalarBackend::vec_add`] which
-/// controls the implementation for vector addition:
+/// `Vector::to_repr` is unsafe because the input arguments must be valid for
+/// the output type. In our case both `Foo` and `f32` accept all bit-patterns
+/// and so any conversion is safe.
+///
+/// Lets implement `vec_add` using these methods:
 ///
 /// ```
-/// # use ggmath::Scalar;
+/// # use std::ops::Add;
+/// #
+/// # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength, Vector};
 /// #
 /// # #[repr(transparent)]
-/// # #[derive(Clone, Copy)]
+/// # #[derive(Debug, Clone, Copy, PartialEq)]
 /// # struct Foo(f32);
 /// #
-/// # impl Scalar for Foo {}
+/// # // SAFETY: `Foo` and `i32` are both 4-bytes long, and `Foo` has no
+/// # // uninitialized bytes because its a simple wrapper around `f32`.
+/// # unsafe impl Scalar for Foo {
+/// #     type Repr = i32;
+/// # }
 /// #
-/// # use ggmath::{Alignment, Length, ScalarBackend, SupportedLength, Vector};
+/// # impl Add for Foo {
+/// #     type Output = Self;
+/// #
+/// #     #[inline]
+/// #     fn add(self, rhs: Self) -> Self::Output {
+/// #         Self(self.0 + rhs.0)
+/// #     }
+/// # }
+/// #
+/// # trait ToF32 {
+/// #     type Output;
+/// #
+/// #     fn to_f32(self) -> Self::Output;
+/// # }
 /// #
 /// # trait ToFoo {
 /// #     type Output;
 /// #
 /// #     fn to_foo(self) -> Self::Output;
+/// # }
+/// #
+/// # impl<const N: usize, A: Alignment> ToF32 for Vector<N, Foo, A>
+/// # where
+/// #     Length<N>: SupportedLength,
+/// # {
+/// #     type Output = Vector<N, f32, A>;
+/// #
+/// #     #[inline]
+/// #     fn to_f32(self) -> Self::Output {
+/// #         // SAFETY: `f32` accepts all bit-patterns.
+/// #         unsafe { self.to_repr() }
+/// #     }
 /// # }
 /// #
 /// # impl<const N: usize, A: Alignment> ToFoo for Vector<N, f32, A>
@@ -222,45 +327,88 @@ pub trait Scalar:
 /// #
 /// #     #[inline]
 /// #     fn to_foo(self) -> Self::Output {
-/// #         // SAFETY: Any value of `f32` is a valid value of `Foo`, so any
-/// #         // value of an `f32` vector is a valid value of a `Foo` vector.
-/// #         unsafe { Vector::from_repr(self) }
+/// #         // SAFETY: `Foo` accepts all bit-patterns.
+/// #         unsafe { self.to_repr() }
 /// #     }
 /// # }
 /// #
-/// // SAFETY: Because `Foo` is a wrapper around `f32`, any internal
-/// // representation that `Vector<N, f32, A>` may use is also a valid
-/// // representation for `Vector<N, Foo, A>`.
-/// unsafe impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+/// impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
 /// where
 ///     Length<N>: SupportedLength,
 /// {
-///     type VectorRepr = Vector<N, f32, A>;
-///     
 ///     #[inline]
-///     fn vec_add(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
-///         (vec.repr() + rhs.repr()).to_foo()
+///     fn vec_add(
+///         vec: Vector<N, Self, A>,
+///         rhs: Vector<N, Self, A>,
+///     ) -> Vector<N, Self, A> {
+///         (vec.to_f32() + rhs.to_f32()).to_foo()
 ///     }
 /// }
 /// ```
 ///
-/// Now `Foo` vector addition has whatever SIMD optimizations `f32` vectors
-/// have. This pattern can be expanded for all operators and for any
-/// extension-trait `Foo` vectors implement.
+/// `Foo` vector addition now uses the same implementation as `f32` vector
+/// addition. Because of this, any SIMD optimization the `f32` implementation
+/// has, the `Foo` implementation will have as well.
+///
+/// This pattern can then be expanded for all vector functions to make a fully optimized scalar.
+///
+/// SIMD optimizations can only be made using math types of primitives.
+/// Implementations that directly use intrinsics aren't supported because the
+/// exact representation of math types isn't stable.
+pub unsafe trait Scalar:
+    Copy
+    + ScalarBackend<2, Aligned>
+    + ScalarBackend<3, Aligned>
+    + ScalarBackend<4, Aligned>
+    + ScalarBackend<2, Unaligned>
+    + ScalarBackend<3, Unaligned>
+    + ScalarBackend<4, Unaligned>
+{
+    /// Controls the representation of math types.
+    ///
+    /// `Scalar::Repr` is a marker type that controls what SIMD alignment math
+    /// types have.
+    ///
+    /// If `Repr` is `()`, math types won't have any SIMD alignment.
+    ///
+    /// If `Repr` is the signed integer with the size of `Self`, math types will
+    /// have SIMD alignment appropriate for your scalar's size.
+    ///
+    /// For more information, see the documentation for [`Scalar`].
+    ///
+    /// # Safety
+    ///
+    /// `Scalar` implementations where `Repr = ()` are safe.
+    ///
+    /// If `Repr` is a signed integer:
+    ///
+    /// - `Self` and `Self::Repr` must have the same size.
+    /// - `Self` must have no uninitialized bytes and no padding.
+    #[expect(private_bounds)]
+    type Repr: ScalarRepr;
+}
+
+/// Controls the implementation of math functions.
+///
+/// `ScalarBackend<N, A>` controls the function implementations of math types
+/// with length `N`, scalar type `Self`, and alignment `A`.
+///
+/// All `ScalarBackend` functions have a default implementation that can be
+/// overriden to make SIMD optimizations.
+///
+/// You should only override implementations to make optimizations, and
+/// generally you should be consistent with the behaviour of default
+/// implementations.
+///
+/// For more information, see the documentation for [`Scalar`].
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is missing an implementation for `ScalarBackend`",
-    note = "consider implementing `ScalarDefault` for `{Self}`"
+    note = "see the documentation for `Scalar`"
 )]
-pub unsafe trait ScalarBackend<const N: usize, A: Alignment>
+pub trait ScalarBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
-    /// The internal representation of [`Vector<N, Self, A>`].
-    ///
-    /// This type must respect the memory layout requirements of
-    /// [`Vector<N, Self, A>`].
-    type VectorRepr: Copy;
-
     /// Overridable implementation of the `==` operator for vectors.
     #[inline]
     fn vec_eq(vec: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
@@ -386,58 +534,170 @@ where
     {
         Vector::from_fn(|i| vec[i] ^ rhs[i])
     }
+
+    /// Overridable implementation of [`Vector::eq_mask`].
+    #[inline]
+    fn vec_eq_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialEq,
+    {
+        Mask::from_fn(|i| vec[i] == other[i])
+    }
+
+    /// Overridable implementation of [`Vector::ne_mask`].
+    #[inline]
+    fn vec_ne_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialEq,
+    {
+        Mask::from_fn(|i| vec[i] != other[i])
+    }
+
+    /// Overridable implementation of [`Vector::lt_mask`].
+    #[inline]
+    fn vec_lt_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] < other[i])
+    }
+
+    /// Overridable implementation of [`Vector::gt_mask`].
+    #[inline]
+    fn vec_gt_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] > other[i])
+    }
+
+    /// Overridable implementation of [`Vector::lt_mask`].
+    #[inline]
+    fn vec_le_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] <= other[i])
+    }
+
+    /// Overridable implementation of [`Vector::gt_mask`].
+    #[inline]
+    fn vec_ge_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] >= other[i])
+    }
 }
 
-/// A default implementation for [`ScalarBackend`].
+/// Types accepted by [`Scalar::Repr`].
 ///
-/// This trait is for simple implementations of the [`Scalar`] trait which don't
-/// require any SIMD optimizations.
+/// # Safety
 ///
-/// Don't use this trait as a generic bound because types that implement
-/// [`ScalarDefault`] today might silently switch to manually implementing
-/// [`ScalarBackend`] in the future.
-///
-/// # Example
-///
-/// ```
-/// use ggmath::{Scalar, ScalarDefault};
-///
-/// #[derive(Debug, Clone, Copy)]
-/// struct Foo(f32);
-///
-/// impl Scalar for Foo {}
-///
-/// impl ScalarDefault for Foo {}
-///
-/// // later we can swap this for a manual implementation of `ScalarBackend` to
-/// // add SIMD optimizations.
-/// ```
-#[diagnostic::on_unimplemented(
-    message = "`{Self}` is missing an implementation for `ScalarBackend`",
-    note = "consider implementing `ScalarDefault` for `{Self}`"
-)]
-pub trait ScalarDefault {}
-
-unsafe impl<const N: usize, T, A: Alignment> ScalarBackend<N, A> for T
-where
-    T: Scalar + ScalarDefault,
-    Length<N>: SupportedLength,
+/// All associated types must uphold the guarantees of their math types.
+pub(crate) unsafe trait ScalarRepr:
+    MaskBackend<2, Aligned>
+    + MaskBackend<3, Aligned>
+    + MaskBackend<4, Aligned>
+    + MaskBackend<2, Unaligned>
+    + MaskBackend<3, Unaligned>
+    + MaskBackend<4, Unaligned>
 {
-    type VectorRepr = Vector<N, T, Unaligned>;
+    type VectorRepr<const N: usize, T, A: Alignment>: Copy
+    where
+        Length<N>: SupportedLength,
+        T: Scalar;
+
+    type MaskRepr<const N: usize, A: Alignment>: Copy
+    where
+        Length<N>: SupportedLength;
 }
 
-impl Scalar for f32 {}
-impl Scalar for f64 {}
-impl Scalar for i8 {}
-impl Scalar for i16 {}
-impl Scalar for i32 {}
-impl Scalar for i64 {}
-impl Scalar for i128 {}
-impl Scalar for isize {}
-impl Scalar for u8 {}
-impl Scalar for u16 {}
-impl Scalar for u32 {}
-impl Scalar for u64 {}
-impl Scalar for u128 {}
-impl Scalar for usize {}
-impl Scalar for bool {}
+/// Used by [`Vector::to_repr`] to reject transmuting between vectors of `Repr = ()`.
+///
+/// # Safety
+///
+/// This trait must not be implemented for types that are not signed integer
+/// primitives.
+pub(crate) unsafe trait SignedInteger {}
+
+unsafe impl Scalar for f32 {
+    type Repr = i32;
+}
+
+unsafe impl Scalar for f64 {
+    type Repr = i64;
+}
+
+unsafe impl Scalar for i8 {
+    type Repr = i8;
+}
+
+unsafe impl Scalar for i16 {
+    type Repr = i16;
+}
+
+unsafe impl Scalar for i32 {
+    type Repr = i32;
+}
+
+unsafe impl Scalar for i64 {
+    type Repr = i64;
+}
+
+unsafe impl Scalar for i128 {
+    type Repr = i128;
+}
+
+unsafe impl Scalar for isize {
+    #[cfg(target_pointer_width = "16")]
+    type Repr = i16;
+
+    #[cfg(target_pointer_width = "32")]
+    type Repr = i32;
+
+    #[cfg(target_pointer_width = "64")]
+    type Repr = i64;
+}
+
+unsafe impl Scalar for u8 {
+    type Repr = i8;
+}
+
+unsafe impl Scalar for u16 {
+    type Repr = i16;
+}
+
+unsafe impl Scalar for u32 {
+    type Repr = i32;
+}
+
+unsafe impl Scalar for u64 {
+    type Repr = i64;
+}
+
+unsafe impl Scalar for u128 {
+    type Repr = i128;
+}
+
+unsafe impl Scalar for usize {
+    #[cfg(target_pointer_width = "16")]
+    type Repr = i16;
+
+    #[cfg(target_pointer_width = "32")]
+    type Repr = i32;
+
+    #[cfg(target_pointer_width = "64")]
+    type Repr = i64;
+}
+
+unsafe impl Scalar for bool {
+    type Repr = i8;
+}
+
+unsafe impl SignedInteger for i8 {}
+unsafe impl SignedInteger for i16 {}
+unsafe impl SignedInteger for i32 {}
+unsafe impl SignedInteger for i64 {}
+unsafe impl SignedInteger for i128 {}
+unsafe impl SignedInteger for isize {}

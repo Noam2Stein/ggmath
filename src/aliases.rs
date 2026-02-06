@@ -1,31 +1,109 @@
-use crate::{Aligned, Unaligned, Vector};
+use crate::{Aligned, Mask, Unaligned, Vector};
 
 /// A 2-dimensional vector.
+///
+/// To initialize this type use the [`vec2`](crate::vec2) macro.
+///
+/// # SIMD Alignment
 ///
 /// This type may be SIMD-aligned depending on the target architecture.
 pub type Vec2<T> = Vector<2, T, Aligned>;
 
 /// A 3-dimensional vector.
 ///
+/// To initialize this type use the [`vec3`](crate::vec3) macro.
+///
+/// # SIMD Alignment
+///
 /// This type may be SIMD-aligned depending on the target architecture.
 pub type Vec3<T> = Vector<3, T, Aligned>;
 
 /// A 4-dimensional vector.
+///
+/// To initialize this type use the [`vec4`](crate::vec4) macro.
+///
+/// # SIMD Alignment
 ///
 /// This type may be SIMD-aligned depending on the target architecture.
 pub type Vec4<T> = Vector<4, T, Aligned>;
 
 /// A 2-dimensional vector.
 ///
+/// To initialize this type use the [`vec2`](crate::vec2) macro.
+///
+/// # No SIMD Alignment
+///
 /// This type is not SIMD-aligned and has the memory layout of `[T; 2]`.
 pub type Vec2U<T> = Vector<2, T, Unaligned>;
 
 /// A 3-dimensional vector.
+///
+/// To initialize this type use the [`vec3`](crate::vec3) macro.
+///
+/// # No SIMD Alignment
 ///
 /// This type is not SIMD-aligned and has the memory layout of `[T; 3]`.
 pub type Vec3U<T> = Vector<3, T, Unaligned>;
 
 /// A 4-dimensional vector.
 ///
+/// To initialize this type use the [`vec4`](crate::vec4) macro.
+///
+/// # No SIMD Alignment
+///
 /// This type is not SIMD-aligned and has the memory layout of `[T; 4]`.
 pub type Vec4U<T> = Vector<4, T, Unaligned>;
+
+/// A 2-component vector mask.
+///
+/// To initialize this type use [`Mask2::new`].
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Mask2<T> = Mask<2, T, Aligned>;
+
+/// A 3-component vector mask.
+///
+/// To initialize this type use [`Mask3::new`].
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Mask3<T> = Mask<3, T, Aligned>;
+
+/// A 4-component vector mask.
+///
+/// To initialize this type use [`Mask4::new`].
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Mask4<T> = Mask<4, T, Aligned>;
+
+/// A 2-component vector mask.
+///
+/// To initialize this type use [`Mask2U::new`].
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[bool; 2]`.
+pub type Mask2U<T> = Mask<2, T, Unaligned>;
+
+/// A 3-component vector mask.
+///
+/// To initialize this type use [`Mask3U::new`].
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[bool; 3]`.
+pub type Mask3U<T> = Mask<3, T, Unaligned>;
+
+/// A 4-component vector mask.
+///
+/// To initialize this type use [`Mask4U::new`].
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[bool; 4]`.
+pub type Mask4U<T> = Mask<4, T, Unaligned>;
