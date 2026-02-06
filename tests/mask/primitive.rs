@@ -9,13 +9,13 @@ pub fn test<T, A: Alignment>(a: T, b: T, c: T, d: T)
 where
     T: Scalar + Debug + PartialEq,
 {
-    assert!(size_of::<Mask<2, T, A>>() == 2);
-    assert!(size_of::<Mask<3, T, A>>() == 3);
-    assert!(size_of::<Mask<4, T, A>>() == 4);
+    assert!(size_of::<Mask<2, T, A>>() == 2 || size_of::<Mask<2, T, A>>() == size_of::<T>() * 2);
+    assert!(size_of::<Mask<3, T, A>>() == 3 || size_of::<Mask<3, T, A>>() == size_of::<T>() * 4);
+    assert!(size_of::<Mask<4, T, A>>() == 4 || size_of::<Mask<4, T, A>>() == size_of::<T>() * 4);
 
-    assert!(align_of::<Mask<2, T, A>>() == 1);
-    assert!(align_of::<Mask<3, T, A>>() == 1);
-    assert!(align_of::<Mask<4, T, A>>() == 1);
+    assert!(align_of::<Mask<2, T, A>>() == 1 || align_of::<Mask<2, T, A>>() == size_of::<T>() * 2);
+    assert!(align_of::<Mask<3, T, A>>() == 1 || align_of::<Mask<3, T, A>>() == size_of::<T>() * 4);
+    assert!(align_of::<Mask<4, T, A>>() == 1 || align_of::<Mask<4, T, A>>() == size_of::<T>() * 4);
 
     for (x, y, z, w) in iproduct!([false, true], [false, true], [false, true], [false, true]) {
         assert_eq!(Mask::<2, T, A>::from_array([x, y]).to_array(), [x, y]);

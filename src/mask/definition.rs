@@ -1,12 +1,15 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    marker::PhantomData,
+    mem::transmute,
     ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not},
     panic::{RefUnwindSafe, UnwindSafe},
 };
 
-use crate::{Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector};
+use crate::{
+    Aligned, Alignment, Length, Scalar, ScalarRepr, SupportedLength, Unaligned, Vector,
+    utils::specialize,
+};
 
 /// A generic vector mask.
 ///
@@ -31,12 +34,12 @@ use crate::{Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vect
 ///
 /// # Guarantees
 ///
-/// Mask types are currently missing all SIMD optimizations and have a temporary
-/// internal representation of `[bool; N]`. This will be fixed before the next
-/// release of the crate.
+/// Masks are guaranteed not to have any uninitialized bytes.
 ///
-/// The exact guarantees of masks are not decided upon yet.
-pub struct Mask<const N: usize, T, A: Alignment>(Vector<N, bool, A>, PhantomData<T>)
+/// Masks are guaranteed to be zeroable (to accept the zero bit-pattern).
+pub struct Mask<const N: usize, T, A: Alignment>(
+    pub(crate) <T::Repr as ScalarRepr>::MaskRepr<N, A>,
+)
 where
     Length<N>: SupportedLength,
     T: Scalar;
@@ -57,14 +60,14 @@ where
     #[inline]
     #[must_use]
     pub fn from_array(array: [bool; N]) -> Self {
-        Self(Vector::from_array(array), PhantomData)
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_from_array(array))
     }
 
     /// Creates a mask with all components set to the given value.
     #[inline]
     #[must_use]
     pub fn splat(value: bool) -> Self {
-        Self(Vector::splat(value), PhantomData)
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_splat(value))
     }
 
     /// Creates a mask by calling function `f` for each component index.
@@ -73,7 +76,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_fn(f: impl FnMut(usize) -> bool) -> Self {
-        Self(Vector::from_fn(f), PhantomData)
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_from_fn((f,)))
     }
 
     /// Converts the mask to the specified alignment.
@@ -82,7 +85,18 @@ where
     #[inline]
     #[must_use]
     pub fn to_alignment<A2: Alignment>(self) -> Mask<N, T, A2> {
-        Mask(self.0.to_alignment(), PhantomData)
+        (const {
+            if A::IS_ALIGNED == A2::IS_ALIGNED {
+                unsafe {
+                    transmute::<
+                        fn(Mask<N, T, A>) -> Mask<N, T, A>,
+                        fn(Mask<N, T, A>) -> Mask<N, T, A2>,
+                    >(|mask| mask)
+                }
+            } else {
+                |mask: Self| Mask::from_array(mask.to_array())
+            }
+        })(self)
     }
 
     /// Converts the mask to [`Aligned`] alignment.
@@ -107,21 +121,21 @@ where
     #[inline]
     #[must_use]
     pub fn to_array(self) -> [bool; N] {
-        self.0.to_array()
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_to_array(self))
     }
 
     /// Returns `true` if all of the mask's components are `true`.
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
-        self.0.all()
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_all(self))
     }
 
     /// Returns `true` if any of the mask's components are `true`.
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
-        self.0.any()
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_any(self))
     }
 
     /// Selects between the components of `if_true` and `if_false` based on the
@@ -129,14 +143,16 @@ where
     #[inline]
     #[must_use]
     pub fn select(self, if_true: Vector<N, T, A>, if_false: Vector<N, T, A>) -> Vector<N, T, A> {
-        self.0.select(if_true, if_false)
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_select(
+            self, if_true, if_false
+        ))
     }
 
     /// Returns an iterator over the mask's components.
     #[inline]
     #[must_use]
     pub fn iter(self) -> core::array::IntoIter<bool, N> {
-        self.0.iter()
+        self.to_array().into_iter()
     }
 
     /// Returns the component at the given index.
@@ -147,7 +163,7 @@ where
     #[inline]
     #[must_use]
     pub fn get(self, index: usize) -> bool {
-        self.0[index]
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_get(self, index))
     }
 
     /// Sets the component at the given index.
@@ -157,7 +173,7 @@ where
     /// Panics if the index is out of bounds.
     #[inline]
     pub fn set(&mut self, index: usize, value: bool) {
-        self.0[index] = value;
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_set(self, index, value))
     }
 }
 
@@ -169,7 +185,7 @@ where
     #[inline]
     #[must_use]
     pub fn new(x: bool, y: bool) -> Self {
-        Self(Vector::<2, bool, A>::new(x, y), PhantomData)
+        Self::from_array([x, y])
     }
 }
 
@@ -181,7 +197,7 @@ where
     #[inline]
     #[must_use]
     pub fn new(x: bool, y: bool, z: bool) -> Self {
-        Self(Vector::<3, bool, A>::new(x, y, z), PhantomData)
+        Self::from_array([x, y, z])
     }
 }
 
@@ -193,7 +209,7 @@ where
     #[inline]
     #[must_use]
     pub fn new(x: bool, y: bool, z: bool, w: bool) -> Self {
-        Self(Vector::<4, bool, A>::new(x, y, z, w), PhantomData)
+        Self::from_array([x, y, z, w])
     }
 }
 
@@ -250,16 +266,7 @@ where
 {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match N {
-            2 => write!(f, "({}, {})", self.0[0], self.0[1]),
-            3 => write!(f, "({}, {}, {})", self.0[0], self.0[1], self.0[2]),
-            4 => write!(
-                f,
-                "({}, {}, {}, {})",
-                self.0[0], self.0[1], self.0[2], self.0[3]
-            ),
-            _ => unreachable!(),
-        }
+        write!(f, "{:?}", Vector::<N, bool, A>::from_array(self.to_array()))
     }
 }
 
@@ -270,16 +277,7 @@ where
 {
     #[inline]
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match N {
-            2 => write!(f, "({}, {})", self.0[0], self.0[1]),
-            3 => write!(f, "({}, {}, {})", self.0[0], self.0[1], self.0[2]),
-            4 => write!(
-                f,
-                "({}, {}, {}, {})",
-                self.0[0], self.0[1], self.0[2], self.0[3]
-            ),
-            _ => unreachable!(),
-        }
+        write!(f, "{}", Vector::<N, bool, A>::from_array(self.to_array()))
     }
 }
 
@@ -290,13 +288,7 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-
-    #[expect(clippy::partialeq_ne_impl)]
-    #[inline]
-    fn ne(&self, other: &Self) -> bool {
-        self.0 != other.0
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_eq(self, other))
     }
 }
 
@@ -314,7 +306,7 @@ where
 {
     #[inline]
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.0.hash(state);
+        self.to_array().hash(state);
     }
 }
 
@@ -325,7 +317,7 @@ where
 {
     #[inline]
     fn default() -> Self {
-        Self(Default::default(), PhantomData)
+        Self::splat(bool::default())
     }
 }
 
@@ -338,12 +330,12 @@ where
 
     #[inline]
     fn not(self) -> Self::Output {
-        Self(!self.0, PhantomData)
+        specialize!(<T::Repr as MaskBackend<N, A>>::mask_not(self))
     }
 }
 
 macro_rules! impl_binary_op {
-    ($Op:ident $op:ident) => {
+    ($Op:ident $op:ident, $mask_op:ident) => {
         impl<const N: usize, T, A: Alignment> $Op for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
@@ -353,7 +345,7 @@ macro_rules! impl_binary_op {
 
             #[inline]
             fn $op(self, rhs: Self) -> Self::Output {
-                Self(self.0.$op(rhs.0), PhantomData)
+                specialize!(<T::Repr as MaskBackend<N, A>>::$mask_op(self, rhs))
             }
         }
 
@@ -371,9 +363,9 @@ macro_rules! impl_binary_op {
         }
     };
 }
-impl_binary_op!(BitAnd bitand);
-impl_binary_op!(BitOr bitor);
-impl_binary_op!(BitXor bitxor);
+impl_binary_op!(BitAnd bitand, mask_bitand);
+impl_binary_op!(BitOr bitor, mask_bitor);
+impl_binary_op!(BitXor bitxor, mask_bitxor);
 
 macro_rules! impl_assign_op {
     ($OpAssign:ident $op_assign:ident $op:ident) => {
@@ -437,4 +429,80 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
+}
+
+/// Controls the implementation of mask functions.
+///
+/// Unlike other backend traits (e.g., [`ScalarBackend`](crate::ScalarBackend)),
+/// `MaskBackend` is implemented for [`T::Repr`](Scalar::Repr) instead of `T`.
+///
+/// Unlike other backend traits, `MaskBackend`'s functions have no default
+/// implementation. This is because there are not enough guarantees about the
+/// memory layout of masks to make a default implementation.
+pub(crate) trait MaskBackend<const N: usize, A: Alignment>
+where
+    Length<N>: SupportedLength,
+{
+    fn mask_from_array<T>(array: [bool; N]) -> Mask<N, T, A>
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_splat<T>(value: bool) -> Mask<N, T, A>
+    where
+        T: Scalar<Repr = Self>;
+
+    /// A one member tuple is used to fix type inference in the macro
+    /// [`specialize`], which fails for generic function types.
+    fn mask_from_fn<T, F>(f: (F,)) -> Mask<N, T, A>
+    where
+        T: Scalar<Repr = Self>,
+        F: FnMut(usize) -> bool;
+
+    fn mask_to_array<T>(mask: Mask<N, T, A>) -> [bool; N]
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_all<T>(mask: Mask<N, T, A>) -> bool
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_any<T>(mask: Mask<N, T, A>) -> bool
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_select<T>(
+        mask: Mask<N, T, A>,
+        if_true: Vector<N, T, A>,
+        if_false: Vector<N, T, A>,
+    ) -> Vector<N, T, A>
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_get<T>(mask: Mask<N, T, A>, index: usize) -> bool
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_set<T>(mask: &mut Mask<N, T, A>, index: usize, value: bool)
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_eq<T>(mask: &Mask<N, T, A>, other: &Mask<N, T, A>) -> bool
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_not<T>(mask: Mask<N, T, A>) -> Mask<N, T, A>
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_bitand<T>(mask: Mask<N, T, A>, rhs: Mask<N, T, A>) -> Mask<N, T, A>
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_bitor<T>(mask: Mask<N, T, A>, rhs: Mask<N, T, A>) -> Mask<N, T, A>
+    where
+        T: Scalar<Repr = Self>;
+
+    fn mask_bitxor<T>(mask: Mask<N, T, A>, rhs: Mask<N, T, A>) -> Mask<N, T, A>
+    where
+        T: Scalar<Repr = Self>;
 }

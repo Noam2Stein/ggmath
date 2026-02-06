@@ -1,6 +1,6 @@
 use core::mem::{ManuallyDrop, transmute, transmute_copy};
 
-use crate::{Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector};
+use crate::{Aligned, Alignment, Length, Mask, Scalar, SupportedLength, Unaligned, Vector};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Transmute
@@ -206,6 +206,50 @@ unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Vector<N2, T, A2>, N, N2, A, A2> for &'a mut Vector<N, T, A>
 where
     T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Mask<N2, T, A2>, N, N2, A, A2> for Mask<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Mask<N2, T, A2>, N, N2, A, A2> for &'a Mask<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Mask<N2, T, A2>, N, N2, A, A2> for &'a mut Mask<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<[T2; N2], N, N2, A, A2> for [T; N]
+where
+    T: Specialize<T2, N, N2, A, A2>,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<(T,), N, N2, A, A2> for (T,)
+where
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {

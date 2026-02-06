@@ -13,7 +13,7 @@ macro_rules! impl_float {
             #[inline]
             #[must_use]
             pub fn is_nan(self) -> bool {
-                specialize!(<$T as $Backend<N, A>>::vec_is_nan(self))
+                self.nan_mask().any()
             }
 
             /// Returns a mask where each component is `true` if the
@@ -23,8 +23,7 @@ macro_rules! impl_float {
             #[inline]
             #[must_use]
             pub fn nan_mask(self) -> Mask<N, $T, A> {
-                // TODO: add specialization.
-                Mask::from_fn(|i| self[i].is_nan())
+                specialize!(<$T as $Backend<N, A>>::vec_nan_mask(self))
             }
 
             /// Returns `true` if all of the vector's components are finite.
@@ -33,7 +32,7 @@ macro_rules! impl_float {
             #[inline]
             #[must_use]
             pub fn is_finite(self) -> bool {
-                specialize!(<$T as $Backend<N, A>>::vec_is_finite(self))
+                self.finite_mask().all()
             }
 
             /// Returns a mask where each component is `true` if the
@@ -45,8 +44,7 @@ macro_rules! impl_float {
             #[inline]
             #[must_use]
             pub fn finite_mask(self) -> Mask<N, $T, A> {
-                // TODO: add specialization.
-                Mask::from_fn(|i| self[i].is_finite())
+                specialize!(<$T as $Backend<N, A>>::vec_finite_mask(self))
             }
 
             /// Returns a mask where each component is `true` if the
@@ -57,8 +55,7 @@ macro_rules! impl_float {
             #[inline]
             #[must_use]
             pub fn sign_positive_mask(self) -> Mask<N, $T, A> {
-                // TODO: add specialization.
-                Mask::from_fn(|i| self[i].is_sign_positive())
+                specialize!(<$T as $Backend<N, A>>::vec_sign_positive_mask(self))
             }
 
             /// Returns a mask where each component is `true` if the
@@ -69,8 +66,7 @@ macro_rules! impl_float {
             #[inline]
             #[must_use]
             pub fn sign_negative_mask(self) -> Mask<N, $T, A> {
-                // TODO: add specialization.
-                Mask::from_fn(|i| self[i].is_sign_negative())
+                specialize!(<$T as $Backend<N, A>>::vec_sign_negative_mask(self))
             }
 
             /// Computes `1.0 / self`.
@@ -1059,13 +1055,23 @@ macro_rules! impl_float {
             Length<N>: SupportedLength,
         {
             #[inline]
-            fn vec_is_nan(vec: Vector<N, $T, A>) -> bool {
-                (0..N).any(|i| vec[i].is_nan())
+            fn vec_nan_mask(vec: Vector<N, $T, A>) -> Mask<N, $T, A> {
+                Mask::from_fn(|i| vec[i].is_nan())
             }
 
             #[inline]
-            fn vec_is_finite(vec: Vector<N, $T, A>) -> bool {
-                (0..N).all(|i| vec[i].is_finite())
+            fn vec_finite_mask(vec: Vector<N, $T, A>) -> Mask<N, $T, A> {
+                Mask::from_fn(|i| vec[i].is_finite())
+            }
+
+            #[inline]
+            fn vec_sign_positive_mask(vec: Vector<N, $T, A>) -> Mask<N, $T, A> {
+                Mask::from_fn(|i| vec[i].is_sign_positive())
+            }
+
+            #[inline]
+            fn vec_sign_negative_mask(vec: Vector<N, $T, A>) -> Mask<N, $T, A> {
+                Mask::from_fn(|i| vec[i].is_sign_negative())
             }
 
             #[inline]

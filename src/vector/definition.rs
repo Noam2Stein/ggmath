@@ -267,8 +267,7 @@ where
     where
         T: PartialEq,
     {
-        // TODO: add specialization.
-        Mask::from_fn(|i| self[i] == other[i])
+        specialize!(<T as ScalarBackend<N, A>>::vec_eq_mask(self, other))
     }
 
     /// Returns a mask where each component is `true` if the corresponding
@@ -281,8 +280,7 @@ where
     where
         T: PartialEq,
     {
-        // TODO: add specialization.
-        Mask::from_fn(|i| self[i] != other[i])
+        specialize!(<T as ScalarBackend<N, A>>::vec_ne_mask(self, other))
     }
 
     /// Returns a mask where each component is `true` if the corresponding
@@ -295,8 +293,7 @@ where
     where
         T: PartialOrd,
     {
-        // TODO: add specialization.
-        Mask::from_fn(|i| self[i] < other[i])
+        specialize!(<T as ScalarBackend<N, A>>::vec_lt_mask(self, other))
     }
 
     /// Returns a mask where each component is `true` if the corresponding
@@ -310,8 +307,7 @@ where
     where
         T: PartialOrd,
     {
-        // TODO: add specialization.
-        Mask::from_fn(|i| self[i] > other[i])
+        specialize!(<T as ScalarBackend<N, A>>::vec_gt_mask(self, other))
     }
 
     /// Returns a mask where each component is `true` if the corresponding
@@ -325,8 +321,7 @@ where
     where
         T: PartialOrd,
     {
-        // TODO: add specialization.
-        Mask::from_fn(|i| self[i] <= other[i])
+        specialize!(<T as ScalarBackend<N, A>>::vec_le_mask(self, other))
     }
 
     /// Returns a mask where each component is `true` if the corresponding
@@ -340,8 +335,7 @@ where
     where
         T: PartialOrd,
     {
-        // TODO: add specialization.
-        Mask::from_fn(|i| self[i] >= other[i])
+        specialize!(<T as ScalarBackend<N, A>>::vec_ge_mask(self, other))
     }
 
     /// Reinterprets the bits of the vector to a different scalar type.

@@ -1,6 +1,6 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
-use crate::{Aligned, Alignment, Length, SupportedLength, Unaligned, Vector};
+use crate::{Aligned, Alignment, Length, Mask, MaskBackend, SupportedLength, Unaligned, Vector};
 
 /// A trait for elements of math types.
 ///
@@ -530,6 +530,60 @@ where
     {
         Vector::from_fn(|i| vec[i] ^ rhs[i])
     }
+
+    /// Overridable implementation of [`Vector::eq_mask`].
+    #[inline]
+    fn vec_eq_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialEq,
+    {
+        Mask::from_fn(|i| vec[i] == other[i])
+    }
+
+    /// Overridable implementation of [`Vector::ne_mask`].
+    #[inline]
+    fn vec_ne_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialEq,
+    {
+        Mask::from_fn(|i| vec[i] != other[i])
+    }
+
+    /// Overridable implementation of [`Vector::lt_mask`].
+    #[inline]
+    fn vec_lt_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] < other[i])
+    }
+
+    /// Overridable implementation of [`Vector::gt_mask`].
+    #[inline]
+    fn vec_gt_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] > other[i])
+    }
+
+    /// Overridable implementation of [`Vector::lt_mask`].
+    #[inline]
+    fn vec_le_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] <= other[i])
+    }
+
+    /// Overridable implementation of [`Vector::gt_mask`].
+    #[inline]
+    fn vec_ge_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: Scalar + PartialOrd,
+    {
+        Mask::from_fn(|i| vec[i] >= other[i])
+    }
 }
 
 /// Types accepted by [`Scalar::Repr`].
@@ -537,11 +591,22 @@ where
 /// # Safety
 ///
 /// All associated types must uphold the guarantees of their math types.
-pub(crate) unsafe trait ScalarRepr {
+pub(crate) unsafe trait ScalarRepr:
+    MaskBackend<2, Aligned>
+    + MaskBackend<3, Aligned>
+    + MaskBackend<4, Aligned>
+    + MaskBackend<2, Unaligned>
+    + MaskBackend<3, Unaligned>
+    + MaskBackend<4, Unaligned>
+{
     type VectorRepr<const N: usize, T, A: Alignment>: Copy
     where
         Length<N>: SupportedLength,
         T: Scalar;
+
+    type MaskRepr<const N: usize, A: Alignment>: Copy
+    where
+        Length<N>: SupportedLength;
 }
 
 /// Used by [`Vector::to_repr`] to reject transmuting between vectors of `Repr = ()`.

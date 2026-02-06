@@ -1,6 +1,6 @@
-use bytemuck::{Pod, Zeroable};
+use bytemuck::{NoUninit, Pod, Zeroable};
 
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector};
+use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector};
 
 /*
 Missing implementations are blocked on:
@@ -21,7 +21,16 @@ where
 {
 }
 
-/*
-TODO: add mask implementations. This depends on the representation rules of
-masks which are not defined yet.
-*/
+unsafe impl<const N: usize, T, A: Alignment> NoUninit for Mask<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + 'static,
+{
+}
+
+unsafe impl<const N: usize, T, A: Alignment> Zeroable for Mask<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar,
+{
+}

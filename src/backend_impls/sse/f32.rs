@@ -4,7 +4,8 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 use crate::{
-    Aligned, F32VectorBackend, ScalarBackend, Unaligned, Vec3, Vec4, Vector, utils::safe_arch,
+    Aligned, F32VectorBackend, Mask, Mask3, Mask4, ScalarBackend, Unaligned, Vec3, Vec4, Vector,
+    utils::safe_arch,
 };
 
 impl ScalarBackend<2, Aligned> for f32 {}
@@ -46,6 +47,36 @@ impl ScalarBackend<3, Aligned> for f32 {
         #[inline]
         fn vec_div(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
             Vector(_mm_div_ps(vec.0, rhs.0))
+        }
+
+        #[inline]
+        fn vec_eq_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpeq_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_ne_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpneq_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_lt_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmplt_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_gt_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpgt_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_le_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmple_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_ge_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpge_ps(vec.0, other.0))
         }
     }
 
@@ -98,6 +129,36 @@ impl ScalarBackend<4, Aligned> for f32 {
         fn vec_div(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
             Vector(_mm_div_ps(vec.0, rhs.0))
         }
+
+        #[inline]
+        fn vec_eq_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpeq_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_ne_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpneq_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_lt_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmplt_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_gt_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpgt_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_le_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmple_ps(vec.0, other.0))
+        }
+
+        #[inline]
+        fn vec_ge_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpge_ps(vec.0, other.0))
+        }
     }
 
     #[cfg(target_feature = "sse2")]
@@ -122,13 +183,13 @@ impl F32VectorBackend<3, Aligned> for f32 {
         #![target_feature(enable = "sse")]
 
         #[inline]
-        fn vec_is_nan(vec: Vec3<f32>) -> bool {
-            _mm_movemask_ps(nan_mask(vec.0)) as u32 & 0b111 != 0
+        fn vec_nan_mask(vec: Vec3<f32>) -> Mask3<f32> {
+            Mask(nan_mask(vec.0))
         }
 
         #[inline]
-        fn vec_is_finite(vec: Vec3<f32>) -> bool {
-            _mm_movemask_ps(finite_mask(vec.0)) as u32 & 0b111 == 0b111
+        fn vec_finite_mask(vec: Vec3<f32>) -> Mask3<f32> {
+            Mask(finite_mask(vec.0))
         }
 
         #[inline]
@@ -204,6 +265,16 @@ impl F32VectorBackend<3, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
+        #[inline]
+        fn vec_sign_positive_mask(vec: Vec3<f32>) -> Mask3<f32> {
+            Mask(sign_positive_mask(vec.0))
+        }
+
+        #[inline]
+        fn vec_sign_negative_mask(vec: Vec3<f32>) -> Mask3<f32> {
+            Mask(sign_negative_mask(vec.0))
+        }
+
         #[cfg(backend)]
         #[inline(always)]
         fn vec_floor(vec: Vec3<f32>) -> Vec3<f32> {
@@ -229,13 +300,13 @@ impl F32VectorBackend<4, Aligned> for f32 {
         #![target_feature(enable = "sse")]
 
         #[inline]
-        fn vec_is_nan(vec: Vec4<f32>) -> bool {
-            _mm_movemask_ps(nan_mask(vec.0)) as u32 != 0
+        fn vec_nan_mask(vec: Vec4<f32>) -> Mask4<f32> {
+            Mask(nan_mask(vec.0))
         }
 
         #[inline]
-        fn vec_is_finite(vec: Vec4<f32>) -> bool {
-            _mm_movemask_ps(finite_mask(vec.0)) as u32 == 0xf
+        fn vec_finite_mask(vec: Vec4<f32>) -> Mask4<f32> {
+            Mask(finite_mask(vec.0))
         }
 
         #[inline]
@@ -311,6 +382,16 @@ impl F32VectorBackend<4, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
+        #[inline]
+        fn vec_sign_positive_mask(vec: Vec4<f32>) -> Mask4<f32> {
+            Mask(sign_positive_mask(vec.0))
+        }
+
+        #[inline]
+        fn vec_sign_negative_mask(vec: Vec4<f32>) -> Mask4<f32> {
+            Mask(sign_negative_mask(vec.0))
+        }
+
         #[cfg(backend)]
         #[inline(always)]
         fn vec_floor(vec: Vec4<f32>) -> Vec4<f32> {
@@ -363,6 +444,24 @@ fn nan_mask(vec: __m128) -> __m128 {
 #[target_feature(enable = "sse")]
 fn finite_mask(vec: __m128) -> __m128 {
     _mm_cmplt_ps(abs(vec), _mm_set1_ps(f32::INFINITY))
+}
+
+#[inline]
+#[target_feature(enable = "sse2")]
+fn sign_positive_mask(vec: __m128) -> __m128 {
+    _mm_castsi128_ps(_mm_cmpeq_epi32(
+        _mm_castps_si128(vec),
+        _mm_castps_si128(abs(vec)),
+    ))
+}
+
+#[inline]
+#[target_feature(enable = "sse2")]
+fn sign_negative_mask(vec: __m128) -> __m128 {
+    _mm_castsi128_ps(_mm_cmpeq_epi32(
+        _mm_castps_si128(vec),
+        _mm_castps_si128(_mm_or_ps(_mm_set1_ps(-0.0), vec)),
+    ))
 }
 
 #[inline]

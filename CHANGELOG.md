@@ -41,6 +41,14 @@ Non breaking changes:
   - `sign_positive_mask`
   - `sign_negative_mask`
 
+- Added `ScalarBackend` functions:
+  - `vec_eq_mask`
+  - `vec_ne_mask`
+  - `vec_lt_mask`
+  - `vec_gt_mask`
+  - `vec_le_mask`
+  - `vec_ge_mask`
+
 - Improved documentation.
 
 ## 0.15.1 (29.1.2025)

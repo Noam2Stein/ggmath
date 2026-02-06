@@ -11,6 +11,11 @@ macro_rules! impl_scalar_repr {
             where
                 Length<N>: SupportedLength,
                 T: Scalar;
+
+            type MaskRepr<const N: usize, A: Alignment>
+                = <Length<N> as SupportedLength>::Select<Repr2<bool>, Repr3<bool>, Repr4<bool>>
+            where
+                Length<N>: SupportedLength;
         }
     };
 }
