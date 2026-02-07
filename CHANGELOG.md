@@ -4,6 +4,8 @@
 
 - Fixed vague safety documentation.
 
+- Improved documentation.
+
 ## 0.16.0 (6.2.2026)
 
 Breaking changes:

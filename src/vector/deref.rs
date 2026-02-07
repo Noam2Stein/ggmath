@@ -49,11 +49,11 @@ where
 
 #[repr(C)]
 pub struct Xyz<T> {
-    /// The second element of the vector.
+    /// The first element of the vector.
     pub x: T,
-    /// The third element of the vector.
+    /// The second element of the vector.
     pub y: T,
-    /// The fourth element of the vector.
+    /// The third element of the vector.
     pub z: T,
 }
 
