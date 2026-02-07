@@ -25,6 +25,8 @@ where
 
     #[inline]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: `Vector<2, T, A>` is guaranteed to begin with 2 consecutive
+        // values of `T`, and so begin with `Xy<T>`.
         unsafe { transmute_ref::<Vector<2, T, A>, Xy<T>>(self) }
     }
 }
@@ -35,6 +37,8 @@ where
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Vector<2, T, A>` is guaranteed to begin with 2 consecutive
+        // values of `T`, and so begin with `Xy<T>`.
         unsafe { transmute_mut::<Vector<2, T, A>, Xy<T>>(self) }
     }
 }
@@ -61,6 +65,8 @@ where
 
     #[inline]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: `Vector<3, T, A>` is guaranteed to begin with 3 consecutive
+        // values of `T`, and so begin with `Xyz<T>`.
         unsafe { transmute_ref::<Vector<3, T, A>, Xyz<T>>(self) }
     }
 }
@@ -71,6 +77,8 @@ where
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Vector<3, T, A>` is guaranteed to begin with 3 consecutive
+        // values of `T`, and so begin with `Xyz<T>`.
         unsafe { transmute_mut::<Vector<3, T, A>, Xyz<T>>(self) }
     }
 }
@@ -99,6 +107,8 @@ where
 
     #[inline]
     fn deref(&self) -> &Self::Target {
+        // SAFETY: `Vector<4, T, A>` is guaranteed to begin with 4 consecutive
+        // values of `T`, and so begin with `Xyzw<T>`.
         unsafe { transmute_ref::<Vector<4, T, A>, Xyzw<T>>(self) }
     }
 }
@@ -109,6 +119,8 @@ where
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
+        // SAFETY: `Vector<4, T, A>` is guaranteed to begin with 4 consecutive
+        // values of `T`, and so begin with `Xyzw<T>`.
         unsafe { transmute_mut::<Vector<4, T, A>, Xyzw<T>>(self) }
     }
 }

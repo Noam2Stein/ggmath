@@ -34,9 +34,19 @@ use crate::{
 ///
 /// # Guarantees
 ///
-/// Masks are guaranteed not to have any uninitialized bytes.
+/// The exact representation of masks isn't stable, but they do guarantee
+/// certain properties.
+///
+/// Masks are guaranteed to have no uninitialized bytes.
 ///
 /// Masks are guaranteed to be zeroable (to accept the zero bit-pattern).
+///
+/// Masks of scalars with the same [`Scalar::Repr`] are guaranteed to have the
+/// same size, same alignment, and to be transmutable to each other. This
+/// includes scalars where `Repr = ()`.
+///
+/// Keep in mind that scalars that have the same `Repr` today might silently
+/// change their `Repr` in the future.
 pub struct Mask<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::MaskRepr<N, A>,
 )
@@ -96,6 +106,9 @@ where
     pub fn to_alignment<A2: Alignment>(self) -> Mask<N, T, A2> {
         (const {
             if A::IS_ALIGNED == A2::IS_ALIGNED {
+                // `A` and `A2` are guaranteed to be the same type as long as
+                // `A::IS_ALIGNED == A2::IS_ALIGNED` which was just checked.
+                // Thus the transmuted types are the same type.
                 unsafe {
                     transmute::<
                         fn(Mask<N, T, A>) -> Mask<N, T, A>,
@@ -405,6 +418,8 @@ impl_assign_op!(BitAndAssign bitand_assign bitand);
 impl_assign_op!(BitOrAssign bitor_assign bitor);
 impl_assign_op!(BitXorAssign bitxor_assign bitxor);
 
+// SAFETY: Mask representations must be either equivalent to `[bool; N]` or be
+// simple intrinsic types. Both are `Send`.
 unsafe impl<const N: usize, T, A: Alignment> Send for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -412,6 +427,8 @@ where
 {
 }
 
+// SAFETY: Mask representations must be either equivalent to `[bool; N]` or be
+// simple intrinsic types. Both are `Sync`.
 unsafe impl<const N: usize, T, A: Alignment> Sync for Mask<N, T, A>
 where
     Length<N>: SupportedLength,

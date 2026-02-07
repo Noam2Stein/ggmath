@@ -8,7 +8,19 @@ use crate::{
     utils::{Repr2, Repr3, Repr4},
 };
 
+// SAFETY: Look at the safety note for each associated type.
 unsafe impl ScalarRepr for i32 {
+    // SAFETY: Select chooses `ReprN` from `Repr2`, `Repr3`, and
+    // `Repr4`. Each type is guaranteed to be a simple struct equivalent
+    // to `[T; N]`. The vector is made out of consecutive values of `T`,
+    // the vector is guaranteed to have the size and alignment of
+    // `[T; N]`, and two scalars that share `$T` must have the same size
+    // thus the vectors have the same size and element positions too. `__m128`
+    // is made out of consecutive elements of `T` because `T` must be 4-bytes
+    // long and have no uninitialized bytes. `Vector<3, T, Aligned>` has the
+    // size of `[T; 4]` and its padding element has initialized bytes.
+    // `Vector<4, T, Aligned>` has the size of `[T; 4]`. `__m128` is consistent
+    // across scalars with the same `Repr`.
     type VectorRepr<const N: usize, T, A: Alignment>
         = <A as Alignment>::Select<
         <Length<N> as SupportedLength>::Select<Repr2<T>, __m128, __m128>,
@@ -18,6 +30,11 @@ unsafe impl ScalarRepr for i32 {
         Length<N>: SupportedLength,
         T: Scalar;
 
+    // SAFETY: For the `bool` types, select chooses `ReprN` from `Repr2`, `Repr3`, and
+    // `Repr4`. Each type is guaranteed to be a simple struct equivalent
+    // to `[bool; N]`. `[bool; N]` has no uninitialized bytes, and is
+    // zeroable. `__m128` has no uninitialized bytes, and is zeroable. Masks of
+    // `$T` have the same representation no matter their `T` type.
     type MaskRepr<const N: usize, A: Alignment>
         = <A as Alignment>::Select<
         <Length<N> as SupportedLength>::Select<Repr2<bool>, __m128, __m128>,
@@ -33,6 +50,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The two intrinsics are part of SSE2.
         unsafe {
             Mask(_mm_castsi128_ps(_mm_set_epi32(
                 -(array[2] as i32),
@@ -48,6 +66,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The two intrinsics are part of SSE2.
         unsafe { Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32)))) }
     }
 
@@ -65,6 +84,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         let bits = unsafe { _mm_movemask_ps(mask.0) };
         [bits & 0x1 != 0, bits & 0x2 != 0, bits & 0x4 != 0]
     }
@@ -74,6 +94,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) & 0x7 == 0x7 }
     }
 
@@ -82,6 +103,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) & 0x7 != 0 }
     }
 
@@ -94,6 +116,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The three intrinsics are part of SSE.
         Vector(unsafe {
             _mm_or_ps(
                 _mm_andnot_ps(mask.0, if_false.0),
@@ -107,6 +130,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe {
             match index {
                 0 => _mm_movemask_ps(mask.0) & 0x1 != 0,
@@ -123,6 +147,9 @@ impl MaskBackend<3, Aligned> for i32 {
         T: Scalar<Repr = Self>,
     {
         if index < 3 {
+            // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
+            // `index` is valid because it was just checked to be less then 3,
+            // and the result is a pointer to a valid `i32`.
             let slot = unsafe {
                 core::ptr::from_mut::<__m128>(&mut mask.0)
                     .cast::<i32>()
@@ -142,6 +169,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) & 0x7 == _mm_movemask_ps(other.0) & 0x7 }
     }
 
@@ -150,6 +178,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The two intrinsics are part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))) })
     }
 
@@ -158,6 +187,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_and_ps(mask.0, rhs.0) })
     }
 
@@ -166,6 +196,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_or_ps(mask.0, rhs.0) })
     }
 
@@ -174,6 +205,7 @@ impl MaskBackend<3, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, rhs.0) })
     }
 }
@@ -184,6 +216,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The two intrinsics are part of SSE2.
         unsafe {
             Mask(_mm_castsi128_ps(_mm_set_epi32(
                 -(array[3] as i32),
@@ -199,6 +232,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The two intrinsics are part of SSE2.
         unsafe { Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32)))) }
     }
 
@@ -216,6 +250,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         let bits = unsafe { _mm_movemask_ps(mask.0) };
         [
             bits & 0x1 != 0,
@@ -230,6 +265,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) == 0xf }
     }
 
@@ -238,6 +274,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) != 0 }
     }
 
@@ -250,6 +287,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The three intrinsics are part of SSE.
         Vector(unsafe {
             _mm_or_ps(
                 _mm_andnot_ps(mask.0, if_false.0),
@@ -263,6 +301,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe {
             match index {
                 0 => _mm_movemask_ps(mask.0) & 0x1 != 0,
@@ -280,6 +319,9 @@ impl MaskBackend<4, Aligned> for i32 {
         T: Scalar<Repr = Self>,
     {
         if index < 4 {
+            // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
+            // `index` is valid because it was just checked to be less then 4,
+            // and the result is a pointer to a valid `i32`.
             let slot = unsafe {
                 core::ptr::from_mut::<__m128>(&mut mask.0)
                     .cast::<i32>()
@@ -299,6 +341,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) == _mm_movemask_ps(other.0) }
     }
 
@@ -307,6 +350,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The two intrinsics are part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))) })
     }
 
@@ -315,6 +359,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_and_ps(mask.0, rhs.0) })
     }
 
@@ -323,6 +368,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_or_ps(mask.0, rhs.0) })
     }
 
@@ -331,6 +377,7 @@ impl MaskBackend<4, Aligned> for i32 {
     where
         T: Scalar<Repr = Self>,
     {
+        // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, rhs.0) })
     }
 }

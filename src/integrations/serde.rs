@@ -24,13 +24,23 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        Ok(Self::from_array(unsafe {
-            match N {
-                2 => transmute_generic::<[T; 2], [T; N]>(Deserialize::deserialize(deserializer)?),
-                3 => transmute_generic::<[T; 3], [T; N]>(Deserialize::deserialize(deserializer)?),
-                4 => transmute_generic::<[T; 4], [T; N]>(Deserialize::deserialize(deserializer)?),
-                _ => unreachable!(),
-            }
+        Ok(Self::from_array(match N {
+            // SAFETY: Because `N == 2`, `[T; N]` and `[T; 2]` are the same
+            // type.
+            2 => unsafe {
+                transmute_generic::<[T; 2], [T; N]>(Deserialize::deserialize(deserializer)?)
+            },
+            // SAFETY: Because `N == 3`, `[T; N]` and `[T; 3]` are the same
+            // type.
+            3 => unsafe {
+                transmute_generic::<[T; 3], [T; N]>(Deserialize::deserialize(deserializer)?)
+            },
+            // SAFETY: Because `N == 4`, `[T; N]` and `[T; 4]` are the same
+            // type.
+            4 => unsafe {
+                transmute_generic::<[T; 4], [T; N]>(Deserialize::deserialize(deserializer)?)
+            },
+            _ => unreachable!(),
         }))
     }
 }
@@ -57,19 +67,23 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        Ok(Self::from_array(unsafe {
-            match N {
-                2 => transmute_generic::<[bool; 2], [bool; N]>(Deserialize::deserialize(
-                    deserializer,
-                )?),
-                3 => transmute_generic::<[bool; 3], [bool; N]>(Deserialize::deserialize(
-                    deserializer,
-                )?),
-                4 => transmute_generic::<[bool; 4], [bool; N]>(Deserialize::deserialize(
-                    deserializer,
-                )?),
-                _ => unreachable!(),
-            }
+        Ok(Self::from_array(match N {
+            // SAFETY: Because `N == 2`, `[bool; N]` and `[bool; 2]` are the
+            // same type.
+            2 => unsafe {
+                transmute_generic::<[bool; 2], [bool; N]>(Deserialize::deserialize(deserializer)?)
+            },
+            // SAFETY: Because `N == 3`, `[bool; N]` and `[bool; 3]` are the
+            // same type.
+            3 => unsafe {
+                transmute_generic::<[bool; 3], [bool; N]>(Deserialize::deserialize(deserializer)?)
+            },
+            // SAFETY: Because `N == 4`, `[bool; N]` and `[bool; 4]` are the
+            // same type.
+            4 => unsafe {
+                transmute_generic::<[bool; 4], [bool; N]>(Deserialize::deserialize(deserializer)?)
+            },
+            _ => unreachable!(),
         }))
     }
 }

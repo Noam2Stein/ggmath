@@ -12,7 +12,7 @@ impl ScalarBackend<2, Aligned> for f32 {}
 
 impl ScalarBackend<3, Aligned> for f32 {
     safe_arch! {
-        #![target_feature(enable = "sse")]
+        #![target_feature(enable = "sse2")]
 
         #[inline]
         fn vec_eq(vec: &Vec3<f32>, other: &Vec3<f32>) -> bool {
@@ -50,6 +50,11 @@ impl ScalarBackend<3, Aligned> for f32 {
         }
 
         #[inline]
+        fn vec_rem(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+            Vector(rem(vec.0, rhs.0))
+        }
+
+        #[inline]
         fn vec_eq_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
             Mask(_mm_cmpeq_ps(vec.0, other.0))
         }
@@ -79,21 +84,11 @@ impl ScalarBackend<3, Aligned> for f32 {
             Mask(_mm_cmpge_ps(vec.0, other.0))
         }
     }
-
-    #[cfg(target_feature = "sse2")]
-    safe_arch! {
-        #![target_feature(enable = "sse2")]
-
-        #[inline]
-        fn vec_rem(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            Vector(rem(vec.0, rhs.0))
-        }
-    }
 }
 
 impl ScalarBackend<4, Aligned> for f32 {
     safe_arch! {
-        #![target_feature(enable = "sse")]
+        #![target_feature(enable = "sse2")]
 
         #[inline]
         fn vec_eq(vec: &Vec4<f32>, other: &Vec4<f32>) -> bool {
@@ -131,6 +126,11 @@ impl ScalarBackend<4, Aligned> for f32 {
         }
 
         #[inline]
+        fn vec_rem(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+            Vector(rem(vec.0, rhs.0))
+        }
+
+        #[inline]
         fn vec_eq_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
             Mask(_mm_cmpeq_ps(vec.0, other.0))
         }
@@ -160,16 +160,6 @@ impl ScalarBackend<4, Aligned> for f32 {
             Mask(_mm_cmpge_ps(vec.0, other.0))
         }
     }
-
-    #[cfg(target_feature = "sse2")]
-    safe_arch! {
-        #![target_feature(enable = "sse2")]
-
-        #[inline]
-        fn vec_rem(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            Vector(rem(vec.0, rhs.0))
-        }
-    }
 }
 
 impl ScalarBackend<2, Unaligned> for f32 {}
@@ -180,7 +170,7 @@ impl F32VectorBackend<2, Aligned> for f32 {}
 
 impl F32VectorBackend<3, Aligned> for f32 {
     safe_arch! {
-        #![target_feature(enable = "sse")]
+        #![target_feature(enable = "sse2")]
 
         #[inline]
         fn vec_nan_mask(vec: Vec3<f32>) -> Mask3<f32> {
@@ -190,6 +180,16 @@ impl F32VectorBackend<3, Aligned> for f32 {
         #[inline]
         fn vec_finite_mask(vec: Vec3<f32>) -> Mask3<f32> {
             Mask(finite_mask(vec.0))
+        }
+
+        #[inline]
+        fn vec_sign_positive_mask(vec: Vec3<f32>) -> Mask3<f32> {
+            Mask(sign_positive_mask(vec.0))
+        }
+
+        #[inline]
+        fn vec_sign_negative_mask(vec: Vec3<f32>) -> Mask3<f32> {
+            Mask(sign_negative_mask(vec.0))
         }
 
         #[inline]
@@ -251,32 +251,6 @@ impl F32VectorBackend<3, Aligned> for f32 {
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_round(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(round(vec.0))
-        }
-
-        #[cfg(backend)]
-        #[inline(always)]
-        fn vec_sqrt(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_sqrt_ps(vec.0))
-        }
-    }
-
-    safe_arch! {
-        #![target_feature(enable = "sse2")]
-
-        #[inline]
-        fn vec_sign_positive_mask(vec: Vec3<f32>) -> Mask3<f32> {
-            Mask(sign_positive_mask(vec.0))
-        }
-
-        #[inline]
-        fn vec_sign_negative_mask(vec: Vec3<f32>) -> Mask3<f32> {
-            Mask(sign_negative_mask(vec.0))
-        }
-
-        #[cfg(backend)]
-        #[inline(always)]
         fn vec_floor(vec: Vec3<f32>) -> Vec3<f32> {
             Vector(floor(vec.0))
         }
@@ -289,15 +263,27 @@ impl F32VectorBackend<3, Aligned> for f32 {
 
         #[cfg(backend)]
         #[inline(always)]
+        fn vec_round(vec: Vec3<f32>) -> Vec3<f32> {
+            Vector(round(vec.0))
+        }
+
+        #[cfg(backend)]
+        #[inline(always)]
         fn vec_trunc(vec: Vec3<f32>) -> Vec3<f32> {
             Vector(trunc(vec.0))
+        }
+
+        #[cfg(backend)]
+        #[inline(always)]
+        fn vec_sqrt(vec: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_sqrt_ps(vec.0))
         }
     }
 }
 
 impl F32VectorBackend<4, Aligned> for f32 {
     safe_arch! {
-        #![target_feature(enable = "sse")]
+        #![target_feature(enable = "sse2")]
 
         #[inline]
         fn vec_nan_mask(vec: Vec4<f32>) -> Mask4<f32> {
@@ -307,6 +293,16 @@ impl F32VectorBackend<4, Aligned> for f32 {
         #[inline]
         fn vec_finite_mask(vec: Vec4<f32>) -> Mask4<f32> {
             Mask(finite_mask(vec.0))
+        }
+
+        #[inline]
+        fn vec_sign_positive_mask(vec: Vec4<f32>) -> Mask4<f32> {
+            Mask(sign_positive_mask(vec.0))
+        }
+
+        #[inline]
+        fn vec_sign_negative_mask(vec: Vec4<f32>) -> Mask4<f32> {
+            Mask(sign_negative_mask(vec.0))
         }
 
         #[inline]
@@ -368,32 +364,6 @@ impl F32VectorBackend<4, Aligned> for f32 {
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_round(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(round(vec.0))
-        }
-
-        #[cfg(backend)]
-        #[inline(always)]
-        fn vec_sqrt(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_sqrt_ps(vec.0))
-        }
-    }
-
-    safe_arch! {
-        #![target_feature(enable = "sse2")]
-
-        #[inline]
-        fn vec_sign_positive_mask(vec: Vec4<f32>) -> Mask4<f32> {
-            Mask(sign_positive_mask(vec.0))
-        }
-
-        #[inline]
-        fn vec_sign_negative_mask(vec: Vec4<f32>) -> Mask4<f32> {
-            Mask(sign_negative_mask(vec.0))
-        }
-
-        #[cfg(backend)]
-        #[inline(always)]
         fn vec_floor(vec: Vec4<f32>) -> Vec4<f32> {
             Vector(floor(vec.0))
         }
@@ -406,8 +376,20 @@ impl F32VectorBackend<4, Aligned> for f32 {
 
         #[cfg(backend)]
         #[inline(always)]
+        fn vec_round(vec: Vec4<f32>) -> Vec4<f32> {
+            Vector(round(vec.0))
+        }
+
+        #[cfg(backend)]
+        #[inline(always)]
         fn vec_trunc(vec: Vec4<f32>) -> Vec4<f32> {
             Vector(trunc(vec.0))
+        }
+
+        #[cfg(backend)]
+        #[inline(always)]
+        fn vec_sqrt(vec: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_sqrt_ps(vec.0))
         }
     }
 }
@@ -417,7 +399,7 @@ impl F32VectorBackend<3, Unaligned> for f32 {}
 impl F32VectorBackend<4, Unaligned> for f32 {}
 
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn neg(vec: __m128) -> __m128 {
     _mm_xor_ps(vec, _mm_set1_ps(-0.0))
 }
@@ -435,13 +417,13 @@ fn rem(vec: __m128, rhs: __m128) -> __m128 {
 }
 
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn nan_mask(vec: __m128) -> __m128 {
     _mm_cmpneq_ps(vec, vec)
 }
 
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn finite_mask(vec: __m128) -> __m128 {
     _mm_cmplt_ps(abs(vec), _mm_set1_ps(f32::INFINITY))
 }
@@ -465,13 +447,13 @@ fn sign_negative_mask(vec: __m128) -> __m128 {
 }
 
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn abs(vec: __m128) -> __m128 {
     _mm_and_ps(_mm_set1_ps(f32::from_bits(0x7fffffff)), vec)
 }
 
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn signum(vec: __m128) -> __m128 {
     let result = _mm_or_ps(_mm_set1_ps(1.0), _mm_and_ps(vec, _mm_set1_ps(-0.0)));
     let nan_mask = _mm_cmpneq_ps(vec, vec);
@@ -480,13 +462,13 @@ fn signum(vec: __m128) -> __m128 {
 }
 
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn copysign(vec: __m128, sign: __m128) -> __m128 {
     select(_mm_set1_ps(-0.0), sign, vec)
 }
 
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn select(mask: __m128, if_true: __m128, if_false: __m128) -> __m128 {
     _mm_or_ps(_mm_and_ps(mask, if_true), _mm_andnot_ps(mask, if_false))
 }
@@ -539,7 +521,7 @@ fn ceil(v: __m128) -> __m128 {
 
 #[cfg(backend)]
 #[inline]
-#[target_feature(enable = "sse")]
+#[target_feature(enable = "sse2")]
 fn round(vec: __m128) -> __m128 {
     let magic_val = copysign(_mm_set1_ps(8388608.0), vec);
     let result = _mm_sub_ps(_mm_add_ps(vec, magic_val), magic_val);

@@ -19,6 +19,8 @@ use crate::{Aligned, Alignment, Length, Mask, Scalar, SupportedLength, Unaligned
 pub const unsafe fn transmute_generic<T, U>(value: T) -> U {
     assert!(size_of::<T>() == size_of::<U>());
 
+    // SAFETY: The caller must ensure that the bits of the input are valid for
+    // the output type.
     unsafe { transmute_copy::<ManuallyDrop<T>, U>(&ManuallyDrop::new(value)) }
 }
 
@@ -27,13 +29,18 @@ pub const unsafe fn transmute_generic<T, U>(value: T) -> U {
 /// # Safety
 ///
 /// Exactly like [`core::mem::transmute`] for references, except that here
-/// memory-layout validity is automatically checked and the lifetime cannot be
-/// accidently changed.
+/// immediate size and alignment validity is automatically checked, and the
+/// lifetime of the reference cannot be accidently changed.
 #[inline]
 pub const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
     assert!(size_of::<T>() >= size_of::<U>());
     assert!(align_of::<T>() >= align_of::<U>());
 
+    // SAFETY: The output size was just checked to be no more than the input
+    // size, the output alignment was just checked to be no more than the input
+    // alignment, the lifetimes match because of the function signature, and the
+    // caller must ensure that the bits of the input value are valid for the
+    // output type.
     unsafe { transmute::<&T, &U>(value) }
 }
 
@@ -41,14 +48,20 @@ pub const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
 ///
 /// # Safety
 ///
-/// Exactly like [`core::mem::transmute`] for references, except that here
-/// memory-layout validity is automatically checked and the lifetime cannot be
-/// accidently changed.
+/// Exactly like [`core::mem::transmute`] for mutable references, except that
+/// here size and alignment validity is automatically checked, and the lifetime
+/// cannot be accidently changed.
 #[inline]
 pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
     assert!(size_of::<T>() >= size_of::<U>());
     assert!(align_of::<T>() >= align_of::<U>());
 
+    // SAFETY: The output size was just checked to be no more than the input
+    // size, the output alignment was just checked to be no more than the input
+    // alignment, the lifetimes match because of the function signature, the
+    // input is mutably borrowed until the output reference is dropped, and the
+    // caller must ensure that the bits of the input value are valid for the
+    // output type.
     unsafe { transmute::<&mut T, &mut U>(value) }
 }
 
@@ -149,16 +162,44 @@ where
     T3U: Specialize<T, 3, N, Unaligned, A> + Copy,
     T4U: Specialize<T, 4, N, Unaligned, A> + Copy,
 {
-    unsafe {
-        match (N, A::IS_ALIGNED) {
-            (2, true) => transmute_generic::<T2, T>(value2),
-            (3, true) => transmute_generic::<T3, T>(value3),
-            (4, true) => transmute_generic::<T4, T>(value4),
-            (2, false) => transmute_generic::<T2U, T>(value2u),
-            (3, false) => transmute_generic::<T3U, T>(value3u),
-            (4, false) => transmute_generic::<T4U, T>(value4u),
-            _ => unreachable!(),
-        }
+    match (N, A::IS_ALIGNED) {
+        // SAFETY: `T2` is guaranteed to be the same type as `T` as long as `N`
+        // is `2` and `A` is `Aligned`. `N` was just checked to be `2` and `A`
+        // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
+        // `T2` and `T` are the same type.
+        (2, true) => unsafe { transmute_generic::<T2, T>(value2) },
+
+        // SAFETY: `T3` is guaranteed to be the same type as `T` as long as `N`
+        // is `3` and `A` is `Aligned`. `N` was just checked to be `3` and `A`
+        // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
+        // `T3` and `T` are the same type.
+        (3, true) => unsafe { transmute_generic::<T3, T>(value3) },
+
+        // SAFETY: `T4` is guaranteed to be the same type as `T` as long as `N`
+        // is `4` and `A` is `Aligned`. `N` was just checked to be `4` and `A`
+        // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
+        // `T4` and `T` are the same type.
+        (4, true) => unsafe { transmute_generic::<T4, T>(value4) },
+
+        // SAFETY: `T2U` is guaranteed to be the same type as `T` as long as `N`
+        // is `2` and `A` is `Unaligned`. `N` was just checked to be `2` and `A`
+        // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
+        // so `T2U` and `T` are the same type.
+        (2, false) => unsafe { transmute_generic::<T2U, T>(value2u) },
+
+        // SAFETY: `T3U` is guaranteed to be the same type as `T` as long as `N`
+        // is `3` and `A` is `Unaligned`. `N` was just checked to be `3` and `A`
+        // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
+        // so `T3U` and `T` are the same type.
+        (3, false) => unsafe { transmute_generic::<T3U, T>(value3u) },
+
+        // SAFETY: `T4U` is guaranteed to be the same type as `T` as long as `N`
+        // is `4` and `A` is `Unaligned`. `N` was just checked to be `4` and `A`
+        // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
+        // so `T4U` and `T` are the same type.
+        (4, false) => unsafe { transmute_generic::<T4U, T>(value4u) },
+
+        _ => unreachable!(),
     }
 }
 
@@ -178,8 +219,8 @@ where
 ///
 /// # Safety
 ///
-/// If `N == N2` and `A == A2` are proven to be true, `Self` must be the same
-/// type as `T2`.
+/// If `N == N2` and `A` being the same type as `A2` are proven to be true,
+/// `Self` must be the same type as `T2`.
 unsafe trait Specialize<T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
 where
     Length<N>: SupportedLength,
@@ -187,6 +228,7 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2` => `Vector<N, T, A> == Vector<N2, T, A2>`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Vector<N2, T, A2>, N, N2, A, A2> for Vector<N, T, A>
 where
@@ -196,6 +238,8 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`
+// => `&'a Vector<N, T, A> == &'a Vector<N2, T, A2>`.
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Vector<N2, T, A2>, N, N2, A, A2> for &'a Vector<N, T, A>
 where
@@ -205,6 +249,8 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`
+// => `&'a mut Vector<N, T, A> == &'a mut Vector<N2, T, A2>`.
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Vector<N2, T, A2>, N, N2, A, A2> for &'a mut Vector<N, T, A>
 where
@@ -214,6 +260,7 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2` => `Mask<N, T, A> == Mask<N2, T, A2>`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Mask<N2, T, A2>, N, N2, A, A2> for Mask<N, T, A>
 where
@@ -223,6 +270,7 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2` => `&'a Mask<N, T, A> == &'a Mask<N2, T, A2>`.
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a Mask<N2, T, A2>, N, N2, A, A2> for &'a Mask<N, T, A>
 where
@@ -232,6 +280,8 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`
+// => `&'a mut Mask<N, T, A> == &'a mut Mask<N2, T, A2>`.
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Mask<N2, T, A2>, N, N2, A, A2> for &'a mut Mask<N, T, A>
 where
@@ -241,6 +291,7 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`, `T == T2` => `[T; N] == [T2; N2]`.
 unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<[T2; N2], N, N2, A, A2> for [T; N]
 where
@@ -250,6 +301,7 @@ where
 {
 }
 
+// SAFETY: `(T,) == (T,)`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<(T,), N, N2, A, A2> for (T,)
 where
@@ -258,6 +310,7 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`, `Ta == Ta2`, `Tb == Tb2` => `(Ta, Tb) == (Ta2, Tb2)`.
 unsafe impl<Ta, Ta2, Tb, Tb2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<(Ta2, Tb2), N, N2, A, A2> for (Ta, Tb)
 where
@@ -268,6 +321,7 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`, `T == T2` => `Option<T> == Option<T2>`.
 unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Option<T2>, N, N2, A, A2> for Option<T>
 where
@@ -277,6 +331,7 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`, `R == R2` => `fn() -> R == fn() -> R2`.
 unsafe impl<R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<fn() -> R2, N, N2, A, A2> for fn() -> R
 where
@@ -286,6 +341,8 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`, `Pa == Pa2`, `R == R2`
+// => `fn(Pa) -> R == fn(Pa2) -> R2`.
 unsafe impl<Pa, Pa2, R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<fn(Pa2) -> R2, N, N2, A, A2> for fn(Pa) -> R
 where
@@ -296,6 +353,8 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`, `Pa == Pa2`, `Pb == Pb2`, `R == R2`
+// => `fn(Pa, Pb) -> R == fn(Pa2, Pb2) -> R2`.
 unsafe impl<Pa, Pa2, Pb, Pb2, R, R2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<fn(Pa2, Pb2) -> R2, N, N2, A, A2> for fn(Pa, Pb) -> R
 where
@@ -307,6 +366,8 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2`, `Pa == Pa2`, `Pb == Pb2`, `Pc == Pc2`, `R == R2`
+// => `fn(Pa, Pb, Pc) -> R == fn(Pa2, Pb2, Pc2) -> R2`.
 unsafe impl<
     Pa,
     Pa2,
@@ -334,6 +395,7 @@ where
 macro_rules! impl_specialzie {
     ($($T:ty),*$(,)?) => {
         $(
+            // `$T == $T`.
             unsafe impl<const N: usize, const N2: usize, A: Alignment, A2: Alignment>
                 Specialize<$T, N, N2, A, A2> for $T
             where
@@ -379,16 +441,16 @@ macro_rules! safe_arch {
         $(
             $(#[$meta])*
             fn $f($($param: $Param),*) $(-> $Ret)? {
-                #[cfg(not(target_feature = $feature))]
-                compile_error!(concat!("target feature is not enabled"));
-
                 #[inline]
                 #[target_feature(enable = $feature)]
                 fn $f($($param: $Param),*) $(-> $Ret)? $body
 
-                unsafe {
-                    $f($($param),*)
-                }
+                #[cfg(not(target_feature = $feature))]
+                compile_error!(concat!("target feature is not enabled"));
+
+                // SAFETY: If `$feature` is disabled, there will be a compile
+                // error.
+                unsafe { $f($($param),*) }
             }
         )*
     };

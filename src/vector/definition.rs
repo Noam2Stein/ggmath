@@ -38,22 +38,35 @@ use crate::{
 ///
 /// # Guarantees
 ///
-/// `Vector<N, T, Unaligned>` is guaranteed to have the memory layout of
+/// `Vector<N, T, A>` is guaranteed to be made out of `N` consecutive values of
+/// `T` without any padding in the middle, followed by optional padding that is
+/// made out of initialized bytes.
+///
+/// `Vector<N, T, Unaligned>` is guaranteed to have the size and alignment of
 /// `[T; N]`.
 ///
-/// `Vector<2, T, Aligned>` and `Vector<4, T, Aligned>` are guaranteed to have
-/// the size of `[T; N]`, but may have additional alignment.
+/// `Vector<2, T, Aligned>` is guaranteed to have the size of `[T; 2]`, and may
+/// have additional alignment.
 ///
 /// `Vector<3, T, Aligned>` is guaranteed to have the size of either `[T; 3]` or
 /// `[T; 4]`, and may have additional alignment. When the size is of `[T; 4]`,
-/// the padding is guaranteed to be an initialized value of type `T`.
+/// the padding element is guaranteed to have initialized bytes, but may not be
+/// an initialized value of `T` if it doesn't accept all bit-patterns.
+///
+/// `Vector<4, T, Aligned>` is guaranteed to have the size of `[T; 4]` but may
+/// have additional alignment.
 ///
 /// Types containing `Vector` are not guaranteed to have the same memory layout
-/// as types containing `[T; N]`. For example, `Option<Vector<2, T, Aligned>>`
+/// as types containing `[T; N]`. For example, `Option<Vector<2, T, Unaligned>>`
 /// is not guaranteed to have the same size as `Option<[T; 2]>`.
 ///
-/// Vectors of scalars with the same [`Scalar::Repr`] are guaranteed to have the
-/// same memory layout (if `Repr` is a signed integer).
+/// Vectors of scalars with the same [`Scalar::Repr`] are guaranteed to have
+/// compatible memory layouts if `Repr` is a signed integer. The alignment of
+/// the vectors is not guaranteed to be the same, but their size and element
+/// positions do.
+///
+/// Keep in mind that scalars that have the same `Repr` today might silently
+/// change their `Repr` in the future.
 #[repr(transparent)]
 pub struct Vector<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::VectorRepr<N, T, A>,
@@ -83,19 +96,32 @@ where
     #[inline]
     #[must_use]
     pub const fn from_array(array: [T; N]) -> Self {
-        unsafe {
-            match N {
-                2 => transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
+        match N {
+            // SAFETY: Because `N == 2`, `Vector<N, T, A>` and `Vector<2, T, A>`
+            // are the same type.
+            2 => unsafe {
+                transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
                     array[0], array[1],
-                )),
-                3 => transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
+                ))
+            },
+
+            // SAFETY: Because `N == 3`, `Vector<N, T, A>` and `Vector<3, T, A>`
+            // are the same type.
+            3 => unsafe {
+                transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
                     array[0], array[1], array[2],
-                )),
-                4 => transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
+                ))
+            },
+
+            // SAFETY: Because `N == 4`, `Vector<N, T, A>` and `Vector<4, T, A>`
+            // are the same type.
+            4 => unsafe {
+                transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
                     array[0], array[1], array[2], array[3],
-                )),
-                _ => unreachable!(),
-            }
+                ))
+            },
+
+            _ => unreachable!(),
         }
     }
 
@@ -103,19 +129,32 @@ where
     #[inline]
     #[must_use]
     pub const fn splat(value: T) -> Self {
-        unsafe {
-            match N {
-                2 => transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
+        match N {
+            // SAFETY: Because `N == 2`, `Vector<N, T, A>` and `Vector<2, T, A>`
+            // are the same type.
+            2 => unsafe {
+                transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
                     value, value,
-                )),
-                3 => transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
+                ))
+            },
+
+            // SAFETY: Because `N == 3`, `Vector<N, T, A>` and `Vector<3, T, A>`
+            // are the same type.
+            3 => unsafe {
+                transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
                     value, value, value,
-                )),
-                4 => transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
+                ))
+            },
+
+            // SAFETY: Because `N == 4`, `Vector<N, T, A>` and `Vector<4, T, A>`
+            // are the same type.
+            4 => unsafe {
+                transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
                     value, value, value, value,
-                )),
-                _ => unreachable!(),
-            }
+                ))
+            },
+
+            _ => unreachable!(),
         }
     }
 
@@ -128,25 +167,38 @@ where
     where
         F: FnMut(usize) -> T,
     {
-        unsafe {
-            match N {
-                2 => transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
+        match N {
+            // SAFETY: Because `N == 2`, `Vector<N, T, A>` and `Vector<2, T, A>`
+            // are the same type.
+            2 => unsafe {
+                transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
                     f(0),
                     f(1),
-                )),
-                3 => transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
+                ))
+            },
+
+            // SAFETY: Because `N == 3`, `Vector<N, T, A>` and `Vector<3, T, A>`
+            // are the same type.
+            3 => unsafe {
+                transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
                     f(0),
                     f(1),
                     f(2),
-                )),
-                4 => transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
+                ))
+            },
+
+            // SAFETY: Because `N == 4`, `Vector<N, T, A>` and `Vector<4, T, A>`
+            // are the same type.
+            4 => unsafe {
+                transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
                     f(0),
                     f(1),
                     f(2),
                     f(3),
-                )),
-                _ => unreachable!(),
-            }
+                ))
+            },
+
+            _ => unreachable!(),
         }
     }
 
@@ -156,18 +208,23 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(self) -> Vector<N, T, A2> {
-        unsafe {
-            match N {
-                2 | 4 => transmute_generic::<Vector<N, T, A>, Vector<N, T, A2>>(self),
-                3 => transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(
-                    Vector::<3, T, A2>::new(
-                        self.as_array_ref()[0],
-                        self.as_array_ref()[1],
-                        self.as_array_ref()[2],
-                    ),
-                ),
-                _ => unreachable!(),
-            }
+        match N {
+            // SAFETY: Vectors with length `2` and `4` are guaranteed to be made
+            // out of `N` consecutive values of `T` with no padding. Meaning
+            // they have compatible layouts between alignments.
+            2 | 4 => unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T, A2>>(self) },
+
+            // SAFETY: Because `N == 3`, `Vector<N, T, A2>` and
+            // `Vector<3, T, A2>` are the same type.
+            3 => unsafe {
+                transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(Vector::<3, T, A2>::new(
+                    self.as_array_ref()[0],
+                    self.as_array_ref()[1],
+                    self.as_array_ref()[2],
+                ))
+            },
+
+            _ => unreachable!(),
         }
     }
 
@@ -200,6 +257,8 @@ where
     #[inline]
     #[must_use]
     pub const fn as_array_ref(&self) -> &[T; N] {
+        // SAFETY: `Vector<N, T, A>` is guaranteed to begin with `N` consecutive
+        // values of `T`.
         unsafe { transmute_ref::<Vector<N, T, A>, [T; N]>(self) }
     }
 
@@ -207,6 +266,8 @@ where
     #[inline]
     #[must_use]
     pub const fn as_array_mut(&mut self) -> &mut [T; N] {
+        // SAFETY: `Vector<N, T, A>` is guaranteed to begin with `N` consecutive
+        // values of `T`.
         unsafe { transmute_mut::<Vector<N, T, A>, [T; N]>(self) }
     }
 
@@ -360,10 +421,12 @@ where
     ///
     /// # Safety
     ///
-    /// The input arguments must be valid for the output vector type.
+    /// The components of the input must be valid for the output vector type.
     ///
     /// For example, when converting vectors from `u8` to `bool` the
-    /// input arguments must be either, `0` or `1`.
+    /// input components must be either `0` or `1`.
+    ///
+    /// The optional padding does not need to be a valid value of `T2`.
     #[inline]
     #[must_use]
     #[expect(private_bounds)]
@@ -372,6 +435,9 @@ where
         T2: Scalar<Repr = T::Repr>,
         T::Repr: SignedInteger,
     {
+        // SAFETY: Vectors of scalars with the same `Scalar::Repr` are
+        // guaranteed to have compatible memory layouts if `Repr` is a signed
+        // integer.
         unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T2, A>>(self) }
     }
 }
@@ -382,6 +448,8 @@ where
 {
     #[inline]
     pub(crate) const fn new(x: T, y: T) -> Self {
+        // SAFETY: `Vector<2, T, A>` is guaranteed to be made out of 2
+        // consecutive values of `T`, with no additional padding.
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
     }
 }
@@ -392,12 +460,16 @@ where
 {
     #[inline]
     pub(crate) const fn new(x: T, y: T, z: T) -> Self {
-        unsafe {
-            match size_of::<Vector<3, T, A>>() / size_of::<T>() {
-                3 => transmute_generic::<Repr3<T>, Vector<3, T, A>>(Repr3(x, y, z)),
-                4 => transmute_generic::<Repr4<T>, Vector<3, T, A>>(Repr4(x, y, z, z)),
-                _ => unreachable!(),
-            }
+        match size_of::<Vector<3, T, A>>() / size_of::<T>() {
+            // SAFETY: Because the vector has 3 values of `T` and no padding,
+            // its equivalent to `Repr3<T>`.
+            3 => unsafe { transmute_generic::<Repr3<T>, Vector<3, T, A>>(Repr3(x, y, z)) },
+
+            // SAFETY: Because the vector has 3 values of `T` plus 1 padding
+            // element, its equivalent to `Repr4<T>`.
+            4 => unsafe { transmute_generic::<Repr4<T>, Vector<3, T, A>>(Repr4(x, y, z, z)) },
+
+            _ => unreachable!(),
         }
     }
 }
@@ -408,6 +480,8 @@ where
 {
     #[inline]
     pub(crate) const fn new(x: T, y: T, z: T, w: T) -> Self {
+        // SAFETY: `Vector<4, T, A>` is guaranteed to be made out of 4
+        // consecutive values of `T`, with no additional padding.
         unsafe { transmute_generic::<Repr4<T>, Vector<4, T, A>>(Repr4(x, y, z, w)) }
     }
 }
@@ -673,6 +747,8 @@ impl_assign_op!(BitAnd BitAndAssign bitand_assign bitand);
 impl_assign_op!(BitOr BitOrAssign bitor_assign bitor);
 impl_assign_op!(BitXor BitXorAssign bitxor_assign bitxor);
 
+// SAFETY: Vectors are equivalent to consecutive values of `T` plus padding.
+// Because `T` is `Send` the list also is, and the padding is `Send` too.
 unsafe impl<const N: usize, T, A: Alignment> Send for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -680,6 +756,8 @@ where
 {
 }
 
+// SAFETY: Vectors are equivalent to consecutive values of `T` plus padding.
+// Because `T` is `Sync` the list also is, and the padding is `Sync` too.
 unsafe impl<const N: usize, T, A: Alignment> Sync for Vector<N, T, A>
 where
     Length<N>: SupportedLength,

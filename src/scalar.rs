@@ -24,7 +24,7 @@ When `macro_derive` is stabilized, a derive macro for `Scalar` should be added.
 /// If `Scalar::Repr` is a signed integer:
 ///
 /// - `Self` and `Self::Repr` must have the same size.
-/// - `Self` must have no uninitialized bytes and no padding.
+/// - `Self` must have no uninitialized bytes.
 ///
 /// # Example
 ///
@@ -383,7 +383,19 @@ pub unsafe trait Scalar:
     /// If `Repr` is a signed integer:
     ///
     /// - `Self` and `Self::Repr` must have the same size.
-    /// - `Self` must have no uninitialized bytes and no padding.
+    /// - `Self` must have no uninitialized bytes.
+    ///
+    /// # Stability
+    ///
+    /// The `Repr` of scalar types is considered to be an implementation detail,
+    /// and changing it is not considered a breaking change.
+    ///
+    /// This means that you should not rely on the specific `Repr` of a scalar
+    /// type unless you have control over its implementation (declared in the
+    /// same crate).
+    ///
+    /// Primitives are guaranteed to have the appropriate `Repr` for their size.
+    /// This is guaranteed not to change.
     #[expect(private_bounds)]
     type Repr: ScalarRepr;
 }
@@ -595,6 +607,9 @@ where
 /// # Safety
 ///
 /// All associated types must uphold the guarantees of their math types.
+///
+/// `MaskRepr` must be either equivalent to `[bool; N]` or be a simple intrinsic
+/// type.
 pub(crate) unsafe trait ScalarRepr:
     MaskBackend<2, Aligned>
     + MaskBackend<3, Aligned>
@@ -621,34 +636,50 @@ pub(crate) unsafe trait ScalarRepr:
 /// primitives.
 pub(crate) unsafe trait SignedInteger {}
 
+// SAFETY: `f32` and `i32` are both 4-bytes long, and `f32` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for f32 {
     type Repr = i32;
 }
 
+// SAFETY: `f64` and `i64` are both 8-bytes long, and `f64` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for f64 {
     type Repr = i64;
 }
 
+// SAFETY: `i8` has the same size as itself, and `i8` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for i8 {
     type Repr = i8;
 }
 
+// SAFETY: `i16` has the same size as itself, and `i16` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for i16 {
     type Repr = i16;
 }
 
+// SAFETY: `i32` has the same size as itself, and `i32` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for i32 {
     type Repr = i32;
 }
 
+// SAFETY: `i64` has the same size as itself, and `i64` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for i64 {
     type Repr = i64;
 }
 
+// SAFETY: `i128` has the same size as itself, and `i128` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for i128 {
     type Repr = i128;
 }
 
+// SAFETY: Each representation matches the target pointer width, and `isize`
+// does not contain uninitialized bytes.
 unsafe impl Scalar for isize {
     #[cfg(target_pointer_width = "16")]
     type Repr = i16;
@@ -660,26 +691,38 @@ unsafe impl Scalar for isize {
     type Repr = i64;
 }
 
+// SAFETY: `u8` and `i8` are both 1-byte long, and `u8` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for u8 {
     type Repr = i8;
 }
 
+// SAFETY: `u16` and `i16` are both 2-bytes long, and `u16` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for u16 {
     type Repr = i16;
 }
 
+// SAFETY: `u32` and `i32` are both 4-bytes long, and `u32` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for u32 {
     type Repr = i32;
 }
 
+// SAFETY: `u64` and `i64` are both 8-bytes long, and `u64` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for u64 {
     type Repr = i64;
 }
 
+// SAFETY: `u128` and `i128` are both 16-bytes long, and `u128` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for u128 {
     type Repr = i128;
 }
 
+// SAFETY: Each representation matches the target pointer width, and `usize`
+// does not contain uninitialized bytes.
 unsafe impl Scalar for usize {
     #[cfg(target_pointer_width = "16")]
     type Repr = i16;
@@ -691,10 +734,13 @@ unsafe impl Scalar for usize {
     type Repr = i64;
 }
 
+// SAFETY: `bool` and `i8` are both 1-byte long, and `bool` does not contain
+// uninitialized bytes.
 unsafe impl Scalar for bool {
     type Repr = i8;
 }
 
+// Safety: all of these types are signed integers.
 unsafe impl SignedInteger for i8 {}
 unsafe impl SignedInteger for i16 {}
 unsafe impl SignedInteger for i32 {}

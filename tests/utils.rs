@@ -285,6 +285,8 @@ where
         3 => vec,
         4 => {
             let mut result = vec;
+            // SAFETY: There is guaranteed to be a fourth padding element
+            // because of the vector's size.
             unsafe {
                 *result.as_array_mut().as_mut_ptr().add(3) = padding;
             }
