@@ -2,6 +2,8 @@
 
 ## 0.16.1 (Unreleased)
 
+- Added mask function: `to_repr`.
+
 - Fixed vague safety documentation.
 
 - Improved documentation.

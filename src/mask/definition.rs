@@ -197,6 +197,22 @@ where
     pub fn set(&mut self, index: usize, value: bool) {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_set(self, index, value))
     }
+
+    /// Reinterprets the bits of the mask to a different scalar type.
+    ///
+    /// The two scalar types must have compatible memory layouts. This is
+    /// enforced via trait bounds in this function's signature.
+    ///
+    /// This function is used to make SIMD optimizations in implementations of
+    /// [`Scalar`].
+    #[inline]
+    #[must_use]
+    pub const fn to_repr<T2>(self) -> Mask<N, T2, A>
+    where
+        T2: Scalar<Repr = T::Repr>,
+    {
+        Mask(self.0)
+    }
 }
 
 impl<T, A: Alignment> Mask<2, T, A>
