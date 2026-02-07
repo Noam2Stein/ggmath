@@ -1,6 +1,6 @@
 use mint::IntoMint;
 
-use crate::{Alignment, Mask, Scalar, Vector, vec2, vec3, vec4};
+use crate::{Alignment, Mask, Quaternion, Scalar, Vector, vec2, vec3, vec4};
 
 impl<T, A: Alignment> IntoMint for Vector<2, T, A>
 where
@@ -138,6 +138,40 @@ where
             y: value.y,
             z: value.z,
             w: value.w,
+        }
+    }
+}
+
+impl<T, A: Alignment> IntoMint for Quaternion<T, A>
+where
+    T: Scalar,
+{
+    type MintType = mint::Quaternion<T>;
+}
+
+impl<T, A: Alignment> From<mint::Quaternion<T>> for Quaternion<T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: mint::Quaternion<T>) -> Self {
+        Self::new(value.v.x, value.v.y, value.v.z, value.s)
+    }
+}
+
+impl<T, A: Alignment> From<Quaternion<T, A>> for mint::Quaternion<T>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: Quaternion<T, A>) -> Self {
+        Self {
+            v: mint::Vector3 {
+                x: value.x,
+                y: value.y,
+                z: value.z,
+            },
+            s: value.w,
         }
     }
 }

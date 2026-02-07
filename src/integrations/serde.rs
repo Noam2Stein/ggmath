@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector, utils::transmute_generic};
+use crate::{
+    Alignment, Length, Mask, Quaternion, Scalar, SupportedLength, Vector, utils::transmute_generic,
+};
 
 impl<const N: usize, T, A: Alignment> Serialize for Vector<N, T, A>
 where
@@ -42,6 +44,30 @@ where
             },
             _ => unreachable!(),
         }))
+    }
+}
+
+impl<T, A: Alignment> Serialize for Quaternion<T, A>
+where
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_array().serialize(serializer)
+    }
+}
+
+impl<'de, T, A: Alignment> Deserialize<'de> for Quaternion<T, A>
+where
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Self::from_array(Deserialize::deserialize(deserializer)?))
     }
 }
 

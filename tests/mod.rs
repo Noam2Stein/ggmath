@@ -2,6 +2,7 @@
 
 mod integrations;
 mod mask;
+mod quaternion;
 mod scalar;
 mod utils;
 mod vector;

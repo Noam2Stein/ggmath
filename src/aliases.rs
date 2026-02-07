@@ -1,4 +1,4 @@
-use crate::{Aligned, Mask, Unaligned, Vector};
+use crate::{Aligned, Mask, Quaternion, Unaligned, Vector};
 
 /// A 2-dimensional vector.
 ///
@@ -53,6 +53,28 @@ pub type Vec3U<T> = Vector<3, T, Unaligned>;
 ///
 /// This type is not SIMD-aligned and has the memory layout of `[T; 4]`.
 pub type Vec4U<T> = Vector<4, T, Unaligned>;
+
+/// A quaternion representing an orientation.
+///
+/// This quaternion is intended to be of unit length but may denormalize due to
+/// floating point "error creep" which can occur when successive quaternion
+/// operations are applied.
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Quat<T> = Quaternion<T, Aligned>;
+
+/// A quaternion representing an orientation.
+///
+/// This quaternion is intended to be of unit length but may denormalize due to
+/// floating point "error creep" which can occur when successive quaternion
+/// operations are applied.
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[T; 4]`.
+pub type QuatU<T> = Quaternion<T, Unaligned>;
 
 /// A 2-component vector mask.
 ///

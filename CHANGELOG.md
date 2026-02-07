@@ -2,6 +2,11 @@
 
 ## 0.16.1 (Unreleased)
 
+- Added quaternion types:
+  - `Quat`
+  - `QuatU`
+  - `Quaternion`
+
 - Added mask function: `to_repr`.
 
 - Fixed vague safety documentation.

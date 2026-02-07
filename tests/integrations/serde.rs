@@ -2,8 +2,8 @@ use std::error::Error;
 
 use assert_impl_trait::assert_impl;
 use ggmath::{
-    Alignment, Length, Mask, Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Scalar, SupportedLength,
-    Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector, vec2, vec3, vec4,
+    Alignment, Length, Mask, Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Quat, QuatU, Quaternion,
+    Scalar, SupportedLength, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector, vec2, vec3, vec4,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str, to_string};
@@ -14,16 +14,18 @@ assert_impl!(
         Length<N>: SupportedLength,
         T: Scalar,
     {
+        Mask<N, T, A>: Serialize,
         where T: Serialize {
             Vector<N, T, A>: Serialize,
-        }
-        for<'de> where T: Deserialize<'de> {
-            Vector<N, T, A>: Deserialize<'de>,
+            Quaternion<T, A>: Serialize,
         }
 
-        Mask<N, T, A>: Serialize,
         for<'de> {
             Mask<N, T, A>: Deserialize<'de>,
+            where T: Deserialize<'de> {
+                Vector<N, T, A>: Deserialize<'de>,
+                Quaternion<T, A>: Deserialize<'de>,
+            }
         }
     }
 );
@@ -77,6 +79,14 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Vec3<f32>>(&to_string(&val)?).is_err());
     assert!(from_str::<Vec2U<f32>>(&to_string(&val)?).is_err());
     assert!(from_str::<Vec3U<f32>>(&to_string(&val)?).is_err());
+
+    let val: Quat<u32> = Quat::new(1, 2, 3, 4);
+    assert_eq!(val, from_str(&to_string(&val)?)?);
+    assert_eq!(val.unalign(), from_str(&to_string(&val)?)?);
+
+    let val: QuatU<u32> = QuatU::new(1, 2, 3, 4);
+    assert_eq!(val, from_str(&to_string(&val)?)?);
+    assert_eq!(val.align(), from_str(&to_string(&val)?)?);
 
     let val: Mask2<u32> = Mask2::new(false, true);
     assert_eq!(val, from_str(&to_string(&val)?)?);

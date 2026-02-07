@@ -1,6 +1,6 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
-use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector};
+use crate::{Alignment, Length, Mask, Quaternion, Scalar, SupportedLength, Vector};
 
 /*
 Missing implementations are blocked on:
@@ -26,6 +26,12 @@ where
     T: Scalar + Zeroable,
 {
 }
+
+// SAFETY: `Vector<4, T, A>` implements `Pod` when `T` does.
+unsafe impl<T, A: Alignment> Pod for Quaternion<T, A> where T: Scalar + Pod {}
+
+// SAFETY: `Vector<4, T, A>` implements `Zeroable` when `T` does.
+unsafe impl<T, A: Alignment> Zeroable for Quaternion<T, A> where T: Scalar + Zeroable {}
 
 // SAFETY: Masks are guaranteed to have no uninitialized bytes, and are either
 // `[bool; N]` or an intrinsic type. Both are inhabited.

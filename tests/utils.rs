@@ -4,7 +4,7 @@ use std::{
 };
 
 use colored::Colorize;
-use ggmath::{Alignment, Length, Scalar, SupportedLength, Vector};
+use ggmath::{Alignment, Length, Quaternion, Scalar, SupportedLength, Vector};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Float Eq
@@ -242,6 +242,30 @@ where
 
     fn eq_ulps(&self, other: &Self, max_ulps: u8, zero_eq_neg_zero: bool) -> bool {
         (0..N).all(|i| self[i].eq_ulps(&other[i], max_ulps, zero_eq_neg_zero))
+    }
+}
+
+impl<T, A: Alignment> FloatEq for Quaternion<T, A>
+where
+    T: Scalar + FloatEq<Tol = T>,
+{
+    type Tol = T;
+
+    fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
+        FloatEq::eq(self.as_vec_ref(), other.as_vec_ref(), zero_eq_neg_zero)
+    }
+
+    fn eq_tol(&self, other: &Self, tol: Self::Tol, zero_eq_neg_zero: bool) -> bool {
+        FloatEq::eq_tol(self.as_vec_ref(), other.as_vec_ref(), tol, zero_eq_neg_zero)
+    }
+
+    fn eq_ulps(&self, other: &Self, max_ulps: u8, zero_eq_neg_zero: bool) -> bool {
+        FloatEq::eq_ulps(
+            self.as_vec_ref(),
+            other.as_vec_ref(),
+            max_ulps,
+            zero_eq_neg_zero,
+        )
     }
 }
 

@@ -6,7 +6,7 @@ The library features:
 
 - Vectors: `Vec2<T>`, `Vec3<T>`, `Vec4<T>`.
 - Square Matrices (todo): `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
-- Quaternions (todo): `Quat<T>`.
+- Quaternions: `Quat<T>`.
 - Affine Transformations (todo): `Affine2<T>`, `Affine3<T>`.
 - Masks: `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
 
@@ -16,7 +16,7 @@ SIMD-aligned:
 
 - Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
 - Square Matrices (todo): `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
-- Quaternions (todo): `QuatU<T>`.
+- Quaternions: `QuatU<T>`.
 - Affine Transformations (todo): `Affine2U<T>`, `Affine3U<T>`.
 - Masks: `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
 
@@ -27,7 +27,7 @@ All types are type aliases to these generic structs:
 
 - `Vector<N, T, A>`.
 - `Matrix<N, T, A>` (todo).
-- `Quaternion<T, A>` (todo).
+- `Quaternion<T, A>`.
 - `Affine<N, T, A>` (todo).
 - `Mask<N, T, A>`.
 
@@ -79,7 +79,7 @@ Feature List:
 
 - [x] Vectors
 - [ ] Square Matrices
-- [ ] Quaternions
+- [x] Quaternions
 - [ ] Affine Transformations
 - [x] Masks
 - [x] Sufficient Float-Vector functionality
