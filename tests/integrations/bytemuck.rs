@@ -1,6 +1,6 @@
 use assert_impl_trait::assert_impl;
 use bytemuck::{AnyBitPattern, NoUninit, Pod, Zeroable};
-use ggmath::{Alignment, Length, Quaternion, Scalar, SupportedLength, Vector};
+use ggmath::{Alignment, Length, Mask, Quaternion, Scalar, SupportedLength, Vector};
 
 assert_impl!(
     for<const N: usize, A: Alignment>
@@ -52,5 +52,12 @@ assert_impl!(
         Quaternion<u128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Quaternion<usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Quaternion<bool, A>: Zeroable,
+
+        for<T: Scalar + 'static> {
+            Mask<N, T, A>: NoUninit,
+        }
+        for<T: Scalar> {
+            Mask<N, T, A>: Zeroable,
+        }
     }
 );
