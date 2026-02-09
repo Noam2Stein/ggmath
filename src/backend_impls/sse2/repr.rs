@@ -30,6 +30,20 @@ unsafe impl ScalarRepr for i32 {
         Length<N>: SupportedLength,
         T: Scalar;
 
+    // SAFETY: `__m128` is identical to the representation of `Vec4<T>`.
+    // `Repr3<__m128>` is three times `Vec3<T>`. `Repr4<__m128>` is four times
+    // `Vec4<T>`. `Repr4<T>` is identical to the representation of `Vec4U<T>`.
+    // `Repr3<Repr3<T>>` is three times `Vec3U<T>`. `Repr4<Repr4<T>>` is four
+    // times `Vec4U<T>`.
+    type MatrixRepr<const N: usize, T, A: Alignment>
+        = <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<__m128, Repr3<__m128>, Repr4<__m128>>,
+        <Length<N> as SupportedLength>::Select<Repr4<T>, Repr3<Repr3<T>>, Repr4<Repr4<T>>>,
+    >
+    where
+        Length<N>: SupportedLength,
+        T: Scalar;
+
     // SAFETY: For the `bool` types, select chooses `ReprN` from `Repr2`, `Repr3`, and
     // `Repr4`. Each type is guaranteed to be a simple struct equivalent
     // to `[bool; N]`. `[bool; N]` has no uninitialized bytes, and is

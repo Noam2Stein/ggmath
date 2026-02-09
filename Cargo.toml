@@ -54,6 +54,11 @@ path = "benches/vector/f32.rs"
 harness = false
 
 [[bench]]
+name = "matrix_f32"
+path = "benches/matrix/f32.rs"
+harness = false
+
+[[bench]]
 name = "mask_f32"
 path = "benches/mask/f32.rs"
 harness = false

@@ -1,4 +1,4 @@
-use crate::{Aligned, Mask, Quaternion, Unaligned, Vector};
+use crate::{Aligned, Mask, Matrix, Quaternion, Unaligned, Vector};
 
 /// A 2-dimensional vector.
 ///
@@ -53,6 +53,48 @@ pub type Vec3U<T> = Vector<3, T, Unaligned>;
 ///
 /// This type is not SIMD-aligned and has the memory layout of `[T; 4]`.
 pub type Vec4U<T> = Vector<4, T, Unaligned>;
+
+/// A 2x2 column major matrix.
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Mat2<T> = Matrix<2, T, Aligned>;
+
+/// A 3x3 column major matrix.
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Mat3<T> = Matrix<3, T, Aligned>;
+
+/// A 4x4 column major matrix.
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Mat4<T> = Matrix<4, T, Aligned>;
+
+/// A 2x2 column major matrix.
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[T; 4]`.
+pub type Mat2U<T> = Matrix<2, T, Unaligned>;
+
+/// A 3x3 column major matrix.
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[T; 9]`.
+pub type Mat3U<T> = Matrix<3, T, Unaligned>;
+
+/// A 4x4 column major matrix.
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[T; 16]`.
+pub type Mat4U<T> = Matrix<4, T, Unaligned>;
 
 /// A quaternion representing an orientation.
 ///

@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Alignment, Length, Mask, Quaternion, Scalar, SupportedLength, Vector, utils::transmute_generic,
+    Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+    utils::transmute_generic,
 };
 
 impl<const N: usize, T, A: Alignment> Serialize for Vector<N, T, A>
@@ -41,6 +42,55 @@ where
             // type.
             4 => unsafe {
                 transmute_generic::<[T; 4], [T; N]>(Deserialize::deserialize(deserializer)?)
+            },
+            _ => unreachable!(),
+        }))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Serialize for Matrix<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_col_array().serialize(serializer)
+    }
+}
+
+impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Matrix<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Self::from_col_array(&match N {
+            // SAFETY: Because `N == 2`, `[Vector<N, T, A>; N]` and
+            // `[Vector<N, T, A>; 2]` are the same type.
+            2 => unsafe {
+                transmute_generic::<[Vector<N, T, A>; 2], [Vector<N, T, A>; N]>(
+                    Deserialize::deserialize(deserializer)?,
+                )
+            },
+            // SAFETY: Because `N == 3`, `[Vector<N, T, A>; N]` and
+            // `[Vector<N, T, A>; 3]` are the same type.
+            3 => unsafe {
+                transmute_generic::<[Vector<N, T, A>; 3], [Vector<N, T, A>; N]>(
+                    Deserialize::deserialize(deserializer)?,
+                )
+            },
+            // SAFETY: Because `N == 4`, `[Vector<N, T, A>; N]` and
+            // `[Vector<N, T, A>; 4]` are the same type.
+            4 => unsafe {
+                transmute_generic::<[Vector<N, T, A>; 4], [Vector<N, T, A>; N]>(
+                    Deserialize::deserialize(deserializer)?,
+                )
             },
             _ => unreachable!(),
         }))

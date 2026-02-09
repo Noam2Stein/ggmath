@@ -1,6 +1,6 @@
 use bytemuck::{NoUninit, Pod, Zeroable};
 
-use crate::{Alignment, Length, Mask, Quaternion, Scalar, SupportedLength, Vector};
+use crate::{Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector};
 
 /*
 Missing implementations are blocked on:
@@ -21,6 +21,27 @@ where
 // The `[T; N]` part is `Zeroable` because `T` is `Zeroable`, and the padding is
 // guaranteed to accept any bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Vector<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Zeroable,
+{
+}
+
+// SAFETY: Matrices are equivalent to structs where all fields are `Pod`. The
+// `[Vector<N, T, A>; N]` part is `Pod` because `Vector<N, T, A>` is `Pod`, and
+// the padding is guaranteed to have initialized bytes, and accepts any
+// bit-pattern.
+unsafe impl<const N: usize, T, A: Alignment> Pod for Matrix<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Pod,
+{
+}
+
+// SAFETY: Matrices are equivalent to structs where all fields are `Zeroable`.
+// The `[Vector<N, T, A>; N]` part is `Zeroable` because `Vector<N, T, A>` is
+// `Zeroable`, and the padding is guaranteed to accept any bit-pattern.
+unsafe impl<const N: usize, T, A: Alignment> Zeroable for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
     T: Scalar + Zeroable,

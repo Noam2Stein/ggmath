@@ -1,6 +1,6 @@
 use assert_impl_trait::assert_impl;
 use bytemuck::{AnyBitPattern, NoUninit, Pod, Zeroable};
-use ggmath::{Alignment, Length, Mask, Quaternion, Scalar, SupportedLength, Vector};
+use ggmath::{Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector};
 
 assert_impl!(
     for<const N: usize, A: Alignment>
@@ -29,6 +29,29 @@ assert_impl!(
         Vector<N, u128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Vector<N, usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Vector<N, bool, A>: Zeroable,
+
+        for<T: Scalar + Pod> {
+            Matrix<N, T, A>: Pod,
+        }
+        for<T: Scalar + Zeroable> {
+            Matrix<N, T, A>: Zeroable,
+        }
+
+        Matrix<N, f32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, f64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, i8, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, i16, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, i32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, i64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, i128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, isize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, u8, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, u16, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, u32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, u64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, u128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Matrix<N, bool, A>: Zeroable,
 
         for<T: Scalar + Pod> {
             Quaternion<T, A>: Pod,

@@ -4,7 +4,7 @@ use std::{
 };
 
 use colored::Colorize;
-use ggmath::{Alignment, Length, Quaternion, Scalar, SupportedLength, Vector};
+use ggmath::{Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Float Eq
@@ -242,6 +242,29 @@ where
 
     fn eq_ulps(&self, other: &Self, max_ulps: u8, zero_eq_neg_zero: bool) -> bool {
         (0..N).all(|i| self[i].eq_ulps(&other[i], max_ulps, zero_eq_neg_zero))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> FloatEq for Matrix<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + FloatEq<Tol = T>,
+{
+    type Tol = T;
+
+    fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
+        (0..N).all(|i| self.col(i).eq(&other.col(i), zero_eq_neg_zero))
+    }
+
+    fn eq_tol(&self, other: &Self, tol: Self::Tol, zero_eq_neg_zero: bool) -> bool {
+        (0..N).all(|i| self.col(i).eq_tol(&other.col(i), tol, zero_eq_neg_zero))
+    }
+
+    fn eq_ulps(&self, other: &Self, max_ulps: u8, zero_eq_neg_zero: bool) -> bool {
+        (0..N).all(|i| {
+            self.col(i)
+                .eq_ulps(&other.col(i), max_ulps, zero_eq_neg_zero)
+        })
     }
 }
 

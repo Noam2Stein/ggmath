@@ -2,6 +2,15 @@
 
 ## 0.16.1 (Unreleased)
 
+- Added matrix types:
+  - `Mat2`
+  - `Mat3`
+  - `Mat4`
+  - `Mat2U`
+  - `Mat3U`
+  - `Mat4U`
+  - `Matrix`
+
 - Added quaternion types:
   - `Quat`
   - `QuatU`

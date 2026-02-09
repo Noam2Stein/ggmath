@@ -5,7 +5,7 @@ A math library for games and graphics with support for generics and SIMD.
 The library features:
 
 - Vectors: `Vec2<T>`, `Vec3<T>`, `Vec4<T>`.
-- Square Matrices (todo): `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
+- Square Matrices: `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
 - Quaternions: `Quat<T>`.
 - Affine Transformations (todo): `Affine2<T>`, `Affine3<T>`.
 - Masks: `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
@@ -15,7 +15,7 @@ performance. The library also features unaligned types which are not
 SIMD-aligned:
 
 - Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
-- Square Matrices (todo): `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
+- Square Matrices: `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
 - Quaternions: `QuatU<T>`.
 - Affine Transformations (todo): `Affine2U<T>`, `Affine3U<T>`.
 - Masks: `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
@@ -26,7 +26,7 @@ slower operations.
 All types are type aliases to these generic structs:
 
 - `Vector<N, T, A>`.
-- `Matrix<N, T, A>` (todo).
+- `Matrix<N, T, A>`.
 - `Quaternion<T, A>`.
 - `Affine<N, T, A>` (todo).
 - `Mask<N, T, A>`.
@@ -78,7 +78,7 @@ to use but have even better performance than normal AoS (e.g., SIMD-aligned
 Feature List:
 
 - [x] Vectors
-- [ ] Square Matrices
+- [x] Square Matrices
 - [x] Quaternions
 - [ ] Affine Transformations
 - [x] Masks

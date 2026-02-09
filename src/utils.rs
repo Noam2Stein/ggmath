@@ -1,6 +1,6 @@
 use core::mem::{ManuallyDrop, transmute, transmute_copy};
 
-use crate::{Aligned, Alignment, Length, Mask, Scalar, SupportedLength, Unaligned, Vector};
+use crate::{Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Transmute
@@ -253,6 +253,38 @@ where
 // => `&'a mut Vector<N, T, A> == &'a mut Vector<N2, T, A2>`.
 unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<&'a mut Vector<N2, T, A2>, N, N2, A, A2> for &'a mut Vector<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2` => `Matrix<N, T, A> == Matrix<N2, T, A2>`.
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Matrix<N2, T, A2>, N, N2, A, A2> for Matrix<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2`
+// => `&'a Matrix<N, T, A> == &'a Matrix<N2, T, A2>`.
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Matrix<N2, T, A2>, N, N2, A, A2> for &'a Matrix<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2`
+// => `&'a mut Matrix<N, T, A> == &'a mut Matrix<N2, T, A2>`.
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Matrix<N2, T, A2>, N, N2, A, A2> for &'a mut Matrix<N, T, A>
 where
     T: Scalar,
     Length<N>: SupportedLength,

@@ -1,6 +1,8 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
-use crate::{Aligned, Alignment, Length, Mask, MaskBackend, SupportedLength, Unaligned, Vector};
+use crate::{
+    Aligned, Alignment, Length, Mask, MaskBackend, Matrix, SupportedLength, Unaligned, Vector,
+};
 
 /*
 When `macro_derive` is stabilized, a derive macro for `Scalar` should be added.
@@ -600,6 +602,51 @@ where
     {
         Mask::from_fn(|i| vec[i] >= other[i])
     }
+
+    /// Overridable implementation of the `==` operator for matrices.
+    #[inline]
+    fn mat_eq(mat: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
+    where
+        Self: Scalar + PartialEq,
+    {
+        (0..N).all(|i| mat.col(i) == other.col(i))
+    }
+
+    /// Overridable implementation of the `!=` operator for matrices.
+    #[inline]
+    fn mat_ne(mat: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
+    where
+        Self: Scalar + PartialEq,
+    {
+        !Self::mat_eq(mat, other)
+    }
+
+    /// Overridable implementation of the `-` operator for matrices.
+    #[inline]
+    fn mat_neg(mat: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    where
+        Self: Scalar + Neg<Output = Self>,
+    {
+        Matrix::from_col_fn(|i| -mat.col(i))
+    }
+
+    /// Overridable implementation of the `+` operator for matrices.
+    #[inline]
+    fn mat_add(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    where
+        Self: Scalar + Add<Output = Self>,
+    {
+        Matrix::from_col_fn(|i| mat.col(i) + rhs.col(i))
+    }
+
+    /// Overridable implementation of the `-` operator for matrices.
+    #[inline]
+    fn mat_sub(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    where
+        Self: Scalar + Sub<Output = Self>,
+    {
+        Matrix::from_col_fn(|i| mat.col(i) - rhs.col(i))
+    }
 }
 
 /// Types accepted by [`Scalar::Repr`].
@@ -619,6 +666,11 @@ pub(crate) unsafe trait ScalarRepr:
     + MaskBackend<4, Unaligned>
 {
     type VectorRepr<const N: usize, T, A: Alignment>: Copy
+    where
+        Length<N>: SupportedLength,
+        T: Scalar;
+
+    type MatrixRepr<const N: usize, T, A: Alignment>: Copy
     where
         Length<N>: SupportedLength,
         T: Scalar;

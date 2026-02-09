@@ -19,6 +19,14 @@ macro_rules! impl_scalar_repr {
                 Length<N>: SupportedLength,
                 T: Scalar;
 
+            // SAFETY: All types are equivalent to nested vectors making
+            // `[T; N * N]`.
+            type MatrixRepr<const N: usize, T, A: Alignment>
+                = <Length<N> as SupportedLength>::Select<Repr4<T>, Repr3<Repr3<T>>, Repr4<Repr4<T>>>
+            where
+                Length<N>: SupportedLength,
+                T: Scalar;
+
             // SAFETY: Select chooses `ReprN` from `Repr2`, `Repr3`, and
             // `Repr4`. Each type is guaranteed to be a simple struct equivalent
             // to `[bool; N]`. `[bool; N]` has no uninitialized bytes, and is
