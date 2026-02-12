@@ -37,8 +37,8 @@ Where:
 - `T` is the scalar type.
 - `A` is either `Aligned` or `Unaligned`.
 
-The generic structs are used to implement functionality for all lengths and or
-both alignments without duplicating code or using macros.
+The fully generic structs are used to implement functionality for all lengths
+and both alignments, without duplicating code or using macros.
 
 ## Another Math Crate???
 
@@ -48,19 +48,19 @@ generics.
 
 Generics make it possible to use custom types inside math types (e.g.,
 `Vec3<FixedPoint>`), and reduce code duplication when code needs to work for
-multiple types and or dimensions. Keep in mind that generics also increase
+multiple types or multiple dimensions. Keep in mind that generics also increase
 compile times, and are unnecessary if you only intend to use one scalar type
-(e.g., `f32`).
+(probably `f32`).
 
 SIMD, or more specifically SIMD-aligned types usually result in better
-performance than normal types.
+performance than normal, scalar-backed types.
 
 `ggmath` also (todo, not yet) supports SoA (Struct of Arrays, e.g.,
 `Vec3<f32x4>`) SIMD via integration with the crate `wide`. SoA types are harder
-to use but have even better performance than normal AoS (e.g., SIMD-aligned
-`Vec3<f32>`) types.
+to use but have even better performance than normal AoS (Array of Structs, e.g.,
+SIMD-aligned `Vec3<f32>`) types.
 
-`ggmath` doesn't have high level, controversial types (e.g., point types).
+`ggmath` doesn't have "controversial types" (e.g., point types).
 `ggmath` is designed so that an external crate could add those types on top of
 `ggmath`.
 
@@ -70,6 +70,14 @@ to use but have even better performance than normal AoS (e.g., SIMD-aligned
 | SIMD-aligned types | ✅ | ✅ | ✅ | ❌ |
 | SoA | (todo) | ❌ | ✅ | ❌ |
 | Controversial Types | ❌ | ❌ | ✅ | ✅ |
+
+## Math Conventions
+
+`ggmath` is coordinate system agnostic, and should work for both right-handed and left-handed coordinate systems.
+
+`ggmath` treats vectors as column matrices, meaning when transforming a vector with a matrix, the matrix goes on the left.
+
+`ggmath` matrices are stored in column major order, meaning each column is continuous in memory.
 
 ## Development Status
 
@@ -157,6 +165,10 @@ relies on a backend is disabled.
 - `mint`: Implements conversions between `ggmath` and `mint` types.
 
 - `serde`: Implements `Serialize` and `Deserialize` for all `ggmath` types.
+
+## Minimum Supported Rust Version
+
+`ggmath` supports versions of Rust back to `1.90.0`.
 
 ## Attribution
 
