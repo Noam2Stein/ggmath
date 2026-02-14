@@ -29,8 +29,8 @@ use crate::{
 ///
 /// # Guarantees
 ///
-/// `Quaternion<T, A>` is a transparent wrapper around `Vector<4, T, A>` and
-/// inherits its guarantees.
+/// `Quaternion<T, A>` is a transparent wrapper around `Vector<4, T, A>`, and
+/// thus inherits its guarantees.
 #[repr(transparent)]
 pub struct Quaternion<T, A: Alignment>(Vector<4, T, A>)
 where

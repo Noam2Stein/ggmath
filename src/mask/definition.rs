@@ -34,19 +34,19 @@ use crate::{
 ///
 /// # Guarantees
 ///
-/// The exact representation of masks isn't stable, but they do guarantee
+/// `Mask<N, T, A>` doesn't have a stable representation, but does guarantee
 /// certain properties.
 ///
-/// Masks are guaranteed to have no uninitialized bytes.
+/// `Mask<N, T, A>` bytes are initialized and zeroable.
 ///
-/// Masks are guaranteed to be zeroable (to accept the zero bit-pattern).
+/// Masks of scalar types with the same [`Scalar::Repr`] are guaranteed to have
+/// compatible memory layouts, even if `Repr = ()`. They are guaranteed to have
+/// the same size, element positions, and alignment.
 ///
-/// Masks of scalars with the same [`Scalar::Repr`] are guaranteed to have the
-/// same size, same alignment, and to be transmutable to each other. This
-/// includes scalars where `Repr = ()`.
-///
-/// Keep in mind that scalars that have the same `Repr` today might silently
-/// change their `Repr` in the future.
+/// Types containing compatible `Mask` types are **not guaranteed** to have the
+/// same memory layout. For example, even though `Mask2<bool>` and `Mask2<u8>`
+/// have the same memory layout, `Option<Mask2<bool>>` and `Option<Mask2<u8>>`
+/// may not.
 #[repr(transparent)]
 pub struct Mask<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::MaskRepr<N, A>,

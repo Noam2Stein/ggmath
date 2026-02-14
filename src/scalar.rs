@@ -389,15 +389,10 @@ pub unsafe trait Scalar:
     ///
     /// # Stability
     ///
-    /// The `Repr` of scalar types is considered to be an implementation detail,
-    /// and changing it is not considered a breaking change.
-    ///
-    /// This means that you should not rely on the specific `Repr` of a scalar
-    /// type unless you have control over its implementation (declared in the
-    /// same crate).
-    ///
-    /// Primitives are guaranteed to have the appropriate `Repr` for their size.
-    /// This is guaranteed not to change.
+    /// The `Repr` of primitive types is stable and is the appropriate signed
+    /// integer for the primitive type's size. The `Repr` of externally defined
+    /// scalar types might be changed silently without breaking SemVer, unless
+    /// their documentation explicitly guarantees a stable `Repr`.
     #[expect(private_bounds)]
     type Repr: ScalarRepr;
 }

@@ -34,36 +34,31 @@ use crate::{
 ///
 /// # Guarantees
 ///
-/// `Matrix<N, T, A>` is guaranteed to be made out of `N` consecutive values of
-/// `Vector<N, T, A>` without any padding in the middle, followed by optional
-/// padding that is made out of initialized bytes.
+/// `Matrix<N, T, A>` represents `N` consecutive values of `Vector<N, T, A>`
+/// followed by optional padding due to alignment.
 ///
-/// `Matrix<N, T, Unaligned>` is guaranteed to have the size and alignment of
-/// `[T; N * N]`.
+/// Padding bytes are initialized and accept any bit-pattern. It is **sound** to
+/// store any bit-pattern in padding, and it is **unsound** to assume that
+/// padding contains valid values of `T` unless `T` accepts all bit-patterns.
 ///
-/// `Matrix<2, T, Aligned>` is guaranteed to be a transparent wrapper around
-/// `Vector<4, T, Aligned>`.
+/// - `Matrix<N, T, Unaligned>`: has no padding, has no additional alignment.
 ///
-/// `Matrix<3, T, Aligned>` is guaranteed to have the size of either
-/// `[Vec3<T>; 3]` or `[Vec3<T>; 4]`, and may have additional alignment. When
-/// the size is of `[Vec3<T>; 4]`, the padding vector is guaranteed to have
-/// initialized bytes, but may not contain initialized values of `T` if it
-/// doesn't accept all bit-patterns.
+/// - `Matrix<2, T, Aligned>`: has memory layout identical to
+///   `Vector<4, T, Aligned>`.
 ///
-/// `Matrix<4, T, Aligned>` is guaranteed to have the size of `[T; 16]`, and may
-/// have additional alignment.
+/// - `Matrix<3, T, Aligned>`: may have one padding vector, may have additional
+///   alignment.
 ///
-/// Types containing `Matrix` are not guaranteed to have the same memory layout
-/// as types containing `[Vector<N, T, A>; N]`. For example, `Option<Mat2U<T>>`
-/// is not guaranteed to have the same size as `Option<[Vec2U<T>; 2]>`.
+/// - `Matrix<4, T, Aligned>`: has no padding, may have additional alignment.
 ///
-/// Matrices of scalars with the same [`Scalar::Repr`] are guaranteed to have
-/// compatible memory layouts if `Repr` is a signed integer. The alignment of
-/// the matrices is not guaranteed to be the same, but their size and element
-/// positions do.
+/// Matrices of scalar types with the same [`Scalar::Repr`] are guaranteed to
+/// have compatible memory layouts, unless `Repr = ()`. They are guaranteed to
+/// have the same size and element positions, but their alignment may differ.
 ///
-/// Keep in mind that scalars that have the same `Repr` today might silently
-/// change their `Repr` in the future.
+/// Types containing `Matrix` are **not guaranteed** to have the same memory
+/// layout as types containing equivalent arrays. For example, even though
+/// `Mat2U<T>` and `[T; 4]` have the same memory layout, `Option<Mat2U<T>>` and
+/// `Option<[T; 4]>` may not.
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::MatrixRepr<N, T, A>,
