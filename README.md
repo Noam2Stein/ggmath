@@ -108,17 +108,20 @@ Crate Support:
 Performance:
 
 - [x] `f32` SSE2 optimizations
-- [ ] `f32` SSE4.2+ optimizations
-- [ ] `f64` AVX+ optimizations
-- [ ] `i32` `u32` SSE2+ optimizations
-- [ ] `i8` `u8` `bool` SSE2+ optimizations for `Mat4<T>`
-- [ ] `i16` `u16` AVX2+ optimizations for `Mat4<T>`
+- [ ] `i32` `u32` SSE2 optimizations
 - [ ] `f32` NEON optimizations
 - [ ] `i32` `u32` NEON optimizations
-- [ ] `i8` `u8` `bool` NEON optimizations for `Mat4<T>`
 - [ ] `f32` WASM optimizations
 - [ ] `i32` `u32` WASM optimizations
-- [ ] `i8` `u8` `bool` WASM optimizations for `Mat4<T>`
+- [ ] Niche `f32` SSE4.2+ optimizations
+- [ ] Niche `i32` `u32` SSE4.2+ optimizations
+- [ ] Niche `f64` AVX+ optimizations
+- [ ] Niche `i8` `u8` `bool` SSE2+ optimizations
+- [ ] Niche `i16` `u16` SSE2+ optimizations
+- [ ] Niche `i8` `u8` `bool` NEON optimizations
+- [ ] Niche `i16` `u16` NEON optimizations
+- [ ] Niche `i8` `u8` `bool` WASM optimizations
+- [ ] Niche `i16` `u16` WASM optimizations
 
 ## Usage
 
