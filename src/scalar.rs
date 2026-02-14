@@ -1,7 +1,8 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Mask, MaskBackend, Matrix, SupportedLength, Unaligned, Vector,
+    Affine, Aligned, Alignment, Length, Mask, MaskBackend, Matrix, SupportedLength, Unaligned,
+    Vector,
 };
 
 /*
@@ -642,6 +643,24 @@ where
     {
         Matrix::from_col_fn(|i| mat.col(i) - rhs.col(i))
     }
+
+    /// Overridable implementation of the `==` operator for affine transforms.
+    #[inline]
+    fn affine_eq(affine: &Affine<N, Self, A>, rhs: &Affine<N, Self, A>) -> bool
+    where
+        Self: Scalar + PartialEq,
+    {
+        affine.matrix == rhs.matrix && affine.translation == rhs.translation
+    }
+
+    /// Overridable implementation of the `!=` operator for affine transforms.
+    #[inline]
+    fn affine_ne(affine: &Affine<N, Self, A>, rhs: &Affine<N, Self, A>) -> bool
+    where
+        Self: Scalar + PartialEq,
+    {
+        !Self::affine_eq(affine, rhs)
+    }
 }
 
 /// Types accepted by [`Scalar::Repr`].
@@ -666,6 +685,11 @@ pub(crate) unsafe trait ScalarRepr:
         T: Scalar;
 
     type MatrixRepr<const N: usize, T, A: Alignment>: Copy
+    where
+        Length<N>: SupportedLength,
+        T: Scalar;
+
+    type AffineRepr<const N: usize, T, A: Alignment>: Copy
     where
         Length<N>: SupportedLength,
         T: Scalar;

@@ -9,6 +9,7 @@ When enough float functions move to `core`, the crate should be made always
 
 pub mod constants;
 
+mod affine;
 mod aliases;
 mod alignment;
 mod float_ext;
@@ -18,6 +19,7 @@ mod matrix;
 mod quaternion;
 mod scalar;
 mod vector;
+pub use affine::*;
 pub use aliases::*;
 pub use alignment::*;
 pub use float_ext::*;

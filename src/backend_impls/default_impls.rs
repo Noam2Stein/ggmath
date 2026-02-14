@@ -3,7 +3,7 @@ use crate::{
     I64VectorBackend, I128VectorBackend, IsizeVectorBackend, Length, Mask, MaskBackend, Scalar,
     ScalarBackend, ScalarRepr, SupportedLength, U8VectorBackend, U16VectorBackend,
     U32VectorBackend, U64VectorBackend, U128VectorBackend, UsizeVectorBackend, Vector,
-    utils::{Repr2, Repr3, Repr4},
+    utils::{Repr2, Repr3, Repr4, Repr5},
 };
 
 impl<const N: usize, A: Alignment> ScalarBackend<N, A> for f64 where Length<N>: SupportedLength {}
@@ -86,6 +86,20 @@ macro_rules! impl_scalar_repr {
             // `[T; N * N]`.
             type MatrixRepr<const N: usize, T, A: Alignment>
                 = <Length<N> as SupportedLength>::Select<Repr4<T>, Repr3<Repr3<T>>, Repr4<Repr4<T>>>
+            where
+                Length<N>: SupportedLength,
+                T: Scalar;
+
+            // SAFETY: Matrix then vector is equivalent to `[[T; N]; N + 1]`.
+            // `Repr3<Repr2<T>>` where `N == 2` is equivalent, `Repr4<Repr3<T>>`
+            // where `N == 3` is equivalent, and `Repr5<Repr4<T>>` where
+            // `N == 4` is equivalent.
+            type AffineRepr<const N: usize, T, A: Alignment>
+                = <Length<N> as SupportedLength>::Select<
+                Repr3<Repr2<T>>,
+                Repr4<Repr3<T>>,
+                Repr5<Repr4<T>>,
+            >
             where
                 Length<N>: SupportedLength,
                 T: Scalar;

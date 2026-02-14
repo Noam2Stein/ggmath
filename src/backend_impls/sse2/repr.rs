@@ -5,8 +5,15 @@ use core::arch::x86_64::*;
 
 use crate::{
     Aligned, Alignment, Length, Mask, MaskBackend, Scalar, ScalarRepr, SupportedLength, Vector,
-    utils::{Repr2, Repr3, Repr4},
+    utils::{Repr2, Repr3, Repr4, Repr5},
 };
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Affine2Repr<T> {
+    matrix: __m128,
+    translation: Repr2<T>,
+}
 
 // SAFETY: Look at the safety note for each associated type.
 unsafe impl ScalarRepr for i32 {
@@ -39,6 +46,21 @@ unsafe impl ScalarRepr for i32 {
         = <A as Alignment>::Select<
         <Length<N> as SupportedLength>::Select<__m128, Repr3<__m128>, Repr4<__m128>>,
         <Length<N> as SupportedLength>::Select<Repr4<T>, Repr3<Repr3<T>>, Repr4<Repr4<T>>>,
+    >
+    where
+        Length<N>: SupportedLength,
+        T: Scalar;
+
+    // SAFETY: `Affine2Repr<T>` is `Mat2<T>` then `Vec2<T>`. `Repr4<__m128>` is
+    // is `Mat3<T>` (`Repr3<__m128>`) then `Vec3<T>` (`__m128`). `Repr5<__m128>`
+    // is `Mat4<T>` (`Repr4<__m128>`) then `Vec4<T>` (`__m128`). Matrix then
+    // vector is equivalent to `[[T; N]; N + 1]`. `Repr3<Repr2<T>>` where
+    // `N == 2` is equivalent, `Repr4<Repr3<T>>` where `N == 3` is equivalent,
+    // and `Repr5<Repr4<T>>` where `N == 4` is equivalent.
+    type AffineRepr<const N: usize, T, A: Alignment>
+        = <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<Affine2Repr<T>, Repr4<__m128>, Repr5<__m128>>,
+        <Length<N> as SupportedLength>::Select<Repr3<Repr2<T>>, Repr4<Repr3<T>>, Repr5<Repr4<T>>>,
     >
     where
         Length<N>: SupportedLength,

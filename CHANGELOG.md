@@ -2,6 +2,13 @@
 
 ## 0.16.2 (Unreleased)
 
+- Added affine types:
+  - `Affine2`
+  - `Affine3`
+  - `Affine2U`
+  - `Affine3U`
+  - `Affine`
+
 - Modified documentation.
 
 ## 0.16.1 (14.2.2026)

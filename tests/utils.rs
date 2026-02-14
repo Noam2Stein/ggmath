@@ -4,7 +4,7 @@ use std::{
 };
 
 use colored::Colorize;
-use ggmath::{Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector};
+use ggmath::{Affine, Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Float Eq
@@ -289,6 +289,34 @@ where
             max_ulps,
             zero_eq_neg_zero,
         )
+    }
+}
+
+impl<const N: usize, T, A: Alignment> FloatEq for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + FloatEq<Tol = T>,
+{
+    type Tol = T;
+
+    fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
+        self.matrix.eq(&other.matrix, zero_eq_neg_zero)
+            && self.translation.eq(&other.translation, zero_eq_neg_zero)
+    }
+
+    fn eq_tol(&self, other: &Self, tol: Self::Tol, zero_eq_neg_zero: bool) -> bool {
+        self.matrix.eq_tol(&other.matrix, tol, zero_eq_neg_zero)
+            && self
+                .translation
+                .eq_tol(&other.translation, tol, zero_eq_neg_zero)
+    }
+
+    fn eq_ulps(&self, other: &Self, max_ulps: u8, zero_eq_neg_zero: bool) -> bool {
+        self.matrix
+            .eq_ulps(&other.matrix, max_ulps, zero_eq_neg_zero)
+            && self
+                .translation
+                .eq_ulps(&other.translation, max_ulps, zero_eq_neg_zero)
     }
 }
 

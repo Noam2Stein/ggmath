@@ -1,6 +1,8 @@
 use core::mem::{ManuallyDrop, transmute, transmute_copy};
 
-use crate::{Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector};
+use crate::{
+    Affine, Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector,
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Transmute
@@ -292,6 +294,38 @@ where
 {
 }
 
+// SAFETY: `N == N2`, `A == A2` => `Affine<N, T, A> == Affine<N2, T, A2>`.
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<Affine<N2, T, A2>, N, N2, A, A2> for Affine<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2`
+// => `&'a Affine<N, T, A> == &'a Affine<N2, T, A2>`.
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a Affine<N2, T, A2>, N, N2, A, A2> for &'a Affine<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `N == N2`, `A == A2`
+// => `&'a mut Affine<N, T, A> == &'a mut Affine<N2, T, A2>`.
+unsafe impl<'a, T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<&'a mut Affine<N2, T, A2>, N, N2, A, A2> for &'a mut Affine<N, T, A>
+where
+    T: Scalar,
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
 // SAFETY: `N == N2`, `A == A2` => `Mask<N, T, A> == Mask<N2, T, A2>`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<Mask<N2, T, A2>, N, N2, A, A2> for Mask<N, T, A>
@@ -525,3 +559,11 @@ pub struct Repr3<T>(pub T, pub T, pub T);
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Repr4<T>(pub T, pub T, pub T, pub T);
+
+/// Contains five values of type `T`.
+///
+/// This type is used instead of `[T; 5]` because for some reason arrays lead
+/// to worse assembly than structs.
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Repr5<T>(pub T, pub T, pub T, pub T, pub T);

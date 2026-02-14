@@ -1,4 +1,4 @@
-use crate::{Aligned, Mask, Matrix, Quaternion, Unaligned, Vector};
+use crate::{Affine, Aligned, Mask, Matrix, Quaternion, Unaligned, Vector};
 
 /// A 2-dimensional vector.
 ///
@@ -117,6 +117,38 @@ pub type Quat<T> = Quaternion<T, Aligned>;
 ///
 /// This type is not SIMD-aligned and has the memory layout of `[T; 4]`.
 pub type QuatU<T> = Quaternion<T, Unaligned>;
+
+/// A 2D affine transform, which can represent translation, rotation, scaling
+/// and shear.
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Affine2<T> = Affine<2, T, Aligned>;
+
+/// A 3D affine transform, which can represent translation, rotation, scaling
+/// and shear.
+///
+/// # SIMD Alignment
+///
+/// This type may be SIMD-aligned depending on the target architecture.
+pub type Affine3<T> = Affine<3, T, Aligned>;
+
+/// A 2D affine transform, which can represent translation, rotation, scaling
+/// and shear.
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[T; 6]`.
+pub type Affine2U<T> = Affine<2, T, Unaligned>;
+
+/// A 3D affine transform, which can represent translation, rotation, scaling
+/// and shear.
+///
+/// # No SIMD Alignment
+///
+/// This type is not SIMD-aligned and has the memory layout of `[T; 12]`.
+pub type Affine3U<T> = Affine<3, T, Unaligned>;
 
 /// A 2-component vector mask.
 ///
