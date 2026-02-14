@@ -47,6 +47,7 @@ use crate::{
 ///
 /// Keep in mind that scalars that have the same `Repr` today might silently
 /// change their `Repr` in the future.
+#[repr(transparent)]
 pub struct Mask<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::MaskRepr<N, A>,
 )
