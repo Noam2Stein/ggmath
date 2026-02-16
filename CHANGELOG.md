@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.16.2 (Unreleased)
+## 0.16.2 (16.2.2026)
 
 - Added affine types:
   - `Affine2`
