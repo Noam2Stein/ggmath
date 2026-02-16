@@ -9,6 +9,8 @@
   - `Affine3U`
   - `Affine`
 
+- Added partial support for crate `fixed`.
+
 - Modified documentation.
 
 - Updated dependencies.

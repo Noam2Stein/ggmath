@@ -99,7 +99,7 @@ Feature List:
 Crate Support:
 
 - [x] [`bytemuck`](https://crates.io/crates/bytemuck)
-- [ ] [`fixed`](https://crates.io/crates/fixed)
+- [ ] [`fixed`](https://crates.io/crates/fixed) (partially done)
 - [ ] [`fixp`](https://crates.io/crates/fixp)
 - [x] [`libm`](https://crates.io/crates/libm)
 - [x] [`mint`](https://crates.io/crates/mint)
@@ -163,6 +163,8 @@ relies on a backend is disabled.
   to binary crates.
 
 - `bytemuck`: Implements `bytemuck` traits for all `ggmath` types.
+
+- `fixed`: Implements `Scalar` for fixed-point numbers.
 
 - `libm`: Uses `libm` as the backend for float functionality. This makes the
   crate `no_std` even if the `std` feature isn't disabled.
