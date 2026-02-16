@@ -98,12 +98,14 @@ Feature List:
 
 Crate Support:
 
-- [x] [`bytemuck`](crates.io/crates/bytemuck)
-- [ ] [`fixed`](crates.io/crates/fixed)
-- [x] [`libm`](crates.io/crates/libm)
-- [x] [`mint`](crates.io/crates/mint)
-- [x] [`serde`](crates.io/crates/serde)
-- [ ] [`wide`](crates.io/crates/wide)
+- [x] [`bytemuck`](https://crates.io/crates/bytemuck)
+- [ ] [`fixed`](https://crates.io/crates/fixed)
+- [ ] [`fixp`](https://crates.io/crates/fixp)
+- [x] [`libm`](https://crates.io/crates/libm)
+- [x] [`mint`](https://crates.io/crates/mint)
+- [x] [`serde`](https://crates.io/crates/serde)
+- [ ] [`wide`](https://crates.io/crates/wide)
+- [ ] [`rand`](https://crates.io/crates/rand)
 
 Performance:
 
