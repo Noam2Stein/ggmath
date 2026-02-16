@@ -11,6 +11,8 @@
 
 - Modified documentation.
 
+- Updated dependencies.
+
 ## 0.16.1 (14.2.2026)
 
 - Added matrix types:
