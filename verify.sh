@@ -2,8 +2,10 @@
 
 set -e
 
-PROGRESS=0
 MAX_PROGRESS=57
+INTEGRATIONS="bytemuck fixed fixp mint serde"
+
+PROGRESS=0
 WARNINGS=false
 
 run() {
@@ -44,7 +46,7 @@ build() {
     # the crate compiles both with and without them.
     if [[ $overflow_checks == "on" ]]
     then
-        command+="--features \"bytemuck fixed fixp mint serde\" "
+        command+="--features \"$INTEGRATIONS\" "
     fi
 
     run "$command"
@@ -60,7 +62,7 @@ test() {
 
     command+="RUSTFLAGS=\"-C overflow-checks=$overflow_checks\" "
     command+="cargo test --no-default-features "
-    command+="--features \"$backend $assertions bytemuck fixed fixp mint serde\" "
+    command+="--features \"$backend $assertions $INTEGRATIONS\" "
 
     if [[ $profile == "release" ]]
     then

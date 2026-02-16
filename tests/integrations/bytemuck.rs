@@ -1,6 +1,8 @@
 use assert_impl_trait::assert_impl;
 use bytemuck::{AnyBitPattern, NoUninit, Pod, Zeroable};
-use ggmath::{Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector};
+use ggmath::{
+    Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+};
 
 assert_impl!(
     for<const N: usize, A: Alignment>
