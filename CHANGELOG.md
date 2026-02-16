@@ -9,7 +9,7 @@
   - `Affine3U`
   - `Affine`
 
-- Added partial support for crates: `fixed`, `fixp`.
+- Added partial support for crates: `fixed`, `fixp`, `wide`.
 
 - Modified documentation.
 

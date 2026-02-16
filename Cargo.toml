@@ -31,6 +31,7 @@ fixp = ["dep:fixp"]
 libm = ["dep:libm"]
 mint = ["dep:mint"]
 serde = ["dep:serde"]
+wide = ["dep:wide"]
 
 [dependencies]
 bytemuck = { version = "1.25.0", optional = true }
@@ -39,6 +40,7 @@ fixp = { version = "0.1.0", optional = true }
 libm = { version = "0.2.16", optional = true }
 mint = { version = "0.5.9", optional = true }
 serde = { version = "1.0.228", optional = true }
+wide = { version = "1.1.1", optional = true }
 
 [dev-dependencies]
 assert-impl-trait = "1.0.0"

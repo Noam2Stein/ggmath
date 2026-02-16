@@ -55,10 +55,10 @@ compile times, and are unnecessary if you only intend to use one scalar type
 SIMD, or more specifically SIMD-aligned types usually result in better
 performance than normal, scalar-backed types.
 
-`ggmath` also (todo, not yet) supports SoA (Struct of Arrays, e.g.,
-`Vec3<f32x4>`) SIMD via integration with the crate `wide`. SoA types are harder
-to use but have even better performance than normal AoS (Array of Structs, e.g.,
-SIMD-aligned `Vec3<f32>`) types.
+`ggmath` also supports SoA (Struct of Arrays, e.g., `Vec3<f32x4>`) SIMD via
+integration with the crate `wide`. SoA types are harder to use but have even
+better performance than normal AoS (Array of Structs, e.g., SIMD-aligned
+`Vec3<f32>`) types.
 
 `ggmath` doesn't have "controversial types" (e.g., point types).
 `ggmath` is designed so that an external crate could add those types on top of
@@ -68,7 +68,7 @@ SIMD-aligned `Vec3<f32>`) types.
 | ------- | -------- | ------ | ------------- | -------- |
 | Generics | ✅ | ❌ | ❌ | ✅ |
 | SIMD-aligned types | ✅ | ✅ | ✅ | ❌ |
-| SoA | (todo) | ❌ | ✅ | ❌ |
+| SoA | ✅ | ❌ | ✅ | ❌ |
 | Controversial Types | ❌ | ❌ | ✅ | ✅ |
 
 ## Math Conventions
@@ -104,7 +104,7 @@ Crate Support:
 - [x] [`libm`](https://crates.io/crates/libm)
 - [x] [`mint`](https://crates.io/crates/mint)
 - [x] [`serde`](https://crates.io/crates/serde)
-- [ ] [`wide`](https://crates.io/crates/wide)
+- [ ] [`wide`](https://crates.io/crates/wide) (partially done)
 - [ ] [`rand`](https://crates.io/crates/rand)
 
 Performance:
@@ -174,6 +174,8 @@ relies on a backend is disabled.
 - `mint`: Implements conversions between `ggmath` and `mint` types.
 
 - `serde`: Implements `Serialize` and `Deserialize` for all `ggmath` types.
+
+- `wide`: Implements `Scalar` for SIMD types.
 
 ## Minimum Supported Rust Version
 

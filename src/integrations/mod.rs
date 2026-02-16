@@ -13,6 +13,9 @@ mod mint;
 #[cfg(feature = "serde")]
 mod serde;
 
+#[cfg(feature = "wide")]
+mod wide;
+
 /*
 Integration with `zerocopy` is blocked on:
 https://github.com/rust-lang/rust/issues/95174
