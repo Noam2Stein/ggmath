@@ -4,7 +4,9 @@ use core::{
 };
 
 use crate::{
-    Alignment, Length, Matrix, Scalar, ScalarBackend, ScalarRepr, SupportedLength, Vector,
+    Aligned, Alignment, Length, Matrix, Scalar, ScalarBackend, ScalarRepr, SupportedLength,
+    Unaligned, Vector,
+    affine::deref::AffineDeref,
     constants::{One, Zero},
     utils::{Repr3, Repr4, Repr5, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
@@ -174,6 +176,40 @@ where
         } else {
             unreachable!()
         }
+    }
+
+    /// Converts the affine to the specified alignment.
+    ///
+    /// See [`Alignment`] for more information.
+    #[inline]
+    #[must_use]
+    pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
+        // SAFETY: This operation is identical to the one used in the
+        // implementation of `Deref`.
+        let deref = unsafe { transmute_ref::<Affine<N, T, A>, AffineDeref<N, T, A>>(self) };
+
+        Affine::from_mat_translation(
+            deref.matrix.to_alignment(),
+            deref.translation.to_alignment(),
+        )
+    }
+
+    /// Converts the affine to [`Aligned`] alignment.
+    ///
+    /// See [`Alignment`] for more information.
+    #[inline]
+    #[must_use]
+    pub const fn align(&self) -> Affine<N, T, Aligned> {
+        self.to_alignment()
+    }
+
+    /// Converts the affine to [`Unaligned`] alignment.
+    ///
+    /// See [`Alignment`] for more information.
+    #[inline]
+    #[must_use]
+    pub const fn unalign(&self) -> Affine<N, T, Unaligned> {
+        self.to_alignment()
     }
 }
 

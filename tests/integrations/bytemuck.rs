@@ -76,6 +76,29 @@ assert_impl!(
         Quaternion<usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
         Quaternion<bool, A>: Zeroable,
 
+        for<T: Scalar + Pod> {
+            Affine<N, T, A>: Pod,
+        }
+        for<T: Scalar + Zeroable> {
+            Affine<N, T, A>: Zeroable,
+        }
+
+        Affine<N, f32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, f64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, i8, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, i16, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, i32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, i64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, i128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, isize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, u8, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, u16, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, u32, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, u64, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, u128, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, usize, A>: AnyBitPattern + NoUninit + Pod + Zeroable,
+        Affine<N, bool, A>: Zeroable,
+
         for<T: Scalar + 'static> {
             Mask<N, T, A>: NoUninit,
         }

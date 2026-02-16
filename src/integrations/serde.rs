@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
-    utils::transmute_generic,
+    Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+    utils::{transmute_generic, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Serialize for Vector<N, T, A>
@@ -118,6 +118,84 @@ where
         D: serde::Deserializer<'de>,
     {
         Ok(Self::from_array(Deserialize::deserialize(deserializer)?))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Serialize for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Serialize,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match N {
+            // SAFETY: Because `N == 2`, `Affine<N, T, A>` and `Affine<2, T, A>`
+            // are the same type.
+            2 => unsafe {
+                transmute_ref::<Affine<N, T, A>, Affine<2, T, A>>(self)
+                    .as_col_array_ref()
+                    .serialize(serializer)
+            },
+
+            // SAFETY: Because `N == 3`, `Affine<N, T, A>` and `Affine<3, T, A>`
+            // are the same type.
+            3 => unsafe {
+                transmute_ref::<Affine<N, T, A>, Affine<3, T, A>>(self)
+                    .as_col_array_ref()
+                    .serialize(serializer)
+            },
+
+            // SAFETY: Because `N == 4`, `Affine<N, T, A>` and `Affine<4, T, A>`
+            // are the same type.
+            4 => unsafe {
+                transmute_ref::<Affine<N, T, A>, Affine<4, T, A>>(self)
+                    .as_col_array_ref()
+                    .serialize(serializer)
+            },
+
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl<'de, const N: usize, T, A: Alignment> Deserialize<'de> for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(match N {
+            // SAFETY: Because `N == 2`, `Affine<2, T, A>` and `Affine<N, T, A>`
+            // are the same type.
+            2 => unsafe {
+                transmute_generic::<Affine<2, T, A>, Affine<N, T, A>>(
+                    Affine::<2, T, A>::from_col_array(&Deserialize::deserialize(deserializer)?),
+                )
+            },
+
+            // SAFETY: Because `N == 3`, `Affine<3, T, A>` and `Affine<N, T, A>`
+            // are the same type.
+            3 => unsafe {
+                transmute_generic::<Affine<3, T, A>, Affine<N, T, A>>(
+                    Affine::<3, T, A>::from_col_array(&Deserialize::deserialize(deserializer)?),
+                )
+            },
+
+            // SAFETY: Because `N == 4`, `Affine<4, T, A>` and `Affine<N, T, A>`
+            // are the same type.
+            4 => unsafe {
+                transmute_generic::<Affine<4, T, A>, Affine<N, T, A>>(
+                    Affine::<4, T, A>::from_col_array(&Deserialize::deserialize(deserializer)?),
+                )
+            },
+
+            _ => unreachable!(),
+        })
     }
 }
 
