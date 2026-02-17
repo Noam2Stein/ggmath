@@ -4,8 +4,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, Scalar, ScalarBackend, ScalarRepr, SupportedLength,
-    Unaligned, Vector,
+    Aligned, Alignment, Length, Matrix, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
+    SupportedLength, Unaligned, Vector,
     affine::deref::AffineDeref,
     constants::{One, Zero},
     utils::{Repr3, Repr4, Repr5, specialize, transmute_generic, transmute_mut, transmute_ref},
@@ -210,6 +210,37 @@ where
     #[must_use]
     pub const fn unalign(&self) -> Affine<N, T, Unaligned> {
         self.to_alignment()
+    }
+
+    /// Reinterprets the bits of the affine transformation to a different scalar
+    /// type.
+    ///
+    /// The two scalar types must have compatible memory layouts. This is
+    /// enforced via trait bounds in this function's signature.
+    ///
+    /// This function is used to make SIMD optimizations in implementations of
+    /// [`Scalar`].
+    ///
+    /// # Safety
+    ///
+    /// The components of the input must be valid for the output affine type.
+    ///
+    /// For example, when converting affines from `u8` to `bool` the input
+    /// components must be either `0` or `1`.
+    ///
+    /// The optional padding does not need to contain valid values of `T2`.
+    #[inline]
+    #[must_use]
+    #[expect(private_bounds)]
+    pub const unsafe fn to_repr<T2>(self) -> Affine<N, T2, A>
+    where
+        T2: Scalar<Repr = T::Repr>,
+        T::Repr: SignedInteger,
+    {
+        // SAFETY: Affines of scalars with the same `Scalar::Repr` are
+        // guaranteed to have compatible memory layouts if `Repr` is a signed
+        // integer.
+        unsafe { transmute_generic::<Affine<N, T, A>, Affine<N, T2, A>>(self) }
     }
 }
 

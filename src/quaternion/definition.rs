@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Scalar, Unaligned, Vector,
+    Aligned, Alignment, Scalar, SignedInteger, Unaligned, Vector,
     constants::{One, Zero},
 };
 
@@ -150,6 +150,33 @@ where
     #[must_use]
     pub const fn as_vec_mut(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
+    }
+
+    /// Reinterprets the bits of the quaternion to a different scalar type.
+    ///
+    /// The two scalar types must have compatible memory layouts. This is
+    /// enforced via trait bounds in this function's signature.
+    ///
+    /// The function `to_repr` for vectors, matrices and affine transformations
+    /// is used to make SIMD optimizations in implementations of [`Scalar`]. It
+    /// exists for quaternions for consistency's sake.
+    ///
+    /// # Safety
+    ///
+    /// The components of the input must be valid for the output quaternion
+    /// type.
+    ///
+    /// For example, when converting quaternions from `u8` to `bool` the input
+    /// components must be either `0` or `1`.
+    #[inline]
+    #[must_use]
+    #[expect(private_bounds)]
+    pub const unsafe fn to_repr<T2>(self) -> Quaternion<T2, A>
+    where
+        T2: Scalar<Repr = T::Repr>,
+        T::Repr: SignedInteger,
+    {
+        unsafe { Quaternion(self.0.to_repr()) }
     }
 }
 
