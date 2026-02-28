@@ -1,3 +1,5 @@
+use std::hint::black_box;
+
 use gungraun::{library_benchmark, library_benchmark_group, main};
 
 main!(library_benchmark_groups = benches);
@@ -46,7 +48,7 @@ pub fn ggmath_mask(x: f32, y: f32, z: f32) -> impl Copy {
         v4a += (v4a.le_mask(vec4!(x, y, z, x)) ^ (v4a * vec4!(1.3)).ge_mask(v4a)).select(v4a, -v4a);
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -133,5 +135,5 @@ pub fn glam_mask(x: f32, y: f32, z: f32) -> impl Copy {
         );
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }

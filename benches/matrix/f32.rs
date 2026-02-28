@@ -1,3 +1,5 @@
+use std::hint::black_box;
+
 use gungraun::{library_benchmark, library_benchmark_group, main};
 
 main!(library_benchmark_groups = benches);
@@ -63,7 +65,7 @@ pub fn ggmath_matrix(x: f32, y: f32, z: f32) -> impl Copy {
         );
     }
 
-    (m2u, m3u, m3a, m4a)
+    black_box((m2u, m3u, m3a, m4a))
 }
 
 #[library_benchmark]
@@ -128,5 +130,5 @@ pub fn glam_matrix(x: f32, y: f32, z: f32) -> impl Copy {
         );
     }
 
-    (m2u, m3u, m3a, m4a)
+    black_box((m2u, m3u, m3a, m4a))
 }

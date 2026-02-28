@@ -1,3 +1,5 @@
+use std::hint::black_box;
+
 use gungraun::{library_benchmark, library_benchmark_group, main};
 
 main!(library_benchmark_groups = benches);
@@ -41,7 +43,7 @@ pub fn ggmath_arithmetic(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.recip() + v4a.sqrt();
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -76,7 +78,7 @@ pub fn glam_arithmetic(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.recip() + v4a.sqrt();
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -103,7 +105,7 @@ pub fn ggmath_arithmetic_ext(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.midpoint(v4a.sqrt());
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -130,7 +132,7 @@ pub fn glam_arithmetic_ext(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.midpoint(v4a.sqrt());
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -169,7 +171,7 @@ pub fn ggmath_bitops(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.copysign(v4a + vec4!(1.0));
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -208,7 +210,7 @@ pub fn glam_bitops(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.copysign(v4a + Vec4::ONE);
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -228,7 +230,7 @@ pub fn ggmath_swizzle(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v2u.align().xyyx() + v3u.zxyy().align() + v3a.zxyx() + v4a.wyzz();
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -250,7 +252,7 @@ pub fn glam_swizzle(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v2u.xyyx() + v3u.zxyy() + v3a.zxyx() + v4a.wyzz();
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -396,7 +398,7 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             ) * 1.5;
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -541,7 +543,7 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             ) * 1.5;
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -561,7 +563,7 @@ pub fn ggmath_round(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.floor() + v4a.ceil() - v4a.round() * v4a.trunc() / v4a.fract();
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -581,7 +583,7 @@ pub fn glam_round(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.floor() + v4a.ceil() - v4a.round() * v4a.trunc() / v4a.fract();
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -615,7 +617,7 @@ pub fn ggmath_trigo(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = sin / cos;
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -664,7 +666,7 @@ pub fn glam_trigo(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = sin / cos;
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -684,7 +686,7 @@ pub fn ggmath_exp(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.exp() + v4a.exp2() + v4a.ln() + v4a.log2() + v4a.powf(5.0);
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -704,7 +706,7 @@ pub fn glam_exp(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.exp() + v4a.exp2() + v4a.ln() + v4a.log2() + v4a.powf(5.0);
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -735,7 +737,7 @@ pub fn ggmath_euclid_div(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.rem_euclid(v4a + 1.0);
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
 
 #[library_benchmark]
@@ -766,5 +768,5 @@ pub fn glam_euclid_div(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.rem_euclid(v4a + 1.0);
     }
 
-    (v2u, v3u, v3a, v4a)
+    black_box((v2u, v3u, v3a, v4a))
 }
