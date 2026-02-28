@@ -1,10 +1,15 @@
 # Changelog
 
-## 0.16.3 (Unreleased)
+All notable changes to this project will be documented in this file.
 
-- Added quaternion function `to_repr`.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-- Added affine function `to_repr`.
+## [Unreleased]
+
+### Added
+
+- Quaternion & Affine function `to_repr`.
 
 ## 0.16.2 (16.2.2026)
 
@@ -262,3 +267,5 @@ functionality can start being added.
 ## 0.13.0
 
 This version completely rewrote the crate.
+
+[unreleased]: https://github.com/noam2stein/ggmath/compare/v0.16.2...HEAD
