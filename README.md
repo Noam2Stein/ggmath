@@ -67,7 +67,7 @@ better performance than normal AoS (Array of Structs, e.g., SIMD-aligned
 | Feature | `ggmath` | `glam` | `ultraviolet` | `cgmath` |
 | ------- | -------- | ------ | ------------- | -------- |
 | Generics | ✅ | ❌ | ❌ | ✅ |
-| SIMD-aligned types | ✅ | ✅ | ✅ | ❌ |
+| SIMD-aligned types | ✅ | ✅ | ❌ | ❌ |
 | SoA | ✅ | ❌ | ✅ | ❌ |
 | Controversial Types | ❌ | ❌ | ✅ | ✅ |
 
