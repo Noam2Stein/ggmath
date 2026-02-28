@@ -88,7 +88,7 @@ where
             // and `Matrix<2, T, A>` are the same type.
             2 => unsafe {
                 let array = transmute_generic::<[Vector<N, T, A>; N], [Vector<2, T, A>; 2]>(*array);
-                transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(Matrix::<2, T, A>::new(
+                transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(Matrix::<2, T, A>::from_cols(
                     array[0], array[1],
                 ))
             },
@@ -98,7 +98,7 @@ where
             // and `Matrix<3, T, A>` are the same type.
             3 => unsafe {
                 let array = transmute_generic::<[Vector<N, T, A>; N], [Vector<3, T, A>; 3]>(*array);
-                transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(Matrix::<3, T, A>::new(
+                transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(Matrix::<3, T, A>::from_cols(
                     array[0], array[1], array[2],
                 ))
             },
@@ -108,7 +108,7 @@ where
             // and `Matrix<4, T, A>` are the same type.
             4 => unsafe {
                 let array = transmute_generic::<[Vector<N, T, A>; N], [Vector<4, T, A>; 4]>(*array);
-                transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(Matrix::<4, T, A>::new(
+                transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(Matrix::<4, T, A>::from_cols(
                     array[0], array[1], array[2], array[3],
                 ))
             },
@@ -140,7 +140,7 @@ where
             // SAFETY: Because `N == 2`, `Matrix<2, T, A>` and `Matrix<N, T, A>`
             // are the same type.
             2 => unsafe {
-                transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(Matrix::<2, T, A>::new(
+                transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(Matrix::<2, T, A>::from_cols(
                     Vector::<2, T, A>::new(diagonal.as_array_ref()[0], T::ZERO),
                     Vector::<2, T, A>::new(T::ZERO, diagonal.as_array_ref()[1]),
                 ))
@@ -149,7 +149,7 @@ where
             // SAFETY: Because `N == 3`, `Matrix<3, T, A>` and `Matrix<N, T, A>`
             // are the same type.
             3 => unsafe {
-                transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(Matrix::<3, T, A>::new(
+                transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(Matrix::<3, T, A>::from_cols(
                     Vector::<3, T, A>::new(diagonal.as_array_ref()[0], T::ZERO, T::ZERO),
                     Vector::<3, T, A>::new(T::ZERO, diagonal.as_array_ref()[1], T::ZERO),
                     Vector::<3, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array_ref()[2]),
@@ -159,7 +159,7 @@ where
             // SAFETY: Because `N == 4`, `Matrix<4, T, A>` and `Matrix<N, T, A>`
             // are the same type.
             4 => unsafe {
-                transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(Matrix::<4, T, A>::new(
+                transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(Matrix::<4, T, A>::from_cols(
                     Vector::<4, T, A>::new(diagonal.as_array_ref()[0], T::ZERO, T::ZERO, T::ZERO),
                     Vector::<4, T, A>::new(T::ZERO, diagonal.as_array_ref()[1], T::ZERO, T::ZERO),
                     Vector::<4, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array_ref()[2], T::ZERO),
@@ -192,11 +192,13 @@ where
             // are the same type.
             (3, false) => unsafe {
                 let mat = transmute_generic::<Matrix<N, T, A>, Matrix<3, T, A>>(*self);
-                transmute_generic::<Matrix<3, T, A2>, Matrix<N, T, A2>>(Matrix::<3, T, A2>::new(
-                    mat.as_col_array_ref()[0].to_alignment(),
-                    mat.as_col_array_ref()[1].to_alignment(),
-                    mat.as_col_array_ref()[2].to_alignment(),
-                ))
+                transmute_generic::<Matrix<3, T, A2>, Matrix<N, T, A2>>(
+                    Matrix::<3, T, A2>::from_cols(
+                        mat.as_col_array_ref()[0].to_alignment(),
+                        mat.as_col_array_ref()[1].to_alignment(),
+                        mat.as_col_array_ref()[2].to_alignment(),
+                    ),
+                )
             },
 
             _ => unreachable!(),
@@ -429,8 +431,10 @@ impl<T, A: Alignment> Matrix<2, T, A>
 where
     T: Scalar,
 {
+    /// Creates a 2x2 matrix from 2 column vectors.
     #[inline]
-    pub(crate) const fn new(x: Vector<2, T, A>, y: Vector<2, T, A>) -> Self {
+    #[must_use]
+    pub const fn from_cols(x: Vector<2, T, A>, y: Vector<2, T, A>) -> Self {
         // SAFETY: `Matrix<2, T, A>` is guaranteed to be made out of 2
         // consecutive values of `Vector<2, T, A>`, with no additional padding.
         unsafe { transmute_generic::<Repr2<Vector<2, T, A>>, Matrix<2, T, A>>(Repr2(x, y)) }
@@ -441,8 +445,10 @@ impl<T, A: Alignment> Matrix<3, T, A>
 where
     T: Scalar,
 {
+    /// Creates a 3x3 matrix from 3 column vectors.
     #[inline]
-    pub(crate) const fn new(x: Vector<3, T, A>, y: Vector<3, T, A>, z: Vector<3, T, A>) -> Self {
+    #[must_use]
+    pub const fn from_cols(x: Vector<3, T, A>, y: Vector<3, T, A>, z: Vector<3, T, A>) -> Self {
         match size_of::<Matrix<3, T, A>>() / size_of::<Vector<3, T, A>>() {
             // SAFETY: Because the matrix has 3 values of `Vector<3, T, A>` and
             // no padding, its equivalent to `Repr3<Vector<3, T, A>>`.
@@ -465,8 +471,10 @@ impl<T, A: Alignment> Matrix<4, T, A>
 where
     T: Scalar,
 {
+    /// Creates a 4x4 matrix from 4 column vectors.
     #[inline]
-    pub(crate) const fn new(
+    #[must_use]
+    pub const fn from_cols(
         x: Vector<4, T, A>,
         y: Vector<4, T, A>,
         z: Vector<4, T, A>,

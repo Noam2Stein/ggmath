@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use ggmath::{Alignment, Mask, Scalar, vec2, vec3, vec4};
+use ggmath::{Alignment, Mask, Scalar, Vector};
 use itertools::iproduct;
 
 use crate::assert_panic;
@@ -69,20 +69,27 @@ where
         assert_eq!(Mask::<4, T, A>::new(x, y, z, w).any(), x || y || z || w);
 
         assert_eq!(
-            Mask::<2, T, A>::new(x, y).select(vec2!(a, b), vec2!(c, d)),
-            vec2!(if x { a } else { c }, if y { b } else { d })
+            Mask::<2, T, A>::new(x, y)
+                .select(Vector::<2, T, A>::new(a, b), Vector::<2, T, A>::new(c, d)),
+            Vector::<2, T, A>::new(if x { a } else { c }, if y { b } else { d })
         );
         assert_eq!(
-            Mask::<3, T, A>::new(x, y, z).select(vec3!(a, b, c), vec3!(c, d, a)),
-            vec3!(
+            Mask::<3, T, A>::new(x, y, z).select(
+                Vector::<3, T, A>::new(a, b, c),
+                Vector::<3, T, A>::new(c, d, a)
+            ),
+            Vector::<3, T, A>::new(
                 if x { a } else { c },
                 if y { b } else { d },
                 if z { c } else { a }
             )
         );
         assert_eq!(
-            Mask::<4, T, A>::new(x, y, z, w).select(vec4!(a, b, c, d), vec4!(c, d, a, b)),
-            vec4!(
+            Mask::<4, T, A>::new(x, y, z, w).select(
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(c, d, a, b)
+            ),
+            Vector::<4, T, A>::new(
                 if x { a } else { c },
                 if y { b } else { d },
                 if z { c } else { a },

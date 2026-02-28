@@ -1,7 +1,7 @@
-use ggmath::{Alignment, Matrix, mat2, mat3, mat4, vec2, vec3, vec4};
+use ggmath::{Alignment, Matrix, Vector};
 use itertools::iproduct;
 
-use crate::{assert_float_eq, utils::vec3_with_padding};
+use crate::assert_float_eq;
 
 pub fn test<A: Alignment>() {
     const ARGS: [T; 19] = [
@@ -28,67 +28,76 @@ pub fn test<A: Alignment>() {
 
     assert_float_eq!(
         Matrix::<2, T, A>::ZERO,
-        mat2!(vec2!(0.0, 0.0), vec2!(0.0, 0.0))
+        Matrix::<2, T, A>::from_cols(
+            Vector::<2, T, A>::new(0.0, 0.0),
+            Vector::<2, T, A>::new(0.0, 0.0)
+        )
     );
     assert_float_eq!(
         Matrix::<3, T, A>::ZERO,
-        mat3!(
-            vec3!(0.0, 0.0, 0.0),
-            vec3!(0.0, 0.0, 0.0),
-            vec3!(0.0, 0.0, 0.0)
+        Matrix::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(0.0, 0.0, 0.0),
+            Vector::<3, T, A>::new(0.0, 0.0, 0.0),
+            Vector::<3, T, A>::new(0.0, 0.0, 0.0)
         )
     );
     assert_float_eq!(
         Matrix::<4, T, A>::ZERO,
-        mat4!(
-            vec4!(0.0, 0.0, 0.0, 0.0),
-            vec4!(0.0, 0.0, 0.0, 0.0),
-            vec4!(0.0, 0.0, 0.0, 0.0),
-            vec4!(0.0, 0.0, 0.0, 0.0)
+        Matrix::<4, T, A>::from_cols(
+            Vector::<4, T, A>::new(0.0, 0.0, 0.0, 0.0),
+            Vector::<4, T, A>::new(0.0, 0.0, 0.0, 0.0),
+            Vector::<4, T, A>::new(0.0, 0.0, 0.0, 0.0),
+            Vector::<4, T, A>::new(0.0, 0.0, 0.0, 0.0)
         )
     );
 
     assert_float_eq!(
         Matrix::<2, T, A>::IDENTITY,
-        mat2!(vec2!(1.0, 0.0), vec2!(0.0, 1.0))
+        Matrix::<2, T, A>::from_cols(
+            Vector::<2, T, A>::new(1.0, 0.0),
+            Vector::<2, T, A>::new(0.0, 1.0)
+        )
     );
     assert_float_eq!(
         Matrix::<3, T, A>::IDENTITY,
-        mat3!(
-            vec3!(1.0, 0.0, 0.0),
-            vec3!(0.0, 1.0, 0.0),
-            vec3!(0.0, 0.0, 1.0)
+        Matrix::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(1.0, 0.0, 0.0),
+            Vector::<3, T, A>::new(0.0, 1.0, 0.0),
+            Vector::<3, T, A>::new(0.0, 0.0, 1.0)
         )
     );
     assert_float_eq!(
         Matrix::<4, T, A>::IDENTITY,
-        mat4!(
-            vec4!(1.0, 0.0, 0.0, 0.0),
-            vec4!(0.0, 1.0, 0.0, 0.0),
-            vec4!(0.0, 0.0, 1.0, 0.0),
-            vec4!(0.0, 0.0, 0.0, 1.0)
+        Matrix::<4, T, A>::from_cols(
+            Vector::<4, T, A>::new(1.0, 0.0, 0.0, 0.0),
+            Vector::<4, T, A>::new(0.0, 1.0, 0.0, 0.0),
+            Vector::<4, T, A>::new(0.0, 0.0, 1.0, 0.0),
+            Vector::<4, T, A>::new(0.0, 0.0, 0.0, 1.0)
         )
     );
 
     assert_float_eq!(
         Matrix::<2, T, A>::NAN,
-        mat2!(vec2!(T::NAN, T::NAN), vec2!(T::NAN, T::NAN))
+        Matrix::<2, T, A>::from_cols(
+            Vector::<2, T, A>::new(T::NAN, T::NAN),
+            Vector::<2, T, A>::new(T::NAN, T::NAN)
+        )
     );
     assert_float_eq!(
         Matrix::<3, T, A>::NAN,
-        mat3!(
-            vec3!(T::NAN, T::NAN, T::NAN),
-            vec3!(T::NAN, T::NAN, T::NAN),
-            vec3!(T::NAN, T::NAN, T::NAN)
+        Matrix::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(T::NAN, T::NAN, T::NAN),
+            Vector::<3, T, A>::new(T::NAN, T::NAN, T::NAN),
+            Vector::<3, T, A>::new(T::NAN, T::NAN, T::NAN)
         )
     );
     assert_float_eq!(
         Matrix::<4, T, A>::NAN,
-        mat4!(
-            vec4!(T::NAN, T::NAN, T::NAN, T::NAN),
-            vec4!(T::NAN, T::NAN, T::NAN, T::NAN),
-            vec4!(T::NAN, T::NAN, T::NAN, T::NAN),
-            vec4!(T::NAN, T::NAN, T::NAN, T::NAN)
+        Matrix::<4, T, A>::from_cols(
+            Vector::<4, T, A>::new(T::NAN, T::NAN, T::NAN, T::NAN),
+            Vector::<4, T, A>::new(T::NAN, T::NAN, T::NAN, T::NAN),
+            Vector::<4, T, A>::new(T::NAN, T::NAN, T::NAN, T::NAN),
+            Vector::<4, T, A>::new(T::NAN, T::NAN, T::NAN, T::NAN)
         )
     );
 
@@ -99,82 +108,57 @@ pub fn test<A: Alignment>() {
             };
         }
 
-        macro_rules! vec2 {
-            ($($arg:expr),*$(,)?) => {
-                ggmath::Vector::<2, T, A>::from(($($arg,)*))
-            };
-        }
-
-        macro_rules! vec3 {
-            ($($arg:expr),*$(,)?) => {
-                vec3_with_padding(ggmath::Vector::<3, T, A>::from(($($arg,)*)), T::NAN)
-            };
-        }
-
-        macro_rules! vec4 {
-            ($($arg:expr),*$(,)?) => {
-                ggmath::Vector::<4, T, A>::from(($($arg,)*))
-            };
-        }
-
-        macro_rules! mat2 {
-            ($($arg:expr),*$(,)?) => {
-                ggmath::Matrix::<2, T, A>::from(($($arg,)*))
-            };
-        }
-
-        macro_rules! mat3 {
-            ($($arg:expr),*$(,)?) => {
-                ggmath::Matrix::<3, T, A>::from(($($arg,)*))
-            };
-        }
-
-        macro_rules! mat4 {
-            ($($arg:expr),*$(,)?) => {
-                ggmath::Matrix::<4, T, A>::from(($($arg,)*))
-            };
-        }
-
         assert_float_eq!(
-            Matrix::<2, T, A>::from_diagonal(vec2!(x, y)),
-            mat2!(vec2!(x, 0.0), vec2!(0.0, y))
+            Matrix::<2, T, A>::from_diagonal(Vector::<2, T, A>::new(x, y)),
+            Matrix::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, 0.0),
+                Vector::<2, T, A>::new(0.0, y)
+            )
         );
         assert_float_eq!(
-            Matrix::<3, T, A>::from_diagonal(vec3!(x, y, z)),
-            mat3!(vec3!(x, 0.0, 0.0), vec3!(0.0, y, 0.0), vec3!(0.0, 0.0, z))
+            Matrix::<3, T, A>::from_diagonal(Vector::<3, T, A>::new(x, y, z)),
+            Matrix::<3, T, A>::from_cols(
+                Vector::<3, T, A>::new(x, 0.0, 0.0),
+                Vector::<3, T, A>::new(0.0, y, 0.0),
+                Vector::<3, T, A>::new(0.0, 0.0, z)
+            )
         );
         assert_float_eq!(
-            Matrix::<4, T, A>::from_diagonal(vec4!(x, y, z, x)),
-            mat4!(
-                vec4!(x, 0.0, 0.0, 0.0),
-                vec4!(0.0, y, 0.0, 0.0),
-                vec4!(0.0, 0.0, z, 0.0),
-                vec4!(0.0, 0.0, 0.0, x)
+            Matrix::<4, T, A>::from_diagonal(Vector::<4, T, A>::new(x, y, z, x)),
+            Matrix::<4, T, A>::from_cols(
+                Vector::<4, T, A>::new(x, 0.0, 0.0, 0.0),
+                Vector::<4, T, A>::new(0.0, y, 0.0, 0.0),
+                Vector::<4, T, A>::new(0.0, 0.0, z, 0.0),
+                Vector::<4, T, A>::new(0.0, 0.0, 0.0, x)
             )
         );
 
         assert_float_eq!(
-            mat2!(vec2!(x, y), vec2!(z, x + 1.0)).diagonal(),
-            vec2!(x, x + 1.0)
-        );
-        assert_float_eq!(
-            mat3!(
-                vec3!(x, y, z),
-                vec3!(z, x + 1.0, y * 2.0),
-                vec3!(y, x + x, y * y)
+            Matrix::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, x + 1.0)
             )
             .diagonal(),
-            vec3!(x, x + 1.0, y * y)
+            Vector::<2, T, A>::new(x, x + 1.0)
         );
         assert_float_eq!(
-            mat4!(
-                vec4!(x, y, z, x + 1.5),
-                vec4!(z, x + 1.0, y * 2.0, z / 7.0),
-                vec4!(y, x + x, y * y, x + 1.3),
-                vec4!(x.sqrt(), x * 1.2, y * x, x + 1.5),
+            Matrix::<3, T, A>::from_cols(
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(z, x + 1.0, y * 2.0),
+                Vector::<3, T, A>::new(y, x + x, y * y)
             )
             .diagonal(),
-            vec4!(x, x + 1.0, y * y, x + 1.5)
+            Vector::<3, T, A>::new(x, x + 1.0, y * y)
+        );
+        assert_float_eq!(
+            Matrix::<4, T, A>::from_cols(
+                Vector::<4, T, A>::new(x, y, z, x + 1.5),
+                Vector::<4, T, A>::new(z, x + 1.0, y * 2.0, z / 7.0),
+                Vector::<4, T, A>::new(y, x + x, y * y, x + 1.3),
+                Vector::<4, T, A>::new(x.sqrt(), x * 1.2, y * x, x + 1.5),
+            )
+            .diagonal(),
+            Vector::<4, T, A>::new(x, x + 1.0, y * y, x + 1.5)
         );
     }
 }

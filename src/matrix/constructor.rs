@@ -4,6 +4,8 @@ use crate::{Alignment, Matrix, Scalar, Vector};
 ///
 /// The macro accepts 2 column vectors as arguments.
 ///
+/// This macro is deprecated. Use [`Matrix::from_cols`].
+///
 /// # Examples
 ///
 /// ```
@@ -11,6 +13,7 @@ use crate::{Alignment, Matrix, Scalar, Vector};
 ///
 /// let double: Mat2<f32> = mat2!(vec2!(2.0, 0.0), vec2!(0.0, 2.0));
 /// ```
+#[deprecated(since = "0.16.3", note = "use `Matrix::from_cols` instead")]
 #[macro_export]
 macro_rules! mat2 {
     ($($arg:expr),*$(,)?) => {
@@ -21,6 +24,8 @@ macro_rules! mat2 {
 /// Creates a 3x3 column major matrix from the provided arguments.
 ///
 /// The macro accepts 3 column vectors as arguments.
+///
+/// This macro is deprecated. Use [`Matrix::from_cols`].
 ///
 /// # Examples
 ///
@@ -33,6 +38,7 @@ macro_rules! mat2 {
 ///     vec3!(0.0, 0.0, 2.0)
 /// );
 /// ```
+#[deprecated(since = "0.16.3", note = "use `Matrix::from_cols` instead")]
 #[macro_export]
 macro_rules! mat3 {
     ($($arg:expr),*$(,)?) => {
@@ -43,6 +49,8 @@ macro_rules! mat3 {
 /// Creates a 4x4 column major matrix from the provided arguments.
 ///
 /// The macro accepts 4 column vectors as arguments.
+///
+/// This macro is deprecated. Use [`Matrix::from_cols`].
 ///
 /// # Examples
 ///
@@ -56,6 +64,7 @@ macro_rules! mat3 {
 ///     vec4!(0.0, 0.0, 0.0, 2.0)
 /// );
 /// ```
+#[deprecated(since = "0.16.3", note = "use `Matrix::from_cols` instead")]
 #[macro_export]
 macro_rules! mat4 {
     ($($arg:expr),*$(,)?) => {
@@ -73,7 +82,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, Vector<2, T, A>)) -> Self {
-        Self::new(value.0, value.1)
+        Self::from_cols(value.0, value.1)
     }
 }
 
@@ -97,7 +106,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<3, T, A>, Vector<3, T, A>, Vector<3, T, A>)) -> Self {
-        Self::new(value.0, value.1, value.2)
+        Self::from_cols(value.0, value.1, value.2)
     }
 }
 
@@ -134,7 +143,7 @@ where
             Vector<4, T, A>,
         ),
     ) -> Self {
-        Self::new(value.0, value.1, value.2, value.3)
+        Self::from_cols(value.0, value.1, value.2, value.3)
     }
 }
 

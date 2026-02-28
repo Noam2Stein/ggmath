@@ -3,7 +3,7 @@ use std::{
     panic::{RefUnwindSafe, UnwindSafe},
 };
 
-use ggmath::{Affine, Alignment, Matrix, Scalar, Vector, mat2, mat3, mat4, vec2, vec3, vec4};
+use ggmath::{Affine, Alignment, Matrix, Scalar, Vector};
 
 pub fn test<T, A: Alignment>(x: T, y: T, z: T, w: T)
 where
@@ -38,347 +38,462 @@ where
     assert!(align_of::<Affine<4, T, A>>() == align_of::<Matrix<4, T, A>>());
 
     assert_eq!(
-        Affine::<2, T, A>::from_cols(vec2!(x, y), vec2!(y, z), vec2!(z, x)).to_col_array(),
-        [vec2!(x, y), vec2!(y, z), vec2!(z, x)]
-    );
-    assert_eq!(
-        Affine::<3, T, A>::from_cols(
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+        Affine::<2, T, A>::from_cols(
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
         )
         .to_col_array(),
         [
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
+        ]
+    );
+    assert_eq!(
+        Affine::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
+        )
+        .to_col_array(),
+        [
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
         ]
     );
     assert_eq!(
         Affine::<4, T, A>::from_cols(
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         )
         .to_col_array(),
         [
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         ]
     );
 
     assert_eq!(
-        Affine::<2, T, A>::from_col_array(&[vec2!(x, y), vec2!(y, z), vec2!(z, x)]).to_col_array(),
-        [vec2!(x, y), vec2!(y, z), vec2!(z, x)]
-    );
-    assert_eq!(
-        Affine::<3, T, A>::from_col_array(&[
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+        Affine::<2, T, A>::from_col_array(&[
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
         ])
         .to_col_array(),
         [
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
+        ]
+    );
+    assert_eq!(
+        Affine::<3, T, A>::from_col_array(&[
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
+        ])
+        .to_col_array(),
+        [
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
         ]
     );
     assert_eq!(
         Affine::<4, T, A>::from_col_array(&[
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         ])
         .to_col_array(),
         [
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         ]
     );
 
     assert_eq!(
-        Affine::<2, T, A>::from_mat_translation(mat2!(vec2!(x, y), vec2!(y, z)), vec2!(z, x))
-            .to_col_array(),
-        [vec2!(x, y), vec2!(y, z), vec2!(z, x)]
-    );
-    assert_eq!(
-        Affine::<3, T, A>::from_mat_translation(
-            mat3!(vec3!(x, y, z), vec3!(y, z, x), vec3!(z, x, y)),
-            vec3!(z, y, x)
+        Affine::<2, T, A>::from_mat_translation(
+            Matrix::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(y, z)
+            ),
+            Vector::<2, T, A>::new(z, x)
         )
         .to_col_array(),
         [
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
         ]
     );
     assert_eq!(
-        Affine::<4, T, A>::from_mat_translation(
-            mat4!(
-                vec4!(x, y, z, x),
-                vec4!(y, z, x, y),
-                vec4!(z, x, y, z),
-                vec4!(z, y, x, z)
+        Affine::<3, T, A>::from_mat_translation(
+            Matrix::<3, T, A>::from_cols(
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(y, z, x),
+                Vector::<3, T, A>::new(z, x, y)
             ),
-            vec4!(z, z, y, x)
+            Vector::<3, T, A>::new(z, y, x)
         )
         .to_col_array(),
         [
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
+        ]
+    );
+    assert_eq!(
+        Affine::<4, T, A>::from_mat_translation(
+            Matrix::<4, T, A>::from_cols(
+                Vector::<4, T, A>::new(x, y, z, x),
+                Vector::<4, T, A>::new(y, z, x, y),
+                Vector::<4, T, A>::new(z, x, y, z),
+                Vector::<4, T, A>::new(z, y, x, z)
+            ),
+            Vector::<4, T, A>::new(z, z, y, x)
+        )
+        .to_col_array(),
+        [
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         ]
     );
 
     assert_eq!(
-        Affine::<2, T, A>::from_mat_translation(mat2!(vec2!(x, y), vec2!(y, z)), vec2!(z, x))
-            .matrix,
-        mat2!(vec2!(x, y), vec2!(y, z))
+        Affine::<2, T, A>::from_mat_translation(
+            Matrix::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(y, z)
+            ),
+            Vector::<2, T, A>::new(z, x)
+        )
+        .matrix,
+        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(y, z))
     );
     assert_eq!(
         Affine::<3, T, A>::from_mat_translation(
-            mat3!(vec3!(x, y, z), vec3!(y, z, x), vec3!(z, x, y)),
-            vec3!(z, y, x)
+            Matrix::<3, T, A>::from_cols(
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(y, z, x),
+                Vector::<3, T, A>::new(z, x, y)
+            ),
+            Vector::<3, T, A>::new(z, y, x)
         )
         .matrix,
-        mat3!(vec3!(x, y, z), vec3!(y, z, x), vec3!(z, x, y))
+        Matrix::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y)
+        )
     );
     assert_eq!(
         Affine::<4, T, A>::from_mat_translation(
-            mat4!(
-                vec4!(x, y, z, x),
-                vec4!(y, z, x, y),
-                vec4!(z, x, y, z),
-                vec4!(z, y, x, z)
+            Matrix::<4, T, A>::from_cols(
+                Vector::<4, T, A>::new(x, y, z, x),
+                Vector::<4, T, A>::new(y, z, x, y),
+                Vector::<4, T, A>::new(z, x, y, z),
+                Vector::<4, T, A>::new(z, y, x, z)
             ),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(z, z, y, x)
         )
         .matrix,
-        mat4!(
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z)
+        Matrix::<4, T, A>::from_cols(
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z)
         )
     );
 
     assert_eq!(
-        Affine::<2, T, A>::from_mat_translation(mat2!(vec2!(x, y), vec2!(y, z)), vec2!(z, x))
-            .translation,
-        vec2!(z, x)
+        Affine::<2, T, A>::from_mat_translation(
+            Matrix::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(y, z)
+            ),
+            Vector::<2, T, A>::new(z, x)
+        )
+        .translation,
+        Vector::<2, T, A>::new(z, x)
     );
     assert_eq!(
         Affine::<3, T, A>::from_mat_translation(
-            mat3!(vec3!(x, y, z), vec3!(y, z, x), vec3!(z, x, y)),
-            vec3!(z, y, x)
+            Matrix::<3, T, A>::from_cols(
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(y, z, x),
+                Vector::<3, T, A>::new(z, x, y)
+            ),
+            Vector::<3, T, A>::new(z, y, x)
         )
         .translation,
-        vec3!(z, y, x)
+        Vector::<3, T, A>::new(z, y, x)
     );
     assert_eq!(
         Affine::<4, T, A>::from_mat_translation(
-            mat4!(
-                vec4!(x, y, z, x),
-                vec4!(y, z, x, y),
-                vec4!(z, x, y, z),
-                vec4!(z, y, x, z)
+            Matrix::<4, T, A>::from_cols(
+                Vector::<4, T, A>::new(x, y, z, x),
+                Vector::<4, T, A>::new(y, z, x, y),
+                Vector::<4, T, A>::new(z, x, y, z),
+                Vector::<4, T, A>::new(z, y, x, z)
             ),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(z, z, y, x)
         )
         .translation,
-        vec4!(z, z, y, x)
+        Vector::<4, T, A>::new(z, z, y, x)
     );
 
-    let mut a =
-        Affine::<2, T, A>::from_mat_translation(mat2!(vec2!(x, y), vec2!(y, z)), vec2!(z, x));
-    a.matrix = mat2!(vec2!(x, x), vec2!(x, z));
+    let mut a = Affine::<2, T, A>::from_mat_translation(
+        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(y, z)),
+        Vector::<2, T, A>::new(z, x),
+    );
+    a.matrix =
+        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, x), Vector::<2, T, A>::new(x, z));
     assert_eq!(
         a,
-        Affine::<2, T, A>::from_mat_translation(mat2!(vec2!(x, x), vec2!(x, z)), vec2!(z, x))
+        Affine::<2, T, A>::from_mat_translation(
+            Matrix::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, x),
+                Vector::<2, T, A>::new(x, z)
+            ),
+            Vector::<2, T, A>::new(z, x)
+        )
     );
 
     let mut a = Affine::<3, T, A>::from_mat_translation(
-        mat3!(vec3!(x, y, z), vec3!(y, z, x), vec3!(z, x, y)),
-        vec3!(z, y, x),
+        Matrix::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+        ),
+        Vector::<3, T, A>::new(z, y, x),
     );
-    a.matrix = mat3!(vec3!(x, y, x), vec3!(y, y, x), vec3!(y, x, y));
+    a.matrix = Matrix::<3, T, A>::from_cols(
+        Vector::<3, T, A>::new(x, y, x),
+        Vector::<3, T, A>::new(y, y, x),
+        Vector::<3, T, A>::new(y, x, y),
+    );
     assert_eq!(
         a,
         Affine::<3, T, A>::from_mat_translation(
-            mat3!(vec3!(x, y, x), vec3!(y, y, x), vec3!(y, x, y)),
-            vec3!(z, y, x),
+            Matrix::<3, T, A>::from_cols(
+                Vector::<3, T, A>::new(x, y, x),
+                Vector::<3, T, A>::new(y, y, x),
+                Vector::<3, T, A>::new(y, x, y)
+            ),
+            Vector::<3, T, A>::new(z, y, x),
         )
     );
 
     let mut a = Affine::<4, T, A>::from_mat_translation(
-        mat4!(
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z)
+        Matrix::<4, T, A>::from_cols(
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
         ),
-        vec4!(z, z, y, x),
+        Vector::<4, T, A>::new(z, z, y, x),
     );
-    a.matrix = mat4!(
-        vec4!(x, y, x, x),
-        vec4!(y, x, x, y),
-        vec4!(z, x, y, y),
-        vec4!(z, x, x, z)
+    a.matrix = Matrix::<4, T, A>::from_cols(
+        Vector::<4, T, A>::new(x, y, x, x),
+        Vector::<4, T, A>::new(y, x, x, y),
+        Vector::<4, T, A>::new(z, x, y, y),
+        Vector::<4, T, A>::new(z, x, x, z),
     );
     assert_eq!(
         a,
         Affine::<4, T, A>::from_mat_translation(
-            mat4!(
-                vec4!(x, y, x, x),
-                vec4!(y, x, x, y),
-                vec4!(z, x, y, y),
-                vec4!(z, x, x, z)
+            Matrix::<4, T, A>::from_cols(
+                Vector::<4, T, A>::new(x, y, x, x),
+                Vector::<4, T, A>::new(y, x, x, y),
+                Vector::<4, T, A>::new(z, x, y, y),
+                Vector::<4, T, A>::new(z, x, x, z)
             ),
-            vec4!(z, z, y, x),
+            Vector::<4, T, A>::new(z, z, y, x),
         )
     );
 
-    let mut a =
-        Affine::<2, T, A>::from_mat_translation(mat2!(vec2!(x, y), vec2!(y, z)), vec2!(z, x));
-    a.translation = vec2!(y, y);
+    let mut a = Affine::<2, T, A>::from_mat_translation(
+        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(y, z)),
+        Vector::<2, T, A>::new(z, x),
+    );
+    a.translation = Vector::<2, T, A>::new(y, y);
     assert_eq!(
         a,
-        Affine::<2, T, A>::from_mat_translation(mat2!(vec2!(x, y), vec2!(y, z)), vec2!(y, y))
+        Affine::<2, T, A>::from_mat_translation(
+            Matrix::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(y, z)
+            ),
+            Vector::<2, T, A>::new(y, y)
+        )
     );
 
     let mut a = Affine::<3, T, A>::from_mat_translation(
-        mat3!(vec3!(x, y, z), vec3!(y, z, x), vec3!(z, x, y)),
-        vec3!(z, y, x),
+        Matrix::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+        ),
+        Vector::<3, T, A>::new(z, y, x),
     );
-    a.translation = vec3!(y, x, y);
+    a.translation = Vector::<3, T, A>::new(y, x, y);
     assert_eq!(
         a,
         Affine::<3, T, A>::from_mat_translation(
-            mat3!(vec3!(x, y, z), vec3!(y, z, x), vec3!(z, x, y)),
-            vec3!(y, x, y)
+            Matrix::<3, T, A>::from_cols(
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(y, z, x),
+                Vector::<3, T, A>::new(z, x, y)
+            ),
+            Vector::<3, T, A>::new(y, x, y)
         )
     );
 
     let mut a = Affine::<4, T, A>::from_mat_translation(
-        mat4!(
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z)
+        Matrix::<4, T, A>::from_cols(
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
         ),
-        vec4!(z, z, y, x),
+        Vector::<4, T, A>::new(z, z, y, x),
     );
-    a.translation = vec4!(y, y, z, y);
+    a.translation = Vector::<4, T, A>::new(y, y, z, y);
     assert_eq!(
         a,
         Affine::<4, T, A>::from_mat_translation(
-            mat4!(
-                vec4!(x, y, z, x),
-                vec4!(y, z, x, y),
-                vec4!(z, x, y, z),
-                vec4!(z, y, x, z)
+            Matrix::<4, T, A>::from_cols(
+                Vector::<4, T, A>::new(x, y, z, x),
+                Vector::<4, T, A>::new(y, z, x, y),
+                Vector::<4, T, A>::new(z, x, y, z),
+                Vector::<4, T, A>::new(z, y, x, z)
             ),
-            vec4!(y, y, z, y)
+            Vector::<4, T, A>::new(y, y, z, y)
         )
     );
 
     assert_eq!(
-        Affine::<2, T, A>::from_cols(vec2!(x, y), vec2!(y, z), vec2!(z, x)).as_col_array_ref(),
-        &[vec2!(x, y), vec2!(y, z), vec2!(z, x)]
-    );
-    assert_eq!(
-        Affine::<3, T, A>::from_cols(
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+        Affine::<2, T, A>::from_cols(
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
         )
         .as_col_array_ref(),
         &[
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
+        ]
+    );
+    assert_eq!(
+        Affine::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
+        )
+        .as_col_array_ref(),
+        &[
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
         ]
     );
     assert_eq!(
         Affine::<4, T, A>::from_cols(
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         )
         .as_col_array_ref(),
         &[
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         ]
     );
 
     assert_eq!(
-        Affine::<2, T, A>::from_cols(vec2!(x, y), vec2!(y, z), vec2!(z, x)).as_col_array_mut(),
-        &mut [vec2!(x, y), vec2!(y, z), vec2!(z, x)]
-    );
-    assert_eq!(
-        Affine::<3, T, A>::from_cols(
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+        Affine::<2, T, A>::from_cols(
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
         )
         .as_col_array_mut(),
         &mut [
-            vec3!(x, y, z),
-            vec3!(y, z, x),
-            vec3!(z, x, y),
-            vec3!(z, y, x)
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+            Vector::<2, T, A>::new(z, x)
+        ]
+    );
+    assert_eq!(
+        Affine::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
+        )
+        .as_col_array_mut(),
+        &mut [
+            Vector::<3, T, A>::new(x, y, z),
+            Vector::<3, T, A>::new(y, z, x),
+            Vector::<3, T, A>::new(z, x, y),
+            Vector::<3, T, A>::new(z, y, x)
         ]
     );
     assert_eq!(
         Affine::<4, T, A>::from_cols(
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         )
         .as_col_array_mut(),
         &mut [
-            vec4!(x, y, z, x),
-            vec4!(y, z, x, y),
-            vec4!(z, x, y, z),
-            vec4!(z, y, x, z),
-            vec4!(z, z, y, x)
+            Vector::<4, T, A>::new(x, y, z, x),
+            Vector::<4, T, A>::new(y, z, x, y),
+            Vector::<4, T, A>::new(z, x, y, z),
+            Vector::<4, T, A>::new(z, y, x, z),
+            Vector::<4, T, A>::new(z, z, y, x)
         ]
     );
 
     assert_eq!(
         format!(
             "{:?}",
-            Affine::<2, T, A>::from_cols(vec2!(x, y), vec2!(y, z), vec2!(z, x))
+            Affine::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(y, z),
+                Vector::<2, T, A>::new(z, x)
+            )
         ),
         format!("[({x:?}, {y:?}), ({y:?}, {z:?}), ({z:?}, {x:?})]")
     );
@@ -386,10 +501,10 @@ where
         format!(
             "{:?}",
             Affine::<3, T, A>::from_cols(
-                vec3!(x, y, z),
-                vec3!(y, z, x),
-                vec3!(z, x, y),
-                vec3!(z, y, x)
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(y, z, x),
+                Vector::<3, T, A>::new(z, x, y),
+                Vector::<3, T, A>::new(z, y, x)
             )
         ),
         format!(
@@ -400,11 +515,11 @@ where
         format!(
             "{:?}",
             Affine::<4, T, A>::from_cols(
-                vec4!(x, y, z, x),
-                vec4!(y, z, x, y),
-                vec4!(z, x, y, z),
-                vec4!(z, y, x, z),
-                vec4!(z, z, y, x)
+                Vector::<4, T, A>::new(x, y, z, x),
+                Vector::<4, T, A>::new(y, z, x, y),
+                Vector::<4, T, A>::new(z, x, y, z),
+                Vector::<4, T, A>::new(z, y, x, z),
+                Vector::<4, T, A>::new(z, z, y, x)
             )
         ),
         format!(
@@ -415,7 +530,11 @@ where
     assert_eq!(
         format!(
             "{}",
-            Affine::<2, T, A>::from_cols(vec2!(x, y), vec2!(y, z), vec2!(z, x))
+            Affine::<2, T, A>::from_cols(
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(y, z),
+                Vector::<2, T, A>::new(z, x)
+            )
         ),
         format!("[({x}, {y}), ({y}, {z}), ({z}, {x})]")
     );
@@ -423,10 +542,10 @@ where
         format!(
             "{}",
             Affine::<3, T, A>::from_cols(
-                vec3!(x, y, z),
-                vec3!(y, z, x),
-                vec3!(z, x, y),
-                vec3!(z, y, x)
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(y, z, x),
+                Vector::<3, T, A>::new(z, x, y),
+                Vector::<3, T, A>::new(z, y, x)
             )
         ),
         format!("[({x}, {y}, {z}), ({y}, {z}, {x}), ({z}, {x}, {y}), ({z}, {y}, {x})]")
@@ -435,11 +554,11 @@ where
         format!(
             "{}",
             Affine::<4, T, A>::from_cols(
-                vec4!(x, y, z, x),
-                vec4!(y, z, x, y),
-                vec4!(z, x, y, z),
-                vec4!(z, y, x, z),
-                vec4!(z, z, y, x)
+                Vector::<4, T, A>::new(x, y, z, x),
+                Vector::<4, T, A>::new(y, z, x, y),
+                Vector::<4, T, A>::new(z, x, y, z),
+                Vector::<4, T, A>::new(z, y, x, z),
+                Vector::<4, T, A>::new(z, z, y, x)
             )
         ),
         format!(

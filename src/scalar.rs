@@ -146,11 +146,11 @@ When `macro_derive` is stabilized, a derive macro for `Scalar` should be added.
 /// #     }
 /// # }
 /// #
-/// use ggmath::{Vec2, vec2};
+/// use ggmath::Vec2;
 ///
-/// let result: Vec2<Foo> = vec2!(Foo(1.0), Foo(2.0)) + vec2!(Foo(3.0), Foo(4.0));
+/// let result: Vec2<Foo> = Vec2::new(Foo(1.0), Foo(2.0)) + Vec2::new(Foo(3.0), Foo(4.0));
 ///
-/// assert_eq!(result, vec2!(Foo(1.0 + 3.0), Foo(2.0 + 4.0)));
+/// assert_eq!(result, Vec2::new(Foo(1.0 + 3.0), Foo(2.0 + 4.0)));
 /// ```
 ///
 /// But currently the implementation for `Foo` vectors doesn't use SIMD. To fix

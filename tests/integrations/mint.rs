@@ -2,7 +2,6 @@ use assert_impl_trait::assert_impl;
 use ggmath::{
     Alignment, Mask, Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Mat2, Mat2U, Mat3, Mat3U, Mat4,
     Mat4U, Matrix, Quat, QuatU, Quaternion, Scalar, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
-    mat2, mat3, mat4, vec2, vec3, vec4,
 };
 use mint::IntoMint;
 
@@ -62,58 +61,63 @@ assert_impl!(
 
 #[test]
 fn vector() {
-    let val: Vec2<i32> = vec2!(1, 2);
+    let val: Vec2<i32> = Vec2::new(1, 2);
     assert_eq!(val, mint::Point2::from(val).into());
     assert_eq!(val, mint::Vector2::from(val).into());
 
-    let val: Vec3<i32> = vec3!(1, 2, 3);
+    let val: Vec3<i32> = Vec3::new(1, 2, 3);
     assert_eq!(val, mint::Point3::from(val).into());
     assert_eq!(val, mint::Vector3::from(val).into());
 
-    let val: Vec4<i32> = vec4!(1, 2, 3, 4);
+    let val: Vec4<i32> = Vec4::new(1, 2, 3, 4);
     assert_eq!(val, mint::Vector4::from(val).into());
 
-    let val: Vec2U<i32> = vec2!(1, 2);
+    let val: Vec2U<i32> = Vec2U::new(1, 2);
     assert_eq!(val, mint::Point2::from(val).into());
     assert_eq!(val, mint::Vector2::from(val).into());
 
-    let val: Vec3U<i32> = vec3!(1, 2, 3);
+    let val: Vec3U<i32> = Vec3U::new(1, 2, 3);
     assert_eq!(val, mint::Point3::from(val).into());
     assert_eq!(val, mint::Vector3::from(val).into());
 
-    let val: Vec4U<i32> = vec4!(1, 2, 3, 4);
+    let val: Vec4U<i32> = Vec4U::new(1, 2, 3, 4);
     assert_eq!(val, mint::Vector4::from(val).into());
 
-    let val: Mat2<i32> = mat2!(vec2!(1, 2), vec2!(3, 4));
+    let val: Mat2<i32> = Mat2::from_cols(Vec2::new(1, 2), Vec2::new(3, 4));
     assert_eq!(val, mint::ColumnMatrix2::from(val).into());
     assert_eq!(val, mint::RowMatrix2::from(val).into());
 
-    let val: Mat3<i32> = mat3!(vec3!(1, 2, 3), vec3!(4, 5, 6), vec3!(7, 8, 9));
+    let val: Mat3<i32> =
+        Mat3::from_cols(Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9));
     assert_eq!(val, mint::ColumnMatrix3::from(val).into());
     assert_eq!(val, mint::RowMatrix3::from(val).into());
 
-    let val: Mat4<i32> = mat4!(
-        vec4!(1, 2, 3, 4),
-        vec4!(5, 6, 7, 8),
-        vec4!(9, 10, 11, 12),
-        vec4!(13, 14, 15, 16),
+    let val: Mat4<i32> = Mat4::from_cols(
+        Vec4::new(1, 2, 3, 4),
+        Vec4::new(5, 6, 7, 8),
+        Vec4::new(9, 10, 11, 12),
+        Vec4::new(13, 14, 15, 16),
     );
     assert_eq!(val, mint::ColumnMatrix4::from(val).into());
     assert_eq!(val, mint::RowMatrix4::from(val).into());
 
-    let val: Mat2U<i32> = mat2!(vec2!(1, 2), vec2!(3, 4));
+    let val: Mat2U<i32> = Mat2U::from_cols(Vec2U::new(1, 2), Vec2U::new(3, 4));
     assert_eq!(val, mint::ColumnMatrix2::from(val).into());
     assert_eq!(val, mint::RowMatrix2::from(val).into());
 
-    let val: Mat3U<i32> = mat3!(vec3!(1, 2, 3), vec3!(4, 5, 6), vec3!(7, 8, 9));
+    let val: Mat3U<i32> = Mat3U::from_cols(
+        Vec3U::new(1, 2, 3),
+        Vec3U::new(4, 5, 6),
+        Vec3U::new(7, 8, 9),
+    );
     assert_eq!(val, mint::ColumnMatrix3::from(val).into());
     assert_eq!(val, mint::RowMatrix3::from(val).into());
 
-    let val: Mat4U<i32> = mat4!(
-        vec4!(1, 2, 3, 4),
-        vec4!(5, 6, 7, 8),
-        vec4!(9, 10, 11, 12),
-        vec4!(13, 14, 15, 16),
+    let val: Mat4U<i32> = Mat4U::from_cols(
+        Vec4U::new(1, 2, 3, 4),
+        Vec4U::new(5, 6, 7, 8),
+        Vec4U::new(9, 10, 11, 12),
+        Vec4U::new(13, 14, 15, 16),
     );
     assert_eq!(val, mint::ColumnMatrix4::from(val).into());
     assert_eq!(val, mint::RowMatrix4::from(val).into());

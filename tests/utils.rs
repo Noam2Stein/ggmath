@@ -347,27 +347,3 @@ pub fn assert_panic_helper(f: impl FnOnce() + UnwindSafe, args: Option<Arguments
         println!("{}: panic is expected", "ok".green().bold());
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Padding
-////////////////////////////////////////////////////////////////////////////////
-
-pub fn vec3_with_padding<T, A: Alignment>(vec: Vector<3, T, A>, padding: T) -> Vector<3, T, A>
-where
-    T: Scalar,
-{
-    match size_of::<Vector<3, T, A>>() / size_of::<T>() {
-        3 => vec,
-        4 => {
-            let mut result = vec;
-            // SAFETY: There is guaranteed to be a fourth padding element
-            // because of the vector's size.
-            unsafe {
-                *result.as_array_mut().as_mut_ptr().add(3) = padding;
-            }
-
-            result
-        }
-        _ => unreachable!(),
-    }
-}

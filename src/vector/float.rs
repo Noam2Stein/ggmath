@@ -399,11 +399,11 @@ macro_rules! impl_float {
             /// # Example
             ///
             /// ```
-            /// use ggmath::{Vec2, vec2};
+            /// use ggmath::Vec2;
             ///
-            /// let vec: Vec2<f32> = vec2!(1.0, 2.0);
+            /// let vec: Vec2<f32> = Vec2::new(1.0, 2.0);
             ///
-            /// assert_eq!(vec.reflect(Vec2::X), vec2!(-1.0, 2.0));
+            /// assert_eq!(vec.reflect(Vec2::X), Vec2::new(-1.0, 2.0));
             /// ```
             #[inline]
             #[must_use]

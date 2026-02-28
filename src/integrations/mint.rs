@@ -1,8 +1,6 @@
 use mint::IntoMint;
 
-use crate::{
-    Alignment, Mask, Matrix, Quaternion, Scalar, Vector, mat2, mat3, mat4, vec2, vec3, vec4,
-};
+use crate::{Alignment, Mask, Matrix, Quaternion, Scalar, Vector};
 
 impl<T, A: Alignment> IntoMint for Vector<2, T, A>
 where
@@ -17,7 +15,7 @@ where
 {
     #[inline]
     fn from(value: mint::Point2<T>) -> Self {
-        vec2!(value.x, value.y)
+        Vector::<2, T, A>::new(value.x, value.y)
     }
 }
 
@@ -40,7 +38,7 @@ where
 {
     #[inline]
     fn from(value: mint::Vector2<T>) -> Self {
-        vec2!(value.x, value.y)
+        Vector::<2, T, A>::new(value.x, value.y)
     }
 }
 
@@ -70,7 +68,7 @@ where
 {
     #[inline]
     fn from(value: mint::Point3<T>) -> Self {
-        vec3!(value.x, value.y, value.z)
+        Vector::<3, T, A>::new(value.x, value.y, value.z)
     }
 }
 
@@ -94,7 +92,7 @@ where
 {
     #[inline]
     fn from(value: mint::Vector3<T>) -> Self {
-        vec3!(value.x, value.y, value.z)
+        Vector::<3, T, A>::new(value.x, value.y, value.z)
     }
 }
 
@@ -125,7 +123,7 @@ where
 {
     #[inline]
     fn from(value: mint::Vector4<T>) -> Self {
-        vec4!(value.x, value.y, value.z, value.w)
+        Vector::<4, T, A>::new(value.x, value.y, value.z, value.w)
     }
 }
 
@@ -157,7 +155,7 @@ where
 {
     #[inline]
     fn from(value: mint::ColumnMatrix2<T>) -> Self {
-        mat2!(value.x.into(), value.y.into())
+        Matrix::<2, T, A>::from_cols(value.x.into(), value.y.into())
     }
 }
 
@@ -180,7 +178,10 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix2<T>) -> Self {
-        mat2!(vec2!(value.x.x, value.y.x), vec2!(value.x.y, value.y.y))
+        Matrix::<2, T, A>::from_cols(
+            Vector::<2, T, A>::new(value.x.x, value.y.x),
+            Vector::<2, T, A>::new(value.x.y, value.y.y),
+        )
     }
 }
 
@@ -216,7 +217,7 @@ where
 {
     #[inline]
     fn from(value: mint::ColumnMatrix3<T>) -> Self {
-        mat3!(value.x.into(), value.y.into(), value.z.into())
+        Matrix::<3, T, A>::from_cols(value.x.into(), value.y.into(), value.z.into())
     }
 }
 
@@ -240,10 +241,10 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix3<T>) -> Self {
-        mat3!(
-            vec3!(value.x.x, value.y.x, value.z.x),
-            vec3!(value.x.y, value.y.y, value.z.y),
-            vec3!(value.x.z, value.y.z, value.z.z)
+        Matrix::<3, T, A>::from_cols(
+            Vector::<3, T, A>::new(value.x.x, value.y.x, value.z.x),
+            Vector::<3, T, A>::new(value.x.y, value.y.y, value.z.y),
+            Vector::<3, T, A>::new(value.x.z, value.y.z, value.z.z),
         )
     }
 }
@@ -287,11 +288,11 @@ where
 {
     #[inline]
     fn from(value: mint::ColumnMatrix4<T>) -> Self {
-        mat4!(
+        Matrix::<4, T, A>::from_cols(
             value.x.into(),
             value.y.into(),
             value.z.into(),
-            value.w.into()
+            value.w.into(),
         )
     }
 }
@@ -317,11 +318,11 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix4<T>) -> Self {
-        mat4!(
-            vec4!(value.x.x, value.y.x, value.z.x, value.w.x),
-            vec4!(value.x.y, value.y.y, value.z.y, value.w.y),
-            vec4!(value.x.z, value.y.z, value.z.z, value.w.z),
-            vec4!(value.x.w, value.y.w, value.z.w, value.w.w)
+        Matrix::<4, T, A>::from_cols(
+            Vector::<4, T, A>::new(value.x.x, value.y.x, value.z.x, value.w.x),
+            Vector::<4, T, A>::new(value.x.y, value.y.y, value.z.y, value.w.y),
+            Vector::<4, T, A>::new(value.x.z, value.y.z, value.z.z, value.w.z),
+            Vector::<4, T, A>::new(value.x.w, value.y.w, value.z.w, value.w.w),
         )
     }
 }

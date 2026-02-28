@@ -9,7 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Vector function `new`.
+
+- Matrix function `from_cols`.
+
 - Quaternion & Affine function `to_repr`.
+
+### Deprecated
+
+- Macros `vec2`, `vec3`, `vec4`, `mat2`, `mat3`, `mat4`. Use `Vector::new` and
+  `Matrix::from_cols` instead.
 
 ## 0.16.2 (16.2.2026)
 

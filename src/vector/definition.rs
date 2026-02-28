@@ -32,10 +32,6 @@ use crate::{
 /// - `T`: Scalar type (see [`Scalar`])
 /// - `A`: Alignment (see [`Alignment`])
 ///
-/// To initialize vectors, use the macros [`vec2`](crate::vec2),
-/// [`vec3`](crate::vec3), [`vec4`](crate::vec4). To initialize a vector of an
-/// unknown length, use [`Vector::from_array`].
-///
 /// # Guarantees
 ///
 /// `Vector<N, T, A>` represents `N` consecutive values of `T` followed by
@@ -82,12 +78,6 @@ where
     T: Scalar,
 {
     /// Creates a vector from an array.
-    ///
-    /// The preferable way to create vectors is using the macros
-    /// [`vec2`](crate::vec2), [`vec3`](crate::vec3), [`vec4`](crate::vec4).
-    ///
-    /// `Vector::from_array` should only be used when the length of the vector
-    /// is unknown or when directly converting from an array.
     #[inline]
     #[must_use]
     pub const fn from_array(array: [T; N]) -> Self {
@@ -291,13 +281,13 @@ where
     /// # Example
     ///
     /// ```
-    /// use ggmath::{Vec3, vec3};
+    /// use ggmath::Vec3;
     ///
-    /// let vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
+    /// let vec: Vec3<f32> = Vec3::new(1.0, 2.0, 3.0);
     ///
-    /// assert_eq!(vec.map(|x| x * 2.0), vec3!(2.0, 4.0, 6.0));
+    /// assert_eq!(vec.map(|x| x * 2.0), Vec3::new(2.0, 4.0, 6.0));
     ///
-    /// assert_eq!(vec.map(|x| x.is_sign_negative()), vec3!(false, false, false));
+    /// assert_eq!(vec.map(|x| x.is_sign_negative()), Vec3::new(false, false, false));
     /// ```
     #[inline]
     #[must_use]
@@ -316,9 +306,9 @@ where
     /// ```
     /// use ggmath::{Vec3, vec3};
     ///
-    /// let vec: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
+    /// let vec: Vec3<f32> = Vec3::new(1.0, 2.0, 3.0);
     ///
-    /// assert_eq!(vec.reverse(), vec3!(3.0, 2.0, 1.0));
+    /// assert_eq!(vec.reverse(), Vec3::new(3.0, 2.0, 1.0));
     /// ```
     #[inline]
     #[must_use]
@@ -441,8 +431,10 @@ impl<T, A: Alignment> Vector<2, T, A>
 where
     T: Scalar,
 {
+    /// Creates a 2-dimensional vector.
     #[inline]
-    pub(crate) const fn new(x: T, y: T) -> Self {
+    #[must_use]
+    pub const fn new(x: T, y: T) -> Self {
         // SAFETY: `Vector<2, T, A>` is guaranteed to be made out of 2
         // consecutive values of `T`, with no additional padding.
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
@@ -453,8 +445,10 @@ impl<T, A: Alignment> Vector<3, T, A>
 where
     T: Scalar,
 {
+    /// Creates a 3-dimensional vector.
     #[inline]
-    pub(crate) const fn new(x: T, y: T, z: T) -> Self {
+    #[must_use]
+    pub const fn new(x: T, y: T, z: T) -> Self {
         match size_of::<Vector<3, T, A>>() / size_of::<T>() {
             // SAFETY: Because the vector has 3 values of `T` and no padding,
             // its equivalent to `Repr3<T>`.
@@ -473,8 +467,10 @@ impl<T, A: Alignment> Vector<4, T, A>
 where
     T: Scalar,
 {
+    /// Creates a 4-dimensional vector.
     #[inline]
-    pub(crate) const fn new(x: T, y: T, z: T, w: T) -> Self {
+    #[must_use]
+    pub const fn new(x: T, y: T, z: T, w: T) -> Self {
         // SAFETY: `Vector<4, T, A>` is guaranteed to be made out of 4
         // consecutive values of `T`, with no additional padding.
         unsafe { transmute_generic::<Repr4<T>, Vector<4, T, A>>(Repr4(x, y, z, w)) }
