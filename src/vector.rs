@@ -21,12 +21,12 @@ use crate::{
 mod bool;
 mod constructor;
 mod float;
-mod int;
+mod signed;
 mod swizzle;
-mod uint;
+mod unsigned;
 pub(crate) use float::*;
-pub(crate) use int::*;
-pub(crate) use uint::*;
+pub(crate) use signed::*;
+pub(crate) use unsigned::*;
 
 /// A generic vector type.
 ///
