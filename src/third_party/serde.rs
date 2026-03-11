@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
-    utils::{transmute_generic, transmute_ref},
+    transmute::{transmute_generic, transmute_ref},
 };
 
 impl<const N: usize, T, A: Alignment> Serialize for Vector<N, T, A>

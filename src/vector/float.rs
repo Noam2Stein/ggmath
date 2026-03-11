@@ -1,7 +1,7 @@
 #[cfg(feature = "libm")]
 #[allow(unused_imports)]
 use crate::libm::LibmFloatExt;
-use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector, utils::specialize};
+use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector, specialize::specialize};
 
 /*
 When `negative_impls` stabilizes, primitive API macros should be replaced with

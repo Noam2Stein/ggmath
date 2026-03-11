@@ -31,8 +31,10 @@ pub use scalar::*;
 pub use vector::*;
 
 mod backend_impls;
-mod integrations;
-mod utils;
-
 #[cfg(feature = "libm")]
 mod libm;
+mod repr;
+mod safe_arch;
+mod specialize;
+mod third_party;
+mod transmute;

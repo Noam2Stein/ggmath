@@ -1,6 +1,6 @@
 use crate::{
     Alignment, Length, Scalar, ScalarRepr, SupportedLength,
-    utils::{Repr2, Repr3, Repr4, Repr5},
+    repr::{Repr2, Repr3, Repr4, Repr5},
 };
 
 macro_rules! impl_scalar_repr {

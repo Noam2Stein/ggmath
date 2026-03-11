@@ -5,7 +5,7 @@ use core::arch::x86_64::*;
 
 use crate::{
     Aligned, Alignment, Length, Mask, MaskBackend, Scalar, ScalarRepr, SupportedLength, Vector,
-    utils::{Repr2, Repr3, Repr4, Repr5},
+    repr::{Repr2, Repr3, Repr4, Repr5},
 };
 
 #[repr(C)]

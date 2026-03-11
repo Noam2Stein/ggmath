@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
+use crate::{Alignment, Length, Scalar, SupportedLength, Vector, specialize::specialize};
 
 /*
 When `negative_impls` stabilizes, primitive API macros should be replaced with

@@ -1,75 +1,7 @@
-use core::mem::{ManuallyDrop, transmute, transmute_copy};
-
 use crate::{
     Affine, Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector,
+    transmute::transmute_generic,
 };
-
-////////////////////////////////////////////////////////////////////////////////
-// Transmute
-////////////////////////////////////////////////////////////////////////////////
-
-/// Variant of [`core::mem::transmute`] that ensures memory-layout compatibility
-/// at runtime instead of at compile-time.
-///
-/// This makes it possible to transmute between generic types and dependently
-/// sized types.
-///
-/// # Safety
-///
-/// Exactly like [`core::mem::transmute`].
-#[inline]
-pub const unsafe fn transmute_generic<T, U>(value: T) -> U {
-    assert!(size_of::<T>() == size_of::<U>());
-
-    // SAFETY: The caller must ensure that the bits of the input are valid for
-    // the output type.
-    unsafe { transmute_copy::<ManuallyDrop<T>, U>(&ManuallyDrop::new(value)) }
-}
-
-/// Transmutes a reference to a reference of a different type.
-///
-/// # Safety
-///
-/// Exactly like [`core::mem::transmute`] for references, except that here
-/// immediate size and alignment validity is automatically checked, and the
-/// lifetime of the reference cannot be accidently changed.
-#[inline]
-pub const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
-    assert!(size_of::<T>() >= size_of::<U>());
-    assert!(align_of::<T>() >= align_of::<U>());
-
-    // SAFETY: The output size was just checked to be no more than the input
-    // size, the output alignment was just checked to be no more than the input
-    // alignment, the lifetimes match because of the function signature, and the
-    // caller must ensure that the bits of the input value are valid for the
-    // output type.
-    unsafe { transmute::<&T, &U>(value) }
-}
-
-/// Transmutes a mutable reference to a mutable reference of a different type.
-///
-/// # Safety
-///
-/// Exactly like [`core::mem::transmute`] for mutable references, except that
-/// here size and alignment validity is automatically checked, and the lifetime
-/// cannot be accidently changed.
-#[inline]
-pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
-    assert!(size_of::<T>() >= size_of::<U>());
-    assert!(align_of::<T>() >= align_of::<U>());
-
-    // SAFETY: The output size was just checked to be no more than the input
-    // size, the output alignment was just checked to be no more than the input
-    // alignment, the lifetimes match because of the function signature, the
-    // input is mutably borrowed until the output reference is dropped, and the
-    // caller must ensure that the bits of the input value are valid for the
-    // output type.
-    unsafe { transmute::<&mut T, &mut U>(value) }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Specialize
-////////////////////////////////////////////////////////////////////////////////
 
 /// Bypasses a limitation of const generics to do specialization.
 ///
@@ -109,16 +41,16 @@ pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
-            $crate::utils::specialize_helper::<
+            $crate::specialize::specialize_helper::<
                 $N,
                 $A,
-                $crate::utils::specialize!(@fn($($arg),*)),
-                $crate::utils::specialize!(@fn($($arg),*)),
-                $crate::utils::specialize!(@fn($($arg),*)),
-                $crate::utils::specialize!(@fn($($arg),*)),
-                $crate::utils::specialize!(@fn($($arg),*)),
-                $crate::utils::specialize!(@fn($($arg),*)),
-                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::specialize::specialize!(@fn($($arg),*)),
+                $crate::specialize::specialize!(@fn($($arg),*)),
+                $crate::specialize::specialize!(@fn($($arg),*)),
+                $crate::specialize::specialize!(@fn($($arg),*)),
+                $crate::specialize::specialize!(@fn($($arg),*)),
+                $crate::specialize::specialize!(@fn($($arg),*)),
+                $crate::specialize::specialize!(@fn($($arg),*)),
             >(
                 <$T as $Backend<2, $crate::Aligned>>::$f,
                 <$T as $Backend<3, $crate::Aligned>>::$f,
@@ -490,80 +422,3 @@ impl_specialzie!(
     bool,
     (),
 );
-
-////////////////////////////////////////////////////////////////////////////////
-// Safe Arch
-////////////////////////////////////////////////////////////////////////////////
-
-#[allow(unused_macros)]
-macro_rules! safe_arch {
-    (
-        #![target_feature(enable = $feature:literal)]
-
-        $(
-            $(#[$meta:meta])* fn $f:ident($($param:ident: $Param:ty),* $(,)?) $(-> $Ret:ty)? $body:block
-        )*
-    ) => {
-        $(
-            $(#[$meta])*
-            fn $f($($param: $Param),*) $(-> $Ret)? {
-                #[inline]
-                #[target_feature(enable = $feature)]
-                fn $f($($param: $Param),*) $(-> $Ret)? $body
-
-                #[cfg(not(target_feature = $feature))]
-                compile_error!(concat!("target feature is not enabled"));
-
-                // SAFETY: If `$feature` is disabled, there will be a compile
-                // error.
-                unsafe { $f($($param),*) }
-            }
-        )*
-    };
-}
-
-#[allow(unused_imports)]
-pub(crate) use safe_arch;
-
-////////////////////////////////////////////////////////////////////////////////
-// Representation Types
-////////////////////////////////////////////////////////////////////////////////
-
-/*
-These types are used instead of arrays because for some reason arrays lead to
-worse assembly than structs.
-
-When this is fixed, these structs should be removed.
-*/
-
-/// Contains two values of type `T`.
-///
-/// This type is used instead of `[T; 2]` because for some reason arrays lead
-/// to worse assembly than structs.
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct Repr2<T>(pub T, pub T);
-
-/// Contains three values of type `T`.
-///
-/// This type is used instead of `[T; 3]` because for some reason arrays lead
-/// to worse assembly than structs.
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct Repr3<T>(pub T, pub T, pub T);
-
-/// Contains four values of type `T`.
-///
-/// This type is used instead of `[T; 4]` because for some reason arrays lead
-/// to worse assembly than structs.
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct Repr4<T>(pub T, pub T, pub T, pub T);
-
-/// Contains five values of type `T`.
-///
-/// This type is used instead of `[T; 5]` because for some reason arrays lead
-/// to worse assembly than structs.
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct Repr5<T>(pub T, pub T, pub T, pub T, pub T);

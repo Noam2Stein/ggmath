@@ -5,7 +5,7 @@ use core::arch::x86_64::*;
 
 use crate::{
     Aligned, F32VectorBackend, Mask, Mask3, Mask4, ScalarBackend, Unaligned, Vec3, Vec4, Vector,
-    utils::safe_arch,
+    safe_arch::safe_arch,
 };
 
 impl ScalarBackend<2, Aligned> for f32 {}
