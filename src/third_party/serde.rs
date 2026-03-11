@@ -57,7 +57,7 @@ where
     where
         S: serde::Serializer,
     {
-        self.to_col_array().serialize(serializer)
+        self.as_columns().serialize(serializer)
     }
 }
 
@@ -70,7 +70,7 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        Ok(Self::from_col_array(&match N {
+        Ok(Self::from_columns(&match N {
             // SAFETY: Because `N == 2`, `[Vector<N, T, A>; N]` and
             // `[Vector<N, T, A>; 2]` are the same type.
             2 => unsafe {

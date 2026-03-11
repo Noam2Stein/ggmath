@@ -605,7 +605,7 @@ where
     where
         Self: Scalar + PartialEq,
     {
-        (0..N).all(|i| mat.col(i) == other.col(i))
+        (0..N).all(|i| mat.column(i) == other.column(i))
     }
 
     /// Overridable implementation of the `!=` operator for matrices.
@@ -623,7 +623,7 @@ where
     where
         Self: Scalar + Neg<Output = Self>,
     {
-        Matrix::from_col_fn(|i| -mat.col(i))
+        Matrix::from_column_fn(|i| -mat.column(i))
     }
 
     /// Overridable implementation of the `+` operator for matrices.
@@ -632,7 +632,7 @@ where
     where
         Self: Scalar + Add<Output = Self>,
     {
-        Matrix::from_col_fn(|i| mat.col(i) + rhs.col(i))
+        Matrix::from_column_fn(|i| mat.column(i) + rhs.column(i))
     }
 
     /// Overridable implementation of the `-` operator for matrices.
@@ -641,7 +641,7 @@ where
     where
         Self: Scalar + Sub<Output = Self>,
     {
-        Matrix::from_col_fn(|i| mat.col(i) - rhs.col(i))
+        Matrix::from_column_fn(|i| mat.column(i) - rhs.column(i))
     }
 
     /// Overridable implementation of the `==` operator for affine transforms.

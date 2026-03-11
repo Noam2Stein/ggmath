@@ -575,25 +575,25 @@ where
             2 => write!(
                 f,
                 "[{:?}, {:?}, {:?}]",
-                self.matrix.col(0),
-                self.matrix.col(1),
+                self.matrix.column(0),
+                self.matrix.column(1),
                 self.translation
             ),
             3 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}]",
-                self.matrix.col(0),
-                self.matrix.col(1),
-                self.matrix.col(2),
+                self.matrix.column(0),
+                self.matrix.column(1),
+                self.matrix.column(2),
                 self.translation
             ),
             4 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}, {:?}]",
-                self.matrix.col(0),
-                self.matrix.col(1),
-                self.matrix.col(2),
-                self.matrix.col(3),
+                self.matrix.column(0),
+                self.matrix.column(1),
+                self.matrix.column(2),
+                self.matrix.column(3),
                 self.translation
             ),
             _ => unreachable!(),
@@ -611,25 +611,25 @@ where
             2 => write!(
                 f,
                 "[{}, {}, {}]",
-                self.matrix.col(0),
-                self.matrix.col(1),
+                self.matrix.column(0),
+                self.matrix.column(1),
                 self.translation
             ),
             3 => write!(
                 f,
                 "[{}, {}, {}, {}]",
-                self.matrix.col(0),
-                self.matrix.col(1),
-                self.matrix.col(2),
+                self.matrix.column(0),
+                self.matrix.column(1),
+                self.matrix.column(2),
                 self.translation
             ),
             4 => write!(
                 f,
                 "[{}, {}, {}, {}, {}]",
-                self.matrix.col(0),
-                self.matrix.col(1),
-                self.matrix.col(2),
-                self.matrix.col(3),
+                self.matrix.column(0),
+                self.matrix.column(1),
+                self.matrix.column(2),
+                self.matrix.column(3),
                 self.translation
             ),
             _ => unreachable!(),

@@ -131,10 +131,10 @@ where
 
     assert_eq!(
         Affine::<2, T, A>::from_mat_translation(
-            Matrix::<2, T, A>::from_cols(
+            Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(y, z)
-            ),
+            ]),
             Vector::<2, T, A>::new(z, x)
         )
         .to_col_array(),
@@ -146,11 +146,11 @@ where
     );
     assert_eq!(
         Affine::<3, T, A>::from_mat_translation(
-            Matrix::<3, T, A>::from_cols(
+            Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(y, z, x),
                 Vector::<3, T, A>::new(z, x, y)
-            ),
+            ]),
             Vector::<3, T, A>::new(z, y, x)
         )
         .to_col_array(),
@@ -163,12 +163,12 @@ where
     );
     assert_eq!(
         Affine::<4, T, A>::from_mat_translation(
-            Matrix::<4, T, A>::from_cols(
+            Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, x),
                 Vector::<4, T, A>::new(y, z, x, y),
                 Vector::<4, T, A>::new(z, x, y, z),
                 Vector::<4, T, A>::new(z, y, x, z)
-            ),
+            ]),
             Vector::<4, T, A>::new(z, z, y, x)
         )
         .to_col_array(),
@@ -183,56 +183,59 @@ where
 
     assert_eq!(
         Affine::<2, T, A>::from_mat_translation(
-            Matrix::<2, T, A>::from_cols(
+            Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(y, z)
-            ),
+            ]),
             Vector::<2, T, A>::new(z, x)
         )
         .matrix,
-        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(y, z))
+        Matrix::<2, T, A>::from_columns(&[
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z)
+        ])
     );
     assert_eq!(
         Affine::<3, T, A>::from_mat_translation(
-            Matrix::<3, T, A>::from_cols(
+            Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(y, z, x),
                 Vector::<3, T, A>::new(z, x, y)
-            ),
+            ]),
             Vector::<3, T, A>::new(z, y, x)
         )
         .matrix,
-        Matrix::<3, T, A>::from_cols(
+        Matrix::<3, T, A>::from_columns(&[
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
             Vector::<3, T, A>::new(z, x, y)
-        )
+        ])
     );
     assert_eq!(
         Affine::<4, T, A>::from_mat_translation(
-            Matrix::<4, T, A>::from_cols(
+            Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, x),
                 Vector::<4, T, A>::new(y, z, x, y),
                 Vector::<4, T, A>::new(z, x, y, z),
                 Vector::<4, T, A>::new(z, y, x, z)
-            ),
+            ]),
             Vector::<4, T, A>::new(z, z, y, x)
         )
         .matrix,
-        Matrix::<4, T, A>::from_cols(
+        Matrix::<4, T, A>::from_columns(&[
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
             Vector::<4, T, A>::new(z, x, y, z),
             Vector::<4, T, A>::new(z, y, x, z)
-        )
+        ])
     );
 
     assert_eq!(
         Affine::<2, T, A>::from_mat_translation(
-            Matrix::<2, T, A>::from_cols(
+            Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(y, z)
-            ),
+            ]),
             Vector::<2, T, A>::new(z, x)
         )
         .translation,
@@ -240,11 +243,11 @@ where
     );
     assert_eq!(
         Affine::<3, T, A>::from_mat_translation(
-            Matrix::<3, T, A>::from_cols(
+            Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(y, z, x),
                 Vector::<3, T, A>::new(z, x, y)
-            ),
+            ]),
             Vector::<3, T, A>::new(z, y, x)
         )
         .translation,
@@ -252,12 +255,12 @@ where
     );
     assert_eq!(
         Affine::<4, T, A>::from_mat_translation(
-            Matrix::<4, T, A>::from_cols(
+            Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, x),
                 Vector::<4, T, A>::new(y, z, x, y),
                 Vector::<4, T, A>::new(z, x, y, z),
                 Vector::<4, T, A>::new(z, y, x, z)
-            ),
+            ]),
             Vector::<4, T, A>::new(z, z, y, x)
         )
         .translation,
@@ -265,131 +268,139 @@ where
     );
 
     let mut a = Affine::<2, T, A>::from_mat_translation(
-        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(y, z)),
+        Matrix::<2, T, A>::from_columns(&[
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+        ]),
         Vector::<2, T, A>::new(z, x),
     );
-    a.matrix =
-        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, x), Vector::<2, T, A>::new(x, z));
+    a.matrix = Matrix::<2, T, A>::from_columns(&[
+        Vector::<2, T, A>::new(x, x),
+        Vector::<2, T, A>::new(x, z),
+    ]);
     assert_eq!(
         a,
         Affine::<2, T, A>::from_mat_translation(
-            Matrix::<2, T, A>::from_cols(
+            Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, x),
                 Vector::<2, T, A>::new(x, z)
-            ),
+            ]),
             Vector::<2, T, A>::new(z, x)
         )
     );
 
     let mut a = Affine::<3, T, A>::from_mat_translation(
-        Matrix::<3, T, A>::from_cols(
+        Matrix::<3, T, A>::from_columns(&[
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
             Vector::<3, T, A>::new(z, x, y),
-        ),
+        ]),
         Vector::<3, T, A>::new(z, y, x),
     );
-    a.matrix = Matrix::<3, T, A>::from_cols(
+    a.matrix = Matrix::<3, T, A>::from_columns(&[
         Vector::<3, T, A>::new(x, y, x),
         Vector::<3, T, A>::new(y, y, x),
         Vector::<3, T, A>::new(y, x, y),
-    );
+    ]);
     assert_eq!(
         a,
         Affine::<3, T, A>::from_mat_translation(
-            Matrix::<3, T, A>::from_cols(
+            Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, x),
                 Vector::<3, T, A>::new(y, y, x),
                 Vector::<3, T, A>::new(y, x, y)
-            ),
+            ]),
             Vector::<3, T, A>::new(z, y, x),
         )
     );
 
     let mut a = Affine::<4, T, A>::from_mat_translation(
-        Matrix::<4, T, A>::from_cols(
+        Matrix::<4, T, A>::from_columns(&[
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
             Vector::<4, T, A>::new(z, x, y, z),
             Vector::<4, T, A>::new(z, y, x, z),
-        ),
+        ]),
         Vector::<4, T, A>::new(z, z, y, x),
     );
-    a.matrix = Matrix::<4, T, A>::from_cols(
+    a.matrix = Matrix::<4, T, A>::from_columns(&[
         Vector::<4, T, A>::new(x, y, x, x),
         Vector::<4, T, A>::new(y, x, x, y),
         Vector::<4, T, A>::new(z, x, y, y),
         Vector::<4, T, A>::new(z, x, x, z),
-    );
+    ]);
     assert_eq!(
         a,
         Affine::<4, T, A>::from_mat_translation(
-            Matrix::<4, T, A>::from_cols(
+            Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, x, x),
                 Vector::<4, T, A>::new(y, x, x, y),
                 Vector::<4, T, A>::new(z, x, y, y),
                 Vector::<4, T, A>::new(z, x, x, z)
-            ),
+            ]),
             Vector::<4, T, A>::new(z, z, y, x),
         )
     );
 
     let mut a = Affine::<2, T, A>::from_mat_translation(
-        Matrix::<2, T, A>::from_cols(Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(y, z)),
+        Matrix::<2, T, A>::from_columns(&[
+            Vector::<2, T, A>::new(x, y),
+            Vector::<2, T, A>::new(y, z),
+        ]),
         Vector::<2, T, A>::new(z, x),
     );
     a.translation = Vector::<2, T, A>::new(y, y);
     assert_eq!(
         a,
         Affine::<2, T, A>::from_mat_translation(
-            Matrix::<2, T, A>::from_cols(
+            Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(y, z)
-            ),
+            ]),
             Vector::<2, T, A>::new(y, y)
         )
     );
 
     let mut a = Affine::<3, T, A>::from_mat_translation(
-        Matrix::<3, T, A>::from_cols(
+        Matrix::<3, T, A>::from_columns(&[
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
             Vector::<3, T, A>::new(z, x, y),
-        ),
+        ]),
         Vector::<3, T, A>::new(z, y, x),
     );
     a.translation = Vector::<3, T, A>::new(y, x, y);
     assert_eq!(
         a,
         Affine::<3, T, A>::from_mat_translation(
-            Matrix::<3, T, A>::from_cols(
+            Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(y, z, x),
                 Vector::<3, T, A>::new(z, x, y)
-            ),
+            ]),
             Vector::<3, T, A>::new(y, x, y)
         )
     );
 
     let mut a = Affine::<4, T, A>::from_mat_translation(
-        Matrix::<4, T, A>::from_cols(
+        Matrix::<4, T, A>::from_columns(&[
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
             Vector::<4, T, A>::new(z, x, y, z),
             Vector::<4, T, A>::new(z, y, x, z),
-        ),
+        ]),
         Vector::<4, T, A>::new(z, z, y, x),
     );
     a.translation = Vector::<4, T, A>::new(y, y, z, y);
     assert_eq!(
         a,
         Affine::<4, T, A>::from_mat_translation(
-            Matrix::<4, T, A>::from_cols(
+            Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, x),
                 Vector::<4, T, A>::new(y, z, x, y),
                 Vector::<4, T, A>::new(z, x, y, z),
                 Vector::<4, T, A>::new(z, y, x, z)
-            ),
+            ]),
             Vector::<4, T, A>::new(y, y, z, y)
         )
     );

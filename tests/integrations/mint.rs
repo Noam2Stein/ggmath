@@ -83,42 +83,42 @@ fn vector() {
     let val: Vec4U<i32> = Vec4U::new(1, 2, 3, 4);
     assert_eq!(val, mint::Vector4::from(val).into());
 
-    let val: Mat2<i32> = Mat2::from_cols(Vec2::new(1, 2), Vec2::new(3, 4));
+    let val: Mat2<i32> = Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
     assert_eq!(val, mint::ColumnMatrix2::from(val).into());
     assert_eq!(val, mint::RowMatrix2::from(val).into());
 
     let val: Mat3<i32> =
-        Mat3::from_cols(Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9));
+        Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
     assert_eq!(val, mint::ColumnMatrix3::from(val).into());
     assert_eq!(val, mint::RowMatrix3::from(val).into());
 
-    let val: Mat4<i32> = Mat4::from_cols(
+    let val: Mat4<i32> = Mat4::from_columns(&[
         Vec4::new(1, 2, 3, 4),
         Vec4::new(5, 6, 7, 8),
         Vec4::new(9, 10, 11, 12),
         Vec4::new(13, 14, 15, 16),
-    );
+    ]);
     assert_eq!(val, mint::ColumnMatrix4::from(val).into());
     assert_eq!(val, mint::RowMatrix4::from(val).into());
 
-    let val: Mat2U<i32> = Mat2U::from_cols(Vec2U::new(1, 2), Vec2U::new(3, 4));
+    let val: Mat2U<i32> = Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
     assert_eq!(val, mint::ColumnMatrix2::from(val).into());
     assert_eq!(val, mint::RowMatrix2::from(val).into());
 
-    let val: Mat3U<i32> = Mat3U::from_cols(
+    let val: Mat3U<i32> = Mat3U::from_columns(&[
         Vec3U::new(1, 2, 3),
         Vec3U::new(4, 5, 6),
         Vec3U::new(7, 8, 9),
-    );
+    ]);
     assert_eq!(val, mint::ColumnMatrix3::from(val).into());
     assert_eq!(val, mint::RowMatrix3::from(val).into());
 
-    let val: Mat4U<i32> = Mat4U::from_cols(
+    let val: Mat4U<i32> = Mat4U::from_columns(&[
         Vec4U::new(1, 2, 3, 4),
         Vec4U::new(5, 6, 7, 8),
         Vec4U::new(9, 10, 11, 12),
         Vec4U::new(13, 14, 15, 16),
-    );
+    ]);
     assert_eq!(val, mint::ColumnMatrix4::from(val).into());
     assert_eq!(val, mint::RowMatrix4::from(val).into());
 

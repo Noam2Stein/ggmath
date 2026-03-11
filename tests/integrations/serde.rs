@@ -85,7 +85,7 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Vec2U<f32>>(&to_string(&val)?).is_err());
     assert!(from_str::<Vec3U<f32>>(&to_string(&val)?).is_err());
 
-    let val: Mat2<u32> = Mat2::from_cols(Vec2::new(1, 2), Vec2::new(3, 4));
+    let val: Mat2<u32> = Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
     assert_eq!(val, from_str(&to_string(&val)?)?);
     assert_eq!(val.unalign(), from_str(&to_string(&val)?)?);
     assert!(from_str::<Mat3<f32>>(&to_string(&val)?).is_err());
@@ -94,7 +94,7 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Mat4U<f32>>(&to_string(&val)?).is_err());
 
     let val: Mat3<u32> =
-        Mat3::from_cols(Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9));
+        Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
     assert_eq!(val, from_str(&to_string(&val)?)?);
     assert_eq!(val.unalign(), from_str(&to_string(&val)?)?);
     assert!(from_str::<Mat2<f32>>(&to_string(&val)?).is_err());
@@ -102,12 +102,12 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Mat2U<f32>>(&to_string(&val)?).is_err());
     assert!(from_str::<Mat4U<f32>>(&to_string(&val)?).is_err());
 
-    let val: Mat4<u32> = Mat4::from_cols(
+    let val: Mat4<u32> = Mat4::from_columns(&[
         Vec4::new(1, 2, 3, 4),
         Vec4::new(5, 6, 7, 8),
         Vec4::new(9, 10, 11, 12),
         Vec4::new(13, 14, 15, 16),
-    );
+    ]);
     assert_eq!(val, from_str(&to_string(&val)?)?);
     assert_eq!(val.unalign(), from_str(&to_string(&val)?)?);
     assert!(from_str::<Mat2<f32>>(&to_string(&val)?).is_err());
@@ -115,7 +115,7 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Mat2U<f32>>(&to_string(&val)?).is_err());
     assert!(from_str::<Mat3U<f32>>(&to_string(&val)?).is_err());
 
-    let val: Mat2U<u32> = Mat2U::from_cols(Vec2U::new(1, 2), Vec2U::new(3, 4));
+    let val: Mat2U<u32> = Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
     assert_eq!(val, from_str(&to_string(&val)?)?);
     assert_eq!(val.align(), from_str(&to_string(&val)?)?);
     assert!(from_str::<Mat3<f32>>(&to_string(&val)?).is_err());
@@ -123,11 +123,11 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Mat3U<f32>>(&to_string(&val)?).is_err());
     assert!(from_str::<Mat4U<f32>>(&to_string(&val)?).is_err());
 
-    let val: Mat3U<u32> = Mat3U::from_cols(
+    let val: Mat3U<u32> = Mat3U::from_columns(&[
         Vec3U::new(1, 2, 3),
         Vec3U::new(4, 5, 6),
         Vec3U::new(7, 8, 9),
-    );
+    ]);
     assert_eq!(val, from_str(&to_string(&val)?)?);
     assert_eq!(val.align(), from_str(&to_string(&val)?)?);
     assert!(from_str::<Mat2<f32>>(&to_string(&val)?).is_err());
@@ -135,12 +135,12 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Mat2U<f32>>(&to_string(&val)?).is_err());
     assert!(from_str::<Mat4U<f32>>(&to_string(&val)?).is_err());
 
-    let val: Mat4U<u32> = Mat4U::from_cols(
+    let val: Mat4U<u32> = Mat4U::from_columns(&[
         Vec4U::new(1, 2, 3, 4),
         Vec4U::new(5, 6, 7, 8),
         Vec4U::new(9, 10, 11, 12),
         Vec4U::new(13, 14, 15, 16),
-    );
+    ]);
     assert_eq!(val, from_str(&to_string(&val)?)?);
     assert_eq!(val.align(), from_str(&to_string(&val)?)?);
     assert!(from_str::<Mat2<f32>>(&to_string(&val)?).is_err());
@@ -157,7 +157,7 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert_eq!(val.align(), from_str(&to_string(&val)?)?);
 
     let val: Affine2<u32> = Affine2::from_mat_translation(
-        Mat2::from_cols(Vec2::new(1, 2), Vec2::new(3, 4)),
+        Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
         Vec2::new(5, 6),
     );
     assert_eq!(val, from_str(&to_string(&val)?)?);
@@ -168,7 +168,7 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Affine<4, f32, Unaligned>>(&to_string(&val)?).is_err());
 
     let val: Affine3<u32> = Affine3::from_mat_translation(
-        Mat3::from_cols(Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)),
+        Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
         Vec3::new(10, 11, 12),
     );
     assert_eq!(val, from_str(&to_string(&val)?)?);
@@ -179,12 +179,12 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Affine<4, f32, Unaligned>>(&to_string(&val)?).is_err());
 
     let val: Affine<4, u32, Aligned> = Affine::from_mat_translation(
-        Mat4::from_cols(
+        Mat4::from_columns(&[
             Vec4::new(1, 2, 3, 4),
             Vec4::new(5, 6, 7, 8),
             Vec4::new(9, 10, 11, 12),
             Vec4::new(13, 14, 15, 16),
-        ),
+        ]),
         Vec4::new(17, 18, 19, 20),
     );
     assert_eq!(val, from_str(&to_string(&val)?)?);
@@ -195,7 +195,7 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Affine3U<f32>>(&to_string(&val)?).is_err());
 
     let val: Affine2U<u32> = Affine2U::from_mat_translation(
-        Mat2U::from_cols(Vec2U::new(1, 2), Vec2U::new(3, 4)),
+        Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]),
         Vec2U::new(5, 6),
     );
     assert_eq!(val, from_str(&to_string(&val)?)?);
@@ -206,11 +206,11 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Affine<4, f32, Unaligned>>(&to_string(&val)?).is_err());
 
     let val: Affine3U<u32> = Affine3U::from_mat_translation(
-        Mat3U::from_cols(
+        Mat3U::from_columns(&[
             Vec3U::new(1, 2, 3),
             Vec3U::new(4, 5, 6),
             Vec3U::new(97, 8, 9),
-        ),
+        ]),
         Vec3U::new(10, 11, 12),
     );
     assert_eq!(val, from_str(&to_string(&val)?)?);
@@ -221,12 +221,12 @@ fn vector() -> Result<(), Box<dyn Error>> {
     assert!(from_str::<Affine<4, f32, Unaligned>>(&to_string(&val)?).is_err());
 
     let val: Affine<4, u32, Unaligned> = Affine::from_mat_translation(
-        Mat4U::from_cols(
+        Mat4U::from_columns(&[
             Vec4U::new(1, 2, 3, 4),
             Vec4U::new(5, 6, 7, 8),
             Vec4U::new(9, 10, 11, 12),
             Vec4U::new(13, 14, 15, 16),
-        ),
+        ]),
         Vec4U::new(17, 18, 19, 20),
     );
     assert_eq!(val, from_str(&to_string(&val)?)?);

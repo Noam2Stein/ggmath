@@ -77,7 +77,7 @@ where
     T: Scalar + Zero,
 {
     /// A matrix with all cells set to `0.0`.
-    pub const ZERO: Self = Self::from_col_array(&[Vector::ZERO; N]);
+    pub const ZERO: Self = Self::from_columns(&[Vector::ZERO; N]);
 }
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -96,7 +96,7 @@ where
     T: Scalar + Nan,
 {
     /// A matrix where all cells are NaNs (Not a Number).
-    pub const NAN: Self = Self::from_col_array(&[Vector::NAN; N]);
+    pub const NAN: Self = Self::from_columns(&[Vector::NAN; N]);
 }
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -105,43 +105,47 @@ where
     T: Scalar,
 {
     /// Creates a matrix from an array of columns.
-    ///
-    /// The preferable way to create matrices is using the macros
-    /// [`mat2`](crate::mat2), [`mat3`](crate::mat3), [`mat4`](crate::mat4).
-    ///
-    /// `Matrix::from_array` should only be used when the length of the matrix
-    /// is unknown or when directly converting from an array.
     #[inline]
     #[must_use]
-    pub const fn from_col_array(array: &[Vector<N, T, A>; N]) -> Self {
+    pub const fn from_columns(columns: &[Vector<N, T, A>; N]) -> Self {
         match N {
-            // SAFETY: Because `N == 2`, `[Vector<N, T, A>; N]` and
-            // `[Vector<2, T, A>; 2]` are the same type, and `Matrix<N, T, A>`
-            // and `Matrix<2, T, A>` are the same type.
+            // SAFETY: Because `N == 2`, `Matrix<N, T, A>` is the same type as
+            // `Matrix<2, T, A>` which contains 2 values of `Vector<2, T, A>`.
             2 => unsafe {
-                let array = transmute_generic::<[Vector<N, T, A>; N], [Vector<2, T, A>; 2]>(*array);
-                transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(Matrix::<2, T, A>::from_cols(
-                    array[0], array[1],
+                transmute_generic::<Repr2<Vector<N, T, A>>, Matrix<N, T, A>>(Repr2(
+                    columns[0], columns[1],
                 ))
             },
 
-            // SAFETY: Because `N == 3`, `[Vector<N, T, A>; N]` and
-            // `[Vector<3, T, A>; 3]` are the same type, and `Matrix<N, T, A>`
-            // and `Matrix<3, T, A>` are the same type.
-            3 => unsafe {
-                let array = transmute_generic::<[Vector<N, T, A>; N], [Vector<3, T, A>; 3]>(*array);
-                transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(Matrix::<3, T, A>::from_cols(
-                    array[0], array[1], array[2],
-                ))
-            },
+            3 => {
+                match size_of::<Matrix<3, T, A>>() / size_of::<Vector<3, T, A>>() {
+                    // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is the same
+                    // type as `Matrix<3, T, A>` which is checked to contain
+                    // exactly 3 values of `Vector<3, T, A>`.
+                    3 => unsafe {
+                        transmute_generic::<Repr3<Vector<N, T, A>>, Matrix<N, T, A>>(Repr3(
+                            columns[0], columns[1], columns[2],
+                        ))
+                    },
 
-            // SAFETY: Because `N == 4`, `[Vector<N, T, A>; N]` and
-            // `[Vector<4, T, A>; 4]` are the same type, and `Matrix<N, T, A>`
-            // and `Matrix<4, T, A>` are the same type.
+                    // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is the same
+                    // type as `Matrix<3, T, A>` which is checked to contain
+                    // exactly 4 values of `Vector<3, T, A>`.
+                    4 => unsafe {
+                        transmute_generic::<Repr4<Vector<N, T, A>>, Matrix<N, T, A>>(Repr4(
+                            columns[0], columns[1], columns[2], columns[2],
+                        ))
+                    },
+
+                    _ => unreachable!(),
+                }
+            }
+
+            // SAFETY: Because `N == 4`, `Matrix<N, T, A>` is the same type as
+            // `Matrix<4, T, A>` which contains 4 values of `Vector<4, T, A>`.
             4 => unsafe {
-                let array = transmute_generic::<[Vector<N, T, A>; N], [Vector<4, T, A>; 4]>(*array);
-                transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(Matrix::<4, T, A>::from_cols(
-                    array[0], array[1], array[2], array[3],
+                transmute_generic::<Repr4<Vector<N, T, A>>, Matrix<N, T, A>>(Repr4(
+                    columns[0], columns[1], columns[2], columns[3],
                 ))
             },
 
@@ -154,11 +158,11 @@ where
     /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column.
     #[inline]
     #[must_use]
-    pub fn from_col_fn<F>(f: F) -> Self
+    pub fn from_column_fn<F>(f: F) -> Self
     where
         F: FnMut(usize) -> Vector<N, T, A>,
     {
-        Self::from_col_array(&core::array::from_fn(f))
+        Self::from_columns(&core::array::from_fn(f))
     }
 
     /// Creates a matrix with its diagonal set to `diagonal` and all other entries set to 0.
@@ -172,31 +176,57 @@ where
             // SAFETY: Because `N == 2`, `Matrix<2, T, A>` and `Matrix<N, T, A>`
             // are the same type.
             2 => unsafe {
-                transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(Matrix::<2, T, A>::from_cols(
-                    Vector::<2, T, A>::new(diagonal.as_array_ref()[0], T::ZERO),
-                    Vector::<2, T, A>::new(T::ZERO, diagonal.as_array_ref()[1]),
-                ))
+                transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(diagonal.as_array_ref()[0], T::ZERO),
+                        Vector::<2, T, A>::new(T::ZERO, diagonal.as_array_ref()[1]),
+                    ]),
+                )
             },
 
             // SAFETY: Because `N == 3`, `Matrix<3, T, A>` and `Matrix<N, T, A>`
             // are the same type.
             3 => unsafe {
-                transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(Matrix::<3, T, A>::from_cols(
-                    Vector::<3, T, A>::new(diagonal.as_array_ref()[0], T::ZERO, T::ZERO),
-                    Vector::<3, T, A>::new(T::ZERO, diagonal.as_array_ref()[1], T::ZERO),
-                    Vector::<3, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array_ref()[2]),
-                ))
+                transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(diagonal.as_array_ref()[0], T::ZERO, T::ZERO),
+                        Vector::<3, T, A>::new(T::ZERO, diagonal.as_array_ref()[1], T::ZERO),
+                        Vector::<3, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array_ref()[2]),
+                    ]),
+                )
             },
 
             // SAFETY: Because `N == 4`, `Matrix<4, T, A>` and `Matrix<N, T, A>`
             // are the same type.
             4 => unsafe {
-                transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(Matrix::<4, T, A>::from_cols(
-                    Vector::<4, T, A>::new(diagonal.as_array_ref()[0], T::ZERO, T::ZERO, T::ZERO),
-                    Vector::<4, T, A>::new(T::ZERO, diagonal.as_array_ref()[1], T::ZERO, T::ZERO),
-                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, diagonal.as_array_ref()[2], T::ZERO),
-                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, diagonal.as_array_ref()[3]),
-                ))
+                transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(
+                            diagonal.as_array_ref()[0],
+                            T::ZERO,
+                            T::ZERO,
+                            T::ZERO,
+                        ),
+                        Vector::<4, T, A>::new(
+                            T::ZERO,
+                            diagonal.as_array_ref()[1],
+                            T::ZERO,
+                            T::ZERO,
+                        ),
+                        Vector::<4, T, A>::new(
+                            T::ZERO,
+                            T::ZERO,
+                            diagonal.as_array_ref()[2],
+                            T::ZERO,
+                        ),
+                        Vector::<4, T, A>::new(
+                            T::ZERO,
+                            T::ZERO,
+                            T::ZERO,
+                            diagonal.as_array_ref()[3],
+                        ),
+                    ]),
+                )
             },
 
             _ => unreachable!(),
@@ -220,16 +250,16 @@ where
             },
 
             // SAFETY: Because `N == 3`, `Matrix<N, T, A>` and `Matrix<3, T, A>`
-            // are the same type, and `Matrix<N, T, A2>` and `Matrix<3, T, A2`
+            // are the same type, and `Matrix<N, T, A2>` and `Matrix<3, T, A2>`
             // are the same type.
             (3, false) => unsafe {
-                let mat = transmute_generic::<Matrix<N, T, A>, Matrix<3, T, A>>(*self);
+                let mat = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
                 transmute_generic::<Matrix<3, T, A2>, Matrix<N, T, A2>>(
-                    Matrix::<3, T, A2>::from_cols(
-                        mat.as_col_array_ref()[0].to_alignment(),
-                        mat.as_col_array_ref()[1].to_alignment(),
-                        mat.as_col_array_ref()[2].to_alignment(),
-                    ),
+                    Matrix::<3, T, A2>::from_columns(&[
+                        mat.as_columns()[0].to_alignment(),
+                        mat.as_columns()[1].to_alignment(),
+                        mat.as_columns()[2].to_alignment(),
+                    ]),
                 )
             },
 
@@ -255,17 +285,10 @@ where
         self.to_alignment()
     }
 
-    /// Converts the matrix to an array of columns.
-    #[inline]
-    #[must_use]
-    pub const fn to_col_array(&self) -> [Vector<N, T, A>; N] {
-        *self.as_col_array_ref()
-    }
-
     /// Returns a reference to the matrix's columns.
     #[inline]
     #[must_use]
-    pub const fn as_col_array_ref(&self) -> &[Vector<N, T, A>; N] {
+    pub const fn as_columns(&self) -> &[Vector<N, T, A>; N] {
         // SAFETY: `Matrix<N, T, A>` is guaranteed to begin with `N` consecutive
         // values of `Vector<N, T, A>`.
         unsafe { transmute_ref::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
@@ -274,7 +297,7 @@ where
     /// Returns a mutable reference to the matrix's columns.
     #[inline]
     #[must_use]
-    pub const fn as_col_array_mut(&mut self) -> &mut [Vector<N, T, A>; N] {
+    pub const fn as_columns_mut(&mut self) -> &mut [Vector<N, T, A>; N] {
         // SAFETY: `Matrix<N, T, A>` is guaranteed to begin with `N` consecutive
         // values of `Vector<N, T, A>`.
         unsafe { transmute_mut::<Matrix<N, T, A>, [Vector<N, T, A>; N]>(self) }
@@ -287,8 +310,8 @@ where
     /// Panics if the index is out of bounds.
     #[inline]
     #[must_use]
-    pub const fn col(&self, index: usize) -> Vector<N, T, A> {
-        self.as_col_array_ref()[index]
+    pub const fn column(&self, index: usize) -> Vector<N, T, A> {
+        self.as_columns()[index]
     }
 
     /// Returns a mutable reference to the column at the given index.
@@ -298,8 +321,8 @@ where
     /// Panics if the index is out of bounds.
     #[inline]
     #[must_use]
-    pub const fn col_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
-        &mut self.as_col_array_mut()[index]
+    pub const fn column_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
+        &mut self.as_columns_mut()[index]
     }
 
     /// Returns the row at the given index.
@@ -317,8 +340,8 @@ where
             2 => unsafe {
                 let mat = transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
                 transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
-                    mat.as_col_array_ref()[0].as_array_ref()[index],
-                    mat.as_col_array_ref()[1].as_array_ref()[index],
+                    mat.as_columns()[0].as_array_ref()[index],
+                    mat.as_columns()[1].as_array_ref()[index],
                 ))
             },
 
@@ -328,9 +351,9 @@ where
             3 => unsafe {
                 let mat = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
                 transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
-                    mat.as_col_array_ref()[0].as_array_ref()[index],
-                    mat.as_col_array_ref()[1].as_array_ref()[index],
-                    mat.as_col_array_ref()[2].as_array_ref()[index],
+                    mat.as_columns()[0].as_array_ref()[index],
+                    mat.as_columns()[1].as_array_ref()[index],
+                    mat.as_columns()[2].as_array_ref()[index],
                 ))
             },
 
@@ -340,10 +363,10 @@ where
             4 => unsafe {
                 let mat = transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
                 transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
-                    mat.as_col_array_ref()[0].as_array_ref()[index],
-                    mat.as_col_array_ref()[1].as_array_ref()[index],
-                    mat.as_col_array_ref()[2].as_array_ref()[index],
-                    mat.as_col_array_ref()[3].as_array_ref()[index],
+                    mat.as_columns()[0].as_array_ref()[index],
+                    mat.as_columns()[1].as_array_ref()[index],
+                    mat.as_columns()[2].as_array_ref()[index],
+                    mat.as_columns()[3].as_array_ref()[index],
                 ))
             },
 
@@ -363,27 +386,27 @@ where
             // are the same type.
             2 => unsafe {
                 let mat = transmute_mut::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
-                mat.as_col_array_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                mat.as_col_array_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
+                mat.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
+                mat.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
             },
 
             // SAFETY: Because `N == 3`, `Matrix<N, T, A>` and `Matrix<3, T, A>`
             // are the same type.
             3 => unsafe {
                 let mat = transmute_mut::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
-                mat.as_col_array_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                mat.as_col_array_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
-                mat.as_col_array_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
+                mat.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
+                mat.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
+                mat.as_columns_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
             },
 
             // SAFETY: Because `N == 4`, `Matrix<N, T, A>` and `Matrix<4, T, A>`
             // are the same type.
             4 => unsafe {
                 let mat = transmute_mut::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
-                mat.as_col_array_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                mat.as_col_array_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
-                mat.as_col_array_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
-                mat.as_col_array_mut()[3].as_array_mut()[index] = value.as_array_ref()[3];
+                mat.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
+                mat.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
+                mat.as_columns_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
+                mat.as_columns_mut()[3].as_array_mut()[index] = value.as_array_ref()[3];
             },
 
             _ => unreachable!(),
@@ -399,8 +422,8 @@ where
             // are the same type.
             2 => unsafe {
                 transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
-                    self.as_col_array_ref()[0].as_array_ref()[0],
-                    self.as_col_array_ref()[1].as_array_ref()[1],
+                    self.as_columns()[0].as_array_ref()[0],
+                    self.as_columns()[1].as_array_ref()[1],
                 ))
             },
 
@@ -408,9 +431,9 @@ where
             // are the same type.
             3 => unsafe {
                 transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
-                    self.as_col_array_ref()[0].as_array_ref()[0],
-                    self.as_col_array_ref()[1].as_array_ref()[1],
-                    self.as_col_array_ref()[2].as_array_ref()[2],
+                    self.as_columns()[0].as_array_ref()[0],
+                    self.as_columns()[1].as_array_ref()[1],
+                    self.as_columns()[2].as_array_ref()[2],
                 ))
             },
 
@@ -418,10 +441,10 @@ where
             // are the same type.
             4 => unsafe {
                 transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
-                    self.as_col_array_ref()[0].as_array_ref()[0],
-                    self.as_col_array_ref()[1].as_array_ref()[1],
-                    self.as_col_array_ref()[2].as_array_ref()[2],
-                    self.as_col_array_ref()[3].as_array_ref()[3],
+                    self.as_columns()[0].as_array_ref()[0],
+                    self.as_columns()[1].as_array_ref()[1],
+                    self.as_columns()[2].as_array_ref()[2],
+                    self.as_columns()[3].as_array_ref()[3],
                 ))
             },
 
@@ -457,64 +480,107 @@ where
         // integer.
         unsafe { transmute_generic::<Matrix<N, T, A>, Matrix<N, T2, A>>(self) }
     }
-}
 
-impl<T, A: Alignment> Matrix<2, T, A>
-where
-    T: Scalar,
-{
-    /// Creates a 2x2 matrix from 2 column vectors.
+    /// Creates a matrix from an array of columns.
+    ///
+    /// This function has been renamed to [`from_columns`]. This name will be
+    /// removed in a future version.
+    ///
+    /// [`from_columns`]: Self::from_columns
+    #[deprecated(since = "0.16.3", note = "renamed to `from_columns`")]
     #[inline]
     #[must_use]
-    pub const fn from_cols(x: Vector<2, T, A>, y: Vector<2, T, A>) -> Self {
-        // SAFETY: `Matrix<2, T, A>` is guaranteed to be made out of 2
-        // consecutive values of `Vector<2, T, A>`, with no additional padding.
-        unsafe { transmute_generic::<Repr2<Vector<2, T, A>>, Matrix<2, T, A>>(Repr2(x, y)) }
+    pub const fn from_col_array(array: &[Vector<N, T, A>; N]) -> Self {
+        Self::from_columns(array)
     }
-}
 
-impl<T, A: Alignment> Matrix<3, T, A>
-where
-    T: Scalar,
-{
-    /// Creates a 3x3 matrix from 3 column vectors.
+    /// Creates a matrix by calling function `f` for each column index.
+    ///
+    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column.
+    ///
+    /// This function has been renamed to [`from_column_fn`]. This name will be
+    /// removed in a future version.
+    ///
+    /// [`from_column_fn`]: Self::from_column_fn
+    #[deprecated(since = "0.16.3", note = "renamed to `from_column_fn`")]
     #[inline]
     #[must_use]
-    pub const fn from_cols(x: Vector<3, T, A>, y: Vector<3, T, A>, z: Vector<3, T, A>) -> Self {
-        match size_of::<Matrix<3, T, A>>() / size_of::<Vector<3, T, A>>() {
-            // SAFETY: Because the matrix has 3 values of `Vector<3, T, A>` and
-            // no padding, its equivalent to `Repr3<Vector<3, T, A>>`.
-            3 => unsafe {
-                transmute_generic::<Repr3<Vector<3, T, A>>, Matrix<3, T, A>>(Repr3(x, y, z))
-            },
-
-            // SAFETY: Because the vector has 4 values of `Vector<3, T, A>` plus
-            // 1 padding vector, its equivalent to `Repr4<Vector<3, T, A>>`.
-            4 => unsafe {
-                transmute_generic::<Repr4<Vector<3, T, A>>, Matrix<3, T, A>>(Repr4(x, y, z, z))
-            },
-
-            _ => unreachable!(),
-        }
+    pub fn from_col_fn<F>(f: F) -> Self
+    where
+        F: FnMut(usize) -> Vector<N, T, A>,
+    {
+        Self::from_column_fn(f)
     }
-}
 
-impl<T, A: Alignment> Matrix<4, T, A>
-where
-    T: Scalar,
-{
-    /// Creates a 4x4 matrix from 4 column vectors.
+    /// Converts the matrix to an array of column vectors.
+    ///
+    /// This function has been replaced by [`Self::as_columns`] and will be
+    /// removed in a future version.
+    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
     #[inline]
     #[must_use]
-    pub const fn from_cols(
-        x: Vector<4, T, A>,
-        y: Vector<4, T, A>,
-        z: Vector<4, T, A>,
-        w: Vector<4, T, A>,
-    ) -> Self {
-        // SAFETY: `Matrix<4, T, A>` is guaranteed to be made out of 4
-        // consecutive values of `Vector<4, T, A>`, with no additional padding.
-        unsafe { transmute_generic::<Repr4<Vector<4, T, A>>, Matrix<4, T, A>>(Repr4(x, y, z, w)) }
+    pub const fn to_col_array(&self) -> [Vector<N, T, A>; N] {
+        *self.as_columns()
+    }
+
+    /// Returns a reference to the matrix's columns.
+    ///
+    /// This function has been renamed to [`as_columns`]. This name will be
+    /// removed in a future version.
+    ///
+    /// [`as_columns`]: Self::as_columns
+    #[deprecated(since = "0.16.3", note = "renamed to `as_columns`")]
+    #[inline]
+    #[must_use]
+    pub const fn as_col_array_ref(&self) -> &[Vector<N, T, A>; N] {
+        self.as_columns()
+    }
+
+    /// Returns a mutable reference to the matrix's columns.
+    ///
+    /// This function has been renamed to [`as_columns_mut`]. This name will be
+    /// removed in a future version.
+    ///
+    /// [`as_columns_mut`]: Self::as_columns_mut
+    #[deprecated(since = "0.16.3", note = "renamed to `as_columns_mut`")]
+    #[inline]
+    #[must_use]
+    pub const fn as_col_array_mut(&mut self) -> &mut [Vector<N, T, A>; N] {
+        self.as_columns_mut()
+    }
+
+    /// Returns the column at the given index.
+    ///
+    /// This function has been renamed to [`column`]. This name will be removed
+    /// in a future version.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the index is out of bounds.
+    ///
+    /// [`column`]: Self::column
+    #[deprecated(since = "0.16.3", note = "renamed to `column`")]
+    #[inline]
+    #[must_use]
+    pub const fn col(&self, index: usize) -> Vector<N, T, A> {
+        self.column(index)
+    }
+
+    /// Returns a mutable reference to the column at the given index.
+    ///
+    /// This function has been renamed to [`column_mut`]. This name will be
+    /// removed in a future version.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the index is out of bounds.
+    ///
+    /// [`column_mut`]: Self::column_mut
+    #[deprecated(since = "0.16.3", note = "renamed to `column_mut`")]
+    #[inline]
+    #[must_use]
+    pub const fn col_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
+        self.column_mut(index)
     }
 }
 
@@ -662,7 +728,7 @@ where
     T: Scalar + Debug,
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{:?}", self.to_col_array())
+        write!(f, "{:?}", self.as_columns())
     }
 }
 
@@ -673,15 +739,21 @@ where
 {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match N {
-            2 => write!(f, "[{}, {}]", self.col(0), self.col(1)),
-            3 => write!(f, "[{}, {}, {}]", self.col(0), self.col(1), self.col(2)),
+            2 => write!(f, "[{}, {}]", self.column(0), self.column(1)),
+            3 => write!(
+                f,
+                "[{}, {}, {}]",
+                self.column(0),
+                self.column(1),
+                self.column(2)
+            ),
             4 => write!(
                 f,
                 "[{}, {}, {}, {}]",
-                self.col(0),
-                self.col(1),
-                self.col(2),
-                self.col(3)
+                self.column(0),
+                self.column(1),
+                self.column(2),
+                self.column(3)
             ),
             _ => unreachable!(),
         }

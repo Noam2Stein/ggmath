@@ -253,17 +253,17 @@ where
     type Tol = T;
 
     fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
-        (0..N).all(|i| self.col(i).eq(&other.col(i), zero_eq_neg_zero))
+        (0..N).all(|i| self.column(i).eq(&other.column(i), zero_eq_neg_zero))
     }
 
     fn eq_tol(&self, other: &Self, tol: Self::Tol, zero_eq_neg_zero: bool) -> bool {
-        (0..N).all(|i| self.col(i).eq_tol(&other.col(i), tol, zero_eq_neg_zero))
+        (0..N).all(|i| self.column(i).eq_tol(&other.column(i), tol, zero_eq_neg_zero))
     }
 
     fn eq_ulps(&self, other: &Self, max_ulps: u8, zero_eq_neg_zero: bool) -> bool {
         (0..N).all(|i| {
-            self.col(i)
-                .eq_ulps(&other.col(i), max_ulps, zero_eq_neg_zero)
+            self.column(i)
+                .eq_ulps(&other.column(i), max_ulps, zero_eq_neg_zero)
         })
     }
 }

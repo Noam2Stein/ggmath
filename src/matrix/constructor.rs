@@ -82,7 +82,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, Vector<2, T, A>)) -> Self {
-        Self::from_cols(value.0, value.1)
+        Self::from_columns(&[value.0, value.1])
     }
 }
 
@@ -106,7 +106,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<3, T, A>, Vector<3, T, A>, Vector<3, T, A>)) -> Self {
-        Self::from_cols(value.0, value.1, value.2)
+        Self::from_columns(&[value.0, value.1, value.2])
     }
 }
 
@@ -143,7 +143,7 @@ where
             Vector<4, T, A>,
         ),
     ) -> Self {
-        Self::from_cols(value.0, value.1, value.2, value.3)
+        Self::from_columns(&[value.0, value.1, value.2, value.3])
     }
 }
 

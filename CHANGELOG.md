@@ -11,14 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Vector function `new`.
 
-- Matrix function `from_cols`.
-
 - Quaternion & Affine function `to_repr`.
+
+### Changed
+
+- Renamed matrix functions:
+  - `from_col_array` to `from_columns`
+  - `from_col_fn` to `from_column_fn`
+  - `as_col_array_ref` to `as_columns`
+  - `as_col_array_mut` to `as_columns_mut`
+  - `col` to `column`
+  - `col_mut` to `column_mut`
 
 ### Deprecated
 
 - Macros `vec2`, `vec3`, `vec4`, `mat2`, `mat3`, `mat4`. Use `Vector::new` and
-  `Matrix::from_cols` instead.
+  `Matrix::from_columns` instead.
+
+- `Matrix::to_col_array`: replaced by `Matrix::as_columns`.
 
 ## 0.16.2 (16.2.2026)
 

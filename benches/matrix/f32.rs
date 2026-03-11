@@ -14,14 +14,14 @@ library_benchmark_group!(
 pub fn ggmath_mat2a(x: f32, y: f32, z: f32) -> impl Copy {
     use ggmath::{Mat2, Vec2};
 
-    let mut m2a: Mat2<f32> = Mat2::from_cols(Vec2::new(x, y), Vec2::new(z, x));
+    let mut m2a: Mat2<f32> = Mat2::from_columns(&[Vec2::new(x, y), Vec2::new(z, x)]);
 
     for _ in 0..2 {
         m2a += Mat2::from_diagonal(Vec2::new(x + 1.0, y));
-        m2a += Mat2::from_col_array(&[m2a.to_col_array()[0]; 2]);
-        m2a -= Mat2::from_diagonal(m2a.col(1) + m2a.row(1));
+        m2a += Mat2::from_columns(&[m2a.as_columns()[0]; 2]);
+        m2a -= Mat2::from_diagonal(m2a.column(1) + m2a.row(1));
         m2a.set_row(1, Vec2::new(x + m2a.y_axis.x, m2a.x_axis.y));
-        m2a += Mat2::from_cols(m2a.diagonal(), m2a.diagonal() * Vec2::splat(1.5));
+        m2a += Mat2::from_columns(&[m2a.diagonal(), m2a.diagonal() * Vec2::splat(1.5)]);
     }
 
     black_box(m2a)
@@ -52,22 +52,22 @@ pub fn glam_mat2a(x: f32, y: f32, z: f32) -> impl Copy {
 pub fn ggmath_mat3u(x: f32, y: f32, z: f32) -> impl Copy {
     use ggmath::{Mat3U, Vec3U};
 
-    let mut m3u: Mat3U<f32> = Mat3U::from_cols(
+    let mut m3u: Mat3U<f32> = Mat3U::from_columns(&[
         Vec3U::new(x, y, z),
         Vec3U::new(y, z, x),
         Vec3U::new(z, x, y),
-    );
+    ]);
 
     for _ in 0..2 {
         m3u += Mat3U::from_diagonal(Vec3U::new(x + 1.0, y, z + 2.0));
-        m3u += Mat3U::from_col_array(&[m3u.to_col_array()[0]; 3]);
-        m3u -= Mat3U::from_diagonal(m3u.col(1) + m3u.row(1));
+        m3u += Mat3U::from_columns(&[m3u.as_columns()[0]; 3]);
+        m3u -= Mat3U::from_diagonal(m3u.column(1) + m3u.row(1));
         m3u.set_row(1, Vec3U::new(x + m3u.y_axis.x, m3u.x_axis.y, m3u.z_axis.y));
-        m3u += Mat3U::from_cols(
+        m3u += Mat3U::from_columns(&[
             m3u.diagonal(),
             m3u.diagonal() * Vec3U::splat(1.5),
             m3u.diagonal() + Vec3U::splat(1.3),
-        );
+        ]);
     }
 
     black_box(m3u)
@@ -104,18 +104,18 @@ pub fn ggmath_mat3a(x: f32, y: f32, z: f32) -> impl Copy {
     use ggmath::{Mat3, Vec3};
 
     let mut m3a: Mat3<f32> =
-        Mat3::from_cols(Vec3::new(x, y, z), Vec3::new(y, z, x), Vec3::new(z, x, y));
+        Mat3::from_columns(&[Vec3::new(x, y, z), Vec3::new(y, z, x), Vec3::new(z, x, y)]);
 
     for _ in 0..2 {
         m3a += Mat3::from_diagonal(Vec3::new(x + 1.0, y, z + 2.0));
-        m3a += Mat3::from_col_array(&[m3a.to_col_array()[0]; 3]);
-        m3a -= Mat3::from_diagonal(m3a.col(1) + m3a.row(1));
+        m3a += Mat3::from_columns(&[m3a.as_columns()[0]; 3]);
+        m3a -= Mat3::from_diagonal(m3a.column(1) + m3a.row(1));
         m3a.set_row(1, Vec3::new(x + m3a.y_axis.x, m3a.x_axis.y, m3a.z_axis.y));
-        m3a += Mat3::from_cols(
+        m3a += Mat3::from_columns(&[
             m3a.diagonal(),
             m3a.diagonal() * Vec3::splat(1.5),
             m3a.diagonal() + Vec3::splat(1.3),
-        );
+        ]);
     }
 
     black_box(m3a)
@@ -155,27 +155,27 @@ pub fn glam_mat3a(x: f32, y: f32, z: f32) -> impl Copy {
 pub fn ggmath_mat4a(x: f32, y: f32, z: f32) -> impl Copy {
     use ggmath::{Mat4, Vec4};
 
-    let mut m4a: Mat4<f32> = Mat4::from_cols(
+    let mut m4a: Mat4<f32> = Mat4::from_columns(&[
         Vec4::new(x, y, z, x),
         Vec4::new(y, z, x, y),
         Vec4::new(z, x, y, z),
         Vec4::new(z, y, x, z),
-    );
+    ]);
 
     for _ in 0..2 {
         m4a += Mat4::from_diagonal(Vec4::new(x + 1.0, y, z + 2.0, x));
-        m4a += Mat4::from_col_array(&[m4a.to_col_array()[0]; 4]);
-        m4a -= Mat4::from_diagonal(m4a.col(1) + m4a.row(1));
+        m4a += Mat4::from_columns(&[m4a.as_columns()[0]; 4]);
+        m4a -= Mat4::from_diagonal(m4a.column(1) + m4a.row(1));
         m4a.set_row(
             1,
             Vec4::new(x + m4a.y_axis.x, m4a.x_axis.y, m4a.z_axis.y, m4a.w_axis.x),
         );
-        m4a += Mat4::from_cols(
+        m4a += Mat4::from_columns(&[
             m4a.diagonal(),
             m4a.diagonal() * Vec4::splat(1.5),
             m4a.diagonal() + Vec4::splat(1.3),
             m4a.diagonal() + Vec4::splat(5.0),
-        );
+        ]);
     }
 
     black_box(m4a)

@@ -80,54 +80,54 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ) == Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan()
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ) == Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan()
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ) == Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan()
@@ -135,54 +135,54 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, x),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ) == Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, x, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ) == Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, x, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ) == Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y
@@ -190,54 +190,54 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(x, x)
             ) == Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(x, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ) == Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(x, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ) == Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y
@@ -245,54 +245,54 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, x),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(x, x)
             ) == Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, x, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(x, y, x)
             ) == Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y && x == z
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, x, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(x, y, x, z)
             ) == Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             !x.is_nan() && !y.is_nan() && !z.is_nan() && x == y && x == z
@@ -300,54 +300,54 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ) != Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan()
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ) != Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan()
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ) != Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             x.is_nan() || y.is_nan() || z.is_nan()
@@ -355,54 +355,54 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, x),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ) != Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, x, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ) != Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, x, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ) != Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y
@@ -410,54 +410,54 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(x, x)
             ) != Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(x, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ) != Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(x, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ) != Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y
@@ -465,101 +465,101 @@ pub fn test<A: Alignment>() {
 
         assert_eq!(
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, x),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(x, x)
             ) != Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, x)
-                ),
+                ]),
                 Vector::<2, T, A>::new(y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y
         );
         assert_eq!(
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, x, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(x, y, x)
             ) != Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(z, x, y),
                     Vector::<3, T, A>::new(y, x, y)
-                ),
+                ]),
                 Vector::<3, T, A>::new(z, y, x)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y || x != z
         );
         assert_eq!(
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, x, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(x, y, x, z)
             ) != Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(z, x, y, x),
                     Vector::<4, T, A>::new(y, x, y, z),
                     Vector::<4, T, A>::new(y, y, x, y)
-                ),
+                ]),
                 Vector::<4, T, A>::new(z, y, x, z)
             ),
             x.is_nan() || y.is_nan() || z.is_nan() || x != y || x != z
         );
 
         assert_float_eq!(
-            Affine::<2, T, A>::from_mat(Matrix::<2, T, A>::from_cols(
+            Affine::<2, T, A>::from_mat(Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(y, z)
-            )),
+            ])),
             Affine::<2, T, A>::from_mat_translation(
-                Matrix::<2, T, A>::from_cols(
+                Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(y, z)
-                ),
+                ]),
                 Vector::ZERO
             )
         );
         assert_float_eq!(
-            Affine::<3, T, A>::from_mat(Matrix::<3, T, A>::from_cols(
+            Affine::<3, T, A>::from_mat(Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(y, z, x),
                 Vector::<3, T, A>::new(z, x, y)
-            )),
+            ])),
             Affine::<3, T, A>::from_mat_translation(
-                Matrix::<3, T, A>::from_cols(
+                Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(y, z, x),
                     Vector::<3, T, A>::new(z, x, y)
-                ),
+                ]),
                 Vector::ZERO
             )
         );
         assert_float_eq!(
-            Affine::<4, T, A>::from_mat(Matrix::<4, T, A>::from_cols(
+            Affine::<4, T, A>::from_mat(Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, x),
                 Vector::<4, T, A>::new(y, z, x, y),
                 Vector::<4, T, A>::new(z, x, y, z),
                 Vector::<4, T, A>::new(z, y, x, z)
-            )),
+            ])),
             Affine::<4, T, A>::from_mat_translation(
-                Matrix::<4, T, A>::from_cols(
+                Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, x),
                     Vector::<4, T, A>::new(y, z, x, y),
                     Vector::<4, T, A>::new(z, x, y, z),
                     Vector::<4, T, A>::new(z, y, x, z)
-                ),
+                ]),
                 Vector::ZERO
             )
         );

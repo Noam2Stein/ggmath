@@ -155,7 +155,7 @@ where
 {
     #[inline]
     fn from(value: mint::ColumnMatrix2<T>) -> Self {
-        Matrix::<2, T, A>::from_cols(value.x.into(), value.y.into())
+        Matrix::<2, T, A>::from_columns(&[value.x.into(), value.y.into()])
     }
 }
 
@@ -178,10 +178,10 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix2<T>) -> Self {
-        Matrix::<2, T, A>::from_cols(
+        Matrix::<2, T, A>::from_columns(&[
             Vector::<2, T, A>::new(value.x.x, value.y.x),
             Vector::<2, T, A>::new(value.x.y, value.y.y),
-        )
+        ])
     }
 }
 
@@ -217,7 +217,7 @@ where
 {
     #[inline]
     fn from(value: mint::ColumnMatrix3<T>) -> Self {
-        Matrix::<3, T, A>::from_cols(value.x.into(), value.y.into(), value.z.into())
+        Matrix::<3, T, A>::from_columns(&[value.x.into(), value.y.into(), value.z.into()])
     }
 }
 
@@ -241,11 +241,11 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix3<T>) -> Self {
-        Matrix::<3, T, A>::from_cols(
+        Matrix::<3, T, A>::from_columns(&[
             Vector::<3, T, A>::new(value.x.x, value.y.x, value.z.x),
             Vector::<3, T, A>::new(value.x.y, value.y.y, value.z.y),
             Vector::<3, T, A>::new(value.x.z, value.y.z, value.z.z),
-        )
+        ])
     }
 }
 
@@ -288,12 +288,12 @@ where
 {
     #[inline]
     fn from(value: mint::ColumnMatrix4<T>) -> Self {
-        Matrix::<4, T, A>::from_cols(
+        Matrix::<4, T, A>::from_columns(&[
             value.x.into(),
             value.y.into(),
             value.z.into(),
             value.w.into(),
-        )
+        ])
     }
 }
 
@@ -318,12 +318,12 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix4<T>) -> Self {
-        Matrix::<4, T, A>::from_cols(
+        Matrix::<4, T, A>::from_columns(&[
             Vector::<4, T, A>::new(value.x.x, value.y.x, value.z.x, value.w.x),
             Vector::<4, T, A>::new(value.x.y, value.y.y, value.z.y, value.w.y),
             Vector::<4, T, A>::new(value.x.z, value.y.z, value.z.z, value.w.z),
             Vector::<4, T, A>::new(value.x.w, value.y.w, value.z.w, value.w.w),
-        )
+        ])
     }
 }
 
