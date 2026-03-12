@@ -4,7 +4,7 @@ use crate::{Alignment, Matrix, Scalar, Vector};
 ///
 /// The macro accepts 2 column vectors as arguments.
 ///
-/// This macro is deprecated. Use [`Matrix::from_cols`].
+/// This macro is deprecated. Use [`Matrix::from_columns`].
 ///
 /// # Examples
 ///
@@ -25,7 +25,7 @@ macro_rules! mat2 {
 ///
 /// The macro accepts 3 column vectors as arguments.
 ///
-/// This macro is deprecated. Use [`Matrix::from_cols`].
+/// This macro is deprecated. Use [`Matrix::from_columns`].
 ///
 /// # Examples
 ///
@@ -50,7 +50,7 @@ macro_rules! mat3 {
 ///
 /// The macro accepts 4 column vectors as arguments.
 ///
-/// This macro is deprecated. Use [`Matrix::from_cols`].
+/// This macro is deprecated. Use [`Matrix::from_columns`].
 ///
 /// # Examples
 ///
