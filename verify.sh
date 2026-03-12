@@ -49,6 +49,13 @@ build() {
         command_postfix+="--features \"$INTEGRATIONS\" "
     fi
 
+    # enable `libm` based on a different arbitrary condition to ensure that
+    # the crate compiles when both `std` and `libm` are enabled.
+    if [[ $overflow_checks == "on" && $assertions == "assertions" ]]
+    then
+        command_postfix+="--features \"libm\" "
+    fi
+
     run "$command_prefix cargo clippy $command_postfix"
     run "$command_prefix cargo doc $command_postfix"
 }
