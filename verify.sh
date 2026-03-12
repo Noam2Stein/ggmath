@@ -2,7 +2,7 @@
 
 set -e
 
-MAX_PROGRESS=57
+MAX_PROGRESS=105
 INTEGRATIONS="bytemuck fixed fixp mint serde wide"
 
 PROGRESS=0
@@ -30,26 +30,27 @@ build() {
     local assertions=$4
     local overflow_checks=$5
 
-    local command=""
+    local command_prefix=""
+    local command_postfix=""
 
-    command+="RUSTFLAGS=\"-C overflow-checks=$overflow_checks\" "
-    command+="cargo clippy --no-default-features "
-    command+="--features \"$backend $assertions\" "
-    command+="--target $target "
+    command_prefix+="RUSTFLAGS=\"-C overflow-checks=$overflow_checks\" "
+    command_postfix+="--no-default-features --features \"$backend $assertions\" "
+    command_postfix+="--target $target "
 
     if [[ $profile == "release" ]]
     then
-        command+="--release "
+        command_postfix+="--release "
     fi
 
     # enable integration features based on an arbitrary condition to ensure that
     # the crate compiles both with and without them.
     if [[ $overflow_checks == "on" ]]
     then
-        command+="--features \"$INTEGRATIONS\" "
+        command_postfix+="--features \"$INTEGRATIONS\" "
     fi
 
-    run "$command"
+    run "$command_prefix cargo clippy $command_postfix"
+    run "$command_prefix cargo doc $command_postfix"
 }
 
 test() {
