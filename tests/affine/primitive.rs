@@ -38,73 +38,27 @@ where
     assert!(align_of::<Affine<4, T, A>>() == align_of::<Matrix<4, T, A>>());
 
     assert_eq!(
-        Affine::<2, T, A>::from_cols(
-            Vector::<2, T, A>::new(x, y),
-            Vector::<2, T, A>::new(y, z),
-            Vector::<2, T, A>::new(z, x)
-        )
-        .to_col_array(),
-        [
-            Vector::<2, T, A>::new(x, y),
-            Vector::<2, T, A>::new(y, z),
-            Vector::<2, T, A>::new(z, x)
-        ]
-    );
-    assert_eq!(
-        Affine::<3, T, A>::from_cols(
-            Vector::<3, T, A>::new(x, y, z),
-            Vector::<3, T, A>::new(y, z, x),
-            Vector::<3, T, A>::new(z, x, y),
-            Vector::<3, T, A>::new(z, y, x)
-        )
-        .to_col_array(),
-        [
-            Vector::<3, T, A>::new(x, y, z),
-            Vector::<3, T, A>::new(y, z, x),
-            Vector::<3, T, A>::new(z, x, y),
-            Vector::<3, T, A>::new(z, y, x)
-        ]
-    );
-    assert_eq!(
-        Affine::<4, T, A>::from_cols(
-            Vector::<4, T, A>::new(x, y, z, x),
-            Vector::<4, T, A>::new(y, z, x, y),
-            Vector::<4, T, A>::new(z, x, y, z),
-            Vector::<4, T, A>::new(z, y, x, z),
-            Vector::<4, T, A>::new(z, z, y, x)
-        )
-        .to_col_array(),
-        [
-            Vector::<4, T, A>::new(x, y, z, x),
-            Vector::<4, T, A>::new(y, z, x, y),
-            Vector::<4, T, A>::new(z, x, y, z),
-            Vector::<4, T, A>::new(z, y, x, z),
-            Vector::<4, T, A>::new(z, z, y, x)
-        ]
-    );
-
-    assert_eq!(
-        Affine::<2, T, A>::from_col_array(&[
+        Affine::<2, T, A>::from_columns(&[
             Vector::<2, T, A>::new(x, y),
             Vector::<2, T, A>::new(y, z),
             Vector::<2, T, A>::new(z, x)
         ])
-        .to_col_array(),
-        [
+        .as_columns(),
+        &[
             Vector::<2, T, A>::new(x, y),
             Vector::<2, T, A>::new(y, z),
             Vector::<2, T, A>::new(z, x)
         ]
     );
     assert_eq!(
-        Affine::<3, T, A>::from_col_array(&[
+        Affine::<3, T, A>::from_columns(&[
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
             Vector::<3, T, A>::new(z, x, y),
             Vector::<3, T, A>::new(z, y, x)
         ])
-        .to_col_array(),
-        [
+        .as_columns(),
+        &[
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
             Vector::<3, T, A>::new(z, x, y),
@@ -112,15 +66,15 @@ where
         ]
     );
     assert_eq!(
-        Affine::<4, T, A>::from_col_array(&[
+        Affine::<4, T, A>::from_columns(&[
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
             Vector::<4, T, A>::new(z, x, y, z),
             Vector::<4, T, A>::new(z, y, x, z),
             Vector::<4, T, A>::new(z, z, y, x)
         ])
-        .to_col_array(),
-        [
+        .as_columns(),
+        &[
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
             Vector::<4, T, A>::new(z, x, y, z),
@@ -137,8 +91,8 @@ where
             ]),
             Vector::<2, T, A>::new(z, x)
         )
-        .to_col_array(),
-        [
+        .as_columns(),
+        &[
             Vector::<2, T, A>::new(x, y),
             Vector::<2, T, A>::new(y, z),
             Vector::<2, T, A>::new(z, x)
@@ -153,8 +107,8 @@ where
             ]),
             Vector::<3, T, A>::new(z, y, x)
         )
-        .to_col_array(),
-        [
+        .as_columns(),
+        &[
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
             Vector::<3, T, A>::new(z, x, y),
@@ -171,8 +125,8 @@ where
             ]),
             Vector::<4, T, A>::new(z, z, y, x)
         )
-        .to_col_array(),
-        [
+        .as_columns(),
+        &[
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
             Vector::<4, T, A>::new(z, x, y, z),
@@ -406,58 +360,12 @@ where
     );
 
     assert_eq!(
-        Affine::<2, T, A>::from_cols(
+        Affine::<2, T, A>::from_columns(&[
             Vector::<2, T, A>::new(x, y),
             Vector::<2, T, A>::new(y, z),
             Vector::<2, T, A>::new(z, x)
-        )
-        .as_col_array_ref(),
-        &[
-            Vector::<2, T, A>::new(x, y),
-            Vector::<2, T, A>::new(y, z),
-            Vector::<2, T, A>::new(z, x)
-        ]
-    );
-    assert_eq!(
-        Affine::<3, T, A>::from_cols(
-            Vector::<3, T, A>::new(x, y, z),
-            Vector::<3, T, A>::new(y, z, x),
-            Vector::<3, T, A>::new(z, x, y),
-            Vector::<3, T, A>::new(z, y, x)
-        )
-        .as_col_array_ref(),
-        &[
-            Vector::<3, T, A>::new(x, y, z),
-            Vector::<3, T, A>::new(y, z, x),
-            Vector::<3, T, A>::new(z, x, y),
-            Vector::<3, T, A>::new(z, y, x)
-        ]
-    );
-    assert_eq!(
-        Affine::<4, T, A>::from_cols(
-            Vector::<4, T, A>::new(x, y, z, x),
-            Vector::<4, T, A>::new(y, z, x, y),
-            Vector::<4, T, A>::new(z, x, y, z),
-            Vector::<4, T, A>::new(z, y, x, z),
-            Vector::<4, T, A>::new(z, z, y, x)
-        )
-        .as_col_array_ref(),
-        &[
-            Vector::<4, T, A>::new(x, y, z, x),
-            Vector::<4, T, A>::new(y, z, x, y),
-            Vector::<4, T, A>::new(z, x, y, z),
-            Vector::<4, T, A>::new(z, y, x, z),
-            Vector::<4, T, A>::new(z, z, y, x)
-        ]
-    );
-
-    assert_eq!(
-        Affine::<2, T, A>::from_cols(
-            Vector::<2, T, A>::new(x, y),
-            Vector::<2, T, A>::new(y, z),
-            Vector::<2, T, A>::new(z, x)
-        )
-        .as_col_array_mut(),
+        ])
+        .as_columns_mut(),
         &mut [
             Vector::<2, T, A>::new(x, y),
             Vector::<2, T, A>::new(y, z),
@@ -465,13 +373,13 @@ where
         ]
     );
     assert_eq!(
-        Affine::<3, T, A>::from_cols(
+        Affine::<3, T, A>::from_columns(&[
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
             Vector::<3, T, A>::new(z, x, y),
             Vector::<3, T, A>::new(z, y, x)
-        )
-        .as_col_array_mut(),
+        ])
+        .as_columns_mut(),
         &mut [
             Vector::<3, T, A>::new(x, y, z),
             Vector::<3, T, A>::new(y, z, x),
@@ -480,14 +388,14 @@ where
         ]
     );
     assert_eq!(
-        Affine::<4, T, A>::from_cols(
+        Affine::<4, T, A>::from_columns(&[
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
             Vector::<4, T, A>::new(z, x, y, z),
             Vector::<4, T, A>::new(z, y, x, z),
             Vector::<4, T, A>::new(z, z, y, x)
-        )
-        .as_col_array_mut(),
+        ])
+        .as_columns_mut(),
         &mut [
             Vector::<4, T, A>::new(x, y, z, x),
             Vector::<4, T, A>::new(y, z, x, y),
@@ -500,23 +408,23 @@ where
     assert_eq!(
         format!(
             "{:?}",
-            Affine::<2, T, A>::from_cols(
+            Affine::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(y, z),
                 Vector::<2, T, A>::new(z, x)
-            )
+            ])
         ),
         format!("[({x:?}, {y:?}), ({y:?}, {z:?}), ({z:?}, {x:?})]")
     );
     assert_eq!(
         format!(
             "{:?}",
-            Affine::<3, T, A>::from_cols(
+            Affine::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(y, z, x),
                 Vector::<3, T, A>::new(z, x, y),
                 Vector::<3, T, A>::new(z, y, x)
-            )
+            ])
         ),
         format!(
             "[({x:?}, {y:?}, {z:?}), ({y:?}, {z:?}, {x:?}), ({z:?}, {x:?}, {y:?}), ({z:?}, {y:?}, {x:?})]"
@@ -525,13 +433,13 @@ where
     assert_eq!(
         format!(
             "{:?}",
-            Affine::<4, T, A>::from_cols(
+            Affine::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, x),
                 Vector::<4, T, A>::new(y, z, x, y),
                 Vector::<4, T, A>::new(z, x, y, z),
                 Vector::<4, T, A>::new(z, y, x, z),
                 Vector::<4, T, A>::new(z, z, y, x)
-            )
+            ])
         ),
         format!(
             "[({x:?}, {y:?}, {z:?}, {x:?}), ({y:?}, {z:?}, {x:?}, {y:?}), ({z:?}, {x:?}, {y:?}, {z:?}), ({z:?}, {y:?}, {x:?}, {z:?}), ({z:?}, {z:?}, {y:?}, {x:?})]"
@@ -541,36 +449,36 @@ where
     assert_eq!(
         format!(
             "{}",
-            Affine::<2, T, A>::from_cols(
+            Affine::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(y, z),
                 Vector::<2, T, A>::new(z, x)
-            )
+            ])
         ),
         format!("[({x}, {y}), ({y}, {z}), ({z}, {x})]")
     );
     assert_eq!(
         format!(
             "{}",
-            Affine::<3, T, A>::from_cols(
+            Affine::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(y, z, x),
                 Vector::<3, T, A>::new(z, x, y),
                 Vector::<3, T, A>::new(z, y, x)
-            )
+            ])
         ),
         format!("[({x}, {y}, {z}), ({y}, {z}, {x}), ({z}, {x}, {y}), ({z}, {y}, {x})]")
     );
     assert_eq!(
         format!(
             "{}",
-            Affine::<4, T, A>::from_cols(
+            Affine::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, x),
                 Vector::<4, T, A>::new(y, z, x, y),
                 Vector::<4, T, A>::new(z, x, y, z),
                 Vector::<4, T, A>::new(z, y, x, z),
                 Vector::<4, T, A>::new(z, z, y, x)
-            )
+            ])
         ),
         format!(
             "[({x}, {y}, {z}, {x}), ({y}, {z}, {x}, {y}), ({z}, {x}, {y}, {z}), ({z}, {y}, {x}, {z}), ({z}, {z}, {y}, {x})]"

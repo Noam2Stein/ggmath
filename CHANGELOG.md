@@ -15,13 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Renamed matrix functions:
+- Renamed matrix and affine functions:
   - `from_col_array` to `from_columns`
   - `from_col_fn` to `from_column_fn`
   - `as_col_array_ref` to `as_columns`
   - `as_col_array_mut` to `as_columns_mut`
   - `col` to `column`
   - `col_mut` to `column_mut`
+
+- Replaced `Affine::from_cols` with `Affine::from_columns`.
 
 ### Deprecated
 

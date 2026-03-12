@@ -135,7 +135,7 @@ where
             // are the same type.
             2 => unsafe {
                 transmute_ref::<Affine<N, T, A>, Affine<2, T, A>>(self)
-                    .as_col_array_ref()
+                    .as_columns()
                     .serialize(serializer)
             },
 
@@ -143,7 +143,7 @@ where
             // are the same type.
             3 => unsafe {
                 transmute_ref::<Affine<N, T, A>, Affine<3, T, A>>(self)
-                    .as_col_array_ref()
+                    .as_columns()
                     .serialize(serializer)
             },
 
@@ -151,7 +151,7 @@ where
             // are the same type.
             4 => unsafe {
                 transmute_ref::<Affine<N, T, A>, Affine<4, T, A>>(self)
-                    .as_col_array_ref()
+                    .as_columns()
                     .serialize(serializer)
             },
 
@@ -174,7 +174,7 @@ where
             // are the same type.
             2 => unsafe {
                 transmute_generic::<Affine<2, T, A>, Affine<N, T, A>>(
-                    Affine::<2, T, A>::from_col_array(&Deserialize::deserialize(deserializer)?),
+                    Affine::<2, T, A>::from_columns(&Deserialize::deserialize(deserializer)?),
                 )
             },
 
@@ -182,7 +182,7 @@ where
             // are the same type.
             3 => unsafe {
                 transmute_generic::<Affine<3, T, A>, Affine<N, T, A>>(
-                    Affine::<3, T, A>::from_col_array(&Deserialize::deserialize(deserializer)?),
+                    Affine::<3, T, A>::from_columns(&Deserialize::deserialize(deserializer)?),
                 )
             },
 
@@ -190,7 +190,7 @@ where
             // are the same type.
             4 => unsafe {
                 transmute_generic::<Affine<4, T, A>, Affine<N, T, A>>(
-                    Affine::<4, T, A>::from_col_array(&Deserialize::deserialize(deserializer)?),
+                    Affine::<4, T, A>::from_columns(&Deserialize::deserialize(deserializer)?),
                 )
             },
 
