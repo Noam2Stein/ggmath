@@ -1,3 +1,5 @@
+use crate::num_primitive::PrimitiveFloat;
+
 /// An extension trait for float primitives.
 pub trait FloatExt {
     /// Computes the linear interpolation between `self` and `other` based on
@@ -10,15 +12,9 @@ pub trait FloatExt {
     fn lerp(self, other: Self, t: Self) -> Self;
 }
 
-macro_rules! float_impl {
-    ($T:ident) => {
-        impl FloatExt for $T {
-            #[inline]
-            fn lerp(self, other: Self, t: Self) -> Self {
-                self * (1.0 - t) + other * t
-            }
-        }
-    };
+impl<T: PrimitiveFloat> FloatExt for T {
+    #[inline]
+    fn lerp(self, other: Self, t: Self) -> Self {
+        self * (T::as_from(1.0) - t) + other * t
+    }
 }
-float_impl!(f32);
-float_impl!(f64);

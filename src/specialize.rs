@@ -1,6 +1,6 @@
 use crate::{
     Affine, Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector,
-    transmute::transmute_generic,
+    num_primitive::PrimitiveFloat, transmute::transmute_generic,
 };
 
 /// Bypasses a limitation of const generics to do specialization.
@@ -157,6 +157,16 @@ where
 /// `Self` must be the same type as `T2`.
 unsafe trait Specialize<T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
 where
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `T == T` regardless of `N` and `A`.
+unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<T, N, N2, A, A2> for T
+where
+    T: PrimitiveFloat,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -405,8 +415,6 @@ macro_rules! impl_specialzie {
     };
 }
 impl_specialzie!(
-    f32,
-    f64,
     i8,
     i16,
     i32,

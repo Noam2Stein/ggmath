@@ -4,8 +4,8 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 use crate::{
-    Aligned, F32VectorBackend, Mask, Mask3, Mask4, ScalarBackend, Unaligned, Vec3, Vec4, Vector,
-    safe_arch::safe_arch,
+    Aligned, Mask, Mask3, Mask4, PrimitiveFloatBackend, ScalarBackend, Unaligned, Vec3, Vec4,
+    Vector, safe_arch::safe_arch,
 };
 
 impl ScalarBackend<2, Aligned> for f32 {}
@@ -166,9 +166,9 @@ impl ScalarBackend<2, Unaligned> for f32 {}
 impl ScalarBackend<3, Unaligned> for f32 {}
 impl ScalarBackend<4, Unaligned> for f32 {}
 
-impl F32VectorBackend<2, Aligned> for f32 {}
+impl PrimitiveFloatBackend<2, Aligned> for f32 {}
 
-impl F32VectorBackend<3, Aligned> for f32 {
+impl PrimitiveFloatBackend<3, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
@@ -281,7 +281,7 @@ impl F32VectorBackend<3, Aligned> for f32 {
     }
 }
 
-impl F32VectorBackend<4, Aligned> for f32 {
+impl PrimitiveFloatBackend<4, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
@@ -394,9 +394,9 @@ impl F32VectorBackend<4, Aligned> for f32 {
     }
 }
 
-impl F32VectorBackend<2, Unaligned> for f32 {}
-impl F32VectorBackend<3, Unaligned> for f32 {}
-impl F32VectorBackend<4, Unaligned> for f32 {}
+impl PrimitiveFloatBackend<2, Unaligned> for f32 {}
+impl PrimitiveFloatBackend<3, Unaligned> for f32 {}
+impl PrimitiveFloatBackend<4, Unaligned> for f32 {}
 
 #[inline]
 #[target_feature(enable = "sse2")]

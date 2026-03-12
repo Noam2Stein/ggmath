@@ -1,7 +1,7 @@
 use crate::{
-    Alignment, F64VectorBackend, I8VectorBackend, I16VectorBackend, I32VectorBackend,
-    I64VectorBackend, I128VectorBackend, IsizeVectorBackend, Length, Mask, MaskBackend, Scalar,
-    ScalarBackend, ScalarRepr, SupportedLength, U8VectorBackend, U16VectorBackend,
+    Alignment, I8VectorBackend, I16VectorBackend, I32VectorBackend, I64VectorBackend,
+    I128VectorBackend, IsizeVectorBackend, Length, Mask, MaskBackend, PrimitiveFloatBackend,
+    Scalar, ScalarBackend, ScalarRepr, SupportedLength, U8VectorBackend, U16VectorBackend,
     U32VectorBackend, U64VectorBackend, U128VectorBackend, UsizeVectorBackend, Vector,
     repr::{Repr2, Repr3, Repr4, Repr5},
 };
@@ -34,7 +34,10 @@ impl<const N: usize, A: Alignment> ScalarBackend<N, A> for usize where Length<N>
 
 impl<const N: usize, A: Alignment> ScalarBackend<N, A> for bool where Length<N>: SupportedLength {}
 
-impl<const N: usize, A: Alignment> F64VectorBackend<N, A> for f64 where Length<N>: SupportedLength {}
+impl<const N: usize, A: Alignment> PrimitiveFloatBackend<N, A> for f64 where
+    Length<N>: SupportedLength
+{
+}
 
 impl<const N: usize, A: Alignment> I8VectorBackend<N, A> for i8 where Length<N>: SupportedLength {}
 

@@ -26,8 +26,7 @@ pub use scalar::*;
 pub use vector::*;
 
 mod backend_impls;
-#[cfg(feature = "libm")]
-mod libm;
+mod num_primitive;
 mod repr;
 mod safe_arch;
 mod specialize;

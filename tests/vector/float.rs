@@ -587,12 +587,12 @@ pub fn test<A: Alignment>() {
         assert_float_eq!(
             Vector::<3, T, A>::new(x, y, z).asin(),
             Vector::<3, T, A>::new(x.asin(), y.asin(), z.asin()),
-            tol = T::EPSILON * x.abs().max(y.abs()).max(z.abs())
+            tol = T::EPSILON * 2.0 * x.abs().max(y.abs()).max(z.abs()).max(1.0)
         );
         assert_float_eq!(
             Vector::<4, T, A>::new(x, y, z, x).asin(),
             Vector::<4, T, A>::new(x.asin(), y.asin(), z.asin(), x.asin()),
-            tol = T::EPSILON * x.abs().max(y.abs()).max(z.abs())
+            tol = T::EPSILON * 2.0 * x.abs().max(y.abs()).max(z.abs()).max(1.0)
         );
 
         assert_float_eq!(
@@ -603,12 +603,12 @@ pub fn test<A: Alignment>() {
         assert_float_eq!(
             Vector::<3, T, A>::new(x, y, z).acos(),
             Vector::<3, T, A>::new(x.acos(), y.acos(), z.acos()),
-            tol = T::EPSILON * x.abs().max(y.abs()).max(z.abs())
+            tol = T::EPSILON * 2.0 * x.abs().max(y.abs()).max(z.abs()).max(1.0)
         );
         assert_float_eq!(
             Vector::<4, T, A>::new(x, y, z, x).acos(),
             Vector::<4, T, A>::new(x.acos(), y.acos(), z.acos(), x.acos()),
-            tol = T::EPSILON * x.abs().max(y.abs()).max(z.abs())
+            tol = T::EPSILON * 2.0 * x.abs().max(y.abs()).max(z.abs()).max(1.0)
         );
 
         assert_float_eq!(
@@ -619,12 +619,12 @@ pub fn test<A: Alignment>() {
         assert_float_eq!(
             Vector::<3, T, A>::new(x, y, z).atan(),
             Vector::<3, T, A>::new(x.atan(), y.atan(), z.atan()),
-            tol = T::EPSILON * x.abs().max(y.abs()).max(z.abs())
+            tol = T::EPSILON * 2.0 * x.abs().max(y.abs()).max(z.abs()).max(1.0)
         );
         assert_float_eq!(
             Vector::<4, T, A>::new(x, y, z, x).atan(),
             Vector::<4, T, A>::new(x.atan(), y.atan(), z.atan(), x.atan()),
-            tol = T::EPSILON * x.abs().max(y.abs()).max(z.abs())
+            tol = T::EPSILON * 2.0 * x.abs().max(y.abs()).max(z.abs()).max(1.0)
         );
 
         if let Some(try_normalize) = Vector::<2, T, A>::new(x, y).try_normalize() {

@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Replaced `Affine::from_cols` with `Affine::from_columns`.
 
+- Fused `f32` and `f64` functionality into a single generic implementation. This
+  doesn't have much effect except for making generated documentation clearer.
+
 ### Deprecated
 
 - Macros `vec2`, `vec3`, `vec4`, `mat2`, `mat3`, `mat4`. Use `Vector::new` and
