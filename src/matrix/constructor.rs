@@ -1,19 +1,20 @@
 use crate::{Alignment, Matrix, Scalar, Vector};
 
-/// Creates a 2x2 column major matrix from the provided arguments.
+/// Creates a 2x2 column-major matrix from the provided arguments.
 ///
 /// The macro accepts 2 column vectors as arguments.
 ///
-/// This macro is deprecated. Use [`Matrix::from_columns`].
+/// This macro has been replaced by [`Matrix::from_columns`] and will be removed
+/// in a future version.
 ///
 /// # Examples
 ///
 /// ```
-/// use ggmath::{Mat2, mat2, vec2};
-///
+/// # use ggmath::{Mat2, mat2, vec2};
+/// #
 /// let double: Mat2<f32> = mat2!(vec2!(2.0, 0.0), vec2!(0.0, 2.0));
 /// ```
-#[deprecated(since = "0.16.3", note = "use `Matrix::from_cols` instead")]
+#[deprecated(since = "0.16.3", note = "replaced by `Matrix::from_columns`")]
 #[macro_export]
 macro_rules! mat2 {
     ($($arg:expr),*$(,)?) => {
@@ -21,24 +22,25 @@ macro_rules! mat2 {
     };
 }
 
-/// Creates a 3x3 column major matrix from the provided arguments.
+/// Creates a 3x3 column-major matrix from the provided arguments.
 ///
 /// The macro accepts 3 column vectors as arguments.
 ///
-/// This macro is deprecated. Use [`Matrix::from_columns`].
+/// This macro has been replaced by [`Matrix::from_columns`] and will be removed
+/// in a future version.
 ///
 /// # Examples
 ///
 /// ```
-/// use ggmath::{Mat3, mat3, vec3};
-///
+/// # use ggmath::{Mat3, mat3, vec3};
+/// #
 /// let double: Mat3<f32> = mat3!(
 ///     vec3!(2.0, 0.0, 0.0),
 ///     vec3!(0.0, 2.0, 0.0),
 ///     vec3!(0.0, 0.0, 2.0)
 /// );
 /// ```
-#[deprecated(since = "0.16.3", note = "use `Matrix::from_cols` instead")]
+#[deprecated(since = "0.16.3", note = "replaced by `Matrix::from_columns`")]
 #[macro_export]
 macro_rules! mat3 {
     ($($arg:expr),*$(,)?) => {
@@ -46,17 +48,18 @@ macro_rules! mat3 {
     };
 }
 
-/// Creates a 4x4 column major matrix from the provided arguments.
+/// Creates a 4x4 column-major matrix from the provided arguments.
 ///
 /// The macro accepts 4 column vectors as arguments.
 ///
-/// This macro is deprecated. Use [`Matrix::from_columns`].
+/// This macro has been replaced by [`Matrix::from_columns`] and will be removed
+/// in a future version.
 ///
 /// # Examples
 ///
 /// ```
-/// use ggmath::{Mat4, mat4, vec4};
-///
+/// # use ggmath::{Mat4, mat4, vec4};
+/// #
 /// let double: Mat4<f32> = mat4!(
 ///     vec4!(2.0, 0.0, 0.0, 0.0),
 ///     vec4!(0.0, 2.0, 0.0, 0.0),
@@ -64,7 +67,7 @@ macro_rules! mat3 {
 ///     vec4!(0.0, 0.0, 0.0, 2.0)
 /// );
 /// ```
-#[deprecated(since = "0.16.3", note = "use `Matrix::from_cols` instead")]
+#[deprecated(since = "0.16.3", note = "replaced by `Matrix::from_columns`")]
 #[macro_export]
 macro_rules! mat4 {
     ($($arg:expr),*$(,)?) => {

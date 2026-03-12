@@ -10,28 +10,46 @@ use crate::{
     transmute::{transmute_mut, transmute_ref},
 };
 
-/// A quaternion representing an orientation.
+/// A quaternion representing an orientation of type `T`.
 ///
-/// Note: `Quaternion` is currently missing most of its functionality.
+/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// [`Alignment`] for more details.
+///
+/// Quaternions are currently missing most functionality.
 ///
 /// This quaternion is intended to be of unit length but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
 ///
-/// `Quaternion` is the generic form of:
+/// # Type aliases
 ///
-/// - [`Quat<T>`](crate::Quat)
-/// - [`QuatU<T>`](crate::QuatU)
+/// - [`Quat<T>`] for `Quaternion<T, Aligned>`.
+/// - [`QuatU<T>`] for `Quaternion<T, Unaligned>`.
 ///
-/// `Quaternion` is generic over:
+/// # Fields
 ///
-/// - `T`: Scalar type (see [`Scalar`])
-/// - `A`: Alignment (see [`Alignment`])
+/// `x: T`
 ///
-/// # Guarantees
+/// The first imaginary component of the quaternion.
 ///
-/// `Quaternion<T, A>` is a transparent wrapper around `Vector<4, T, A>`, and
-/// thus inherits its guarantees.
+/// `y: T`
+///
+/// The second imaginary component of the quaternion.
+///
+/// `z: T`
+///
+/// The third imaginary component of the quaternion.
+///
+/// `w: T`
+///
+/// The real part of the quaternion.
+///
+/// # Memory layout
+///
+/// `Quaternion<T, A>` is a transparent wrapper around `Vector<4, T, A>`.
+///
+/// [`Quat<T>`]: crate::Quat
+/// [`QuatU<T>`]: crate::QuatU
 #[repr(transparent)]
 pub struct Quaternion<T, A: Alignment>(Vector<4, T, A>)
 where
@@ -41,7 +59,12 @@ impl<T, A: Alignment> Quaternion<T, A>
 where
     T: Scalar + Zero,
 {
-    /// All `0.0`.
+    /// A quaternion with all elements set to `0`.
+    ///
+    /// This does not represent a valid rotation. See [`IDENTITY`] for a
+    /// quaternion with no rotation.
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
     pub const ZERO: Self = Self::from_vec(Vector::ZERO);
 }
 
@@ -49,7 +72,7 @@ impl<T, A: Alignment> Quaternion<T, A>
 where
     T: Scalar + Zero + One,
 {
-    /// The identity quaternion. Corresponds to no rotation.
+    /// A quaternion with no rotation.
     pub const IDENTITY: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::ONE]);
 }
 
@@ -57,7 +80,7 @@ impl<T, A: Alignment> Quaternion<T, A>
 where
     T: Scalar + Nan,
 {
-    /// All NaNs (Not a Number).
+    /// A quaternion with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_vec(Vector::NAN);
 }
 
@@ -65,30 +88,25 @@ impl<T, A: Alignment> Quaternion<T, A>
 where
     T: Scalar,
 {
-    /// Creates a rotation quaternion.
-    ///
-    /// This is currently the only way to initialize a quaternion. In the future
-    /// there will be mathamatical constructors that are recommended over this
-    /// one.
+    /// Creates a rotation quaternion from its `x`, `y`, `z` and `w` elements.
     ///
     /// # Unchecked
     ///
-    /// This function does not check if the input is normalized. It is up to the
-    /// user to provide normalized input or to normalize the resulting
-    /// quaternion.
+    /// This does not check that the input is normalized. It is up to the user
+    /// to provide normalized input or to normalize the resulting quaternion.
     #[inline]
     #[must_use]
     pub const fn new(x: T, y: T, z: T, w: T) -> Self {
         Self(Vector::<4, T, A>::new(x, y, z, w))
     }
 
-    /// Creates a rotation quaternion from an array.
+    /// Creates a rotation quaternion from an array containing `x`, `y`, `z` and
+    /// `w`.
     ///
     /// # Unchecked
     ///
-    /// This function does not check if the input is normalized. It is up to the
-    /// user to provide normalized input or to normalize the resulting
-    /// quaternion.
+    /// This does not check that the input is normalized. It is up to the user
+    /// to provide normalized input or to normalize the resulting quaternion.
     #[inline]
     #[must_use]
     pub const fn from_array(array: [T; 4]) -> Self {
@@ -99,57 +117,96 @@ where
     ///
     /// # Unchecked
     ///
-    /// This function does not check if the input is normalized. It is up to the
-    /// user to provide normalized input or to normalize the resulting
-    /// quaternion.
+    /// This does not check that the input is normalized. It is up to the user
+    /// to provide normalized input or to normalize the resulting quaternion.
     #[inline]
     #[must_use]
     pub const fn from_vec(vec: Vector<4, T, A>) -> Self {
         Self(vec)
     }
 
-    /// Converts the quaternion to the specified alignment.
+    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`align`] and [`unalign`] for scenarios where the output alignment
+    /// is known.
+    ///
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
+    /// #
+    /// let aligned = Quat::new(0.5, 0.5, 0.5, 0.5);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, QuatU::new(0.5, 0.5, 0.5, 0.5));
+    ///
+    /// let unaligned = QuatU::new(0.5, 0.5, 0.5, 0.5);
+    /// let aligned = unaligned.to_alignment::<Aligned>();
+    /// assert_eq!(aligned, Quat::new(0.5, 0.5, 0.5, 0.5));
+    /// ```
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(self) -> Quaternion<T, A2> {
         Quaternion(self.0.to_alignment())
     }
 
-    /// Converts the quaternion to [`Aligned`] alignment.
+    /// Conversion to [`Aligned`] storage.
     ///
     /// See [`Alignment`] for more information.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
+    /// #
+    /// let unaligned = QuatU::new(0.5, 0.5, 0.5, 0.5);
+    /// let aligned = unaligned.align();
+    /// assert_eq!(aligned, Quat::new(0.5, 0.5, 0.5, 0.5));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn align(self) -> Quaternion<T, Aligned> {
         Quaternion(self.0.align())
     }
 
-    /// Converts the quaternion to [`Unaligned`] alignment.
+    /// Conversion to [`Unaligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
+    /// #
+    /// let aligned = Quat::new(0.5, 0.5, 0.5, 0.5);
+    /// let unaligned = aligned.unalign();
+    /// assert_eq!(unaligned, QuatU::new(0.5, 0.5, 0.5, 0.5));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn unalign(self) -> Quaternion<T, Unaligned> {
         Quaternion(self.0.unalign())
     }
 
-    /// Converts the quaternion to an array.
+    /// Converts the quaternion to an array containing `x`, `y`, `z` and `w`.
     #[inline]
     #[must_use]
     pub const fn to_array(self) -> [T; 4] {
         self.0.to_array()
     }
 
-    /// Returns a reference to the quaternion's components.
+    /// Returns a reference to the quaternion's elements.
     #[inline]
     #[must_use]
     pub const fn as_array_ref(&self) -> &[T; 4] {
         self.0.as_array_ref()
     }
 
-    /// Returns a mutable reference to the quaternion's components.
+    /// Returns a mutable reference to the quaternion's elements.
     #[inline]
     #[must_use]
     pub const fn as_array_mut(&mut self) -> &mut [T; 4] {
@@ -177,22 +234,49 @@ where
         &mut self.0
     }
 
-    /// Reinterprets the bits of the quaternion to a different scalar type.
+    /// Raw transmutation between scalar types.
     ///
-    /// The two scalar types must have compatible memory layouts. This is
-    /// enforced via trait bounds in this function's signature.
+    /// This function's signature staticly guarantees that the types have
+    /// compatible memory layouts.
     ///
-    /// The function `to_repr` for vectors, matrices and affine transformations
-    /// is used to make SIMD optimizations in implementations of [`Scalar`]. It
-    /// exists for quaternions for consistency's sake.
+    /// This function is used to make SIMD optimizations in implementations of
+    /// [`Scalar`].
     ///
     /// # Safety
     ///
-    /// The components of the input must be valid for the output quaternion
-    /// type.
+    /// The elements of `self` must contain bit patterns that are valid for the
+    /// output type. For example, when converting quaternions from `u8` to
+    /// `bool`, the input elements must be either `0` or `1` (that example is
+    /// unconventional, but the rule applies for any scalar that does not accept
+    /// all bit patterns).
     ///
-    /// For example, when converting quaternions from `u8` to `bool` the input
-    /// components must be either `0` or `1`.
+    /// The padding does not need to contain valid values of the output type.
+    ///
+    /// # Examples
+    ///
+    /// Correct usage:
+    ///
+    /// ```
+    /// # use ggmath::Quat;
+    /// #
+    /// let bits = Quat::<u8>::new(1, 0, 0, 1);
+    ///
+    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
+    /// let bools = unsafe { bits.to_repr::<bool>() };
+    ///
+    /// assert_eq!(bools, Quat::new(true, false, false, true));
+    /// ```
+    ///
+    /// Incorrect usage:
+    ///
+    /// ```compile_fail
+    /// # use ggmath::Quat;
+    /// #
+    /// let a = Quat::<i32>::new(1, 2, 3, 4);
+    ///
+    /// // This does not compile since `i32` and `i64` are not compatible.
+    /// let _ = unsafe { a.to_repr::<i64>() };
+    /// ```
     #[inline]
     #[must_use]
     #[expect(private_bounds)]
@@ -220,13 +304,13 @@ impl<T, A: Alignment> Copy for Quaternion<T, A> where T: Scalar {}
 #[doc(hidden)]
 #[repr(C)]
 pub struct QuatFields<T> {
-    /// The first component of the quaternion.
+    /// The first imaginary component of the quaternion.
     pub x: T,
-    /// The second component of the quaternion.
+    /// The second imaginary component of the quaternion.
     pub y: T,
-    /// The third component of the quaternion.
+    /// The third imaginary component of the quaternion.
     pub z: T,
-    /// The fourth component of the quaternion.
+    /// The real part of the quaternion.
     pub w: T,
 }
 
@@ -343,8 +427,9 @@ where
     ///
     /// The sum is not guaranteed to be normalized.
     ///
-    /// Note that addition is not the same as combining the rotations represented by the
-    /// two quaternions! That corresponds to multiplication (not implemented yet).
+    /// Note that addition is not the same as combining the rotations
+    /// represented by the two quaternions. That corresponds to multiplication
+    /// (not implemented yet).
     #[inline]
     #[track_caller]
     fn add(self, rhs: Self) -> Self::Output {
@@ -392,8 +477,9 @@ where
     ///
     /// The sum is not guaranteed to be normalized.
     ///
-    /// Note that addition is not the same as combining the rotations represented by the
-    /// two quaternions! That corresponds to multiplication (not implemented yet).
+    /// Note that addition is not the same as combining the rotations
+    /// represented by the two quaternions. That corresponds to multiplication
+    /// (not implemented yet).
     #[inline]
     #[track_caller]
     fn add_assign(&mut self, rhs: Self) {

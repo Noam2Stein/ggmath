@@ -1,51 +1,17 @@
-/// Marker type representing the length of a math type.
+/// A marker type to restrict `const N: usize` to `2`, `3` and `4`.
 ///
-/// For simplicity's sake, math types like [`Vector`](crate::Vector) do not support
-/// arbitrary lengths. Supporting types like `Vec10<T>` would quickly lead to
-/// excessive API bloat. Instead, all math types must have a length of either 2,
-/// 3, or 4.
+/// `Length<N>` and [`SupportedLength`] are markers used by types like
+/// [`Vector<N, T, A>`] to restrict `N` to `2`, `3` and `4`.
 ///
-/// This restriction is enforced in the type system by implementing the
-/// marker trait [`SupportedLength`] for the types `Length<2>`, `Length<3>`,
-/// `Length<4>`.
-///
-/// # Usage
-///
-/// ```
-/// use ggmath::{Length, SupportedLength};
-///
-/// struct MathType<const N: usize>
-/// where
-///     Length<N>: SupportedLength,
-/// {
-///     // ...
-/// }
-/// ```
+/// [`Vector<N, T, A>`]: crate::Vector
 pub struct Length<const N: usize>;
 
-/// Marker trait restricting the length of math types.
+/// A marker trait to restrict `const N: usize` to `2`, `3` and `4`.
 ///
-/// For simplicity's sake, math types like [`Vector`](crate::Vector) do not support
-/// arbitrary lengths. Supporting types like `Vec10<T>` would quickly lead to
-/// excessive API bloat. Instead, all math types must have a length of either 2,
-/// 3, or 4.
+/// [`Length<N>`] and `SupportedLength` are markers used by types like
+/// [`Vector<N, T, A>`] to restrict `N` to `2`, `3` and `4`.
 ///
-/// This restriction is enforced in the type system by implementing the
-/// marker trait [`SupportedLength`] for the types `Length<2>`, `Length<3>`,
-/// `Length<4>`.
-///
-/// # Usage
-///
-/// ```
-/// use ggmath::{Length, SupportedLength};
-///
-/// struct MathType<const N: usize>
-/// where
-///     Length<N>: SupportedLength,
-/// {
-///     // ...
-/// }
-/// ```
+/// [`Vector<N, T, A>`]: crate::Vector
 #[expect(private_bounds)]
 pub trait SupportedLength: Sealed {
     #[doc(hidden)]

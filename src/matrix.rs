@@ -15,54 +15,81 @@ use crate::{
 
 mod constructor;
 
-/// A square column major matrix.
+/// An `N`x`N` column-major matrix of type `T`.
 ///
-/// `Matrix` is the generic form of:
+/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// [`Alignment`] for more details.
 ///
-/// - [`Mat2<T>`](crate::Mat2)
-/// - [`Mat3<T>`](crate::Mat3)
-/// - [`Mat4<T>`](crate::Mat4)
-/// - [`Mat2U<T>`](crate::Mat2U)
-/// - [`Mat3U<T>`](crate::Mat3U)
-/// - [`Mat4U<T>`](crate::Mat4U)
+/// Matrices are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
 ///
-/// `Matrix` is generic over:
+/// # Type aliases
 ///
-/// - `N`: Length (2, 3, or 4)
-/// - `T`: Scalar type (see [`Scalar`])
-/// - `A`: Alignment (see [`Alignment`])
+/// - [`Mat2<T>`] for `Matrix<2, T, Aligned>`.
+/// - [`Mat3<T>`] for `Matrix<3, T, Aligned>`.
+/// - [`Mat4<T>`] for `Matrix<4, T, Aligned>`.
+/// - [`Mat2U<T>`] for `Matrix<2, T, Unaligned>`.
+/// - [`Mat3U<T>`] for `Matrix<3, T, Unaligned>`.
+/// - [`Mat4U<T>`] for `Matrix<4, T, Unaligned>`.
 ///
-/// To initialize matrices, use the macros [`mat2`](crate::mat2),
-/// [`mat3`](crate::mat3), [`mat4`](crate::mat4). To initialize a matrix of an
-/// unknown length, use [`Matrix::from_col_array`].
+/// # Fields
 ///
-/// # Guarantees
+/// `x_axis: Vector<N, T, Aligned>` (for lengths `2`, `3`, `4`)
 ///
-/// `Matrix<N, T, A>` represents `N` consecutive values of `Vector<N, T, A>`
-/// followed by optional padding due to alignment.
+/// The first column of the matrix.
 ///
-/// Padding bytes are initialized and accept any bit-pattern. It is **sound** to
-/// store any bit-pattern in padding, and it is **unsound** to assume that
-/// padding contains valid values of `T` unless `T` accepts all bit-patterns.
+/// This represents the result of multiplying the matrix by `Vector::X`.
 ///
-/// - `Matrix<N, T, Unaligned>`: has no padding, has no additional alignment.
+/// `y_axis: Vector<N, T, Aligned>` (for lengths `2`, `3`, `4`)
 ///
-/// - `Matrix<2, T, Aligned>`: has memory layout identical to
-///   `Vector<4, T, Aligned>`.
+/// The second column of the matrix.
 ///
-/// - `Matrix<3, T, Aligned>`: may have one padding vector, may have additional
-///   alignment.
+/// This represents the result of multiplying the matrix by `Vector::Y`.
 ///
-/// - `Matrix<4, T, Aligned>`: has no padding, may have additional alignment.
+/// `z_axis: Vector<N, T, Aligned>` (for lengths `3`, `4`)
 ///
-/// Matrices of scalar types with the same [`Scalar::Repr`] are guaranteed to
-/// have compatible memory layouts, unless `Repr = ()`. They are guaranteed to
-/// have the same size and element positions, but their alignment may differ.
+/// The third column of the matrix.
 ///
-/// Types containing `Matrix` are **not guaranteed** to have the same memory
-/// layout as types containing equivalent arrays. For example, even though
-/// `Mat2U<T>` and `[T; 4]` have the same memory layout, `Option<Mat2U<T>>` and
-/// `Option<[T; 4]>` may not.
+/// This represents the result of multiplying the matrix by `Vector::Z`.
+///
+/// `w_axis: Vector<N, T, Aligned>` (for lengths `4`)
+///
+/// The fourth column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `Vector::W`.
+///
+/// # Memory layout
+///
+/// `Matrix<N, T, A>` contains `N` consecutive values of [`Vector<N, T, A>`]
+/// followed by optional padding.
+///
+/// `Matrix<N, T, Unaligned>` has the alignment of `T` and has no padding.
+/// `Matrix<N, T, Aligned>` may have higher alignment than
+/// [`Vector<N, T, Aligned>`]. [`Mat2<T>`] has the exact layout of [`Vec4<T>`].
+/// [`Mat3<T>`] may have one padding vector. [`Mat4<T>`] has no padding.
+///
+/// Padding is fully initialized and accepts all bit patterns. Unless `T`
+/// accepts all bit patterns, it is not sound to assume padding contains valid
+/// values of `T`.
+///
+/// Matrices of compatible [`Scalar::Repr`] types have the same size. This means
+/// that they are transmutable, but can still have different alignments (see
+/// [`to_repr`]).
+///
+/// Types containing compatible matrices, vectors and arrays may not have
+/// compatible layouts themselves. For example, even though [`Mat2<T>`] and
+/// [`Vec4<T>`] have compatible layouts, [`Option<Mat2<T>>`] and
+/// [`Option<Vec4<T>>`] may not.
+///
+/// [`from_columns`]: Self::from_columns
+/// [`Mat2<T>`]: crate::Mat2
+/// [`Mat3<T>`]: crate::Mat3
+/// [`Mat4<T>`]: crate::Mat4
+/// [`Mat2U<T>`]: crate::Mat2U
+/// [`Mat3U<T>`]: crate::Mat3U
+/// [`Mat4U<T>`]: crate::Mat4U
+/// [`Vec4<T>`]: crate::Vec4
+/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::MatrixRepr<N, T, A>,
@@ -76,7 +103,12 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Zero,
 {
-    /// A matrix with all cells set to `0.0`.
+    /// A matrix with all elements set to `0`.
+    ///
+    /// This transforms all vectors to a zero vector. See [`IDENTITY`] for a
+    /// matrix with no transformation.
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
     pub const ZERO: Self = Self::from_columns(&[Vector::ZERO; N]);
 }
 
@@ -85,8 +117,9 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Zero + One,
 {
-    /// The identity matrix, where diagonal cells are `1` and all other cells
-    /// are `0`. Corresponds to no transformation.
+    /// A matrix with no transformation.
+    ///
+    /// `IDENTITY` diagonal elements are `1` and all other elements are `0`.
     pub const IDENTITY: Self = Self::from_diagonal(Vector::ONE);
 }
 
@@ -95,7 +128,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Nan,
 {
-    /// A matrix where all cells are NaNs (Not a Number).
+    /// A matrix with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_columns(&[Vector::NAN; N]);
 }
 
@@ -104,7 +137,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    /// Creates a matrix from an array of columns.
+    /// Creates a matrix from an array of column vectors.
     #[inline]
     #[must_use]
     pub const fn from_columns(columns: &[Vector<N, T, A>; N]) -> Self {
@@ -155,7 +188,21 @@ where
 
     /// Creates a matrix by calling function `f` for each column index.
     ///
-    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column.
+    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column
+    /// vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let mat = Mat4::from_column_fn(|i| Vec4::new(i, i, i, 0));
+    ///
+    /// assert_eq!(mat.column(0), Vec4::new(0, 0, 0, 0));
+    /// assert_eq!(mat.column(1), Vec4::new(1, 1, 1, 0));
+    /// assert_eq!(mat.column(2), Vec4::new(2, 2, 2, 0));
+    /// assert_eq!(mat.column(3), Vec4::new(3, 3, 3, 0));
+    /// ```
     #[inline]
     #[must_use]
     #[track_caller]
@@ -166,7 +213,26 @@ where
         Self::from_columns(&core::array::from_fn(f))
     }
 
-    /// Creates a matrix with its diagonal set to `diagonal` and all other entries set to 0.
+    /// Creates a matrix with the diagonal set to `diagonal` and all other
+    /// elements set to `0`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let mat = Mat4::from_diagonal(Vec4::new(2, 2, 2, 1));
+    ///
+    /// assert_eq!(mat.column(0), Vec4::new(2, 0, 0, 0));
+    /// assert_eq!(mat.column(1), Vec4::new(0, 2, 0, 0));
+    /// assert_eq!(mat.column(2), Vec4::new(0, 0, 2, 0));
+    /// assert_eq!(mat.column(3), Vec4::new(0, 0, 0, 1));
+    ///
+    /// assert_eq!(mat.row(0), Vec4::new(2, 0, 0, 0));
+    /// assert_eq!(mat.row(1), Vec4::new(0, 2, 0, 0));
+    /// assert_eq!(mat.row(2), Vec4::new(0, 0, 2, 0));
+    /// assert_eq!(mat.row(3), Vec4::new(0, 0, 0, 1));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn from_diagonal(diagonal: Vector<N, T, A>) -> Self
@@ -234,9 +300,29 @@ where
         }
     }
 
-    /// Converts the matrix to the specified alignment.
+    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`align`] and [`unalign`] for scenarios where the output alignment
+    /// is known.
+    ///
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Aligned, Mat2, Mat2U, Unaligned, Vec2, Vec2U};
+    /// #
+    /// let aligned = Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]));
+    ///
+    /// let unaligned = Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
+    /// let aligned = unaligned.to_alignment::<Aligned>();
+    /// assert_eq!(aligned, Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]));
+    /// ```
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Matrix<N, T, A2> {
@@ -268,18 +354,38 @@ where
         }
     }
 
-    /// Converts the matrix to [`Aligned`] alignment.
+    /// Conversion to [`Aligned`] storage.
     ///
     /// See [`Alignment`] for more information.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat2U, Vec2, Vec2U};
+    /// #
+    /// let unaligned = Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
+    /// let aligned = unaligned.align();
+    /// assert_eq!(aligned, Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn align(&self) -> Matrix<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Converts the matrix to [`Unaligned`] alignment.
+    /// Conversion to [`Unaligned`] storage.
     ///
     /// See [`Alignment`] for more information.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Mat2U, Vec2, Vec2U};
+    /// #
+    /// let aligned = Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
+    /// let unaligned = aligned.unalign();
+    /// assert_eq!(unaligned, Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn unalign(&self) -> Matrix<N, T, Unaligned> {
@@ -308,7 +414,8 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to the dimension of the
+    /// matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -320,7 +427,8 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to the dimension of the
+    /// matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -332,7 +440,26 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to the dimension of the
+    /// matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let mat = Mat4::from_columns(&[
+    ///     Vec4::new(1, 2, 3, 4),
+    ///     Vec4::new(1, 2, 3, 4),
+    ///     Vec4::new(1, 2, 3, 4),
+    ///     Vec4::new(0, 0, 0, 1),
+    /// ]);
+    ///
+    /// assert_eq!(mat.row(0), Vec4::new(1, 1, 1, 0));
+    /// assert_eq!(mat.row(1), Vec4::new(2, 2, 2, 0));
+    /// assert_eq!(mat.row(2), Vec4::new(3, 3, 3, 0));
+    /// assert_eq!(mat.row(3), Vec4::new(4, 4, 4, 1));
+    /// ```
     #[inline]
     #[must_use]
     #[track_caller]
@@ -383,6 +510,25 @@ where
     /// # Panics
     ///
     /// Panics if the index is out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let mut mat = Mat4::from_columns(&[
+    ///     Vec4::new(1, 2, 3, 4),
+    ///     Vec4::new(1, 2, 3, 4),
+    ///     Vec4::new(1, 2, 3, 4),
+    ///     Vec4::new(0, 0, 0, 1),
+    /// ]);
+    /// mat.set_row(1, Vec4::new(5, 5, 5, 0));
+    ///
+    /// assert_eq!(mat.column(0), Vec4::new(1, 5, 3, 4));
+    /// assert_eq!(mat.column(1), Vec4::new(1, 5, 3, 4));
+    /// assert_eq!(mat.column(2), Vec4::new(1, 5, 3, 4));
+    /// assert_eq!(mat.column(3), Vec4::new(0, 0, 0, 1));
+    /// ```
     #[inline]
     #[track_caller]
     pub const fn set_row(&mut self, index: usize, value: Vector<N, T, A>) {
@@ -418,7 +564,22 @@ where
         }
     }
 
-    /// Returns the diagonal of the matrix.
+    /// Returns the diagonal of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let mat = Mat4::from_columns(&[
+    ///     Vec4::new(1, 1, 1, 0),
+    ///     Vec4::new(2, 2, 2, 0),
+    ///     Vec4::new(3, 3, 3, 0),
+    ///     Vec4::new(4, 4, 4, 1),
+    /// ]);
+    ///
+    /// assert_eq!(mat.diagonal(), Vec4::new(1, 2, 3, 1));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn diagonal(&self) -> Vector<N, T, A> {
@@ -457,21 +618,49 @@ where
         }
     }
 
-    /// Reinterprets the bits of the matrix to a different scalar type.
+    /// Raw transmutation between scalar types.
     ///
-    /// The two scalar types must have compatible memory layouts. This is
-    /// enforced via trait bounds in this function's signature.
+    /// This function's signature staticly guarantees that the types have
+    /// compatible memory layouts.
     ///
-    /// This function is used to make SIMD optimizations in implementations of [`Scalar`].
+    /// This function is used to make SIMD optimizations in implementations of
+    /// [`Scalar`].
     ///
     /// # Safety
     ///
-    /// The components of the input must be valid for the output matrix type.
+    /// The elements of `self` must contain bit patterns that are valid for the
+    /// output type. For example, when converting matrices from `u8` to `bool`,
+    /// the input elements must be either `0` or `1` (that example is
+    /// unconventional, but the rule applies for any scalar that does not accept
+    /// all bit patterns).
     ///
-    /// For example, when converting matrices from `u8` to `bool` the
-    /// input components must be either `0` or `1`.
+    /// The padding does not need to contain valid values of the output type.
     ///
-    /// The optional padding does not need to be a valid value of `T2`.
+    /// # Examples
+    ///
+    /// Correct usage:
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Vec2};
+    /// #
+    /// let bits = Mat2::<u8>::from_columns(&[Vec2::new(1, 0), Vec2::new(0, 1)]);
+    ///
+    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
+    /// let bools = unsafe { bits.to_repr::<bool>() };
+    ///
+    /// assert_eq!(bools, Mat2::from_columns(&[Vec2::new(true, false), Vec2::new(false, true)]));
+    /// ```
+    ///
+    /// Incorrect usage:
+    ///
+    /// ```compile_fail
+    /// # use ggmath::{Mat2, Vec2};
+    /// #
+    /// let a = Mat2::<i32>::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
+    ///
+    /// // This does not compile since `i32` and `i64` are not compatible.
+    /// let _ = unsafe { a.to_repr::<i64>() };
+    /// ```
     #[inline]
     #[must_use]
     #[expect(private_bounds)]
@@ -486,7 +675,7 @@ where
         unsafe { transmute_generic::<Matrix<N, T, A>, Matrix<N, T2, A>>(self) }
     }
 
-    /// Creates a matrix from an array of columns.
+    /// Creates a matrix from an array of column vectors.
     ///
     /// This function has been renamed to [`from_columns`]. This name will be
     /// removed in a future version.
@@ -501,7 +690,8 @@ where
 
     /// Creates a matrix by calling function `f` for each column index.
     ///
-    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column.
+    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column
+    /// vectors.
     ///
     /// This function has been renamed to [`from_column_fn`]. This name will be
     /// removed in a future version.
@@ -519,8 +709,10 @@ where
 
     /// Converts the matrix to an array of column vectors.
     ///
-    /// This function has been replaced by [`Self::as_columns`] and will be
-    /// removed in a future version.
+    /// This function has been replaced by [`as_columns`] and will be removed in
+    /// a future version.
+    ///
+    /// [`as_columns`]: Self::as_columns
     #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
     #[inline]
     #[must_use]
@@ -561,7 +753,8 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to the dimension of the
+    /// matrix.
     ///
     /// [`column`]: Self::column
     #[deprecated(since = "0.16.3", note = "renamed to `column`")]
@@ -579,7 +772,8 @@ where
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to the dimension of the
+    /// matrix.
     ///
     /// [`column_mut`]: Self::column_mut
     #[deprecated(since = "0.16.3", note = "renamed to `column_mut`")]
@@ -616,8 +810,12 @@ where
     T: Scalar,
 {
     /// The first column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(1, 0)`.
     pub x_axis: Vector<2, T, A>,
     /// The second column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(0, 1)`.
     pub y_axis: Vector<2, T, A>,
 }
 
@@ -654,10 +852,16 @@ where
     T: Scalar,
 {
     /// The first column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(1, 0, 0)`.
     pub x_axis: Vector<3, T, A>,
     /// The second column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(0, 1, 0)`.
     pub y_axis: Vector<3, T, A>,
     /// The third column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(0, 0, 1)`.
     pub z_axis: Vector<3, T, A>,
 }
 
@@ -694,12 +898,20 @@ where
     T: Scalar,
 {
     /// The first column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(1, 0, 0, 0)`.
     pub x_axis: Vector<4, T, A>,
     /// The second column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(0, 1, 0, 0)`.
     pub y_axis: Vector<4, T, A>,
     /// The third column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(0, 0, 1, 0)`.
     pub z_axis: Vector<4, T, A>,
     /// The fourth column of the matrix.
+    ///
+    /// This represents the result of multiplying the matrix by `(0, 0, 0, 1)`.
     pub w_axis: Vector<4, T, A>,
 }
 
@@ -791,203 +1003,295 @@ where
 {
 }
 
-impl<const N: usize, T, A: Alignment> Neg for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Neg<Output = T>,
-{
-    type Output = Self;
+macro_rules! impl_neg {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Neg for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Neg<Output = T>,
+        {
+            type Output = Self;
 
-    #[inline]
-    #[track_caller]
-    fn neg(self) -> Self::Output {
-        -(&self)
-    }
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn neg(self) -> Self::Output {
+                -(&self)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Neg for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Neg<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn neg(self) -> Self::Output {
+                specialize!(<T as ScalarBackend<N, A>>::mat_neg(self))
+            }
+        }
+    };
 }
+impl_neg!(
+    /// Performs the unary `-` operation for each element.
+    ///
+    /// Equivalent to `[-self.x_axis, -self.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+);
 
-impl<const N: usize, T, A: Alignment> Neg for &Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Neg<Output = T>,
-{
-    type Output = Matrix<N, T, A>;
+macro_rules! impl_add {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Add for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Self;
 
-    #[inline]
-    #[track_caller]
-    fn neg(self) -> Self::Output {
-        specialize!(<T as ScalarBackend<N, A>>::mat_neg(self))
-    }
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Self) -> Self::Output {
+                (&self) + (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add<&Matrix<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: &Self) -> Self::Output {
+                (&self) + rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add<Matrix<N, T, A>> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Matrix<N, T, A>) -> Self::Output {
+                self + (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Add for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add(self, rhs: Self) -> Self::Output {
+                specialize!(<T as ScalarBackend<N, A>>::mat_add(self, rhs))
+            }
+        }
+    };
 }
+impl_add!(
+    /// Performs the `+` operation for each element.
+    ///
+    /// Equivalent to
+    /// `[self.x_axis + rhs.x_axis, self.y_axis + rhs.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
 
-impl<const N: usize, T, A: Alignment> Add for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Add<Output = T>,
-{
-    type Output = Self;
+macro_rules! impl_add_assign {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> AddAssign for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add_assign(&mut self, rhs: Self) {
+                *self = &*self + rhs;
+            }
+        }
 
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn add(self, rhs: Self) -> Self::Output {
-        (&self) + (&rhs)
-    }
+        impl<const N: usize, T, A: Alignment> AddAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn add_assign(&mut self, rhs: &Self) {
+                *self = &*self + rhs;
+            }
+        }
+    };
 }
+impl_add_assign!(
+    /// Performs the `+=` operation for each element.
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// self.x_axis += rhs.x_axis;
+    /// self.y_axis += rhs.y_axis;
+    /// ...
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `mat + mat`.
+);
 
-impl<const N: usize, T, A: Alignment> Add<&Matrix<N, T, A>> for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Add<Output = T>,
-{
-    type Output = Self;
+macro_rules! impl_sub {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Sub for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Self;
 
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn add(self, rhs: &Self) -> Self::Output {
-        (&self) + rhs
-    }
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Self) -> Self::Output {
+                (&self) - (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub<&Matrix<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: &Self) -> Self::Output {
+                (&self) - rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub<Matrix<N, T, A>> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Matrix<N, T, A>) -> Self::Output {
+                self - (&rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Sub for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Sub<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub(self, rhs: Self) -> Self::Output {
+                specialize!(<T as ScalarBackend<N, A>>::mat_sub(self, rhs))
+            }
+        }
+    };
 }
+impl_sub!(
+    /// Performs the `-` operation for each element.
+    ///
+    /// Equivalent to
+    /// `[self.x_axis - rhs.x_axis, self.y_axis - rhs.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
 
-impl<const N: usize, T, A: Alignment> Add<Matrix<N, T, A>> for &Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Add<Output = T>,
-{
-    type Output = Matrix<N, T, A>;
+macro_rules! impl_sub_assign {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> SubAssign for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Sub<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub_assign(&mut self, rhs: Self) {
+                *self = &*self - rhs;
+            }
+        }
 
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn add(self, rhs: Matrix<N, T, A>) -> Self::Output {
-        self + (&rhs)
-    }
+        impl<const N: usize, T, A: Alignment> SubAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Sub<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn sub_assign(&mut self, rhs: &Self) {
+                *self = &*self - rhs;
+            }
+        }
+    };
 }
-
-impl<const N: usize, T, A: Alignment> Add for &Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Add<Output = T>,
-{
-    type Output = Matrix<N, T, A>;
-
-    #[inline]
-    #[track_caller]
-    fn add(self, rhs: Self) -> Self::Output {
-        specialize!(<T as ScalarBackend<N, A>>::mat_add(self, rhs))
-    }
-}
-
-impl<const N: usize, T, A: Alignment> AddAssign for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Add<Output = T>,
-{
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn add_assign(&mut self, rhs: Self) {
-        *self = &*self + rhs;
-    }
-}
-
-impl<const N: usize, T, A: Alignment> AddAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Add<Output = T>,
-{
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn add_assign(&mut self, rhs: &Self) {
-        *self = &*self + rhs;
-    }
-}
-
-impl<const N: usize, T, A: Alignment> Sub for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Sub<Output = T>,
-{
-    type Output = Self;
-
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn sub(self, rhs: Self) -> Self::Output {
-        (&self) - (&rhs)
-    }
-}
-
-impl<const N: usize, T, A: Alignment> Sub<&Matrix<N, T, A>> for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Sub<Output = T>,
-{
-    type Output = Self;
-
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn sub(self, rhs: &Self) -> Self::Output {
-        (&self) - rhs
-    }
-}
-
-impl<const N: usize, T, A: Alignment> Sub<Matrix<N, T, A>> for &Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Sub<Output = T>,
-{
-    type Output = Matrix<N, T, A>;
-
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn sub(self, rhs: Matrix<N, T, A>) -> Self::Output {
-        self - (&rhs)
-    }
-}
-
-impl<const N: usize, T, A: Alignment> Sub for &Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Sub<Output = T>,
-{
-    type Output = Matrix<N, T, A>;
-
-    #[inline]
-    #[track_caller]
-    fn sub(self, rhs: Self) -> Self::Output {
-        specialize!(<T as ScalarBackend<N, A>>::mat_sub(self, rhs))
-    }
-}
-
-impl<const N: usize, T, A: Alignment> SubAssign for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Sub<Output = T>,
-{
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn sub_assign(&mut self, rhs: Self) {
-        *self = &*self - rhs;
-    }
-}
-
-impl<const N: usize, T, A: Alignment> SubAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Sub<Output = T>,
-{
-    #[expect(clippy::op_ref)]
-    #[inline]
-    #[track_caller]
-    fn sub_assign(&mut self, rhs: &Self) {
-        *self = &*self - rhs;
-    }
-}
+impl_sub_assign!(
+    /// Performs the `-=` operation for each element.
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// self.x_axis -= rhs.x_axis;
+    /// self.y_axis -= rhs.y_axis;
+    /// ...
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `mat - mat`.
+);
 
 // SAFETY: Matrices are equivalent to values of `T` mixed with padding.
 // Because `T` is `Send` and padding is `Send`, the matrix is too.

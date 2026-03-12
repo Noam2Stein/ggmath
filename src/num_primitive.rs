@@ -12,6 +12,23 @@ use crate::{
     constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
 };
 
+/// A trait for all primitive float-point types.
+///
+/// This is modeled after [`num-primitive`], but only includes functionality
+/// needed for [`Vector<N, T, A>`], [`Matrix<N, T, A>`] and
+/// [`Quaternion<T, A>`].
+///
+/// Ideally, there would be [`PrimitiveSigned`] and [`PrimitiveUnsigned`] traits
+/// as well, but the type system cannot currently express mutually exclusive
+/// traits, so multiple implementations that are generic over `T` are
+/// impossible.
+///
+/// [`num-primitive`]: https://crates.io/crates/num-primitive
+/// [`Vector<N, T, A>`]: crate::Vector
+/// [`Matrix<N, T, A>`]: crate::Matrix
+/// [`Quaternion<T, A>`]: crate::Quaternion
+/// [`PrimitiveSigned`]: https://docs.rs/num-primitive/latest/num_primitive/trait.PrimitiveSigned.html
+/// [`PrimitiveUnsigned`]: https://docs.rs/num-primitive/latest/num_primitive/trait.PrimitiveUnsigned.html
 pub(crate) trait PrimitiveFloat:
     Debug
     + Clone

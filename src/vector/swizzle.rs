@@ -691,9 +691,9 @@ use declare_swizzle_fns;
 macro_rules! declare_with_swizzle_fns {
     ($($f:ident: [$x:ident]),*$(,)?) => {$(
         #[doc = concat!(
-            "Returns the vector with the `",
+            "Returns `self` with the element `",
             stringify!($x),
-            "` component set to the given value.",
+            "` replaced by `value`.",
         )]
         #[inline]
         #[must_use]
@@ -705,11 +705,11 @@ macro_rules! declare_with_swizzle_fns {
 
     ($($f:ident: [$x:ident, $y:ident]),*$(,)?) => {$(
         #[doc = concat!(
-            "Returns the vector with the `",
+            "Returns `self` with the elements `",
             stringify!($x),
             "` and `",
             stringify!($y),
-            "` components set to the given values.",
+            "` replaced by `value.x` and `value.y`.",
         )]
         #[inline]
         #[must_use]
@@ -722,13 +722,13 @@ macro_rules! declare_with_swizzle_fns {
 
     ($($f:ident: [$x:ident, $y:ident, $z:ident]),*$(,)?) => {$(
         #[doc = concat!(
-            "Returns the vector with the `",
+            "Returns `self` with the elements `",
             stringify!($x),
             "`, `",
             stringify!($y),
             "` and `",
             stringify!($z),
-            "` components set to the given values.",
+            "` replaced by `value.x`, `value.y` and `value.z`.",
         )]
         #[inline]
         #[must_use]
@@ -742,7 +742,7 @@ macro_rules! declare_with_swizzle_fns {
 
     ($($f:ident: [$x:ident, $y:ident, $z:ident, $w:ident]),*$(,)?) => {$(
         #[doc = concat!(
-            "Returns the vector with the `",
+            "Returns `self` with the elements `",
             stringify!($x),
             "`, `",
             stringify!($y),
@@ -750,7 +750,7 @@ macro_rules! declare_with_swizzle_fns {
             stringify!($z),
             "` and `",
             stringify!($w),
-            "` components set to the given values.",
+            "` replaced by `value.x`, `value.y`, `value.z` and `value.w`.",
         )]
         #[inline]
         #[must_use]

@@ -1,29 +1,61 @@
 # `ggmath`
 
-A math library for games and graphics with support for generics and SIMD.
+A linear algebra library for games and graphics with generic SIMD types.
 
-The library features:
+The library provides:
 
 - Vectors: `Vec2<T>`, `Vec3<T>`, `Vec4<T>`.
 - Square Matrices: `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
 - Quaternions: `Quat<T>`.
-- Affine Transformations: `Affine2<T>`, `Affine3<T>`.
+- Affine Transforms: `Affine2<T>`, `Affine3<T>`.
 - Masks: `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
 
-For appropriate scalars, these types are SIMD-aligned to improve
-performance. The library also features unaligned types which are not
-SIMD-aligned:
+## SIMD
+
+Appropriate types have increased memory alignment in order to take advantage of
+SIMD instructions that improve performance. For example, `Vec3<f32>`,
+`Vec4<f32>`, `Mat3<f32>` and `Mat4<f32>` are aligned to 16 bytes on x86 targets
+in order to take advantage of the SSE instruction set.
+
+Although SIMD alignment generally results better performance, it can also result
+in wasted space. For example, due to 16-byte alignment, `Vec3<f32>` has 4 bytes
+of padding, and consequently `Mat3<f32>` has 12 bytes of padding. For scenarios
+where better performance is not worth wasted space, math types have non-SIMD,
+unaligned variants:
 
 - Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
 - Square Matrices: `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
 - Quaternions: `QuatU<T>`.
-- Affine Transformations: `Affine2U<T>`, `Affine3U<T>`.
+- Affine Transforms: `Affine2U<T>`, `Affine3U<T>`.
 - Masks: `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
 
-Because unaligned types are not SIMD-aligned, they take less memory but have
-slower operations.
+Unaligned types are optimal in memory-critical scenarios, for example when
+storing 3D models. In all other cases, aligned types are optimal and result in
+better performance than unaligned types.
 
-All types are type aliases to these generic structs:
+Currently SIMD optimizations are only implemented for `f32` types on x86
+targets. These types are closely benchmarked against [`glam`] and generally
+match its performance.
+
+Integration with [`wide`] enables SoA ([Structure of Arrays]) SIMD, which lets
+you perform operations concurrently on multiple values, for example with
+`Vec3<f32x4>` which represents four values of `Vec3<f32>`. SoA requires modeling
+algorithms in a very specific way, but can be much faster than normal types.
+
+## Generics
+
+Because types are generic over `T`, they support non-primitive scalar types.
+Integration with [`fixed`] enables support for fixed-point numbers, and
+integration with [`wide`] enables support for SoA.
+
+When Rust's type system is powerful enough, integration with [`num-primitive`]
+will enable writing math code that is generic over primitive types, for example
+functions generic over `T: PrimitiveFloat` will have access to float-vector
+functionality.
+
+Types relative to each other (e.g., `Vec2<T>`, `Vec3<T>`, `Vec4<T>` and
+unaligned variants) are not distinct types, instead they are all type aliases to
+these const-generic structs:
 
 - `Vector<N, T, A>`.
 - `Matrix<N, T, A>`.
@@ -37,49 +69,26 @@ Where:
 - `T` is the scalar type.
 - `A` is either `Aligned` or `Unaligned`.
 
-The fully generic structs are used to implement functionality for all lengths
-and both alignments, without duplicating code or using macros.
+Const generics eliminate the need for macros, making it easier to implement
+functionality for all lengths (and both alignments). For example, instead of
+defining seperate `Ray2` and `Ray3` types, it is possible to define a single
+`Ray<N, T, A>` type then define type aliases for it.
 
-## Another Math Crate???
+## Math conventions
 
-`ggmath` distinguishes itself from other math crates by having both generics and
-SIMD. Existing crates either have generics but not SIMD, or have SIMD but not
-generics.
+`ggmath` is coordinate-system agnostic, and should work for both right-handed
+and left-handed coordinate systems.
 
-Generics make it possible to use custom types inside math types (e.g.,
-`Vec3<FixedPoint>`), and reduce code duplication when code needs to work for
-multiple types or multiple dimensions. Keep in mind that generics also increase
-compile times, and are unnecessary if you only intend to use one scalar type
-(probably `f32`).
+Vectors are treated as column matrices, meaning when transforming a vector with
+a matrix, the matrix goes on the left.
 
-SIMD, or more specifically SIMD-aligned types usually result in better
-performance than normal, scalar-backed types.
+Matrices are stored in column-major order, meaning each column is continuous in
+memory.
 
-`ggmath` also supports SoA (Struct of Arrays, e.g., `Vec3<f32x4>`) SIMD via
-integration with the crate `wide`. SoA types are harder to use but have even
-better performance than normal AoS (Array of Structs, e.g., SIMD-aligned
-`Vec3<f32>`) types.
+Angles are in radians, but can be converted to and from degrees using
+standard-library functions.
 
-`ggmath` doesn't have "controversial types" (e.g., point types).
-`ggmath` is designed so that an external crate could add those types on top of
-`ggmath`.
-
-| Feature | `ggmath` | `glam` | `ultraviolet` | `cgmath` |
-| ------- | -------- | ------ | ------------- | -------- |
-| Generics | ✅ | ❌ | ❌ | ✅ |
-| SIMD-aligned types | ✅ | ✅ | ❌ | ❌ |
-| SoA | ✅ | ❌ | ✅ | ❌ |
-| Controversial Types | ❌ | ❌ | ✅ | ✅ |
-
-## Math Conventions
-
-`ggmath` is coordinate system agnostic, and should work for both right-handed and left-handed coordinate systems.
-
-`ggmath` treats vectors as column matrices, meaning when transforming a vector with a matrix, the matrix goes on the left.
-
-`ggmath` matrices are stored in column major order, meaning each column is continuous in memory.
-
-## Development Status
+## Development status
 
 `ggmath` is not mature yet but is under active development.
 
@@ -88,7 +97,7 @@ Feature List:
 - [x] Vectors
 - [x] Square Matrices
 - [x] Quaternions
-- [x] Affine Transformations
+- [x] Affine Transforms
 - [x] Masks
 - [x] Sufficient Float-Vector functionality
 - [x] Sufficient Int-Vector functionality
@@ -127,6 +136,8 @@ Performance:
 
 ## Usage
 
+Rust must be updated to version `1.90.0` or later.
+
 Add this to your Cargo.toml:
 
 ```toml
@@ -151,42 +162,30 @@ ggmath = { version = "0.16.2", default-features = false }
 Without `std` or `libm`, the crate compiles but all float functionality that
 relies on a backend is disabled.
 
-## Optional Features
+## Optional features
 
 - `std` (default feature): Uses `std` as the backend for float functionality.
 
 - `assertions`: Enables assertions in release mode. Assertions are panics that
   catch invalid input and are enabled by default in debug mode.
 
-- `no-assertions`: Disables assertions in debug mode. Library crates should not
-  directly enable `assertions` or `no-assertions` and should leave the decision
-  to binary crates.
+- `no-assertions`: Disables assertions in debug mode. Assertions should only be
+  controlled by binary crates. Library crates should not set this flag directly.
 
-- `bytemuck`: Implements `bytemuck` traits for all `ggmath` types.
+- `bytemuck`: Implements `bytemuck` traits for `ggmath` types.
 
 - `fixed`: Implements `Scalar` for fixed-point numbers.
 
 - `fixp`: Implements `Scalar` for fixed-point numbers.
 
 - `libm`: Uses `libm` as the backend for float functionality. This makes the
-  crate `no_std` even if the `std` feature isn't disabled.
+  crate `no_std` even if the `std` feature is not disabled.
 
 - `mint`: Implements conversions between `ggmath` and `mint` types.
 
-- `serde`: Implements `Serialize` and `Deserialize` for all `ggmath` types.
+- `serde`: Implements `Serialize` and `Deserialize` for `ggmath` types.
 
 - `wide`: Implements `Scalar` for SIMD types.
-
-## Minimum Supported Rust Version
-
-`ggmath` supports versions of Rust back to `1.90.0`.
-
-## Attribution
-
-The design of `ggmath` is heavily influenced by `glam`, as it serves the same
-purpose as `glam` but with generics.
-
-Most optimizations in `ggmath` are taken directly from `glam` and `wide`.
 
 ## License
 
@@ -203,3 +202,14 @@ adhere to Rust's
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
+
+## Attribution
+
+`ggmath` is heavily inspired by [`glam`] and ports most of its code from it, as
+it serves the same purpose as `glam` but with generics.
+
+[`glam`]: https://crates.io/crates/glam
+[`wide`]: https://crates.io/crates/wide
+[`fixed`]: https://crates.io/crates/fixed
+[`num-primitive`]: https://crates.io/crates/num-primitive
+[Structure of Arrays]: https://en.wikipedia.org/wiki/AoS_and_SoA

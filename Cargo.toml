@@ -15,7 +15,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/Noam2Stein/ggmath"
 rust-version = "1.90.0"
 
-description = "A math library for games and graphics with support for generics and SIMD."
+description = "A linear algebra library for games and graphics with generic SIMD types."
 
 [features]
 std = []

@@ -4,7 +4,19 @@ impl<const N: usize, A: Alignment> Vector<N, bool, A>
 where
     Length<N>: SupportedLength,
 {
-    /// Returns `true` if all of the vector's components are `true`.
+    /// Returns `true` if all elements of `self` are `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(true, true, false).all();
+    /// assert_eq!(a, false);
+    ///
+    /// let a = Vec3::new(true, true, true).all();
+    /// assert_eq!(a, true);
+    /// ```
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
@@ -16,7 +28,19 @@ where
         }
     }
 
-    /// Returns `true` if any of the vector's components are `true`.
+    /// Returns `true` if any element of `self` is `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(true, true, false).any();
+    /// assert_eq!(a, true);
+    ///
+    /// let a = Vec3::new(false, false, false).any();
+    /// assert_eq!(a, false);
+    /// ```
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
@@ -28,8 +52,20 @@ where
         }
     }
 
-    /// Selects between the components of `if_true` and `if_false` based on the
-    /// boolean values of the vector.
+    /// Selects between the elements of `if_true` and `if_false` based on the
+    /// boolean elements of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec4;
+    /// #
+    /// let a = Vec4::new(true, false, false, true);
+    /// let b = Vec4::new(1, 2, 3, 4);
+    /// let c = Vec4::new(-1, -2, -3, -4);
+    /// let d = a.select(b, c);
+    /// assert_eq!(d, Vec4::new(1, -2, -3, 4));
+    /// ```
     #[inline]
     #[must_use]
     pub fn select<T: Scalar>(

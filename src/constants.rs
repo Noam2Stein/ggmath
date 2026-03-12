@@ -1,153 +1,7 @@
-//! Traits for scalar constants like `ZERO`, `ONE` and `NAN`.
+//! A module with traits for scalar constants like `ZERO`, `ONE` and `NAN`.
 //!
-//! Each constant has its own trait which when implemented enables the constant
-//! for vectors.
-//!
-//! # Example
-//!
-//! Lets define our own scalar type (see [`Scalar`]):
-//!
-//! ```
-//! use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
-//!
-//! #[derive(Debug, Clone, Copy)]
-//! struct Foo(f32);
-//!
-//! // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
-//! // where `Repr = ()` are safe.
-//! unsafe impl Scalar for Foo {
-//!     type Repr = ();
-//! }
-//!
-//! impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
-//! where
-//!     Length<N>: SupportedLength,
-//! {
-//! }
-//! ```
-//!
-//! Lets implement the traits [`Zero`], [`One`], and [`NegOne`] for it:
-//!
-//! ```
-//! # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
-//! #
-//! # #[derive(Debug, Clone, Copy)]
-//! # struct Foo(f32);
-//! #
-//! # // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
-//! # // where `Repr = ()` are safe.
-//! # unsafe impl Scalar for Foo {
-//! #     type Repr = ();
-//! # }
-//! #
-//! # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
-//! # where
-//! #     Length<N>: SupportedLength,
-//! # {
-//! # }
-//! use ggmath::constants::{NegOne, One, Zero};
-//!
-//! impl Zero for Foo {
-//!     const ZERO: Self = Self(0.0);
-//! }
-//!
-//! impl One for Foo {
-//!     const ONE: Self = Self(1.0);
-//! }
-//!
-//! impl NegOne for Foo {
-//!     const NEG_ONE: Self = Self(-1.0);
-//! }
-//! ```
-//!
-//! Now we can use vector constants `ZERO`, `ONE`, and `NEG_ONE` plus
-//! directional constants like `X`, `Y`, `NEG_X`, and `NEG_Y`:
-//!
-//! ```
-//! # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
-//! #
-//! # #[derive(Debug, Clone, Copy)]
-//! # struct Foo(f32);
-//! #
-//! # // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
-//! # // where `Repr = ()` are safe.
-//! # unsafe impl Scalar for Foo {
-//! #     type Repr = ();
-//! # }
-//! #
-//! # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
-//! # where
-//! #     Length<N>: SupportedLength,
-//! # {
-//! # }
-//! #
-//! # use ggmath::constants::{NegOne, One, Zero};
-//! #
-//! # impl Zero for Foo {
-//! #     const ZERO: Self = Self(0.0);
-//! # }
-//! #
-//! # impl One for Foo {
-//! #     const ONE: Self = Self(1.0);
-//! # }
-//! #
-//! # impl NegOne for Foo {
-//! #     const NEG_ONE: Self = Self(-1.0);
-//! # }
-//! #
-//! use ggmath::Vec2;
-//!
-//! println!("{:?}", Vec2::<Foo>::ZERO);
-//! println!("{:?}", Vec2::<Foo>::ONE);
-//! println!("{:?}", Vec2::<Foo>::NEG_ONE);
-//! println!("{:?}", Vec2::<Foo>::X);
-//! println!("{:?}", Vec2::<Foo>::Y);
-//! println!("{:?}", Vec2::<Foo>::NEG_X);
-//! println!("{:?}", Vec2::<Foo>::NEG_Y);
-//! ```
-//!
-//! You can also write generic code where you know `T` has some constant:
-//!
-//! ```
-//! # use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength};
-//! #
-//! # #[derive(Debug, Clone, Copy)]
-//! # struct Foo(f32);
-//! #
-//! # // SAFETY: `Scalar` is only unsafe for SIMD implementations. Implementations
-//! # // where `Repr = ()` are safe.
-//! # unsafe impl Scalar for Foo {
-//! #     type Repr = ();
-//! # }
-//! #
-//! # impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
-//! # where
-//! #     Length<N>: SupportedLength,
-//! # {
-//! # }
-//! #
-//! # use ggmath::constants::{NegOne, One, Zero};
-//! #
-//! # impl Zero for Foo {
-//! #     const ZERO: Self = Self(0.0);
-//! # }
-//! #
-//! # impl One for Foo {
-//! #     const ONE: Self = Self(1.0);
-//! # }
-//! #
-//! # impl NegOne for Foo {
-//! #     const NEG_ONE: Self = Self(-1.0);
-//! # }
-//! #
-//! use ggmath::Vec2;
-//!
-//! fn print_zero<T: Scalar + core::fmt::Debug + Zero>() {
-//!     println!("{:?}", Vec2::<T>::ZERO);
-//! }
-//!
-//! print_zero::<Foo>();
-//! ```
+//! Each constant has a trait which when implemented enables that constant for
+//! vectors and other math types where appropriate.
 
 use crate::Scalar;
 
@@ -171,19 +25,19 @@ pub trait NegOne: Scalar {
 
 /// A `MIN` constant for scalar types.
 pub trait Min: Scalar {
-    /// The smallest value that can be represented by this type.
+    /// The smallest value representable by `Self`.
     const MIN: Self;
 }
 
 /// A `MAX` constant for scalar types.
 pub trait Max: Scalar {
-    /// The largest value that can be represented by this type.
+    /// The largest value representable by `Self`.
     const MAX: Self;
 }
 
 /// A `NAN` constant for scalar types.
 pub trait Nan: Scalar {
-    /// NaN (Not a Number).
+    /// Not a Number (NaN).
     const NAN: Self;
 }
 

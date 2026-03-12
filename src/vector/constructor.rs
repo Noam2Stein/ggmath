@@ -3,21 +3,22 @@ use crate::{Alignment, Scalar, Vector};
 /// Creates a 2-dimensional vector from the provided arguments.
 ///
 /// The macro accepts scalars and vectors as arguments, as long as they can be
-/// combined to form a 2-component vector. If only a single scalar argument is
-/// provided, it is duplicated across all components.
+/// combined to form a 2-element vector. If only a single scalar argument is
+/// provided, it is duplicated across all elements.
 ///
-/// This macro is deprecated. Use [`Vector::new`].
+/// This macro has been replaced by [`Vector::new`] and will be removed in a
+/// future version.
 ///
 /// # Examples
 ///
 /// ```
-/// use ggmath::{Vec2, vec2};
-///
+/// # use ggmath::{Vec2, vec2};
+/// #
 /// let one_two: Vec2<f32> = vec2!(1.0, 2.0);
 /// let one_two: Vec2<f32> = vec2!(vec2!(1.0, 2.0));
 /// let one_one: Vec2<f32> = vec2!(1.0);
 /// ```
-#[deprecated(since = "0.16.3", note = "use `Vector::new` instead")]
+#[deprecated(since = "0.16.3", note = "replaced by `Vector::new`")]
 #[macro_export]
 macro_rules! vec2 {
     ($($arg:expr),*$(,)?) => {
@@ -28,22 +29,23 @@ macro_rules! vec2 {
 /// Creates a 3-dimensional vector from the provided arguments.
 ///
 /// The macro accepts scalars and vectors as arguments, as long as they can be
-/// combined to form a 3-component vector. If only a single scalar argument is
-/// provided, it is duplicated across all components.
+/// combined to form a 3-element vector. If only a single scalar argument is
+/// provided, it is duplicated across all elements.
 ///
-/// This macro is deprecated. Use [`Vector::new`].
+/// This macro has been replaced by [`Vector::new`] and will be removed in a
+/// future version.
 ///
 /// # Examples
 ///
 /// ```
-/// use ggmath::{Vec3, vec2, vec3};
-///
+/// # use ggmath::{Vec3, vec2, vec3};
+/// #
 /// let one_two_three: Vec3<f32> = vec3!(1.0, 2.0, 3.0);
 /// let one_two_three: Vec3<f32> = vec3!(vec2!(1.0, 2.0), 3.0);
 /// let one_two_three: Vec3<f32> = vec3!(vec3!(1.0, 2.0, 3.0));
 /// let one_one_one: Vec3<f32> = vec3!(1.0);
 /// ```
-#[deprecated(since = "0.16.3", note = "use `Vector::new` instead")]
+#[deprecated(since = "0.16.3", note = "replaced by `Vector::new`")]
 #[macro_export]
 macro_rules! vec3 {
     ($($arg:expr),*$(,)?) => {
@@ -54,23 +56,24 @@ macro_rules! vec3 {
 /// Creates a 4-dimensional vector from the provided arguments.
 ///
 /// The macro accepts scalars and vectors as arguments, as long as they can be
-/// combined to form a 4-component vector. If only a single scalar argument is
-/// provided, it is duplicated across all components.
+/// combined to form a 4-element vector. If only a single scalar argument is
+/// provided, it is duplicated across all elements.
 ///
-/// This macro is deprecated. Use [`Vector::new`].
+/// This macro has been replaced by [`Vector::new`] and will be removed in a
+/// future version.
 ///
 /// # Examples
 ///
 /// ```
-/// use ggmath::{Vec4, vec2, vec3, vec4};
-///
+/// # use ggmath::{Vec4, vec2, vec3, vec4};
+/// #
 /// let one_two_three_four: Vec4<f32> = vec4!(1.0, 2.0, 3.0, 4.0);
 /// let one_two_three_four: Vec4<f32> = vec4!(vec2!(1.0, 2.0), vec2!(3.0, 4.0));
 /// let one_two_three_four: Vec4<f32> = vec4!(vec3!(1.0, 2.0, 3.0), 4.0);
 /// let one_two_three_four: Vec4<f32> = vec4!(vec4!(1.0, 2.0, 3.0, 4.0));
 /// let one_one_one_one: Vec4<f32> = vec4!(1.0);
 /// ```
-#[deprecated(since = "0.16.3", note = "use `Vector::new` instead")]
+#[deprecated(since = "0.16.3", note = "replaced by `Vector::new`")]
 #[macro_export]
 macro_rules! vec4 {
     ($($arg:expr),*$(,)?) => {

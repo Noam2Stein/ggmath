@@ -11,42 +11,49 @@ use crate::{
     specialize::specialize,
 };
 
-/// A generic vector mask.
+/// An `N`-element vector mask optimized for type `T`.
 ///
-/// `Mask` is the generic form of:
+/// `Mask<N, T, A>` is equivalent to a vector of booleans but is optimized
+/// specifically for working with vectors of type `T`.
 ///
-/// - [`Mask2<T>`](crate::Mask2)
-/// - [`Mask3<T>`](crate::Mask3)
-/// - [`Mask4<T>`](crate::Mask4)
-/// - [`Mask2U<T>`](crate::Mask2U)
-/// - [`Mask3U<T>`](crate::Mask3U)
-/// - [`Mask4U<T>`](crate::Mask4U)
+/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// [`Alignment`] for more details.
 ///
-/// `Mask` is generic over:
+/// # Type aliases
 ///
-/// - `N`: Length (2, 3, or 4)
-/// - `T`: Scalar type (see [`Scalar`])
-/// - `A`: Alignment (see [`Alignment`])
+/// - [`Mask2<T>`] for `Mask<2, T, Aligned>`.
+/// - [`Mask3<T>`] for `Mask<3, T, Aligned>`.
+/// - [`Mask4<T>`] for `Mask<4, T, Aligned>`.
+/// - [`Mask2U<T>`] for `Mask<2, T, Unaligned>`.
+/// - [`Mask3U<T>`] for `Mask<3, T, Unaligned>`.
+/// - [`Mask4U<T>`] for `Mask<4, T, Unaligned>`.
 ///
-/// To initialize masks, use the functions [`Mask2::new`](crate::Mask2::new),
-/// [`Mask3::new`](crate::Mask3::new), [`Mask4::new`](crate::Mask4::new). To
-/// initialize a mask of an unknown length, use [`Mask::from_array`].
+/// # Memory layout
 ///
-/// # Guarantees
-///
-/// `Mask<N, T, A>` doesn't have a stable representation, but does guarantee
+/// `Mask<N, T, A>` does not have a stable representation, but does guarantee
 /// certain properties.
 ///
-/// `Mask<N, T, A>` bytes are initialized and zeroable.
+/// `Mask<N, T, A>` does not contain any uninitialized bytes.
+/// `Mask<N, T, A>` accepts the all-zero byte-pattern.
 ///
-/// Masks of scalar types with the same [`Scalar::Repr`] are guaranteed to have
-/// compatible memory layouts, even if `Repr = ()`. They are guaranteed to have
-/// the same size, element positions, and alignment.
+/// Masks of compatible [`Scalar::Repr`] types have the same representation,
+/// size, and alignment. This means that they are transmutable (see
+/// [`to_repr`]).
 ///
-/// Types containing compatible `Mask` types are **not guaranteed** to have the
-/// same memory layout. For example, even though `Mask2<bool>` and `Mask2<u8>`
-/// have the same memory layout, `Option<Mask2<bool>>` and `Option<Mask2<u8>>`
-/// may not.
+/// Types containing compatible masks may not have compatible layouts
+/// themselves. For example, even though [`Mask2<i32>`] and [`Mask2<u32>`] have
+/// compatible layouts, [`Option<Mask2<i32>>`] and [`Option<Mask2<u32>>`] may
+/// not.
+///
+/// [`Mask2<T>`]: crate::Mask2
+/// [`Mask3<T>`]: crate::Mask3
+/// [`Mask4<T>`]: crate::Mask4
+/// [`Mask2U<T>`]: crate::Mask2U
+/// [`Mask3U<T>`]: crate::Mask3U
+/// [`Mask4U<T>`]: crate::Mask4U
+/// [`Mask2<i32>`]: crate::Mask2
+/// [`Mask2<u32>`]: crate::Mask2
+/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Mask<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::MaskRepr<N, A>,
@@ -60,30 +67,42 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    /// Creates a mask from an array.
-    ///
-    /// The preferable way to create masks is using the functions
-    /// [`Mask2::new`](crate::Mask2::new), [`Mask3::new`](crate::Mask3::new),
-    /// [`Mask4::new`](crate::Mask4::new).
-    ///
-    /// `Mask::from_array` should only be used when the length of the mask is
-    /// unknown or when directly converting from an array.
+    /// Creates a vector mask from an array.
     #[inline]
     #[must_use]
     pub fn from_array(array: [bool; N]) -> Self {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_from_array(array))
     }
 
-    /// Creates a mask with all components set to the given value.
+    /// Creates a vector mask with all elements set to `value`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mask = Mask3::<f32>::splat(true);
+    /// assert_eq!(mask, Mask3::new(true, true, true));
+    /// ```
     #[inline]
     #[must_use]
     pub fn splat(value: bool) -> Self {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_splat(value))
     }
 
-    /// Creates a mask by calling function `f` for each component index.
+    /// Creates a vector mask by calling function `f` for each element index.
     ///
     /// Equivalent to `(f(0), f(1), f(2), ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// // indices are 0, 1, 2
+    /// let mask = Mask3::<f32>::from_fn(|i| i % 2 == 0);
+    /// assert_eq!(mask, Mask3::new(true, false, true));
+    /// ```
     #[inline]
     #[must_use]
     #[track_caller]
@@ -94,9 +113,29 @@ where
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_from_fn((f,)))
     }
 
-    /// Converts the mask to the specified alignment.
+    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`align`] and [`unalign`] for scenarios where the output alignment
+    /// is known.
+    ///
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Aligned, Unaligned, Mask3, Mask3U};
+    /// #
+    /// let aligned = Mask3::<f32>::new(false, true, false);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Mask3U::new(false, true, false));
+    ///
+    /// let unaligned = Mask3U::<f32>::new(false, true, false);
+    /// let aligned = unaligned.to_alignment::<Aligned>();
+    /// assert_eq!(aligned, Mask3::new(false, true, false));
+    /// ```
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
     #[inline]
     #[must_use]
     pub fn to_alignment<A2: Alignment>(self) -> Mask<N, T, A2> {
@@ -117,47 +156,104 @@ where
         })(self)
     }
 
-    /// Converts the mask to [`Aligned`] alignment.
+    /// Conversion to [`Aligned`] storage.
     ///
     /// See [`Alignment`] for more information.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Mask3U};
+    /// #
+    /// let unaligned = Mask3U::<f32>::new(false, true, false);
+    /// let aligned = unaligned.align();
+    /// assert_eq!(aligned, Mask3::new(false, true, false));
+    /// ```
     #[inline]
     #[must_use]
     pub fn align(self) -> Mask<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Converts the mask to [`Unaligned`] alignment.
+    /// Conversion to [`Unaligned`] storage.
     ///
     /// See [`Alignment`] for more information.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Mask3U};
+    /// #
+    /// let aligned = Mask3::<f32>::new(false, true, false);
+    /// let unaligned = aligned.unalign();
+    /// assert_eq!(unaligned, Mask3U::new(false, true, false));
+    /// ```
     #[inline]
     #[must_use]
     pub fn unalign(self) -> Mask<N, T, Unaligned> {
         self.to_alignment()
     }
 
-    /// Converts the mask to an array.
+    /// Converts the vector mask to an array.
     #[inline]
     #[must_use]
     pub fn to_array(self) -> [bool; N] {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_to_array(self))
     }
 
-    /// Returns `true` if all of the mask's components are `true`.
+    /// Returns `true` if all elements of `self` are `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mask = Mask3::<f32>::new(true, true, false);
+    /// assert_eq!(mask.all(), false);
+    ///
+    /// let mask = Mask3::<f32>::new(true, true, true);
+    /// assert_eq!(mask.all(), true);
+    /// ```
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_all(self))
     }
 
-    /// Returns `true` if any of the mask's components are `true`.
+    /// Returns `true` if any element of `self` is `true`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mask = Mask3::<f32>::new(true, true, false);
+    /// assert_eq!(mask.any(), true);
+    ///
+    /// let mask = Mask3::<f32>::new(false, false, false);
+    /// assert_eq!(mask.any(), false);
+    /// ```
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_any(self))
     }
 
-    /// Selects between the components of `if_true` and `if_false` based on the
-    /// values of the mask.
+    /// Selects between the elements of `if_true` and `if_false` based on the
+    /// boolean elements of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask4, Vec4};
+    /// #
+    /// let mask = Mask4::new(true, false, false, true);
+    /// let if_true = Vec4::new(1, 2, 3, 4);
+    /// let if_false = Vec4::new(-1, -2, -3, -4);
+    /// let result = mask.select(if_true, if_false);
+    ///
+    /// assert_eq!(result, Vec4::new(1, -2, -3, 4));
+    /// ```
     #[inline]
     #[must_use]
     pub fn select(self, if_true: Vector<N, T, A>, if_false: Vector<N, T, A>) -> Vector<N, T, A> {
@@ -166,18 +262,18 @@ where
         ))
     }
 
-    /// Returns an iterator over the mask's components.
+    /// Returns an iterator over the vector mask's elements.
     #[inline]
     #[must_use]
     pub fn iter(self) -> core::array::IntoIter<bool, N> {
         self.to_array().into_iter()
     }
 
-    /// Returns the component at the given index.
+    /// Returns the element at the given index.
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to the number of elements.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -185,24 +281,48 @@ where
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_get(self, index))
     }
 
-    /// Sets the component at the given index.
+    /// Sets the element at the given index to `value`.
     ///
     /// # Panics
     ///
-    /// Panics if the index is out of bounds.
+    /// Panics if `index` is greater than or equal to the number of elements.
     #[inline]
     #[track_caller]
     pub fn set(&mut self, index: usize, value: bool) {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_set(self, index, value))
     }
 
-    /// Reinterprets the bits of the mask to a different scalar type.
+    /// Raw transmutation between scalar types.
     ///
-    /// The two scalar types must have compatible memory layouts. This is
-    /// enforced via trait bounds in this function's signature.
+    /// This function's signature staticly guarantees that the types have
+    /// compatible memory layouts.
     ///
     /// This function is used to make SIMD optimizations in implementations of
     /// [`Scalar`].
+    ///
+    /// # Examples
+    ///
+    /// Correct usage:
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<i32>::new(false, true, false);
+    /// let b = a.to_repr::<u32>();
+    ///
+    /// assert_eq!(b, Mask3::<u32>::new(false, true, false));
+    /// ```
+    ///
+    /// Incorrect usage:
+    ///
+    /// ```compile_fail
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<i32>::new(false, true, false);
+    ///
+    /// // This does not compile since `i32` and `i64` are not compatible.
+    /// let _ = a.to_repr::<i64>();
+    /// ```
     #[inline]
     #[must_use]
     pub const fn to_repr<T2>(self) -> Mask<N, T2, A>
@@ -217,7 +337,7 @@ impl<T, A: Alignment> Mask<2, T, A>
 where
     T: Scalar,
 {
-    /// Creates a 2-component mask.
+    /// Creates a 2-element vector mask.
     #[inline]
     #[must_use]
     pub fn new(x: bool, y: bool) -> Self {
@@ -229,7 +349,7 @@ impl<T, A: Alignment> Mask<3, T, A>
 where
     T: Scalar,
 {
-    /// Creates a 3-component mask.
+    /// Creates a 3-element vector mask.
     #[inline]
     #[must_use]
     pub fn new(x: bool, y: bool, z: bool) -> Self {
@@ -241,7 +361,7 @@ impl<T, A: Alignment> Mask<4, T, A>
 where
     T: Scalar,
 {
-    /// Creates a 4-component mask.
+    /// Creates a 4-element vector mask.
     #[inline]
     #[must_use]
     pub fn new(x: bool, y: bool, z: bool, w: bool) -> Self {
@@ -364,14 +484,24 @@ where
 {
     type Output = Self;
 
+    /// Performs the unary `!` operation for each vector mask element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mask = Mask3::<f32>::new(false, true, false);
+    /// assert_eq!(!mask, Mask3::new(true, false, true));
+    /// ```
     #[inline]
     fn not(self) -> Self::Output {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_not(self))
     }
 }
 
-macro_rules! impl_binary_op {
-    ($Op:ident $op:ident, $mask_op:ident) => {
+macro_rules! impl_binary_operators {
+    ($Op:ident, $op:ident, $mask_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
@@ -379,6 +509,7 @@ macro_rules! impl_binary_op {
         {
             type Output = Self;
 
+            $(#[$doc])*
             #[inline]
             fn $op(self, rhs: Self) -> Self::Output {
                 specialize!(<T::Repr as MaskBackend<N, A>>::$mask_op(self, rhs))
@@ -392,6 +523,7 @@ macro_rules! impl_binary_op {
         {
             type Output = Self;
 
+            $(#[$doc_scalar])*
             #[inline]
             fn $op(self, rhs: bool) -> Self::Output {
                 self.$op(Self::splat(rhs))
@@ -399,12 +531,102 @@ macro_rules! impl_binary_op {
         }
     };
 }
-impl_binary_op!(BitAnd bitand, mask_bitand);
-impl_binary_op!(BitOr bitor, mask_bitor);
-impl_binary_op!(BitXor bitxor, mask_bitxor);
+impl_binary_operators!(
+    BitAnd,
+    bitand,
+    mask_bitand,
+    /// Performs the `&` operation for each vector mask element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<f32>::new(true, true, false);
+    /// let b = a & Mask3::new(false, true, true);
+    ///
+    /// assert_eq!(b, Mask3::new(true & false, true & true, false & true));
+    /// ```
+    ,
+    /// Performs the `&` operation for each vector mask element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<f32>::new(true, false, true);
+    /// let b = a & false;
+    ///
+    /// assert_eq!(b, Mask3::new(true & false, false & false, true & false));
+    /// ```
+);
+impl_binary_operators!(
+    BitOr,
+    bitor,
+    mask_bitor,
+    /// Performs the `|` operation for each vector mask element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<f32>::new(true, true, false);
+    /// let b = a | Mask3::new(false, true, true);
+    ///
+    /// assert_eq!(b, Mask3::new(true | false, true | true, false | true));
+    /// ```
+    ,
+    /// Performs the `|` operation for each vector mask element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<f32>::new(true, false, true);
+    /// let b = a | false;
+    ///
+    /// assert_eq!(b, Mask3::new(true | false, false | false, true | false));
+    /// ```
+);
+impl_binary_operators!(
+    BitXor,
+    bitxor,
+    mask_bitxor,
+    /// Performs the `^` operation for each vector mask element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<f32>::new(true, true, false);
+    /// let b = a ^ Mask3::new(false, true, true);
+    ///
+    /// assert_eq!(b, Mask3::new(true ^ false, true ^ true, false ^ true));
+    /// ```
+    ,
+    /// Performs the `^` operation for each vector mask element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let a = Mask3::<f32>::new(true, false, true);
+    /// let b = a ^ false;
+    ///
+    /// assert_eq!(b, Mask3::new(true ^ false, false ^ false, true ^ false));
+    /// ```
+);
 
-macro_rules! impl_assign_op {
-    ($OpAssign:ident $op_assign:ident $op:ident) => {
+macro_rules! impl_assign_operator {
+    ($OpAssign:ident, $op_assign:ident, $op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $OpAssign for Mask<N, T, A>
         where
             Length<N>: SupportedLength,
@@ -428,9 +650,99 @@ macro_rules! impl_assign_op {
         }
     };
 }
-impl_assign_op!(BitAndAssign bitand_assign bitand);
-impl_assign_op!(BitOrAssign bitor_assign bitor);
-impl_assign_op!(BitXorAssign bitxor_assign bitxor);
+impl_assign_operator!(
+    BitAndAssign,
+    bitand_assign,
+    bitand,
+    /// Performs the `&=` operation for each vector mask element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mut mask = Mask3::<f32>::new(true, true, false);
+    /// mask &= Mask3::new(false, true, true);
+    ///
+    /// assert_eq!(mask, Mask3::new(true & false, true & true, false & true));
+    /// ```
+    ,
+    /// Performs the `&=` operation for each vector mask element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mut mask = Mask3::<f32>::new(true, true, false);
+    /// mask &= false;
+    ///
+    /// assert_eq!(mask, Mask3::new(true & false, true & false, false & false);
+    /// ```
+);
+impl_assign_operator!(
+    BitOrAssign,
+    bitor_assign,
+    bitor,
+    /// Performs the `|=` operation for each vector mask element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mut mask = Mask3::<f32>::new(true, true, false);
+    /// mask |= Mask3::new(false, true, true);
+    ///
+    /// assert_eq!(mask, Mask3::new(true | false, true | true, false | true));
+    /// ```
+    ,
+    /// Performs the `|=` operation for each vector mask element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mut mask = Mask3::<f32>::new(true, true, false);
+    /// mask |= false;
+    ///
+    /// assert_eq!(mask, Mask3::new(true | false, true | false, false | false);
+    /// ```
+);
+impl_assign_operator!(
+    BitXorAssign,
+    bitxor_assign,
+    bitxor,
+    /// Performs the `^=` operation for each vector mask element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mut mask = Mask3::<f32>::new(true, true, false);
+    /// mask ^= Mask3::new(false, true, true);
+    ///
+    /// assert_eq!(mask, Mask3::new(true ^ false, true ^ true, false ^ true));
+    /// ```
+    ,
+    /// Performs the `^=` operation for each vector mask element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Mask3;
+    /// #
+    /// let mut mask = Mask3::<f32>::new(true, true, false);
+    /// mask ^= false;
+    ///
+    /// assert_eq!(mask, Mask3::new(true ^ false, true ^ false, false ^ false);
+    /// ```
+);
 
 // SAFETY: Mask representations must be either equivalent to `[bool; N]` or be
 // simple intrinsic types. Both are `Send`.
@@ -471,14 +783,17 @@ where
 {
 }
 
-/// Controls the implementation of mask functions.
+/// Controls the implementation of vector mask functions.
 ///
-/// Unlike other backend traits (e.g., [`ScalarBackend`](crate::ScalarBackend)),
-/// `MaskBackend` is implemented for [`T::Repr`](Scalar::Repr) instead of `T`.
+/// Unlike [`ScalarBackend<N, A>`], `MaskBackend<N, A>` is implemented for
+/// [`T::Repr`] instead of `T`.
 ///
-/// Unlike other backend traits, `MaskBackend`'s functions have no default
-/// implementation. This is because there are not enough guarantees about the
-/// memory layout of masks to make a default implementation.
+/// Unlike [`ScalarBackend<N, A>`], `MaskBackend<N, A>` functions have no
+/// default implementation. This is because there are not enough guarantees
+/// about the representation of vector masks to make a default implementation.
+///
+/// [`ScalarBackend<N, A>`]: crate::ScalarBackend
+/// [`T::Repr`]: Scalar::Repr
 pub(crate) trait MaskBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,

@@ -6,7 +6,7 @@ macro_rules! impl_uint {
         where
             Length<N>: SupportedLength,
         {
-            /// Computes the sum of the vector's components.
+            /// Computes the sum of the elements of `self`.
             ///
             /// Equivalent to `self.x + self.y + ...`.
             ///
@@ -14,7 +14,16 @@ macro_rules! impl_uint {
             ///
             /// When assertions are enabled (see the crate documentation):
             ///
-            /// Panics if any addition overflows. Addition is performed in order.
+            /// Panics if any addition overflows (performed in order).
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec3;
+            /// #
+            /// let vec = Vec3::<u32>::new(1, 2, 3);
+            /// assert_eq!(vec.element_sum(), 1 + 2 + 3);
+            /// ```
             #[inline]
             #[must_use]
             #[track_caller]
@@ -26,7 +35,7 @@ macro_rules! impl_uint {
                 }
             }
 
-            /// Computes the product of the vector's components.
+            /// Computes the product of the elements of `self`.
             ///
             /// Equivalent to `self.x * self.y * ...`.
             ///
@@ -34,8 +43,16 @@ macro_rules! impl_uint {
             ///
             /// When assertions are enabled (see the crate documentation):
             ///
-            /// Panics if any multiplication overflows. Multiplication is performed in
-            /// order.
+            /// Panics if any multiplication overflows (performed in order).
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec3;
+            /// #
+            /// let vec = Vec3::<u32>::new(1, 2, 3);
+            /// assert_eq!(vec.element_product(), 1 * 2 * 3);
+            /// ```
             #[inline]
             #[must_use]
             #[track_caller]
@@ -47,25 +64,49 @@ macro_rules! impl_uint {
                 }
             }
 
-            /// Returns the maximum between the components of `self` and `other`.
+            /// Returns the maximum elements between `self` and `other`.
             ///
             /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec4;
+            /// #
+            /// let a = Vec4::<u32>::new(1, 5, 3, 0);
+            /// let b = Vec4::<u32>::new(3, 2, 7, 1);
+            /// let max = a.max(b);
+            ///
+            /// assert_eq!(max, Vec4::new(3, 5, 7, 1));
+            /// ```
             #[inline]
             #[must_use]
             pub fn max(self, other: Self) -> Self {
                 specialize!(<$T as $Backend<N, A>>::vec_max(self, other))
             }
 
-            /// Returns the minimum between the components of `self` and `other`.
+            /// Returns the minimum elements between `self` and `other`.
             ///
             /// Equivalent to `(self.x.min(other.x), self.y.min(other.y), ...)`.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec4;
+            /// #
+            /// let a = Vec4::<u32>::new(1, 5, 3, 0);
+            /// let b = Vec4::<u32>::new(3, 2, 7, 1);
+            /// let min = a.min(b);
+            ///
+            /// assert_eq!(min, Vec4::new(1, 2, 3, 0));
+            /// ```
             #[inline]
             #[must_use]
             pub fn min(self, other: Self) -> Self {
                 specialize!(<$T as $Backend<N, A>>::vec_min(self, other))
             }
 
-            /// Clamps the vector's components between the components of `min` and
+            /// Clamps the elements of `self` between the elements of `min` and
             /// `max`.
             ///
             /// Equivalent to
@@ -73,7 +114,21 @@ macro_rules! impl_uint {
             ///
             /// # Panics
             ///
-            /// Panics if `min > max`.
+            /// Panics if any element of `min` is greater than the corresponding
+            /// element of `max`.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec4;
+            /// #
+            /// let vec = Vec4::<u32>::new(1, 2, 3, 9);
+            /// let min = Vec4::new(0, 5, 1, 2);
+            /// let max = Vec4::new(3, 6, 2, 3);
+            /// let clamp = vec.clamp(min, max);
+            ///
+            /// assert_eq!(clamp, Vec4::new(1, 5, 2, 3));
+            /// ```
             #[inline]
             #[must_use]
             #[track_caller]
@@ -83,18 +138,36 @@ macro_rules! impl_uint {
                 self.max(min).min(max)
             }
 
-            /// Returns the maximum between the vector's components.
+            /// Returns the maximum between the elements of `self`.
             ///
             /// Equivalent to `self.x.max(self.y).max(self.z)...`.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec3;
+            /// #
+            /// let vec = Vec3::<u32>::new(1, 7, 3);
+            /// assert_eq!(vec.max_element(), 7);
+            /// ```
             #[inline]
             #[must_use]
             pub fn max_element(self) -> $T {
                 specialize!(<$T as $Backend<N, A>>::vec_max_element(self))
             }
 
-            /// Returns the minimum between the vector's components.
+            /// Returns the minimum between the elements of `self`.
             ///
             /// Equivalent to `self.x.min(self.y).min(self.z)...`.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec3;
+            /// #
+            /// let vec = Vec3::<u32>::new(7, 0, 3);
+            /// assert_eq!(vec.min_element(), 0);
+            /// ```
             #[inline]
             #[must_use]
             pub fn min_element(self) -> $T {
@@ -105,10 +178,23 @@ macro_rules! impl_uint {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation) or overflow
-            /// checks are enabled:
+            /// When assertions are enabled (see the crate documentation) or
+            /// overflow checks are enabled:
             ///
             /// Panics if an overflow occurs.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec3;
+            /// #
+            /// let x = Vec3::<u32>::new(2, 0, 0);
+            /// let y = Vec3::<u32>::new(0, 3, 0);
+            ///
+            /// assert_eq!(x.dot(y), 0);
+            /// assert_eq!(x.dot(x), 4);
+            /// assert_eq!(y.dot(y), 9);
+            /// ```
             #[inline]
             #[must_use]
             #[track_caller]
@@ -116,14 +202,23 @@ macro_rules! impl_uint {
                 (self * rhs).element_sum()
             }
 
-            /// Computes the squared length/magnitude of the vector.
+            /// Computes the squared length/magnitude of `self`.
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation) or overflow
-            /// checks are enabled:
+            /// When assertions are enabled (see the crate documentation) or
+            /// overflow checks are enabled:
             ///
             /// Panics if an overflow occurs.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            /// # use ggmath::Vec3;
+            /// #
+            /// let vec = Vec3::<u32>::new(1, 1, 1);
+            /// assert_eq!(vec.length_squared(), 3);
+            /// ```
             #[inline]
             #[must_use]
             #[track_caller]

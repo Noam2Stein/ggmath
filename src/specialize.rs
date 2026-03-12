@@ -3,41 +3,59 @@ use crate::{
     num_primitive::PrimitiveFloat, transmute::transmute_generic,
 };
 
-/// Bypasses a limitation of const generics to do specialization.
+/// Bypasses a type system limitation to perform specialization.
 ///
-/// `ggmath` allows types that implement [`Scalar`] to override the
-/// implementations of math functions for each length and alignment to make
-/// optimizations.
+/// Types that implement [`Scalar`] can override the implementation of math
+/// functions. Implementations are overriden via the [`ScalarBackend<N, A>`]
+/// trait, which has to be implemented for all lengths and both alignments.
 ///
-/// Implementations are overriden via the [`ScalarBackend<N,
-/// A>`](crate::ScalarBackend) trait, which has to be implemented for all
-/// lengths and both alignments. Math functions that want to call their
-/// implementations would ideally want to perform:
-///
-/// ```ignore
-/// <T as ScalarBackend<N, A>>::math_fn(args)
-/// ```
-///
-/// But this approach results in a compiler error. The compiler doesn't know
-/// that `T` implements `ScalarBackend` for all cases of `N` and `A`, it only
-/// knows that it implements it for `2, 3, 4` and `Aligned, Unaligned`.
-///
-/// To bypass this, math functions have to match against `N` and `A` to their 6
-/// possible cases then use unsafe transmutes to convert inputs and outputs from
-/// their generic form to their concrete form.
-///
-/// This macro is a safe wrapper for this pattern, and allows math functions to
-/// write:
+/// Implementations can be generic over `N` and `A`, but there can also be
+/// seperate implementations for each concrete case. To make this possible,
+/// [`Scalar`] is defined as:
 ///
 /// ```ignore
-/// specialize!(<T as ScalarBackend<N, A>>::math_function(arguments))
+/// trait Scalar:
+///     ScalarBackend<2, Aligned>
+///     + ScalarBackend<3, Aligned>
+///     + ScalarBackend<4, Aligned>
+///     + ScalarBackend<2, Unaligned>
+///     + ScalarBackend<3, Unaligned>
+///     + ScalarBackend<4, Unaligned>
+/// {
+/// }
 /// ```
 ///
-/// If certain function signatures fails to compile with this macro, its
-/// implementation needs to be adjusted to support those function's types.
+/// Math functions that want to call their implementation want to write:
 ///
-/// When `generic_const_params` stabilizes and the compiler is smart enough to
-/// understand `T: ScalarBackend<N, A>`, this macro should be removed.
+/// ```ignore
+/// <T as ScalarBackend<N, A>>::function_implementation(arguments)
+/// ```
+///
+/// This results in a compiler error. The compiler understands that `T`
+/// implements [`ScalarBackend`] for lengths `2`, `3`, `4`, and alignments
+/// [`Aligned`], [`Unaligned`], but is not smart enough to understand that those
+/// are all possible cases, and that `T` implements [`ScalarBackend<N, A>`].
+///
+/// To bypass this, math functions have to match over `N` and `A`, and for each
+/// of the 6 possible cases perform unsafe transmutations to convert inputs and
+/// outputs, or function pointers, from their generic form to a concrete form.
+///
+/// The `specialize` macro is a safe wrapper for this pattern that allows math
+/// functions to write:
+///
+/// ```ignore
+/// specialize!(<T as ScalarBackend<N, A>>::function_implementation(arguments))
+/// ```
+///
+/// Once the type system is smart enough, `specialize` could be removed. This
+/// will improve compile times and lower the chances of soundness bugs
+/// appearing.
+///
+/// Note: If certain function signatures fail to compile with this macro, the
+/// [`Specialize`] trait may not be implemented for those signature's types.
+///
+/// [`ScalarBackend<N, A>`]: crate::ScalarBackend
+/// [`ScalarBackend`]: crate::ScalarBackend
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
@@ -78,83 +96,116 @@ macro_rules! specialize {
 
 pub(crate) use specialize;
 
+/// Performs the unsafe transmution for [`specialize`].
+///
+/// The macro call:
+///
+/// ```ignore
+/// specialize!(<T as ScalarBackend<N, A>>::function_implementation(arguments))
+/// ```
+///
+/// Expands to:
+///
+/// ```ignore
+/// (const {
+///     specialize_helper::<
+///         N,
+///         A,
+///         fn(_) -> _,
+///         fn(_) -> _,
+///         fn(_) -> _,
+///         fn(_) -> _,
+///         fn(_) -> _,
+///         fn(_) -> _,
+///         fn(_) -> _,
+///     >(
+///         <T as ScalarBackend<2, Aligned>>::function_implementation,
+///         <T as ScalarBackend<3, Aligned>>::function_implementation,
+///         <T as ScalarBackend<4, Aligned>>::function_implementation,
+///         <T as ScalarBackend<2, Unaligned>>::function_implementation,
+///         <T as ScalarBackend<3, Unaligned>>::function_implementation,
+///         <T as ScalarBackend<4, Unaligned>>::function_implementation,
+///     )
+/// })(arguments)
+/// ```
+///
+/// `specialize_helper` then matches over `N` and `A` and transmutes the
+/// appropriate function pointer to the output signature.
+///
+/// `fn(_) -> _` helps type inference understand that passed functions are
+/// function pointers, and not function ZSTs which cannot be transmuted soundly.
+///
+/// The soundness of the transmutation relies on the signatures matching each
+/// other. This is staticly guaranteed by the usage of the [`Specialize`] trait.
 #[expect(private_bounds)]
-pub const fn specialize_helper<const N: usize, A: Alignment, T2, T3, T4, T2U, T3U, T4U, T>(
-    value2: T2,
-    value3: T3,
-    value4: T4,
-    value2u: T2U,
-    value3u: T3U,
-    value4u: T4U,
-) -> T
+pub const fn specialize_helper<const N: usize, A: Alignment, F2, F3, F4, F2U, F3U, F4U, F>(
+    f2: F2,
+    f3: F3,
+    f4: F4,
+    f2u: F2U,
+    f3u: F3U,
+    f4u: F4U,
+) -> F
 where
     Length<N>: SupportedLength,
-    T2: Specialize<T, 2, N, Aligned, A> + Copy,
-    T3: Specialize<T, 3, N, Aligned, A> + Copy,
-    T4: Specialize<T, 4, N, Aligned, A> + Copy,
-    T2U: Specialize<T, 2, N, Unaligned, A> + Copy,
-    T3U: Specialize<T, 3, N, Unaligned, A> + Copy,
-    T4U: Specialize<T, 4, N, Unaligned, A> + Copy,
+    F2: Specialize<F, 2, N, Aligned, A> + Copy,
+    F3: Specialize<F, 3, N, Aligned, A> + Copy,
+    F4: Specialize<F, 4, N, Aligned, A> + Copy,
+    F2U: Specialize<F, 2, N, Unaligned, A> + Copy,
+    F3U: Specialize<F, 3, N, Unaligned, A> + Copy,
+    F4U: Specialize<F, 4, N, Unaligned, A> + Copy,
 {
     match (N, A::IS_ALIGNED) {
         // SAFETY: `T2` is guaranteed to be the same type as `T` as long as `N`
         // is `2` and `A` is `Aligned`. `N` was just checked to be `2` and `A`
         // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
         // `T2` and `T` are the same type.
-        (2, true) => unsafe { transmute_generic::<T2, T>(value2) },
+        (2, true) => unsafe { transmute_generic::<F2, F>(f2) },
 
         // SAFETY: `T3` is guaranteed to be the same type as `T` as long as `N`
         // is `3` and `A` is `Aligned`. `N` was just checked to be `3` and `A`
         // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
         // `T3` and `T` are the same type.
-        (3, true) => unsafe { transmute_generic::<T3, T>(value3) },
+        (3, true) => unsafe { transmute_generic::<F3, F>(f3) },
 
         // SAFETY: `T4` is guaranteed to be the same type as `T` as long as `N`
         // is `4` and `A` is `Aligned`. `N` was just checked to be `4` and `A`
         // is guaranteed to be `Aligned` because `A::IS_ALIGNED` is true, and so
         // `T4` and `T` are the same type.
-        (4, true) => unsafe { transmute_generic::<T4, T>(value4) },
+        (4, true) => unsafe { transmute_generic::<F4, F>(f4) },
 
         // SAFETY: `T2U` is guaranteed to be the same type as `T` as long as `N`
         // is `2` and `A` is `Unaligned`. `N` was just checked to be `2` and `A`
         // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
         // so `T2U` and `T` are the same type.
-        (2, false) => unsafe { transmute_generic::<T2U, T>(value2u) },
+        (2, false) => unsafe { transmute_generic::<F2U, F>(f2u) },
 
         // SAFETY: `T3U` is guaranteed to be the same type as `T` as long as `N`
         // is `3` and `A` is `Unaligned`. `N` was just checked to be `3` and `A`
         // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
         // so `T3U` and `T` are the same type.
-        (3, false) => unsafe { transmute_generic::<T3U, T>(value3u) },
+        (3, false) => unsafe { transmute_generic::<F3U, F>(f3u) },
 
         // SAFETY: `T4U` is guaranteed to be the same type as `T` as long as `N`
         // is `4` and `A` is `Unaligned`. `N` was just checked to be `4` and `A`
         // is guaranteed to be `Unaligned` because `A::IS_ALIGNED` is false, and
         // so `T4U` and `T` are the same type.
-        (4, false) => unsafe { transmute_generic::<T4U, T>(value4u) },
+        (4, false) => unsafe { transmute_generic::<F4U, F>(f4u) },
 
         _ => unreachable!(),
     }
 }
 
-/// Ensures that `Self` is the same type as `T2` if `N == N2` and `A == A2`.
+/// Staticly guarantees the soundness of [`specialize_helper`].
 ///
-/// This trait is used to ensure the soundness of [`specialize!`]. Examples of
-/// correct usage are:
-///
-/// If `N == N2` and `A == A2`:
-///
-/// - `Vector<N, T, A> == Vector<N2, T, A2>`.
-/// - `[T; N] == [T; N2]`.
-/// - `bool == bool` (this one is true regardless).
-/// - `fn([T; N]) -> Vector<N, T, A> == fn([T; N2]) -> Vector<N2, T, A2>`.
-///
-/// The last example is what the macro uses directly.
+/// This trait is implemented when `Self` and `T2` are the same type assuming
+/// `N == N2` and `A == A2`.
 ///
 /// # Safety
 ///
-/// If `N == N2` and `A` being the same type as `A2` are proven to be true,
-/// `Self` must be the same type as `T2`.
+/// If `N == N2` and `A == A2`, `Self == T2` must be correct. An incorrect
+/// implementation would make it possible to transmute between incompatible
+/// types, causing undefined behaviour.
 unsafe trait Specialize<T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
 where
     Length<N>: SupportedLength,
@@ -400,10 +451,10 @@ where
 {
 }
 
-macro_rules! impl_specialzie {
+macro_rules! impl_concrete_type {
     ($($T:ty),*$(,)?) => {
         $(
-            // `$T == $T`.
+            // `$T == $T` regardless of `N` and `A`.
             unsafe impl<const N: usize, const N2: usize, A: Alignment, A2: Alignment>
                 Specialize<$T, N, N2, A, A2> for $T
             where
@@ -414,7 +465,7 @@ macro_rules! impl_specialzie {
         )*
     };
 }
-impl_specialzie!(
+impl_concrete_type!(
     i8,
     i16,
     i32,

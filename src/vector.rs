@@ -28,49 +28,66 @@ pub(crate) use float::*;
 pub(crate) use signed::*;
 pub(crate) use unsigned::*;
 
-/// A generic vector type.
+/// An `N`-dimensional vector of type `T`.
 ///
-/// `Vector` is the generic form of:
+/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// [`Alignment`] for more details.
 ///
-/// - [`Vec2<T>`](crate::Vec2)
-/// - [`Vec3<T>`](crate::Vec3)
-/// - [`Vec4<T>`](crate::Vec4)
-/// - [`Vec2U<T>`](crate::Vec2U)
-/// - [`Vec3U<T>`](crate::Vec3U)
-/// - [`Vec4U<T>`](crate::Vec4U)
+/// # Type aliases
 ///
-/// `Vector` is generic over:
+/// - [`Vec2<T>`] for `Vector<2, T, Aligned>`.
+/// - [`Vec3<T>`] for `Vector<3, T, Aligned>`.
+/// - [`Vec4<T>`] for `Vector<4, T, Aligned>`.
+/// - [`Vec2U<T>`] for `Vector<2, T, Unaligned>`.
+/// - [`Vec3U<T>`] for `Vector<3, T, Unaligned>`.
+/// - [`Vec4U<T>`] for `Vector<4, T, Unaligned>`.
 ///
-/// - `N`: Length (2, 3, or 4)
-/// - `T`: Scalar type (see [`Scalar`])
-/// - `A`: Alignment (see [`Alignment`])
+/// # Fields
 ///
-/// # Guarantees
+/// `x: T` (for lengths `2`, `3`, `4`)
 ///
-/// `Vector<N, T, A>` represents `N` consecutive values of `T` followed by
-/// optional padding due to alignment.
+/// The first element of the vector.
 ///
-/// Padding bytes are initialized and accept any bit-pattern. It is **sound** to
-/// store any bit-pattern in padding, and it is **unsound** to assume that
-/// padding contains valid values of `T` unless `T` accepts all bit-patterns.
+/// `y: T` (for lengths `2`, `3`, `4`)
 ///
-/// - `Vector<N, T, Unaligned>`: has no padding, has no additional alignment.
+/// The second element of the vector.
 ///
-/// - `Vector<2, T, Aligned>`: has no padding, may have additional alignment.
+/// `z: T` (for lengths `3`, `4`)
 ///
-/// - `Vector<3, T, Aligned>`: may have one padding element, may have additional
-///   alignment.
+/// The third element of the vector.
 ///
-/// - `Vector<4, T, Aligned>`: has no padding, may have additional alignment.
+/// `w: T` (for length `4`)
 ///
-/// Vectors of scalar types with the same [`Scalar::Repr`] are guaranteed to
-/// have compatible memory layouts, unless `Repr = ()`. They are guaranteed to
-/// have the same size and element positions, but their alignment may differ.
+/// The fourth element of the vector.
 ///
-/// Types containing `Vector` are **not guaranteed** to have the same memory
-/// layout as types containing equivalent arrays. For example, even though
-/// `Vec2U<T>` and `[T; 2]` have the same memory layout, `Option<Vec2U<T>>` and
-/// `Option<[T; 2]>` may not.
+/// # Memory layout
+///
+/// `Vector<N, T, A>` contains `N` consecutive values of `T` followed by
+/// optional padding.
+///
+/// `Vector<N, T, Unaligned>` has the alignment of `T` and has no padding.
+/// `Vector<N, T, Aligned>` may have higher alignment than `T`. [`Vec2<T>`] and
+/// [`Vec4<T>`] have no padding. [`Vec3<T>`] may have one padding element.
+///
+/// Padding is fully initialized and accepts all bit patterns. Unless `T`
+/// accepts all bit patterns, it is not sound to assume padding contains valid
+/// values of `T`.
+///
+/// Vectors of compatible [`Scalar::Repr`] types have the same size. This means
+/// that they are transmutable, but can still have different alignments (see
+/// [`to_repr`]).
+///
+/// Types containing compatible vectors and arrays may not have compatible
+/// layouts themselves. For example, even though [`Vec2U<T>`] and `[T; 2]` have
+/// compatible layouts, [`Option<Vec2U<T>>`] and `Option<[T; 2]>` may not.
+///
+/// [`Vec2<T>`]: crate::Vec2
+/// [`Vec3<T>`]: crate::Vec3
+/// [`Vec4<T>`]: crate::Vec4
+/// [`Vec2U<T>`]: crate::Vec2U
+/// [`Vec3U<T>`]: crate::Vec3U
+/// [`Vec4U<T>`]: crate::Vec4U
+/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Vector<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::VectorRepr<N, T, A>,
@@ -84,7 +101,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Zero,
 {
-    /// All `0`.
+    /// A vector with all elements set to `0`.
     pub const ZERO: Self = Self::splat(T::ZERO);
 }
 
@@ -93,7 +110,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + One,
 {
-    /// All `1`.
+    /// A vector with all elements set to `1`.
     pub const ONE: Self = Self::splat(T::ONE);
 }
 
@@ -102,7 +119,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + NegOne,
 {
-    /// All `-1`.
+    /// A vector with all elements set to `-1`.
     pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
 }
 
@@ -111,7 +128,9 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Min,
 {
-    /// All [`T::MIN`](Min::MIN).
+    /// A vector with all elements set to [`T::MIN`].
+    ///
+    /// [`T::MIN`]: Min::MIN
     pub const MIN: Self = Self::splat(T::MIN);
 }
 
@@ -120,7 +139,9 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Max,
 {
-    /// All [`T::MAX`](Max::MAX).
+    /// A vector with all elements set to [`T::MAX`].
+    ///
+    /// [`T::MAX`]: Max::MAX
     pub const MAX: Self = Self::splat(T::MAX);
 }
 
@@ -129,7 +150,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Nan,
 {
-    /// All NaN (Not a Number).
+    /// A vector with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::splat(T::NAN);
 }
 
@@ -138,7 +159,9 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Infinity,
 {
-    /// All [`T::INFINITY`](Infinity::INFINITY).
+    /// A vector with all elements set to [`T::INFINITY`].
+    ///
+    /// [`T::INFINITY`]: Infinity::INFINITY
     pub const INFINITY: Self = Self::splat(T::INFINITY);
 }
 
@@ -147,7 +170,9 @@ where
     Length<N>: SupportedLength,
     T: Scalar + NegInfinity,
 {
-    /// All [`T::NEG_INFINITY`](NegInfinity::NEG_INFINITY).
+    /// A vector with all elements set to [`T::NEG_INFINITY`].
+    ///
+    /// [`T::NEG_INFINITY`]: NegInfinity::NEG_INFINITY
     pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
 }
 
@@ -156,7 +181,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + True,
 {
-    /// All `true`.
+    /// A vector with all elements set to `true`.
     pub const TRUE: Self = Self::splat(T::TRUE);
 }
 
@@ -165,7 +190,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + False,
 {
-    /// All `false`.
+    /// A vector with all elements set to `false`.
     pub const FALSE: Self = Self::splat(T::FALSE);
 }
 
@@ -207,7 +232,16 @@ where
         }
     }
 
-    /// Creates a vector with all components set to the given value.
+    /// Creates a vector with all elements set to `value`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::splat(5);
+    /// assert_eq!(vec, Vec3::new(5, 5, 5));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn splat(value: T) -> Self {
@@ -240,9 +274,21 @@ where
         }
     }
 
-    /// Creates a vector by calling function `f` for each component index.
+    /// Creates a vector by calling function `f` for each element index.
     ///
     /// Equivalent to `(f(0), f(1), f(2), ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let indices = Vec3::from_fn(|i| i);
+    /// assert_eq!(indices, Vec3::new(0, 1, 2));
+    ///
+    /// let vec = Vec3::from_fn(|i| i % 2);
+    /// assert_eq!(vec, Vec3::new(0, 1, 0));
+    /// ```
     #[inline]
     #[must_use]
     #[track_caller]
@@ -285,9 +331,29 @@ where
         }
     }
 
-    /// Converts the vector to the specified alignment.
+    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`align`] and [`unalign`] for scenarios where the output alignment
+    /// is known.
+    ///
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Aligned, Unaligned, Vec3, Vec3U};
+    /// #
+    /// let aligned = Vec3::new(1, 2, 3);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Vec3U::new(1, 2, 3));
+    ///
+    /// let unaligned = Vec3U::new(1, 2, 3);
+    /// let aligned = unaligned.to_alignment::<Aligned>();
+    /// assert_eq!(aligned, Vec3::new(1, 2, 3));
+    /// ```
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(self) -> Vector<N, T, A2> {
@@ -311,18 +377,38 @@ where
         }
     }
 
-    /// Converts the vector to [`Aligned`] alignment.
+    /// Conversion to [`Aligned`] storage.
     ///
     /// See [`Alignment`] for more information.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Vec3, Vec3U};
+    /// #
+    /// let unaligned = Vec3U::new(1, 2, 3);
+    /// let aligned = unaligned.align();
+    /// assert_eq!(aligned, Vec3::new(1, 2, 3));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn align(self) -> Vector<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Converts the vector to [`Unaligned`] alignment.
+    /// Conversion to [`Unaligned`] storage.
     ///
     /// See [`Alignment`] for more information.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Vec3, Vec3U};
+    /// #
+    /// let aligned = Vec3::new(1, 2, 3);
+    /// let unaligned = aligned.unalign();
+    /// assert_eq!(unaligned, Vec3U::new(1, 2, 3));
+    /// ```
     #[inline]
     #[must_use]
     pub const fn unalign(self) -> Vector<N, T, Unaligned> {
@@ -336,7 +422,7 @@ where
         *self.as_array_ref()
     }
 
-    /// Returns a reference to the vector's components.
+    /// Returns a reference to the vector's elements.
     #[inline]
     #[must_use]
     pub const fn as_array_ref(&self) -> &[T; N] {
@@ -345,7 +431,7 @@ where
         unsafe { transmute_ref::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns a mutable reference to the vector's components.
+    /// Returns a mutable reference to the vector's elements.
     #[inline]
     #[must_use]
     pub const fn as_array_mut(&mut self) -> &mut [T; N] {
@@ -354,60 +440,58 @@ where
         unsafe { transmute_mut::<Vector<N, T, A>, [T; N]>(self) }
     }
 
-    /// Returns an iterator over the vector's components.
-    ///
-    /// This method returns an iterator over `T` and not `&T`. to iterate over
-    /// references use `vec.as_array_ref().iter()`.
+    /// Returns an iterator over the vector's elements.
     #[inline]
     #[must_use]
     pub fn iter(self) -> core::array::IntoIter<T, N> {
         self.to_array().into_iter()
     }
 
-    /// Returns an iterator over mutable references to the vector's components.
+    /// Returns an iterator over mutable references to the vector's elements.
     #[inline]
     #[must_use = "iterators are lazy and do nothing unless consumed"]
     pub fn iter_mut(&mut self) -> core::slice::IterMut<'_, T> {
         self.as_array_mut().iter_mut()
     }
 
-    /// Creates a vector by calling function `f` for each component of the input
-    /// vector.
+    /// Returns a vector of the same length as `self`, with function `f` applied
+    /// to each element in order.
     ///
-    /// Equivalent to `(f(vec.x), f(vec.y), f(vec.z), ...)`.
+    /// Equivalent to `(f(self.x), f(self.y), f(self.z), ..)`.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
-    /// use ggmath::Vec3;
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a.map(|x| x + 1);
+    /// assert_eq!(b, Vec3::new(2, 3, 4));
     ///
-    /// let vec: Vec3<f32> = Vec3::new(1.0, 2.0, 3.0);
-    ///
-    /// assert_eq!(vec.map(|x| x * 2.0), Vec3::new(2.0, 4.0, 6.0));
-    ///
-    /// assert_eq!(vec.map(|x| x.is_sign_negative()), Vec3::new(false, false, false));
+    /// let a = Vec3::<i32>::new(1, -2, -3);
+    /// let b = a.map(|x| x.is_negative());
+    /// assert_eq!(b, Vec3::new(false, true, true));
     /// ```
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn map<T2, F>(self, f: F) -> Vector<N, T2, A>
+    pub fn map<U, F>(self, f: F) -> Vector<N, U, A>
     where
-        T2: Scalar,
-        F: Fn(T) -> T2,
+        U: Scalar,
+        F: Fn(T) -> U,
     {
         Vector::from_fn(|i| f(self[i]))
     }
 
-    /// Returns the vector's components in reverse order.
+    /// Returns a vector with the elements of `self` in reverse order.
     ///
-    /// # Example
+    /// # Examples
     ///
     /// ```
-    /// use ggmath::{Vec3, vec3};
-    ///
-    /// let vec: Vec3<f32> = Vec3::new(1.0, 2.0, 3.0);
-    ///
-    /// assert_eq!(vec.reverse(), Vec3::new(3.0, 2.0, 1.0));
+    /// # use ggmath::{Vec3, vec3};
+    /// #
+    /// let vec = Vec3::new(1, 2, 3).reverse();
+    /// assert_eq!(vec, Vec3::new(3, 2, 1));
     /// ```
     #[inline]
     #[must_use]
@@ -415,10 +499,20 @@ where
         Self::from_fn(|i| self[N - 1 - i])
     }
 
-    /// Returns a mask where each component is `true` if the corresponding
-    /// components of `self` and `other` are equal.
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// elements of `self` and `other` are equal.
     ///
     /// Equivalent to `(self.x == other.x, self.y == other.y, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Vec3};
+    /// #
+    /// let vec = Vec3::new(1, 2, 3);
+    /// let mask = vec.eq_mask(Vec3::new(0, 2, 5));
+    /// assert_eq!(mask, Mask3::new(false, true, false));
+    /// ```
     #[inline]
     #[must_use]
     pub fn eq_mask(self, other: Self) -> Mask<N, T, A>
@@ -428,10 +522,20 @@ where
         specialize!(<T as ScalarBackend<N, A>>::vec_eq_mask(self, other))
     }
 
-    /// Returns a mask where each component is `true` if the corresponding
-    /// components of `self` and `other` are not equal.
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// elements of `self` and `other` are not equal.
     ///
     /// Equivalent to `(self.x != other.x, self.y != other.y, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Vec3};
+    /// #
+    /// let vec = Vec3::new(1, 2, 3);
+    /// let mask = vec.ne_mask(Vec3::new(0, 2, 5));
+    /// assert_eq!(mask, Mask3::new(true, false, true));
+    /// ```
     #[inline]
     #[must_use]
     pub fn ne_mask(self, other: Self) -> Mask<N, T, A>
@@ -441,10 +545,20 @@ where
         specialize!(<T as ScalarBackend<N, A>>::vec_ne_mask(self, other))
     }
 
-    /// Returns a mask where each component is `true` if the corresponding
-    /// component of `self` is less than the corresponding component of `other`.
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// element of `self` is less than the corresponding element of `other`.
     ///
     /// Equivalent to `(self.x < other.x, self.y < other.y, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Vec3};
+    /// #
+    /// let vec = Vec3::new(1, 2, 3);
+    /// let mask = vec.lt_mask(Vec3::new(0, 2, 5));
+    /// assert_eq!(mask, Mask3::new(false, false, true));
+    /// ```
     #[inline]
     #[must_use]
     pub fn lt_mask(self, other: Self) -> Mask<N, T, A>
@@ -454,11 +568,20 @@ where
         specialize!(<T as ScalarBackend<N, A>>::vec_lt_mask(self, other))
     }
 
-    /// Returns a mask where each component is `true` if the corresponding
-    /// component of `self` is greater than the corresponding component of
-    /// `other`.
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// element of `self` is greater than the corresponding element of `other`.
     ///
     /// Equivalent to `(self.x > other.x, self.y > other.y, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Vec3};
+    /// #
+    /// let vec = Vec3::new(1, 2, 3);
+    /// let mask = vec.gt_mask(Vec3::new(0, 2, 5));
+    /// assert_eq!(mask, Mask3::new(true, false, false));
+    /// ```
     #[inline]
     #[must_use]
     pub fn gt_mask(self, other: Self) -> Mask<N, T, A>
@@ -468,11 +591,21 @@ where
         specialize!(<T as ScalarBackend<N, A>>::vec_gt_mask(self, other))
     }
 
-    /// Returns a mask where each component is `true` if the corresponding
-    /// component of `self` is less than or equal to the corresponding component
-    /// of `other`.
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// element of `self` is less than or equal to the corresponding element of
+    /// `other`.
     ///
     /// Equivalent to `(self.x <= other.x, self.y <= other.y, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Vec3};
+    /// #
+    /// let vec = Vec3::new(1, 2, 3);
+    /// let mask = vec.le_mask(Vec3::new(0, 2, 5));
+    /// assert_eq!(mask, Mask3::new(false, true, true));
+    /// ```
     #[inline]
     #[must_use]
     pub fn le_mask(self, other: Self) -> Mask<N, T, A>
@@ -482,11 +615,21 @@ where
         specialize!(<T as ScalarBackend<N, A>>::vec_le_mask(self, other))
     }
 
-    /// Returns a mask where each component is `true` if the corresponding
-    /// component of `self` is greater than or equal to the corresponding
-    /// component of `other`.
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// element of `self` is greater than or equal to the corresponding element
+    /// of `other`.
     ///
     /// Equivalent to `(self.x >= other.x, self.y >= other.y, ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask3, Vec3};
+    /// #
+    /// let vec = Vec3::new(1, 2, 3);
+    /// let mask = vec.ge_mask(Vec3::new(0, 2, 5));
+    /// assert_eq!(mask, Mask3::new(true, true, false));
+    /// ```
     #[inline]
     #[must_use]
     pub fn ge_mask(self, other: Self) -> Mask<N, T, A>
@@ -496,33 +639,59 @@ where
         specialize!(<T as ScalarBackend<N, A>>::vec_ge_mask(self, other))
     }
 
-    /// Reinterprets the bits of the vector to a different scalar type.
+    /// Raw transmutation between scalar types.
     ///
-    /// The two scalar types must have compatible memory layouts. This is
-    /// enforced via trait bounds in this function's signature.
+    /// This function's signature staticly guarantees that the types have
+    /// compatible memory layouts.
     ///
-    /// This function is used to make SIMD optimizations in implementations of [`Scalar`].
+    /// This function is used to make SIMD optimizations in implementations of
+    /// [`Scalar`].
     ///
     /// # Safety
     ///
-    /// The components of the input must be valid for the output vector type.
+    /// The elements of `self` must contain bit patterns that are valid for the
+    /// output type. For example, when converting vectors from `u8` to `bool`,
+    /// the input elements must be either `0` or `1`.
     ///
-    /// For example, when converting vectors from `u8` to `bool` the
-    /// input components must be either `0` or `1`.
+    /// The padding does not need to contain valid values of the output type.
     ///
-    /// The optional padding does not need to be a valid value of `T2`.
+    /// # Examples
+    ///
+    /// Correct usage:
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let bits = Vec3::<u8>::new(0, 1, 1);
+    ///
+    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
+    /// let bools = unsafe { bits.to_repr::<bool>() };
+    ///
+    /// assert_eq!(bools, Vec3::new(false, true, true));
+    /// ```
+    ///
+    /// Incorrect usage:
+    ///
+    /// ```compile_fail
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::<i32>::new(1, 2, 3);
+    ///
+    /// // This does not compile since `i32` and `i64` are not compatible.
+    /// let _ = unsafe { a.to_repr::<i64>() };
+    /// ```
     #[inline]
     #[must_use]
     #[expect(private_bounds)]
-    pub const unsafe fn to_repr<T2>(self) -> Vector<N, T2, A>
+    pub const unsafe fn to_repr<U>(self) -> Vector<N, U, A>
     where
-        T2: Scalar<Repr = T::Repr>,
+        U: Scalar<Repr = T::Repr>,
         T::Repr: SignedInteger,
     {
         // SAFETY: Vectors of scalars with the same `Scalar::Repr` are
         // guaranteed to have compatible memory layouts if `Repr` is a signed
         // integer.
-        unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T2, A>>(self) }
+        unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, U, A>>(self) }
     }
 }
 
@@ -937,8 +1106,8 @@ where
     }
 }
 
-macro_rules! impl_unary_op {
-    ($Op:ident $op:ident $vec_op:ident) => {
+macro_rules! impl_unary_operator {
+    ($Op:ident, $op:ident, $vec_op:ident, $(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
@@ -946,6 +1115,7 @@ macro_rules! impl_unary_op {
         {
             type Output = Self;
 
+            $(#[$doc])*
             #[inline]
             #[track_caller]
             fn $op(self) -> Self::Output {
@@ -954,11 +1124,44 @@ macro_rules! impl_unary_op {
         }
     };
 }
-impl_unary_op!(Neg neg vec_neg);
-impl_unary_op!(Not not vec_not);
+impl_unary_operator!(
+    Neg,
+    neg,
+    vec_neg,
+    /// Performs the unary `-` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = -Vec3::new(1, 2, 3);
+    /// assert_eq!(vec, Vec3::new(-1, -2, -3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+);
+impl_unary_operator!(
+    Not,
+    not,
+    vec_not,
+    /// Performs the unary `!` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = !Vec3::new(1, 2, 3);
+    /// assert_eq!(vec, Vec3::new(!1, !2, !3));
+    /// ```
+);
 
-macro_rules! impl_binary_op {
-    ($Op:ident $op:ident $vec_op:ident) => {
+macro_rules! impl_binary_operator {
+    ($Op:ident, $op:ident, $vec_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
@@ -966,6 +1169,7 @@ macro_rules! impl_binary_op {
         {
             type Output = Self;
 
+            $(#[$doc])*
             #[inline]
             #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
@@ -980,6 +1184,7 @@ macro_rules! impl_binary_op {
         {
             type Output = Self;
 
+            $(#[$doc_scalar])*
             #[inline]
             #[track_caller]
             fn $op(self, rhs: T) -> Self::Output {
@@ -988,24 +1193,399 @@ macro_rules! impl_binary_op {
         }
     };
 }
-impl_binary_op!(Add add vec_add);
-impl_binary_op!(Sub sub vec_sub);
-impl_binary_op!(Mul mul vec_mul);
-impl_binary_op!(Div div vec_div);
-impl_binary_op!(Rem rem vec_rem);
-impl_binary_op!(Shl shl vec_shl);
-impl_binary_op!(Shr shr vec_shr);
-impl_binary_op!(BitAnd bitand vec_bitand);
-impl_binary_op!(BitOr bitor vec_bitor);
-impl_binary_op!(BitXor bitxor vec_bitxor);
+impl_binary_operator!(
+    Add,
+    add,
+    vec_add,
+    /// Performs the `+` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a + Vec3::new(4, 5, 6);
+    /// assert_eq!(b, Vec3::new(1 + 4, 2 + 5, 3 + 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ,
+    /// Performs the `+` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a + 4;
+    /// assert_eq!(b, Vec3::new(1 + 4, 2 + 4, 3 + 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec + splat(scalar)`.
+);
+impl_binary_operator!(
+    Sub,
+    sub,
+    vec_sub,
+    /// Performs the `-` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a - Vec3::new(4, 5, 6);
+    /// assert_eq!(b, Vec3::new(1 - 4, 2 - 5, 3 - 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ,
+    /// Performs the `-` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a - 4;
+    /// assert_eq!(b, Vec3::new(1 - 4, 2 - 4, 3 - 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec - splat(scalar)`.
+);
+impl_binary_operator!(
+    Mul,
+    mul,
+    vec_mul,
+    /// Performs the `*` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a * Vec3::new(4, 5, 6);
+    /// assert_eq!(b, Vec3::new(1 * 4, 2 * 5, 3 * 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ,
+    /// Performs the `*` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a * 4;
+    /// assert_eq!(b, Vec3::new(1 * 4, 2 * 4, 3 * 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec * splat(scalar)`.
+);
+impl_binary_operator!(
+    Div,
+    div,
+    vec_div,
+    /// Performs the `/` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(8, 10, 12);
+    /// let b = a / Vec3::new(2, 5, 3);
+    /// assert_eq!(b, Vec3::new(8 / 2, 10 / 5, 12 / 3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ,
+    /// Performs the `/` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(8, 10, 12);
+    /// let b = a / 2;
+    /// assert_eq!(b, Vec3::new(8 / 2, 10 / 2, 12 / 2));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec / splat(scalar)`.
+);
+impl_binary_operator!(
+    Rem,
+    rem,
+    vec_rem,
+    /// Performs the `%` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(5, 7, 9);
+    /// let b = a % Vec3::new(2, 3, 4);
+    /// assert_eq!(b, Vec3::new(5 % 2, 7 % 3, 9 % 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For integers this operation is fully consistent with the scalar
+    /// operation, including panics.
+    ///
+    /// For floats this operation may be inconsistent with the scalar operation,
+    /// regarding precision and NaN propagation.
+    ,
+    /// Performs the `%` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(5, 7, 9);
+    /// let b = a % 2;
+    /// assert_eq!(b, Vec3::new(5 % 2, 7 % 2, 9 % 2));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For integers this operation is fully consistent with the scalar
+    /// operation, including panics.
+    ///
+    /// For floats this operation may be inconsistent with the scalar operation,
+    /// regarding precision and NaN propagation.
+    ///
+    /// This operation is fully consistent with `vec % splat(scalar)`.
+);
+impl_binary_operator!(
+    Shl,
+    shl,
+    vec_shl,
+    /// Performs the `<<` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a << Vec3::new(1, 2, 3);
+    /// assert_eq!(b, Vec3::new(1 << 1, 2 << 2, 3 << 3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ,
+    /// Performs the `<<` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a << 1;
+    /// assert_eq!(b, Vec3::new(1 << 1, 2 << 1, 3 << 1));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ///
+    /// This operation is fully consistent with `vec << splat(scalar)`.
+);
+impl_binary_operator!(
+    Shr,
+    shr,
+    vec_shr,
+    /// Performs the `>>` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(8, 16, 32);
+    /// let b = a >> Vec3::new(1, 2, 3);
+    /// assert_eq!(b, Vec3::new(8 >> 1, 16 >> 2, 32 >> 3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ,
+    /// Performs the `>>` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(8, 16, 32);
+    /// let b = a >> 1;
+    /// assert_eq!(b, Vec3::new(8 >> 1, 16 >> 1, 32 >> 1));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ///
+    /// This operation is fully consistent with `vec >> splat(scalar)`.
+);
+impl_binary_operator!(
+    BitAnd,
+    bitand,
+    vec_bitand,
+    /// Performs the `&` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a & Vec3::new(4, 5, 6);
+    /// assert_eq!(b, Vec3::new(1 & 4, 2 & 5, 3 & 6));
+    /// ```
+    ,
+    /// Performs the `&` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a & 4;
+    /// assert_eq!(b, Vec3::new(1 & 4, 2 & 4, 3 & 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec & splat(scalar)`.
+);
+impl_binary_operator!(
+    BitOr,
+    bitor,
+    vec_bitor,
+    /// Performs the `|` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a | Vec3::new(4, 5, 6);
+    /// assert_eq!(b, Vec3::new(1 | 4, 2 | 5, 3 | 6));
+    /// ```
+    ,
+    /// Performs the `|` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a | 4;
+    /// assert_eq!(b, Vec3::new(1 | 4, 2 | 4, 3 | 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec | splat(scalar)`.
+);
+impl_binary_operator!(
+    BitXor,
+    bitxor,
+    vec_bitxor,
+    /// Performs the `^` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a ^ Vec3::new(4, 5, 6);
+    /// assert_eq!(b, Vec3::new(1 ^ 4, 2 ^ 5, 3 ^ 6));
+    /// ```
+    ,
+    /// Performs the `^` operation for each vector element and the scalar `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1, 2, 3);
+    /// let b = a ^ 4;
+    /// assert_eq!(b, Vec3::new(1 ^ 4, 2 ^ 4, 3 ^ 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec ^ splat(scalar)`.
+);
 
-macro_rules! impl_assign_op {
-    ($Op:ident $OpAssign:ident $op_assign:ident $op:ident) => {
+macro_rules! impl_assign_operator {
+    ($Op:ident, $OpAssign:ident, $op_assign:ident, $op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $OpAssign for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
             T: Scalar + $Op<Output = T>,
         {
+            $(#[$doc])*
             #[inline]
             #[track_caller]
             fn $op_assign(&mut self, rhs: Self) {
@@ -1018,6 +1598,7 @@ macro_rules! impl_assign_op {
             Length<N>: SupportedLength,
             T: Scalar + $Op<Output = T>,
         {
+            $(#[$doc_scalar])*
             #[inline]
             #[track_caller]
             fn $op_assign(&mut self, rhs: T) {
@@ -1026,16 +1607,434 @@ macro_rules! impl_assign_op {
         }
     };
 }
-impl_assign_op!(Add AddAssign add_assign add);
-impl_assign_op!(Sub SubAssign sub_assign sub);
-impl_assign_op!(Mul MulAssign mul_assign mul);
-impl_assign_op!(Div DivAssign div_assign div);
-impl_assign_op!(Rem RemAssign rem_assign rem);
-impl_assign_op!(Shl ShlAssign shl_assign shl);
-impl_assign_op!(Shr ShrAssign shr_assign shr);
-impl_assign_op!(BitAnd BitAndAssign bitand_assign bitand);
-impl_assign_op!(BitOr BitOrAssign bitor_assign bitor);
-impl_assign_op!(BitXor BitXorAssign bitxor_assign bitxor);
+impl_assign_operator!(
+    Add,
+    AddAssign,
+    add_assign,
+    add,
+    /// Performs the `+=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec += Vec3::new(4, 5, 6);
+    /// assert_eq!(vec, Vec3::new(1 + 4, 2 + 5, 3 + 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec + vec`.
+    ,
+    /// Performs the `+=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec += 4;
+    /// assert_eq!(vec, Vec3::new(1 + 4, 2 + 4, 3 + 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec + vec`.
+);
+impl_assign_operator!(
+    Sub,
+    SubAssign,
+    sub_assign,
+    sub,
+    /// Performs the `-=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(5, 7, 9);
+    /// vec -= Vec3::new(1, 2, 3);
+    /// assert_eq!(vec, Vec3::new(5 - 1, 7 - 2, 9 - 3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec - vec`.
+    ,
+    /// Performs the `-=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(5, 7, 9);
+    /// vec -= 2;
+    /// assert_eq!(vec, Vec3::new(5 - 2, 7 - 2, 9 - 2));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec - vec`.
+);
+impl_assign_operator!(
+    Mul,
+    MulAssign,
+    mul_assign,
+    mul,
+    /// Performs the `*=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec *= Vec3::new(4, 5, 6);
+    /// assert_eq!(vec, Vec3::new(1 * 4, 2 * 5, 3 * 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec * vec`.
+    ,
+    /// Performs the `*=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec *= 4;
+    /// assert_eq!(vec, Vec3::new(1 * 4, 2 * 4, 3 * 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec * vec`.
+);
+impl_assign_operator!(
+    Div,
+    DivAssign,
+    div_assign,
+    div,
+    /// Performs the `/=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(8, 10, 12);
+    /// vec /= Vec3::new(2, 5, 3);
+    /// assert_eq!(vec, Vec3::new(8 / 2, 10 / 5, 12 / 3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec / vec`.
+    ,
+    /// Performs the `/=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(8, 10, 12);
+    /// vec /= 2;
+    /// assert_eq!(vec, Vec3::new(8 / 2, 10 / 2, 12 / 2));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `vec / vec`.
+);
+impl_assign_operator!(
+    Rem,
+    RemAssign,
+    rem_assign,
+    rem,
+    /// Performs the `%=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(5, 7, 9);
+    /// vec %= Vec3::new(2, 3, 4);
+    /// assert_eq!(vec, Vec3::new(5 % 2, 7 % 3, 9 % 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For integers this operation is fully consistent with the scalar
+    /// operation, including panics.
+    ///
+    /// For floats this operation may be inconsistent with the scalar operation,
+    /// regarding precision and NaN propagation.
+    ///
+    /// This operation is fully consistent with `vec % vec`.
+    ,
+    /// Performs the `%=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(5, 7, 9);
+    /// vec %= 2;
+    /// assert_eq!(vec, Vec3::new(5 % 2, 7 % 2, 9 % 2));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For integers this operation is fully consistent with the scalar
+    /// operation, including panics.
+    ///
+    /// For floats this operation may be inconsistent with the scalar operation,
+    /// regarding precision and NaN propagation.
+    ///
+    /// This operation is fully consistent with `vec % vec`.
+);
+impl_assign_operator!(
+    Shl,
+    ShlAssign,
+    shl_assign,
+    shl,
+    /// Performs the `<<=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec <<= Vec3::new(1, 2, 3);
+    /// assert_eq!(vec, Vec3::new(1 << 1, 2 << 2, 3 << 3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ///
+    /// This operation is fully consistent with `vec << vec`.
+    ,
+    /// Performs the `<<=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec <<= 1;
+    /// assert_eq!(vec, Vec3::new(1 << 1, 2 << 1, 3 << 1));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ///
+    /// This operation is fully consistent with `vec << vec`.
+);
+impl_assign_operator!(
+    Shr,
+    ShrAssign,
+    shr_assign,
+    shr,
+    /// Performs the `>>=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(8, 16, 32);
+    /// vec >>= Vec3::new(1, 2, 3);
+    /// assert_eq!(vec, Vec3::new(8 >> 1, 16 >> 2, 32 >> 3));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ///
+    /// This operation is fully consistent with `vec >> vec`.
+    ,
+    /// Performs the `>>=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(8, 16, 32);
+    /// vec >>= 1;
+    /// assert_eq!(vec, Vec3::new(8 >> 1, 16 >> 1, 32 >> 1));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including integer panics.
+    ///
+    /// This operation is fully consistent with `vec >> vec`.
+);
+impl_assign_operator!(
+    BitAnd,
+    BitAndAssign,
+    bitand_assign,
+    bitand,
+    /// Performs the `&=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec &= Vec3::new(4, 5, 6);
+    /// assert_eq!(vec, Vec3::new(1 & 4, 2 & 5, 3 & 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec & vec`.
+    ,
+    /// Performs the `&=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec &= 4;
+    /// assert_eq!(vec, Vec3::new(1 & 4, 2 & 4, 3 & 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec & vec`.
+);
+impl_assign_operator!(
+    BitOr,
+    BitOrAssign,
+    bitor_assign,
+    bitor,
+    /// Performs the `|=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec |= Vec3::new(4, 5, 6);
+    /// assert_eq!(vec, Vec3::new(1 | 4, 2 | 5, 3 | 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec | vec`.
+    ,
+    /// Performs the `|=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec |= 4;
+    /// assert_eq!(vec, Vec3::new(1 | 4, 2 | 4, 3 | 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec | vec`.
+);
+impl_assign_operator!(
+    BitXor,
+    BitXorAssign,
+    bitxor_assign,
+    bitxor,
+    /// Performs the `^=` operation for each vector element.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec ^= Vec3::new(4, 5, 6);
+    /// assert_eq!(vec, Vec3::new(1 ^ 4, 2 ^ 5, 3 ^ 6));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec ^ vec`.
+    ,
+    /// Performs the `^=` operation for each vector element and the scalar
+    /// `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let mut vec = Vec3::new(1, 2, 3);
+    /// vec ^= 4;
+    /// assert_eq!(vec, Vec3::new(1 ^ 4, 2 ^ 4, 3 ^ 4));
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// This operation is fully consistent with `vec ^ vec`.
+);
 
 // SAFETY: Vectors are equivalent to consecutive values of `T` plus padding.
 // Because `T` is `Send` the list also is, and the padding is `Send` too.

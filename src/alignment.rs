@@ -1,43 +1,39 @@
-/// Marker type indicating SIMD-aligned math types.
+/// A marker type specifying SIMD alignment.
 ///
-/// For more details, see [`Alignment`].
+/// See [`Alignment`] for more details.
 pub struct Aligned;
 
-/// Marker type indicating non SIMD-aligned math types.
+/// A marker type specifying lack of SIMD alignment.
 ///
-/// For more details, see [`Alignment`].
+/// See [`Alignment`] for more details.
 pub struct Unaligned;
 
-/// Marker trait controlling SIMD alignment for math types.
+/// A marker trait controlling SIMD alignment for types.
 ///
-/// Math types like [`Vector`](crate::Vector) are generic over `A: Alignment`,
-/// which can be one of two marker types:
+/// Types like [`Vector<N, T, A>`] are generic over `A: Alignment` which
+/// controls SIMD alignment and is either [`Aligned`] or [`Unaligned`].
 ///
-/// - [`Aligned`]: The type may be SIMD-aligned when doing so improves
-///   performance.
-/// - [`Unaligned`]: The type is never SIMD-aligned.
+/// Appropriate [`Aligned`] types have increased memory alignment in order to
+/// take advantage of SIMD instructions that improve performance. For example,
+/// [`Vec3<f32>`], [`Vec4<f32>`], [`Mat3<f32>`] and [`Mat4<f32>`] are aligned to
+/// 16 bytes on x86 targets in order to take advantage of the SSE instruction
+/// set.
 ///
-/// The default type aliases (e.g., [`Vec2<T>`](crate::Vec2),
-/// [`Vec3<T>`](crate::Vec3)) are `Aligned`. Aliases ending in `U` (e.g.,
-/// [`Vec2U<T>`](crate::Vec2U), [`Vec3U<T>`](crate::Vec3U)) are `Unaligned`.
+/// Although SIMD alignment generally results better performance, it can also
+/// result in wasted space. For example, due to 16-byte alignment, [`Vec3<f32>`]
+/// has 4 bytes of padding, and consequently [`Mat3<f32>`] has 12 bytes of
+/// padding.
 ///
-/// # Background
+/// [`Unaligned`] types do not have SIMD alignment. They are optimal when better
+/// performance is not worth wasted space, for example when storing 3D models.
+/// In all other cases, [`Aligned`] types are optimal and result in better
+/// performance than [`Unaligned`] types.
 ///
-/// [SIMD instructions](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data)
-/// can significantly improve the performance of math code, but they require
-/// stricter
-/// [memory alignment](https://doc.rust-lang.org/reference/type-layout.html)
-/// than scalar code.
-///
-/// For example, `Vec3<f32>` must be aligned to 16 bytes for it to take
-/// advantage of SIMD. This increases its size from 12 bytes to 16 bytes,
-/// meaning it has 4 bytes of padding.
-///
-/// In many cases padding is worthwhile for performance, but in other cases such
-/// as storing large arrays, minimizing memory usage is more important.
-///
-/// To support both cases, math types like `Vector` are generic over
-/// `A: Alignment`, allowing SIMD alignment to be enabled or disabled.
+/// [`Vector<N, T, A>`]: crate::Vector
+/// [`Vec3<f32>`]: crate::Vec3
+/// [`Vec4<f32>`]: crate::Vec4
+/// [`Mat3<f32>`]: crate::Mat3
+/// [`Mat4<f32>`]: crate::Mat4
 #[expect(private_bounds)]
 pub trait Alignment: Sealed {
     #[doc(hidden)]

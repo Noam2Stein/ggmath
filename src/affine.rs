@@ -13,51 +13,67 @@ use crate::{
     transmute::{transmute_generic, transmute_mut, transmute_ref},
 };
 
-/// An affine transform, which can represent translation, rotation, scaling and
-/// shear.
+/// An `N`-dimensional affine transform which can represent translation,
+/// rotation, scaling and shear of type `T`.
 ///
-/// `Affine` is the generic form of:
+/// Affines are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
 ///
-/// - [`Affine2<T>`](crate::Affine2)
-/// - [`Affine3<T>`](crate::Affine3)
-/// - [`Affine2U<T>`](crate::Affine2U)
-/// - [`Affine3U<T>`](crate::Affine3U)
+/// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
+/// [`Alignment`] for more details.
 ///
-/// `Affine` is generic over:
+/// # Type aliases
 ///
-/// - `N`: Length (2, 3, or 4)
-/// - `T`: Scalar type (see [`Scalar`])
-/// - `A`: Alignment (see [`Alignment`])
+/// - [`Affine2<T>`] for `Affine<2, T, Aligned>`.
+/// - [`Affine3<T>`] for `Affine<3, T, Aligned>`.
+/// - [`Affine2U<T>`] for `Affine<2, T, Unaligned>`.
+/// - [`Affine3U<T>`] for `Affine<3, T, Unaligned>`.
 ///
-/// # Guarantees
+/// # Fields
 ///
-/// `Affine<N, T, A>` represents `Matrix<N, T, A>` followed by `Vector<N, T, A>`
-/// followed by optional padding due to alignment.
+/// `matrix: Matrix<N, T, A>`
 ///
-/// Padding bytes are initialized and accept any bit-pattern. It is **sound** to
-/// store any bit-pattern in padding, and it is **unsound** to assume that
-/// padding contains valid values of `T` unless `T` accepts all bit-patterns.
+/// The part representing rotation, scaling and shear.
 ///
-/// - `Affine<N, T, Unaligned>`: has no padding, has no additional alignment.
+/// `translation: Vector<N, T, A>`
 ///
-/// - `Affine<2, T, Aligned>`: may have one padding vector, may have additional
-///   alignment.
+/// The part representing translation.
 ///
-/// - `Affine<3, T, Aligned>`: may have four padding elements if
-///   both `Matrix<3, T, Aligned>` and `Vector<3, T, Aligned>` don't have
-///   padding, may have additional alignment.
+/// # Memory layout
 ///
-/// - `Affine<4, T, Aligned>`: has no padding, has the alignment of
-///   `Matrix<4, T, Aligned>`.
+/// `Affine<N, T, A>` contains [`Matrix<N, T, A>`] followed by
+/// [`Vector<N, T, A>`] followed by optional padding.
 ///
-/// Affines of scalar types with the same [`Scalar::Repr`] are guaranteed to
-/// have compatible memory layouts, unless `Repr = ()`. They are guaranteed to
-/// have the same size and element positions, but their alignment may differ.
+/// `Affine<N, T, Unaligned>` has the alignment of `T` and has no padding.
+/// [`Affine2<T>`] may have one padding vector and may have higher alignment
+/// than [`Mat2<T>`]. [`Affine3<T>`] may have four padding elements if both
+/// [`Mat3<T>`] and [`Vec3<T>`] have no padding, and may have higher alignment
+/// than [`Mat3<T>`]. [`Affine<4, T, Aligned>`] has the alignment of [`Mat4<T>`]
+/// and has no padding.
 ///
-/// Types containing compatible `Affine` types are **not guaranteed** to have
-/// the same memory layout. For example, even though `Affine2<f32>` and
-/// `Affine2<i32>` have the same memory layout, `Option<Affine2<f32>>` and
-/// `Option<Affine2<i32>>` may not.
+/// Padding is fully initialized and accepts all bit patterns. Unless `T`
+/// accepts all bit patterns, it is not sound to assume padding contains valid
+/// values of `T`.
+///
+/// Affines of compatible [`Scalar::Repr`] types have the same size. This means
+/// that they are transmutable, but can still have different alignments (see
+/// [`to_repr`]).
+///
+/// Types containing compatible affines, matrices, vectors and arrays may not
+/// have compatible layouts themselves. For example, even though [`Affine2<T>`]
+/// and `[T; 6]` have compatible layouts, [`Option<Affine2<T>>`] and
+/// `Option<[T; 6]>` may not.
+///
+/// [`Affine2<T>`]: crate::Affine2
+/// [`Affine3<T>`]: crate::Affine3
+/// [`Affine2U<T>`]: crate::Affine2U
+/// [`Affine3U<T>`]: crate::Affine3U
+/// [`Mat2<T>`]: crate::Mat2
+/// [`Mat3<T>`]: crate::Mat3
+/// [`Vec3<T>`]: crate::Vec3
+/// [`Mat4<T>`]: crate::Mat4
+/// [`from_columns`]: Self::from_columns
+/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Affine<const N: usize, T, A: Alignment>(
     pub(crate) <T::Repr as ScalarRepr>::AffineRepr<N, T, A>,
@@ -71,9 +87,12 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Zero,
 {
-    /// All zeros.
+    /// An affine transform with all elements set to `0`.
     ///
-    /// Transforms any finite vector to zero.
+    /// This transforms all vectors to a zero vector. See [`IDENTITY`] for
+    /// an affine transform with no transformation.
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
     pub const ZERO: Self = Self::from_mat_translation(Matrix::ZERO, Vector::ZERO);
 }
 
@@ -82,9 +101,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Zero + One,
 {
-    /// The identity transform.
-    ///
-    /// Corresponds to no transformation.
+    /// An affine transform with no transformation.
     pub const IDENTITY: Self = Self::from_mat_translation(Matrix::IDENTITY, Vector::ZERO);
 }
 
@@ -93,7 +110,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Nan,
 {
-    /// All NaN (Not a Number).
+    /// An affine transform with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::from_mat_translation(Matrix::NAN, Vector::NAN);
 }
 
@@ -102,7 +119,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    /// Creates an affine transform from a matrix, expressing scale, rotation
+    /// Creates an affine transform from a matrix expressing rotation, scaling
     /// and shear.
     #[inline]
     #[must_use]
@@ -123,8 +140,8 @@ where
         Self::from_mat_translation(Matrix::IDENTITY, translation)
     }
 
-    /// Creates an affine transform from a translation vector and a matrix,
-    /// expressing scale, rotation and shear.
+    /// Creates an affine transform from a translation vector, and a matrix
+    /// expressing rotation, scaling and shear.
     #[inline]
     #[must_use]
     pub const fn from_mat_translation(mat: Matrix<N, T, A>, translation: Vector<N, T, A>) -> Self {
@@ -211,9 +228,29 @@ where
         }
     }
 
-    /// Converts the affine to the specified alignment.
+    /// Conversion between [`Aligned`] and [`Unaligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`align`] and [`unalign`] for scenarios where the output alignment
+    /// is known.
+    ///
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Aligned, Affine2, Affine2U, Unaligned};
+    /// #
+    /// let aligned = Affine2::<f32>::IDENTITY;
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Affine2U::IDENTITY);
+    ///
+    /// let unaligned = Affine2U::<f32>::IDENTITY;
+    /// let aligned = unaligned.to_alignment::<Aligned>();
+    /// assert_eq!(aligned, Affine2::IDENTITY);
+    /// ```
+    ///
+    /// [`align`]: Self::align
+    /// [`unalign`]: Self::unalign
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
@@ -227,41 +264,99 @@ where
         )
     }
 
-    /// Converts the affine to [`Aligned`] alignment.
+    /// Conversion to [`Aligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Affine2U};
+    /// #
+    /// let unaligned = Affine2U::<f32>::IDENTITY;
+    /// let aligned = unaligned.align();
+    /// assert_eq!(aligned, Affine2::IDENTITY);
+    /// ```
     #[inline]
     #[must_use]
     pub const fn align(&self) -> Affine<N, T, Aligned> {
         self.to_alignment()
     }
 
-    /// Converts the affine to [`Unaligned`] alignment.
+    /// Conversion to [`Unaligned`] storage.
     ///
-    /// See [`Alignment`] for more information.
+    /// See [`Alignment`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Affine2U};
+    /// #
+    /// let aligned = Affine2::<f32>::IDENTITY;
+    /// let unaligned = aligned.unalign();
+    /// assert_eq!(unaligned, Affine2U::IDENTITY);
+    /// ```
     #[inline]
     #[must_use]
     pub const fn unalign(&self) -> Affine<N, T, Unaligned> {
         self.to_alignment()
     }
 
-    /// Reinterprets the bits of the affine transformation to a different scalar
-    /// type.
+    /// Raw transmutation between scalar types.
     ///
-    /// The two scalar types must have compatible memory layouts. This is
-    /// enforced via trait bounds in this function's signature.
+    /// This function's signature staticly guarantees that the types have
+    /// compatible memory layouts.
     ///
     /// This function is used to make SIMD optimizations in implementations of
     /// [`Scalar`].
     ///
     /// # Safety
     ///
-    /// The components of the input must be valid for the output affine type.
+    /// The elements of `self` must contain bit patterns that are valid for the
+    /// output type. For example, when converting affines from `u8` to `bool`,
+    /// the input elements must be either `0` or `1` (that example is
+    /// unconventional, but the rule applies for any scalar that does not accept
+    /// all bit patterns).
     ///
-    /// For example, when converting affines from `u8` to `bool` the input
-    /// components must be either `0` or `1`.
+    /// The padding does not need to contain valid values of the output type.
     ///
-    /// The optional padding does not need to contain valid values of `T2`.
+    /// # Examples
+    ///
+    /// Correct usage:
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Vec2};
+    /// #
+    /// let bits = Affine2::<u8>::from_columns(&[
+    ///     Vec2::new(1, 0),
+    ///     Vec2::new(0, 1),
+    ///     Vec2::new(0, 1),
+    /// ]);
+    ///
+    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
+    /// let bools = unsafe { bits.to_repr::<bool>() };
+    ///
+    /// assert_eq!(bools, Affine2::from_columns(&[
+    ///     Vec2::new(true, false),
+    ///     Vec2::new(false, true),
+    ///     Vec2::new(false, true),
+    /// ]));
+    /// ```
+    ///
+    /// Incorrect usage:
+    ///
+    /// ```compile_fail
+    /// # use ggmath::{Affine2, Vec2};
+    /// #
+    /// let a = Affine2::<i32>::from_columns(&[
+    ///     Vec2::new(1, 2),
+    ///     Vec2::new(3, 4),
+    ///     Vec2::new(5, 6),
+    /// ]);
+    ///
+    /// // This does not compile since `i32` and `i64` are not compatible.
+    /// let _ = unsafe { a.to_repr::<i64>() };
+    /// ```
     #[inline]
     #[must_use]
     #[expect(private_bounds)]
@@ -331,9 +426,11 @@ where
 
     /// Creates a 2D affine transform from three column vectors.
     ///
-    /// This function has been replaced by [`Self::from_columns`] and will be
+    /// This function has been replaced by [`from_columns`] and will be
     /// removed in a future version.
-    #[deprecated(since = "0.16.3", note = "replaced by `Self::from_columns`")]
+    ///
+    /// [`from_columns`]: Self::from_columns
+    #[deprecated(since = "0.16.3", note = "replaced by `from_columns`")]
     #[inline]
     #[must_use]
     pub const fn from_cols(
@@ -359,9 +456,11 @@ where
 
     /// Converts the affine transform to three column vectors.
     ///
-    /// This function has been replaced by [`Self::as_columns`] and will be
-    /// removed in a future version.
-    #[deprecated(since = "0.16.3", note = "replaced by `Self::as_columns`")]
+    /// This function has been replaced by [`as_columns`] and will be removed in
+    /// a future version.
+    ///
+    /// [`as_columns`]: Self::as_columns
+    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
     #[inline]
     #[must_use]
     pub const fn to_col_array(&self) -> [Vector<2, T, A>; 3] {
@@ -474,9 +573,11 @@ where
 
     /// Creates a 3D affine transform from four column vectors.
     ///
-    /// This function has been replaced by [`Self::from_columns`] and will be
+    /// This function has been replaced by [`from_columns`] and will be
     /// removed in a future version.
-    #[deprecated(since = "0.16.3", note = "replaced by `Self::from_columns`")]
+    ///
+    /// [`from_columns`]: Self::from_columns
+    #[deprecated(since = "0.16.3", note = "replaced by `from_columns`")]
     #[inline]
     #[must_use]
     pub const fn from_cols(
@@ -503,9 +604,11 @@ where
 
     /// Converts the affine transform to four column vectors.
     ///
-    /// This function has been replaced by [`Self::as_columns`] and will be
-    /// removed in a future version.
-    #[deprecated(since = "0.16.3", note = "replaced by `Self::as_columns`")]
+    /// This function has been replaced by [`as_columns`] and will be removed in
+    /// a future version.
+    ///
+    /// [`as_columns`]: Self::as_columns
+    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
     #[inline]
     #[must_use]
     pub const fn to_col_array(&self) -> [Vector<3, T, A>; 4] {
@@ -579,9 +682,11 @@ where
 
     /// Creates a 4D affine transform from five column vectors.
     ///
-    /// This function has been replaced by [`Self::from_columns`] and will be
+    /// This function has been replaced by [`from_columns`] and will be
     /// removed in a future version.
-    #[deprecated(since = "0.16.3", note = "replaced by `Self::from_columns`")]
+    ///
+    /// [`from_columns`]: Self::from_columns
+    #[deprecated(since = "0.16.3", note = "replaced by `from_columns`")]
     #[inline]
     #[must_use]
     pub const fn from_cols(
@@ -609,9 +714,11 @@ where
 
     /// Converts the affine transform to five column vectors.
     ///
-    /// This function has been replaced by [`Self::as_columns`] and will be
-    /// removed in a future version.
-    #[deprecated(since = "0.16.3", note = "replaced by `Self::as_columns`")]
+    /// This function has been replaced by [`as_columns`] and will be removed in
+    /// a future version.
+    ///
+    /// [`as_columns`]: Self::as_columns
+    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
     #[inline]
     #[must_use]
     pub const fn to_col_array(&self) -> [Vector<4, T, A>; 5] {
@@ -670,9 +777,9 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    /// The scaling, rotation and shear part of the transform.
+    /// The part representing rotation, scaling and shear.
     pub matrix: Matrix<N, T, A>,
-    /// The translation of the transform.
+    /// The part representing translation.
     pub translation: Vector<N, T, A>,
 }
 

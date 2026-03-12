@@ -1,14 +1,16 @@
 use core::mem::{ManuallyDrop, transmute, transmute_copy};
 
-/// Variant of [`core::mem::transmute`] that ensures memory-layout compatibility
-/// at runtime instead of at compile-time.
+/// Variant of [`transmute`] that checks memory-layout compatibility at runtime
+/// instead of at compile time.
 ///
 /// This makes it possible to transmute between generic types and dependently
 /// sized types.
 ///
 /// # Safety
 ///
-/// Exactly like [`core::mem::transmute`].
+/// Exactly like [`transmute`].
+///
+/// [`transmute`]: core::mem::transmute
 #[inline]
 #[track_caller]
 pub const unsafe fn transmute_generic<T, U>(value: T) -> U {
@@ -23,9 +25,11 @@ pub const unsafe fn transmute_generic<T, U>(value: T) -> U {
 ///
 /// # Safety
 ///
-/// Exactly like [`core::mem::transmute`] for references, except that here
-/// immediate size and alignment validity is automatically checked, and the
-/// lifetime of the reference cannot be accidently changed.
+/// Exactly like [`transmute`] for references, except that here immediate size
+/// and alignment validity is automatically checked, and the lifetime of the
+/// reference cannot be accidently changed.
+///
+/// [`transmute`]: core::mem::transmute
 #[inline]
 #[track_caller]
 pub const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
@@ -44,9 +48,11 @@ pub const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
 ///
 /// # Safety
 ///
-/// Exactly like [`core::mem::transmute`] for mutable references, except that
-/// here size and alignment validity is automatically checked, and the lifetime
-/// cannot be accidently changed.
+/// Exactly like [`transmute`] for mutable references, except that here size and
+/// alignment validity is automatically checked, and the lifetime cannot be
+/// accidently changed.
+///
+/// [`transmute`]: core::mem::transmute
 #[inline]
 #[track_caller]
 pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
