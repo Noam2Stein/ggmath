@@ -327,6 +327,7 @@ where
     type Output = Self;
 
     #[inline]
+    #[track_caller]
     fn neg(self) -> Self::Output {
         Self(-self.0)
     }
@@ -345,6 +346,7 @@ where
     /// Note that addition is not the same as combining the rotations represented by the
     /// two quaternions! That corresponds to multiplication (not implemented yet).
     #[inline]
+    #[track_caller]
     fn add(self, rhs: Self) -> Self::Output {
         Self(self.0 + rhs.0)
     }
@@ -360,6 +362,7 @@ where
     ///
     /// The difference is not guaranteed to be normalized.
     #[inline]
+    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         Self(self.0 - rhs.0)
     }
@@ -375,6 +378,7 @@ where
     ///
     /// The product is not guaranteed to be normalized.
     #[inline]
+    #[track_caller]
     fn mul(self, rhs: T) -> Self::Output {
         Self(self.0 * rhs)
     }
@@ -391,6 +395,7 @@ where
     /// Note that addition is not the same as combining the rotations represented by the
     /// two quaternions! That corresponds to multiplication (not implemented yet).
     #[inline]
+    #[track_caller]
     fn add_assign(&mut self, rhs: Self) {
         *self = Self(self.0 + rhs.0);
     }
@@ -404,6 +409,7 @@ where
     ///
     /// The difference is not guaranteed to be normalized.
     #[inline]
+    #[track_caller]
     fn sub_assign(&mut self, rhs: Self) {
         *self = Self(self.0 - rhs.0);
     }
@@ -417,6 +423,7 @@ where
     ///
     /// The product is not guaranteed to be normalized.
     #[inline]
+    #[track_caller]
     fn mul_assign(&mut self, rhs: T) {
         *self = Self(self.0 * rhs);
     }

@@ -17,6 +17,7 @@ macro_rules! impl_int {
             /// Panics if any addition overflows. Addition is performed in order.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn element_sum(self) -> $T {
                 if cfg!(assertions) {
                     specialize!(<$T as $Backend<N, A>>::vec_strict_element_sum(self))
@@ -37,6 +38,7 @@ macro_rules! impl_int {
             /// order.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn element_product(self) -> $T {
                 if cfg!(assertions) {
                     specialize!(<$T as $Backend<N, A>>::vec_strict_element_product(self))
@@ -74,6 +76,7 @@ macro_rules! impl_int {
             /// Panics if `min > max`.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn clamp(self, min: Self, max: Self) -> Self {
                 assert!((0..N).all(|i| min[i] <= max[i]), "min <= max");
 
@@ -110,6 +113,7 @@ macro_rules! impl_int {
             /// Panics if any component is `$T::MIN`.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn abs(self) -> Self {
                 specialize!(<$T as $Backend<N, A>>::vec_abs(self))
             }
@@ -139,6 +143,7 @@ macro_rules! impl_int {
             /// Panics if an overflow occurs.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn dot(self, rhs: Self) -> $T {
                 (self * rhs).element_sum()
             }
@@ -153,6 +158,7 @@ macro_rules! impl_int {
             /// Panics if an overflow occurs.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn length_squared(self) -> $T {
                 (self * self).element_sum()
             }
@@ -167,6 +173,7 @@ macro_rules! impl_int {
             /// Panics if an overflow occurs.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn distance_squared(self, other: Self) -> $T {
                 (self - other).length_squared()
             }
@@ -240,6 +247,7 @@ macro_rules! impl_int {
             /// Panics if any component of `rhs` is `0`.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn saturating_div(self, rhs: Self) -> Self {
                 specialize!(<$T as $Backend<N, A>>::vec_saturating_div(self, rhs))
             }
@@ -272,6 +280,7 @@ macro_rules! impl_int {
             /// Panics if any component of `rhs` is `0`.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn wrapping_div(self, rhs: Self) -> Self {
                 specialize!(<$T as $Backend<N, A>>::vec_wrapping_div(self, rhs))
             }
@@ -283,6 +292,7 @@ macro_rules! impl_int {
             /// Panics if any component of `rhs` is `0`.
             #[inline]
             #[must_use]
+            #[track_caller]
             pub fn wrapping_rem(self, rhs: Self) -> Self {
                 specialize!(<$T as $Backend<N, A>>::vec_wrapping_rem(self, rhs))
             }
@@ -331,6 +341,7 @@ macro_rules! impl_int {
             }
 
             #[inline]
+            #[track_caller]
             fn vec_abs(vec: Vector<N, $T, A>) -> Vector<N, $T, A> {
                 vec.map($T::abs)
             }
@@ -400,11 +411,13 @@ macro_rules! impl_int {
             }
 
             #[inline]
+            #[track_caller]
             fn vec_strict_element_sum(vec: Vector<N, $T, A>) -> $T {
                 vec.iter().reduce(|a, b| a.checked_add(b).unwrap()).unwrap()
             }
 
             #[inline]
+            #[track_caller]
             fn vec_strict_element_product(vec: Vector<N, $T, A>) -> $T {
                 vec.iter().reduce(|a, b| a.checked_mul(b).unwrap()).unwrap()
             }
@@ -434,6 +447,7 @@ macro_rules! impl_int {
             }
 
             #[inline]
+            #[track_caller]
             fn vec_saturating_div(
                 vec: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
@@ -457,11 +471,13 @@ macro_rules! impl_int {
             }
 
             #[inline]
+            #[track_caller]
             fn vec_wrapping_div(vec: Vector<N, $T, A>, rhs: Vector<N, $T, A>) -> Vector<N, $T, A> {
                 Vector::from_fn(|i| vec[i].wrapping_div(rhs[i]))
             }
 
             #[inline]
+            #[track_caller]
             fn vec_wrapping_rem(vec: Vector<N, $T, A>, rhs: Vector<N, $T, A>) -> Vector<N, $T, A> {
                 Vector::from_fn(|i| vec[i].wrapping_rem(rhs[i]))
             }

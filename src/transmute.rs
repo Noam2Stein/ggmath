@@ -10,6 +10,7 @@ use core::mem::{ManuallyDrop, transmute, transmute_copy};
 ///
 /// Exactly like [`core::mem::transmute`].
 #[inline]
+#[track_caller]
 pub const unsafe fn transmute_generic<T, U>(value: T) -> U {
     assert!(size_of::<T>() == size_of::<U>());
 
@@ -26,6 +27,7 @@ pub const unsafe fn transmute_generic<T, U>(value: T) -> U {
 /// immediate size and alignment validity is automatically checked, and the
 /// lifetime of the reference cannot be accidently changed.
 #[inline]
+#[track_caller]
 pub const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
     assert!(size_of::<T>() >= size_of::<U>());
     assert!(align_of::<T>() >= align_of::<U>());
@@ -46,6 +48,7 @@ pub const unsafe fn transmute_ref<T, U>(value: &T) -> &U {
 /// here size and alignment validity is automatically checked, and the lifetime
 /// cannot be accidently changed.
 #[inline]
+#[track_caller]
 pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
     assert!(size_of::<T>() >= size_of::<U>());
     assert!(align_of::<T>() >= align_of::<U>());

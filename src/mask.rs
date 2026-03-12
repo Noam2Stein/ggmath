@@ -86,6 +86,7 @@ where
     /// Equivalent to `(f(0), f(1), f(2), ...)`.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn from_fn<F>(f: F) -> Self
     where
         F: FnMut(usize) -> bool,
@@ -179,6 +180,7 @@ where
     /// Panics if the index is out of bounds.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn get(self, index: usize) -> bool {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_get(self, index))
     }
@@ -189,6 +191,7 @@ where
     ///
     /// Panics if the index is out of bounds.
     #[inline]
+    #[track_caller]
     pub fn set(&mut self, index: usize, value: bool) {
         specialize!(<T::Repr as MaskBackend<N, A>>::mask_set(self, index, value))
     }
@@ -515,10 +518,12 @@ where
     where
         T: Scalar<Repr = Self>;
 
+    #[track_caller]
     fn mask_get<T>(mask: Mask<N, T, A>, index: usize) -> bool
     where
         T: Scalar<Repr = Self>;
 
+    #[track_caller]
     fn mask_set<T>(mask: &mut Mask<N, T, A>, index: usize, value: bool)
     where
         T: Scalar<Repr = Self>;

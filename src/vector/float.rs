@@ -120,6 +120,7 @@ where
     /// Panics if any input is NaN.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn max(self, other: Self) -> Self {
         #[cfg(assertions)]
         assert!(
@@ -144,6 +145,7 @@ where
     /// Panics if any input is NaN.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn min(self, other: Self) -> Self {
         #[cfg(assertions)]
         assert!(
@@ -170,6 +172,7 @@ where
     /// Panics if any input is NaN, or if `min > max`.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         #[cfg(assertions)]
         assert!(
@@ -200,6 +203,7 @@ where
     /// Panics if any input is NaN.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn max_element(self) -> T {
         #[cfg(assertions)]
         assert!(!self.is_nan(), "NaN: {self:?}.max_element()");
@@ -221,6 +225,7 @@ where
     /// Panics if any input is NaN.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn min_element(self) -> T {
         #[cfg(assertions)]
         assert!(!self.is_nan(), "NaN: {self:?}.min_element()");
@@ -324,6 +329,7 @@ where
     /// Panics if `other` is a zero vector.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn project_onto(self, other: Self) -> Self {
         let other_length_squared_recip = other.length_squared().recip();
 
@@ -344,6 +350,7 @@ where
     /// Panics if `other` is not normalized.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn project_onto_normalized(self, other: Self) -> Self {
         #[cfg(assertions)]
         assert!(other.is_normalized());
@@ -365,6 +372,7 @@ where
     /// Panics if `other` is a zero vector.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn reject_from(self, other: Self) -> Self {
         self - self.project_onto(other)
     }
@@ -383,6 +391,7 @@ where
     /// Panics if `other` is not normalized.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn reject_from_normalized(self, other: Self) -> Self {
         self - self.project_onto_normalized(other)
     }
@@ -408,6 +417,7 @@ where
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn reflect(self, normal: Self) -> Self {
         #[cfg(assertions)]
         assert!(normal.is_normalized());
@@ -457,6 +467,7 @@ where
     /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn any_orthonormal_vector(self) -> Self {
         #[cfg(assertions)]
         assert!(self.is_normalized());
@@ -481,6 +492,7 @@ where
     /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn any_orthonormal_pair(self) -> (Self, Self) {
         #[cfg(assertions)]
         assert!(self.is_normalized());
@@ -745,6 +757,7 @@ where
     /// zero.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn normalize(self) -> Self {
         #[cfg(assertions)]
         assert!(self != Self::ZERO, "cannot normalize a zero vector");
@@ -814,6 +827,7 @@ where
     /// Panics if `max` is negative.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn with_max_length(self, max: T) -> Self {
         #[cfg(assertions)]
         assert!(max >= T::as_from(0.0), "negative maximum length");
@@ -835,6 +849,7 @@ where
     /// Panics if `min` is negative.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn with_min_length(self, min: T) -> Self {
         #[cfg(assertions)]
         assert!(min >= T::as_from(0.0), "negative minimum length");
@@ -857,6 +872,7 @@ where
     /// Panics if `min > max`, or if `min` or `max` are negative.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn clamp_length(self, min: T, max: T) -> Self {
         #[cfg(assertions)]
         assert!(min >= T::as_from(0.0), "negative minimum length");
@@ -972,6 +988,7 @@ where
     /// Panics if `self` or `normal` are not normalized.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn refract(self, normal: Self, eta: T) -> Self {
         #[cfg(assertions)]
         assert!(self.is_normalized());

@@ -158,6 +158,7 @@ where
     /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn from_column_fn<F>(f: F) -> Self
     where
         F: FnMut(usize) -> Vector<N, T, A>,
@@ -310,6 +311,7 @@ where
     /// Panics if the index is out of bounds.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub const fn column(&self, index: usize) -> Vector<N, T, A> {
         self.as_columns()[index]
     }
@@ -321,6 +323,7 @@ where
     /// Panics if the index is out of bounds.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub const fn column_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
         &mut self.as_columns_mut()[index]
     }
@@ -332,6 +335,7 @@ where
     /// Panics if the index is out of bounds.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub const fn row(&self, index: usize) -> Vector<N, T, A> {
         match N {
             // SAFETY: Because `N == 2`, `Matrix<N, T, A>` and `Matrix<2, T, A>`
@@ -380,6 +384,7 @@ where
     ///
     /// Panics if the index is out of bounds.
     #[inline]
+    #[track_caller]
     pub const fn set_row(&mut self, index: usize, value: Vector<N, T, A>) {
         match N {
             // SAFETY: Because `N == 2`, `Matrix<N, T, A>` and `Matrix<2, T, A>`
@@ -562,6 +567,7 @@ where
     #[deprecated(since = "0.16.3", note = "renamed to `column`")]
     #[inline]
     #[must_use]
+    #[track_caller]
     pub const fn col(&self, index: usize) -> Vector<N, T, A> {
         self.column(index)
     }
@@ -579,6 +585,7 @@ where
     #[deprecated(since = "0.16.3", note = "renamed to `column_mut`")]
     #[inline]
     #[must_use]
+    #[track_caller]
     pub const fn col_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
         self.column_mut(index)
     }
@@ -792,6 +799,7 @@ where
     type Output = Self;
 
     #[inline]
+    #[track_caller]
     fn neg(self) -> Self::Output {
         -(&self)
     }
@@ -805,6 +813,7 @@ where
     type Output = Matrix<N, T, A>;
 
     #[inline]
+    #[track_caller]
     fn neg(self) -> Self::Output {
         specialize!(<T as ScalarBackend<N, A>>::mat_neg(self))
     }
@@ -819,6 +828,7 @@ where
 
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn add(self, rhs: Self) -> Self::Output {
         (&self) + (&rhs)
     }
@@ -833,6 +843,7 @@ where
 
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn add(self, rhs: &Self) -> Self::Output {
         (&self) + rhs
     }
@@ -847,6 +858,7 @@ where
 
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn add(self, rhs: Matrix<N, T, A>) -> Self::Output {
         self + (&rhs)
     }
@@ -860,6 +872,7 @@ where
     type Output = Matrix<N, T, A>;
 
     #[inline]
+    #[track_caller]
     fn add(self, rhs: Self) -> Self::Output {
         specialize!(<T as ScalarBackend<N, A>>::mat_add(self, rhs))
     }
@@ -872,6 +885,7 @@ where
 {
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn add_assign(&mut self, rhs: Self) {
         *self = &*self + rhs;
     }
@@ -884,6 +898,7 @@ where
 {
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn add_assign(&mut self, rhs: &Self) {
         *self = &*self + rhs;
     }
@@ -898,6 +913,7 @@ where
 
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         (&self) - (&rhs)
     }
@@ -912,6 +928,7 @@ where
 
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn sub(self, rhs: &Self) -> Self::Output {
         (&self) - rhs
     }
@@ -926,6 +943,7 @@ where
 
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn sub(self, rhs: Matrix<N, T, A>) -> Self::Output {
         self - (&rhs)
     }
@@ -939,6 +957,7 @@ where
     type Output = Matrix<N, T, A>;
 
     #[inline]
+    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         specialize!(<T as ScalarBackend<N, A>>::mat_sub(self, rhs))
     }
@@ -951,6 +970,7 @@ where
 {
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn sub_assign(&mut self, rhs: Self) {
         *self = &*self - rhs;
     }
@@ -963,6 +983,7 @@ where
 {
     #[expect(clippy::op_ref)]
     #[inline]
+    #[track_caller]
     fn sub_assign(&mut self, rhs: &Self) {
         *self = &*self - rhs;
     }

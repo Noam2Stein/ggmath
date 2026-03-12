@@ -245,6 +245,7 @@ where
     /// Equivalent to `(f(0), f(1), f(2), ...)`.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn from_fn<F>(mut f: F) -> Self
     where
         F: FnMut(usize) -> T,
@@ -388,6 +389,7 @@ where
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn map<T2, F>(self, f: F) -> Vector<N, T2, A>
     where
         T2: Scalar,
@@ -945,6 +947,7 @@ macro_rules! impl_unary_op {
             type Output = Self;
 
             #[inline]
+            #[track_caller]
             fn $op(self) -> Self::Output {
                 specialize!(<T as ScalarBackend<N, A>>::$vec_op(self))
             }
@@ -964,6 +967,7 @@ macro_rules! impl_binary_op {
             type Output = Self;
 
             #[inline]
+            #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
                 specialize!(<T as ScalarBackend<N, A>>::$vec_op(self, rhs))
             }
@@ -977,6 +981,7 @@ macro_rules! impl_binary_op {
             type Output = Self;
 
             #[inline]
+            #[track_caller]
             fn $op(self, rhs: T) -> Self::Output {
                 self.$op(Self::splat(rhs))
             }
@@ -1002,6 +1007,7 @@ macro_rules! impl_assign_op {
             T: Scalar + $Op<Output = T>,
         {
             #[inline]
+            #[track_caller]
             fn $op_assign(&mut self, rhs: Self) {
                 *self = self.$op(rhs);
             }
@@ -1013,6 +1019,7 @@ macro_rules! impl_assign_op {
             T: Scalar + $Op<Output = T>,
         {
             #[inline]
+            #[track_caller]
             fn $op_assign(&mut self, rhs: T) {
                 *self = self.$op(rhs);
             }

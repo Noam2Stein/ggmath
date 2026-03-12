@@ -435,6 +435,7 @@ where
 
     /// Overridable implementation of the `-` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_neg(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Neg<Output = Self>,
@@ -444,6 +445,7 @@ where
 
     /// Overridable implementation of the `!` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_not(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Not<Output = Self>,
@@ -453,6 +455,7 @@ where
 
     /// Overridable implementation of the `+` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_add(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Add<Output = Self>,
@@ -462,6 +465,7 @@ where
 
     /// Overridable implementation of the `-` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_sub(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Sub<Output = Self>,
@@ -471,6 +475,7 @@ where
 
     /// Overridable implementation of the `*` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_mul(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Mul<Output = Self>,
@@ -480,6 +485,7 @@ where
 
     /// Overridable implementation of the `/` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_div(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Div<Output = Self>,
@@ -489,6 +495,7 @@ where
 
     /// Overridable implementation of the `%` operator for vectors.    
     #[inline]
+    #[track_caller]
     fn vec_rem(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Rem<Output = Self>,
@@ -498,6 +505,7 @@ where
 
     /// Overridable implementation of the `<<` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_shl(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Shl<Output = Self>,
@@ -507,6 +515,7 @@ where
 
     /// Overridable implementation of the `>>` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_shr(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Shr<Output = Self>,
@@ -516,6 +525,7 @@ where
 
     /// Overridable implementation of the `&` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_bitand(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + BitAnd<Output = Self>,
@@ -525,6 +535,7 @@ where
 
     /// Overridable implementation of the `|` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_bitor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + BitOr<Output = Self>,
@@ -534,6 +545,7 @@ where
 
     /// Overridable implementation of the `^` operator for vectors.
     #[inline]
+    #[track_caller]
     fn vec_bitxor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + BitXor<Output = Self>,
@@ -615,6 +627,7 @@ where
 
     /// Overridable implementation of the `-` operator for matrices.
     #[inline]
+    #[track_caller]
     fn mat_neg(mat: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
     where
         Self: Scalar + Neg<Output = Self>,
@@ -624,6 +637,7 @@ where
 
     /// Overridable implementation of the `+` operator for matrices.
     #[inline]
+    #[track_caller]
     fn mat_add(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
     where
         Self: Scalar + Add<Output = Self>,
@@ -633,6 +647,7 @@ where
 
     /// Overridable implementation of the `-` operator for matrices.
     #[inline]
+    #[track_caller]
     fn mat_sub(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
     where
         Self: Scalar + Sub<Output = Self>,
