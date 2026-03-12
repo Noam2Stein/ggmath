@@ -5,10 +5,6 @@ use crate::{
     Vector,
 };
 
-/*
-When `macro_derive` is stabilized, a derive macro for `Scalar` should be added.
-*/
-
 /// A trait for elements of math types.
 ///
 /// Types that implement `Scalar` can be used as the `T` in math types like

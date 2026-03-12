@@ -2,11 +2,6 @@ use bytemuck::{NoUninit, Pod, Zeroable};
 
 use crate::{Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector};
 
-/*
-Missing implementations are blocked on:
-https://github.com/rust-lang/rust/issues/29864
-*/
-
 // SAFETY: Vectors are equivalent to structs where all fields are `Pod`. The
 // `[T; N]` part is `Pod` because `T` is `Pod`, and the padding is guaranteed
 // to have initialized bytes, and accepts any bit-pattern.

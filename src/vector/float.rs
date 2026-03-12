@@ -3,11 +3,6 @@
 use crate::libm::LibmFloatExt;
 use crate::{Alignment, Length, Mask, Scalar, SupportedLength, Vector, specialize::specialize};
 
-/*
-When `negative_impls` stabilizes, primitive API macros should be replaced with
-generic APIs with private traits `Float`, `Int`, `Uint`.
-*/
-
 macro_rules! impl_float {
     ($T:ident, $Backend:ident) => {
         impl<const N: usize, A: Alignment> Vector<N, $T, A>

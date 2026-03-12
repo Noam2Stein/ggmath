@@ -1,10 +1,3 @@
-/*
-These types are used instead of arrays because for some reason arrays lead to
-worse assembly than structs.
-
-When this is fixed, these structs should be removed.
-*/
-
 /// Contains two values of type `T`.
 ///
 /// This type is used instead of `[T; 2]` because for some reason arrays lead
