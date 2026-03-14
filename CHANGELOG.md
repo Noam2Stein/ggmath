@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.16.3] - 2026-03-14
 
 ### Added
 
@@ -294,4 +294,4 @@ functionality can start being added.
 
 This version completely rewrote the crate.
 
-[unreleased]: https://github.com/noam2stein/ggmath/compare/v0.16.2...HEAD
+[0.16.3]: https://github.com/Noam2Stein/ggmath/compare/v0.16.2...v0.16.3
