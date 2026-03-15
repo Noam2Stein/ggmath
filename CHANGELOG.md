@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Hash` implementation for matrices and affines.
 
+- `Default` implementation for matrices and affines.
+
 ## [0.16.3] - 2026-03-14
 
 ### Added

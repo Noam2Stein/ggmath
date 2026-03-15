@@ -397,7 +397,9 @@ impl<T, A: Alignment> Default for Quaternion<T, A>
 where
     T: Scalar + Zero + One,
 {
-    /// Returns `Quaternion::IDENTITY`.
+    /// Returns [`IDENTITY`].
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
     #[inline]
     fn default() -> Self {
         Self::IDENTITY

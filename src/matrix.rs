@@ -1014,6 +1014,20 @@ where
     }
 }
 
+impl<const N: usize, T, A: Alignment> Default for Matrix<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Zero + One,
+{
+    /// Returns [`IDENTITY`].
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
+    #[inline]
+    fn default() -> Self {
+        Self::IDENTITY
+    }
+}
+
 macro_rules! impl_neg {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Neg for Matrix<N, T, A>

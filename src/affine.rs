@@ -921,6 +921,20 @@ where
     }
 }
 
+impl<const N: usize, T, A: Alignment> Default for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Zero + One,
+{
+    /// Returns [`IDENTITY`].
+    ///
+    /// [`IDENTITY`]: Self::IDENTITY
+    #[inline]
+    fn default() -> Self {
+        Self::IDENTITY
+    }
+}
+
 // SAFETY: Affines are equivalent to values of `T` mixed with padding.
 // Because `T` is `Send` and padding is `Send`, the affine is too.
 unsafe impl<const N: usize, T, A: Alignment> Send for Affine<N, T, A>
