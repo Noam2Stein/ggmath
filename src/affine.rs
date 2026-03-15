@@ -1,5 +1,6 @@
 use core::{
     fmt::{Debug, Display},
+    hash::Hash,
     ops::{Deref, DerefMut},
     panic::{RefUnwindSafe, UnwindSafe},
 };
@@ -907,6 +908,17 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Eq,
 {
+}
+
+impl<const N: usize, T, A: Alignment> Hash for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Hash,
+{
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.matrix.hash(state);
+        self.translation.hash(state);
+    }
 }
 
 // SAFETY: Affines are equivalent to values of `T` mixed with padding.

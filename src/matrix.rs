@@ -1,5 +1,6 @@
 use core::{
     fmt::{Debug, Display},
+    hash::Hash,
     ops::{Add, AddAssign, Deref, DerefMut, Neg, Sub, SubAssign},
     panic::{RefUnwindSafe, UnwindSafe},
 };
@@ -1001,6 +1002,16 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Eq,
 {
+}
+
+impl<const N: usize, T, A: Alignment> Hash for Matrix<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Hash,
+{
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.as_columns().hash(state);
+    }
 }
 
 macro_rules! impl_neg {
