@@ -159,3 +159,88 @@ where
         value.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Matrix, Vector, test_utils::for_parameters};
+
+    #[test]
+    #[expect(deprecated)]
+    fn test_constructors() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                mat2!(Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(z, w)),
+                Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])
+            );
+            assert_eq!(
+                mat2!(mat2!(
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                )),
+                Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])
+            );
+
+            assert_eq!(
+                mat3!(
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ),
+                Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+            );
+            assert_eq!(
+                mat3!(mat3!(
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                )),
+                Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+            );
+
+            assert_eq!(
+                mat4!(
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ),
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])
+            );
+            assert_eq!(
+                mat4!(mat4!(
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                )),
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])
+            );
+        });
+    }
+}

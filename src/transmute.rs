@@ -67,3 +67,24 @@ pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
     // output type.
     unsafe { transmute::<&mut T, &mut U>(value) }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::transmute::{transmute_generic, transmute_mut, transmute_ref};
+
+    #[test]
+    fn test_transmute_generic() {
+        assert_eq!(unsafe { transmute_generic::<i32, u32>(1984) }, 1984);
+    }
+
+    #[test]
+    fn test_transmute_ref() {
+        assert_eq!(unsafe { transmute_ref::<i32, u32>(&1984) }, &1984);
+    }
+
+    #[test]
+    fn test_transmute_mut() {
+        let mut value = 1984;
+        assert_eq!(unsafe { transmute_mut::<i32, u32>(&mut value) }, &mut 1984);
+    }
+}

@@ -990,3 +990,526 @@ where
     where
         T: Scalar<Repr = Self>;
 }
+
+#[cfg(test)]
+mod tests {
+    use itertools::Itertools;
+
+    use crate::{
+        Aligned, Mask, Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Unaligned, Vec2, Vec3, Vec4,
+        Vector,
+        test_utils::{assert_panic, for_parameters},
+    };
+
+    #[test]
+    fn test_layout() {
+        for_parameters!(|T: PrimitiveNumber| {
+            // This test relies on guarantees that the public API does not make.
+            // This may need to be modified for future layout changes.
+
+            assert!(
+                size_of::<Mask2<T>>() == 2 && align_of::<Mask2<T>>() == 1
+                    || size_of::<Mask2<T>>() == size_of::<Vec2<T>>()
+                        && align_of::<Mask2<T>>() == align_of::<Vec2<T>>()
+            );
+            assert!(
+                size_of::<Mask3<T>>() == 3 && align_of::<Mask3<T>>() == 1
+                    || size_of::<Mask3<T>>() == size_of::<Vec3<T>>()
+                        && align_of::<Mask3<T>>() == align_of::<Vec3<T>>()
+            );
+            assert!(
+                size_of::<Mask4<T>>() == 4 && align_of::<Mask4<T>>() == 1
+                    || size_of::<Mask4<T>>() == size_of::<Vec4<T>>()
+                        && align_of::<Mask4<T>>() == align_of::<Vec4<T>>()
+            );
+
+            assert_eq!(size_of::<Mask2U<T>>(), 2);
+            assert_eq!(align_of::<Mask2U<T>>(), 1);
+
+            assert_eq!(size_of::<Mask3U<T>>(), 3);
+            assert_eq!(align_of::<Mask3U<T>>(), 1);
+
+            assert_eq!(size_of::<Mask4U<T>>(), 4);
+            assert_eq!(align_of::<Mask4U<T>>(), 1);
+        });
+    }
+
+    #[test]
+    fn test_from_array() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                Mask::<2, T, A>::from_array([x, y]),
+                Mask::<2, T, A>::new(x, y)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::from_array([x, y, z]),
+                Mask::<3, T, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::from_array([x, y, z, w]),
+                Mask::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_splat() {
+        for_parameters!(|T: PrimitiveNumber, A, x| {
+            assert_eq!(Mask::<2, T, A>::splat(x), Mask::<2, T, A>::new(x, x));
+            assert_eq!(Mask::<3, T, A>::splat(x), Mask::<3, T, A>::new(x, x, x));
+            assert_eq!(Mask::<4, T, A>::splat(x), Mask::<4, T, A>::new(x, x, x, x));
+        });
+    }
+
+    #[test]
+    fn test_from_fn() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                Mask::<2, T, A>::from_fn(|i| [x, y][i]),
+                Mask::<2, T, A>::new(x, y)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::from_fn(|i| [x, y, z][i]),
+                Mask::<3, T, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::from_fn(|i| [x, y, z, w][i]),
+                Mask::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_alignment() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y).to_alignment(),
+                Mask::<2, T, Aligned>::new(x, y)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z).to_alignment(),
+                Mask::<3, T, Aligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w).to_alignment(),
+                Mask::<4, T, Aligned>::new(x, y, z, w)
+            );
+
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y).to_alignment(),
+                Mask::<2, T, Unaligned>::new(x, y)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z).to_alignment(),
+                Mask::<3, T, Unaligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w).to_alignment(),
+                Mask::<4, T, Unaligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_align() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y).align(),
+                Mask::<2, T, Aligned>::new(x, y)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z).align(),
+                Mask::<3, T, Aligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w).align(),
+                Mask::<4, T, Aligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_unalign() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y).unalign(),
+                Mask::<2, T, Unaligned>::new(x, y)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z).unalign(),
+                Mask::<3, T, Unaligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w).unalign(),
+                Mask::<4, T, Unaligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_array() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(Mask::<2, T, A>::new(x, y).to_array(), [x, y]);
+            assert_eq!(Mask::<3, T, A>::new(x, y, z).to_array(), [x, y, z]);
+            assert_eq!(Mask::<4, T, A>::new(x, y, z, w).to_array(), [x, y, z, w]);
+        });
+    }
+
+    #[test]
+    fn test_all() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(Mask::<2, T, A>::new(x, y).all(), x && y);
+            assert_eq!(Mask::<3, T, A>::new(x, y, z).all(), x && y && z);
+            assert_eq!(Mask::<4, T, A>::new(x, y, z, w).all(), x && y && z && w);
+        });
+    }
+
+    #[test]
+    fn test_any() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(Mask::<2, T, A>::new(x, y).any(), x || y);
+            assert_eq!(Mask::<3, T, A>::new(x, y, z).any(), x || y || z);
+            assert_eq!(Mask::<4, T, A>::new(x, y, z, w).any(), x || y || z || w);
+        });
+    }
+
+    #[test]
+    fn test_select() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            let [a, b, c, d, e, f, g, h] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y)
+                    .select(Vector::<2, T, A>::new(a, b), Vector::<2, T, A>::new(c, d)),
+                Vector::<2, T, A>::new(if x { a } else { c }, if y { b } else { d })
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z).select(
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(d, e, f)
+                ),
+                Vector::<3, T, A>::new(
+                    if x { a } else { d },
+                    if y { b } else { e },
+                    if z { c } else { f }
+                )
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w).select(
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h)
+                ),
+                Vector::<4, T, A>::new(
+                    if x { a } else { e },
+                    if y { b } else { f },
+                    if z { c } else { g },
+                    if w { d } else { h }
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_iter() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(Mask::<2, T, A>::new(x, y).iter().collect_vec(), vec![x, y]);
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z).iter().collect_vec(),
+                vec![x, y, z]
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w).iter().collect_vec(),
+                vec![x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_get() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(Mask::<2, T, A>::new(x, y).get(0), x);
+            assert_eq!(Mask::<2, T, A>::new(x, y).get(1), y);
+            assert_panic!(Mask::<2, T, A>::new(x, y).get(2));
+
+            assert_eq!(Mask::<3, T, A>::new(x, y, z).get(0), x);
+            assert_eq!(Mask::<3, T, A>::new(x, y, z).get(1), y);
+            assert_eq!(Mask::<3, T, A>::new(x, y, z).get(2), z);
+            assert_panic!(Mask::<3, T, A>::new(x, y, z).get(3));
+
+            assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(0), x);
+            assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(1), y);
+            assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(2), z);
+            assert_eq!(Mask::<4, T, A>::new(x, y, z, w).get(3), w);
+            assert_panic!(Mask::<4, T, A>::new(x, y, z, w).get(4));
+        });
+    }
+
+    #[test]
+    fn test_set() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            let mut mask = Mask::<2, T, A>::new(x, y);
+            mask.set(0, z);
+            assert_eq!(mask, Mask::<2, T, A>::new(z, y));
+            mask.set(1, w);
+            assert_eq!(mask, Mask::<2, T, A>::new(z, w));
+            assert_panic!(mask.clone().set(2, x));
+
+            let mut mask = Mask::<3, T, A>::new(x, y, z);
+            mask.set(0, z);
+            assert_eq!(mask, Mask::<3, T, A>::new(z, y, z));
+            mask.set(1, w);
+            assert_eq!(mask, Mask::<3, T, A>::new(z, w, z));
+            mask.set(2, x);
+            assert_eq!(mask, Mask::<3, T, A>::new(z, w, x));
+            assert_panic!(mask.clone().set(3, x));
+
+            let mut mask = Mask::<4, T, A>::new(x, y, z, w);
+            mask.set(0, z);
+            assert_eq!(mask, Mask::<4, T, A>::new(z, y, z, w));
+            mask.set(1, w);
+            assert_eq!(mask, Mask::<4, T, A>::new(z, w, z, w));
+            mask.set(2, x);
+            assert_eq!(mask, Mask::<4, T, A>::new(z, w, x, w));
+            mask.set(3, y);
+            assert_eq!(mask, Mask::<4, T, A>::new(z, w, x, y));
+            assert_panic!(mask.clone().set(4, x));
+        });
+    }
+
+    #[test]
+    fn test_to_repr() {
+        for_parameters!(|A, x, y, z, w| {
+            assert_eq!(
+                Mask::<2, i32, A>::new(x, y).to_repr(),
+                Mask::<2, u32, A>::new(x, y)
+            );
+            assert_eq!(
+                Mask::<3, i32, A>::new(x, y, z).to_repr(),
+                Mask::<3, u32, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Mask::<4, i32, A>::new(x, y, z, w).to_repr(),
+                Mask::<4, u32, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_into_iter() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y).into_iter().collect_vec(),
+                vec![x, y]
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z).into_iter().collect_vec(),
+                vec![x, y, z]
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w).into_iter().collect_vec(),
+                vec![x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_debug() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                format!("{:?}", Mask::<2, T, A>::new(x, y)),
+                format!("({x:?}, {y:?})")
+            );
+            assert_eq!(
+                format!("{:?}", Mask::<3, T, A>::new(x, y, z)),
+                format!("({x:?}, {y:?}, {z:?})")
+            );
+            assert_eq!(
+                format!("{:?}", Mask::<4, T, A>::new(x, y, z, w)),
+                format!("({x:?}, {y:?}, {z:?}, {w:?})")
+            );
+        });
+    }
+
+    #[test]
+    fn test_display() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(
+                format!("{}", Mask::<2, T, A>::new(x, y)),
+                format!("({x}, {y})")
+            );
+            assert_eq!(
+                format!("{}", Mask::<3, T, A>::new(x, y, z)),
+                format!("({x}, {y}, {z})")
+            );
+            assert_eq!(
+                format!("{}", Mask::<4, T, A>::new(x, y, z, w)),
+                format!("({x}, {y}, {z}, {w})")
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y) == Mask::<2, T, A>::new(z, w),
+                x == z && y == w
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z) == Mask::<3, T, A>::new(w, a, b),
+                x == w && y == a && z == b
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w) == Mask::<4, T, A>::new(a, b, c, d),
+                x == a && y == b && z == c && w == d
+            );
+        });
+    }
+
+    #[test]
+    fn test_ne() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y) != Mask::<2, T, A>::new(z, w),
+                x != z || y != w
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z) != Mask::<3, T, A>::new(w, a, b),
+                x != w || y != a || z != b
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w) != Mask::<4, T, A>::new(a, b, c, d),
+                x != a || y != b || z != c || w != d
+            );
+        });
+    }
+
+    #[test]
+    fn test_default() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(Mask::<2, T, A>::default(), Mask::splat(bool::default()));
+            assert_eq!(Mask::<3, T, A>::default(), Mask::splat(bool::default()));
+            assert_eq!(Mask::<4, T, A>::default(), Mask::splat(bool::default()));
+        });
+    }
+
+    #[test]
+    fn test_not() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w| {
+            assert_eq!(!Mask::<2, T, A>::new(x, y), Mask::<2, T, A>::new(!x, !y));
+            assert_eq!(
+                !Mask::<3, T, A>::new(x, y, z),
+                Mask::<3, T, A>::new(!x, !y, !z)
+            );
+            assert_eq!(
+                !Mask::<4, T, A>::new(x, y, z, w),
+                Mask::<4, T, A>::new(!x, !y, !z, !w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitand() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y) & Mask::<2, T, A>::new(z, w),
+                Mask::<2, T, A>::new(x && z, y && w)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z) & Mask::<3, T, A>::new(w, a, b),
+                Mask::<3, T, A>::new(x && w, y && a, z && b)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w) & Mask::<4, T, A>::new(a, b, c, d),
+                Mask::<4, T, A>::new(x && a, y && b, z && c, w && d)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitor() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y) | Mask::<2, T, A>::new(z, w),
+                Mask::<2, T, A>::new(x || z, y || w)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z) | Mask::<3, T, A>::new(w, a, b),
+                Mask::<3, T, A>::new(x || w, y || a, z || b)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w) | Mask::<4, T, A>::new(a, b, c, d),
+                Mask::<4, T, A>::new(x || a, y || b, z || c, w || d)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitxor() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            assert_eq!(
+                Mask::<2, T, A>::new(x, y) ^ Mask::<2, T, A>::new(z, w),
+                Mask::<2, T, A>::new(x ^ z, y ^ w)
+            );
+            assert_eq!(
+                Mask::<3, T, A>::new(x, y, z) ^ Mask::<3, T, A>::new(w, a, b),
+                Mask::<3, T, A>::new(x ^ w, y ^ a, z ^ b)
+            );
+            assert_eq!(
+                Mask::<4, T, A>::new(x, y, z, w) ^ Mask::<4, T, A>::new(a, b, c, d),
+                Mask::<4, T, A>::new(x ^ a, y ^ b, z ^ c, w ^ d)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitand_assign() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            let mut mask = Mask::<2, T, A>::new(x, y);
+            mask &= Mask::<2, T, A>::new(z, w);
+            assert_eq!(mask, Mask::<2, T, A>::new(x && z, y && w));
+
+            let mut mask = Mask::<3, T, A>::new(x, y, z);
+            mask &= Mask::<3, T, A>::new(w, a, b);
+            assert_eq!(mask, Mask::<3, T, A>::new(x && w, y && a, z && b));
+
+            let mut mask = Mask::<4, T, A>::new(x, y, z, w);
+            mask &= Mask::<4, T, A>::new(a, b, c, d);
+            assert_eq!(mask, Mask::<4, T, A>::new(x && a, y && b, z && c, w && d));
+        });
+    }
+
+    #[test]
+    fn test_bitor_assign() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            let mut mask = Mask::<2, T, A>::new(x, y);
+            mask |= Mask::<2, T, A>::new(z, w);
+            assert_eq!(mask, Mask::<2, T, A>::new(x || z, y || w));
+
+            let mut mask = Mask::<3, T, A>::new(x, y, z);
+            mask |= Mask::<3, T, A>::new(w, a, b);
+            assert_eq!(mask, Mask::<3, T, A>::new(x || w, y || a, z || b));
+
+            let mut mask = Mask::<4, T, A>::new(x, y, z, w);
+            mask |= Mask::<4, T, A>::new(a, b, c, d);
+            assert_eq!(mask, Mask::<4, T, A>::new(x || a, y || b, z || c, w || d));
+        });
+    }
+
+    #[test]
+    fn test_bitxor_assign() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z, w, a, b, c, d| {
+            let mut mask = Mask::<2, T, A>::new(x, y);
+            mask ^= Mask::<2, T, A>::new(z, w);
+            assert_eq!(mask, Mask::<2, T, A>::new(x ^ z, y ^ w));
+
+            let mut mask = Mask::<3, T, A>::new(x, y, z);
+            mask ^= Mask::<3, T, A>::new(w, a, b);
+            assert_eq!(mask, Mask::<3, T, A>::new(x ^ w, y ^ a, z ^ b));
+
+            let mut mask = Mask::<4, T, A>::new(x, y, z, w);
+            mask ^= Mask::<4, T, A>::new(a, b, c, d);
+            assert_eq!(mask, Mask::<4, T, A>::new(x ^ a, y ^ b, z ^ c, w ^ d));
+        });
+    }
+}

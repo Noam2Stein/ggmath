@@ -973,3 +973,1222 @@ where
     T: Scalar + RefUnwindSafe,
 {
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        Affine, Affine2, Affine2U, Affine3, Affine3U, Aligned, Mat2, Mat3, Mat4, Matrix, Unaligned,
+        Vec2, Vec3, Vector,
+        test_utils::{assert_float_eq, for_parameters},
+    };
+
+    #[test]
+    fn test_layout() {
+        for_parameters!(|T: PrimitiveNumber| {
+            assert!(
+                size_of::<Affine2<T>>() == size_of::<T>() * 6
+                    && align_of::<Affine2<T>>() == align_of::<Vec2<T>>()
+                    || size_of::<Affine2<T>>() == size_of::<T>() * 8
+                        && (align_of::<Affine2<T>>() == align_of::<Mat2<T>>()
+                            || align_of::<Affine2<T>>() == size_of::<T>() * 8)
+            );
+
+            assert!(
+                size_of::<Affine3<T>>() == size_of::<Mat3<T>>() + size_of::<Vec3<T>>()
+                    && align_of::<Affine3<T>>() == align_of::<Mat3<T>>()
+                    || size_of::<Affine3<T>>() == size_of::<T>() * 16
+                        && align_of::<Affine3<T>>() == size_of::<T>() * 16
+                        && size_of::<Mat3<T>>() == size_of::<T>() * 9
+                        && size_of::<Vec3<T>>() == size_of::<T>() * 3
+            );
+
+            assert_eq!(size_of::<Affine<4, T, Aligned>>(), size_of::<T>() * 20);
+            assert_eq!(align_of::<Affine<4, T, Aligned>>(), align_of::<Mat4<T>>());
+
+            assert_eq!(size_of::<Affine2U<T>>(), size_of::<T>() * 6);
+            assert_eq!(align_of::<Affine2U<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Affine3U<T>>(), size_of::<T>() * 12);
+            assert_eq!(align_of::<Affine3U<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Affine<4, T, Unaligned>>(), size_of::<T>() * 20);
+            assert_eq!(align_of::<Affine<4, T, Unaligned>>(), align_of::<T>());
+        });
+    }
+
+    #[test]
+    fn test_zero() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                Affine::<2, T, A>::ZERO,
+                Affine::from_mat_translation(Matrix::ZERO, Vector::ZERO)
+            );
+            assert_eq!(
+                Affine::<3, T, A>::ZERO,
+                Affine::from_mat_translation(Matrix::ZERO, Vector::ZERO)
+            );
+            assert_eq!(
+                Affine::<4, T, A>::ZERO,
+                Affine::from_mat_translation(Matrix::ZERO, Vector::ZERO)
+            );
+        });
+    }
+
+    #[test]
+    fn test_identity() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                Affine::<2, T, A>::IDENTITY,
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::ZERO)
+            );
+            assert_eq!(
+                Affine::<3, T, A>::IDENTITY,
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::ZERO)
+            );
+            assert_eq!(
+                Affine::<4, T, A>::IDENTITY,
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::ZERO)
+            );
+        });
+    }
+
+    #[test]
+    fn test_nan() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_float_eq!(
+                Affine::<2, T, A>::NAN,
+                Affine::from_mat_translation(Matrix::NAN, Vector::NAN)
+            );
+            assert_float_eq!(
+                Affine::<3, T, A>::NAN,
+                Affine::from_mat_translation(Matrix::NAN, Vector::NAN)
+            );
+            assert_float_eq!(
+                Affine::<4, T, A>::NAN,
+                Affine::from_mat_translation(Matrix::NAN, Vector::NAN)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_mat() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [_, x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat(Matrix::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])),
+                Affine::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::ZERO
+                )
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat(Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])),
+                Affine::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::ZERO
+                )
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat(Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])),
+                Affine::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::ZERO
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_translation() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [_, _, x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_translation(Vector::<2, T, A>::new(x, y)),
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<2, T, A>::new(x, y))
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_translation(Vector::<3, T, A>::new(x, y, z)),
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<3, T, A>::new(x, y, z))
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_translation(Vector::<4, T, A>::new(x, y, z, w)),
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<4, T, A>::new(x, y, z, w))
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_alignment() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .to_alignment(),
+                Affine::<2, T, Aligned>::from_mat_translation(
+                    Matrix::<2, T, Aligned>::from_columns(&[
+                        Vector::<2, T, Aligned>::new(x, y),
+                        Vector::<2, T, Aligned>::new(z, w)
+                    ]),
+                    Vector::<2, T, Aligned>::new(a, b)
+                )
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .to_alignment(),
+                Affine::<3, T, Aligned>::from_mat_translation(
+                    Matrix::<3, T, Aligned>::from_columns(&[
+                        Vector::<3, T, Aligned>::new(x, y, z),
+                        Vector::<3, T, Aligned>::new(w, a, b),
+                        Vector::<3, T, Aligned>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, Aligned>::new(f, g, h)
+                )
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .to_alignment(),
+                Affine::<4, T, Aligned>::from_mat_translation(
+                    Matrix::<4, T, Aligned>::from_columns(&[
+                        Vector::<4, T, Aligned>::new(x, y, z, w),
+                        Vector::<4, T, Aligned>::new(a, b, c, d),
+                        Vector::<4, T, Aligned>::new(e, f, g, h),
+                        Vector::<4, T, Aligned>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, Aligned>::new(m, n, o, p)
+                )
+            );
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .to_alignment(),
+                Affine::<2, T, Unaligned>::from_mat_translation(
+                    Matrix::<2, T, Unaligned>::from_columns(&[
+                        Vector::<2, T, Unaligned>::new(x, y),
+                        Vector::<2, T, Unaligned>::new(z, w)
+                    ]),
+                    Vector::<2, T, Unaligned>::new(a, b)
+                )
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .to_alignment(),
+                Affine::<3, T, Unaligned>::from_mat_translation(
+                    Matrix::<3, T, Unaligned>::from_columns(&[
+                        Vector::<3, T, Unaligned>::new(x, y, z),
+                        Vector::<3, T, Unaligned>::new(w, a, b),
+                        Vector::<3, T, Unaligned>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, Unaligned>::new(f, g, h)
+                )
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .to_alignment(),
+                Affine::<4, T, Unaligned>::from_mat_translation(
+                    Matrix::<4, T, Unaligned>::from_columns(&[
+                        Vector::<4, T, Unaligned>::new(x, y, z, w),
+                        Vector::<4, T, Unaligned>::new(a, b, c, d),
+                        Vector::<4, T, Unaligned>::new(e, f, g, h),
+                        Vector::<4, T, Unaligned>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, Unaligned>::new(m, n, o, p)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_align() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .align(),
+                Affine::<2, T, Aligned>::from_mat_translation(
+                    Matrix::<2, T, Aligned>::from_columns(&[
+                        Vector::<2, T, Aligned>::new(x, y),
+                        Vector::<2, T, Aligned>::new(z, w)
+                    ]),
+                    Vector::<2, T, Aligned>::new(a, b)
+                )
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .align(),
+                Affine::<3, T, Aligned>::from_mat_translation(
+                    Matrix::<3, T, Aligned>::from_columns(&[
+                        Vector::<3, T, Aligned>::new(x, y, z),
+                        Vector::<3, T, Aligned>::new(w, a, b),
+                        Vector::<3, T, Aligned>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, Aligned>::new(f, g, h)
+                )
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .align(),
+                Affine::<4, T, Aligned>::from_mat_translation(
+                    Matrix::<4, T, Aligned>::from_columns(&[
+                        Vector::<4, T, Aligned>::new(x, y, z, w),
+                        Vector::<4, T, Aligned>::new(a, b, c, d),
+                        Vector::<4, T, Aligned>::new(e, f, g, h),
+                        Vector::<4, T, Aligned>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, Aligned>::new(m, n, o, p)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_unalign() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .unalign(),
+                Affine::<2, T, Unaligned>::from_mat_translation(
+                    Matrix::<2, T, Unaligned>::from_columns(&[
+                        Vector::<2, T, Unaligned>::new(x, y),
+                        Vector::<2, T, Unaligned>::new(z, w)
+                    ]),
+                    Vector::<2, T, Unaligned>::new(a, b)
+                )
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .unalign(),
+                Affine::<3, T, Unaligned>::from_mat_translation(
+                    Matrix::<3, T, Unaligned>::from_columns(&[
+                        Vector::<3, T, Unaligned>::new(x, y, z),
+                        Vector::<3, T, Unaligned>::new(w, a, b),
+                        Vector::<3, T, Unaligned>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, Unaligned>::new(f, g, h)
+                )
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .unalign(),
+                Affine::<4, T, Unaligned>::from_mat_translation(
+                    Matrix::<4, T, Unaligned>::from_columns(&[
+                        Vector::<4, T, Unaligned>::new(x, y, z, w),
+                        Vector::<4, T, Unaligned>::new(a, b, c, d),
+                        Vector::<4, T, Unaligned>::new(e, f, g, h),
+                        Vector::<4, T, Unaligned>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, Unaligned>::new(m, n, o, p)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_repr() {
+        for_parameters!(|A| {
+            assert_eq!(
+                // SAFETY: `u32` accepts all bit patterns.
+                unsafe {
+                    Affine::<2, i32, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<2, i32, A>::new(0, 1),
+                            Vector::<2, i32, A>::new(2, 3),
+                        ]),
+                        Vector::<2, i32, A>::new(4, 5),
+                    )
+                    .to_repr()
+                },
+                Affine::<2, u32, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, u32, A>::new(0, 1),
+                        Vector::<2, u32, A>::new(2, 3),
+                    ]),
+                    Vector::<2, u32, A>::new(4, 5),
+                )
+            );
+            assert_eq!(
+                // SAFETY: `u32` accepts all bit patterns.
+                unsafe {
+                    Affine::<3, i32, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<3, i32, A>::new(0, 1, 2),
+                            Vector::<3, i32, A>::new(3, 4, 5),
+                            Vector::<3, i32, A>::new(6, 7, 8),
+                        ]),
+                        Vector::<3, i32, A>::new(9, 10, 11),
+                    )
+                    .to_repr()
+                },
+                Affine::<3, u32, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, u32, A>::new(0, 1, 2),
+                        Vector::<3, u32, A>::new(3, 4, 5),
+                        Vector::<3, u32, A>::new(6, 7, 8),
+                    ]),
+                    Vector::<3, u32, A>::new(9, 10, 11)
+                )
+            );
+            assert_eq!(
+                // SAFETY: `u32` accepts all bit patterns.
+                unsafe {
+                    Affine::<4, i32, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<4, i32, A>::new(0, 1, 2, 3),
+                            Vector::<4, i32, A>::new(4, 5, 6, 7),
+                            Vector::<4, i32, A>::new(8, 9, 10, 11),
+                            Vector::<4, i32, A>::new(12, 13, 14, 15),
+                        ]),
+                        Vector::<4, i32, A>::new(16, 17, 18, 19),
+                    )
+                    .to_repr()
+                },
+                Affine::<4, u32, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, u32, A>::new(0, 1, 2, 3),
+                        Vector::<4, u32, A>::new(4, 5, 6, 7),
+                        Vector::<4, u32, A>::new(8, 9, 10, 11),
+                        Vector::<4, u32, A>::new(12, 13, 14, 15),
+                    ]),
+                    Vector::<4, u32, A>::new(16, 17, 18, 19),
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_columns() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
+                ]),
+                Affine::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
+                ]),
+                Affine::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                ]),
+                Affine::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_columns() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .as_columns(),
+                &[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
+                ]
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .as_columns(),
+                &[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
+                ]
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .as_columns(),
+                &[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_columns_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .as_columns_mut(),
+                &mut [
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
+                ]
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .as_columns_mut(),
+                &mut [
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
+                ]
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .as_columns_mut(),
+                &mut [
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_deref() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .matrix,
+                Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])
+            );
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .translation,
+                Vector::<2, T, A>::new(a, b)
+            );
+
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .matrix,
+                Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .translation,
+                Vector::<3, T, A>::new(f, g, h)
+            );
+
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .matrix,
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .translation,
+                Vector::<4, T, A>::new(m, n, o, p)
+            );
+        });
+    }
+
+    #[test]
+    fn test_deref_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                &mut Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .matrix,
+                &mut Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])
+            );
+            assert_eq!(
+                &mut Affine::<2, T, A>::from_mat_translation(
+                    Matrix::<2, T, A>::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w)
+                    ]),
+                    Vector::<2, T, A>::new(a, b)
+                )
+                .translation,
+                &mut Vector::<2, T, A>::new(a, b)
+            );
+
+            assert_eq!(
+                &mut Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .matrix,
+                &mut Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+            );
+            assert_eq!(
+                &mut Affine::<3, T, A>::from_mat_translation(
+                    Matrix::<3, T, A>::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(w, a, b),
+                        Vector::<3, T, A>::new(c, d, e)
+                    ]),
+                    Vector::<3, T, A>::new(f, g, h)
+                )
+                .translation,
+                &mut Vector::<3, T, A>::new(f, g, h)
+            );
+
+            assert_eq!(
+                &mut Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .matrix,
+                &mut Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])
+            );
+            assert_eq!(
+                &mut Affine::<4, T, A>::from_mat_translation(
+                    Matrix::<4, T, A>::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(a, b, c, d),
+                        Vector::<4, T, A>::new(e, f, g, h),
+                        Vector::<4, T, A>::new(i, j, k, l)
+                    ]),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                )
+                .translation,
+                &mut Vector::<4, T, A>::new(m, n, o, p)
+            );
+        });
+    }
+
+    #[test]
+    fn test_debug() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                format!(
+                    "{:?}",
+                    Affine::<2, T, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<2, T, A>::new(x, y),
+                            Vector::<2, T, A>::new(z, w)
+                        ]),
+                        Vector::<2, T, A>::new(a, b)
+                    )
+                ),
+                format!("[({x:?}, {y:?}), ({z:?}, {w:?}), ({a:?}, {b:?})]")
+            );
+            assert_eq!(
+                format!(
+                    "{:?}",
+                    Affine::<3, T, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<3, T, A>::new(x, y, z),
+                            Vector::<3, T, A>::new(w, a, b),
+                            Vector::<3, T, A>::new(c, d, e)
+                        ]),
+                        Vector::<3, T, A>::new(f, g, h)
+                    )
+                ),
+                format!(
+                    "[({x:?}, {y:?}, {z:?}), ({w:?}, {a:?}, {b:?}), ({c:?}, {d:?}, {e:?}), ({f:?}, {g:?}, {h:?})]"
+                )
+            );
+            assert_eq!(
+                format!(
+                    "{:?}",
+                    Affine::<4, T, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<4, T, A>::new(x, y, z, w),
+                            Vector::<4, T, A>::new(a, b, c, d),
+                            Vector::<4, T, A>::new(e, f, g, h),
+                            Vector::<4, T, A>::new(i, j, k, l)
+                        ]),
+                        Vector::<4, T, A>::new(m, n, o, p)
+                    )
+                ),
+                format!(
+                    "[({x:?}, {y:?}, {z:?}, {w:?}), ({a:?}, {b:?}, {c:?}, {d:?}), ({e:?}, {f:?}, {g:?}, {h:?}), ({i:?}, {j:?}, {k:?}, {l:?}), ({m:?}, {n:?}, {o:?}, {p:?})]"
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_display() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                format!(
+                    "{}",
+                    Affine::<2, T, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<2, T, A>::new(x, y),
+                            Vector::<2, T, A>::new(z, w)
+                        ]),
+                        Vector::<2, T, A>::new(a, b)
+                    )
+                ),
+                format!("[({x}, {y}), ({z}, {w}), ({a}, {b})]")
+            );
+            assert_eq!(
+                format!(
+                    "{}",
+                    Affine::<3, T, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<3, T, A>::new(x, y, z),
+                            Vector::<3, T, A>::new(w, a, b),
+                            Vector::<3, T, A>::new(c, d, e)
+                        ]),
+                        Vector::<3, T, A>::new(f, g, h)
+                    )
+                ),
+                format!("[({x}, {y}, {z}), ({w}, {a}, {b}), ({c}, {d}, {e}), ({f}, {g}, {h})]")
+            );
+            assert_eq!(
+                format!(
+                    "{}",
+                    Affine::<4, T, A>::from_mat_translation(
+                        Matrix::from_columns(&[
+                            Vector::<4, T, A>::new(x, y, z, w),
+                            Vector::<4, T, A>::new(a, b, c, d),
+                            Vector::<4, T, A>::new(e, f, g, h),
+                            Vector::<4, T, A>::new(i, j, k, l)
+                        ]),
+                        Vector::<4, T, A>::new(m, n, o, p)
+                    )
+                ),
+                format!(
+                    "[({x}, {y}, {z}, {w}), ({a}, {b}, {c}, {d}), ({e}, {f}, {g}, {h}), ({i}, {j}, {k}, {l}), ({m}, {n}, {o}, {p})]"
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w),
+                    ]),
+                    Vector::<2, T, A>::new(x, z),
+                ) == Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(z, y),
+                        Vector::<2, T, A>::new(z, w),
+                    ]),
+                    Vector::<2, T, A>::new(x, z),
+                ),
+                x == z && y == y && z == z && w == w && x == x
+            );
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w),
+                    ]),
+                    Vector::<2, T, A>::new(x, z),
+                ) == Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(z, w),
+                        Vector::<2, T, A>::new(x, y),
+                    ]),
+                    Vector::<2, T, A>::new(z, x),
+                ),
+                x == z && y == w
+            );
+
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(x, y, w),
+                        Vector::<3, T, A>::new(x, y, z),
+                    ]),
+                    Vector::<3, T, A>::new(x, y, z),
+                ) == Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, w),
+                        Vector::<3, T, A>::new(x, y, w),
+                        Vector::<3, T, A>::new(x, y, z),
+                    ]),
+                    Vector::<3, T, A>::new(x, y, z),
+                ),
+                x == x && y == y && z == w && w == w
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(z, w, y),
+                        Vector::<3, T, A>::new(x, y, z),
+                    ]),
+                    Vector::<3, T, A>::new(z, x, y),
+                ) == Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(z, w, y),
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(z, w, y),
+                    ]),
+                    Vector::<3, T, A>::new(y, y, w),
+                ),
+                x == z && y == w && z == y
+            );
+
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, y, x, w),
+                        Vector::<4, T, A>::new(x, y, z, y),
+                    ]),
+                    Vector::<4, T, A>::new(x, y, z, w),
+                ) == Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(w, y, z, w),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, y, x, w),
+                        Vector::<4, T, A>::new(x, y, z, y),
+                    ]),
+                    Vector::<4, T, A>::new(x, y, z, w),
+                ),
+                x == w && y == y && z == z && w == w
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, w, y, x),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, w, y, x),
+                    ]),
+                    Vector::<4, T, A>::new(z, y, x, w),
+                ) == Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(z, w, y, x),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, w, y, x),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                    ]),
+                    Vector::<4, T, A>::new(x, y, z, x),
+                ),
+                x == z && y == w && z == y
+            );
+        });
+    }
+
+    #[test]
+    fn test_ne() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w),
+                    ]),
+                    Vector::<2, T, A>::new(x, z),
+                ) != Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(z, y),
+                        Vector::<2, T, A>::new(z, w),
+                    ]),
+                    Vector::<2, T, A>::new(x, z),
+                ),
+                x != z || y != y || z != z || w != w || x != x
+            );
+            assert_eq!(
+                Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(x, y),
+                        Vector::<2, T, A>::new(z, w),
+                    ]),
+                    Vector::<2, T, A>::new(x, z),
+                ) != Affine::<2, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<2, T, A>::new(z, w),
+                        Vector::<2, T, A>::new(x, y),
+                    ]),
+                    Vector::<2, T, A>::new(z, x),
+                ),
+                x != z || y != w
+            );
+
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(x, y, w),
+                        Vector::<3, T, A>::new(x, y, z),
+                    ]),
+                    Vector::<3, T, A>::new(x, y, z),
+                ) != Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, w),
+                        Vector::<3, T, A>::new(x, y, w),
+                        Vector::<3, T, A>::new(x, y, z),
+                    ]),
+                    Vector::<3, T, A>::new(x, y, z),
+                ),
+                x != x || y != y || z != w || w != w
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(z, w, y),
+                        Vector::<3, T, A>::new(x, y, z),
+                    ]),
+                    Vector::<3, T, A>::new(z, x, y),
+                ) != Affine::<3, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<3, T, A>::new(z, w, y),
+                        Vector::<3, T, A>::new(x, y, z),
+                        Vector::<3, T, A>::new(z, w, y),
+                    ]),
+                    Vector::<3, T, A>::new(y, y, w),
+                ),
+                x != z || y != w || z != y
+            );
+
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, y, x, w),
+                        Vector::<4, T, A>::new(x, y, z, y),
+                    ]),
+                    Vector::<4, T, A>::new(x, y, z, w),
+                ) != Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(w, y, z, w),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, y, x, w),
+                        Vector::<4, T, A>::new(x, y, z, y),
+                    ]),
+                    Vector::<4, T, A>::new(x, y, z, w),
+                ),
+                x != w || y != y || z != z || w != w
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, w, y, x),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, w, y, x),
+                    ]),
+                    Vector::<4, T, A>::new(z, y, x, w),
+                ) != Affine::<4, T, A>::from_mat_translation(
+                    Matrix::from_columns(&[
+                        Vector::<4, T, A>::new(z, w, y, x),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                        Vector::<4, T, A>::new(z, w, y, x),
+                        Vector::<4, T, A>::new(x, y, z, w),
+                    ]),
+                    Vector::<4, T, A>::new(x, y, z, x),
+                ),
+                x != z || y != w || z != y
+            );
+        });
+    }
+
+    #[test]
+    fn test_default() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(Affine::<2, T, A>::default(), Affine::IDENTITY);
+            assert_eq!(Affine::<3, T, A>::default(), Affine::IDENTITY);
+            assert_eq!(Affine::<4, T, A>::default(), Affine::IDENTITY);
+        });
+    }
+}

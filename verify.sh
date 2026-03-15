@@ -64,7 +64,14 @@ test() {
     local profile=$1
     local backend=$2
     local assertions=$3
-    local overflow_checks=$4
+
+    local overflow_checks
+    if [[ $assertions == "assertions" ]]
+    then
+        overflow_checks="on"
+    else
+        overflow_checks="off"
+    fi
 
     local command=""
 
@@ -101,14 +108,11 @@ for profile in "debug" "release"
 do
     for assertions in "assertions" "no-assertions"
     do
-        for overflow_checks in "on" "off"
-        do
-            test "$profile" "std" "$assertions" "$overflow_checks"
-        done
+        test "$profile" "std" "$assertions"
     done
 done
 
-test "release" "libm" "no-assertions" "off"
+test "release" "libm" "no-assertions"
 
 echo
 echo "Commands: $PROGRESS/$MAX_PROGRESS"

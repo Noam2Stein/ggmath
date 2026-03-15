@@ -516,3 +516,356 @@ where
         *self = Self(self.0 * rhs);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        Aligned, Quaternion, Unaligned, Vector,
+        test_utils::{assert_float_eq, for_parameters},
+    };
+
+    #[test]
+    fn test_layout() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(size_of::<Quaternion<T, A>>(), size_of::<Vector<4, T, A>>());
+            assert_eq!(
+                align_of::<Quaternion<T, A>>(),
+                align_of::<Vector<4, T, A>>()
+            );
+        });
+    }
+
+    #[test]
+    fn test_zero() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                Quaternion::<T, A>::ZERO,
+                Quaternion::new(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(0))
+            );
+        });
+    }
+
+    #[test]
+    fn test_identity() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                Quaternion::<T, A>::IDENTITY,
+                Quaternion::new(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(1))
+            );
+        });
+    }
+
+    #[test]
+    fn test_nan() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_float_eq!(
+                Quaternion::<T, A>::NAN,
+                Quaternion::new(T::NAN, T::NAN, T::NAN, T::NAN)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_array() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::from_array([x, y, z, w]),
+                Quaternion::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_vec() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w)),
+                Quaternion::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_alignment() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).to_alignment(),
+                Quaternion::<T, Aligned>::new(x, y, z, w)
+            );
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).to_alignment(),
+                Quaternion::<T, Unaligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_align() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).align(),
+                Quaternion::<T, Aligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_unalign() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).unalign(),
+                Quaternion::<T, Unaligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_array() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).to_array(), [x, y, z, w]);
+        });
+    }
+
+    #[test]
+    fn test_as_array_ref() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).as_array_ref(),
+                &[x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_array_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).as_array_mut(),
+                &mut [x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_vec() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).to_vec(),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_vec_ref() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).as_vec_ref(),
+                &Vector::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_vec_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w).as_vec_mut(),
+                &mut Vector::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_repr() {
+        for_parameters!(|A| {
+            assert_eq!(
+                // SAFETY: `u32` accepts all bit patterns.
+                unsafe { Quaternion::<i32, A>::new(0, 1, 2, 3).to_repr() },
+                Quaternion::<u32, A>::new(0, 1, 2, 3)
+            );
+        });
+    }
+
+    #[test]
+    fn test_deref() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).x, x);
+            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).y, y);
+            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).z, z);
+            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).w, w);
+        });
+    }
+
+    #[test]
+    fn test_deref_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [mut x, mut y, mut z, mut w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).x, &mut x);
+            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).y, &mut y);
+            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).z, &mut z);
+            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).w, &mut w);
+        });
+    }
+
+    #[test]
+    fn test_debug() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                format!("{:?}", Quaternion::<T, A>::new(x, y, z, w)),
+                format!("Quat({x:?}, {y:?}, {z:?}, {w:?})")
+            );
+        });
+    }
+
+    #[test]
+    fn test_display() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                format!("{}", Quaternion::<T, A>::new(x, y, z, w)),
+                format!("({x}, {y}, {z}, {w})")
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w) == Quaternion::<T, A>::new(z, w, y, x),
+                x == z && y == w && z == y && w == x
+            );
+        });
+    }
+
+    #[test]
+    fn test_ne() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Quaternion::<T, A>::new(x, y, z, w) != Quaternion::<T, A>::new(z, w, y, x),
+                x != z || y != w || z != y || w != x
+            );
+        });
+    }
+
+    #[test]
+    fn test_default() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(Quaternion::<T, A>::default(), Quaternion::IDENTITY);
+        });
+    }
+
+    #[test]
+    fn test_neg() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                -Quaternion::<T, A>::new(x, y, z, w),
+                Quaternion::new(-x, -y, -z, -w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_add() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Quaternion::<T, A>::new(x, y, z, w) + Quaternion::<T, A>::new(z, w, y, x),
+                Quaternion::new(x + z, y + w, z + y, w + x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_sub() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Quaternion::<T, A>::new(x, y, z, w) - Quaternion::<T, A>::new(z, w, y, x),
+                Quaternion::new(x - z, y - w, z - y, w - x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Quaternion::<T, A>::new(x, y, z, w) * w,
+                Quaternion::new(x * w, y * w, z * w, w * w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_add_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut quat = Quaternion::<T, A>::new(x, y, z, w);
+            quat += Quaternion::<T, A>::new(z, w, y, x);
+            assert_float_eq!(quat, Quaternion::new(x + z, y + w, z + y, w + x));
+        });
+    }
+
+    #[test]
+    fn test_sub_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut quat = Quaternion::<T, A>::new(x, y, z, w);
+            quat -= Quaternion::<T, A>::new(z, w, y, x);
+            assert_float_eq!(quat, Quaternion::new(x - z, y - w, z - y, w - x));
+        });
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut quat = Quaternion::<T, A>::new(x, y, z, w);
+            quat *= w;
+            assert_float_eq!(quat, Quaternion::new(x * w, y * w, z * w, w * w));
+        });
+    }
+}

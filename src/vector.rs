@@ -2205,3 +2205,1620 @@ where
     T: Scalar + RefUnwindSafe,
 {
 }
+
+#[cfg(test)]
+mod tests {
+    use itertools::Itertools;
+
+    use crate::{
+        Aligned, Mask, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
+        test_utils::{assert_float_eq, assert_panic, assert_panic_eq, for_parameters},
+    };
+
+    #[test]
+    fn test_layout() {
+        for_parameters!(|T: PrimitiveNumber| {
+            assert_eq!(size_of::<Vec2<T>>(), size_of::<T>() * 2);
+            assert!(
+                align_of::<Vec2<T>>() == align_of::<T>()
+                    || align_of::<Vec2<T>>() == size_of::<T>() * 2
+            );
+
+            assert!(
+                size_of::<Vec3<T>>() == size_of::<T>() * 3
+                    && align_of::<Vec3<T>>() == align_of::<T>()
+                    || size_of::<Vec3<T>>() == size_of::<T>() * 4
+                        && align_of::<Vec3<T>>() == size_of::<T>() * 4
+            );
+
+            assert_eq!(size_of::<Vec4<T>>(), size_of::<T>() * 4);
+            assert!(
+                align_of::<Vec4<T>>() == align_of::<T>()
+                    || align_of::<Vec4<T>>() == size_of::<T>() * 4
+            );
+
+            assert_eq!(size_of::<Vec2U<T>>(), size_of::<T>() * 2);
+            assert_eq!(align_of::<Vec2U<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Vec3U<T>>(), size_of::<T>() * 3);
+            assert_eq!(align_of::<Vec3U<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Vec4U<T>>(), size_of::<T>() * 4);
+            assert_eq!(align_of::<Vec4U<T>>(), align_of::<T>());
+        });
+    }
+
+    #[test]
+    fn test_zero() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(Vector::<2, T, A>::ZERO, Vector::splat(T::as_from(0)));
+            assert_eq!(Vector::<3, T, A>::ZERO, Vector::splat(T::as_from(0)));
+            assert_eq!(Vector::<4, T, A>::ZERO, Vector::splat(T::as_from(0)));
+        });
+    }
+
+    #[test]
+    fn test_one() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(Vector::<2, T, A>::ONE, Vector::splat(T::as_from(1)));
+            assert_eq!(Vector::<3, T, A>::ONE, Vector::splat(T::as_from(1)));
+            assert_eq!(Vector::<4, T, A>::ONE, Vector::splat(T::as_from(1)));
+        });
+    }
+
+    #[test]
+    fn test_neg_one() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<2, T, A>::NEG_ONE, Vector::splat(-1.0));
+            assert_eq!(Vector::<3, T, A>::NEG_ONE, Vector::splat(-1.0));
+            assert_eq!(Vector::<4, T, A>::NEG_ONE, Vector::splat(-1.0));
+        });
+        for_parameters!(|T: PrimitiveSigned, A| {
+            assert_eq!(Vector::<2, T, A>::NEG_ONE, Vector::splat(-1));
+            assert_eq!(Vector::<3, T, A>::NEG_ONE, Vector::splat(-1));
+            assert_eq!(Vector::<4, T, A>::NEG_ONE, Vector::splat(-1));
+        });
+    }
+
+    #[test]
+    fn test_min() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<2, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<3, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<4, T, A>::MIN, Vector::splat(T::MIN));
+        });
+        for_parameters!(|T: PrimitiveSigned, A| {
+            assert_eq!(Vector::<2, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<3, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<4, T, A>::MIN, Vector::splat(T::MIN));
+        });
+        for_parameters!(|T: PrimitiveUnsigned, A| {
+            assert_eq!(Vector::<2, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<3, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<4, T, A>::MIN, Vector::splat(T::MIN));
+        });
+    }
+
+    #[test]
+    fn test_max() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<2, T, A>::MAX, Vector::splat(T::MAX));
+            assert_eq!(Vector::<3, T, A>::MAX, Vector::splat(T::MAX));
+            assert_eq!(Vector::<4, T, A>::MAX, Vector::splat(T::MAX));
+        });
+        for_parameters!(|T: PrimitiveSigned, A| {
+            assert_eq!(Vector::<2, T, A>::MAX, Vector::splat(T::MAX));
+            assert_eq!(Vector::<3, T, A>::MAX, Vector::splat(T::MAX));
+            assert_eq!(Vector::<4, T, A>::MAX, Vector::splat(T::MAX));
+        });
+        for_parameters!(|T: PrimitiveUnsigned, A| {
+            assert_eq!(Vector::<2, T, A>::MAX, Vector::splat(T::MAX));
+            assert_eq!(Vector::<3, T, A>::MAX, Vector::splat(T::MAX));
+            assert_eq!(Vector::<4, T, A>::MAX, Vector::splat(T::MAX));
+        });
+    }
+
+    #[test]
+    fn test_nan() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_float_eq!(Vector::<2, T, A>::NAN, Vector::splat(T::NAN));
+            assert_float_eq!(Vector::<3, T, A>::NAN, Vector::splat(T::NAN));
+            assert_float_eq!(Vector::<4, T, A>::NAN, Vector::splat(T::NAN));
+        });
+    }
+
+    #[test]
+    fn test_infinity() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<2, T, A>::INFINITY, Vector::splat(T::INFINITY));
+            assert_eq!(Vector::<3, T, A>::INFINITY, Vector::splat(T::INFINITY));
+            assert_eq!(Vector::<4, T, A>::INFINITY, Vector::splat(T::INFINITY));
+        });
+    }
+
+    #[test]
+    fn test_neg_infinity() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(
+                Vector::<2, T, A>::NEG_INFINITY,
+                Vector::splat(T::NEG_INFINITY)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::NEG_INFINITY,
+                Vector::splat(T::NEG_INFINITY)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::NEG_INFINITY,
+                Vector::splat(T::NEG_INFINITY)
+            );
+        });
+    }
+
+    #[test]
+    fn test_true() {
+        for_parameters!(|A| {
+            assert_eq!(Vector::<2, bool, A>::TRUE, Vector::splat(true));
+            assert_eq!(Vector::<3, bool, A>::TRUE, Vector::splat(true));
+            assert_eq!(Vector::<4, bool, A>::TRUE, Vector::splat(true));
+        });
+    }
+
+    #[test]
+    fn test_false() {
+        for_parameters!(|A| {
+            assert_eq!(Vector::<2, bool, A>::FALSE, Vector::splat(false));
+            assert_eq!(Vector::<3, bool, A>::FALSE, Vector::splat(false));
+            assert_eq!(Vector::<4, bool, A>::FALSE, Vector::splat(false));
+        });
+    }
+
+    #[test]
+    fn test_from_array() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::from_array([x, y]),
+                Vector::<2, T, A>::new(x, y)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::from_array([x, y, z]),
+                Vector::<3, T, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from_array([x, y, z, w]),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_splat() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Vector::<2, T, A>::splat(x), Vector::<2, T, A>::new(x, x));
+            assert_eq!(Vector::<3, T, A>::splat(x), Vector::<3, T, A>::new(x, x, x));
+            assert_eq!(
+                Vector::<4, T, A>::splat(x),
+                Vector::<4, T, A>::new(x, x, x, x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_fn() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::from_fn(|i| [x, y][i]),
+                Vector::<2, T, A>::new(x, y)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::from_fn(|i| [x, y, z][i]),
+                Vector::<3, T, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from_fn(|i| [x, y, z, w][i]),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_alignment() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).to_alignment(),
+                Vector::<2, T, Aligned>::new(x, y)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).to_alignment(),
+                Vector::<3, T, Aligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).to_alignment(),
+                Vector::<4, T, Aligned>::new(x, y, z, w)
+            );
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).to_alignment(),
+                Vector::<2, T, Unaligned>::new(x, y)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).to_alignment(),
+                Vector::<3, T, Unaligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).to_alignment(),
+                Vector::<4, T, Unaligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_align() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).align(),
+                Vector::<2, T, Aligned>::new(x, y)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).align(),
+                Vector::<3, T, Aligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).align(),
+                Vector::<4, T, Aligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_unalign() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).unalign(),
+                Vector::<2, T, Unaligned>::new(x, y)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).unalign(),
+                Vector::<3, T, Unaligned>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).unalign(),
+                Vector::<4, T, Unaligned>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_array() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Vector::<2, T, A>::new(x, y).to_array(), [x, y]);
+            assert_eq!(Vector::<3, T, A>::new(x, y, z).to_array(), [x, y, z]);
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w).to_array(), [x, y, z, w]);
+        });
+    }
+
+    #[test]
+    fn test_as_array_ref() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Vector::<2, T, A>::new(x, y).as_array_ref(), &[x, y]);
+            assert_eq!(Vector::<3, T, A>::new(x, y, z).as_array_ref(), &[x, y, z]);
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).as_array_ref(),
+                &[x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_as_array_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Vector::<2, T, A>::new(x, y).as_array_mut(), &mut [x, y]);
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).as_array_mut(),
+                &mut [x, y, z]
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).as_array_mut(),
+                &mut [x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_iter() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).iter().collect_vec(),
+                vec![x, y]
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).iter().collect_vec(),
+                vec![x, y, z]
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).iter().collect_vec(),
+                vec![x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_iter_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [mut x, mut y, mut z, mut w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).iter_mut().collect_vec(),
+                vec![&mut x, &mut y]
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).iter_mut().collect_vec(),
+                vec![&mut x, &mut y, &mut z]
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).iter_mut().collect_vec(),
+                vec![&mut x, &mut y, &mut z, &mut w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_map() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).map(T::as_to),
+                Vector::<2, usize, A>::new(0, 1)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).map(T::as_to),
+                Vector::<3, usize, A>::new(0, 1, 2)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).map(T::as_to),
+                Vector::<4, usize, A>::new(0, 1, 2, 3)
+            );
+        });
+    }
+
+    #[test]
+    fn test_reverse() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).reverse(),
+                Vector::<2, T, A>::new(y, x)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).reverse(),
+                Vector::<3, T, A>::new(z, y, x)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).reverse(),
+                Vector::<4, T, A>::new(w, z, y, x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq_mask() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).eq_mask(Vector::<2, T, A>::new(z, w)),
+                Mask::<2, T, A>::new(x == z, y == w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).eq_mask(Vector::<3, T, A>::new(w, x, y)),
+                Mask::<3, T, A>::new(x == w, y == x, z == y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).eq_mask(Vector::<4, T, A>::new(y, z, w, x)),
+                Mask::<4, T, A>::new(x == y, y == z, z == w, w == x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_ne_mask() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).ne_mask(Vector::<2, T, A>::new(z, w)),
+                Mask::<2, T, A>::new(x != z, y != w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).ne_mask(Vector::<3, T, A>::new(w, x, y)),
+                Mask::<3, T, A>::new(x != w, y != x, z != y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).ne_mask(Vector::<4, T, A>::new(y, z, w, x)),
+                Mask::<4, T, A>::new(x != y, y != z, z != w, w != x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_lt_mask() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).lt_mask(Vector::<2, T, A>::new(z, w)),
+                Mask::<2, T, A>::new(x < z, y < w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).lt_mask(Vector::<3, T, A>::new(w, x, y)),
+                Mask::<3, T, A>::new(x < w, y < x, z < y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).lt_mask(Vector::<4, T, A>::new(y, z, w, x)),
+                Mask::<4, T, A>::new(x < y, y < z, z < w, w < x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_gt_mask() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).gt_mask(Vector::<2, T, A>::new(z, w)),
+                Mask::<2, T, A>::new(x > z, y > w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).gt_mask(Vector::<3, T, A>::new(w, x, y)),
+                Mask::<3, T, A>::new(x > w, y > x, z > y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).gt_mask(Vector::<4, T, A>::new(y, z, w, x)),
+                Mask::<4, T, A>::new(x > y, y > z, z > w, w > x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_le_mask() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).le_mask(Vector::<2, T, A>::new(z, w)),
+                Mask::<2, T, A>::new(x <= z, y <= w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).le_mask(Vector::<3, T, A>::new(w, x, y)),
+                Mask::<3, T, A>::new(x <= w, y <= x, z <= y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).le_mask(Vector::<4, T, A>::new(y, z, w, x)),
+                Mask::<4, T, A>::new(x <= y, y <= z, z <= w, w <= x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_ge_mask() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).ge_mask(Vector::<2, T, A>::new(z, w)),
+                Mask::<2, T, A>::new(x >= z, y >= w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).ge_mask(Vector::<3, T, A>::new(w, x, y)),
+                Mask::<3, T, A>::new(x >= w, y >= x, z >= y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).ge_mask(Vector::<4, T, A>::new(y, z, w, x)),
+                Mask::<4, T, A>::new(x >= y, y >= z, z >= w, w >= x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_repr() {
+        for_parameters!(|A| {
+            assert_eq!(
+                // SAFETY: `u32` accepts all bit patterns.
+                unsafe { Vector::<2, i32, A>::new(0, 1).to_repr() },
+                Vector::<2, u32, A>::new(0, 1)
+            );
+            assert_eq!(
+                // SAFETY: `u32` accepts all bit patterns.
+                unsafe { Vector::<3, i32, A>::new(0, 1, 2).to_repr() },
+                Vector::<3, u32, A>::new(0, 1, 2)
+            );
+            assert_eq!(
+                // SAFETY: `u32` accepts all bit patterns.
+                unsafe { Vector::<4, i32, A>::new(0, 1, 2, 3).to_repr() },
+                Vector::<4, u32, A>::new(0, 1, 2, 3)
+            );
+        });
+    }
+
+    #[test]
+    fn test_axes() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(
+                Vector::<2, T, A>::X,
+                Vector::<2, T, A>::new(T::as_from(1), T::as_from(0))
+            );
+            assert_eq!(
+                Vector::<2, T, A>::Y,
+                Vector::<2, T, A>::new(T::as_from(0), T::as_from(1))
+            );
+
+            assert_eq!(
+                Vector::<3, T, A>::X,
+                Vector::<3, T, A>::new(T::as_from(1), T::as_from(0), T::as_from(0))
+            );
+            assert_eq!(
+                Vector::<3, T, A>::Y,
+                Vector::<3, T, A>::new(T::as_from(0), T::as_from(1), T::as_from(0))
+            );
+            assert_eq!(
+                Vector::<3, T, A>::Z,
+                Vector::<3, T, A>::new(T::as_from(0), T::as_from(0), T::as_from(1))
+            );
+
+            assert_eq!(
+                Vector::<4, T, A>::X,
+                Vector::<4, T, A>::new(T::as_from(1), T::as_from(0), T::as_from(0), T::as_from(0))
+            );
+            assert_eq!(
+                Vector::<4, T, A>::Y,
+                Vector::<4, T, A>::new(T::as_from(0), T::as_from(1), T::as_from(0), T::as_from(0))
+            );
+            assert_eq!(
+                Vector::<4, T, A>::Z,
+                Vector::<4, T, A>::new(T::as_from(0), T::as_from(0), T::as_from(1), T::as_from(0))
+            );
+            assert_eq!(
+                Vector::<4, T, A>::W,
+                Vector::<4, T, A>::new(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(1))
+            );
+        });
+    }
+
+    #[test]
+    fn test_neg_axes() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<2, T, A>::NEG_X, Vector::<2, T, A>::new(-1.0, 0.0));
+            assert_eq!(Vector::<2, T, A>::NEG_Y, Vector::<2, T, A>::new(0.0, -1.0));
+
+            assert_eq!(
+                Vector::<3, T, A>::NEG_X,
+                Vector::<3, T, A>::new(-1.0, 0.0, 0.0)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::NEG_Y,
+                Vector::<3, T, A>::new(0.0, -1.0, 0.0)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::NEG_Z,
+                Vector::<3, T, A>::new(0.0, 0.0, -1.0)
+            );
+
+            assert_eq!(
+                Vector::<4, T, A>::NEG_X,
+                Vector::<4, T, A>::new(-1.0, 0.0, 0.0, 0.0)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::NEG_Y,
+                Vector::<4, T, A>::new(0.0, -1.0, 0.0, 0.0)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::NEG_Z,
+                Vector::<4, T, A>::new(0.0, 0.0, -1.0, 0.0)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::NEG_W,
+                Vector::<4, T, A>::new(0.0, 0.0, 0.0, -1.0)
+            );
+        });
+        for_parameters!(|T: PrimitiveSigned, A| {
+            assert_eq!(Vector::<2, T, A>::NEG_X, Vector::<2, T, A>::new(-1, 0));
+            assert_eq!(Vector::<2, T, A>::NEG_Y, Vector::<2, T, A>::new(0, -1));
+
+            assert_eq!(Vector::<3, T, A>::NEG_X, Vector::<3, T, A>::new(-1, 0, 0));
+            assert_eq!(Vector::<3, T, A>::NEG_Y, Vector::<3, T, A>::new(0, -1, 0));
+            assert_eq!(Vector::<3, T, A>::NEG_Z, Vector::<3, T, A>::new(0, 0, -1));
+
+            assert_eq!(
+                Vector::<4, T, A>::NEG_X,
+                Vector::<4, T, A>::new(-1, 0, 0, 0)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::NEG_Y,
+                Vector::<4, T, A>::new(0, -1, 0, 0)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::NEG_Z,
+                Vector::<4, T, A>::new(0, 0, -1, 0)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::NEG_W,
+                Vector::<4, T, A>::new(0, 0, 0, -1)
+            );
+        });
+    }
+
+    #[test]
+    fn test_index() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Vector::<2, T, A>::new(x, y)[0], x);
+            assert_eq!(Vector::<2, T, A>::new(x, y)[1], y);
+            assert_panic!(Vector::<2, T, A>::new(x, y)[2]);
+
+            assert_eq!(Vector::<3, T, A>::new(x, y, z)[0], x);
+            assert_eq!(Vector::<3, T, A>::new(x, y, z)[1], y);
+            assert_eq!(Vector::<3, T, A>::new(x, y, z)[2], z);
+            assert_panic!(Vector::<3, T, A>::new(x, y, z)[3]);
+
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w)[0], x);
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w)[1], y);
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w)[2], z);
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w)[3], w);
+            assert_panic!(Vector::<4, T, A>::new(x, y, z, w)[4]);
+        });
+    }
+
+    #[test]
+    fn test_index_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [mut x, mut y, mut z, mut w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(&mut Vector::<2, T, A>::new(x, y)[0], &mut x);
+            assert_eq!(&mut Vector::<2, T, A>::new(x, y)[1], &mut y);
+            assert_panic!(&mut Vector::<2, T, A>::new(x, y)[2]);
+
+            assert_eq!(&mut Vector::<3, T, A>::new(x, y, z)[0], &mut x);
+            assert_eq!(&mut Vector::<3, T, A>::new(x, y, z)[1], &mut y);
+            assert_eq!(&mut Vector::<3, T, A>::new(x, y, z)[2], &mut z);
+            assert_panic!(&mut Vector::<3, T, A>::new(x, y, z)[3]);
+
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w)[0], &mut x);
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w)[1], &mut y);
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w)[2], &mut z);
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w)[3], &mut w);
+            assert_panic!(&mut Vector::<4, T, A>::new(x, y, z, w)[4]);
+        });
+    }
+
+    #[test]
+    fn test_into_iter() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).into_iter().collect_vec(),
+                vec![x, y]
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).into_iter().collect_vec(),
+                vec![x, y, z]
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).into_iter().collect_vec(),
+                vec![x, y, z, w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_mut_into_iter() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [mut x, mut y, mut z, mut w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                (&mut Vector::<2, T, A>::new(x, y))
+                    .into_iter()
+                    .collect_vec(),
+                vec![&mut x, &mut y]
+            );
+            assert_eq!(
+                (&mut Vector::<3, T, A>::new(x, y, z))
+                    .into_iter()
+                    .collect_vec(),
+                vec![&mut x, &mut y, &mut z]
+            );
+            assert_eq!(
+                (&mut Vector::<4, T, A>::new(x, y, z, w))
+                    .into_iter()
+                    .collect_vec(),
+                vec![&mut x, &mut y, &mut z, &mut w]
+            );
+        });
+    }
+
+    #[test]
+    fn test_deref() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(Vector::<2, T, A>::new(x, y).x, x);
+            assert_eq!(Vector::<2, T, A>::new(x, y).y, y);
+
+            assert_eq!(Vector::<3, T, A>::new(x, y, z).x, x);
+            assert_eq!(Vector::<3, T, A>::new(x, y, z).y, y);
+            assert_eq!(Vector::<3, T, A>::new(x, y, z).z, z);
+
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w).x, x);
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w).y, y);
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w).z, z);
+            assert_eq!(Vector::<4, T, A>::new(x, y, z, w).w, w);
+        });
+    }
+
+    #[test]
+    fn test_deref_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [mut x, mut y, mut z, mut w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(&mut Vector::<2, T, A>::new(x, y).x, &mut x);
+            assert_eq!(&mut Vector::<2, T, A>::new(x, y).y, &mut y);
+
+            assert_eq!(&mut Vector::<3, T, A>::new(x, y, z).x, &mut x);
+            assert_eq!(&mut Vector::<3, T, A>::new(x, y, z).y, &mut y);
+            assert_eq!(&mut Vector::<3, T, A>::new(x, y, z).z, &mut z);
+
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w).x, &mut x);
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w).y, &mut y);
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w).z, &mut z);
+            assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w).w, &mut w);
+        });
+    }
+
+    #[test]
+    fn test_debug() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                format!("{:?}", Vector::<2, T, A>::new(x, y)),
+                format!("({x:?}, {y:?})")
+            );
+            assert_eq!(
+                format!("{:?}", Vector::<3, T, A>::new(x, y, z)),
+                format!("({x:?}, {y:?}, {z:?})")
+            );
+            assert_eq!(
+                format!("{:?}", Vector::<4, T, A>::new(x, y, z, w)),
+                format!("({x:?}, {y:?}, {z:?}, {w:?})")
+            );
+        });
+    }
+
+    #[test]
+    fn test_display() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                format!("{}", Vector::<2, T, A>::new(x, y)),
+                format!("({x}, {y})")
+            );
+            assert_eq!(
+                format!("{}", Vector::<3, T, A>::new(x, y, z)),
+                format!("({x}, {y}, {z})")
+            );
+            assert_eq!(
+                format!("{}", Vector::<4, T, A>::new(x, y, z, w)),
+                format!("({x}, {y}, {z}, {w})")
+            );
+        });
+    }
+
+    #[test]
+    fn test_eq() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y) == Vector::<2, T, A>::new(z, w),
+                x == z && y == w
+            );
+
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z) == Vector::<3, T, A>::new(x, y, w),
+                x == x && y == y && z == w
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z) == Vector::<3, T, A>::new(z, w, y),
+                x == z && y == w && z == y
+            );
+
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) == Vector::<4, T, A>::new(w, y, z, w),
+                x == w && y == y && z == z && w == w
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) == Vector::<4, T, A>::new(z, w, y, x),
+                x == z && y == w && z == y && w == x
+            );
+        });
+    }
+
+    #[test]
+    fn test_ne() {
+        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
+            let w = if x > y { x } else { y };
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y) != Vector::<2, T, A>::new(z, w),
+                x != z || y != w
+            );
+
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z) != Vector::<3, T, A>::new(x, y, w),
+                x != x || y != y || z != w
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z) != Vector::<3, T, A>::new(z, w, y),
+                x != z || y != w || z != y
+            );
+
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) != Vector::<4, T, A>::new(w, y, z, w),
+                x != w || y != y || z != z || w != w
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) != Vector::<4, T, A>::new(z, w, y, x),
+                x != z || y != w || z != y || w != x
+            );
+        });
+    }
+
+    #[test]
+    fn test_default() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            assert_eq!(Vector::<2, T, A>::default(), Vector::splat(T::default()));
+            assert_eq!(Vector::<3, T, A>::default(), Vector::splat(T::default()));
+            assert_eq!(Vector::<4, T, A>::default(), Vector::splat(T::default()));
+        });
+    }
+
+    #[test]
+    fn test_neg() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                -Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(-x, -y)
+            );
+            assert_float_eq!(
+                -Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(-x, -y, -z)
+            );
+            assert_float_eq!(
+                -Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(-x, -y, -z, -w)
+            );
+        });
+        for_parameters!(|T: PrimitiveSigned, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                -Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(-x, -y)
+            );
+            assert_panic_eq!(
+                -Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(-x, -y, -z)
+            );
+            assert_panic_eq!(
+                -Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(-x, -y, -z, -w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_not() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_eq!(
+                !Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(!x, !y)
+            );
+            assert_eq!(
+                !Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(!x, !y, !z)
+            );
+            assert_eq!(
+                !Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(!x, !y, !z, !w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_add() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Vector::<2, T, A>::new(x, y) + Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x + z, y + w)
+            );
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z) + Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x + z, y + w, z + y)
+            );
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) + Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x + z, y + w, z + y, w + x)
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y) + Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x + z, y + w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z) + Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x + z, y + w, z + y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) + Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x + z, y + w, z + y, w + x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_sub() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Vector::<2, T, A>::new(x, y) - Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x - z, y - w)
+            );
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z) - Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x - z, y - w, z - y)
+            );
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) - Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x - z, y - w, z - y, w - x)
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y) - Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x - z, y - w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z) - Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x - z, y - w, z - y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) - Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x - z, y - w, z - y, w - x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Vector::<2, T, A>::new(x, y) * Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x * z, y * w)
+            );
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z) * Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x * z, y * w, z * y)
+            );
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) * Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x * z, y * w, z * y, w * x)
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y) * Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x * z, y * w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z) * Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x * z, y * w, z * y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) * Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x * z, y * w, z * y, w * x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_div() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Vector::<2, T, A>::new(x, y) / Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x / z, y / w)
+            );
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z) / Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x / z, y / w, z / y)
+            );
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) / Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x / z, y / w, z / y, w / x)
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y) / Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x / z, y / w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z) / Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x / z, y / w, z / y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) / Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x / z, y / w, z / y, w / x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_rem() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            if T::is_infinite(x * 2.0) || T::is_infinite(y * 2.0) || T::is_infinite(z * 2.0) {
+                return;
+            }
+
+            assert_float_eq!(
+                Vector::<2, T, A>::new(x, y) % Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x % z, y % w),
+                abs <= Vector::<2, T, A>::new(x, y).abs() * 0.00001
+            );
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z) % Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x % z, y % w, z % y),
+                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 0.00001
+            );
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) % Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x % z, y % w, z % y, w % x),
+                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 0.00001
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y) % Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x % z, y % w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z) % Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x % z, y % w, z % y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) % Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x % z, y % w, z % y, w % x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_shl() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y) << Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x << z, y << w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z) << Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x << z, y << w, z << y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) << Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x << z, y << w, z << y, w << x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_shr() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y) >> Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x >> z, y >> w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z) >> Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x >> z, y >> w, z >> y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) >> Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x >> z, y >> w, z >> y, w >> x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitand() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y) & Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x & z, y & w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z) & Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x & z, y & w, z & y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) & Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x & z, y & w, z & y, w & x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitor() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y) | Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x | z, y | w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z) | Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x | z, y | w, z | y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) | Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x | z, y | w, z | y, w | x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitxor() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y) ^ Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x ^ z, y ^ w)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z) ^ Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x ^ z, y ^ w, z ^ y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w) ^ Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x ^ z, y ^ w, z ^ y, w ^ x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_add_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec += Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vec, Vector::<2, T, A>::new(x + z, y + w));
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec += Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vec, Vector::<3, T, A>::new(x + z, y + w, z + y));
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec += Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vec, Vector::<4, T, A>::new(x + z, y + w, z + y, w + x));
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<2, T, A>::new(x, y);
+                    vec += Vector::<2, T, A>::new(z, w);
+                    vec
+                },
+                Vector::<2, T, A>::new(x + z, y + w)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<3, T, A>::new(x, y, z);
+                    vec += Vector::<3, T, A>::new(z, w, y);
+                    vec
+                },
+                Vector::<3, T, A>::new(x + z, y + w, z + y)
+            );
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                    vec += Vector::<4, T, A>::new(z, w, y, x);
+                    vec
+                },
+                Vector::<4, T, A>::new(x + z, y + w, z + y, w + x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_sub_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec -= Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vec, Vector::<2, T, A>::new(x - z, y - w));
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec -= Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vec, Vector::<3, T, A>::new(x - z, y - w, z - y));
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec -= Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vec, Vector::<4, T, A>::new(x - z, y - w, z - y, w - x));
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<2, T, A>::new(x, y);
+                    vec -= Vector::<2, T, A>::new(z, w);
+                    vec
+                },
+                Vector::<2, T, A>::new(x - z, y - w)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<3, T, A>::new(x, y, z);
+                    vec -= Vector::<3, T, A>::new(z, w, y);
+                    vec
+                },
+                Vector::<3, T, A>::new(x - z, y - w, z - y)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                    vec -= Vector::<4, T, A>::new(z, w, y, x);
+                    vec
+                },
+                Vector::<4, T, A>::new(x - z, y - w, z - y, w - x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec *= Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vec, Vector::<2, T, A>::new(x * z, y * w));
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec *= Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vec, Vector::<3, T, A>::new(x * z, y * w, z * y));
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec *= Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vec, Vector::<4, T, A>::new(x * z, y * w, z * y, w * x));
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<2, T, A>::new(x, y);
+                    vec *= Vector::<2, T, A>::new(z, w);
+                    vec
+                },
+                Vector::<2, T, A>::new(x * z, y * w)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<3, T, A>::new(x, y, z);
+                    vec *= Vector::<3, T, A>::new(z, w, y);
+                    vec
+                },
+                Vector::<3, T, A>::new(x * z, y * w, z * y)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                    vec *= Vector::<4, T, A>::new(z, w, y, x);
+                    vec
+                },
+                Vector::<4, T, A>::new(x * z, y * w, z * y, w * x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_div_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec /= Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vec, Vector::<2, T, A>::new(x / z, y / w));
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec /= Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vec, Vector::<3, T, A>::new(x / z, y / w, z / y));
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec /= Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vec, Vector::<4, T, A>::new(x / z, y / w, z / y, w / x));
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<2, T, A>::new(x, y);
+                    vec /= Vector::<2, T, A>::new(z, w);
+                    vec
+                },
+                Vector::<2, T, A>::new(x / z, y / w)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<3, T, A>::new(x, y, z);
+                    vec /= Vector::<3, T, A>::new(z, w, y);
+                    vec
+                },
+                Vector::<3, T, A>::new(x / z, y / w, z / y)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                    vec /= Vector::<4, T, A>::new(z, w, y, x);
+                    vec
+                },
+                Vector::<4, T, A>::new(x / z, y / w, z / y, w / x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_rem_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            if T::is_infinite(x * 2.0) || T::is_infinite(y * 2.0) || T::is_infinite(z * 2.0) {
+                return;
+            }
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec %= Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(
+                vec,
+                Vector::<2, T, A>::new(x % z, y % w),
+                abs <= Vector::<2, T, A>::new(x, y).abs() * 0.00001
+            );
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec %= Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(
+                vec,
+                Vector::<3, T, A>::new(x % z, y % w, z % y),
+                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 0.00001
+            );
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec %= Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(
+                vec,
+                Vector::<4, T, A>::new(x % z, y % w, z % y, w % x),
+                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 0.00001
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<2, T, A>::new(x, y);
+                    vec %= Vector::<2, T, A>::new(z, w);
+                    vec
+                },
+                Vector::<2, T, A>::new(x % z, y % w)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<3, T, A>::new(x, y, z);
+                    vec %= Vector::<3, T, A>::new(z, w, y);
+                    vec
+                },
+                Vector::<3, T, A>::new(x % z, y % w, z % y)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                    vec %= Vector::<4, T, A>::new(z, w, y, x);
+                    vec
+                },
+                Vector::<4, T, A>::new(x % z, y % w, z % y, w % x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_shl_assign() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<2, T, A>::new(x, y);
+                    vec <<= Vector::<2, T, A>::new(z, w);
+                    vec
+                },
+                Vector::<2, T, A>::new(x << z, y << w)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<3, T, A>::new(x, y, z);
+                    vec <<= Vector::<3, T, A>::new(z, w, y);
+                    vec
+                },
+                Vector::<3, T, A>::new(x << z, y << w, z << y)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                    vec <<= Vector::<4, T, A>::new(z, w, y, x);
+                    vec
+                },
+                Vector::<4, T, A>::new(x << z, y << w, z << y, w << x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_shr_assign() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<2, T, A>::new(x, y);
+                    vec >>= Vector::<2, T, A>::new(z, w);
+                    vec
+                },
+                Vector::<2, T, A>::new(x >> z, y >> w)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<3, T, A>::new(x, y, z);
+                    vec >>= Vector::<3, T, A>::new(z, w, y);
+                    vec
+                },
+                Vector::<3, T, A>::new(x >> z, y >> w, z >> y)
+            );
+            assert_panic_eq!(
+                {
+                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                    vec >>= Vector::<4, T, A>::new(z, w, y, x);
+                    vec
+                },
+                Vector::<4, T, A>::new(x >> z, y >> w, z >> y, w >> x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_bitand_assign() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec &= Vector::<2, T, A>::new(z, w);
+            assert_eq!(vec, Vector::<2, T, A>::new(x & z, y & w));
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec &= Vector::<3, T, A>::new(z, w, y);
+            assert_eq!(vec, Vector::<3, T, A>::new(x & z, y & w, z & y));
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec &= Vector::<4, T, A>::new(z, w, y, x);
+            assert_eq!(vec, Vector::<4, T, A>::new(x & z, y & w, z & y, w & x));
+        });
+    }
+
+    #[test]
+    fn test_bitor_assign() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec |= Vector::<2, T, A>::new(z, w);
+            assert_eq!(vec, Vector::<2, T, A>::new(x | z, y | w));
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec |= Vector::<3, T, A>::new(z, w, y);
+            assert_eq!(vec, Vector::<3, T, A>::new(x | z, y | w, z | y));
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec |= Vector::<4, T, A>::new(z, w, y, x);
+            assert_eq!(vec, Vector::<4, T, A>::new(x | z, y | w, z | y, w | x));
+        });
+    }
+
+    #[test]
+    fn test_bitxor_assign() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut vec = Vector::<2, T, A>::new(x, y);
+            vec ^= Vector::<2, T, A>::new(z, w);
+            assert_eq!(vec, Vector::<2, T, A>::new(x ^ z, y ^ w));
+
+            let mut vec = Vector::<3, T, A>::new(x, y, z);
+            vec ^= Vector::<3, T, A>::new(z, w, y);
+            assert_eq!(vec, Vector::<3, T, A>::new(x ^ z, y ^ w, z ^ y));
+
+            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+            vec ^= Vector::<4, T, A>::new(z, w, y, x);
+            assert_eq!(vec, Vector::<4, T, A>::new(x ^ z, y ^ w, z ^ y, w ^ x));
+        });
+    }
+}

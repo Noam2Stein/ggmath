@@ -76,3 +76,68 @@ where
         Vector::from_fn(|i| if self[i] { if_true[i] } else { if_false[i] })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Vector, test_utils::for_parameters};
+
+    #[test]
+    fn test_all() {
+        for_parameters!(|A, x, y, z, w| {
+            assert_eq!(Vector::<2, bool, A>::new(x, y).all(), x && y);
+            assert_eq!(Vector::<3, bool, A>::new(x, y, z).all(), x && y && z);
+            assert_eq!(
+                Vector::<4, bool, A>::new(x, y, z, w).all(),
+                x && y && z && w
+            );
+        });
+    }
+
+    #[test]
+    fn test_any() {
+        for_parameters!(|A, x, y, z, w| {
+            assert_eq!(Vector::<2, bool, A>::new(x, y).any(), x || y);
+            assert_eq!(Vector::<3, bool, A>::new(x, y, z).any(), x || y || z);
+            assert_eq!(
+                Vector::<4, bool, A>::new(x, y, z, w).any(),
+                x || y || z || w
+            );
+        });
+    }
+
+    #[test]
+    fn test_select() {
+        for_parameters!(|A, x, y, z, w| {
+            assert_eq!(
+                Vector::<2, bool, A>::new(x, y).select(
+                    Vector::<2, i32, A>::new(1, 2),
+                    Vector::<2, i32, A>::new(3, 4)
+                ),
+                Vector::<2, i32, A>::new(if x { 1 } else { 3 }, if y { 2 } else { 4 })
+            );
+            assert_eq!(
+                Vector::<3, bool, A>::new(x, y, z).select(
+                    Vector::<3, i32, A>::new(1, 2, 3),
+                    Vector::<3, i32, A>::new(4, 5, 6)
+                ),
+                Vector::<3, i32, A>::new(
+                    if x { 1 } else { 4 },
+                    if y { 2 } else { 5 },
+                    if z { 3 } else { 6 }
+                )
+            );
+            assert_eq!(
+                Vector::<4, bool, A>::new(x, y, z, w).select(
+                    Vector::<4, i32, A>::new(1, 2, 3, 4),
+                    Vector::<4, i32, A>::new(5, 6, 7, 8)
+                ),
+                Vector::<4, i32, A>::new(
+                    if x { 1 } else { 5 },
+                    if y { 2 } else { 6 },
+                    if z { 3 } else { 7 },
+                    if w { 4 } else { 8 }
+                )
+            );
+        });
+    }
+}

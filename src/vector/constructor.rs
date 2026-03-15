@@ -262,3 +262,39 @@ where
         Self::new(value.0, value.0, value.0, value.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Vector, test_utils::for_parameters};
+
+    #[test]
+    #[expect(deprecated)]
+    fn test_constructors() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(vec2!(x, y), Vector::<2, T, A>::new(x, y));
+            assert_eq!(vec2!(vec2!(x, y)), Vector::<2, T, A>::new(x, y));
+            assert_eq!(vec2!(x), Vector::<2, T, A>::splat(x));
+
+            assert_eq!(vec3!(x, y, z), Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(vec3!(x, vec2!(y, z)), Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(vec3!(vec2!(x, y), z), Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(vec3!(vec3!(x, y, z)), Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(vec3!(x), Vector::<3, T, A>::splat(x));
+
+            assert_eq!(vec4!(x, y, z, w), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(vec4!(x, y, vec2!(z, w)), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(vec4!(x, vec2!(y, z), w), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(vec4!(x, vec3!(y, z, w)), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(vec4!(vec2!(x, y), z, w), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(
+                vec4!(vec2!(x, y), vec2!(z, w)),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(vec4!(vec3!(x, y, z), w), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(vec4!(vec4!(x, y, z, w)), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(vec4!(x), Vector::<4, T, A>::splat(x));
+        });
+    }
+}

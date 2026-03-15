@@ -1,11 +1,17 @@
-#![allow(dead_code)]
-
 use std::ops::Add;
 
-use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength, Vector};
+use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength, Vec3, Vector};
+
+#[test]
+fn test_overriden_add() {
+    let a = Vec3::new(Foo(1.0), Foo(2.0), Foo(3.0));
+    let b = Vec3::new(Foo(4.0), Foo(5.0), Foo(6.0));
+
+    assert_eq!(a + b, Vec3::new(Foo(5.0), Foo(7.0), Foo(9.0)));
+}
 
 #[repr(transparent)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct Foo(f32);
 
 impl Add for Foo {

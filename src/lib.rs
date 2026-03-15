@@ -118,7 +118,7 @@
 //! [Structure of Arrays]: https://en.wikipedia.org/wiki/AoS_and_SoA
 
 #![forbid(missing_docs)]
-#![cfg_attr(any(not(feature = "std"), feature = "libm"), no_std)]
+#![cfg_attr(all(any(not(feature = "std"), feature = "libm"), not(test)), no_std)]
 
 pub mod constants;
 
@@ -150,3 +150,6 @@ mod safe_arch;
 mod specialize;
 mod third_party;
 mod transmute;
+
+#[cfg(test)]
+mod test_utils;

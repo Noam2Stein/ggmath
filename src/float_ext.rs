@@ -18,3 +18,24 @@ impl<T: PrimitiveFloat> FloatExt for T {
         self * (T::as_from(1.0) - t) + other * t
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        FloatExt,
+        test_utils::{assert_float_eq, for_parameters},
+    };
+
+    #[test]
+    fn test_lerp() {
+        for_parameters!(|T: PrimitiveFloat, x, y, z| {
+            if !T::is_finite(x) || !T::is_finite(y) || !T::is_finite(z) {
+                return;
+            }
+
+            assert_float_eq!(x.lerp(y, 0.0), x, 0.0 = -0.0);
+            assert_float_eq!(x.lerp(y, 0.5), x * 0.5 + y * 0.5, 0.0 = -0.0);
+            assert_float_eq!(x.lerp(y, 1.0), y, 0.0 = -0.0);
+        });
+    }
+}

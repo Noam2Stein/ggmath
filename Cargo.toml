@@ -48,6 +48,8 @@ colored = "3.1.1"
 glam = "0.32.0"
 gungraun = "0.17.2"
 itertools = "0.14.0"
+num-primitive = "0.3.6"
+repetitive = "0.3.2"
 serde_json = "1.0.149"
 
 [profile.bench]

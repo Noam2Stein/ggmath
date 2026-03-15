@@ -765,3 +765,262 @@ macro_rules! declare_with_swizzle_fns {
 }
 
 use declare_with_swizzle_fns;
+
+#[cfg(test)]
+mod tests {
+    use repetitive::repetitive;
+
+    use crate::{Vector, test_utils::for_parameters};
+
+    #[test]
+    fn test_swizzle2() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            repetitive! {
+                @for x in ['x, 'y], y in ['x, 'y] {
+                    assert_eq!(
+                        Vector::<2, T, A>::new(x, y).@[x y](),
+                        Vector::<2, T, A>::new(@x, @y)
+                    );
+                }
+                @for x in ['x, 'y, 'z], y in ['x, 'y, 'z] {
+                    assert_eq!(
+                        Vector::<3, T, A>::new(x, y, z).@[x y](),
+                        Vector::<2, T, A>::new(@x, @y)
+                    );
+                }
+                @for x in ['x, 'y, 'z, 'w], y in ['x, 'y, 'z, 'w] {
+                    assert_eq!(
+                        Vector::<4, T, A>::new(x, y, z, w).@[x y](),
+                        Vector::<2, T, A>::new(@x, @y)
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_swizzle3() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            repetitive! {
+                @for x in ['x, 'y], y in ['x, 'y], z in ['x, 'y] {
+                    assert_eq!(
+                        Vector::<2, T, A>::new(x, y).@[x y z](),
+                        Vector::<3, T, A>::new(@x, @y, @z)
+                    );
+                }
+                @for x in ['x, 'y, 'z], y in ['x, 'y, 'z], z in ['x, 'y, 'z] {
+                    assert_eq!(
+                        Vector::<3, T, A>::new(x, y, z).@[x y z](),
+                        Vector::<3, T, A>::new(@x, @y, @z)
+                    );
+                }
+                @for x in ['x, 'y, 'z, 'w], y in ['x, 'y, 'z, 'w], z in ['x, 'y, 'z, 'w] {
+                    assert_eq!(
+                        Vector::<4, T, A>::new(x, y, z, w).@[x y z](),
+                        Vector::<3, T, A>::new(@x, @y, @z)
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_swizzle4() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            repetitive! {
+                @for x in ['x, 'y], y in ['x, 'y], z in ['x, 'y], w in ['x, 'y] {
+                    assert_eq!(
+                        Vector::<2, T, A>::new(x, y).@[x y z w](),
+                        Vector::<4, T, A>::new(@x, @y, @z, @w)
+                    );
+                }
+                @for x in ['x, 'y, 'z], y in ['x, 'y, 'z], z in ['x, 'y, 'z], w in ['x, 'y, 'z] {
+                    assert_eq!(
+                        Vector::<3, T, A>::new(x, y, z).@[x y z w](),
+                        Vector::<4, T, A>::new(@x, @y, @z, @w)
+                    );
+                }
+                @for
+                    x in ['x, 'y, 'z, 'w],
+                    y in ['x, 'y, 'z, 'w],
+                    z in ['x, 'y, 'z, 'w],
+                    w in ['x, 'y, 'z, 'w],
+                {
+                    assert_eq!(
+                        Vector::<4, T, A>::new(x, y, z, w).@[x y z w](),
+                        Vector::<4, T, A>::new(@x, @y, @z, @w)
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_with_swizzle1() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a] = std::array::from_fn(T::as_from);
+
+            repetitive! {
+                @for x in ['x, 'y] {
+                    assert_eq!(
+                        Vector::<2, T, A>::new(x, y).@['with_ x](z),
+                        {
+                            let mut vec = Vector::<2, T, A>::new(x, y);
+                            vec.@x = z;
+                            vec
+                        }
+                    );
+                }
+                @for x in ['x, 'y, 'z] {
+                    assert_eq!(
+                        Vector::<3, T, A>::new(x, y, z).@['with_ x](w),
+                        {
+                            let mut vec = Vector::<3, T, A>::new(x, y, z);
+                            vec.@x = w;
+                            vec
+                        }
+                    );
+                }
+                @for x in ['x, 'y, 'z, 'w] {
+                    assert_eq!(
+                        Vector::<4, T, A>::new(x, y, z, w).@['with_ x](a),
+                        {
+                            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                            vec.@x = a;
+                            vec
+                        }
+                    );
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_with_swizzle2() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b] = std::array::from_fn(T::as_from);
+
+            repetitive! {
+                @for x in ['x, 'y], y in ['x, 'y] {
+                    @if x != y {
+                        assert_eq!(
+                            Vector::<2, T, A>::new(x, y)
+                                .@['with_ x y](Vector::<2, T, A>::new(z, w)),
+                            {
+                                let mut vec = Vector::<2, T, A>::new(x, y);
+                                vec.@x = z;
+                                vec.@y = w;
+                                vec
+                            }
+                        );
+                    }
+                }
+                @for x in ['x, 'y, 'z], y in ['x, 'y, 'z] {
+                    @if x != y {
+                        assert_eq!(
+                            Vector::<3, T, A>::new(x, y, z)
+                                .@['with_ x y](Vector::<2, T, A>::new(w, a)),
+                            {
+                                let mut vec = Vector::<3, T, A>::new(x, y, z);
+                                vec.@x = w;
+                                vec.@y = a;
+                                vec
+                            }
+                        );
+                    }
+                }
+                @for x in ['x, 'y, 'z, 'w], y in ['x, 'y, 'z, 'w] {
+                    @if x != y {
+                        assert_eq!(
+                            Vector::<4, T, A>::new(x, y, z, w)
+                                .@['with_ x y](Vector::<2, T, A>::new(a, b)),
+                            {
+                                let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                                vec.@x = a;
+                                vec.@y = b;
+                                vec
+                            }
+                        );
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_with_swizzle3() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c] = std::array::from_fn(T::as_from);
+
+            repetitive! {
+                @for x in ['x, 'y, 'z], y in ['x, 'y, 'z], z in ['x, 'y, 'z] {
+                    @if x != y && x != z && y != z {
+                        assert_eq!(
+                            Vector::<3, T, A>::new(x, y, z)
+                                .@['with_ x y z](Vector::<3, T, A>::new(w, a, b)),
+                            {
+                                let mut vec = Vector::<3, T, A>::new(x, y, z);
+                                vec.@x = w;
+                                vec.@y = a;
+                                vec.@z = b;
+                                vec
+                            }
+                        );
+                    }
+                }
+                @for x in ['x, 'y, 'z, 'w], y in ['x, 'y, 'z, 'w], z in ['x, 'y, 'z, 'w] {
+                    @if x != y && x != z && y != z {
+                        assert_eq!(
+                            Vector::<4, T, A>::new(x, y, z, w)
+                                .@['with_ x y z](Vector::<3, T, A>::new(a, b, c)),
+                            {
+                                let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                                vec.@x = a;
+                                vec.@y = b;
+                                vec.@z = c;
+                                vec
+                            }
+                        );
+                    }
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_with_swizzle4() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d] = std::array::from_fn(T::as_from);
+
+            repetitive! {
+                @for
+                    x in ['x, 'y, 'z, 'w],
+                    y in ['x, 'y, 'z, 'w],
+                    z in ['x, 'y, 'z, 'w],
+                    w in ['x, 'y, 'z, 'w]
+                {
+                    @if x != y && x != z && x != w && y != z && y != w && z != w {
+                        assert_eq!(
+                            Vector::<4, T, A>::new(x, y, z, w)
+                                .@['with_ x y z w](Vector::<4, T, A>::new(a, b, c, d)),
+                            {
+                                let mut vec = Vector::<4, T, A>::new(x, y, z, w);
+                                vec.@x = a;
+                                vec.@y = b;
+                                vec.@z = c;
+                                vec.@w = d;
+                                vec
+                            }
+                        );
+                    }
+                }
+            }
+        });
+    }
+}
