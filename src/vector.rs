@@ -1122,6 +1122,21 @@ macro_rules! impl_unary_operator {
                 specialize!(<T as ScalarBackend<N, A>>::$vec_op(self))
             }
         }
+
+        impl<const N: usize, T, A: Alignment> $Op for &Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn $op(self) -> Self::Output {
+                Vector::$op(*self)
+            }
+        }
     };
 }
 impl_unary_operator!(
@@ -1189,6 +1204,96 @@ macro_rules! impl_binary_operator {
             #[track_caller]
             fn $op(self, rhs: T) -> Self::Output {
                 self.$op(Self::splat(rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<&Vector<N, T, A>> for Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn $op(self, rhs: &Vector<N, T, A>) -> Self::Output {
+                self.$op(*rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<&T> for Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc_scalar])*
+            #[inline]
+            #[track_caller]
+            fn $op(self, rhs: &T) -> Self::Output {
+                self.$op(Self::splat(*rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<Vector<N, T, A>> for &Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn $op(self, rhs: Vector<N, T, A>) -> Self::Output {
+                Vector::$op(*self, rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<T> for &Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc_scalar])*
+            #[inline]
+            #[track_caller]
+            fn $op(self, rhs: T) -> Self::Output {
+                Vector::$op(*self, Vector::splat(rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<&Vector<N, T, A>> for &Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn $op(self, rhs: &Vector<N, T, A>) -> Self::Output {
+                Vector::$op(*self, *rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<&T> for &Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc_scalar])*
+            #[inline]
+            #[track_caller]
+            fn $op(self, rhs: &T) -> Self::Output {
+                Vector::$op(*self, Vector::splat(*rhs))
             }
         }
     };
@@ -1603,6 +1708,32 @@ macro_rules! impl_assign_operator {
             #[track_caller]
             fn $op_assign(&mut self, rhs: T) {
                 *self = self.$op(rhs);
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $OpAssign<&Vector<N, T, A>> for Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn $op_assign(&mut self, rhs: &Vector<N, T, A>) {
+                *self = self.$op(*rhs);
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $OpAssign<&T> for Vector<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + $Op<Output = T>,
+        {
+            $(#[$doc_scalar])*
+            #[inline]
+            #[track_caller]
+            fn $op_assign(&mut self, rhs: &T) {
+                *self = self.$op(*rhs);
             }
         }
     };

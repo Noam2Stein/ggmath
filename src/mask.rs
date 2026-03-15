@@ -477,13 +477,38 @@ where
     }
 }
 
-impl<const N: usize, T, A: Alignment> Not for Mask<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar,
-{
-    type Output = Self;
+macro_rules! impl_not {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Not for Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Self;
 
+            $(#[$doc])*
+            #[inline]
+            fn not(self) -> Self::Output {
+                specialize!(<T::Repr as MaskBackend<N, A>>::mask_not(self))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Not for &Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Mask<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            fn not(self) -> Self::Output {
+                Mask::not(*self)
+            }
+        }
+    };
+}
+impl_not!(
     /// Performs the unary `!` operation for each vector mask element.
     ///
     /// # Examples
@@ -494,13 +519,9 @@ where
     /// let mask = Mask3::<f32>::new(false, true, false);
     /// assert_eq!(!mask, Mask3::new(true, false, true));
     /// ```
-    #[inline]
-    fn not(self) -> Self::Output {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_not(self))
-    }
-}
+);
 
-macro_rules! impl_binary_operators {
+macro_rules! impl_binary_operator {
     ($Op:ident, $op:ident, $mask_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Mask<N, T, A>
         where
@@ -529,9 +550,93 @@ macro_rules! impl_binary_operators {
                 self.$op(Self::splat(rhs))
             }
         }
+
+        impl<const N: usize, T, A: Alignment> $Op<&Mask<N, T, A>> for Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            fn $op(self, rhs: &Mask<N, T, A>) -> Self::Output {
+                Self::$op(self, *rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<&bool> for Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Self;
+
+            $(#[$doc_scalar])*
+            #[inline]
+            fn $op(self, rhs: &bool) -> Self::Output {
+                self.$op(Self::splat(*rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<Mask<N, T, A>> for &Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Mask<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            fn $op(self, rhs: Mask<N, T, A>) -> Self::Output {
+                Mask::$op(*self, rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<bool> for &Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Mask<N, T, A>;
+
+            $(#[$doc_scalar])*
+            #[inline]
+            fn $op(self, rhs: bool) -> Self::Output {
+                Mask::$op(*self, Mask::splat(rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<&Mask<N, T, A>> for &Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Mask<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            fn $op(self, rhs: &Mask<N, T, A>) -> Self::Output {
+                Mask::$op(*self, *rhs)
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $Op<&bool> for &Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            type Output = Mask<N, T, A>;
+
+            $(#[$doc_scalar])*
+            #[inline]
+            fn $op(self, rhs: &bool) -> Self::Output {
+                Mask::$op(*self, Mask::splat(*rhs))
+            }
+        }
     };
 }
-impl_binary_operators!(
+impl_binary_operator!(
     BitAnd,
     bitand,
     mask_bitand,
@@ -562,7 +667,7 @@ impl_binary_operators!(
     /// assert_eq!(b, Mask3::new(true & false, false & false, true & false));
     /// ```
 );
-impl_binary_operators!(
+impl_binary_operator!(
     BitOr,
     bitor,
     mask_bitor,
@@ -593,7 +698,7 @@ impl_binary_operators!(
     /// assert_eq!(b, Mask3::new(true | false, false | false, true | false));
     /// ```
 );
-impl_binary_operators!(
+impl_binary_operator!(
     BitXor,
     bitxor,
     mask_bitxor,
@@ -646,6 +751,28 @@ macro_rules! impl_assign_operator {
             #[inline]
             fn $op_assign(&mut self, rhs: bool) {
                 *self = self.$op(rhs);
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $OpAssign<&Mask<N, T, A>> for Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            #[inline]
+            fn $op_assign(&mut self, rhs: &Mask<N, T, A>) {
+                *self = self.$op(*rhs);
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> $OpAssign<&bool> for Mask<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar,
+        {
+            #[inline]
+            fn $op_assign(&mut self, rhs: &bool) {
+                *self = self.$op(*rhs);
             }
         }
     };
