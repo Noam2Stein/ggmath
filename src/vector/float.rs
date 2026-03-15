@@ -441,25 +441,380 @@ where
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_copysign(self, sign))
     }
 
-    /// Computes the dot product of `self` and `rhs`.
+    /// Returns the largest integers less than or equal to the elements of
+    /// `self`.
+    ///
+    /// This always returns the precise result.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(3.7, 3.0, -3.7);
+    ///
+    /// assert_eq!(vec.floor(), Vec3::new(3.0, 3.0, -4.0));
+    /// ```
+    #[cfg(backend)]
     #[inline]
     #[must_use]
-    pub fn dot(self, rhs: Self) -> T {
-        (self * rhs).element_sum()
+    pub fn floor(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_floor(self))
     }
 
-    /// Computes the squared length/magnitude of `self`.
+    /// Returns the smallest integers greater than or equal to the elements of
+    /// `self`.
+    ///
+    /// This always returns the precise result.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(3.01, 4.0, -4.99);
+    ///
+    /// assert_eq!(vec.ceil(), Vec3::new(4.0, 4.0, -4.0));
+    /// ```
+    #[cfg(backend)]
     #[inline]
     #[must_use]
-    pub fn length_squared(self) -> T {
-        (self * self).element_sum()
+    pub fn ceil(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_ceil(self))
     }
 
-    /// Computes the squared Euclidean distance between `self` and `other`.
+    /// Returns the nearest integers to the elements of `self`.
+    ///
+    /// This always returns the precise result. If a value is half-way between
+    /// two integers, round away from 0.0.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(3.3, -3.3, 3.5);
+    ///
+    /// assert_eq!(vec.round(), Vec3::new(3.0, -3.0, 4.0));
+    /// ```
+    #[cfg(backend)]
     #[inline]
     #[must_use]
-    pub fn distance_squared(self, other: Self) -> T {
-        (self - other).length_squared()
+    pub fn round(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_round(self))
+    }
+
+    /// Returns the integer part of the elements of `self`. This means that
+    /// non-integer numbers are always truncated towards zero.
+    ///
+    /// This always returns the precise result.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(3.7, 3.0, -3.7);
+    ///
+    /// assert_eq!(vec.trunc(), Vec3::new(3.0, 3.0, -3.0));
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn trunc(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_trunc(self))
+    }
+
+    /// Returns the fractional part of `self`. Equivalent to
+    /// `self - self.trunc()`.
+    ///
+    /// This always returns the precise result.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let vec = Vec2::new(3.25, -3.25);
+    ///
+    /// assert_eq!(vec.fract(), Vec2::new(0.25, -0.25));
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn fract(self) -> Self {
+        self - self.trunc()
+    }
+
+    /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
+    /// error, yielding a more accurate result than an unfused multiply-add.
+    ///
+    /// Using `mul_add` is slower than an unfused multiply-add on most target
+    /// architectures.
+    ///
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result. It is specified by IEEE 754 as
+    /// `fusedMultiplyAdd` and guaranteed not to change.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn mul_add(self, a: Self, b: Self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_mul_add(self, a, b))
+    }
+
+    /// Calculates Euclidean division for the elements of `self`.
+    ///
+    /// Equivalent to
+    /// `(self.x.div_euclid(rhs.x), self.y.div_euclid(rhs.y), ...)`.
+    ///
+    /// See [`f32::div_euclid`].
+    ///
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result.
+    ///
+    /// [`f32::div_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.div_euclid
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn div_euclid(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_div_euclid(
+            self, rhs
+        ))
+    }
+
+    /// Calculates Euclidean remainder for the elements of `self`.
+    ///
+    /// Equivalent to
+    /// `(self.x.rem_euclid(rhs.x), self.y.rem_euclid(rhs.y), ...)`.
+    ///
+    /// See [`f32::rem_euclid`].
+    ///
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result.
+    ///
+    /// [`f32::rem_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.rem_euclid
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn rem_euclid(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_rem_euclid(
+            self, rhs
+        ))
+    }
+
+    /// Computes `x^n` for the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn powf(self, n: T) -> Self {
+        self.map(|x| x.powf(n))
+    }
+
+    /// Returns the square root of the elements of `self`.
+    ///
+    /// Equivalent to `(self.x.sqrt(), self.y.sqrt(), ...)`.
+    ///
+    /// # Precision
+    ///
+    /// The result of this operation is guaranteed to be the rounded
+    /// infinite-precision result. It is specified by IEEE 754 as `squareRoot`
+    /// and guaranteed not to change.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::<f32>::new(4.0, 16.0, -4.0);
+    ///
+    /// assert_eq!(vec.sqrt().x, 2.0);
+    /// assert_eq!(vec.sqrt().y, 4.0);
+    /// assert!(vec.sqrt().z.is_nan());
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn sqrt(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_sqrt(self))
+    }
+
+    /// Computes the exponential function `e^x` for the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn exp(self) -> Self {
+        self.map(T::exp)
+    }
+
+    /// Computes `2^x` for the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn exp2(self) -> Self {
+        self.map(T::exp2)
+    }
+
+    /// Computes the natural logarithm for the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn ln(self) -> Self {
+        self.map(T::ln)
+    }
+
+    /// Computes the base 2 logarithm for the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(2.0, 4.0, 8.0);
+    ///
+    /// assert_eq!(vec.log2(), Vec3::new(1.0, 2.0, 3.0));
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn log2(self) -> Self {
+        self.map(T::log2)
+    }
+
+    /// Computes the sine of the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn sin(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_sin(self))
+    }
+
+    /// Computes the cosine of the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn cos(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_cos(self))
+    }
+
+    /// Computes the tangent of the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn tan(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_tan(self))
+    }
+
+    /// Computes the arcsine of the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn asin(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_asin(self))
+    }
+
+    /// Computes the arccosine of the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn acos(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_acos(self))
+    }
+
+    /// Computes the arctangent of the elements of `self`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn atan(self) -> Self {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_atan(self))
+    }
+
+    /// Simultaneously computes the sine and cosine of the elements of `self`.
+    ///
+    /// Equivalent to `(self.sin(), self.cos())`, but may be more performant.
+    /// This might return a slightly different value.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn sin_cos(self) -> (Self, Self) {
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_sin_cos(self))
     }
 
     /// Computes the linear interpolation between `self` and `other` based on
@@ -484,6 +839,237 @@ where
         (self + other) * T::as_from(0.5)
     }
 
+    /// Moves `self` towards `other` by at most `max_delta`.
+    ///
+    /// When `max_delta` is `0.0`, the result is `self`. When `max_delta` is
+    /// equal to or greater than `self.distance(other)`, the result is `other`.
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(2.0, 0.0, 0.0);
+    /// let target = Vec3::new(5.0, 0.0, 0.0);
+    /// let max_delta = 1.0;
+    /// let move_towards = vec.move_towards(target, max_delta);
+    ///
+    /// assert_eq!(move_towards, Vec3::new(3.0, 0.0, 0.0));
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn move_towards(self, target: Self, max_delta: T) -> Self {
+        let delta = target - self;
+        let delta_length = delta.length();
+
+        if delta_length <= max_delta || delta_length <= T::as_from(1e-4) {
+            target
+        } else {
+            self + delta / delta_length * max_delta
+        }
+    }
+
+    /// Computes the dot product of `self` and `rhs`.
+    #[inline]
+    #[must_use]
+    pub fn dot(self, rhs: Self) -> T {
+        (self * rhs).element_sum()
+    }
+
+    /// Returns the length/magnitude of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(2.0, 3.0, 1.0);
+    ///
+    /// assert_eq!(vec.length(), 14.0_f32.sqrt());
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn length(self) -> T {
+        self.dot(self).sqrt()
+    }
+
+    /// Computes the squared length/magnitude of `self`.
+    #[inline]
+    #[must_use]
+    pub fn length_squared(self) -> T {
+        (self * self).element_sum()
+    }
+
+    /// Computes the Euclidean distance between `self` and `other`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(1.0, 2.0, 3.0);
+    /// let b = Vec3::new(4.0, 5.0, 6.0);
+    ///
+    /// assert_eq!(a.distance(b), (a - b).length());
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn distance(self, other: Self) -> T {
+        (self - other).length()
+    }
+
+    /// Computes the squared Euclidean distance between `self` and `other`.
+    #[inline]
+    #[must_use]
+    pub fn distance_squared(self, other: Self) -> T {
+        (self - other).length_squared()
+    }
+
+    /// Returns a vector with the direction of `self` and length `1.0`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `self` is a zero vector, or if the result is non finite or
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(1.0, 2.0, 3.0);
+    ///
+    /// assert_eq!(vec.normalize(), vec / vec.length());
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn normalize(self) -> Self {
+        #[cfg(assertions)]
+        assert!(self != Self::ZERO, "cannot normalize a zero vector");
+
+        let result = self / self.length();
+
+        #[cfg(assertions)]
+        assert!(
+            result.is_finite() && result != Self::ZERO,
+            "non finite result: {self:?}.normalize()"
+        );
+
+        result
+    }
+
+    /// Returns [`normalize`], or `None` if `self` is zero or if the result is
+    /// non finite or zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
+    /// let zero = Vec3::new(0.0, 0.0, 0.0);
+    ///
+    /// assert_eq!(non_zero.try_normalize(), Some(non_zero.normalize()));
+    /// assert_eq!(zero.try_normalize(), None);
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn try_normalize(self) -> Option<Self> {
+        let recip = T::as_from(1.0) / self.length();
+        if recip.is_finite() && recip > T::as_from(0.0) {
+            Some(self * recip)
+        } else {
+            None
+        }
+    }
+
+    /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
+    /// is non finite or zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
+    /// let zero = Vec3::new(0.0, 0.0, 0.0);
+    /// let fallback = Vec3::new(9.0, 10.0, 21.0);
+    ///
+    /// assert_eq!(non_zero.normalize_or(fallback), non_zero.normalize());
+    /// assert_eq!(zero.normalize_or(fallback), fallback);
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn normalize_or(self, fallback: Self) -> Self {
+        self.try_normalize().unwrap_or(fallback)
+    }
+
+    /// Returns [`normalize`], or a zero vector if `self` is zero or if the
+    /// result is non finite.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
+    /// let zero = Vec3::new(0.0, 0.0, 0.0);
+    ///
+    /// assert_eq!(non_zero.normalize_or_zero(), non_zero.normalize());
+    /// assert_eq!(zero.normalize_or_zero(), zero);
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn normalize_or_zero(self) -> Self {
+        self.normalize_or(Self::ZERO)
+    }
+
+    /// Simultaneously computes [`normalize`] and [`length`].
+    ///
+    /// If `self` is a zero vector, the result is `(Self::ZERO, 0.0)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let vec = Vec3::new(1.0, 2.0, 3.0);
+    /// let (normalize, length) = vec.normalize_and_length();
+    ///
+    /// assert_eq!(normalize, vec.normalize());
+    /// assert_eq!(length, vec.length());
+    /// ```
+    ///
+    /// [`normalize`]: Self::normalize
+    /// [`length`]: Self::length
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn normalize_and_length(self) -> (Self, T) {
+        let length = self.length();
+        let recip = T::as_from(1.0) / length;
+
+        if recip.is_finite() && recip > T::as_from(0.0) {
+            (self * recip, length)
+        } else {
+            (Self::ZERO, T::as_from(0.0))
+        }
+    }
+
     /// Returns whether the vector has the length `1.0` or not.
     ///
     /// This uses a precision threshold of approximately `1e-4`.
@@ -503,6 +1089,153 @@ where
     #[must_use]
     pub fn is_normalized(self) -> bool {
         (self.length_squared() - T::as_from(1.0)).abs() <= T::as_from(2e-4)
+    }
+
+    /// Returns `self` with a length of no more than `max`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `max` is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(2.0, 0.0, 0.0);
+    /// let b = Vec3::new(6.0, 0.0, 0.0);
+    /// let max = 4.0;
+    ///
+    /// assert_eq!(a.with_max_length(max), Vec3::new(2.0, 0.0, 0.0));
+    /// assert_eq!(b.with_max_length(max), Vec3::new(4.0, 0.0, 0.0));
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_max_length(self, max: T) -> Self {
+        #[cfg(assertions)]
+        assert!(max >= T::as_from(0.0), "negative maximum length");
+
+        let length_squared = self.length_squared();
+        if length_squared > max * max {
+            self / length_squared.sqrt() * max
+        } else {
+            self
+        }
+    }
+
+    /// Returns `self` with a length of no less than `min`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `min` is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(2.0, 0.0, 0.0);
+    /// let b = Vec3::new(6.0, 0.0, 0.0);
+    /// let min = 4.0;
+    ///
+    /// assert_eq!(a.with_min_length(min), Vec3::new(4.0, 0.0, 0.0));
+    /// assert_eq!(b.with_min_length(min), Vec3::new(6.0, 0.0, 0.0));
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn with_min_length(self, min: T) -> Self {
+        #[cfg(assertions)]
+        assert!(min >= T::as_from(0.0), "negative minimum length");
+
+        let length_squared = self.length_squared();
+        if length_squared < min * min {
+            self / length_squared.sqrt() * min
+        } else {
+            self
+        }
+    }
+
+    /// Returns `self` with a length of no less than `min` and no more than
+    /// `max`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `min > max`, or if `min` is negative.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let a = Vec3::new(2.0, 0.0, 0.0);
+    /// let b = Vec3::new(6.0, 0.0, 0.0);
+    /// let c = Vec3::new(10.0, 0.0, 0.0);
+    /// let min = 4.0;
+    /// let max = 8.0;
+    ///
+    /// assert_eq!(a.clamp_length(min, max), Vec3::new(4.0, 0.0, 0.0));
+    /// assert_eq!(b.clamp_length(min, max), Vec3::new(6.0, 0.0, 0.0));
+    /// assert_eq!(c.clamp_length(min, max), Vec3::new(8.0, 0.0, 0.0));
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn clamp_length(self, min: T, max: T) -> Self {
+        #[cfg(assertions)]
+        assert!(min >= T::as_from(0.0), "negative minimum length");
+
+        #[cfg(assertions)]
+        assert!(min <= max, "minimum length is greater than maximum length");
+
+        let length_squared = self.length_squared();
+        if length_squared < min * min {
+            self / length_squared.sqrt() * min
+        } else if length_squared > max * max {
+            self / length_squared.sqrt() * max
+        } else {
+            self
+        }
+    }
+
+    /// Returns the angle (in radians) between `self` and `other` in the range
+    /// `0..=+π`.
+    ///
+    /// The vectors do not need to be unit vectors but they do need to be
+    /// non-zero.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let x = Vec3::new(2.0, 0.0, 0.0);
+    /// let y = Vec3::new(0.0, 3.0, 0.0);
+    /// let angle = x.angle_between(y);
+    ///
+    /// assert!((angle - 90.0_f32.to_radians()).abs() < 1e-5);
+    /// ```
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn angle_between(self, other: Self) -> T {
+        (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
     }
 
     /// Returns the vector projection of `self` onto `other`.
@@ -599,6 +1332,89 @@ where
 
         self - normal * (T::as_from(2.0) * self.dot(normal))
     }
+
+    /// Returns the vector refraction of `self` through `normal` and `eta`.
+    ///
+    /// `eta` is the incident refraction-index divided by the transmitted
+    /// refraction-index.
+    ///
+    /// When total internal reflection occurs, the result is a zero vector.
+    ///
+    /// `self` and `normal` must be normalized.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `self` or `normal` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn refract(self, normal: Self, eta: T) -> Self {
+        #[cfg(assertions)]
+        assert!(self.is_normalized());
+
+        #[cfg(assertions)]
+        assert!(normal.is_normalized());
+
+        let self_dot_normal = self.dot(normal);
+        let k = T::as_from(1.0) - eta * eta * (T::as_from(1.0) - self_dot_normal * self_dot_normal);
+        if k >= T::as_from(0.0) {
+            self * eta - normal * (eta * self_dot_normal + k.sqrt())
+        } else {
+            Self::ZERO
+        }
+    }
+}
+
+#[expect(private_bounds)]
+impl<T, A: Alignment> Vector<2, T, A>
+where
+    T: Scalar + PrimitiveFloat,
+{
+    /// Returns `self` rotated by 90 degrees.
+    ///
+    /// This rotates `+X` to `+Y`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let x = Vec2::new(1.0, 0.0);
+    /// let y = Vec2::new(0.0, 1.0);
+    ///
+    /// assert_eq!(x.perp(), y);
+    /// assert_eq!(y.perp(), -x);
+    /// assert_eq!((-x).perp(), -y);
+    /// assert_eq!((-y).perp(), x);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn perp(self) -> Self {
+        Self::new(-self.y, self.x)
+    }
+
+    /// Rotates `self` by `angle` (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn rotate(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x * angle_cos - self.y * angle_sin,
+            self.x * angle_sin + self.y * angle_cos,
+        )
+    }
 }
 
 #[expect(private_bounds)]
@@ -623,6 +1439,69 @@ where
     #[must_use]
     pub fn cross(self, rhs: Self) -> Self {
         (self.zxy() * rhs - self * rhs.zxy()).zxy()
+    }
+
+    /// Rotates `self` around the x axis by `angle` (in radians).
+    ///
+    /// This rotates `+Y` to `+Z`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn rotate_x(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x,
+            self.y * angle_cos - self.z * angle_sin,
+            self.y * angle_sin + self.z * angle_cos,
+        )
+    }
+
+    /// Rotates `self` around the y axis by `angle` (in radians).
+    ///
+    /// This rotates `+Z` to `+X`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn rotate_y(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x * angle_cos + self.z * angle_sin,
+            self.y,
+            self.x * -angle_sin + self.z * angle_cos,
+        )
+    }
+
+    /// Rotates `self` around the z axis by `angle` (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn rotate_z(self, angle: T) -> Self {
+        let (angle_sin, angle_cos) = angle.sin_cos();
+        Self::new(
+            self.x * angle_cos - self.y * angle_sin,
+            self.x * angle_sin + self.y * angle_cos,
+            self.z,
+        )
     }
 
     /// Returns some vector that is orthogonal to `self`.
@@ -697,863 +1576,6 @@ where
                 -sign * self.x,
             ),
             Self::new(b, sign + self.y * self.y * a, -self.y),
-        )
-    }
-}
-
-#[cfg(backend)]
-#[expect(private_bounds)]
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + PrimitiveFloat,
-{
-    /// Returns the largest integers less than or equal to the elements of
-    /// `self`.
-    ///
-    /// This always returns the precise result.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(3.7, 3.0, -3.7);
-    ///
-    /// assert_eq!(vec.floor(), Vec3::new(3.0, 3.0, -4.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn floor(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_floor(self))
-    }
-
-    /// Returns the smallest integers greater than or equal to the elements of
-    /// `self`.
-    ///
-    /// This always returns the precise result.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(3.01, 4.0, -4.99);
-    ///
-    /// assert_eq!(vec.ceil(), Vec3::new(4.0, 4.0, -4.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn ceil(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_ceil(self))
-    }
-
-    /// Returns the nearest integers to the elements of `self`.
-    ///
-    /// This always returns the precise result. If a value is half-way between
-    /// two integers, round away from 0.0.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(3.3, -3.3, 3.5);
-    ///
-    /// assert_eq!(vec.round(), Vec3::new(3.0, -3.0, 4.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn round(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_round(self))
-    }
-
-    /// Returns the integer part of the elements of `self`. This means that
-    /// non-integer numbers are always truncated towards zero.
-    ///
-    /// This always returns the precise result.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(3.7, 3.0, -3.7);
-    ///
-    /// assert_eq!(vec.trunc(), Vec3::new(3.0, 3.0, -3.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn trunc(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_trunc(self))
-    }
-
-    /// Returns the fractional part of `self`. Equivalent to
-    /// `self - self.trunc()`.
-    ///
-    /// This always returns the precise result.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec2;
-    /// #
-    /// let vec = Vec2::new(3.25, -3.25);
-    ///
-    /// assert_eq!(vec.fract(), Vec2::new(0.25, -0.25));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn fract(self) -> Self {
-        self - self.trunc()
-    }
-
-    /// Fused multiply-add. Computes `(self * a) + b` with only one rounding
-    /// error, yielding a more accurate result than an unfused multiply-add.
-    ///
-    /// Using `mul_add` is slower than an unfused multiply-add on most target
-    /// architectures.
-    ///
-    /// # Precision
-    ///
-    /// The result of this operation is guaranteed to be the rounded
-    /// infinite-precision result. It is specified by IEEE 754 as
-    /// `fusedMultiplyAdd` and guaranteed not to change.
-    #[inline]
-    #[must_use]
-    pub fn mul_add(self, a: Self, b: Self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_mul_add(self, a, b))
-    }
-
-    /// Calculates Euclidean division for the elements of `self`.
-    ///
-    /// Equivalent to
-    /// `(self.x.div_euclid(rhs.x), self.y.div_euclid(rhs.y), ...)`.
-    ///
-    /// See [`f32::div_euclid`].
-    ///
-    /// # Precision
-    ///
-    /// The result of this operation is guaranteed to be the rounded
-    /// infinite-precision result.
-    ///
-    /// [`f32::div_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.div_euclid
-    #[inline]
-    #[must_use]
-    pub fn div_euclid(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_div_euclid(
-            self, rhs
-        ))
-    }
-
-    /// Calculates Euclidean remainder for the elements of `self`.
-    ///
-    /// Equivalent to
-    /// `(self.x.rem_euclid(rhs.x), self.y.rem_euclid(rhs.y), ...)`.
-    ///
-    /// See [`f32::rem_euclid`].
-    ///
-    /// # Precision
-    ///
-    /// The result of this operation is guaranteed to be the rounded
-    /// infinite-precision result.
-    ///
-    /// [`f32::rem_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.rem_euclid
-    #[inline]
-    #[must_use]
-    pub fn rem_euclid(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_rem_euclid(
-            self, rhs
-        ))
-    }
-
-    /// Returns the square root of the elements of `self`.
-    ///
-    /// Equivalent to `(self.x.sqrt(), self.y.sqrt(), ...)`.
-    ///
-    /// # Precision
-    ///
-    /// The result of this operation is guaranteed to be the rounded
-    /// infinite-precision result. It is specified by IEEE 754 as `squareRoot`
-    /// and guaranteed not to change.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::<f32>::new(4.0, 16.0, -4.0);
-    ///
-    /// assert_eq!(vec.sqrt().x, 2.0);
-    /// assert_eq!(vec.sqrt().y, 4.0);
-    /// assert!(vec.sqrt().z.is_nan());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn sqrt(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_sqrt(self))
-    }
-
-    /// Computes the sine of the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn sin(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_sin(self))
-    }
-
-    /// Computes the cosine of the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn cos(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_cos(self))
-    }
-
-    /// Computes the tangent of the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn tan(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_tan(self))
-    }
-
-    /// Computes the arcsine of the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn asin(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_asin(self))
-    }
-
-    /// Computes the arccosine of the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn acos(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_acos(self))
-    }
-
-    /// Computes the arctangent of the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn atan(self) -> Self {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_atan(self))
-    }
-
-    /// Simultaneously computes the sine and cosine of the elements of `self`.
-    ///
-    /// Equivalent to `(self.sin(), self.cos())`, but may be more performant.
-    /// This might return a slightly different value.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn sin_cos(self) -> (Self, Self) {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_sin_cos(self))
-    }
-
-    /// Returns the length/magnitude of `self`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(2.0, 3.0, 1.0);
-    ///
-    /// assert_eq!(vec.length(), 14.0_f32.sqrt());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn length(self) -> T {
-        self.dot(self).sqrt()
-    }
-
-    /// Computes the Euclidean distance between `self` and `other`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(1.0, 2.0, 3.0);
-    /// let b = Vec3::new(4.0, 5.0, 6.0);
-    ///
-    /// assert_eq!(a.distance(b), (a - b).length());
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn distance(self, other: Self) -> T {
-        (self - other).length()
-    }
-
-    /// Moves `self` towards `other` by at most `max_delta`.
-    ///
-    /// When `max_delta` is `0.0`, the result is `self`. When `max_delta` is
-    /// equal to or greater than `self.distance(other)`, the result is `other`.
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(2.0, 0.0, 0.0);
-    /// let target = Vec3::new(5.0, 0.0, 0.0);
-    /// let max_delta = 1.0;
-    /// let move_towards = vec.move_towards(target, max_delta);
-    ///
-    /// assert_eq!(move_towards, Vec3::new(3.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn move_towards(self, target: Self, max_delta: T) -> Self {
-        let delta = target - self;
-        let delta_length = delta.length();
-
-        if delta_length <= max_delta || delta_length <= T::as_from(1e-4) {
-            target
-        } else {
-            self + delta / delta_length * max_delta
-        }
-    }
-
-    /// Returns a vector with the direction of `self` and length `1.0`.
-    ///
-    /// # Panics
-    ///
-    /// When assertions are enabled (see the crate documentation):
-    ///
-    /// Panics if `self` is a zero vector, or if the result is non finite or
-    /// zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(1.0, 2.0, 3.0);
-    ///
-    /// assert_eq!(vec.normalize(), vec / vec.length());
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn normalize(self) -> Self {
-        #[cfg(assertions)]
-        assert!(self != Self::ZERO, "cannot normalize a zero vector");
-
-        let result = self / self.length();
-
-        #[cfg(assertions)]
-        assert!(
-            result.is_finite() && result != Self::ZERO,
-            "non finite result: {self:?}.normalize()"
-        );
-
-        result
-    }
-
-    /// Returns [`normalize`], or `None` if `self` is zero or if the result is
-    /// non finite or zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
-    /// let zero = Vec3::new(0.0, 0.0, 0.0);
-    ///
-    /// assert_eq!(non_zero.try_normalize(), Some(non_zero.normalize()));
-    /// assert_eq!(zero.try_normalize(), None);
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    #[inline]
-    #[must_use]
-    pub fn try_normalize(self) -> Option<Self> {
-        let recip = T::as_from(1.0) / self.length();
-        if recip.is_finite() && recip > T::as_from(0.0) {
-            Some(self * recip)
-        } else {
-            None
-        }
-    }
-
-    /// Returns [`normalize`], or `fallback` if `self` is zero or if the result
-    /// is non finite or zero.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
-    /// let zero = Vec3::new(0.0, 0.0, 0.0);
-    /// let fallback = Vec3::new(9.0, 10.0, 21.0);
-    ///
-    /// assert_eq!(non_zero.normalize_or(fallback), non_zero.normalize());
-    /// assert_eq!(zero.normalize_or(fallback), fallback);
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    #[inline]
-    #[must_use]
-    pub fn normalize_or(self, fallback: Self) -> Self {
-        self.try_normalize().unwrap_or(fallback)
-    }
-
-    /// Returns [`normalize`], or a zero vector if `self` is zero or if the
-    /// result is non finite.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let non_zero = Vec3::new(1.0, 2.0, 3.0);
-    /// let zero = Vec3::new(0.0, 0.0, 0.0);
-    ///
-    /// assert_eq!(non_zero.normalize_or_zero(), non_zero.normalize());
-    /// assert_eq!(zero.normalize_or_zero(), zero);
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    #[inline]
-    #[must_use]
-    pub fn normalize_or_zero(self) -> Self {
-        self.normalize_or(Self::ZERO)
-    }
-
-    /// Simultaneously computes [`normalize`] and [`length`].
-    ///
-    /// If `self` is a zero vector, the result is `(Self::ZERO, 0.0)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(1.0, 2.0, 3.0);
-    /// let (normalize, length) = vec.normalize_and_length();
-    ///
-    /// assert_eq!(normalize, vec.normalize());
-    /// assert_eq!(length, vec.length());
-    /// ```
-    ///
-    /// [`normalize`]: Self::normalize
-    /// [`length`]: Self::length
-    #[inline]
-    #[must_use]
-    pub fn normalize_and_length(self) -> (Self, T) {
-        let length = self.length();
-        let recip = T::as_from(1.0) / length;
-
-        if recip.is_finite() && recip > T::as_from(0.0) {
-            (self * recip, length)
-        } else {
-            (Self::ZERO, T::as_from(0.0))
-        }
-    }
-
-    /// Returns `self` with a length of no more than `max`.
-    ///
-    /// # Panics
-    ///
-    /// When assertions are enabled (see the crate documentation):
-    ///
-    /// Panics if `max` is negative.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(2.0, 0.0, 0.0);
-    /// let b = Vec3::new(6.0, 0.0, 0.0);
-    /// let max = 4.0;
-    ///
-    /// assert_eq!(a.with_max_length(max), Vec3::new(2.0, 0.0, 0.0));
-    /// assert_eq!(b.with_max_length(max), Vec3::new(4.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn with_max_length(self, max: T) -> Self {
-        #[cfg(assertions)]
-        assert!(max >= T::as_from(0.0), "negative maximum length");
-
-        let length_squared = self.length_squared();
-        if length_squared > max * max {
-            self / length_squared.sqrt() * max
-        } else {
-            self
-        }
-    }
-
-    /// Returns `self` with a length of no less than `min`.
-    ///
-    /// # Panics
-    ///
-    /// When assertions are enabled (see the crate documentation):
-    ///
-    /// Panics if `min` is negative.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(2.0, 0.0, 0.0);
-    /// let b = Vec3::new(6.0, 0.0, 0.0);
-    /// let min = 4.0;
-    ///
-    /// assert_eq!(a.with_min_length(min), Vec3::new(4.0, 0.0, 0.0));
-    /// assert_eq!(b.with_min_length(min), Vec3::new(6.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn with_min_length(self, min: T) -> Self {
-        #[cfg(assertions)]
-        assert!(min >= T::as_from(0.0), "negative minimum length");
-
-        let length_squared = self.length_squared();
-        if length_squared < min * min {
-            self / length_squared.sqrt() * min
-        } else {
-            self
-        }
-    }
-
-    /// Returns `self` with a length of no less than `min` and no more than
-    /// `max`.
-    ///
-    /// # Panics
-    ///
-    /// When assertions are enabled (see the crate documentation):
-    ///
-    /// Panics if `min > max`, or if `min` is negative.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::new(2.0, 0.0, 0.0);
-    /// let b = Vec3::new(6.0, 0.0, 0.0);
-    /// let c = Vec3::new(10.0, 0.0, 0.0);
-    /// let min = 4.0;
-    /// let max = 8.0;
-    ///
-    /// assert_eq!(a.clamp_length(min, max), Vec3::new(4.0, 0.0, 0.0));
-    /// assert_eq!(b.clamp_length(min, max), Vec3::new(6.0, 0.0, 0.0));
-    /// assert_eq!(c.clamp_length(min, max), Vec3::new(8.0, 0.0, 0.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn clamp_length(self, min: T, max: T) -> Self {
-        #[cfg(assertions)]
-        assert!(min >= T::as_from(0.0), "negative minimum length");
-
-        #[cfg(assertions)]
-        assert!(min <= max, "minimum length is greater than maximum length");
-
-        let length_squared = self.length_squared();
-        if length_squared < min * min {
-            self / length_squared.sqrt() * min
-        } else if length_squared > max * max {
-            self / length_squared.sqrt() * max
-        } else {
-            self
-        }
-    }
-
-    /// Returns the angle (in radians) between `self` and `other` in the range
-    /// `0..=+π`.
-    ///
-    /// The vectors do not need to be unit vectors but they do need to be
-    /// non-zero.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let x = Vec3::new(2.0, 0.0, 0.0);
-    /// let y = Vec3::new(0.0, 3.0, 0.0);
-    /// let angle = x.angle_between(y);
-    ///
-    /// assert!((angle - 90.0_f32.to_radians()).abs() < 1e-5);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn angle_between(self, other: Self) -> T {
-        (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
-    }
-
-    /// Computes the exponential function `e^x` for the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn exp(self) -> Self {
-        self.map(T::exp)
-    }
-
-    /// Computes `2^x` for the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn exp2(self) -> Self {
-        self.map(T::exp2)
-    }
-
-    /// Computes the natural logarithm for the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn ln(self) -> Self {
-        self.map(T::ln)
-    }
-
-    /// Computes the base 2 logarithm for the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let vec = Vec3::new(2.0, 4.0, 8.0);
-    ///
-    /// assert_eq!(vec.log2(), Vec3::new(1.0, 2.0, 3.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn log2(self) -> Self {
-        self.map(T::log2)
-    }
-
-    /// Computes `x^n` for the elements of `self`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn powf(self, n: T) -> Self {
-        self.map(|x| x.powf(n))
-    }
-
-    /// Returns the vector refraction of `self` through `normal` and `eta`.
-    ///
-    /// `eta` is the incident refraction-index divided by the transmitted
-    /// refraction-index.
-    ///
-    /// When total internal reflection occurs, the result is a zero vector.
-    ///
-    /// `self` and `normal` must be normalized.
-    ///
-    /// # Panics
-    ///
-    /// When assertions are enabled (see the crate documentation):
-    ///
-    /// Panics if `self` or `normal` are not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn refract(self, normal: Self, eta: T) -> Self {
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
-
-        #[cfg(assertions)]
-        assert!(normal.is_normalized());
-
-        let self_dot_normal = self.dot(normal);
-        let k = T::as_from(1.0) - eta * eta * (T::as_from(1.0) - self_dot_normal * self_dot_normal);
-        if k >= T::as_from(0.0) {
-            self * eta - normal * (eta * self_dot_normal + k.sqrt())
-        } else {
-            Self::ZERO
-        }
-    }
-}
-
-#[cfg(backend)]
-#[expect(private_bounds)]
-impl<T, A: Alignment> Vector<2, T, A>
-where
-    T: Scalar + PrimitiveFloat,
-{
-    /// Returns `self` rotated by 90 degrees.
-    ///
-    /// This rotates `+X` to `+Y`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec2;
-    /// #
-    /// let x = Vec2::new(1.0, 0.0);
-    /// let y = Vec2::new(0.0, 1.0);
-    ///
-    /// assert_eq!(x.perp(), y);
-    /// assert_eq!(y.perp(), -x);
-    /// assert_eq!((-x).perp(), -y);
-    /// assert_eq!((-y).perp(), x);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn perp(self) -> Self {
-        Self::new(-self.y, self.x)
-    }
-
-    /// Rotates `self` by `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn rotate(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
-        Self::new(
-            self.x * angle_cos - self.y * angle_sin,
-            self.x * angle_sin + self.y * angle_cos,
-        )
-    }
-}
-
-#[cfg(backend)]
-#[expect(private_bounds)]
-impl<T, A: Alignment> Vector<3, T, A>
-where
-    T: Scalar + PrimitiveFloat,
-{
-    /// Rotates `self` around the x axis by `angle` (in radians).
-    ///
-    /// This rotates `+Y` to `+Z`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn rotate_x(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
-        Self::new(
-            self.x,
-            self.y * angle_cos - self.z * angle_sin,
-            self.y * angle_sin + self.z * angle_cos,
-        )
-    }
-
-    /// Rotates `self` around the y axis by `angle` (in radians).
-    ///
-    /// This rotates `+Z` to `+X`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn rotate_y(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
-        Self::new(
-            self.x * angle_cos + self.z * angle_sin,
-            self.y,
-            self.x * -angle_sin + self.z * angle_cos,
-        )
-    }
-
-    /// Rotates `self` around the z axis by `angle` (in radians).
-    ///
-    /// This rotates `+X` to `+Y`.
-    ///
-    /// # Unspecified precision
-    ///
-    /// The precision of this function is non-deterministic. This means it
-    /// varies by platform, version, and can even differ within the same
-    /// execution from one invocation to the next.
-    #[inline]
-    #[must_use]
-    pub fn rotate_z(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
-        Self::new(
-            self.x * angle_cos - self.y * angle_sin,
-            self.x * angle_sin + self.y * angle_cos,
-            self.z,
         )
     }
 }
