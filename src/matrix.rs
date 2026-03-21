@@ -786,6 +786,81 @@ where
     }
 }
 
+impl<T, A: Alignment> Matrix<2, T, A>
+where
+    T: Scalar,
+{
+    /// Creates a matrix from a column-major array of elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Vec2};
+    /// #
+    /// let mat = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(mat, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn from_column_array(array: &[T; 4]) -> Self {
+        Self::from_columns(&[
+            Vector::<2, T, A>::new(array[0], array[1]),
+            Vector::<2, T, A>::new(array[2], array[3]),
+        ])
+    }
+}
+
+impl<T, A: Alignment> Matrix<3, T, A>
+where
+    T: Scalar,
+{
+    /// Creates a matrix from a column-major array of elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Vec2};
+    /// #
+    /// let mat = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(mat, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn from_column_array(array: &[T; 9]) -> Self {
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(array[0], array[1], array[2]),
+            Vector::<3, T, A>::new(array[3], array[4], array[5]),
+            Vector::<3, T, A>::new(array[6], array[7], array[8]),
+        ])
+    }
+}
+
+impl<T, A: Alignment> Matrix<4, T, A>
+where
+    T: Scalar,
+{
+    /// Creates a matrix from a column-major array of elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat2, Vec2};
+    /// #
+    /// let mat = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(mat, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn from_column_array(array: &[T; 16]) -> Self {
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(array[0], array[1], array[2], array[3]),
+            Vector::<4, T, A>::new(array[4], array[5], array[6], array[7]),
+            Vector::<4, T, A>::new(array[8], array[9], array[10], array[11]),
+            Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
+        ])
+    }
+}
+
 impl<const N: usize, T, A: Alignment> Clone for Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -2128,6 +2203,37 @@ mod tests {
                     Vector::<4, u32, A>::new(4, 5, 6, 7),
                     Vector::<4, u32, A>::new(8, 9, 10, 11),
                     Vector::<4, u32, A>::new(12, 13, 14, 15)
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_column_array() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Matrix::<2, T, A>::from_column_array(&[x, y, z, w]),
+                Matrix::from_columns(&[Vector::<2, T, A>::new(x, y), Vector::<2, T, A>::new(z, w)])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]),
+                Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+            );
+            assert_eq!(
+                Matrix::<4, T, A>::from_column_array(&[
+                    x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l
+                ]),
+                Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
                 ])
             );
         });
