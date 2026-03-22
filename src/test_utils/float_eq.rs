@@ -15,6 +15,12 @@ macro_rules! float_eq {
     ($left:expr, $right:expr, abs <= $tol:expr, 0.0 = -0.0 $(,)?) => {
         crate::test_utils::FloatEq::eq_abs(&$left, &$right, &$tol, true)
     };
+    ($left:expr, $right:expr, r2nd <= $tol:expr $(,)?) => {
+        crate::test_utils::FloatEq::eq_r2nd(&$left, &$right, &$tol, false)
+    };
+    ($left:expr, $right:expr, r2nd <= $tol:expr, 0.0 = -0.0 $(,)?) => {
+        crate::test_utils::FloatEq::eq_r2nd(&$left, &$right, &$tol, true)
+    };
 }
 
 pub(crate) use float_eq;
@@ -32,15 +38,23 @@ macro_rules! assert_float_eq {
     ($left:expr, $right:expr, abs <= $tol:expr, 0.0 = -0.0 $(,)?) => {
         crate::test_utils::FloatEq::assert_eq_abs(&$left, &$right, &$tol, true)
     };
+    ($left:expr, $right:expr, r2nd <= $tol:expr $(,)?) => {
+        crate::test_utils::FloatEq::assert_eq_r2nd(&$left, &$right, &$tol, false)
+    };
+    ($left:expr, $right:expr, r2nd <= $tol:expr, 0.0 = -0.0 $(,)?) => {
+        crate::test_utils::FloatEq::assert_eq_r2nd(&$left, &$right, &$tol, true)
+    };
 }
 
 pub(crate) use assert_float_eq;
 
 #[doc(hidden)]
-pub trait FloatEq {
+pub trait FloatEq: Sized {
     fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool;
 
     fn eq_abs(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool) -> bool;
+
+    fn abs_mul(&self, rhs: &Self) -> Self;
 
     #[track_caller]
     fn assert_eq(&self, other: &Self, zero_eq_neg_zero: bool)
@@ -65,6 +79,25 @@ pub trait FloatEq {
         Self: Debug,
     {
         if !self.eq_abs(other, tol, zero_eq_neg_zero) {
+            panic!(
+                concat!(
+                    "assertion `left == right` failed\n",
+                    "  left: {:?}\n",
+                    " right: {:?}\n",
+                    "   tol: {:?}\n"
+                ),
+                self, other, tol
+            )
+        }
+    }
+
+    #[track_caller]
+    fn assert_eq_r2nd(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool)
+    where
+        Self: Debug,
+    {
+        let tol = other.abs_mul(tol);
+        if !self.eq_abs(other, &tol, zero_eq_neg_zero) {
             panic!(
                 concat!(
                     "assertion `left == right` failed\n",
@@ -104,6 +137,10 @@ macro_rules! impl_float {
                     (self - other).abs() <= *tol
                 }
             }
+
+            fn abs_mul(&self, other: &Self) -> Self {
+                self.abs() * other
+            }
         }
     };
 }
@@ -123,6 +160,10 @@ where
         self.0.eq_abs(&other.0, &tol.0, zero_eq_neg_zero)
             && self.1.eq_abs(&other.1, &tol.1, zero_eq_neg_zero)
     }
+
+    fn abs_mul(&self, rhs: &Self) -> Self {
+        (self.0.abs_mul(&rhs.0), self.1.abs_mul(&rhs.1))
+    }
 }
 
 impl<const N: usize, T, A: Alignment> FloatEq for Vector<N, T, A>
@@ -136,6 +177,10 @@ where
 
     fn eq_abs(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool) -> bool {
         (0..N).all(|i| self[i].eq_abs(&other[i], &tol[i], zero_eq_neg_zero))
+    }
+
+    fn abs_mul(&self, rhs: &Self) -> Self {
+        Self::from_fn(|i| self[i].abs_mul(&rhs[i]))
     }
 }
 
@@ -153,6 +198,10 @@ where
             self.column(i)
                 .eq_abs(&other.column(i), &tol.column(i), zero_eq_neg_zero)
         })
+    }
+
+    fn abs_mul(&self, rhs: &Self) -> Self {
+        Self::from_column_fn(|i| self.column(i).abs_mul(&rhs.column(i)))
     }
 }
 
@@ -172,6 +221,10 @@ where
             zero_eq_neg_zero,
         )
     }
+
+    fn abs_mul(&self, rhs: &Self) -> Self {
+        Self::from_vec(self.as_vec_ref().abs_mul(rhs.as_vec_ref()))
+    }
 }
 
 impl<const N: usize, T, A: Alignment> FloatEq for Affine<N, T, A>
@@ -190,5 +243,12 @@ where
             && self
                 .translation
                 .eq_abs(&other.translation, &tol.translation, zero_eq_neg_zero)
+    }
+
+    fn abs_mul(&self, rhs: &Self) -> Self {
+        Self::from_mat_translation(
+            self.matrix.abs_mul(&rhs.matrix),
+            self.translation.abs_mul(&rhs.translation),
+        )
     }
 }
