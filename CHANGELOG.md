@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.4] - 2026-03-22
+
 ### Added
 
 - Matrix multiplication and scalar division.
@@ -328,4 +330,5 @@ functionality can start being added.
 This version completely rewrote the crate.
 
 [unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.16.3...HEAD
+[0.16.4]: https://github.com/Noam2Stein/ggmath/compare/v0.16.3...v0.16.4
 [0.16.3]: https://github.com/Noam2Stein/ggmath/compare/v0.16.2...v0.16.3
