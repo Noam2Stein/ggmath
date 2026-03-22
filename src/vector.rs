@@ -499,6 +499,56 @@ where
         Self::from_fn(|i| self[N - 1 - i])
     }
 
+    /// Computes the sum of the elements of `self`.
+    ///
+    /// Equivalent to `self.x + self.y + ...`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation) or overflow
+    /// checks are enabled:
+    ///
+    /// For integers this panics if any addition overflows (performed in order).
+    ///
+    /// # Consistency
+    ///
+    /// For floats, order of addition and handling of `-0.0` may differ across
+    /// target architectures.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn element_sum(self) -> T
+    where
+        T: Add<Output = T>,
+    {
+        specialize!(<T as ScalarBackend<N, A>>::vec_element_sum(self))
+    }
+
+    /// Computes the product of the elements of `self`.
+    ///
+    /// Equivalent to `self.x * self.y * ...`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation) or overflow
+    /// checks are enabled:
+    ///
+    /// For integers this panics if any multiplication overflows (performed in order).
+    ///
+    /// # Consistency
+    ///
+    /// For floats, order of multiplication and handling of `-0.0` may differ
+    /// across target architectures.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn element_product(self) -> T
+    where
+        T: Mul<Output = T>,
+    {
+        specialize!(<T as ScalarBackend<N, A>>::vec_element_product(self))
+    }
+
     /// Returns a vector mask where each element is `true` if the corresponding
     /// elements of `self` and `other` are equal.
     ///
@@ -639,6 +689,63 @@ where
         specialize!(<T as ScalarBackend<N, A>>::vec_ge_mask(self, other))
     }
 
+    /// Computes the dot product of `self` and `rhs`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation) or
+    /// overflow checks are enabled:
+    ///
+    /// For integers this panics if an overflow occurs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let x = Vec3::new(2, 0, 0);
+    /// let y = Vec3::new(0, 3, 0);
+    ///
+    /// assert_eq!(x.dot(y), 0);
+    /// assert_eq!(x.dot(x), 4);
+    /// assert_eq!(y.dot(y), 9);
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn dot(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        (self * rhs).element_sum()
+    }
+
+    /// Computes the squared length/magnitude of `self`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation) or
+    /// overflow checks are enabled:
+    ///
+    /// For integers this panics if an overflow occurs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let vec = Vec2::new(1, 2);
+    /// assert_eq!(vec.length_squared(), 5);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn length_squared(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        (self * self).element_sum()
+    }
+
     /// Raw transmutation between scalar types.
     ///
     /// This function's signature staticly guarantees that the types have
@@ -729,6 +836,33 @@ where
         // consecutive values of `T`, with no additional padding.
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
     }
+
+    /// Returns `self` rotated by 90 degrees.
+    ///
+    /// This rotates `+X` to `+Y`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let x = Vec2::new(1, 0);
+    /// let y = Vec2::new(0, 1);
+    ///
+    /// assert_eq!(x.perp(), y);
+    /// assert_eq!(y.perp(), -x);
+    /// assert_eq!((-x).perp(), -y);
+    /// assert_eq!((-y).perp(), x);
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perp(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self::new(-self.y, self.x)
+    }
 }
 
 impl<T, A: Alignment> Vector<3, T, A>
@@ -778,6 +912,29 @@ where
 
             _ => unreachable!(),
         }
+    }
+
+    /// Computes the cross product of `self` and `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let x = Vec3::new(1, 0, 0);
+    /// let y = Vec3::new(0, 1, 0);
+    ///
+    /// assert_eq!(x.cross(y), Vec3::new(0, 0, 1));
+    /// assert_eq!(y.cross(x), Vec3::new(0, 0, -1));
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn cross(self, rhs: Self) -> Self
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        (self.zxy() * rhs - self * rhs.zxy()).zxy()
     }
 }
 
@@ -2212,7 +2369,7 @@ mod tests {
 
     use crate::{
         Aligned, Mask, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
-        test_utils::{assert_float_eq, assert_panic, assert_panic_eq, for_parameters},
+        test_utils::{assert_float_eq, assert_panic, assert_panic_eq, float_eq, for_parameters},
     };
 
     #[test]
@@ -2622,6 +2779,72 @@ mod tests {
     }
 
     #[test]
+    fn test_element_sum() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(Vector::<2, T, A>::new(x, y).element_sum(), x + y);
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z).element_sum(),
+                x + y + z,
+                0.0 = -0.0
+            );
+            assert!(
+                float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).element_sum(),
+                    x + y + z + w
+                ) || float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).element_sum(),
+                    x + y + (z + w)
+                )
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(Vector::<2, T, A>::new(x, y).element_sum(), x + y);
+            assert_panic_eq!(Vector::<3, T, A>::new(x, y, z).element_sum(), x + y + z);
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).element_sum(),
+                x + y + z + w
+            );
+        });
+    }
+
+    #[test]
+    fn test_element_product() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(Vector::<2, T, A>::new(x, y).element_product(), x * y);
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z).element_product(),
+                x * y * z,
+                0.0 = -0.0
+            );
+            assert!(
+                float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).element_product(),
+                    x * y * z * w
+                ) || float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).element_product(),
+                    x * y * (z * w)
+                )
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(Vector::<2, T, A>::new(x, y).element_product(), x * y);
+            assert_panic_eq!(Vector::<3, T, A>::new(x, y, z).element_product(), x * y * z);
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).element_product(),
+                x * y * z * w
+            );
+        });
+    }
+
+    #[test]
     fn test_eq_mask() {
         for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
             let w = if x > y { x } else { y };
@@ -2737,6 +2960,83 @@ mod tests {
             assert_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).ge_mask(Vector::<4, T, A>::new(y, z, w, x)),
                 Mask::<4, T, A>::new(x >= y, y >= z, z >= w, w >= x)
+            );
+        });
+    }
+
+    #[test]
+    fn test_dot() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Vector::<2, T, A>::new(x, y).dot(Vector::<2, T, A>::new(z, w)),
+                x * z + y * w
+            );
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z).dot(Vector::<3, T, A>::new(z, w, y)),
+                x * z + y * w + z * y,
+                0.0 = -0.0
+            );
+            assert!(
+                float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, w)),
+                    x * z + y * w + z * y + w * w
+                ) || float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, w)),
+                    x * z + y * w + (z * y + w * w)
+                )
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y).dot(Vector::<2, T, A>::new(z, w)),
+                x * z + y * w
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z).dot(Vector::<3, T, A>::new(z, w, y)),
+                x * z + y * w + z * y
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, x)),
+                x * z + y * w + z * y + w * x
+            );
+        });
+    }
+
+    #[test]
+    fn test_length_squared() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(Vector::<2, T, A>::new(x, y).length_squared(), x * x + y * y);
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z).length_squared(),
+                x * x + y * y + z * z
+            );
+            assert!(
+                float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).length_squared(),
+                    x * x + y * y + z * z + w * w
+                ) || float_eq!(
+                    Vector::<4, T, A>::new(x, y, z, w).length_squared(),
+                    x * x + y * y + (z * z + w * w)
+                )
+            );
+        });
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(Vector::<2, T, A>::new(x, y).length_squared(), x * x + y * y);
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z).length_squared(),
+                x * x + y * y + z * z
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).length_squared(),
+                x * x + y * y + z * z + w * w
             );
         });
     }
@@ -2866,6 +3166,90 @@ mod tests {
                 Vector::<4, T, A>::NEG_W,
                 Vector::<4, T, A>::new(0, 0, 0, -1)
             );
+        });
+    }
+
+    #[test]
+    fn test_perp() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<2, T, A>::X.perp(), Vector::<2, T, A>::Y);
+            assert_eq!(Vector::<2, T, A>::Y.perp(), Vector::<2, T, A>::NEG_X);
+            assert_eq!(Vector::<2, T, A>::NEG_X.perp(), Vector::<2, T, A>::NEG_Y);
+            assert_eq!(Vector::<2, T, A>::NEG_Y.perp(), Vector::<2, T, A>::X);
+        });
+        for_parameters!(|T: PrimitiveSigned, A| {
+            assert_eq!(Vector::<2, T, A>::X.perp(), Vector::<2, T, A>::Y);
+            assert_eq!(Vector::<2, T, A>::Y.perp(), Vector::<2, T, A>::NEG_X);
+            assert_eq!(Vector::<2, T, A>::NEG_X.perp(), Vector::<2, T, A>::NEG_Y);
+            assert_eq!(Vector::<2, T, A>::NEG_Y.perp(), Vector::<2, T, A>::X);
+        });
+    }
+
+    #[test]
+    fn test_cross() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(
+                Vector::<3, T, A>::X.cross(Vector::<3, T, A>::Y),
+                Vector::<3, T, A>::Z
+            );
+            assert_eq!(
+                Vector::<3, T, A>::Y.cross(Vector::<3, T, A>::Z),
+                Vector::<3, T, A>::X
+            );
+            assert_eq!(
+                Vector::<3, T, A>::Z.cross(Vector::<3, T, A>::X),
+                Vector::<3, T, A>::Y
+            );
+
+            for a in [
+                Vector::<3, T, A>::X,
+                Vector::<3, T, A>::Y,
+                Vector::<3, T, A>::Z,
+            ] {
+                assert_eq!(a.cross(a), Vector::ZERO);
+
+                for b in [
+                    Vector::<3, T, A>::X,
+                    Vector::<3, T, A>::Y,
+                    Vector::<3, T, A>::Z,
+                ] {
+                    assert_eq!(b.cross(a), -a.cross(b));
+                    assert_eq!((-a).cross(b), -a.cross(b));
+                    assert_eq!(a.cross(-b), -a.cross(b));
+                }
+            }
+        });
+        for_parameters!(|T: PrimitiveSigned, A| {
+            assert_eq!(
+                Vector::<3, T, A>::X.cross(Vector::<3, T, A>::Y),
+                Vector::<3, T, A>::Z
+            );
+            assert_eq!(
+                Vector::<3, T, A>::Y.cross(Vector::<3, T, A>::Z),
+                Vector::<3, T, A>::X
+            );
+            assert_eq!(
+                Vector::<3, T, A>::Z.cross(Vector::<3, T, A>::X),
+                Vector::<3, T, A>::Y
+            );
+
+            for a in [
+                Vector::<3, T, A>::X,
+                Vector::<3, T, A>::Y,
+                Vector::<3, T, A>::Z,
+            ] {
+                assert_eq!(a.cross(a), Vector::ZERO);
+
+                for b in [
+                    Vector::<3, T, A>::X,
+                    Vector::<3, T, A>::Y,
+                    Vector::<3, T, A>::Z,
+                ] {
+                    assert_eq!(b.cross(a), -a.cross(b));
+                    assert_eq!((-a).cross(b), -a.cross(b));
+                    assert_eq!(a.cross(-b), -a.cross(b));
+                }
+            }
         });
     }
 

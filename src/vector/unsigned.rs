@@ -6,64 +6,6 @@ macro_rules! impl_uint {
         where
             Length<N>: SupportedLength,
         {
-            /// Computes the sum of the elements of `self`.
-            ///
-            /// Equivalent to `self.x + self.y + ...`.
-            ///
-            /// # Panics
-            ///
-            /// When assertions are enabled (see the crate documentation):
-            ///
-            /// Panics if any addition overflows (performed in order).
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec3;
-            /// #
-            /// let vec = Vec3::<u32>::new(1, 2, 3);
-            /// assert_eq!(vec.element_sum(), 1 + 2 + 3);
-            /// ```
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn element_sum(self) -> $T {
-                if cfg!(assertions) {
-                    specialize!(<$T as $Backend<N, A>>::vec_strict_element_sum(self))
-                } else {
-                    specialize!(<$T as $Backend<N, A>>::vec_wrapping_element_sum(self))
-                }
-            }
-
-            /// Computes the product of the elements of `self`.
-            ///
-            /// Equivalent to `self.x * self.y * ...`.
-            ///
-            /// # Panics
-            ///
-            /// When assertions are enabled (see the crate documentation):
-            ///
-            /// Panics if any multiplication overflows (performed in order).
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec3;
-            /// #
-            /// let vec = Vec3::<u32>::new(1, 2, 3);
-            /// assert_eq!(vec.element_product(), 1 * 2 * 3);
-            /// ```
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn element_product(self) -> $T {
-                if cfg!(assertions) {
-                    specialize!(<$T as $Backend<N, A>>::vec_strict_element_product(self))
-                } else {
-                    specialize!(<$T as $Backend<N, A>>::vec_wrapping_element_product(self))
-                }
-            }
-
             /// Returns the maximum elements between `self` and `other`.
             ///
             /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
@@ -172,58 +114,6 @@ macro_rules! impl_uint {
             #[must_use]
             pub fn min_element(self) -> $T {
                 specialize!(<$T as $Backend<N, A>>::vec_min_element(self))
-            }
-
-            /// Computes the dot product of `self` and `rhs`.
-            ///
-            /// # Panics
-            ///
-            /// When assertions are enabled (see the crate documentation) or
-            /// overflow checks are enabled:
-            ///
-            /// Panics if an overflow occurs.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec3;
-            /// #
-            /// let x = Vec3::<u32>::new(2, 0, 0);
-            /// let y = Vec3::<u32>::new(0, 3, 0);
-            ///
-            /// assert_eq!(x.dot(y), 0);
-            /// assert_eq!(x.dot(x), 4);
-            /// assert_eq!(y.dot(y), 9);
-            /// ```
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn dot(self, rhs: Self) -> $T {
-                (self * rhs).element_sum()
-            }
-
-            /// Computes the squared length/magnitude of `self`.
-            ///
-            /// # Panics
-            ///
-            /// When assertions are enabled (see the crate documentation) or
-            /// overflow checks are enabled:
-            ///
-            /// Panics if an overflow occurs.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec3;
-            /// #
-            /// let vec = Vec3::<u32>::new(1, 1, 1);
-            /// assert_eq!(vec.length_squared(), 3);
-            /// ```
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn length_squared(self) -> $T {
-                (self * self).element_sum()
             }
 
             /// Computes `self + rhs`, returning `None` if overflow occured.
@@ -391,18 +281,6 @@ macro_rules! impl_uint {
             }
 
             #[inline]
-            #[track_caller]
-            fn vec_strict_element_sum(vec: Vector<N, $T, A>) -> $T {
-                vec.iter().reduce(|a, b| a.checked_add(b).unwrap()).unwrap()
-            }
-
-            #[inline]
-            #[track_caller]
-            fn vec_strict_element_product(vec: Vector<N, $T, A>) -> $T {
-                vec.iter().reduce(|a, b| a.checked_mul(b).unwrap()).unwrap()
-            }
-
-            #[inline]
             fn vec_saturating_add(
                 vec: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
@@ -440,16 +318,6 @@ macro_rules! impl_uint {
             fn vec_wrapping_mul(vec: Vector<N, $T, A>, rhs: Vector<N, $T, A>) -> Vector<N, $T, A> {
                 Vector::from_fn(|i| vec[i].wrapping_mul(rhs[i]))
             }
-
-            #[inline]
-            fn vec_wrapping_element_sum(vec: Vector<N, $T, A>) -> $T {
-                vec.iter().reduce($T::wrapping_add).unwrap()
-            }
-
-            #[inline]
-            fn vec_wrapping_element_product(vec: Vector<N, $T, A>) -> $T {
-                vec.iter().reduce($T::wrapping_mul).unwrap()
-            }
         }
     };
 }
@@ -466,34 +334,6 @@ mod tests {
         Vector,
         test_utils::{assert_panic_eq, for_parameters},
     };
-
-    #[test]
-    fn test_element_sum() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_eq!(Vector::<2, T, A>::new(x, y).element_sum(), x + y);
-            assert_panic_eq!(Vector::<3, T, A>::new(x, y, z).element_sum(), x + y + z);
-            assert_panic_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).element_sum(),
-                x + y + z + w
-            );
-        });
-    }
-
-    #[test]
-    fn test_element_product() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_eq!(Vector::<2, T, A>::new(x, y).element_product(), x * y);
-            assert_panic_eq!(Vector::<3, T, A>::new(x, y, z).element_product(), x * y * z);
-            assert_panic_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).element_product(),
-                x * y * z * w
-            );
-        });
-    }
 
     #[test]
     fn test_max() {
@@ -592,43 +432,6 @@ mod tests {
             assert_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).min_element(),
                 x.min(y).min(z).min(w)
-            );
-        });
-    }
-
-    #[test]
-    fn test_dot() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_eq!(
-                Vector::<2, T, A>::new(x, y).dot(Vector::<2, T, A>::new(z, w)),
-                x * z + y * w
-            );
-            assert_panic_eq!(
-                Vector::<3, T, A>::new(x, y, z).dot(Vector::<3, T, A>::new(z, w, y)),
-                x * z + y * w + z * y
-            );
-            assert_panic_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, x)),
-                x * z + y * w + z * y + w * x
-            );
-        });
-    }
-
-    #[test]
-    fn test_length_squared() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_eq!(Vector::<2, T, A>::new(x, y).length_squared(), x * x + y * y);
-            assert_panic_eq!(
-                Vector::<3, T, A>::new(x, y, z).length_squared(),
-                x * x + y * y + z * z
-            );
-            assert_panic_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).length_squared(),
-                x * x + y * y + z * z + w * w
             );
         });
     }

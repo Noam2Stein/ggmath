@@ -162,32 +162,6 @@ where
         Self::ONE / self
     }
 
-    /// Computes the sum of the elements of `self`.
-    ///
-    /// Equivalent to `self.x + self.y + ...`.
-    ///
-    /// The order of addition is unspecified and may differ between target
-    /// architectures.
-    #[inline]
-    #[must_use]
-    pub fn element_sum(self) -> T {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_element_sum(self))
-    }
-
-    /// Computes the product of the elements of `self`.
-    ///
-    /// Equivalent to `self.x * self.y * ...`.
-    ///
-    /// The order of multiplication is unspecified and may differ between target
-    /// architectures.
-    #[inline]
-    #[must_use]
-    pub fn element_product(self) -> T {
-        specialize!(<T as PrimitiveFloatBackend<N, A>>::vec_element_product(
-            self
-        ))
-    }
-
     /// Returns the maximum elements between `self` and `other`.
     ///
     /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
@@ -868,13 +842,6 @@ where
         }
     }
 
-    /// Computes the dot product of `self` and `rhs`.
-    #[inline]
-    #[must_use]
-    pub fn dot(self, rhs: Self) -> T {
-        (self * rhs).element_sum()
-    }
-
     /// Returns the length/magnitude of `self`.
     ///
     /// # Examples
@@ -891,13 +858,6 @@ where
     #[must_use]
     pub fn length(self) -> T {
         self.dot(self).sqrt()
-    }
-
-    /// Computes the squared length/magnitude of `self`.
-    #[inline]
-    #[must_use]
-    pub fn length_squared(self) -> T {
-        (self * self).element_sum()
     }
 
     /// Computes the Euclidean distance between `self` and `other`.
@@ -1373,29 +1333,6 @@ impl<T, A: Alignment> Vector<2, T, A>
 where
     T: Scalar + PrimitiveFloat,
 {
-    /// Returns `self` rotated by 90 degrees.
-    ///
-    /// This rotates `+X` to `+Y`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec2;
-    /// #
-    /// let x = Vec2::new(1.0, 0.0);
-    /// let y = Vec2::new(0.0, 1.0);
-    ///
-    /// assert_eq!(x.perp(), y);
-    /// assert_eq!(y.perp(), -x);
-    /// assert_eq!((-x).perp(), -y);
-    /// assert_eq!((-y).perp(), x);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn perp(self) -> Self {
-        Self::new(-self.y, self.x)
-    }
-
     /// Rotates `self` by `angle` (in radians).
     ///
     /// This rotates `+X` to `+Y`.
@@ -1422,25 +1359,6 @@ impl<T, A: Alignment> Vector<3, T, A>
 where
     T: Scalar + PrimitiveFloat,
 {
-    /// Computes the cross product of `self` and `rhs`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let x = Vec3::new(1.0, 0.0, 0.0);
-    /// let y = Vec3::new(0.0, 1.0, 0.0);
-    ///
-    /// assert_eq!(x.cross(y), Vec3::new(0.0, 0.0, 1.0));
-    /// assert_eq!(y.cross(x), Vec3::new(0.0, 0.0, -1.0));
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn cross(self, rhs: Self) -> Self {
-        (self.zxy() * rhs - self * rhs.zxy()).zxy()
-    }
-
     /// Rotates `self` around the x axis by `angle` (in radians).
     ///
     /// This rotates `+Y` to `+Z`.
@@ -1614,22 +1532,6 @@ where
         Self: PrimitiveFloat,
     {
         Mask::from_fn(|i| vec[i].is_sign_negative())
-    }
-
-    #[inline]
-    fn vec_element_sum(vec: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveFloat,
-    {
-        vec.as_array_ref().iter().copied().sum()
-    }
-
-    #[inline]
-    fn vec_element_product(vec: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveFloat,
-    {
-        vec.as_array_ref().iter().copied().product()
     }
 
     #[inline]
@@ -1994,52 +1896,6 @@ mod tests {
             assert_float_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).recip(),
                 Vector::<4, T, A>::new(x.recip(), y.recip(), z.recip(), w.recip())
-            );
-        });
-    }
-
-    #[test]
-    fn test_element_sum() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(Vector::<2, T, A>::new(x, y).element_sum(), x + y);
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).element_sum(),
-                x + y + z,
-                0.0 = -0.0
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_sum(),
-                    x + y + z + w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_sum(),
-                    x + y + (z + w)
-                )
-            );
-        });
-    }
-
-    #[test]
-    fn test_element_product() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(Vector::<2, T, A>::new(x, y).element_product(), x * y);
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).element_product(),
-                x * y * z,
-                0.0 = -0.0
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_product(),
-                    x * y * z * w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_product(),
-                    x * y * (z * w)
-                )
             );
         });
     }
@@ -2964,32 +2820,6 @@ mod tests {
     }
 
     #[test]
-    fn test_dot() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).dot(Vector::<2, T, A>::new(z, w)),
-                x * z + y * w
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).dot(Vector::<3, T, A>::new(z, w, y)),
-                x * z + y * w + z * y,
-                0.0 = -0.0
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, w)),
-                    x * z + y * w + z * y + w * w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, w)),
-                    x * z + y * w + (z * y + w * w)
-                )
-            );
-        });
-    }
-
-    #[test]
     fn test_length() {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
@@ -3009,28 +2839,6 @@ mod tests {
                 ) || float_eq!(
                     Vector::<4, T, A>::new(x, y, z, w).length(),
                     (x * x + y * y + (z * z + w * w)).sqrt()
-                )
-            );
-        });
-    }
-
-    #[test]
-    fn test_length_squared() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(Vector::<2, T, A>::new(x, y).length_squared(), x * x + y * y);
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).length_squared(),
-                x * x + y * y + z * z
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).length_squared(),
-                    x * x + y * y + z * z + w * w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).length_squared(),
-                    x * x + y * y + (z * z + w * w)
                 )
             );
         });
@@ -3868,16 +3676,6 @@ mod tests {
     }
 
     #[test]
-    fn test_perp() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_eq!(Vector::<2, T, A>::X.perp(), Vector::<2, T, A>::Y);
-            assert_eq!(Vector::<2, T, A>::Y.perp(), Vector::<2, T, A>::NEG_X);
-            assert_eq!(Vector::<2, T, A>::NEG_X.perp(), Vector::<2, T, A>::NEG_Y);
-            assert_eq!(Vector::<2, T, A>::NEG_Y.perp(), Vector::<2, T, A>::X);
-        });
-    }
-
-    #[test]
     fn test_rotate() {
         for_parameters!(|T: PrimitiveFloat, A| {
             assert_float_eq!(
@@ -3905,42 +3703,6 @@ mod tests {
                 Vector::<2, T, A>::new(2.0, 2.0).sqrt(),
                 abs <= Vector::splat(1e-5)
             );
-        });
-    }
-
-    #[test]
-    fn test_cross() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_eq!(
-                Vector::<3, T, A>::X.cross(Vector::<3, T, A>::Y),
-                Vector::<3, T, A>::Z
-            );
-            assert_eq!(
-                Vector::<3, T, A>::Y.cross(Vector::<3, T, A>::Z),
-                Vector::<3, T, A>::X
-            );
-            assert_eq!(
-                Vector::<3, T, A>::Z.cross(Vector::<3, T, A>::X),
-                Vector::<3, T, A>::Y
-            );
-
-            for a in [
-                Vector::<3, T, A>::X,
-                Vector::<3, T, A>::Y,
-                Vector::<3, T, A>::Z,
-            ] {
-                assert_eq!(a.cross(a), Vector::ZERO);
-
-                for b in [
-                    Vector::<3, T, A>::X,
-                    Vector::<3, T, A>::Y,
-                    Vector::<3, T, A>::Z,
-                ] {
-                    assert_eq!(b.cross(a), -a.cross(b));
-                    assert_eq!((-a).cross(b), -a.cross(b));
-                    assert_eq!(a.cross(-b), -a.cross(b));
-                }
-            }
         });
     }
 

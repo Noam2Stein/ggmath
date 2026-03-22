@@ -524,6 +524,26 @@ where
         Vector::from_fn(|i| vec[i] ^ rhs[i])
     }
 
+    /// Overridable implementation for [`Vector::element_sum`].
+    #[inline]
+    #[track_caller]
+    fn vec_element_sum(vec: Vector<N, Self, A>) -> Self
+    where
+        Self: Scalar + Add<Output = Self>,
+    {
+        vec.iter().reduce(Self::add).unwrap()
+    }
+
+    /// Overridable implementation for [`Vector::element_product`].
+    #[inline]
+    #[track_caller]
+    fn vec_element_product(vec: Vector<N, Self, A>) -> Self
+    where
+        Self: Scalar + Mul<Output = Self>,
+    {
+        vec.iter().reduce(Self::mul).unwrap()
+    }
+
     /// Overridable implementation for [`Vector::eq_mask`].
     #[inline]
     fn vec_eq_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>

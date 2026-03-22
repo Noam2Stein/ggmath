@@ -55,6 +55,22 @@ impl ScalarBackend<3, Aligned> for f32 {
         }
 
         #[inline]
+        fn vec_element_sum(vec: Vec3<f32>) -> f32 {
+            let vec = vec.0;
+            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(0.0), 0b00_11_00_01));
+            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
+            _mm_cvtss_f32(vec)
+        }
+
+        #[inline]
+        fn vec_element_product(vec: Vec3<f32>) -> f32 {
+            let vec = vec.0;
+            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(1.0), 0b00_11_00_01));
+            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
+            _mm_cvtss_f32(vec)
+        }
+
+        #[inline]
         fn vec_eq_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
             Mask(_mm_cmpeq_ps(vec.0, other.0))
         }
@@ -128,6 +144,22 @@ impl ScalarBackend<4, Aligned> for f32 {
         #[inline]
         fn vec_rem(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
             Vector(rem(vec.0, rhs.0))
+        }
+
+        #[inline]
+        fn vec_element_sum(vec: Vec4<f32>) -> f32 {
+            let vec = vec.0;
+            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
+            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
+            _mm_cvtss_f32(vec)
+        }
+
+        #[inline]
+        fn vec_element_product(vec: Vec4<f32>) -> f32 {
+            let vec = vec.0;
+            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
+            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
+            _mm_cvtss_f32(vec)
         }
 
         #[inline]
@@ -215,22 +247,6 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
         #[inline]
         fn vec_copysign(vec: Vec3<f32>, sign: Vec3<f32>) -> Vec3<f32> {
             Vector(copysign(vec.0, sign.0))
-        }
-
-        #[inline]
-        fn vec_element_sum(vec: Vec3<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(0.0), 0b00_11_00_01));
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
-        }
-
-        #[inline]
-        fn vec_element_product(vec: Vec3<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(1.0), 0b00_11_00_01));
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
         }
 
         #[inline]
@@ -328,22 +344,6 @@ impl PrimitiveFloatBackend<4, Aligned> for f32 {
         #[inline]
         fn vec_copysign(vec: Vec4<f32>, sign: Vec4<f32>) -> Vec4<f32> {
             Vector(copysign(vec.0, sign.0))
-        }
-
-        #[inline]
-        fn vec_element_sum(vec: Vec4<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
-        }
-
-        #[inline]
-        fn vec_element_product(vec: Vec4<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
         }
 
         #[inline]

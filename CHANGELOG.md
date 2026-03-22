@@ -22,9 +22,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Operator implementations for vector and mask references.
 
 - `Scalar` overridable functions:
+  - `vec_element_sum`
+  - `vec_element_product`
   - `mat_mul_scalar`
   - `mat_mul_vec`
   - `mat_mul`
+
+### Changed
+
+- Expand primitive-only vector functions to any scalar:
+  - `element_sum`
+  - `element_product`
+  - `dot`
+  - `length_squared`
+  - `perp`
+  - `cross`
 
 ## [0.16.3] - 2026-03-14
 
