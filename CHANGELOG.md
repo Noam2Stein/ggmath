@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Matrix multiplication.
+
 - Matrix functions:
   - `from_column_array`
   - `transpose`
@@ -18,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Default` implementation for matrices and affines.
 
 - Operator implementations for vector and mask references.
+
+- `Scalar` overridable functions:
+  - `mat_mul_scalar`
+  - `mat_mul_vec`
+  - `mat_mul`
 
 ## [0.16.3] - 2026-03-14
 

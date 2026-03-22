@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, AddAssign, Deref, DerefMut, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Deref, DerefMut, Mul, MulAssign, Neg, Sub, SubAssign},
     panic::{RefUnwindSafe, UnwindSafe},
 };
 
@@ -1420,6 +1420,332 @@ impl_sub_assign!(
     /// operation, including floating-point precision and integer panics.
     ///
     /// This operation is fully consistent with `mat - mat`.
+);
+
+macro_rules! impl_mul_scalar {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: T) -> Self::Output {
+                &self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &T) -> Self::Output {
+                &self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<T> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: T) -> Self::Output {
+                specialize!(<T as ScalarBackend<N, A>>::mat_mul_scalar(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&T> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Mul<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &T) -> Self::Output {
+                self * *rhs
+            }
+        }
+    };
+}
+impl_mul_scalar!(
+    /// Matrix-scalar multiplication.
+    ///
+    /// Equivalent to `[self.x_axis * rhs, self.y_axis * rhs, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul_assign_scalar {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> MulAssign<T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: T) {
+                *self = &*self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &T) {
+                *self = &*self * *rhs
+            }
+        }
+    };
+}
+impl_mul_assign_scalar!(
+    /// Matrix-scalar multiplication.
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// self.x_axis *= rhs;
+    /// self.y_axis *= rhs;
+    /// ...
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `matrix * scalar`.
+);
+
+macro_rules! impl_mul_vec {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul<Vector<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Vector<N, T, A>) -> Self::Output {
+                &self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Vector<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Vector<N, T, A>) -> Self::Output {
+                &self * *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Vector<N, T, A>> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Vector<N, T, A>) -> Self::Output {
+                specialize!(<T as ScalarBackend<N, A>>::mat_mul_vec(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Vector<N, T, A>> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Vector<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Vector<N, T, A>) -> Self::Output {
+                self * *rhs
+            }
+        }
+    };
+}
+impl_mul_vec!(
+    /// Matrix-vector multiplication.
+    ///
+    /// Because vectors are treated as column matrices, they always go on the
+    /// right-hand side.
+    ///
+    /// Equivalent to `self.x_axis * rhs.x + self.y_axis * rhs.y + ...`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Self) -> Self::Output {
+                &self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Matrix<N, T, A>) -> Self::Output {
+                &self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Matrix<N, T, A>> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Matrix<N, T, A>) -> Self::Output {
+                self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Matrix<N, T, A>> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Matrix<N, T, A>) -> Self::Output {
+                specialize!(<T as ScalarBackend<N, A>>::mat_mul(self, rhs))
+            }
+        }
+    };
+}
+impl_mul!(
+    /// Matrix multiplication.
+    ///
+    /// Because vectors are treated as column matrices, matrix multiplication
+    /// first applies the right-hand side matrix, then the left-hand side
+    /// matrix.
+    ///
+    /// Equivalent to `[self * rhs.x_axis, self * rhs.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul_assign {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> MulAssign for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: Self) {
+                *self = &*self * &rhs;
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&Matrix<N, T, A>> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &Matrix<N, T, A>) {
+                *self = &*self * rhs;
+            }
+        }
+    };
+}
+impl_mul_assign!(
+    /// Matrix multiplication.
+    ///
+    /// Because vectors are treated as column matrices, matrix multiplication
+    /// first applies the right-hand side matrix, then the left-hand side
+    /// matrix.
+    ///
+    /// Equivalent to `self = [self * rhs.x_axis, self * rhs.y_axis, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `matrix * matrix`.
 );
 
 // SAFETY: Matrices are equivalent to values of `T` mixed with padding.
@@ -2919,6 +3245,282 @@ mod tests {
                     Vector::<4, T, A>::new(y - w, x - z, w - x, z - y),
                     Vector::<4, T, A>::new(w - y, z - x, x - w, y - z),
                 ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul_scalar() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(x, y),
+                ]) * w,
+                Matrix::from_columns(&[
+                    Vector::<2, T, A>::new(z * w, w * w),
+                    Vector::<2, T, A>::new(x * w, y * w),
+                ])
+            );
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(z, w, y),
+                    Vector::<3, T, A>::new(x, y, z),
+                ]) * w,
+                Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x * w, y * w, z * w),
+                    Vector::<3, T, A>::new(z * w, w * w, y * w),
+                    Vector::<3, T, A>::new(x * w, y * w, z * w),
+                ])
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(z, w, y, x),
+                    Vector::<4, T, A>::new(y, x, w, z),
+                    Vector::<4, T, A>::new(w, z, x, y),
+                ]) * w,
+                Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x * w, y * w, z * w, w * w),
+                    Vector::<4, T, A>::new(z * w, w * w, y * w, x * w),
+                    Vector::<4, T, A>::new(y * w, x * w, w * w, z * w),
+                    Vector::<4, T, A>::new(w * w, z * w, x * w, y * w),
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul_assign_scalar() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut mat = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x, y),
+            ]);
+            mat *= w;
+            assert_float_eq!(
+                mat,
+                Matrix::from_columns(&[
+                    Vector::<2, T, A>::new(z * w, w * w),
+                    Vector::<2, T, A>::new(x * w, y * w),
+                ])
+            );
+
+            let mut mat = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x, y, z),
+            ]);
+            mat *= w;
+            assert_float_eq!(
+                mat,
+                Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x * w, y * w, z * w),
+                    Vector::<3, T, A>::new(z * w, w * w, y * w),
+                    Vector::<3, T, A>::new(x * w, y * w, z * w),
+                ])
+            );
+
+            let mut mat = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(y, x, w, z),
+                Vector::<4, T, A>::new(w, z, x, y),
+            ]);
+            mat *= w;
+            assert_float_eq!(
+                mat,
+                Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x * w, y * w, z * w, w * w),
+                    Vector::<4, T, A>::new(z * w, w * w, y * w, x * w),
+                    Vector::<4, T, A>::new(y * w, x * w, w * w, z * w),
+                    Vector::<4, T, A>::new(w * w, z * w, x * w, y * w),
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul_vec() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(x, y),
+                ]) * Vector::<2, T, A>::new(x, z),
+                Vector::<2, T, A>::new(x * z + z * x, x * w + z * y)
+            );
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(z, w, y),
+                    Vector::<3, T, A>::new(x, y, w),
+                ]) * Vector::<3, T, A>::new(y, z, x),
+                Vector::<3, T, A>::new(
+                    y * x + z * z + x * x,
+                    y * y + z * w + x * y,
+                    y * z + z * y + x * w
+                )
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(z, w, y, x),
+                    Vector::<4, T, A>::new(y, x, w, z),
+                    Vector::<4, T, A>::new(w, z, x, y),
+                ]) * Vector::<4, T, A>::new(w, x, w, y),
+                Vector::<4, T, A>::new(
+                    w * x + x * z + w * y + y * w,
+                    w * y + x * w + w * x + y * z,
+                    w * z + x * y + w * w + y * x,
+                    w * w + x * x + w * z + y * y
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            if !T::is_finite(x * x * x * x + y * y * y * y + z * z * z * z) {
+                return;
+            }
+
+            let mat = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x, y),
+            ]);
+            let mat2 = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(y, x),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            let vec = Vector::<2, T, A>::new(x, w);
+            assert_float_eq!(
+                mat * mat2 * vec,
+                mat * (mat2 * vec),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x, y, w),
+            ]);
+            let mat2 = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, y),
+                Vector::<3, T, A>::new(z, x, z),
+                Vector::<3, T, A>::new(y, z, x),
+            ]);
+            let vec = Vector::<3, T, A>::new(x, w, y);
+            assert_float_eq!(
+                mat * mat2 * vec,
+                mat * (mat2 * vec),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(y, x, w, z),
+                Vector::<4, T, A>::new(w, z, x, y),
+            ]);
+            let mat2 = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, z, y, x),
+                Vector::<4, T, A>::new(z, w, x, w),
+                Vector::<4, T, A>::new(y, y, x, w),
+                Vector::<4, T, A>::new(w, x, y, y),
+            ]);
+            let vec = Vector::<4, T, A>::new(x, w, y, z);
+            assert_float_eq!(
+                mat * mat2 * vec,
+                mat * (mat2 * vec),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            if !T::is_finite(x * x * x * x + y * y * y * y + z * z * z * z) {
+                return;
+            }
+
+            let mat = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x, y),
+            ]);
+            let mat2 = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(y, x),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            let vec = Vector::<2, T, A>::new(x, w);
+
+            let mut mat12 = mat;
+            mat12 *= mat2;
+            assert_float_eq!(
+                mat12 * vec,
+                mat * (mat2 * vec),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x, y, w),
+            ]);
+            let mat2 = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, y),
+                Vector::<3, T, A>::new(z, x, z),
+                Vector::<3, T, A>::new(y, z, x),
+            ]);
+            let vec = Vector::<3, T, A>::new(x, w, y);
+
+            let mut mat12 = mat;
+            mat12 *= mat2;
+            assert_float_eq!(
+                mat12 * vec,
+                mat * (mat2 * vec),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(y, x, w, z),
+                Vector::<4, T, A>::new(w, z, x, y),
+            ]);
+            let mat2 = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, z, y, x),
+                Vector::<4, T, A>::new(z, w, x, w),
+                Vector::<4, T, A>::new(y, y, x, w),
+                Vector::<4, T, A>::new(w, x, y, y),
+            ]);
+            let vec = Vector::<4, T, A>::new(x, w, y, z);
+
+            let mut mat12 = mat;
+            mat12 *= mat2;
+            assert_float_eq!(
+                mat12 * vec,
+                mat * (mat2 * vec),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
+                0.0 = -0.0
             );
         });
     }

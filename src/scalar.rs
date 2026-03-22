@@ -626,6 +626,46 @@ where
         Matrix::from_column_fn(|i| mat.column(i) - rhs.column(i))
     }
 
+    /// Overridable implementation for the `matrix * scalar` operation.
+    #[inline]
+    #[track_caller]
+    fn mat_mul_scalar(mat: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
+    where
+        Self: Scalar + Mul<Output = Self>,
+    {
+        Matrix::from_column_fn(|i| mat.column(i) * rhs)
+    }
+
+    /// Overridable implementation for the `matrix * vector` operation.
+    #[inline]
+    #[track_caller]
+    fn mat_mul_vec(mat: &Matrix<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: Scalar + Add<Output = Self> + Mul<Output = Self>,
+    {
+        match N {
+            2 => mat.column(0) * rhs[0] + mat.column(1) * rhs[1],
+            3 => mat.column(0) * rhs[0] + mat.column(1) * rhs[1] + mat.column(2) * rhs[2],
+            4 => {
+                mat.column(0) * rhs[0]
+                    + mat.column(1) * rhs[1]
+                    + mat.column(2) * rhs[2]
+                    + mat.column(3) * rhs[3]
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    /// Overridable implementation for the `matrix * matrix` operation.
+    #[inline]
+    #[track_caller]
+    fn mat_mul(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    where
+        Self: Scalar + Add<Output = Self> + Mul<Output = Self>,
+    {
+        Matrix::from_column_fn(|i| mat * rhs.column(i))
+    }
+
     /// Overridable implementation for the `affine == affine` operation.
     #[inline]
     fn affine_eq(affine: &Affine<N, Self, A>, rhs: &Affine<N, Self, A>) -> bool

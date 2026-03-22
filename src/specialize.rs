@@ -1,6 +1,6 @@
 use crate::{
     Affine, Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector,
-    num_primitive::PrimitiveFloat, transmute::transmute_generic,
+    transmute::transmute_generic,
 };
 
 /// Bypasses a type system limitation to perform specialization.
@@ -217,7 +217,7 @@ where
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<T, N, N2, A, A2> for T
 where
-    T: PrimitiveFloat,
+    T: Scalar,
     Length<N>: SupportedLength,
     Length<N2>: SupportedLength,
 {
@@ -360,6 +360,15 @@ where
 {
 }
 
+// SAFETY: `() == ()` regardless of `N` and `A`.
+unsafe impl<const N: usize, const N2: usize, A: Alignment, A2: Alignment>
+    Specialize<(), N, N2, A, A2> for ()
+where
+    Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
 // SAFETY: `(T,) == (T,)`.
 unsafe impl<T, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
     Specialize<(T,), N, N2, A, A2> for (T,)
@@ -450,34 +459,3 @@ where
     Length<N2>: SupportedLength,
 {
 }
-
-macro_rules! impl_concrete_type {
-    ($($T:ty),*$(,)?) => {
-        $(
-            // `$T == $T` regardless of `N` and `A`.
-            unsafe impl<const N: usize, const N2: usize, A: Alignment, A2: Alignment>
-                Specialize<$T, N, N2, A, A2> for $T
-            where
-                Length<N>: SupportedLength,
-                Length<N2>: SupportedLength,
-            {
-            }
-        )*
-    };
-}
-impl_concrete_type!(
-    i8,
-    i16,
-    i32,
-    i64,
-    i128,
-    isize,
-    u8,
-    u16,
-    u32,
-    u64,
-    u128,
-    usize,
-    bool,
-    (),
-);
