@@ -329,6 +329,6 @@ functionality can start being added.
 
 This version completely rewrote the crate.
 
-[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.16.3...HEAD
+[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.16.4...HEAD
 [0.16.4]: https://github.com/Noam2Stein/ggmath/compare/v0.16.3...v0.16.4
 [0.16.3]: https://github.com/Noam2Stein/ggmath/compare/v0.16.2...v0.16.3
