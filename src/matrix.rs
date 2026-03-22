@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, AddAssign, Deref, DerefMut, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     panic::{RefUnwindSafe, UnwindSafe},
 };
 
@@ -1746,6 +1746,128 @@ impl_mul_assign!(
     /// floating-point precision and integer panics.
     ///
     /// This operation is fully consistent with `matrix * matrix`.
+);
+
+macro_rules! impl_div_scalar {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Div<T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: T) -> Self::Output {
+                &self / rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Div<&T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: &T) -> Self::Output {
+                &self / *rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Div<T> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: T) -> Self::Output {
+                specialize!(<T as ScalarBackend<N, A>>::mat_div_scalar(self, rhs))
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Div<&T> for &Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Div<Output = T>,
+        {
+            type Output = Matrix<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div(self, rhs: &T) -> Self::Output {
+                self / *rhs
+            }
+        }
+    };
+}
+impl_div_scalar!(
+    /// Matrix-scalar division.
+    ///
+    /// Equivalent to `[self.x_axis / rhs, self.y_axis / rhs, ...]`.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+);
+
+macro_rules! impl_div_assign_scalar {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> DivAssign<T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Div<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div_assign(&mut self, rhs: T) {
+                *self = &*self / rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> DivAssign<&T> for Matrix<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Div<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn div_assign(&mut self, rhs: &T) {
+                *self = &*self / *rhs
+            }
+        }
+    };
+}
+impl_div_assign_scalar!(
+    /// Matrix-scalar division.
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// self.x_axis /= rhs;
+    /// self.y_axis /= rhs;
+    /// ...
+    /// ```
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is fully consistent with the scalar
+    /// operation, including floating-point precision and integer panics.
+    ///
+    /// This operation is fully consistent with `matrix / scalar`.
 );
 
 // SAFETY: Matrices are equivalent to values of `T` mixed with padding.
@@ -3521,6 +3643,102 @@ mod tests {
                 mat * (mat2 * vec),
                 r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
                 0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_div_scalar() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(x, y),
+                ]) / w,
+                Matrix::from_columns(&[
+                    Vector::<2, T, A>::new(z / w, w / w),
+                    Vector::<2, T, A>::new(x / w, y / w),
+                ])
+            );
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(z, w, y),
+                    Vector::<3, T, A>::new(x, y, z),
+                ]) / w,
+                Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x / w, y / w, z / w),
+                    Vector::<3, T, A>::new(z / w, w / w, y / w),
+                    Vector::<3, T, A>::new(x / w, y / w, z / w),
+                ])
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(z, w, y, x),
+                    Vector::<4, T, A>::new(y, x, w, z),
+                    Vector::<4, T, A>::new(w, z, x, y),
+                ]) / w,
+                Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x / w, y / w, z / w, w / w),
+                    Vector::<4, T, A>::new(z / w, w / w, y / w, x / w),
+                    Vector::<4, T, A>::new(y / w, x / w, w / w, z / w),
+                    Vector::<4, T, A>::new(w / w, z / w, x / w, y / w),
+                ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_div_assign_scalar() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            let mut mat = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(x, y),
+            ]);
+            mat /= w;
+            assert_float_eq!(
+                mat,
+                Matrix::from_columns(&[
+                    Vector::<2, T, A>::new(z / w, w / w),
+                    Vector::<2, T, A>::new(x / w, y / w),
+                ])
+            );
+
+            let mut mat = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x, y, z),
+            ]);
+            mat /= w;
+            assert_float_eq!(
+                mat,
+                Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x / w, y / w, z / w),
+                    Vector::<3, T, A>::new(z / w, w / w, y / w),
+                    Vector::<3, T, A>::new(x / w, y / w, z / w),
+                ])
+            );
+
+            let mut mat = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(y, x, w, z),
+                Vector::<4, T, A>::new(w, z, x, y),
+            ]);
+            mat /= w;
+            assert_float_eq!(
+                mat,
+                Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x / w, y / w, z / w, w / w),
+                    Vector::<4, T, A>::new(z / w, w / w, y / w, x / w),
+                    Vector::<4, T, A>::new(y / w, x / w, w / w, z / w),
+                    Vector::<4, T, A>::new(w / w, z / w, x / w, y / w),
+                ])
             );
         });
     }

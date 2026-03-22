@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Matrix multiplication.
+- Matrix multiplication and scalar division.
 
 - Matrix functions:
   - `from_column_array`

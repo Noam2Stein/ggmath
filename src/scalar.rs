@@ -666,6 +666,16 @@ where
         Matrix::from_column_fn(|i| mat * rhs.column(i))
     }
 
+    /// Overridable implementation for the `matrix / scalar` operation.
+    #[inline]
+    #[track_caller]
+    fn mat_div_scalar(mat: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
+    where
+        Self: Scalar + Div<Output = Self>,
+    {
+        Matrix::from_column_fn(|i| mat.column(i) / rhs)
+    }
+
     /// Overridable implementation for the `affine == affine` operation.
     #[inline]
     fn affine_eq(affine: &Affine<N, Self, A>, rhs: &Affine<N, Self, A>) -> bool
