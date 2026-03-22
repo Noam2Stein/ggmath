@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Matrix function `from_column_array`.
+- Matrix functions:
+  - `from_column_array`
+  - `transpose`
 
 - `Hash` implementation for matrices and affines.
 

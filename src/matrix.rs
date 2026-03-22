@@ -565,6 +565,35 @@ where
         }
     }
 
+    /// Returns the transpose of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat4, Vec4};
+    /// #
+    /// let mat = Mat4::from_columns(&[
+    ///     Vec4::new(1, 1, 1, 0),
+    ///     Vec4::new(2, 2, 2, 0),
+    ///     Vec4::new(3, 3, 3, 0),
+    ///     Vec4::new(4, 4, 4, 1),
+    /// ]);
+    /// assert_eq!(
+    ///     mat.transpose(),
+    ///     Mat4::from_columns(&[
+    ///         Vec4::new(1, 2, 3, 4),
+    ///         Vec4::new(1, 2, 3, 4),
+    ///         Vec4::new(1, 2, 3, 4),
+    ///         Vec4::new(0, 0, 0, 1),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn transpose(self) -> Self {
+        Self::from_column_fn(|i| self.row(i))
+    }
+
     /// Returns the diagonal of `self`.
     ///
     /// # Examples
@@ -2116,6 +2145,50 @@ mod tests {
                 ])
             );
             assert_panic!(mat.clone().set_row(4, Vector::ZERO));
+        });
+    }
+
+    #[test]
+    fn test_transpose() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Matrix::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                ])
+                .transpose(),
+                Matrix::from_columns(&[Vector::<2, T, A>::new(x, z), Vector::<2, T, A>::new(y, w)])
+            );
+            assert_eq!(
+                Matrix::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])
+                .transpose(),
+                Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x, w, c),
+                    Vector::<3, T, A>::new(y, a, d),
+                    Vector::<3, T, A>::new(z, b, e)
+                ])
+            );
+            assert_eq!(
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])
+                .transpose(),
+                Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x, a, e, i),
+                    Vector::<4, T, A>::new(y, b, f, j),
+                    Vector::<4, T, A>::new(z, c, g, k),
+                    Vector::<4, T, A>::new(w, d, h, l)
+                ])
+            );
         });
     }
 
