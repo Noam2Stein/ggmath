@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Matrix functions:
   - `transpose_mul_vec`
   - `mul_diagonal`
+  - `from_scale`
   - `from_translation`
   - `from_submatrix`
   - `from_submatrix_translation`

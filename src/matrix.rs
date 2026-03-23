@@ -893,6 +893,26 @@ where
         ])
     }
 
+    /// Creates an affine transformation matrix from the given 2D `scale`.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_scale(scale: Vector<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(scale.as_array_ref()[0], T::ZERO, T::ZERO),
+            Vector::<3, T, A>::new(T::ZERO, scale.as_array_ref()[1], T::ZERO),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
     /// Creates an affine transformation matrix from the given 2D `translation`.
     ///
     /// The resulting matrix can be used to transform 2D points and vectors. See
@@ -1093,6 +1113,27 @@ where
             Vector::<4, T, A>::new(array[4], array[5], array[6], array[7]),
             Vector::<4, T, A>::new(array[8], array[9], array[10], array[11]),
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
+        ])
+    }
+
+    /// Creates an affine transformation matrix from the given 3D `scale`.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_scale(scale: Vector<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(scale.as_array_ref()[0], T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, scale.as_array_ref()[1], T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale.as_array_ref()[2], T::ZERO),
+            Vector::<4, T, A>::W,
         ])
     }
 
@@ -3306,6 +3347,27 @@ mod tests {
                 ])
             );
         });
+    }
+
+    #[test]
+    fn test_from_scale() {
+        assert_eq!(
+            Mat3::from_scale(Vec2::new(2, 3)).transform_point(Vec2::new(4, 5)),
+            Vec2::new(8, 15)
+        );
+        assert_eq!(
+            Mat3::from_scale(Vec2::new(2, 3)).transform_vector(Vec2::new(4, 5)),
+            Vec2::new(8, 15)
+        );
+
+        assert_eq!(
+            Mat4::from_scale(Vec3::new(2, 3, 4)).transform_point(Vec3::new(5, 6, 7)),
+            Vec3::new(10, 18, 28)
+        );
+        assert_eq!(
+            Mat4::from_scale(Vec3::new(2, 3, 4)).transform_vector(Vec3::new(5, 6, 7)),
+            Vec3::new(10, 18, 28)
+        );
     }
 
     #[test]
