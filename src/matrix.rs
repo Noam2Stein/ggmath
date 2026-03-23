@@ -917,6 +917,109 @@ where
         ])
     }
 
+    /// Creates an affine transformation matrix from the given 2x2 matrix.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_submatrix(submatrix: &Matrix<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(
+                submatrix.column(0).as_array_ref()[0],
+                submatrix.column(0).as_array_ref()[1],
+                T::ZERO,
+            ),
+            Vector::<3, T, A>::new(
+                submatrix.column(1).as_array_ref()[0],
+                submatrix.column(1).as_array_ref()[1],
+                T::ZERO,
+            ),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    /// Creates an affine transformation matrix from the given 2x2 matrix and 2D
+    /// `translation`.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_submatrix_translation(
+        submatrix: &Matrix<2, T, A>,
+        translation: Vector<2, T, A>,
+    ) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(
+                submatrix.column(0).as_array_ref()[0],
+                submatrix.column(0).as_array_ref()[1],
+                T::ZERO,
+            ),
+            Vector::<3, T, A>::new(
+                submatrix.column(1).as_array_ref()[0],
+                submatrix.column(1).as_array_ref()[1],
+                T::ZERO,
+            ),
+            Vector::<3, T, A>::new(
+                translation.as_array_ref()[0],
+                translation.as_array_ref()[1],
+                T::ONE,
+            ),
+        ])
+    }
+
+    /// Returns a 2x2 matrix discarding the third column and row.
+    #[inline]
+    #[must_use]
+    pub const fn submatrix(&self) -> Matrix<2, T, A> {
+        Matrix::from_columns(&[
+            Vector::<2, T, A>::new(
+                self.column(0).as_array_ref()[0],
+                self.column(0).as_array_ref()[1],
+            ),
+            Vector::<2, T, A>::new(
+                self.column(1).as_array_ref()[0],
+                self.column(1).as_array_ref()[1],
+            ),
+        ])
+    }
+
+    /// Returns a 2x2 matrix discarding the given `column` and `row`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `column` or `row` are greater than `2`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn remove(&self, column: usize, row: usize) -> Matrix<2, T, A> {
+        match (column, row) {
+            (0, 0) => Matrix::from_columns(&[self.y_axis.yz(), self.z_axis.yz()]),
+            (0, 1) => Matrix::from_columns(&[self.y_axis.xz(), self.z_axis.xz()]),
+            (0, 2) => Matrix::from_columns(&[self.y_axis.xy(), self.z_axis.xy()]),
+            (1, 0) => Matrix::from_columns(&[self.x_axis.yz(), self.z_axis.yz()]),
+            (1, 1) => Matrix::from_columns(&[self.x_axis.xz(), self.z_axis.xz()]),
+            (1, 2) => Matrix::from_columns(&[self.x_axis.xy(), self.z_axis.xy()]),
+            (2, 0) => Matrix::from_columns(&[self.x_axis.yz(), self.y_axis.yz()]),
+            (2, 1) => Matrix::from_columns(&[self.x_axis.xz(), self.y_axis.xz()]),
+            (2, 2) => Matrix::from_columns(&[self.x_axis.xy(), self.y_axis.xy()]),
+            _ => panic!("index out of bounds"),
+        }
+    }
+
     /// Transforms the given 2D vector as a point.
     ///
     /// Equivalent to `self * (point, 1)` but is faster.
@@ -1017,6 +1120,172 @@ where
                 T::ONE,
             ),
         ])
+    }
+
+    /// Creates an affine transformation matrix from the given 3x3 matrix.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_submatrix(submatrix: &Matrix<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(
+                submatrix.column(0).as_array_ref()[0],
+                submatrix.column(0).as_array_ref()[1],
+                submatrix.column(0).as_array_ref()[2],
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                submatrix.column(1).as_array_ref()[0],
+                submatrix.column(1).as_array_ref()[1],
+                submatrix.column(1).as_array_ref()[2],
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                submatrix.column(2).as_array_ref()[0],
+                submatrix.column(2).as_array_ref()[1],
+                submatrix.column(2).as_array_ref()[2],
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::W,
+        ])
+    }
+
+    /// Creates an affine transformation matrix from the given 3x3 matrix and 3D
+    /// `translation`.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_submatrix_translation(
+        submatrix: &Matrix<3, T, A>,
+        translation: Vector<3, T, A>,
+    ) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(
+                submatrix.column(0).as_array_ref()[0],
+                submatrix.column(0).as_array_ref()[1],
+                submatrix.column(0).as_array_ref()[2],
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                submatrix.column(1).as_array_ref()[0],
+                submatrix.column(1).as_array_ref()[1],
+                submatrix.column(1).as_array_ref()[2],
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                submatrix.column(2).as_array_ref()[0],
+                submatrix.column(2).as_array_ref()[1],
+                submatrix.column(2).as_array_ref()[2],
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                translation.as_array_ref()[0],
+                translation.as_array_ref()[1],
+                translation.as_array_ref()[2],
+                T::ONE,
+            ),
+        ])
+    }
+
+    /// Returns a 3x3 matrix discarding the fourth column and row.
+    #[inline]
+    #[must_use]
+    pub const fn submatrix(&self) -> Matrix<3, T, A> {
+        Matrix::from_columns(&[
+            Vector::<3, T, A>::new(
+                self.column(0).as_array_ref()[0],
+                self.column(0).as_array_ref()[1],
+                self.column(0).as_array_ref()[2],
+            ),
+            Vector::<3, T, A>::new(
+                self.column(1).as_array_ref()[0],
+                self.column(1).as_array_ref()[1],
+                self.column(1).as_array_ref()[2],
+            ),
+            Vector::<3, T, A>::new(
+                self.column(2).as_array_ref()[0],
+                self.column(2).as_array_ref()[1],
+                self.column(2).as_array_ref()[2],
+            ),
+        ])
+    }
+
+    /// Returns a 3x3 matrix discarding the given `column` and `row`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `column` or `row` are greater than `3`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn remove(&self, column: usize, row: usize) -> Matrix<3, T, A> {
+        match (column, row) {
+            (0, 0) => {
+                Matrix::from_columns(&[self.y_axis.yzw(), self.z_axis.yzw(), self.w_axis.yzw()])
+            }
+            (0, 1) => {
+                Matrix::from_columns(&[self.y_axis.xzw(), self.z_axis.xzw(), self.w_axis.xzw()])
+            }
+            (0, 2) => {
+                Matrix::from_columns(&[self.y_axis.xyw(), self.z_axis.xyw(), self.w_axis.xyw()])
+            }
+            (0, 3) => {
+                Matrix::from_columns(&[self.y_axis.xyz(), self.z_axis.xyz(), self.w_axis.xyz()])
+            }
+            (1, 0) => {
+                Matrix::from_columns(&[self.x_axis.yzw(), self.z_axis.yzw(), self.w_axis.yzw()])
+            }
+            (1, 1) => {
+                Matrix::from_columns(&[self.x_axis.xzw(), self.z_axis.xzw(), self.w_axis.xzw()])
+            }
+            (1, 2) => {
+                Matrix::from_columns(&[self.x_axis.xyw(), self.z_axis.xyw(), self.w_axis.xyw()])
+            }
+            (1, 3) => {
+                Matrix::from_columns(&[self.x_axis.xyz(), self.z_axis.xyz(), self.w_axis.xyz()])
+            }
+            (2, 0) => {
+                Matrix::from_columns(&[self.x_axis.yzw(), self.y_axis.yzw(), self.w_axis.yzw()])
+            }
+            (2, 1) => {
+                Matrix::from_columns(&[self.x_axis.xzw(), self.y_axis.xzw(), self.w_axis.xzw()])
+            }
+            (2, 2) => {
+                Matrix::from_columns(&[self.x_axis.xyw(), self.y_axis.xyw(), self.w_axis.xyw()])
+            }
+            (2, 3) => {
+                Matrix::from_columns(&[self.x_axis.xyz(), self.y_axis.xyz(), self.w_axis.xyz()])
+            }
+            (3, 0) => {
+                Matrix::from_columns(&[self.x_axis.yzw(), self.y_axis.yzw(), self.z_axis.yzw()])
+            }
+            (3, 1) => {
+                Matrix::from_columns(&[self.x_axis.xzw(), self.y_axis.xzw(), self.z_axis.xzw()])
+            }
+            (3, 2) => {
+                Matrix::from_columns(&[self.x_axis.xyw(), self.y_axis.xyw(), self.z_axis.xyw()])
+            }
+            (3, 3) => {
+                Matrix::from_columns(&[self.x_axis.xyz(), self.y_axis.xyz(), self.z_axis.xyz()])
+            }
+            _ => panic!("index out of bounds"),
+        }
     }
 
     /// Transforms the given 3D vector as a point.
@@ -3058,6 +3327,127 @@ mod tests {
             Mat4::from_translation(Vec3::new(1, 2, 3)).transform_vector(Vec3::new(4, 5, 6)),
             Vec3::new(4, 5, 6)
         );
+    }
+
+    #[test]
+    fn test_from_submatrix() {
+        assert_eq!(
+            Mat3::from_submatrix(&Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)])),
+            Mat3::from_columns(&[Vec3::new(1, 2, 0), Vec3::new(3, 4, 0), Vec3::new(0, 0, 1)])
+        );
+        assert_eq!(
+            Mat4::from_submatrix(&Mat3::from_columns(&[
+                Vec3::new(1, 2, 3),
+                Vec3::new(4, 5, 6),
+                Vec3::new(7, 8, 9)
+            ])),
+            Mat4::from_columns(&[
+                Vec4::new(1, 2, 3, 0),
+                Vec4::new(4, 5, 6, 0),
+                Vec4::new(7, 8, 9, 0),
+                Vec4::new(0, 0, 0, 1)
+            ])
+        );
+    }
+
+    #[test]
+    fn test_from_submatrix_translation() {
+        assert_eq!(
+            Mat3::from_submatrix_translation(
+                &Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
+                Vec2::new(5, 6)
+            ),
+            Mat3::from_columns(&[Vec3::new(1, 2, 0), Vec3::new(3, 4, 0), Vec3::new(5, 6, 1)])
+        );
+        assert_eq!(
+            Mat4::from_submatrix_translation(
+                &Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]),
+                Vec3::new(10, 11, 12)
+            ),
+            Mat4::from_columns(&[
+                Vec4::new(1, 2, 3, 0),
+                Vec4::new(4, 5, 6, 0),
+                Vec4::new(7, 8, 9, 0),
+                Vec4::new(10, 11, 12, 1)
+            ])
+        );
+    }
+
+    #[test]
+    fn test_submatrix() {
+        assert_eq!(
+            Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)])
+                .submatrix(),
+            Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(4, 5)])
+        );
+        assert_eq!(
+            Mat4::from_columns(&[
+                Vec4::new(1, 2, 3, 4),
+                Vec4::new(5, 6, 7, 8),
+                Vec4::new(9, 10, 11, 12),
+                Vec4::new(13, 14, 15, 16)
+            ])
+            .submatrix(),
+            Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(5, 6, 7), Vec3::new(9, 10, 11)])
+        );
+    }
+
+    #[test]
+    fn test_remove() {
+        let mat = Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
+
+        assert_panic!(mat.remove(1, 3));
+        assert_panic!(mat.remove(3, 1));
+
+        for column in 0..3 {
+            for row in 0..3 {
+                let columns = match column {
+                    0 => [mat.column(1), mat.column(2)],
+                    1 => [mat.column(0), mat.column(2)],
+                    2 => [mat.column(0), mat.column(1)],
+                    _ => unreachable!(),
+                };
+                let columns = match row {
+                    0 => columns.map(|c| c.yz()),
+                    1 => columns.map(|c| c.xz()),
+                    2 => columns.map(|c| c.xy()),
+                    _ => unreachable!(),
+                };
+
+                assert_eq!(mat.remove(column, row), Mat2::from_columns(&columns));
+            }
+        }
+
+        let mat = Mat4::from_columns(&[
+            Vec4::new(1, 2, 3, 4),
+            Vec4::new(5, 6, 7, 8),
+            Vec4::new(9, 10, 11, 12),
+            Vec4::new(13, 14, 15, 16),
+        ]);
+
+        assert_panic!(mat.remove(1, 4));
+        assert_panic!(mat.remove(4, 1));
+
+        for column in 0..4 {
+            for row in 0..4 {
+                let columns = match column {
+                    0 => [mat.column(1), mat.column(2), mat.column(3)],
+                    1 => [mat.column(0), mat.column(2), mat.column(3)],
+                    2 => [mat.column(0), mat.column(1), mat.column(3)],
+                    3 => [mat.column(0), mat.column(1), mat.column(2)],
+                    _ => unreachable!(),
+                };
+                let columns = match row {
+                    0 => columns.map(|c| c.yzw()),
+                    1 => columns.map(|c| c.xzw()),
+                    2 => columns.map(|c| c.xyw()),
+                    3 => columns.map(|c| c.xyz()),
+                    _ => unreachable!(),
+                };
+
+                assert_eq!(mat.remove(column, row), Mat3::from_columns(&columns));
+            }
+        }
     }
 
     #[test]
