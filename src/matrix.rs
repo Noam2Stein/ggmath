@@ -663,6 +663,20 @@ where
         }
     }
 
+    /// Multiplies `self` by a scaling vector `scale`.
+    ///
+    /// Equivalent to `self * Matrix::from_diagonal(scale)` but is faster. This
+    /// may be inconsistent for NaNs and `-0.0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn mul_diagonal(&self, scale: Vector<N, T, A>) -> Self
+    where
+        T: Mul<Output = T>,
+    {
+        Self::from_column_fn(|i| self.column(i) * scale[i])
+    }
+
     /// Raw transmutation between scalar types.
     ///
     /// This function's signature staticly guarantees that the types have
@@ -2733,6 +2747,53 @@ mod tests {
                 ])
                 .diagonal(),
                 Vector::<4, T, A>::new(x, b, g, l)
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul_diagonal() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            if !T::is_finite(x * x) || !T::is_finite(y * y) || !T::is_finite(z * z) {
+                return;
+            }
+
+            let mat = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            let scale = Vector::<2, T, A>::new(x, z);
+            assert_float_eq!(
+                mat.mul_diagonal(scale),
+                mat * Matrix::from_diagonal(scale),
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x, z, y),
+            ]);
+            let scale = Vector::<3, T, A>::new(z, y, w);
+            assert_float_eq!(
+                mat.mul_diagonal(scale),
+                mat * Matrix::from_diagonal(scale),
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x, z, y, z),
+                Vector::<4, T, A>::new(y, y, z, x),
+            ]);
+            let scale = Vector::<4, T, A>::new(z, y, w, z);
+            assert_float_eq!(
+                mat.mul_diagonal(scale),
+                mat * Matrix::from_diagonal(scale),
+                0.0 = -0.0
             );
         });
     }
