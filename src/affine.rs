@@ -14,6 +14,8 @@ use crate::{
     transmute::{transmute_generic, transmute_mut, transmute_ref},
 };
 
+mod float;
+
 /// An `N`-dimensional affine transform which can represent translation,
 /// rotation, scaling and shear of type `T`.
 ///

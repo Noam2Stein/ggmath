@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `transpose_mul_vec`
   - `mul_diagonal`
 
+- `abs_diff_eq` for all floating-point types.
+
 ## [0.16.4] - 2026-03-22
 
 ### Added

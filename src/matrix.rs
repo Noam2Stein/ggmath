@@ -15,6 +15,7 @@ use crate::{
 };
 
 mod constructor;
+mod float;
 
 /// An `N`x`N` column-major matrix of type `T`.
 ///

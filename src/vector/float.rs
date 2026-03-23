@@ -1326,6 +1326,20 @@ where
             Self::ZERO
         }
     }
+
+    /// Returns `true` if the absolute difference of all elements between `self`
+    /// and `other` is less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two vectors that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
+    #[inline]
+    #[must_use]
+    pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
+        (self - other)
+            .abs()
+            .le_mask(Self::splat(max_abs_diff))
+            .all()
+    }
 }
 
 #[expect(private_bounds)]
@@ -1738,7 +1752,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Mask, Vector,
+        Mask, Vec2, Vector,
         test_utils::{assert_float_eq, assert_panic, float_eq, for_parameters},
     };
 
@@ -3672,6 +3686,18 @@ mod tests {
                         .refract(Vector::<4, T, A>::Y * 2.0, T::recip(1.5))
                 );
             }
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_parameters!(|T: PrimitiveFloat| {
+            assert!(Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.0, 1.0), 0.125));
+            assert!(Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.1, 0.9), 0.125));
+            assert!(Vec2::<T>::new(5.0, 1.0).abs_diff_eq(Vec2::new(4.9, 1.0), 0.125));
+            assert!(!Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.2, 1.0), 0.125));
+            assert!(!Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.1, 0.8), 0.125));
+            assert!(!Vec2::<T>::new(5.0, 1.0).abs_diff_eq(Vec2::new(4.5, 0.0), 0.125));
         });
     }
 

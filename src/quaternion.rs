@@ -10,6 +10,8 @@ use crate::{
     transmute::{transmute_mut, transmute_ref},
 };
 
+mod float;
+
 /// A quaternion representing an orientation of type `T`.
 ///
 /// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See

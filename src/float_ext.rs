@@ -10,12 +10,25 @@ pub trait FloatExt {
     /// linearly extrapolated.
     #[must_use]
     fn lerp(self, other: Self, t: Self) -> Self;
+
+    /// Returns `true` if the absolute difference between `self` and `other` is
+    /// less than or equal to `max_abs_diff`.
+    ///
+    /// This can be used to compare two values that should be equal, but may
+    /// have a slight difference due to operations having rounding errors.
+    #[must_use]
+    fn abs_diff_eq(self, other: Self, max_abs_diff: Self) -> bool;
 }
 
 impl<T: PrimitiveFloat> FloatExt for T {
     #[inline]
     fn lerp(self, other: Self, t: Self) -> Self {
         self * (T::as_from(1.0) - t) + other * t
+    }
+
+    #[inline]
+    fn abs_diff_eq(self, other: Self, max_abs_diff: Self) -> bool {
+        (self - other).abs() <= max_abs_diff
     }
 }
 
@@ -36,6 +49,18 @@ mod tests {
             assert_float_eq!(x.lerp(y, 0.0), x, 0.0 = -0.0);
             assert_float_eq!(x.lerp(y, 0.5), x * 0.5 + y * 0.5, 0.0 = -0.0);
             assert_float_eq!(x.lerp(y, 1.0), y, 0.0 = -0.0);
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_parameters!(|T: PrimitiveFloat| {
+            assert!(T::abs_diff_eq(0.0, 0.0, 0.125));
+            assert!(T::abs_diff_eq(0.0, 0.1, 0.125));
+            assert!(T::abs_diff_eq(5.0, 4.9, 0.125));
+            assert!(!T::abs_diff_eq(0.0, 1.0, 0.125));
+            assert!(!T::abs_diff_eq(0.0, 0.9, 0.125));
+            assert!(!T::abs_diff_eq(5.0, 3.9, 0.125));
         });
     }
 }
