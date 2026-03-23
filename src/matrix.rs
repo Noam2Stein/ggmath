@@ -893,6 +893,30 @@ where
         ])
     }
 
+    /// Creates an affine transformation matrix from the given 2D `translation`.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_translation(translation: Vector<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<3, T, A>::X,
+            Vector::<3, T, A>::Y,
+            Vector::<3, T, A>::new(
+                translation.as_array_ref()[0],
+                translation.as_array_ref()[1],
+                T::ONE,
+            ),
+        ])
+    }
+
     /// Transforms the given 2D vector as a point.
     ///
     /// Equivalent to `self * (point, 1)` but is faster.
@@ -966,6 +990,32 @@ where
             Vector::<4, T, A>::new(array[4], array[5], array[6], array[7]),
             Vector::<4, T, A>::new(array[8], array[9], array[10], array[11]),
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
+        ])
+    }
+
+    /// Creates an affine transformation matrix from the given 3D `translation`.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    pub const fn from_translation(translation: Vector<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_columns(&[
+            Vector::<4, T, A>::X,
+            Vector::<4, T, A>::Y,
+            Vector::<4, T, A>::Z,
+            Vector::<4, T, A>::new(
+                translation.as_array_ref()[0],
+                translation.as_array_ref()[1],
+                translation.as_array_ref()[2],
+                T::ONE,
+            ),
         ])
     }
 
@@ -2987,6 +3037,27 @@ mod tests {
                 ])
             );
         });
+    }
+
+    #[test]
+    fn test_from_translation() {
+        assert_eq!(
+            Mat3::from_translation(Vec2::new(1, 2)).transform_point(Vec2::new(3, 4)),
+            Vec2::new(4, 6)
+        );
+        assert_eq!(
+            Mat3::from_translation(Vec2::new(1, 2)).transform_vector(Vec2::new(3, 4)),
+            Vec2::new(3, 4)
+        );
+
+        assert_eq!(
+            Mat4::from_translation(Vec3::new(1, 2, 3)).transform_point(Vec3::new(4, 5, 6)),
+            Vec3::new(5, 7, 9)
+        );
+        assert_eq!(
+            Mat4::from_translation(Vec3::new(1, 2, 3)).transform_vector(Vec3::new(4, 5, 6)),
+            Vec3::new(4, 5, 6)
+        );
     }
 
     #[test]
