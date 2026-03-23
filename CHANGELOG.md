@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Matrix functions:
   - `transpose_mul_vec`
   - `mul_diagonal`
+  - `transform_point`
+  - `transform_vector`
 
 - `abs_diff_eq` for all floating-point types.
 

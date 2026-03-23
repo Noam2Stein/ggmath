@@ -892,6 +892,56 @@ where
             Vector::<3, T, A>::new(array[6], array[7], array[8]),
         ])
     }
+
+    /// Transforms the given 2D vector as a point.
+    ///
+    /// Equivalent to `self * (point, 1)` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the third row must
+    /// be `(0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the third row of `self` is not `(0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<2, T, A>) -> Vector<2, T, A>
+    where
+        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
+    {
+        #[cfg(assertions)]
+        assert!(self.row(2) == Vector::<3, T, A>::Z);
+
+        self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
+    }
+
+    /// Transforms the given 2D vector without applying translation.
+    ///
+    /// Equivalent to `self * (vector, 0)` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the third row must
+    /// be `(0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the third row of `self` is not `(0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<2, T, A>) -> Vector<2, T, A>
+    where
+        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
+    {
+        #[cfg(assertions)]
+        assert!(self.row(2) == Vector::<3, T, A>::Z);
+
+        self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
+    }
 }
 
 impl<T, A: Alignment> Matrix<4, T, A>
@@ -917,6 +967,60 @@ where
             Vector::<4, T, A>::new(array[8], array[9], array[10], array[11]),
             Vector::<4, T, A>::new(array[12], array[13], array[14], array[15]),
         ])
+    }
+
+    /// Transforms the given 3D vector as a point.
+    ///
+    /// Equivalent to `self * (point, 1)` but is faster. This does not perform a
+    /// perspective divide.
+    ///
+    /// `self` must contain a valid affine transform, meaning the fourth row
+    /// must be `(0, 0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the fourth row of `self` is not `(0, 0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A>
+    where
+        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
+    {
+        #[cfg(assertions)]
+        assert!(self.row(3) == Vector::<4, T, A>::W);
+
+        self.x_axis.xyz() * point.x
+            + self.y_axis.xyz() * point.y
+            + self.z_axis.xyz() * point.z
+            + self.w_axis.xyz()
+    }
+
+    /// Transforms the given 3D vector without applying translation.
+    ///
+    /// Equivalent to `self * (vector, 0)` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the fourth row
+    /// must be `(0, 0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the fourth row of `self` is not `(0, 0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<3, T, A>) -> Vector<3, T, A>
+    where
+        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
+    {
+        #[cfg(assertions)]
+        assert!(self.row(3) == Vector::<4, T, A>::W);
+
+        self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
     }
 }
 
@@ -1942,7 +2046,8 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec3, Vec4, Vector,
+        Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4,
+        Vector,
         test_utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
@@ -2882,6 +2987,76 @@ mod tests {
                 ])
             );
         });
+    }
+
+    #[test]
+    fn test_transform_point() {
+        assert_eq!(
+            Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 0), Vec3::new(6, 7, 1)])
+                .transform_point(Vec2::new(-1, -2)),
+            Vec2::new(-4, -6)
+        );
+        assert_eq!(
+            Mat4::from_columns(&[
+                Vec4::new(2, 3, 4, 0),
+                Vec4::new(5, 6, 7, 0),
+                Vec4::new(8, 9, 10, 0),
+                Vec4::new(11, 12, 13, 1)
+            ])
+            .transform_point(Vec3::new(-1, -2, -3)),
+            Vec3::new(-25, -30, -35)
+        );
+
+        if cfg!(assertions) {
+            assert_panic!(
+                Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
+                    .transform_point(Vec2::new(-1, -2))
+            );
+            assert_panic!(
+                Mat4::from_columns(&[
+                    Vec4::new(2, 3, 4, 0),
+                    Vec4::new(5, 6, 7, 0),
+                    Vec4::new(8, 9, 10, 1),
+                    Vec4::new(11, 12, 13, 1)
+                ])
+                .transform_point(Vec3::new(-1, -2, -3))
+            );
+        }
+    }
+
+    #[test]
+    fn test_transform_vector() {
+        assert_eq!(
+            Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 0), Vec3::new(6, 7, 1)])
+                .transform_vector(Vec2::new(-1, -2)),
+            Vec2::new(-10, -13)
+        );
+        assert_eq!(
+            Mat4::from_columns(&[
+                Vec4::new(2, 3, 4, 0),
+                Vec4::new(5, 6, 7, 0),
+                Vec4::new(8, 9, 10, 0),
+                Vec4::new(11, 12, 13, 1)
+            ])
+            .transform_vector(Vec3::new(-1, -2, -3)),
+            Vec3::new(-36, -42, -48)
+        );
+
+        if cfg!(assertions) {
+            assert_panic!(
+                Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
+                    .transform_vector(Vec2::new(-1, -2))
+            );
+            assert_panic!(
+                Mat4::from_columns(&[
+                    Vec4::new(2, 3, 4, 0),
+                    Vec4::new(5, 6, 7, 0),
+                    Vec4::new(8, 9, 10, 1),
+                    Vec4::new(11, 12, 13, 1)
+                ])
+                .transform_vector(Vec3::new(-1, -2, -3))
+            );
+        }
     }
 
     #[test]
