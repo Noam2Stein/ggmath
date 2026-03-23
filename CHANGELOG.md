@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Matrix functions:
+  - `transpose_mul_vec`
+
 ## [0.16.4] - 2026-03-22
 
 ### Added

@@ -595,6 +595,20 @@ where
         Self::from_column_fn(|i| self.row(i))
     }
 
+    /// Transforms the vector `rhs` by the transpose of `self`.
+    ///
+    /// Equivalent to `self.transpose() * rhs` but is faster and may return a
+    /// slightly different value.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transpose_mul_vec(&self, rhs: Vector<N, T, A>) -> Vector<N, T, A>
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Vector::from_fn(|i| self.column(i).dot(rhs))
+    }
+
     /// Returns the diagonal of `self`.
     ///
     /// # Examples
@@ -2637,6 +2651,53 @@ mod tests {
                     Vector::<4, T, A>::new(z, c, g, k),
                     Vector::<4, T, A>::new(w, d, h, l)
                 ])
+            );
+        });
+    }
+
+    #[test]
+    fn test_transpose_mul_vec() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            if !T::is_finite(x * x) || !T::is_finite(y * y) || !T::is_finite(z * z) {
+                return;
+            }
+
+            let mat = Matrix::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+            ]);
+            let vec = Vector::<2, T, A>::new(x, z);
+            assert_float_eq!(
+                mat.transpose_mul_vec(vec),
+                mat.transpose() * vec,
+                abs <= Vector::splat((x * x).max(y * y).max(z * z)) * 1e-6
+            );
+
+            let mat = Matrix::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(z, w, y),
+                Vector::<3, T, A>::new(x, z, y),
+            ]);
+            let vec = Vector::<3, T, A>::new(z, y, w);
+            assert_float_eq!(
+                mat.transpose_mul_vec(vec),
+                mat.transpose() * vec,
+                abs <= Vector::splat((x * x).max(y * y).max(z * z)) * 1e-6
+            );
+
+            let mat = Matrix::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(z, w, y, x),
+                Vector::<4, T, A>::new(x, z, y, z),
+                Vector::<4, T, A>::new(y, y, z, x),
+            ]);
+            let vec = Vector::<4, T, A>::new(z, y, w, z);
+            assert_float_eq!(
+                mat.transpose_mul_vec(vec),
+                mat.transpose() * vec,
+                abs <= Vector::splat((x * x).max(y * y).max(z * z)) * 1e-6
             );
         });
     }
