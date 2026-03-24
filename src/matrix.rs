@@ -678,6 +678,66 @@ where
         Self::from_column_fn(|i| self.column(i) * scale[i])
     }
 
+    /// Returns the determinant of `self`.
+    ///
+    /// # Consistency
+    ///
+    /// Floating-point precision and integer overflow may be inconsistent across
+    /// target architectures.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat3, Vec2};
+    /// #
+    /// let mat = Mat3::from_scale(Vec2::new(2, 2));
+    ///
+    /// assert_eq!(mat.determinant(), 4);
+    /// ```
+    #[must_use]
+    #[track_caller]
+    pub fn determinant(&self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        match N {
+            2 => {
+                // SAFETY: Because `N == 2`, `Matrix<N, T, A>` is `Matrix<2, T, A>`.
+                let mat = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self) };
+
+                mat.x_axis.x * mat.y_axis.y - mat.x_axis.y * mat.y_axis.x
+            }
+            3 => {
+                // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is `Matrix<3, T, A>`.
+                let mat = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self) };
+
+                mat.x_axis.cross(mat.y_axis).dot(mat.z_axis)
+            }
+            4 => {
+                // SAFETY: Because `N == 4`, `Matrix<N, T, A>` is `Matrix<4, T, A>`.
+                let mat = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self) };
+
+                let [m00, m01, m02, m03] = mat.x_axis.to_array();
+                let [m10, m11, m12, m13] = mat.y_axis.to_array();
+                let [m20, m21, m22, m23] = mat.z_axis.to_array();
+                let [m30, m31, m32, m33] = mat.w_axis.to_array();
+
+                let a2323 = m22 * m33 - m23 * m32;
+                let a1323 = m21 * m33 - m23 * m31;
+                let a1223 = m21 * m32 - m22 * m31;
+                let a0323 = m20 * m33 - m23 * m30;
+                let a0223 = m20 * m32 - m22 * m30;
+                let a0123 = m20 * m31 - m21 * m30;
+
+                m00 * (m11 * a2323 - m12 * a1323 + m13 * a1223)
+                    - m01 * (m10 * a2323 - m12 * a0323 + m13 * a0223)
+                    + m02 * (m10 * a1323 - m11 * a0323 + m13 * a0123)
+                    - m03 * (m10 * a1223 - m11 * a0223 + m12 * a0123)
+            }
+            _ => unreachable!(),
+        }
+    }
+
     /// Raw transmutation between scalar types.
     ///
     /// This function's signature staticly guarantees that the types have
@@ -3259,6 +3319,53 @@ mod tests {
             assert_float_eq!(
                 mat.mul_diagonal(scale),
                 mat * Matrix::from_diagonal(scale),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_determinant() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a, b] = [x + y, x + z, y + z];
+            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
+            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
+            let [i, j, k, l] = [c + d, c + e, d + f, f + g];
+
+            assert_float_eq!(
+                Matrix::<2, T, A>::from_column_array(&[x, y, z, w]).determinant(),
+                x * w - y * z
+            );
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 1000.0
+                || y.abs() > 1000.0
+                || z.abs() > 1000.0
+            {
+                return;
+            }
+
+            let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
+            assert_float_eq!(
+                mat.determinant(),
+                x * mat.remove(0, 0).determinant() - y * mat.remove(0, 1).determinant()
+                    + z * mat.remove(0, 2).determinant(),
+                abs <= mat.determinant().abs() * 1e-4 + 1e-4,
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<4, T, A>::from_column_array(&[
+                x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
+            ]);
+            assert_float_eq!(
+                mat.determinant(),
+                x * mat.remove(0, 0).determinant() - y * mat.remove(0, 1).determinant()
+                    + z * mat.remove(0, 2).determinant()
+                    - w * mat.remove(0, 3).determinant(),
+                abs <= mat.determinant().abs() * 1e-4 + 1e-4,
                 0.0 = -0.0
             );
         });
