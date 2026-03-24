@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `remove`
   - `transform_point`
   - `transform_vector`
+  - `is_nan`
+  - `is_finite`
+  - `recip`
+  - `abs`
 
 - `abs_diff_eq` for all floating-point types.
 
