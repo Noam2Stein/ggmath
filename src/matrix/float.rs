@@ -431,6 +431,8 @@ where
     ///
     /// This rotates `+X` to `+Y`.
     #[cfg(backend)]
+    #[inline]
+    #[must_use]
     pub fn from_angle(angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self::from_columns(&[
@@ -444,6 +446,8 @@ where
     ///
     /// This rotates `+X` to `+Y`.
     #[cfg(backend)]
+    #[inline]
+    #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self::from_columns(&[
@@ -463,6 +467,8 @@ where
     ///
     /// This rotates `+X` to `+Y`.
     #[cfg(backend)]
+    #[inline]
+    #[must_use]
     pub fn from_angle(angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self::from_columns(&[
@@ -477,6 +483,8 @@ where
     ///
     /// This rotates `+X` to `+Y`.
     #[cfg(backend)]
+    #[inline]
+    #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self::from_columns(&[
@@ -491,6 +499,8 @@ where
     ///
     /// This rotates `+X` to `+Y`.
     #[cfg(backend)]
+    #[inline]
+    #[must_use]
     pub fn from_scale_angle_translation(
         scale: Vector<2, T, A>,
         angle: T,
