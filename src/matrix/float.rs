@@ -503,6 +503,111 @@ where
             Vector::<3, T, A>::new(translation.x, translation.y, T::as_from(1.0)),
         ])
     }
+
+    /// Creates a 3D rotation matrix from `angle` (in radians) around the x
+    /// axis.
+    ///
+    /// This rotates `+Y` to `+Z`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_x(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<3, T, A>::X,
+            Vector::<3, T, A>::new(T::as_from(0.0), cos, sin),
+            Vector::<3, T, A>::new(T::as_from(0.0), -sin, cos),
+        ])
+    }
+
+    /// Creates a 3D rotation matrix from `angle` (in radians) around the y
+    /// axis.
+    ///
+    /// This rotates `+Z` to `+X`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_y(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(cos, T::as_from(0.0), -sin),
+            Vector::<3, T, A>::Y,
+            Vector::<3, T, A>::new(sin, T::as_from(0.0), cos),
+        ])
+    }
+
+    /// Creates a 3D rotation matrix from `angle` (in radians) around the z
+    /// axis.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_z(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(cos, sin, T::as_from(0.0)),
+            Vector::<3, T, A>::new(-sin, cos, T::as_from(0.0)),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+}
+
+#[expect(private_bounds)]
+impl<T, A: Alignment> Matrix<4, T, A>
+where
+    T: Scalar + PrimitiveFloat,
+{
+    /// Creates an affine transformation matrix containing a 3D rotation from
+    /// `angle` (in radians) around the x axis.
+    ///
+    /// This rotates `+Y` to `+Z`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_x(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<4, T, A>::X,
+            Vector::<4, T, A>::new(T::as_from(0.0), cos, sin, T::as_from(0.0)),
+            Vector::<4, T, A>::new(T::as_from(0.0), -sin, cos, T::as_from(0.0)),
+            Vector::<4, T, A>::W,
+        ])
+    }
+
+    /// Creates an affine transformation matrix containing a 3D rotation from
+    /// `angle` (in radians) around the y axis.
+    ///
+    /// This rotates `+Z` to `+X`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_y(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(cos, T::as_from(0.0), -sin, T::as_from(0.0)),
+            Vector::<4, T, A>::Y,
+            Vector::<4, T, A>::new(sin, T::as_from(0.0), cos, T::as_from(0.0)),
+            Vector::<4, T, A>::W,
+        ])
+    }
+
+    /// Creates an affine transformation matrix containing a 3D rotation from
+    /// `angle` (in radians) around the z axis.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_z(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(cos, sin, T::as_from(0.0), T::as_from(0.0)),
+            Vector::<4, T, A>::new(-sin, cos, T::as_from(0.0), T::as_from(0.0)),
+            Vector::<4, T, A>::Z,
+            Vector::<4, T, A>::W,
+        ])
+    }
 }
 
 #[cfg(test)]
@@ -975,6 +1080,78 @@ mod tests {
                 Matrix::<3, T, A>::from_translation(translation)
                     * Matrix::<3, T, A>::from_angle(z)
                     * Matrix::<3, T, A>::from_scale(scale),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_x() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite() || !y.is_finite() || !z.is_finite() {
+                return;
+            }
+
+            let vec = Vector::<3, T, A>::new(x, y, y + 1.0);
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_rotation_x(z) * vec,
+                vec.rotate_x(z),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_rotation_x(z).transform_point(vec),
+                vec.rotate_x(z),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_y() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite() || !y.is_finite() || !z.is_finite() {
+                return;
+            }
+
+            let vec = Vector::<3, T, A>::new(x, y, y + 1.0);
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_rotation_y(z) * vec,
+                vec.rotate_y(z),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_rotation_y(z).transform_point(vec),
+                vec.rotate_y(z),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_z() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite() || !y.is_finite() || !z.is_finite() {
+                return;
+            }
+
+            let vec = Vector::<3, T, A>::new(x, y, y + 1.0);
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_rotation_z(z) * vec,
+                vec.rotate_z(z),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_rotation_z(z).transform_point(vec),
+                vec.rotate_z(z),
                 0.0 = -0.0
             );
         });
