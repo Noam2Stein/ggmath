@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `is_nan`
   - `is_finite`
   - `determinant`
+  - `inverse`
+  - `try_inverse`
+  - `inverse_or`
+  - `inverse_or_zero`
   - `recip`
   - `abs`
 
