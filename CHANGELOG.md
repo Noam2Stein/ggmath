@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `from_rotation_x`
   - `from_rotation_y`
   - `from_rotation_z`
+  - `from_quat`
+  - `from_rotation_translation`
+  - `from_scale_rotation_translation`
+  - `to_scale_rotation_translation`
 
 - `abs_diff_eq` for all floating-point types.
 
