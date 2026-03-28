@@ -11,9 +11,9 @@ macro_rules! for_parameters {
                 + crate::constants::Zero
                 + crate::constants::One
                 + num_primitive::PrimitiveNumber
-                + crate::test_utils::Values,
+                + crate::utils::Values,
         {
-            crate::test_utils::call_in_context(|| $expr, format_args!("T: {t}"));
+            crate::utils::call_in_context(|| $expr, format_args!("T: {t}"));
         }
 
         f::<f32>("f32");
@@ -34,63 +34,63 @@ macro_rules! for_parameters {
     (|T: PrimitiveFloat| $expr:expr) => {{
         {
             type T = f32;
-            crate::test_utils::call_in_context(|| $expr, "T: f32");
+            crate::utils::call_in_context(|| $expr, "T: f32");
         }
         {
             type T = f64;
-            crate::test_utils::call_in_context(|| $expr, "T: f64");
+            crate::utils::call_in_context(|| $expr, "T: f64");
         }
     }};
     (|T: PrimitiveSigned| $expr:expr) => {{
         {
             type T = i8;
-            crate::test_utils::call_in_context(|| $expr, "T: i8");
+            crate::utils::call_in_context(|| $expr, "T: i8");
         }
         {
             type T = i16;
-            crate::test_utils::call_in_context(|| $expr, "T: i16");
+            crate::utils::call_in_context(|| $expr, "T: i16");
         }
         {
             type T = i32;
-            crate::test_utils::call_in_context(|| $expr, "T: i32");
+            crate::utils::call_in_context(|| $expr, "T: i32");
         }
         {
             type T = i64;
-            crate::test_utils::call_in_context(|| $expr, "T: i64");
+            crate::utils::call_in_context(|| $expr, "T: i64");
         }
         {
             type T = i128;
-            crate::test_utils::call_in_context(|| $expr, "T: i128");
+            crate::utils::call_in_context(|| $expr, "T: i128");
         }
         {
             type T = isize;
-            crate::test_utils::call_in_context(|| $expr, "T: isize");
+            crate::utils::call_in_context(|| $expr, "T: isize");
         }
     }};
     (|T: PrimitiveUnsigned| $expr:expr) => {{
         {
             type T = u8;
-            crate::test_utils::call_in_context(|| $expr, "T: u8");
+            crate::utils::call_in_context(|| $expr, "T: u8");
         }
         {
             type T = u16;
-            crate::test_utils::call_in_context(|| $expr, "T: u16");
+            crate::utils::call_in_context(|| $expr, "T: u16");
         }
         {
             type T = u32;
-            crate::test_utils::call_in_context(|| $expr, "T: u32");
+            crate::utils::call_in_context(|| $expr, "T: u32");
         }
         {
             type T = u64;
-            crate::test_utils::call_in_context(|| $expr, "T: u64");
+            crate::utils::call_in_context(|| $expr, "T: u64");
         }
         {
             type T = u128;
-            crate::test_utils::call_in_context(|| $expr, "T: u128");
+            crate::utils::call_in_context(|| $expr, "T: u128");
         }
         {
             type T = usize;
-            crate::test_utils::call_in_context(|| $expr, "T: usize");
+            crate::utils::call_in_context(|| $expr, "T: usize");
         }
     }};
     (|T: PrimitiveInteger| $expr:expr) => {{
@@ -99,7 +99,7 @@ macro_rules! for_parameters {
     }};
     (|A| $expr:expr) => {{
         fn fa<A: crate::Alignment>(a: &'static str) {
-            crate::test_utils::call_in_context(|| $expr, format_args!("A: {a}"));
+            crate::utils::call_in_context(|| $expr, format_args!("A: {a}"));
         }
 
         fa::<crate::Aligned>("Aligned");
@@ -112,9 +112,9 @@ macro_rules! for_parameters {
                 + crate::constants::Zero
                 + crate::constants::One
                 + num_primitive::PrimitiveNumber
-                + crate::test_utils::Values,
+                + crate::utils::Values,
         {
-            crate::test_utils::call_in_context(|| $expr, format_args!("T: {t}"));
+            crate::utils::call_in_context(|| $expr, format_args!("T: {t}"));
         }
 
         for_parameters!(|A| {
@@ -147,8 +147,8 @@ macro_rules! for_parameters {
         for_parameters!(|A| for_parameters!(|$($x),*| $expr));
     }};
     (|$x:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            crate::utils::call_in_context(
                 || $expr,
                 format_args!("{}: {:?}", stringify!($x), $x),
             );
@@ -157,9 +157,9 @@ macro_rules! for_parameters {
     // Manually implementing all cases leads to better compile times than macro
     // recursion.
     (|$x:ident, $y:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            for &$y in crate::test_utils::Values::VALUES {
-                crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            for &$y in crate::utils::Values::VALUES {
+                crate::utils::call_in_context(
                     || $expr,
                     format_args!("{}: {:?}\n{}: {:?}", stringify!($x), $x, stringify!($y), $y),
                 );
@@ -167,10 +167,10 @@ macro_rules! for_parameters {
         }
     };
     (|$x:ident, $y:ident, $z:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            for &$y in crate::test_utils::Values::VALUES {
-                for &$z in crate::test_utils::Values::VALUES {
-                    crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            for &$y in crate::utils::Values::VALUES {
+                for &$z in crate::utils::Values::VALUES {
+                    crate::utils::call_in_context(
                         || $expr,
                         format_args!(
                             "{}: {:?}\n{}: {:?}\n{}: {:?}",
@@ -187,11 +187,11 @@ macro_rules! for_parameters {
         }
     };
     (|$x:ident, $y:ident, $z:ident, $w:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            for &$y in crate::test_utils::Values::VALUES {
-                for &$z in crate::test_utils::Values::VALUES {
-                    for &$w in crate::test_utils::Values::VALUES {
-                        crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            for &$y in crate::utils::Values::VALUES {
+                for &$z in crate::utils::Values::VALUES {
+                    for &$w in crate::utils::Values::VALUES {
+                        crate::utils::call_in_context(
                             || $expr,
                             format_args!(
                                 "{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}",
@@ -211,12 +211,12 @@ macro_rules! for_parameters {
         }
     };
     (|$x:ident, $y:ident, $z:ident, $w:ident, $a:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            for &$y in crate::test_utils::Values::VALUES {
-                for &$z in crate::test_utils::Values::VALUES {
-                    for &$w in crate::test_utils::Values::VALUES {
-                        for &$a in crate::test_utils::Values::VALUES {
-                            crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            for &$y in crate::utils::Values::VALUES {
+                for &$z in crate::utils::Values::VALUES {
+                    for &$w in crate::utils::Values::VALUES {
+                        for &$a in crate::utils::Values::VALUES {
+                            crate::utils::call_in_context(
                                 || $expr,
                                 format_args!(
                                     "{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}",
@@ -239,13 +239,13 @@ macro_rules! for_parameters {
         }
     };
     (|$x:ident, $y:ident, $z:ident, $w:ident, $a:ident, $b:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            for &$y in crate::test_utils::Values::VALUES {
-                for &$z in crate::test_utils::Values::VALUES {
-                    for &$w in crate::test_utils::Values::VALUES {
-                        for &$a in crate::test_utils::Values::VALUES {
-                            for &$b in crate::test_utils::Values::VALUES {
-                                crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            for &$y in crate::utils::Values::VALUES {
+                for &$z in crate::utils::Values::VALUES {
+                    for &$w in crate::utils::Values::VALUES {
+                        for &$a in crate::utils::Values::VALUES {
+                            for &$b in crate::utils::Values::VALUES {
+                                crate::utils::call_in_context(
                                     || $expr,
                                     format_args!(
                                         "{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}",
@@ -271,14 +271,14 @@ macro_rules! for_parameters {
         }
     };
     (|$x:ident, $y:ident, $z:ident, $w:ident, $a:ident, $b:ident, $c:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            for &$y in crate::test_utils::Values::VALUES {
-                for &$z in crate::test_utils::Values::VALUES {
-                    for &$w in crate::test_utils::Values::VALUES {
-                        for &$a in crate::test_utils::Values::VALUES {
-                            for &$b in crate::test_utils::Values::VALUES {
-                                for &$c in crate::test_utils::Values::VALUES {
-                                    crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            for &$y in crate::utils::Values::VALUES {
+                for &$z in crate::utils::Values::VALUES {
+                    for &$w in crate::utils::Values::VALUES {
+                        for &$a in crate::utils::Values::VALUES {
+                            for &$b in crate::utils::Values::VALUES {
+                                for &$c in crate::utils::Values::VALUES {
+                                    crate::utils::call_in_context(
                                         || $expr,
                                         format_args!(
                                             "{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}",
@@ -307,15 +307,15 @@ macro_rules! for_parameters {
         }
     };
     (|$x:ident, $y:ident, $z:ident, $w:ident, $a:ident, $b:ident, $c:ident, $d:ident| $expr:expr) => {
-        for &$x in crate::test_utils::Values::VALUES {
-            for &$y in crate::test_utils::Values::VALUES {
-                for &$z in crate::test_utils::Values::VALUES {
-                    for &$w in crate::test_utils::Values::VALUES {
-                        for &$a in crate::test_utils::Values::VALUES {
-                            for &$b in crate::test_utils::Values::VALUES {
-                                for &$c in crate::test_utils::Values::VALUES {
-                                    for &$d in crate::test_utils::Values::VALUES {
-                                        crate::test_utils::call_in_context(
+        for &$x in crate::utils::Values::VALUES {
+            for &$y in crate::utils::Values::VALUES {
+                for &$z in crate::utils::Values::VALUES {
+                    for &$w in crate::utils::Values::VALUES {
+                        for &$a in crate::utils::Values::VALUES {
+                            for &$b in crate::utils::Values::VALUES {
+                                for &$c in crate::utils::Values::VALUES {
+                                    for &$d in crate::utils::Values::VALUES {
+                                        crate::utils::call_in_context(
                                             || $expr,
                                             format_args!(
                                                 "{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}\n{}: {:?}",

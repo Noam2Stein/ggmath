@@ -770,7 +770,7 @@ use declare_with_swizzle_fns;
 mod tests {
     use repetitive::repetitive;
 
-    use crate::{Vector, test_utils::for_parameters};
+    use crate::{Vector, utils::for_parameters};
 
     #[test]
     fn test_swizzle2() {

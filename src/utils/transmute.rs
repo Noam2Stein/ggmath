@@ -70,7 +70,7 @@ pub const unsafe fn transmute_mut<T, U>(value: &mut T) -> &mut U {
 
 #[cfg(test)]
 mod tests {
-    use crate::transmute::{transmute_generic, transmute_mut, transmute_ref};
+    use crate::utils::{transmute_generic, transmute_mut, transmute_ref};
 
     #[test]
     fn test_transmute_generic() {

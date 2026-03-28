@@ -7,7 +7,7 @@ use core::{
 use crate::{
     Aligned, Alignment, Scalar, SignedInteger, Unaligned, Vector,
     constants::{Nan, One, Zero},
-    transmute::{transmute_mut, transmute_ref},
+    utils::{transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -594,7 +594,7 @@ where
 mod tests {
     use crate::{
         Aligned, Quaternion, Unaligned, Vector,
-        test_utils::{assert_float_eq, for_parameters},
+        utils::{assert_float_eq, for_parameters},
     };
 
     #[test]

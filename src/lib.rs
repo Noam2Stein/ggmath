@@ -120,34 +120,21 @@
 #![forbid(missing_docs)]
 #![cfg_attr(all(any(not(feature = "std"), feature = "libm"), not(test)), no_std)]
 
-pub mod constants;
-
 mod affine;
-mod alignment;
 mod float_ext;
-mod length;
+mod generics;
 mod mask;
 mod matrix;
 mod quaternion;
-mod scalar;
 mod vector;
 pub use affine::*;
-pub use alignment::*;
 pub use float_ext::*;
-pub use length::*;
+pub use generics::*;
 pub use mask::*;
 pub use matrix::*;
 pub use quaternion::*;
-pub use scalar::*;
 pub use vector::*;
 
 mod backend_impls;
-mod num_primitive;
-mod repr;
-mod safe_arch;
-mod specialize;
 mod third_party;
-mod transmute;
-
-#[cfg(test)]
-mod test_utils;
+mod utils;

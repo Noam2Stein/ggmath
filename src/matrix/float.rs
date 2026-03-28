@@ -2,8 +2,8 @@ use core::convert::identity;
 
 use crate::{
     Alignment, Length, Matrix, Scalar, SupportedLength, Vector,
-    num_primitive::PrimitiveFloat,
-    transmute::{transmute_generic, transmute_ref},
+    utils::PrimitiveFloat,
+    utils::{transmute_generic, transmute_ref},
 };
 
 #[expect(private_bounds)]
@@ -624,7 +624,7 @@ where
 mod tests {
     use crate::{
         Matrix, Vector,
-        test_utils::{assert_float_eq, assert_panic, for_parameters},
+        utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]

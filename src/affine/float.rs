@@ -1,4 +1,4 @@
-use crate::{Affine, Alignment, Length, Scalar, SupportedLength, num_primitive::PrimitiveFloat};
+use crate::{Affine, Alignment, Length, Scalar, SupportedLength, utils::PrimitiveFloat};
 
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -23,7 +23,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Affine2, Vec2, test_utils::for_parameters};
+    use crate::{Affine2, Vec2, utils::for_parameters};
 
     #[test]
     fn test_abs_diff_eq() {

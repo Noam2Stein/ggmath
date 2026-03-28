@@ -7,7 +7,7 @@ use colored::Colorize;
 
 macro_rules! assert_panic {
     ($expr:expr $(,)?) => {
-        crate::test_utils::assert_panic_helper(|| {
+        crate::utils::assert_panic_helper(|| {
             let _ = $expr;
         })
     };
@@ -17,7 +17,7 @@ pub(crate) use assert_panic;
 
 macro_rules! assert_panic_eq {
     ($left:expr, $right:expr $(,)?) => {
-        crate::test_utils::assert_panic_eq_helper(|| $left, || $right)
+        crate::utils::assert_panic_eq_helper(|| $left, || $right)
     };
 }
 

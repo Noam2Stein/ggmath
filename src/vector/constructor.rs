@@ -265,7 +265,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Vector, test_utils::for_parameters};
+    use crate::{Vector, utils::for_parameters};
 
     #[test]
     #[expect(deprecated)]

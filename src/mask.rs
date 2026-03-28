@@ -8,7 +8,7 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Length, Scalar, ScalarRepr, SupportedLength, Unaligned, Vector,
-    specialize::specialize,
+    utils::specialize,
 };
 
 /// An `N`-element vector mask optimized for type `T`.
@@ -1070,7 +1070,7 @@ mod tests {
     use crate::{
         Aligned, Mask, Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Unaligned, Vec2, Vec3, Vec4,
         Vector,
-        test_utils::{assert_panic, for_parameters},
+        utils::{assert_panic, for_parameters},
     };
 
     #[test]

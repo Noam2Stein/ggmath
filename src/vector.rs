@@ -13,9 +13,7 @@ use crate::{
     Aligned, Alignment, Length, Mask, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
     SupportedLength, Unaligned,
     constants::{False, Infinity, Max, Min, Nan, NegInfinity, NegOne, One, True, Zero},
-    repr::{Repr2, Repr3, Repr4},
-    specialize::specialize,
-    transmute::{transmute_generic, transmute_mut, transmute_ref},
+    utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 mod bool;
@@ -2522,7 +2520,7 @@ mod tests {
 
     use crate::{
         Aligned, Mask, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
-        test_utils::{assert_float_eq, assert_panic, assert_panic_eq, float_eq, for_parameters},
+        utils::{assert_float_eq, assert_panic, assert_panic_eq, float_eq, for_parameters},
     };
 
     #[test]

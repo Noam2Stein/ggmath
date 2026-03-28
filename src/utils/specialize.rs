@@ -1,6 +1,6 @@
 use crate::{
     Affine, Aligned, Alignment, Length, Mask, Matrix, Scalar, SupportedLength, Unaligned, Vector,
-    transmute::transmute_generic,
+    utils::transmute_generic,
 };
 
 /// Bypasses a type system limitation to perform specialization.
@@ -59,16 +59,16 @@ use crate::{
 macro_rules! specialize {
     (<$T:ty as $Backend:ident<$N:tt, $A:tt>>::$f:ident($($arg:expr),*$(,)?)) => {
         (const {
-            $crate::specialize::specialize_helper::<
+            $crate::utils::specialize_helper::<
                 $N,
                 $A,
-                $crate::specialize::specialize!(@fn($($arg),*)),
-                $crate::specialize::specialize!(@fn($($arg),*)),
-                $crate::specialize::specialize!(@fn($($arg),*)),
-                $crate::specialize::specialize!(@fn($($arg),*)),
-                $crate::specialize::specialize!(@fn($($arg),*)),
-                $crate::specialize::specialize!(@fn($($arg),*)),
-                $crate::specialize::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
             >(
                 <$T as $Backend<2, $crate::Aligned>>::$f,
                 <$T as $Backend<3, $crate::Aligned>>::$f,

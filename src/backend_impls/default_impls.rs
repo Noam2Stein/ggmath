@@ -3,7 +3,7 @@ use crate::{
     I128VectorBackend, IsizeVectorBackend, Length, Mask, MaskBackend, PrimitiveFloatBackend,
     Scalar, ScalarBackend, ScalarRepr, SupportedLength, U8VectorBackend, U16VectorBackend,
     U32VectorBackend, U64VectorBackend, U128VectorBackend, UsizeVectorBackend, Vector,
-    repr::{Repr2, Repr3, Repr4, Repr5},
+    utils::{Repr2, Repr3, Repr4, Repr5},
 };
 
 impl<const N: usize, A: Alignment> ScalarBackend<N, A> for f64 where Length<N>: SupportedLength {}

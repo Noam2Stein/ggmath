@@ -1,6 +1,6 @@
 use crate::{
-    Alignment, Length, Mask, Scalar, SupportedLength, Vector, num_primitive::PrimitiveFloat,
-    specialize::specialize,
+    Alignment, Length, Mask, Scalar, SupportedLength, Vector,
+    utils::{PrimitiveFloat, specialize},
 };
 
 #[expect(private_bounds)]
@@ -1753,7 +1753,7 @@ where
 mod tests {
     use crate::{
         Mask, Vec2, Vector,
-        test_utils::{assert_float_eq, assert_panic, float_eq, for_parameters},
+        utils::{assert_float_eq, assert_panic, float_eq, for_parameters},
     };
 
     #[test]

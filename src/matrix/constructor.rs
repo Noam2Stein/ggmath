@@ -162,7 +162,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Matrix, Vector, test_utils::for_parameters};
+    use crate::{Matrix, Vector, utils::for_parameters};
 
     #[test]
     #[expect(deprecated)]

@@ -1,4 +1,4 @@
-use crate::num_primitive::PrimitiveFloat;
+use crate::utils::PrimitiveFloat;
 
 /// Extends floating-point primitives with extra functionality.
 pub trait FloatExt {
@@ -44,7 +44,7 @@ impl<T: PrimitiveFloat> FloatExt for T {
 mod tests {
     use crate::{
         FloatExt,
-        test_utils::{assert_float_eq, for_parameters},
+        utils::{assert_float_eq, for_parameters},
     };
 
     #[test]

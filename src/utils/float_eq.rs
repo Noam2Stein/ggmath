@@ -4,22 +4,22 @@ use crate::{Affine, Alignment, Length, Matrix, Quaternion, Scalar, SupportedLeng
 
 macro_rules! float_eq {
     ($left:expr, $right:expr $(,)?) => {
-        crate::test_utils::FloatEq::eq(&$left, &$right, false)
+        crate::utils::FloatEq::eq(&$left, &$right, false)
     };
     ($left:expr, $right:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::FloatEq::eq(&$left, &$right, true)
+        crate::utils::FloatEq::eq(&$left, &$right, true)
     };
     ($left:expr, $right:expr, abs <= $tol:expr $(,)?) => {
-        crate::test_utils::FloatEq::eq_abs(&$left, &$right, &$tol, false)
+        crate::utils::FloatEq::eq_abs(&$left, &$right, &$tol, false)
     };
     ($left:expr, $right:expr, abs <= $tol:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::FloatEq::eq_abs(&$left, &$right, &$tol, true)
+        crate::utils::FloatEq::eq_abs(&$left, &$right, &$tol, true)
     };
     ($left:expr, $right:expr, r2nd <= $tol:expr $(,)?) => {
-        crate::test_utils::FloatEq::eq_r2nd(&$left, &$right, &$tol, false)
+        crate::utils::FloatEq::eq_r2nd(&$left, &$right, &$tol, false)
     };
     ($left:expr, $right:expr, r2nd <= $tol:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::FloatEq::eq_r2nd(&$left, &$right, &$tol, true)
+        crate::utils::FloatEq::eq_r2nd(&$left, &$right, &$tol, true)
     };
 }
 
@@ -27,22 +27,22 @@ pub(crate) use float_eq;
 
 macro_rules! assert_float_eq {
     ($left:expr, $right:expr $(,)?) => {
-        crate::test_utils::FloatEq::assert_eq(&$left, &$right, false)
+        crate::utils::FloatEq::assert_eq(&$left, &$right, false)
     };
     ($left:expr, $right:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::FloatEq::assert_eq(&$left, &$right, true)
+        crate::utils::FloatEq::assert_eq(&$left, &$right, true)
     };
     ($left:expr, $right:expr, abs <= $tol:expr $(,)?) => {
-        crate::test_utils::FloatEq::assert_eq_abs(&$left, &$right, &$tol, false)
+        crate::utils::FloatEq::assert_eq_abs(&$left, &$right, &$tol, false)
     };
     ($left:expr, $right:expr, abs <= $tol:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::FloatEq::assert_eq_abs(&$left, &$right, &$tol, true)
+        crate::utils::FloatEq::assert_eq_abs(&$left, &$right, &$tol, true)
     };
     ($left:expr, $right:expr, r2nd <= $tol:expr $(,)?) => {
-        crate::test_utils::FloatEq::assert_eq_r2nd(&$left, &$right, &$tol, false)
+        crate::utils::FloatEq::assert_eq_r2nd(&$left, &$right, &$tol, false)
     };
     ($left:expr, $right:expr, r2nd <= $tol:expr, 0.0 = -0.0 $(,)?) => {
-        crate::test_utils::FloatEq::assert_eq_r2nd(&$left, &$right, &$tol, true)
+        crate::utils::FloatEq::assert_eq_r2nd(&$left, &$right, &$tol, true)
     };
 }
 

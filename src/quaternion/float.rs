@@ -1,4 +1,4 @@
-use crate::{Alignment, Quaternion, Scalar, num_primitive::PrimitiveFloat};
+use crate::{Alignment, Quaternion, Scalar, utils::PrimitiveFloat};
 
 #[expect(private_bounds)]
 impl<T, A: Alignment> Quaternion<T, A>
@@ -19,7 +19,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Quat, test_utils::for_parameters};
+    use crate::{Quat, utils::for_parameters};
 
     #[test]
     fn test_abs_diff_eq() {

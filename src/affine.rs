@@ -9,9 +9,7 @@ use crate::{
     Aligned, Alignment, Length, Matrix, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
     SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
-    repr::{Repr3, Repr4, Repr5},
-    specialize::specialize,
-    transmute::{transmute_generic, transmute_mut, transmute_ref},
+    utils::{Repr3, Repr4, Repr5, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -1089,7 +1087,7 @@ mod tests {
     use crate::{
         Affine, Affine2, Affine2U, Affine3, Affine3U, Aligned, Mat2, Mat3, Mat4, Matrix, Unaligned,
         Vec2, Vec3, Vector,
-        test_utils::{assert_float_eq, for_parameters},
+        utils::{assert_float_eq, for_parameters},
     };
 
     #[test]

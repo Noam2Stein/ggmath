@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector, specialize::specialize};
+use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
 
 macro_rules! impl_uint {
     ($T:ident, $Backend:ident) => {
@@ -332,7 +332,7 @@ impl_uint!(usize, UsizeVectorBackend);
 mod tests {
     use crate::{
         Vector,
-        test_utils::{assert_panic_eq, for_parameters},
+        utils::{assert_panic_eq, for_parameters},
     };
 
     #[test]
