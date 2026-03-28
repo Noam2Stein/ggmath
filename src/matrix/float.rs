@@ -422,6 +422,89 @@ where
     }
 }
 
+#[expect(private_bounds)]
+impl<T, A: Alignment> Matrix<2, T, A>
+where
+    T: Scalar + PrimitiveFloat,
+{
+    /// Creates a matrix containing a rotation of `angle` (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    pub fn from_angle(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<2, T, A>::new(cos, sin),
+            Vector::<2, T, A>::new(-sin, cos),
+        ])
+    }
+
+    /// Creates a matrix containing the non-uniform `scale` and a rotation of
+    /// `angle` (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<2, T, A>::new(cos * scale.x, sin * scale.x),
+            Vector::<2, T, A>::new(-sin * scale.y, cos * scale.y),
+        ])
+    }
+}
+
+#[expect(private_bounds)]
+impl<T, A: Alignment> Matrix<3, T, A>
+where
+    T: Scalar + PrimitiveFloat,
+{
+    /// Creates an affine transformation matrix containing a rotation of `angle`
+    /// (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    pub fn from_angle(angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(cos, sin, T::as_from(0.0)),
+            Vector::<3, T, A>::new(-sin, cos, T::as_from(0.0)),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    /// Creates an affine transformation matrix containing the non-uniform
+    /// `scale` and a rotation of `angle` (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::as_from(0.0)),
+            Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::as_from(0.0)),
+            Vector::<3, T, A>::Z,
+        ])
+    }
+
+    /// Creates an affine transformation matrix containing the non-uniform
+    /// `scale`, a rotation of `angle` (in radians) and `translation`.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    pub fn from_scale_angle_translation(
+        scale: Vector<2, T, A>,
+        angle: T,
+        translation: Vector<2, T, A>,
+    ) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::as_from(0.0)),
+            Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::as_from(0.0)),
+            Vector::<3, T, A>::new(translation.x, translation.y, T::as_from(1.0)),
+        ])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -820,6 +903,79 @@ mod tests {
                     &Matrix::from_columns(&[col0 + 0.1, col1 - 0.1, col2 + 0.05, col3 - 0.5]),
                     0.125
                 )
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_angle() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            assert_float_eq!(
+                Matrix::<2, T, A>::from_angle(z) * Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(x, y).rotate(z)
+            );
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_angle(z).transform_point(Vector::<2, T, A>::new(x, y)),
+                Vector::<2, T, A>::new(x, y).rotate(z),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<2, T, A>::new(x, y);
+
+            assert_float_eq!(
+                Matrix::<2, T, A>::from_scale_angle(scale, z),
+                Matrix::<2, T, A>::from_angle(z) * Matrix::<2, T, A>::from_diagonal(scale),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_scale_angle(scale, z),
+                Matrix::<3, T, A>::from_angle(z) * Matrix::<3, T, A>::from_scale(scale),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<2, T, A>::new(x, y);
+            let translation = Vector::<2, T, A>::new(x + 1.0, y + 2.0);
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_scale_angle_translation(scale, z, translation),
+                Matrix::<3, T, A>::from_translation(translation)
+                    * Matrix::<3, T, A>::from_angle(z)
+                    * Matrix::<3, T, A>::from_scale(scale),
+                0.0 = -0.0
             );
         });
     }
