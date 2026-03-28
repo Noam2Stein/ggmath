@@ -57,6 +57,77 @@ pub struct Quaternion<T, A: Alignment>(Vector<4, T, A>)
 where
     T: Scalar;
 
+/// A quaternion representing an orientation.
+///
+/// Quaternions are currently missing most functionality.
+///
+/// This quaternion is intended to be of unit length but may denormalize due to
+/// floating point "error creep" which can occur when successive quaternion
+/// operations are applied.
+///
+/// # SIMD alignment
+///
+/// `Quat<T>` has SIMD alignment for appropriate scalar types. See [`QuatU<T>`]
+/// for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first imaginary component of the quaternion.
+///
+/// `y: T`
+///
+/// The second imaginary component of the quaternion.
+///
+/// `z: T`
+///
+/// The third imaginary component of the quaternion.
+///
+/// `w: T`
+///
+/// The real part of the quaternion.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Quat<T> = Quaternion<T, Aligned>;
+
+/// A quaternion representing an orientation.
+///
+/// Quaternions are currently missing most functionality.
+///
+/// This quaternion is intended to be of unit length but may denormalize due to
+/// floating point "error creep" which can occur when successive quaternion
+/// operations are applied.
+///
+/// # No SIMD alignment
+///
+/// `QuatU<T>` does not have SIMD alignment. See [`Quat<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first imaginary component of the quaternion.
+///
+/// `y: T`
+///
+/// The second imaginary component of the quaternion.
+///
+/// `z: T`
+///
+/// The third imaginary component of the quaternion.
+///
+/// `w: T`
+///
+/// The real part of the quaternion.
+///
+/// [`Alignment`]: crate::Alignment
+pub type QuatU<T> = Quaternion<T, Unaligned>;
+
 impl<T, A: Alignment> Quaternion<T, A>
 where
     T: Scalar + Zero,

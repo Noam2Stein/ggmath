@@ -85,6 +85,114 @@ where
     Length<N>: SupportedLength,
     T: Scalar;
 
+/// A 2D affine transform which can represent translation, rotation, scaling and
+/// shear.
+///
+/// Affines are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # SIMD alignment
+///
+/// `Affine2<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Affine2U<T>`] for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `matrix: Mat2<T>`
+///
+/// The part representing rotation, scaling and shear.
+///
+/// `translation: Vec2<T>`
+///
+/// The part representing translation.
+///
+/// [`from_columns`]: Affine::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Affine2<T> = Affine<2, T, Aligned>;
+
+/// A 3D affine transform which can represent translation, rotation, scaling and
+/// shear.
+///
+/// Affines are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # SIMD alignment
+///
+/// `Affine3<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Affine3U<T>`] for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `matrix: Mat3<T>`
+///
+/// The part representing rotation, scaling and shear.
+///
+/// `translation: Vec3<T>`
+///
+/// The part representing translation.
+///
+/// [`from_columns`]: Affine::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Affine3<T> = Affine<3, T, Aligned>;
+
+/// A 2D affine transform which can represent translation, rotation, scaling and
+/// shear.
+///
+/// Affines are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # SIMD alignment
+///
+/// `Affine2U<T>` does not have SIMD alignment. See [`Affine2<T>`] for a SIMD
+/// variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `matrix: Mat2U<T>`
+///
+/// The part representing rotation, scaling and shear.
+///
+/// `translation: Vec2U<T>`
+///
+/// The part representing translation.
+///
+/// [`from_columns`]: Affine::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Affine2U<T> = Affine<2, T, Unaligned>;
+
+/// A 3D affine transform which can represent translation, rotation, scaling and
+/// shear.
+///
+/// Affines are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # SIMD alignment
+///
+/// `Affine3U<T>` does not have SIMD alignment. See [`Affine3<T>`] for a SIMD
+/// variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `matrix: Mat3U<T>`
+///
+/// The part representing rotation, scaling and shear.
+///
+/// `translation: Vec3U<T>`
+///
+/// The part representing translation.
+///
+/// [`from_columns`]: Affine::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Affine3U<T> = Affine<3, T, Unaligned>;
+
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
     Length<N>: SupportedLength,

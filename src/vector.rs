@@ -96,6 +96,159 @@ where
     Length<N>: SupportedLength,
     T: Scalar;
 
+/// A 2-dimensional vector.
+///
+/// # SIMD alignment
+///
+/// `Vec2<T>` has SIMD alignment for appropriate scalar types. See [`Vec2U<T>`]
+/// for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first element of the vector.
+///
+/// `y: T`
+///
+/// The second element of the vector.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Vec2<T> = Vector<2, T, Aligned>;
+
+/// A 3-dimensional vector.
+///
+/// # SIMD alignment
+///
+/// `Vec3<T>` has SIMD alignment for appropriate scalar types. See [`Vec3U<T>`]
+/// for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first element of the vector.
+///
+/// `y: T`
+///
+/// The second element of the vector.
+///
+/// `z: T`
+///
+/// The third element of the vector.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Vec3<T> = Vector<3, T, Aligned>;
+
+/// A 4-dimensional vector.
+///
+/// # SIMD alignment
+///
+/// `Vec4<T>` has SIMD alignment for appropriate scalar types. See [`Vec4U<T>`]
+/// for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first element of the vector.
+///
+/// `y: T`
+///
+/// The second element of the vector.
+///
+/// `z: T`
+///
+/// The third element of the vector.
+///
+/// `w: T`
+///
+/// The fourth element of the vector.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Vec4<T> = Vector<4, T, Aligned>;
+
+/// A 2-dimensional vector.
+///
+/// # No SIMD alignment
+///
+/// `Vec2U<T>` does not have SIMD alignment. See [`Vec2<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first element of the vector.
+///
+/// `y: T`
+///
+/// The second element of the vector.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Vec2U<T> = Vector<2, T, Unaligned>;
+
+/// A 3-dimensional vector.
+///
+/// # No SIMD alignment
+///
+/// `Vec3U<T>` does not have SIMD alignment. See [`Vec3<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first element of the vector.
+///
+/// `y: T`
+///
+/// The second element of the vector.
+///
+/// `z: T`
+///
+/// The third element of the vector.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Vec3U<T> = Vector<3, T, Unaligned>;
+
+/// A 4-dimensional vector.
+///
+/// # No SIMD alignment
+///
+/// `Vec4U<T>` does not have SIMD alignment. See [`Vec4<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first element of the vector.
+///
+/// `y: T`
+///
+/// The second element of the vector.
+///
+/// `z: T`
+///
+/// The third element of the vector.
+///
+/// `w: T`
+///
+/// The fourth element of the vector.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Vec4U<T> = Vector<4, T, Unaligned>;
+
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,

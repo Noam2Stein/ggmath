@@ -62,6 +62,78 @@ where
     Length<N>: SupportedLength,
     T: Scalar;
 
+/// A 2-element vector mask.
+///
+/// # SIMD alignment
+///
+/// `Mask2<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Mask2U<T>`] for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Mask2<T> = Mask<2, T, Aligned>;
+
+/// A 3-element vector mask.
+///
+/// # SIMD alignment
+///
+/// `Mask3<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Mask3U<T>`] for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Mask3<T> = Mask<3, T, Aligned>;
+
+/// A 4-element vector mask.
+///
+/// # SIMD alignment
+///
+/// `Mask4<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Mask4U<T>`] for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Mask4<T> = Mask<4, T, Aligned>;
+
+/// A 2-element vector mask.
+///
+/// # No SIMD alignment
+///
+/// `Mask2U<T>` does not have SIMD alignment. See [`Mask2<T>`] for a SIMD
+/// variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Mask2U<T> = Mask<2, T, Unaligned>;
+
+/// A 3-element vector mask.
+///
+/// # No SIMD alignment
+///
+/// `Mask3U<T>` does not have SIMD alignment. See [`Mask3<T>`] for a SIMD
+/// variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Mask3U<T> = Mask<3, T, Unaligned>;
+
+/// A 4-element vector mask.
+///
+/// # No SIMD alignment
+///
+/// `Mask4U<T>` does not have SIMD alignment. See [`Mask4<T>`] for a SIMD
+/// variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Mask4U<T> = Mask<4, T, Unaligned>;
+
 impl<const N: usize, T, A: Alignment> Mask<N, T, A>
 where
     Length<N>: SupportedLength,

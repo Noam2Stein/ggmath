@@ -100,6 +100,219 @@ where
     Length<N>: SupportedLength,
     T: Scalar;
 
+/// A 2x2 column-major matrix.
+///
+/// Matrices are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # SIMD alignment
+///
+/// `Mat2<T>` has SIMD alignment for appropriate scalar types. See [`Mat2U<T>`]
+/// for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x_axis: Vec2<T>`
+///
+/// The first column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(1, 0)`.
+///
+/// `y_axis: Vec2<T>`
+///
+/// The second column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 1)`.
+///
+/// [`from_columns`]: Matrix::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Mat2<T> = Matrix<2, T, Aligned>;
+
+/// A 3x3 column-major matrix.
+///
+/// Matrices are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # SIMD alignment
+///
+/// `Mat3<T>` has SIMD alignment for appropriate scalar types. See [`Mat3U<T>`]
+/// for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x_axis: Vec3<T>`
+///
+/// The first column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(1, 0, 0)`.
+///
+/// `y_axis: Vec3<T>`
+///
+/// The second column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 1, 0)`.
+///
+/// `z_axis: Vec3<T>`
+///
+/// The third column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 0, 1)`.
+///
+/// [`from_columns`]: Matrix::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Mat3<T> = Matrix<3, T, Aligned>;
+
+/// A 4x4 column-major matrix.
+///
+/// Matrices are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # SIMD alignment
+///
+/// `Mat4<T>` has SIMD alignment for appropriate scalar types. See [`Mat4U<T>`]
+/// for a non-SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x_axis: Vec4<T>`
+///
+/// The first column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(1, 0, 0, 0)`.
+///
+/// `y_axis: Vec4<T>`
+///
+/// The second column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 1, 0, 0)`.
+///
+/// `z_axis: Vec4<T>`
+///
+/// The third column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 0, 1, 0)`.
+///
+/// `w_axis: Vec4<T>`
+///
+/// The fourth column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 0, 0, 1)`.
+///
+/// [`from_columns`]: Matrix::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Mat4<T> = Matrix<4, T, Aligned>;
+
+/// A 2x2 column-major matrix.
+///
+/// Matrices are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # No SIMD alignment
+///
+/// `Mat2U<T>` does not have SIMD alignment. See [`Mat2<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x_axis: Vec2U<T>`
+///
+/// The first column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(1, 0)`.
+///
+/// `y_axis: Vec2U<T>`
+///
+/// The second column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 1)`.
+///
+/// [`from_columns`]: Matrix::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Mat2U<T> = Matrix<2, T, Unaligned>;
+
+/// A 3x3 column-major matrix.
+///
+/// Matrices are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # No SIMD alignment
+///
+/// `Mat3U<T>` does not have SIMD alignment. See [`Mat3<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x_axis: Vec3U<T>`
+///
+/// The first column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(1, 0, 0)`.
+///
+/// `y_axis: Vec3U<T>`
+///
+/// The second column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 1, 0)`.
+///
+/// `z_axis: Vec3U<T>`
+///
+/// The third column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 0, 1)`.
+///
+/// [`from_columns`]: Matrix::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Mat3U<T> = Matrix<3, T, Unaligned>;
+
+/// A 4x4 column-major matrix.
+///
+/// Matrices are currently missing most functionality. See [`from_columns`] for
+/// raw construction.
+///
+/// # No SIMD alignment
+///
+/// `Mat4U<T>` does not have SIMD alignment. See [`Mat4<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x_axis: Vec4U<T>`
+///
+/// The first column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(1, 0, 0, 0)`.
+///
+/// `y_axis: Vec4U<T>`
+///
+/// The second column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 1, 0, 0)`.
+///
+/// `z_axis: Vec4U<T>`
+///
+/// The third column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 0, 1, 0)`.
+///
+/// `w_axis: Vec4U<T>`
+///
+/// The fourth column of the matrix.
+///
+/// This represents the result of multiplying the matrix by `(0, 0, 0, 1)`.
+///
+/// [`from_columns`]: Matrix::from_columns
+/// [`Alignment`]: crate::Alignment
+pub type Mat4U<T> = Matrix<4, T, Unaligned>;
+
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
