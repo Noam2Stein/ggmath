@@ -594,6 +594,40 @@ where
             Vector::<3, T, A>::new(xz2 + wy2, yz2 - wx2, T::ONE - (xx2 + yy2)),
         ])
     }
+
+    /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
+    /// radians).
+    ///
+    /// `axis` must be normalized. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `axis` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
+        #[cfg(assertions)]
+        assert!(axis.is_normalized());
+
+        let (sin, cos) = angle.sin_cos();
+        let [xsin, ysin, zsin] = (axis * sin).to_array();
+        let [x, y, z] = axis.to_array();
+        let [x2, y2, z2] = (axis * axis).to_array();
+        let omc = T::ONE - cos;
+        let xyomc = x * y * omc;
+        let xzomc = x * z * omc;
+        let yzomc = y * z * omc;
+
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin),
+            Vector::<3, T, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
+            Vector::<3, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
+        ])
+    }
 }
 
 #[expect(private_bounds)]
@@ -692,6 +726,41 @@ where
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
         Self::from_columns(&[x_axis, y_axis, z_axis, Vector::W])
+    }
+
+    /// Creates an affine transformation matrix containing a rotation from a
+    /// rotation `axis` and `angle` (in radians).
+    ///
+    /// `axis` must be normalized. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `axis` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
+        #[cfg(assertions)]
+        assert!(axis.is_normalized());
+
+        let (sin, cos) = angle.sin_cos();
+        let [xsin, ysin, zsin] = (axis * sin).to_array();
+        let [x, y, z] = axis.to_array();
+        let [x2, y2, z2] = (axis * axis).to_array();
+        let omc = T::ONE - cos;
+        let xyomc = x * y * omc;
+        let xzomc = x * z * omc;
+        let yzomc = y * z * omc;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin, T::ZERO),
+            Vector::<4, T, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin, T::ZERO),
+            Vector::<4, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos, T::ZERO),
+            Vector::W,
+        ])
     }
 
     /// Creates an affine transformation matrix containing a 3D `rotation` and
@@ -1449,6 +1518,49 @@ mod tests {
                 assert_panic!(Matrix::<3, T, A>::from_quat(invalid));
                 assert_panic!(Matrix::<4, T, A>::from_quat(invalid));
             }
+        });
+    }
+
+    #[test]
+    fn test_from_axis_angle() {
+        for_parameters!(|T: PrimitiveFloat, A, x| {
+            let _: T = x;
+
+            if !x.is_finite() || x.abs() > 100000.0 {
+                return;
+            }
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::X, x),
+                Matrix::<3, T, A>::from_rotation_x(x),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Y, x),
+                Matrix::<3, T, A>::from_rotation_y(x),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_axis_angle(Vector::<3, T, A>::Z, x),
+                Matrix::<3, T, A>::from_rotation_z(x),
+                0.0 = -0.0
+            );
+
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_axis_angle(Vector::<3, T, A>::X, x),
+                Matrix::<4, T, A>::from_rotation_x(x),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_axis_angle(Vector::<3, T, A>::Y, x),
+                Matrix::<4, T, A>::from_rotation_y(x),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_axis_angle(Vector::<3, T, A>::Z, x),
+                Matrix::<4, T, A>::from_rotation_z(x),
+                0.0 = -0.0
+            );
         });
     }
 
