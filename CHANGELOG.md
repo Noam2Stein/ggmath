@@ -37,11 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `from_rotation_z`
   - `from_quat`
   - `from_axis_angle`
+  - `from_euler`
+  - `to_euler`
   - `from_rotation_translation`
   - `from_scale_rotation_translation`
   - `to_scale_rotation_translation`
 
 - `abs_diff_eq` for all floating-point types.
+
+- `EulerRot` enum.
 
 ## [0.16.4] - 2026-03-22
 

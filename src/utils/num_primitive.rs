@@ -58,6 +58,9 @@ pub(crate) trait PrimitiveFloat:
     + PrimitiveFloatBackend<3, Unaligned>
     + PrimitiveFloatBackend<4, Unaligned>
 {
+    #[cfg(backend)]
+    const EPSILON: Self;
+
     fn is_nan(self) -> bool;
 
     fn is_finite(self) -> bool;
@@ -132,6 +135,9 @@ pub(crate) trait PrimitiveFloat:
     fn atan(self) -> Self;
 
     #[cfg(backend)]
+    fn atan2(self, other: Self) -> Self;
+
+    #[cfg(backend)]
     fn sin_cos(self) -> (Self, Self);
 
     fn as_from(value: f64) -> Self;
@@ -140,6 +146,9 @@ pub(crate) trait PrimitiveFloat:
 macro_rules! impl_primitive_float {
     ($T:ident) => {
         impl PrimitiveFloat for $T {
+            #[cfg(backend)]
+            const EPSILON: Self = Self::EPSILON;
+
             #[inline(always)]
             fn is_nan(self) -> bool {
                 self.is_nan()
@@ -414,6 +423,18 @@ macro_rules! impl_primitive_float {
             #[inline(always)]
             fn atan(self) -> Self {
                 Libm::<$T>::atan(self)
+            }
+
+            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[inline(always)]
+            fn atan2(self, other: Self) -> Self {
+                self.atan2(other)
+            }
+
+            #[cfg(feature = "libm")]
+            #[inline(always)]
+            fn atan2(self, other: Self) -> Self {
+                Libm::<$T>::atan2(self, other)
             }
 
             #[cfg(all(feature = "std", not(feature = "libm")))]

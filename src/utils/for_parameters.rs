@@ -3,6 +3,8 @@ use std::{
     panic::{UnwindSafe, catch_unwind, resume_unwind},
 };
 
+use crate::EulerRot;
+
 macro_rules! for_parameters {
     (|T: PrimitiveNumber| $expr:expr) => {{
         fn f<T>(t: &'static str)
@@ -431,6 +433,35 @@ impl_unsigned!(usize);
 
 impl Values for bool {
     const VALUES: &[Self] = &[false, true];
+}
+
+impl Values for EulerRot {
+    const VALUES: &[Self] = &[
+        Self::Xyz,
+        Self::Xzy,
+        Self::Yxz,
+        Self::Yzx,
+        Self::Zxy,
+        Self::Zyx,
+        Self::Xyx,
+        Self::Xzx,
+        Self::Yxy,
+        Self::Yzy,
+        Self::Zxz,
+        Self::Zyz,
+        Self::XyzEx,
+        Self::XzyEx,
+        Self::YxzEx,
+        Self::YzxEx,
+        Self::ZxyEx,
+        Self::ZyxEx,
+        Self::XyxEx,
+        Self::XzxEx,
+        Self::YxyEx,
+        Self::YzyEx,
+        Self::ZxzEx,
+        Self::ZyzEx,
+    ];
 }
 
 #[doc(hidden)]

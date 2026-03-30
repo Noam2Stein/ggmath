@@ -121,6 +121,7 @@
 #![cfg_attr(all(any(not(feature = "std"), feature = "libm"), not(test)), no_std)]
 
 mod affine;
+mod euler_rot;
 mod float_ext;
 mod generics;
 mod mask;
@@ -128,6 +129,7 @@ mod matrix;
 mod quaternion;
 mod vector;
 pub use affine::*;
+pub use euler_rot::*;
 pub use float_ext::*;
 pub use generics::*;
 pub use mask::*;

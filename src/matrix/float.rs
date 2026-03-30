@@ -1,5 +1,7 @@
 use core::convert::identity;
 
+#[cfg(backend)]
+use crate::EulerRot;
 use crate::{
     Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
     utils::{PrimitiveFloat, transmute_generic, transmute_ref},
@@ -628,6 +630,139 @@ where
             Vector::<3, T, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
         ])
     }
+
+    /// Creates a 3D rotation matrix from an Euler rotation order/sequence and
+    /// angles (in radians).
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+        // Academic Press Professional, Inc., USA, 222–229.
+
+        let order = order.properties();
+        let (i, j, k) = order.axes_indices();
+
+        let mut angles = if order.frame_static {
+            Vector::<3, T, A>::new(a, b, c)
+        } else {
+            Vector::<3, T, A>::new(c, b, a)
+        };
+
+        // Rotation direction is reverse from original paper.
+        if order.parity_even {
+            angles = -angles;
+        }
+
+        let (si, ci) = angles.x.sin_cos();
+        let (sj, cj) = angles.y.sin_cos();
+        let (sh, ch) = angles.z.sin_cos();
+
+        let cc = ci * ch;
+        let cs = ci * sh;
+        let sc = si * ch;
+        let ss = si * sh;
+
+        let mut result = Self::ZERO;
+
+        if order.initial_repeated {
+            result.column_mut(i)[i] = cj;
+            result.column_mut(i)[j] = sj * si;
+            result.column_mut(i)[k] = sj * ci;
+            result.column_mut(j)[i] = sj * sh;
+            result.column_mut(j)[j] = -cj * ss + cc;
+            result.column_mut(j)[k] = -cj * cs - sc;
+            result.column_mut(k)[i] = -sj * ch;
+            result.column_mut(k)[j] = cj * sc + cs;
+            result.column_mut(k)[k] = cj * cc - ss;
+        } else {
+            result.column_mut(i)[i] = cj * ch;
+            result.column_mut(i)[j] = sj * sc - cs;
+            result.column_mut(i)[k] = sj * cc + ss;
+            result.column_mut(j)[i] = cj * sh;
+            result.column_mut(j)[j] = sj * ss + cc;
+            result.column_mut(j)[k] = sj * cs - sc;
+            result.column_mut(k)[i] = -sj;
+            result.column_mut(k)[j] = cj * si;
+            result.column_mut(k)[k] = cj * ci;
+        }
+
+        result
+    }
+
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
+    ///
+    /// `self` must not contain any non-rotation transformations. Otherwise the
+    /// result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any column of `self` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+        // Academic Press Professional, Inc., USA, 222–229.
+
+        #[cfg(assertions)]
+        assert!(
+            self.x_axis.is_normalized()
+                && self.y_axis.is_normalized()
+                && self.z_axis.is_normalized()
+        );
+
+        let order = order.properties();
+        let (i, j, k) = order.axes_indices();
+
+        let mut ea = Vector::<3, T, A>::ZERO;
+        if order.initial_repeated {
+            let sy = (self.column(i)[j] * self.column(i)[j]
+                + self.column(i)[k] * self.column(i)[k])
+                .sqrt();
+
+            if sy > T::as_from(16.0) * T::EPSILON {
+                ea.x = self.column(i)[j].atan2(self.column(i)[k]);
+                ea.y = sy.atan2(self.column(i)[i]);
+                ea.z = self.column(j)[i].atan2(-self.column(k)[i]);
+            } else {
+                ea.x = (-self.column(j)[k]).atan2(self.column(j)[j]);
+                ea.y = sy.atan2(self.column(i)[i]);
+            }
+        } else {
+            let cy = (self.column(i)[i] * self.column(i)[i]
+                + self.column(j)[i] * self.column(j)[i])
+                .sqrt();
+
+            if cy > T::as_from(16.0) * T::EPSILON {
+                ea.x = self.column(k)[j].atan2(self.column(k)[k]);
+                ea.y = (-self.column(k)[i]).atan2(cy);
+                ea.z = self.column(j)[i].atan2(self.column(i)[i]);
+            } else {
+                ea.x = (-self.column(j)[k]).atan2(self.column(j)[j]);
+                ea.y = (-self.column(k)[i]).atan2(cy);
+            }
+        }
+
+        // Reverse rotation angle of original code.
+        if order.parity_even {
+            ea = -ea;
+        }
+
+        if !order.frame_static {
+            ea = ea.zyx();
+        }
+
+        (ea.x, ea.y, ea.z)
+    }
 }
 
 #[expect(private_bounds)]
@@ -763,6 +898,15 @@ where
         ])
     }
 
+    /// Creates an affine transformation matrix containing a rotation from an
+    /// Euler rotation order/sequence and angles (in radians).
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
+        Self::from_submatrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
+    }
+
     /// Creates an affine transformation matrix containing a 3D `rotation` and
     /// `translation`.
     ///
@@ -885,6 +1029,25 @@ where
         }
     }
 
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
+    ///
+    /// The upper 3x3 matrix must not contain any non-rotation transformations.
+    /// Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any column of the upper 3x3 matrix is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
+        self.submatrix().to_euler(order)
+    }
+
     /// Returns the `scale`, `rotation` and `translation` of `self`.
     ///
     /// `self` must contain a valid affine transformation. Otherwise the result
@@ -930,7 +1093,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Matrix, Quaternion, Vector,
+        EulerRot, Matrix, Quaternion, Vector,
         utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
@@ -1561,6 +1724,129 @@ mod tests {
                 Matrix::<4, T, A>::from_rotation_z(x),
                 0.0 = -0.0
             );
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x > 1000000.0
+                || y > 1000000.0
+                || z > 1000000.0
+            {
+                return;
+            }
+
+            let rot_x = Matrix::<3, T, A>::from_rotation_x(x);
+            let rot_y = Matrix::<3, T, A>::from_rotation_y(y);
+            let rot_z = Matrix::<3, T, A>::from_rotation_z(z);
+            let rot_x_by_y = Matrix::<3, T, A>::from_rotation_x(y);
+            let rot_x_by_z = Matrix::<3, T, A>::from_rotation_x(z);
+            let rot_y_by_x = Matrix::<3, T, A>::from_rotation_y(x);
+            let rot_y_by_z = Matrix::<3, T, A>::from_rotation_y(z);
+            let rot_z_by_x = Matrix::<3, T, A>::from_rotation_z(x);
+            let rot_z_by_y = Matrix::<3, T, A>::from_rotation_z(y);
+
+            for (order, a, b, c, result) in [
+                (EulerRot::Xyz, x, y, z, rot_x * rot_y * rot_z),
+                (EulerRot::Xzy, x, z, y, rot_x * rot_z * rot_y),
+                (EulerRot::Yxz, y, x, z, rot_y * rot_x * rot_z),
+                (EulerRot::Yzx, y, z, x, rot_y * rot_z * rot_x),
+                (EulerRot::Zxy, z, x, y, rot_z * rot_x * rot_y),
+                (EulerRot::Zyx, z, y, x, rot_z * rot_y * rot_x),
+                (EulerRot::Xyx, x, y, z, rot_x * rot_y * rot_x_by_z),
+                (EulerRot::Xzx, x, z, y, rot_x * rot_z * rot_x_by_y),
+                (EulerRot::Yxy, y, x, z, rot_y * rot_x * rot_y_by_z),
+                (EulerRot::Yzy, y, z, x, rot_y * rot_z * rot_y_by_x),
+                (EulerRot::Zxz, z, x, y, rot_z * rot_x * rot_z_by_y),
+                (EulerRot::Zyz, z, y, x, rot_z * rot_y * rot_z_by_x),
+                (EulerRot::XyzEx, x, y, z, rot_z * rot_y * rot_x),
+                (EulerRot::XzyEx, x, z, y, rot_y * rot_z * rot_x),
+                (EulerRot::YxzEx, y, x, z, rot_z * rot_x * rot_y),
+                (EulerRot::YzxEx, y, z, x, rot_x * rot_z * rot_y),
+                (EulerRot::ZxyEx, z, x, y, rot_y * rot_x * rot_z),
+                (EulerRot::ZyxEx, z, y, x, rot_x * rot_y * rot_z),
+                (EulerRot::XyxEx, x, y, z, rot_x_by_z * rot_y * rot_x),
+                (EulerRot::XzxEx, x, z, y, rot_x_by_y * rot_z * rot_x),
+                (EulerRot::YxyEx, y, x, z, rot_y_by_z * rot_x * rot_y),
+                (EulerRot::YzyEx, y, z, x, rot_y_by_x * rot_z * rot_y),
+                (EulerRot::ZxzEx, z, x, y, rot_z_by_y * rot_x * rot_z),
+                (EulerRot::ZyzEx, z, y, x, rot_z_by_x * rot_y * rot_z),
+            ] {
+                assert_float_eq!(
+                    Matrix::<3, T, A>::from_euler(order, a, b, c),
+                    result,
+                    abs <= Matrix::<3, T, A>::from_column_array(&[1e-5; 9]),
+                    0.0 = -0.0
+                );
+                assert_float_eq!(
+                    Matrix::<4, T, A>::from_euler(order, a, b, c),
+                    Matrix::<4, T, A>::from_submatrix(&result),
+                    abs <= Matrix::<4, T, A>::from_column_array(&[1e-5; 16]),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_euler() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z, order| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x > 1000000.0
+                || y > 1000000.0
+                || z > 1000000.0
+            {
+                return;
+            }
+
+            let mat = Matrix::<3, T, A>::from_euler(order, x, y, z);
+            let (x2, y2, z2) = mat.to_euler(order);
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_euler(order, x2, y2, z2),
+                mat,
+                abs <= Matrix::<3, T, A>::from_column_array(&[1e-5; 9]),
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<4, T, A>::from_euler(order, x, y, z)
+                * Matrix::<4, T, A>::from_translation(Vector::NAN);
+            let (x2, y2, z2) = mat.to_euler(order);
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_euler(order, x2, y2, z2),
+                mat.submatrix(),
+                abs <= Matrix::<3, T, A>::from_column_array(&[1e-5; 9]),
+                0.0 = -0.0
+            );
+
+            let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, z, x, x, y, y, z]);
+            if cfg!(assertions)
+                && !(mat.x_axis.is_normalized()
+                    && mat.y_axis.is_normalized()
+                    && mat.z_axis.is_normalized())
+            {
+                assert_panic!(mat.to_euler(order));
+            }
+
+            let mat = Matrix::<4, T, A>::from_column_array(&[
+                x, y, z, z, x, x, y, y, z, z, x, y, y, z, z, x,
+            ]);
+            if cfg!(assertions)
+                && !(mat.x_axis.xyz().is_normalized()
+                    && mat.y_axis.xyz().is_normalized()
+                    && mat.z_axis.xyz().is_normalized())
+            {
+                assert_panic!(mat.to_euler(order));
+            }
         });
     }
 
