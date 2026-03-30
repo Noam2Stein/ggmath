@@ -38,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `from_quat`
   - `from_axis_angle`
   - `from_euler`
+  - `look_to_lh`
+  - `look_to_rh`
+  - `look_at_lh`
+  - `look_at_rh`
   - `to_euler`
   - `from_rotation_translation`
   - `from_scale_rotation_translation`

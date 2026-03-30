@@ -692,6 +692,104 @@ where
         result
     }
 
+    /// Creates a left-handed view matrix from a facing direction and an up
+    /// direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_lh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        #[cfg(assertions)]
+        assert!(dir.is_normalized());
+        #[cfg(assertions)]
+        assert!(up.is_normalized());
+
+        let forward = dir;
+        let right = up.cross(forward).normalize();
+        let up = forward.cross(right);
+
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(right.x, up.x, forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, forward.z),
+        ])
+    }
+
+    /// Creates a right-handed view matrix from a facing direction and an up
+    /// direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_rh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        #[cfg(assertions)]
+        assert!(dir.is_normalized());
+        #[cfg(assertions)]
+        assert!(up.is_normalized());
+
+        let forward = dir;
+        let right = forward.cross(up).normalize();
+        let up = right.cross(forward);
+
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(right.x, up.x, -forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, -forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, -forward.z),
+        ])
+    }
+
+    /// Creates a left-handed view matrix from a camera position, a focal point
+    /// and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::look_to_lh((center - eye).normalize(), up)
+    }
+
+    /// Creates a right-handed view matrix from a camera position, a focal point
+    /// and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::look_to_rh((center - eye).normalize(), up)
+    }
+
     /// Returns the Euler angles forming `self` for the given Euler rotation
     /// order/sequence.
     ///
@@ -954,6 +1052,106 @@ where
             rotation_z * scale.z,
             Vector::<4, T, A>::new(translation.x, translation.y, translation.z, T::ONE),
         ])
+    }
+
+    /// Creates a left-handed view matrix from a camera position, a facing
+    /// direction and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        #[cfg(assertions)]
+        assert!(dir.is_normalized());
+        #[cfg(assertions)]
+        assert!(up.is_normalized());
+
+        let forward = dir;
+        let right = up.cross(forward).normalize();
+        let up = forward.cross(right);
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(right.x, up.x, forward.x, T::ZERO),
+            Vector::<4, T, A>::new(right.y, up.y, forward.y, T::ZERO),
+            Vector::<4, T, A>::new(right.z, up.z, forward.z, T::ZERO),
+            Vector::<4, T, A>::new(-eye.dot(right), -eye.dot(up), -eye.dot(forward), T::ONE),
+        ])
+    }
+
+    /// Creates a right-handed view matrix from a camera position, a facing
+    /// direction and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        #[cfg(assertions)]
+        assert!(dir.is_normalized());
+        #[cfg(assertions)]
+        assert!(up.is_normalized());
+
+        let forward = dir;
+        let right = forward.cross(up).normalize();
+        let up = right.cross(forward);
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(right.x, up.x, -forward.x, T::ZERO),
+            Vector::<4, T, A>::new(right.y, up.y, -forward.y, T::ZERO),
+            Vector::<4, T, A>::new(right.z, up.z, -forward.z, T::ZERO),
+            Vector::<4, T, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward), T::ONE),
+        ])
+    }
+
+    /// Creates a left-handed view matrix from a camera position, a focal point
+    /// and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::look_to_lh(eye, (center - eye).normalize(), up)
+    }
+
+    /// Creates a right-handed view matrix from a camera position, a focal point
+    /// and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::look_to_rh(eye, (center - eye).normalize(), up)
     }
 
     #[cfg(backend)]
@@ -1792,6 +1990,160 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let Some(forward) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
+                return;
+            };
+
+            let up = (forward * 0.4 + forward.zxy().with_z(0.3)).normalize();
+            let mat = Matrix::<3, T, A>::look_to_lh(forward, up);
+            let mat_mul_up = mat * up;
+
+            assert_float_eq!(mat.determinant(), 1.0, abs <= 1e-5);
+            assert_float_eq!(
+                mat * forward,
+                Vector::<3, T, A>::Z,
+                abs <= Vector::splat(1e-5),
+                0.0 = -0.0
+            );
+            assert_float_eq!(mat_mul_up.x, 0.0, abs <= 1e-7, 0.0 = -0.0);
+            assert!((0.0..=1.00001).contains(&mat_mul_up.y));
+
+            let eye = forward * 0.3 + forward.yzx().with_z(0.6);
+            let mat4 = Matrix::<4, T, A>::look_to_lh(eye, forward, up);
+            assert_float_eq!(
+                mat4,
+                Matrix::<4, T, A>::from_submatrix(&mat) * Matrix::<4, T, A>::from_translation(-eye),
+                0.0 = -0.0
+            );
+
+            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_panic!(Matrix::<3, T, A>::look_to_lh(
+                    Vector::<3, T, A>::new(x, y, z),
+                    up
+                ));
+                assert_panic!(Matrix::<3, T, A>::look_to_lh(
+                    forward,
+                    Vector::<3, T, A>::new(x, y, z)
+                ));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let Some(forward) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
+                return;
+            };
+
+            let up = (forward * 0.4 + forward.zxy().with_z(0.3)).normalize();
+            let mat = Matrix::<3, T, A>::look_to_rh(forward, up);
+            let mat_mul_up = mat * up;
+
+            assert_float_eq!(mat.determinant(), 1.0, abs <= 1e-5);
+            assert_float_eq!(
+                mat * forward,
+                Vector::<3, T, A>::NEG_Z,
+                abs <= Vector::splat(1e-5),
+                0.0 = -0.0
+            );
+            assert_float_eq!(mat_mul_up.x, 0.0, abs <= 1e-7, 0.0 = -0.0);
+            assert!((0.0..=1.00001).contains(&mat_mul_up.y));
+
+            let eye = forward * 0.3 + forward.yzx().with_z(0.6);
+            let mat4 = Matrix::<4, T, A>::look_to_rh(eye, forward, up);
+            assert_float_eq!(
+                mat4,
+                Matrix::<4, T, A>::from_submatrix(&mat) * Matrix::<4, T, A>::from_translation(-eye),
+                0.0 = -0.0
+            );
+
+            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_panic!(Matrix::<3, T, A>::look_to_rh(
+                    Vector::<3, T, A>::new(x, y, z),
+                    up
+                ));
+                assert_panic!(Matrix::<3, T, A>::look_to_rh(
+                    forward,
+                    Vector::<3, T, A>::new(x, y, z)
+                ));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let eye = Vector::<3, T, A>::new(x, y, z);
+            let center = eye * 0.6 + eye.yzx();
+            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
+                return;
+            };
+
+            let Some(forward) = (center - eye).try_normalize() else {
+                return;
+            };
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::look_at_lh(eye, center, up),
+                Matrix::<3, T, A>::look_to_lh(forward, up),
+                abs <= Matrix::<3, T, A>::from_column_array(&[1e-6; 9])
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::look_at_lh(eye, center, up),
+                Matrix::<4, T, A>::from_submatrix(&Matrix::<3, T, A>::look_at_lh(eye, center, up))
+                    * Matrix::<4, T, A>::from_translation(-eye),
+                0.0 = -0.0
+            );
+
+            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_panic!(Matrix::<3, T, A>::look_at_lh(
+                    eye,
+                    center,
+                    Vector::<3, T, A>::new(x, y, z),
+                ));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let eye = Vector::<3, T, A>::new(x, y, z);
+            let center = eye * 0.6 + eye.yzx();
+            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
+                return;
+            };
+
+            let Some(forward) = (center - eye).try_normalize() else {
+                return;
+            };
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::look_at_rh(eye, center, up),
+                Matrix::<3, T, A>::look_to_rh(forward, up),
+                abs <= Matrix::<3, T, A>::from_column_array(&[1e-6; 9])
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::look_at_rh(eye, center, up),
+                Matrix::<4, T, A>::from_submatrix(&Matrix::<3, T, A>::look_at_rh(eye, center, up))
+                    * Matrix::<4, T, A>::from_translation(-eye),
+                0.0 = -0.0
+            );
+
+            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_panic!(Matrix::<3, T, A>::look_at_rh(
+                    eye,
+                    center,
+                    Vector::<3, T, A>::new(x, y, z),
+                ));
+            }
+        })
     }
 
     #[test]
