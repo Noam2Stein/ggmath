@@ -45,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `to_euler`
   - `from_rotation_translation`
   - `from_scale_rotation_translation`
+  - `from_perspective_lh`
+  - `from_perspective_rh`
+  - `from_perspective_rh_gl`
+  - `from_perspective_infinite_lh`
+  - `from_perspective_infinite_rh`
+  - `from_perspective_infinite_reverse_lh`
+  - `from_perspective_infinite_reverse_rh`
   - `to_scale_rotation_translation`
   - `project_point`
 

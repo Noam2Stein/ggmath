@@ -1154,6 +1154,255 @@ where
         Self::look_to_rh(eye, (center - eye).normalize(), up)
     }
 
+    /// Creates a left-handed perspective projection matrix with `0..1` depth
+    /// range.
+    ///
+    /// Useful to map the standard left-handed coordinate system into what
+    /// WebGPU/Metal/Direct3D expect.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
+    /// is less than or equal to `near_plane`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perspective_lh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO && far_plane > near_plane);
+
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
+        let height_recip = cos / sin;
+        let width_recip = height_recip / aspect_ratio;
+        let depth_scale = far_plane / (far_plane - near_plane);
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, depth_scale, T::ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, -depth_scale * near_plane, T::ZERO),
+        ])
+    }
+
+    /// Creates a right-handed perspective projection matrix with `0..1` depth
+    /// range.
+    ///
+    /// Useful to map the standard right-handed coordinate system into what
+    /// WebGPU/Metal/Direct3D expect.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
+    /// is less than or equal to `near_plane`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perspective_rh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO && far_plane > near_plane);
+
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
+        let height_recip = cos / sin;
+        let width_recip = height_recip / aspect_ratio;
+        let neg_depth_scale = far_plane / (near_plane - far_plane);
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, neg_depth_scale, T::NEG_ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, neg_depth_scale * near_plane, T::ZERO),
+        ])
+    }
+
+    /// Creates a right-handed perspective projection matrix with `-1..1` depth
+    /// range.
+    ///
+    /// Equivalent to the OpenGL [`gluPerspective`] function.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
+    /// is less than or equal to `near_plane`.
+    ///
+    /// [`gluPerspective`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perspective_rh_gl(
+        vertical_fov: T,
+        aspect_ratio: T,
+        near_plane: T,
+        far_plane: T,
+    ) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO && far_plane > near_plane);
+
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
+        let height_recip = cos / sin;
+        let width_recip = height_recip / aspect_ratio;
+        let depth_recip = (near_plane - far_plane).recip();
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(
+                T::ZERO,
+                T::ZERO,
+                (near_plane + far_plane) * depth_recip,
+                T::NEG_ONE,
+            ),
+            Vector::<4, T, A>::new(
+                T::ZERO,
+                T::ZERO,
+                T::as_from(2.0) * near_plane * far_plane * depth_recip,
+                T::ZERO,
+            ),
+        ])
+    }
+
+    /// Creates an infinite left-handed perspective projection matrix with
+    /// `0..1` depth range.
+    ///
+    /// Equivalent to `perspective_lh`, but with an infinite value for
+    /// `far_plane`. The result is that points near `near_plane` have depth `0`,
+    /// and as they move towards infinity the depth approaches `1`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perspective_infinite_lh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO);
+
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
+        let height_recip = cos / sin;
+        let width_recip = height_recip / aspect_ratio;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ONE, T::ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, -near_plane, T::ZERO),
+        ])
+    }
+
+    /// Creates an infinite right-handed perspective projection matrix with
+    /// `0..1` depth range.
+    ///
+    /// Equivalent to `perspective_rh`, but with an infinite value for
+    /// `far_plane`. The result is that points near `near_plane` have depth `0`,
+    /// and as they move towards infinity the depth approaches `1`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perspective_infinite_rh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO);
+
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
+        let height_recip = cos / sin;
+        let width_recip = height_recip / aspect_ratio;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::NEG_ONE, T::NEG_ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, -near_plane, T::ZERO),
+        ])
+    }
+
+    /// Creates an infinite left-handed perspective projection matrix with
+    /// reversed `0..1` depth range.
+    ///
+    /// Equivalent to `perspective_infinite_lh`, but maps points at `near_plane`
+    /// to depth `1` and points at infinity to depth `0`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perspective_infinite_reverse_lh(
+        vertical_fov: T,
+        aspect_ratio: T,
+        near_plane: T,
+    ) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO);
+
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
+        let height_recip = cos / sin;
+        let width_recip = height_recip / aspect_ratio;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, near_plane, T::ZERO),
+        ])
+    }
+
+    /// Creates an infinite right-handed perspective projection matrix with
+    /// reversed `0..1` depth range.
+    ///
+    /// Equivalent to `perspective_infinite_rh`, but maps points at `near_plane`
+    /// to depth `1` and points at infinity to depth `0`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn perspective_infinite_reverse_rh(
+        vertical_fov: T,
+        aspect_ratio: T,
+        near_plane: T,
+    ) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO);
+
+        let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
+        let height_recip = cos / sin;
+        let width_recip = height_recip / aspect_ratio;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, T::ZERO, T::NEG_ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, near_plane, T::ZERO),
+        ])
+    }
+
     #[cfg(backend)]
     #[inline(always)]
     fn quat_from_axes(
@@ -2290,6 +2539,335 @@ mod tests {
                     scale,
                     invalid_rotation,
                     translation
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+
+            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
+                return;
+            }
+
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+            let far_plane = 420.0;
+
+            let mat = Matrix::<4, T, A>::perspective_lh(
+                vertical_fov,
+                aspect_ratio,
+                near_plane,
+                far_plane,
+            );
+
+            let half_height = (vertical_fov / 2.0).tan();
+            let half_width = half_height * aspect_ratio;
+
+            for (z, depth) in [(near_plane, 0.0), (far_plane, 1.0)] {
+                let x2 = x / z / half_width;
+                let y2 = y / z / half_height;
+
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, depth),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    0.0 = -0.0
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0,
+                    4.0
+                ));
+                assert_panic!(Matrix::<4, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    6.0,
+                    4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+
+            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
+                return;
+            }
+
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+            let far_plane = 420.0;
+
+            let mat = Matrix::<4, T, A>::perspective_rh(
+                vertical_fov,
+                aspect_ratio,
+                near_plane,
+                far_plane,
+            );
+
+            let half_height = (vertical_fov / 2.0).tan();
+            let half_width = half_height * aspect_ratio;
+
+            for (z, depth) in [(-near_plane, 0.0), (-far_plane, 1.0)] {
+                let x2 = x / z.abs() / half_width;
+                let y2 = y / z.abs() / half_height;
+
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, depth),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    0.0 = -0.0
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::perspective_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0,
+                    4.0
+                ));
+                assert_panic!(Matrix::<4, T, A>::perspective_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    6.0,
+                    4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_rh_gl() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+
+            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
+                return;
+            }
+
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+            let far_plane = 420.0;
+
+            let mat = Matrix::<4, T, A>::perspective_rh_gl(
+                vertical_fov,
+                aspect_ratio,
+                near_plane,
+                far_plane,
+            );
+
+            let half_height = (vertical_fov / 2.0).tan();
+            let half_width = half_height * aspect_ratio;
+
+            for (z, depth) in [(-near_plane, -1.0), (-far_plane, 1.0)] {
+                let x2 = x / z.abs() / half_width;
+                let y2 = y / z.abs() / half_height;
+
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, depth),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    0.0 = -0.0
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::perspective_rh_gl(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0,
+                    4.0
+                ));
+                assert_panic!(Matrix::<4, T, A>::perspective_rh_gl(
+                    vertical_fov,
+                    aspect_ratio,
+                    6.0,
+                    4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+
+            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
+                return;
+            }
+
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+
+            let mat =
+                Matrix::<4, T, A>::perspective_infinite_lh(vertical_fov, aspect_ratio, near_plane);
+
+            let half_height = (vertical_fov / 2.0).tan();
+            let half_width = half_height * aspect_ratio;
+
+            for (z, depth) in [(near_plane, 0.0), (1000.0, 1.0 - 1.0 / 1000.0)] {
+                let x2 = x / z / half_width;
+                let y2 = y / z / half_height;
+
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, depth),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    0.0 = -0.0
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::perspective_infinite_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+
+            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
+                return;
+            }
+
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+
+            let mat =
+                Matrix::<4, T, A>::perspective_infinite_rh(vertical_fov, aspect_ratio, near_plane);
+
+            let half_height = (vertical_fov / 2.0).tan();
+            let half_width = half_height * aspect_ratio;
+
+            for (z, depth) in [(-near_plane, 0.0), (-1000.0, 1.0 - 1.0 / 1000.0)] {
+                let x2 = x / z.abs() / half_width;
+                let y2 = y / z.abs() / half_height;
+
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, depth),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    0.0 = -0.0
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::perspective_infinite_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_reverse_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+
+            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
+                return;
+            }
+
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+
+            let mat = Matrix::<4, T, A>::perspective_infinite_reverse_lh(
+                vertical_fov,
+                aspect_ratio,
+                near_plane,
+            );
+
+            let half_height = (vertical_fov / 2.0).tan();
+            let half_width = half_height * aspect_ratio;
+
+            for (z, depth) in [(near_plane, 1.0), (1000.0, 1.0 / 1000.0)] {
+                let x2 = x / z / half_width;
+                let y2 = y / z / half_height;
+
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, depth),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    0.0 = -0.0
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_perspective_infinite_reverse_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+
+            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
+                return;
+            }
+
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+
+            let mat = Matrix::<4, T, A>::perspective_infinite_reverse_rh(
+                vertical_fov,
+                aspect_ratio,
+                near_plane,
+            );
+
+            let half_height = (vertical_fov / 2.0).tan();
+            let half_width = half_height * aspect_ratio;
+
+            for (z, depth) in [(-near_plane, 1.0), (-1000.0, 1.0 / 1000.0)] {
+                let x2 = x / z.abs() / half_width;
+                let y2 = y / z.abs() / half_height;
+
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, depth),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    0.0 = -0.0
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    -1.0
                 ));
             }
         });
