@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.5] - 2026-04-01
+
 ### Added
 
 - Matrix functions:
@@ -391,6 +393,7 @@ functionality can start being added.
 
 This version completely rewrote the crate.
 
-[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.16.4...HEAD
+[unreleased]: https://github.com/Noam2Stein/ggmath/compare/v0.16.5...HEAD
+[0.16.5]: https://github.com/Noam2Stein/ggmath/compare/v0.16.4...v0.16.5
 [0.16.4]: https://github.com/Noam2Stein/ggmath/compare/v0.16.3...v0.16.4
 [0.16.3]: https://github.com/Noam2Stein/ggmath/compare/v0.16.2...v0.16.3

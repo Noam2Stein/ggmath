@@ -146,21 +146,21 @@ Add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-ggmath = "0.16.4"
+ggmath = "0.16.5"
 ```
 
 For `no_std` support, enable the `libm` feature:
 
 ```toml
 [dependencies]
-ggmath = { version = "0.16.4", features = ["libm"] }
+ggmath = { version = "0.16.5", features = ["libm"] }
 ```
 
 For `no_std` without `libm`, disable default features:
 
 ```toml
 [dependencies]
-ggmath = { version = "0.16.4", default-features = false }
+ggmath = { version = "0.16.5", default-features = false }
 ```
 
 Without `std` or `libm`, the crate compiles but all float functionality that
