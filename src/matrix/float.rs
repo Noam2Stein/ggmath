@@ -1286,6 +1286,24 @@ where
 
         (scale, rotation, translation)
     }
+
+    /// Transforms the given 3D vector as a point, applying perspective
+    /// projection.
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// let result = matrix * (point, 1);
+    /// result.xyz / result.w
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn project_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
+        let result =
+            self.x_axis * point.x + self.y_axis * point.y + self.z_axis * point.z + self.w_axis;
+
+        (result / result.w).xyz()
+    }
 }
 
 #[cfg(test)]
@@ -2319,6 +2337,33 @@ mod tests {
                 );
             } else if cfg!(assertions) {
                 assert_panic!(mat.to_scale_rotation_translation());
+            }
+        });
+    }
+
+    #[test]
+    fn test_project_point() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let point = Vector::<3, T, A>::new(x, y, z);
+            let point4 = Vector::<4, T, A>::new(x, y, z, 1.0);
+
+            for mat in [
+                Matrix::<4, T, A>::from_column_array(&[
+                    1.0, 5.6, 4.2, 7.4, 3.7, 9.1, 0.1, -0.5, 0.3, 6.4, 3.8, 1.9, 4.1, 8.9, 5.3, 9.6,
+                ]),
+                Matrix::<4, T, A>::from_column_array(&[
+                    2.3, -1.5, 7.8, 0.4, 6.1, 3.3, -2.2, 5.9, 8.7, 1.2, 4.6, -3.8, 9.0, 2.5, 6.4,
+                    7.1,
+                ]),
+                Matrix::<4, T, A>::from_column_array(&[
+                    -4.2, 3.1, 5.5, 8.8, 7.7, -6.3, 2.9, 1.0, 0.6, 4.4, -1.1, 9.3, 5.2, 8.6, 3.7,
+                    -2.4,
+                ]),
+            ] {
+                assert_float_eq!(
+                    mat.project_point(point),
+                    (mat * point4).xyz() / (mat * point4).w
+                );
             }
         });
     }
