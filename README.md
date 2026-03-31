@@ -33,8 +33,8 @@ Unaligned types are optimal in memory-critical scenarios, for example when
 storing 3D models. In all other cases, aligned types are optimal and result in
 better performance than unaligned types.
 
-Currently SIMD optimizations are only implemented for `f32` types on x86
-targets. These types are closely benchmarked against [`glam`] and generally
+Currently SIMD optimizations are only implemented for `f32` vectors on x86
+targets. These vectors are closely benchmarked against [`glam`] and generally
 match its performance.
 
 Integration with [`wide`] enables SoA ([Structure of Arrays]) SIMD, which lets
@@ -101,7 +101,7 @@ Feature List:
 - [x] Masks
 - [x] Sufficient Float-Vector functionality
 - [x] Sufficient Int-Vector functionality
-- [ ] Sufficient Matrix functionality
+- [x] Sufficient Matrix functionality
 - [ ] Sufficient Quaternion functionality
 - [ ] Sufficient Affine functionality
 
@@ -118,7 +118,11 @@ Crate Support:
 
 Performance:
 
-- [x] `f32` SSE2 optimizations
+- [x] `f32` vector SSE2 optimizations
+- [ ] `f32` matrix SSE2 optimizations
+- [ ] `f32` quaternion SSE2 optimizations
+- [ ] `f32` affine SSE2 optimizations
+- [ ] `f32` mask SSE2 optimizations
 - [ ] `i32` `u32` SSE2 optimizations
 - [ ] `f32` NEON optimizations
 - [ ] `i32` `u32` NEON optimizations

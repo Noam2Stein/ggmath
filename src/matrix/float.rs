@@ -467,6 +467,12 @@ where
     /// (in radians).
     ///
     /// This rotates `+X` to `+Y`.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -483,6 +489,12 @@ where
     /// `scale` and a rotation of `angle` (in radians).
     ///
     /// This rotates `+X` to `+Y`.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -499,6 +511,12 @@ where
     /// `scale`, a rotation of `angle` (in radians) and `translation`.
     ///
     /// This rotates `+X` to `+Y`.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -872,6 +890,12 @@ where
     /// `angle` (in radians) around the x axis.
     ///
     /// This rotates `+Y` to `+Z`.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -889,6 +913,12 @@ where
     /// `angle` (in radians) around the y axis.
     ///
     /// This rotates `+Z` to `+X`.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -906,6 +936,12 @@ where
     /// `angle` (in radians) around the z axis.
     ///
     /// This rotates `+X` to `+Y`.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -948,11 +984,17 @@ where
     /// Creates an affine transformation matrix containing a 3D rotation from a
     /// quaternion.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if the quaternion is not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -966,11 +1008,17 @@ where
     ///
     /// `axis` must be normalized. Otherwise the result is unspecified.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `axis` is not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -998,6 +1046,12 @@ where
 
     /// Creates an affine transformation matrix containing a rotation from an
     /// Euler rotation order/sequence and angles (in radians).
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1008,11 +1062,17 @@ where
     /// Creates an affine transformation matrix containing a 3D `rotation` and
     /// `translation`.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `rotation` is not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1032,11 +1092,17 @@ where
     /// Creates an affine transformation matrix containing the non-uniform
     /// `scale`, a 3D `rotation` and `translation`.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `rotation` is not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1059,11 +1125,17 @@ where
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1091,11 +1163,17 @@ where
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1123,11 +1201,17 @@ where
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1141,11 +1225,17 @@ where
     ///
     /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
     ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1160,12 +1250,16 @@ where
     /// Useful to map the standard left-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1193,12 +1287,16 @@ where
     /// Useful to map the standard right-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1225,6 +1323,8 @@ where
     ///
     /// Equivalent to the OpenGL [`gluPerspective`] function.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
@@ -1233,6 +1333,7 @@ where
     /// is less than or equal to `near_plane`.
     ///
     /// [`gluPerspective`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
+    /// [`project_point`]: Self::project_point
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1276,11 +1377,15 @@ where
     /// `far_plane`. The result is that points near `near_plane` have depth `0`,
     /// and as they move towards infinity the depth approaches `1`.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1308,11 +1413,15 @@ where
     /// `far_plane`. The result is that points near `near_plane` have depth `0`,
     /// and as they move towards infinity the depth approaches `1`.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1339,11 +1448,15 @@ where
     /// Equivalent to `perspective_infinite_lh`, but maps points at `near_plane`
     /// to depth `1` and points at infinity to depth `0`.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1374,11 +1487,15 @@ where
     /// Equivalent to `perspective_infinite_rh`, but maps points at `near_plane`
     /// to depth `1` and points at infinity to depth `0`.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[cfg(backend)]
     #[inline]
     #[must_use]
@@ -1406,12 +1523,16 @@ where
     /// Creates a left-handed perspective projection matrix with `0..1` depth
     /// range.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1439,12 +1560,16 @@ where
     /// Creates a right-handed perspective projection matrix with `0..1` depth
     /// range.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1474,6 +1599,8 @@ where
     ///
     /// Equivalent to the OpenGL [`glFrustum`] function.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
@@ -1482,6 +1609,7 @@ where
     /// is less than or equal to `near_plane`.
     ///
     /// [`glFrustum`]: https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1519,11 +1647,15 @@ where
     /// Useful to map a left-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `far` is less than or equal to `near`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1554,11 +1686,15 @@ where
     /// Useful to map a right-handed coordinate system into what
     /// WebGPU/Metal/Direct3D expect.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `far` is less than or equal to `near`.
+    ///
+    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1588,6 +1724,8 @@ where
     ///
     /// Equivalent to the OpenGL [`glOrtho`] function.
     ///
+    /// The resulting matrix can be used to transform 3D points using [`project_point`].
+    ///
     /// # Panics
     ///
     /// When assertions are enabled (see the crate documentation):
@@ -1595,6 +1733,7 @@ where
     /// Panics if `far` is less than or equal to `near`.
     ///
     /// [`glOrtho`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
+    /// [`project_point`]: Self::project_point
     #[inline]
     #[must_use]
     #[track_caller]

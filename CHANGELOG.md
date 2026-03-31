@@ -65,6 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `EulerRot` enum.
 
+### Changed
+
+- Updated matrix documentation.
+
 ## [0.16.4] - 2026-03-22
 
 ### Added

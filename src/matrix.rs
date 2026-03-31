@@ -1,3 +1,5 @@
+#![cfg_attr(not(backend), expect(rustdoc::broken_intra_doc_links))]
+
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
@@ -20,8 +22,8 @@ mod float;
 /// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
 /// [`Alignment`] for more details.
 ///
-/// Matrices are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Most constructors are dimension specific. See [`from_columns`] for raw
+/// construction.
 ///
 /// # Type aliases
 ///
@@ -100,8 +102,11 @@ where
 
 /// A 2x2 column-major matrix.
 ///
-/// Matrices are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Linear transformations including 2D rotation and scale can be created using
+/// functions [`from_diagonal`], [`from_angle`] and [`from_scale_angle`].
+///
+/// The resulting matrices can be used to transform 2D vectors using vector
+/// multiplication.
 ///
 /// # SIMD alignment
 ///
@@ -124,14 +129,28 @@ where
 ///
 /// This represents the result of multiplying the matrix by `(0, 1)`.
 ///
-/// [`from_columns`]: Matrix::from_columns
+/// [`from_diagonal`]: Mat2::from_diagonal
+/// [`from_angle`]: Mat2::from_angle
+/// [`from_scale_angle`]: Mat2::from_scale_angle
 /// [`Alignment`]: crate::Alignment
 pub type Mat2<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 column-major matrix.
 ///
-/// Matrices are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Linear transformations including 3D rotation and scale can be created using
+/// functions [`from_diagonal`], [`from_rotation_x`], [`from_rotation_y`],
+/// [`from_rotation_z`], [`from_quat`], [`from_axis_angle`] and [`from_euler`].
+///
+/// The resulting matrices can be used to transform 3D vectors using regular
+/// vector multiplication.
+///
+/// Affine transformations including 2D translation, rotation and scale can be
+/// created using functions [`from_scale`], [`from_translation`],
+/// [`from_submatrix`], [`from_submatrix_translation`], [`from_angle`],
+/// [`from_scale_angle`] and [`from_scale_angle_translation`].
+///
+/// The resulting matrices can be used to transform 2D vectors using
+/// [`transform_point`] and [`transform_vector`].
 ///
 /// # SIMD alignment
 ///
@@ -160,14 +179,42 @@ pub type Mat2<T> = Matrix<2, T, Aligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 1)`.
 ///
-/// [`from_columns`]: Matrix::from_columns
+/// [`from_diagonal`]: Mat3::from_diagonal
+/// [`from_rotation_x`]: Mat3::from_rotation_x
+/// [`from_rotation_y`]: Mat3::from_rotation_y
+/// [`from_rotation_z`]: Mat3::from_rotation_z
+/// [`from_quat`]: Mat3::from_quat
+/// [`from_axis_angle`]: Mat3::from_axis_angle
+/// [`from_euler`]: Mat3::from_euler
+/// [`from_scale`]: Mat3::from_scale
+/// [`from_translation`]: Mat3::from_translation
+/// [`from_submatrix`]: Mat3::from_submatrix
+/// [`from_submatrix_translation`]: Mat3::from_submatrix_translation
+/// [`from_angle`]: Mat3::from_angle
+/// [`from_scale_angle`]: Mat3::from_scale_angle
+/// [`from_scale_angle_translation`]: Mat3::from_scale_angle_translation
+/// [`transform_point`]: Mat3::transform_point
+/// [`transform_vector`]: Mat3::transform_vector
 /// [`Alignment`]: crate::Alignment
 pub type Mat3<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 column-major matrix.
 ///
-/// Matrices are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Affine transformations including 3D translation, rotation and scale can be
+/// created using functions such as [`from_scale`], [`from_translation`],
+/// [`from_rotation_x`], [`from_rotation_y`] and [`from_rotation_z`],
+/// [`from_quat`], and [`from_scale_rotation_translation`].
+///
+/// The resulting matrices can be used to transform 3D vectors using
+/// [`transform_point`] and [`transform_vector`].
+///
+/// Left-handed projections can be created using functions such as
+/// [`orthographic_lh`], [`perspective_lh`] and [`perspective_infinite_lh`].
+/// Right-handed projections can be created using functions such as
+/// [`orthographic_rh`], [`perspective_rh`] and [`perspective_infinite_rh`].
+///
+/// The resulting projections can be used to transform 3D vectors as points
+/// using [`project_point`].
 ///
 /// # SIMD alignment
 ///
@@ -202,14 +249,32 @@ pub type Mat3<T> = Matrix<3, T, Aligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 0, 1)`.
 ///
-/// [`from_columns`]: Matrix::from_columns
+/// [`from_scale`]: Mat4::from_scale
+/// [`from_translation`]: Mat4::from_translation
+/// [`from_rotation_x`]: Mat4::from_rotation_x
+/// [`from_rotation_y`]: Mat4::from_rotation_y
+/// [`from_rotation_z`]: Mat4::from_rotation_z
+/// [`from_quat`]: Mat4::from_quat
+/// [`from_scale_rotation_translation`]: Mat4::from_scale_rotation_translation
+/// [`transform_point`]: Mat4::transform_point
+/// [`transform_vector`]: Mat4::transform_vector
+/// [`orthographic_lh`]: Mat4::orthographic_lh
+/// [`perspective_lh`]: Mat4::perspective_lh
+/// [`perspective_infinite_lh`]: Mat4::perspective_infinite_lh
+/// [`orthographic_rh`]: Mat4::orthographic_rh
+/// [`perspective_rh`]: Mat4::perspective_rh
+/// [`perspective_infinite_rh`]: Mat4::perspective_infinite_rh
+/// [`project_point`]: Mat4::project_point
 /// [`Alignment`]: crate::Alignment
 pub type Mat4<T> = Matrix<4, T, Aligned>;
 
 /// A 2x2 column-major matrix.
 ///
-/// Matrices are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Linear transformations including 2D rotation and scale can be created using
+/// functions [`from_diagonal`], [`from_angle`] and [`from_scale_angle`].
+///
+/// The resulting matrices can be used to transform 2D vectors using vector
+/// multiplication.
 ///
 /// # No SIMD alignment
 ///
@@ -231,14 +296,28 @@ pub type Mat4<T> = Matrix<4, T, Aligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 1)`.
 ///
-/// [`from_columns`]: Matrix::from_columns
+/// [`from_diagonal`]: Mat2U::from_diagonal
+/// [`from_angle`]: Mat2U::from_angle
+/// [`from_scale_angle`]: Mat2U::from_scale_angle
 /// [`Alignment`]: crate::Alignment
 pub type Mat2U<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 column-major matrix.
 ///
-/// Matrices are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Linear transformations including 3D rotation and scale can be created using
+/// functions [`from_diagonal`], [`from_rotation_x`], [`from_rotation_y`],
+/// [`from_rotation_z`], [`from_quat`], [`from_axis_angle`] and [`from_euler`].
+///
+/// The resulting matrices can be used to transform 3D vectors using regular
+/// vector multiplication.
+///
+/// Affine transformations including 2D translation, rotation and scale can be
+/// created using functions [`from_scale`], [`from_translation`],
+/// [`from_submatrix`], [`from_submatrix_translation`], [`from_angle`],
+/// [`from_scale_angle`] and [`from_scale_angle_translation`].
+///
+/// The resulting matrices can be used to transform 2D vectors using
+/// [`transform_point`] and [`transform_vector`].
 ///
 /// # No SIMD alignment
 ///
@@ -266,14 +345,42 @@ pub type Mat2U<T> = Matrix<2, T, Unaligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 1)`.
 ///
-/// [`from_columns`]: Matrix::from_columns
+/// [`from_diagonal`]: Mat3U::from_diagonal
+/// [`from_rotation_x`]: Mat3U::from_rotation_x
+/// [`from_rotation_y`]: Mat3U::from_rotation_y
+/// [`from_rotation_z`]: Mat3U::from_rotation_z
+/// [`from_quat`]: Mat3U::from_quat
+/// [`from_axis_angle`]: Mat3U::from_axis_angle
+/// [`from_euler`]: Mat3U::from_euler
+/// [`from_scale`]: Mat3U::from_scale
+/// [`from_translation`]: Mat3U::from_translation
+/// [`from_submatrix`]: Mat3U::from_submatrix
+/// [`from_submatrix_translation`]: Mat3U::from_submatrix_translation
+/// [`from_angle`]: Mat3U::from_angle
+/// [`from_scale_angle`]: Mat3U::from_scale_angle
+/// [`from_scale_angle_translation`]: Mat3U::from_scale_angle_translation
+/// [`transform_point`]: Mat3U::transform_point
+/// [`transform_vector`]: Mat3U::transform_vector
 /// [`Alignment`]: crate::Alignment
 pub type Mat3U<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 column-major matrix.
 ///
-/// Matrices are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Affine transformations including 3D translation, rotation and scale can be
+/// created using functions such as [`from_scale`], [`from_translation`],
+/// [`from_rotation_x`], [`from_rotation_y`] and [`from_rotation_z`],
+/// [`from_quat`], and [`from_scale_rotation_translation`].
+///
+/// The resulting matrices can be used to transform 3D vectors using
+/// [`transform_point`] and [`transform_vector`].
+///
+/// Left-handed projections can be created using functions such as
+/// [`orthographic_lh`], [`perspective_lh`] and [`perspective_infinite_lh`].
+/// Right-handed projections can be created using functions such as
+/// [`orthographic_rh`], [`perspective_rh`] and [`perspective_infinite_rh`].
+///
+/// The resulting projections can be used to transform 3D vectors as points
+/// using [`project_point`].
 ///
 /// # No SIMD alignment
 ///
@@ -307,7 +414,22 @@ pub type Mat3U<T> = Matrix<3, T, Unaligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 0, 1)`.
 ///
-/// [`from_columns`]: Matrix::from_columns
+/// [`from_scale`]: Mat4U::from_scale
+/// [`from_translation`]: Mat4U::from_translation
+/// [`from_rotation_x`]: Mat4U::from_rotation_x
+/// [`from_rotation_y`]: Mat4U::from_rotation_y
+/// [`from_rotation_z`]: Mat4U::from_rotation_z
+/// [`from_quat`]: Mat4U::from_quat
+/// [`from_scale_rotation_translation`]: Mat4U::from_scale_rotation_translation
+/// [`transform_point`]: Mat4U::transform_point
+/// [`transform_vector`]: Mat4U::transform_vector
+/// [`orthographic_lh`]: Mat4U::orthographic_lh
+/// [`perspective_lh`]: Mat4U::perspective_lh
+/// [`perspective_infinite_lh`]: Mat4U::perspective_infinite_lh
+/// [`orthographic_rh`]: Mat4U::orthographic_rh
+/// [`perspective_rh`]: Mat4U::perspective_rh
+/// [`perspective_infinite_rh`]: Mat4U::perspective_infinite_rh
+/// [`project_point`]: Mat4U::project_point
 /// [`Alignment`]: crate::Alignment
 pub type Mat4U<T> = Matrix<4, T, Unaligned>;
 
