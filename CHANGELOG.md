@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `frustum_lh`
   - `frustum_rh`
   - `frustum_rh_gl`
+  - `orthographic_lh`
+  - `orthographic_rh`
+  - `orthographic_rh_gl`
   - `to_scale_rotation_translation`
   - `project_point`
 

@@ -1513,6 +1513,110 @@ where
         ])
     }
 
+    /// Creates a left-handed orthographic projection matrix with `0..1` depth
+    /// range.
+    ///
+    /// Useful to map a left-handed coordinate system into what
+    /// WebGPU/Metal/Direct3D expect.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `far` is less than or equal to `near`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn orthographic_lh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
+        #[cfg(assertions)]
+        assert!(far > near);
+
+        let width_recip = (right - left).recip();
+        let height_recip = (top - bottom).recip();
+        let depth_recip = (far - near).recip();
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip + width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip + height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, depth_recip, T::ZERO),
+            Vector::<4, T, A>::new(
+                -(left + right) * width_recip,
+                -(top + bottom) * height_recip,
+                -depth_recip * near,
+                T::ONE,
+            ),
+        ])
+    }
+
+    /// Creates a right-handed orthographic projection matrix with `0..1` depth
+    /// range.
+    ///
+    /// Useful to map a right-handed coordinate system into what
+    /// WebGPU/Metal/Direct3D expect.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `far` is less than or equal to `near`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn orthographic_rh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
+        #[cfg(assertions)]
+        assert!(far > near);
+
+        let width_recip = (right - left).recip();
+        let height_recip = (top - bottom).recip();
+        let neg_depth_recip = (near - far).recip();
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(width_recip + width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, height_recip + height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, neg_depth_recip, T::ZERO),
+            Vector::<4, T, A>::new(
+                -(left + right) * width_recip,
+                -(top + bottom) * height_recip,
+                neg_depth_recip * near,
+                T::ONE,
+            ),
+        ])
+    }
+
+    /// Creates a right-handed orthographic projection matrix with `-1..1` depth
+    /// range.
+    ///
+    /// Equivalent to the OpenGL [`glOrtho`] function.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `far` is less than or equal to `near`.
+    ///
+    /// [`glOrtho`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn orthographic_rh_gl(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
+        #[cfg(assertions)]
+        assert!(far > near);
+
+        let scale_x = T::as_from(2.0) / (right - left);
+        let scale_y = T::as_from(2.0) / (top - bottom);
+        let scale_z = T::as_from(2.0) / (near - far);
+        let translation_x = -(right + left) / (right - left);
+        let translation_y = -(top + bottom) / (top - bottom);
+        let translation_z = -(far + near) / (far - near);
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(scale_x, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, scale_y, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, scale_z, T::ZERO),
+            Vector::<4, T, A>::new(translation_x, translation_y, translation_z, T::ONE),
+        ])
+    }
+
     #[cfg(backend)]
     #[inline(always)]
     fn quat_from_axes(
@@ -1667,6 +1771,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use itertools::iproduct;
+
     use crate::{
         EulerRot, Matrix, Quaternion, Vector,
         utils::{assert_float_eq, assert_panic, for_parameters},
@@ -3041,6 +3147,88 @@ mod tests {
                     left, right, bottom, top, -1.0, 4.0
                 ));
                 assert_panic!(Matrix::<4, T, A>::frustum_rh_gl(
+                    left, right, bottom, top, 6.0, 4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_orthographic_lh() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near = 0.34;
+            let far = 420.0;
+
+            let mat = Matrix::<4, T, A>::orthographic_lh(left, right, bottom, top, near, far);
+
+            for ((x, x2), (y, y2), (z, z2)) in iproduct!(
+                [(left, -1.0), (right, 1.0), (left.midpoint(right), 0.0)],
+                [(bottom, -1.0), (top, 1.0), (bottom.midpoint(top), 0.0)],
+                [(near, 0.0), (far, 1.0), (near.midpoint(far), 0.5)]
+            ) {
+                assert_float_eq!(
+                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
+                    Vector::<3, T, A>::new(x2, y2, z2),
+                    abs <= Vector::splat(1e-5)
+                );
+            }
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::orthographic_lh(
+                    left, right, bottom, top, 6.0, 4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_orthographic_rh() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near = 0.34;
+            let far = 420.0;
+
+            assert_float_eq!(
+                Matrix::<4, T, A>::orthographic_rh(left, right, bottom, top, near, far),
+                Matrix::<4, T, A>::orthographic_lh(left, right, bottom, top, near, far)
+                    * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+            );
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::orthographic_rh(
+                    left, right, bottom, top, 6.0, 4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_orthographic_rh_gl() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near = 0.34;
+            let far = 420.0;
+
+            assert_float_eq!(
+                Matrix::<4, T, A>::orthographic_rh_gl(left, right, bottom, top, near, far),
+                Matrix::<4, T, A>::from_translation(Vector::<3, T, A>::NEG_Z)
+                    * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, 2.0))
+                    * Matrix::<4, T, A>::orthographic_rh(left, right, bottom, top, near, far),
+                r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
+            );
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::orthographic_rh_gl(
                     left, right, bottom, top, 6.0, 4.0
                 ));
             }
