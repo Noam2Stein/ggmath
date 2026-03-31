@@ -2575,7 +2575,7 @@ mod tests {
                 assert_float_eq!(
                     mat.project_point(Vector::<3, T, A>::new(x, y, z)),
                     Vector::<3, T, A>::new(x2, y2, depth),
-                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1.0) * 1e-3,
                     0.0 = -0.0
                 );
             }
@@ -2599,39 +2599,26 @@ mod tests {
 
     #[test]
     fn test_perspective_rh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-
-            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
-                return;
-            }
-
+        for_parameters!(|T: PrimitiveFloat, A| {
             let vertical_fov = T::to_radians(69.0);
             let aspect_ratio = 16.0 / 9.0;
             let near_plane = 0.34;
             let far_plane = 420.0;
 
-            let mat = Matrix::<4, T, A>::perspective_rh(
-                vertical_fov,
-                aspect_ratio,
-                near_plane,
-                far_plane,
+            assert_float_eq!(
+                Matrix::<4, T, A>::perspective_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane,
+                ),
+                Matrix::<4, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane,
+                ) * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
-
-            let half_height = (vertical_fov / 2.0).tan();
-            let half_width = half_height * aspect_ratio;
-
-            for (z, depth) in [(-near_plane, 0.0), (-far_plane, 1.0)] {
-                let x2 = x / z.abs() / half_width;
-                let y2 = y / z.abs() / half_height;
-
-                assert_float_eq!(
-                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
-                    Vector::<3, T, A>::new(x2, y2, depth),
-                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
-                    0.0 = -0.0
-                );
-            }
 
             if cfg!(assertions) {
                 assert_panic!(Matrix::<4, T, A>::perspective_rh(
@@ -2652,39 +2639,29 @@ mod tests {
 
     #[test]
     fn test_perspective_rh_gl() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-
-            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
-                return;
-            }
-
+        for_parameters!(|T: PrimitiveFloat, A| {
             let vertical_fov = T::to_radians(69.0);
             let aspect_ratio = 16.0 / 9.0;
             let near_plane = 0.34;
             let far_plane = 420.0;
 
-            let mat = Matrix::<4, T, A>::perspective_rh_gl(
-                vertical_fov,
-                aspect_ratio,
-                near_plane,
-                far_plane,
+            assert_float_eq!(
+                Matrix::<4, T, A>::perspective_rh_gl(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane,
+                ),
+                Matrix::<4, T, A>::from_translation(Vector::<3, T, A>::NEG_Z)
+                    * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, 2.0))
+                    * Matrix::<4, T, A>::perspective_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane,
+                    ),
+                r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
-
-            let half_height = (vertical_fov / 2.0).tan();
-            let half_width = half_height * aspect_ratio;
-
-            for (z, depth) in [(-near_plane, -1.0), (-far_plane, 1.0)] {
-                let x2 = x / z.abs() / half_width;
-                let y2 = y / z.abs() / half_height;
-
-                assert_float_eq!(
-                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
-                    Vector::<3, T, A>::new(x2, y2, depth),
-                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
-                    0.0 = -0.0
-                );
-            }
 
             if cfg!(assertions) {
                 assert_panic!(Matrix::<4, T, A>::perspective_rh_gl(
@@ -2729,7 +2706,7 @@ mod tests {
                 assert_float_eq!(
                     mat.project_point(Vector::<3, T, A>::new(x, y, z)),
                     Vector::<3, T, A>::new(x2, y2, depth),
-                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
+                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1.0) * 1e-3,
                     0.0 = -0.0
                 );
             }
@@ -2746,34 +2723,16 @@ mod tests {
 
     #[test]
     fn test_perspective_infinite_rh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-
-            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
-                return;
-            }
-
+        for_parameters!(|T: PrimitiveFloat, A| {
             let vertical_fov = T::to_radians(69.0);
             let aspect_ratio = 16.0 / 9.0;
             let near_plane = 0.34;
 
-            let mat =
-                Matrix::<4, T, A>::perspective_infinite_rh(vertical_fov, aspect_ratio, near_plane);
-
-            let half_height = (vertical_fov / 2.0).tan();
-            let half_width = half_height * aspect_ratio;
-
-            for (z, depth) in [(-near_plane, 0.0), (-1000.0, 1.0 - 1.0 / 1000.0)] {
-                let x2 = x / z.abs() / half_width;
-                let y2 = y / z.abs() / half_height;
-
-                assert_float_eq!(
-                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
-                    Vector::<3, T, A>::new(x2, y2, depth),
-                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
-                    0.0 = -0.0
-                );
-            }
+            assert_float_eq!(
+                Matrix::<4, T, A>::perspective_infinite_rh(vertical_fov, aspect_ratio, near_plane),
+                Matrix::<4, T, A>::perspective_infinite_lh(vertical_fov, aspect_ratio, near_plane)
+                    * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+            );
 
             if cfg!(assertions) {
                 assert_panic!(Matrix::<4, T, A>::perspective_infinite_rh(
@@ -2787,37 +2746,25 @@ mod tests {
 
     #[test]
     fn test_perspective_infinite_reverse_lh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-
-            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
-                return;
-            }
-
+        for_parameters!(|T: PrimitiveFloat, A| {
             let vertical_fov = T::to_radians(69.0);
             let aspect_ratio = 16.0 / 9.0;
             let near_plane = 0.34;
 
-            let mat = Matrix::<4, T, A>::perspective_infinite_reverse_lh(
-                vertical_fov,
-                aspect_ratio,
-                near_plane,
+            assert_float_eq!(
+                Matrix::<4, T, A>::perspective_infinite_reverse_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane
+                ),
+                Matrix::<4, T, A>::from_translation(Vector::<3, T, A>::Z)
+                    * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
+                    * Matrix::<4, T, A>::perspective_infinite_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
             );
-
-            let half_height = (vertical_fov / 2.0).tan();
-            let half_width = half_height * aspect_ratio;
-
-            for (z, depth) in [(near_plane, 1.0), (1000.0, 1.0 / 1000.0)] {
-                let x2 = x / z / half_width;
-                let y2 = y / z / half_height;
-
-                assert_float_eq!(
-                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
-                    Vector::<3, T, A>::new(x2, y2, depth),
-                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
-                    0.0 = -0.0
-                );
-            }
 
             if cfg!(assertions) {
                 assert_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_lh(
@@ -2831,37 +2778,23 @@ mod tests {
 
     #[test]
     fn test_perspective_infinite_reverse_rh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-
-            if !x.is_finite() || !y.is_finite() || x.abs() >= 10000000.0 || y.abs() >= 10000000.0 {
-                return;
-            }
-
+        for_parameters!(|T: PrimitiveFloat, A| {
             let vertical_fov = T::to_radians(69.0);
             let aspect_ratio = 16.0 / 9.0;
             let near_plane = 0.34;
 
-            let mat = Matrix::<4, T, A>::perspective_infinite_reverse_rh(
-                vertical_fov,
-                aspect_ratio,
-                near_plane,
+            assert_float_eq!(
+                Matrix::<4, T, A>::perspective_infinite_reverse_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane
+                ),
+                Matrix::<4, T, A>::perspective_infinite_reverse_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane
+                ) * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
-
-            let half_height = (vertical_fov / 2.0).tan();
-            let half_width = half_height * aspect_ratio;
-
-            for (z, depth) in [(-near_plane, 1.0), (-1000.0, 1.0 / 1000.0)] {
-                let x2 = x / z.abs() / half_width;
-                let y2 = y / z.abs() / half_height;
-
-                assert_float_eq!(
-                    mat.project_point(Vector::<3, T, A>::new(x, y, z)),
-                    Vector::<3, T, A>::new(x2, y2, depth),
-                    abs <= Vector::<3, T, A>::new(x2.abs(), y2.abs(), 1e-3),
-                    0.0 = -0.0
-                );
-            }
 
             if cfg!(assertions) {
                 assert_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_rh(
