@@ -1403,6 +1403,116 @@ where
         ])
     }
 
+    /// Creates a left-handed perspective projection matrix with `0..1` depth
+    /// range.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
+    /// is less than or equal to `near_plane`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn frustum_lh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO && far_plane > near_plane);
+
+        let width_recip = (right - left).recip();
+        let height_recip = (top - bottom).recip();
+        let depth_recip = (far_plane - near_plane).recip();
+        let two_near_plane = T::as_from(2.0) * near_plane;
+        let a = (right + left) * width_recip;
+        let b = (top + bottom) * height_recip;
+        let c = far_plane * depth_recip;
+        let d = -near_plane * c;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(two_near_plane * width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, two_near_plane * height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(a, b, c, T::ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, d, T::ZERO),
+        ])
+    }
+
+    /// Creates a right-handed perspective projection matrix with `0..1` depth
+    /// range.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
+    /// is less than or equal to `near_plane`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn frustum_rh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO && far_plane > near_plane);
+
+        let width_recip = (right - left).recip();
+        let height_recip = (top - bottom).recip();
+        let depth_recip = (far_plane - near_plane).recip();
+        let two_near_plane = T::as_from(2.0) * near_plane;
+        let a = (right + left) * width_recip;
+        let b = (top + bottom) * height_recip;
+        let c = -far_plane * depth_recip;
+        let d = near_plane * c;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(two_near_plane * width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, two_near_plane * height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(a, b, c, T::NEG_ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, d, T::ZERO),
+        ])
+    }
+
+    /// Creates a right-handed perspective projection matrix with `-1..1` depth
+    /// range.
+    ///
+    /// Equivalent to the OpenGL [`glFrustum`] function.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
+    /// is less than or equal to `near_plane`.
+    ///
+    /// [`glFrustum`]: https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn frustum_rh_gl(
+        left: T,
+        right: T,
+        bottom: T,
+        top: T,
+        near_plane: T,
+        far_plane: T,
+    ) -> Self {
+        #[cfg(assertions)]
+        assert!(near_plane > T::ZERO && far_plane > near_plane);
+
+        let width_recip = (right - left).recip();
+        let height_recip = (top - bottom).recip();
+        let depth_recip = (far_plane - near_plane).recip();
+        let two_near_plane = T::as_from(2.0) * near_plane;
+        let a = (right + left) * width_recip;
+        let b = (top + bottom) * height_recip;
+        let c = -(far_plane + near_plane) * depth_recip;
+        let d = -two_near_plane * far_plane * depth_recip;
+
+        Self::from_columns(&[
+            Vector::<4, T, A>::new(two_near_plane * width_recip, T::ZERO, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, two_near_plane * height_recip, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(a, b, c, T::NEG_ONE),
+            Vector::<4, T, A>::new(T::ZERO, T::ZERO, d, T::ZERO),
+        ])
+    }
+
     #[cfg(backend)]
     #[inline(always)]
     fn quat_from_axes(
@@ -2801,6 +2911,137 @@ mod tests {
                     vertical_fov,
                     aspect_ratio,
                     -1.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_lh() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+            let far_plane = 420.0;
+
+            let half_height = (vertical_fov / 2.0).tan() * near_plane;
+            let half_width = half_height * aspect_ratio;
+
+            assert_float_eq!(
+                Matrix::<4, T, A>::frustum_lh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    near_plane,
+                    far_plane
+                ),
+                Matrix::<4, T, A>::perspective_lh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane
+                ),
+                r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
+            );
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::frustum_lh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    -1.0,
+                    4.0
+                ));
+                assert_panic!(Matrix::<4, T, A>::frustum_lh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    6.0,
+                    4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_rh() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            let vertical_fov = T::to_radians(69.0);
+            let aspect_ratio = 16.0 / 9.0;
+            let near_plane = 0.34;
+            let far_plane = 420.0;
+
+            let half_height = (vertical_fov / 2.0).tan() * near_plane;
+            let half_width = half_height * aspect_ratio;
+
+            assert_float_eq!(
+                Matrix::<4, T, A>::frustum_rh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    near_plane,
+                    far_plane
+                ),
+                Matrix::<4, T, A>::perspective_rh(
+                    vertical_fov,
+                    aspect_ratio,
+                    near_plane,
+                    far_plane
+                ),
+                r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
+            );
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::frustum_rh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    -1.0,
+                    4.0
+                ));
+                assert_panic!(Matrix::<4, T, A>::frustum_rh(
+                    -half_width,
+                    half_width,
+                    -half_height,
+                    half_height,
+                    6.0,
+                    4.0
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_frustum_rh_gl() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            let left = -0.6;
+            let right = 2.8;
+            let bottom = -0.4;
+            let top = 1.3;
+            let near_plane = 0.34;
+            let far_plane = 420.0;
+
+            assert_float_eq!(
+                Matrix::<4, T, A>::frustum_rh_gl(left, right, bottom, top, near_plane, far_plane),
+                Matrix::<4, T, A>::from_translation(Vector::<3, T, A>::NEG_Z)
+                    * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, 2.0))
+                    * Matrix::<4, T, A>::frustum_rh(
+                        left, right, bottom, top, near_plane, far_plane
+                    ),
+                r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
+            );
+
+            if cfg!(assertions) {
+                assert_panic!(Matrix::<4, T, A>::frustum_rh_gl(
+                    left, right, bottom, top, -1.0, 4.0
+                ));
+                assert_panic!(Matrix::<4, T, A>::frustum_rh_gl(
+                    left, right, bottom, top, 6.0, 4.0
                 ));
             }
         });
