@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Deref, DerefMut},
+    ops::{Add, Deref, DerefMut, Mul},
     panic::{RefUnwindSafe, UnwindSafe},
 };
 
@@ -478,6 +478,33 @@ where
             (4, 4) => &mut self.translation,
             _ => panic!("index out of bounds"),
         }
+    }
+
+    /// Transforms the given vector applying scale, rotation and translation.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<N, T, A>) -> Vector<N, T, A>
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.matrix * point + self.translation
+    }
+
+    /// Transforms the given vector applying scale and rotation, but not
+    /// translation.
+    ///
+    /// See [`transform_point`] for also applying translation.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<N, T, A>) -> Vector<N, T, A>
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.matrix * vector
     }
 
     /// Raw transmutation between scalar types.
@@ -1980,6 +2007,66 @@ mod tests {
                 &mut Vector::<4, T, A>::new(m, n, o, p)
             );
             assert_panic!(affine.clone().column_mut(5));
+        });
+    }
+
+    #[test]
+    fn test_transform_point() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h] = std::array::from_fn(T::as_from);
+
+            let point = Vector::<2, T, A>::new(x, y);
+            let matrix = Matrix::from_columns(&[
+                Vector::<3, T, A>::new(z, w, T::as_from(0)),
+                Vector::<3, T, A>::new(a, b, T::as_from(0)),
+                Vector::<3, T, A>::new(c, d, T::as_from(1)),
+            ]);
+            assert_eq!(
+                Affine::<2, T, A>::from_matrix(matrix).transform_point(point),
+                matrix.transform_point(point)
+            );
+
+            let point = Vector::<3, T, A>::new(x, y, z);
+            let matrix = Matrix::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, T::as_from(0)),
+                Vector::<4, T, A>::new(w, a, b, T::as_from(0)),
+                Vector::<4, T, A>::new(c, d, e, T::as_from(0)),
+                Vector::<4, T, A>::new(f, g, h, T::as_from(1)),
+            ]);
+            assert_eq!(
+                Affine::<3, T, A>::from_matrix(matrix).transform_point(point),
+                matrix.transform_point(point)
+            );
+        });
+    }
+
+    #[test]
+    fn test_transform_vector() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h] = std::array::from_fn(T::as_from);
+
+            let point = Vector::<2, T, A>::new(x, y);
+            let matrix = Matrix::from_columns(&[
+                Vector::<3, T, A>::new(z, w, T::as_from(0)),
+                Vector::<3, T, A>::new(a, b, T::as_from(0)),
+                Vector::<3, T, A>::new(c, d, T::as_from(1)),
+            ]);
+            assert_eq!(
+                Affine::<2, T, A>::from_matrix(matrix).transform_vector(point),
+                matrix.transform_vector(point)
+            );
+
+            let point = Vector::<3, T, A>::new(x, y, z);
+            let matrix = Matrix::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, T::as_from(0)),
+                Vector::<4, T, A>::new(w, a, b, T::as_from(0)),
+                Vector::<4, T, A>::new(c, d, e, T::as_from(0)),
+                Vector::<4, T, A>::new(f, g, h, T::as_from(1)),
+            ]);
+            assert_eq!(
+                Affine::<3, T, A>::from_matrix(matrix).transform_vector(point),
+                matrix.transform_vector(point)
+            );
         });
     }
 

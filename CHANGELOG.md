@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Affine transform functions:
   - `column`
   - `column_mut`
+  - `transform_point`
+  - `transform_vector`
   - `from_column_array`
   - `from_scale`
   - `from_matrix`
