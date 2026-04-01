@@ -60,6 +60,50 @@ where
         self.matrix.is_finite() && self.translation.is_finite()
     }
 
+    /// Returns the inverse of `self`.
+    ///
+    /// If `self` is not invertable the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the determinant is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn inverse(&self) -> Self {
+        let submatrix = self.matrix.inverse();
+        let translation = -(submatrix * self.translation);
+
+        Self::from_submatrix_translation(submatrix, translation)
+    }
+
+    /// Returns the inverse of `self` or `None` if `self` is not invertable.
+    #[inline]
+    #[must_use]
+    pub fn try_inverse(&self) -> Option<Self> {
+        let submatrix = self.matrix.try_inverse()?;
+        let translation = -(submatrix * self.translation);
+
+        Some(Self::from_submatrix_translation(submatrix, translation))
+    }
+
+    /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
+    #[inline]
+    #[must_use]
+    pub fn inverse_or(&self, fallback: &Self) -> Self {
+        self.try_inverse().unwrap_or(*fallback)
+    }
+
+    /// Returns the inverse of `self` or the zero transform if `self` is not
+    /// invertable.
+    #[inline]
+    #[must_use]
+    pub fn inverse_or_zero(&self) -> Self {
+        self.try_inverse().unwrap_or(Self::ZERO)
+    }
+
     /// Returns `true` if the absolute difference of all elements between `self`
     /// and `other` is less than or equal to `max_abs_diff`.
     ///
@@ -77,7 +121,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Affine, Affine2, Vec2, utils::for_parameters};
+    use crate::{
+        Affine, Affine2, Vec2,
+        utils::{assert_float_eq, assert_panic, for_parameters},
+    };
 
     #[test]
     fn test_is_nan() {
@@ -134,6 +181,148 @@ mod tests {
                 affine.is_finite(),
                 affine.as_columns().iter().all(|column| column.is_finite())
             );
+        });
+    }
+
+    #[test]
+    fn test_inverse() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a, b] = [x + y, x + z, y + z];
+            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
+            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 10000.0
+                || y.abs() > 10000.0
+                || z.abs() > 10000.0
+            {
+                return;
+            }
+
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            if affine.matrix.determinant() != 0.0 {
+                let tol = (affine
+                    .matrix
+                    .determinant()
+                    .abs()
+                    .log2()
+                    .abs()
+                    .exp2()
+                    .powi(2)
+                    + affine.translation.length_squared())
+                    * 1e-5;
+
+                assert_float_eq!(
+                    affine * affine.inverse(),
+                    Affine::IDENTITY,
+                    abs <= Affine::<2, T, A>::from_column_array(&[tol; 6]),
+                    0.0 = -0.0
+                );
+            } else if cfg!(assertions) {
+                assert_panic!(affine.inverse());
+            }
+
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            if affine.matrix.determinant() != 0.0 {
+                let tol = (affine
+                    .matrix
+                    .determinant()
+                    .abs()
+                    .log2()
+                    .abs()
+                    .exp2()
+                    .powi(2)
+                    + affine.translation.length_squared())
+                    * 1e-5;
+
+                assert_float_eq!(
+                    affine * affine.inverse(),
+                    Affine::IDENTITY,
+                    abs <= Affine::<3, T, A>::from_column_array(&[tol; 12]),
+                    0.0 = -0.0
+                );
+            } else if cfg!(assertions) {
+                assert_panic!(affine.inverse());
+            }
+        });
+    }
+
+    #[test]
+    fn test_try_inverse() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a, b] = [x + y, x + z, y + z];
+            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
+            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
+
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            if let Some(inverse) = affine.try_inverse() {
+                assert_float_eq!(affine.inverse(), inverse);
+            } else if cfg!(assertions) {
+                assert_panic!(affine.inverse());
+            }
+
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            if let Some(inverse) = affine.try_inverse() {
+                assert_float_eq!(affine.inverse(), inverse);
+            } else if cfg!(assertions) {
+                assert_panic!(affine.inverse());
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a, b] = [x + y, x + z, y + z];
+            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
+            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
+
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            if let Some(inverse) = affine.try_inverse() {
+                assert_float_eq!(affine.inverse_or(&Affine::NAN), inverse);
+            } else {
+                assert_float_eq!(affine.inverse_or(&Affine::NAN), Affine::NAN);
+            }
+
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            if let Some(inverse) = affine.try_inverse() {
+                assert_float_eq!(affine.inverse_or(&Affine::NAN), inverse);
+            } else {
+                assert_float_eq!(affine.inverse_or(&Affine::NAN), Affine::NAN);
+            }
+        });
+    }
+
+    #[test]
+    fn test_inverse_or_zero() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a, b] = [x + y, x + z, y + z];
+            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
+            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
+
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            if let Some(inverse) = affine.try_inverse() {
+                assert_float_eq!(affine.inverse_or_zero(), inverse);
+            } else {
+                assert_float_eq!(affine.inverse_or_zero(), Affine::ZERO);
+            }
+
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            if let Some(inverse) = affine.try_inverse() {
+                assert_float_eq!(affine.inverse_or_zero(), inverse);
+            } else {
+                assert_float_eq!(affine.inverse_or_zero(), Affine::ZERO);
+            }
         });
     }
 

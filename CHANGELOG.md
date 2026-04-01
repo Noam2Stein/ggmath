@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `to_matrix`
   - `is_nan`
   - `is_finite`
+  - `inverse`
+  - `try_inverse`
+  - `inverse_or`
+  - `inverse_or_zero`
 
 - Affine transform multiplication.
 
