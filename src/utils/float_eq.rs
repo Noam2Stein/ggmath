@@ -246,7 +246,7 @@ where
     }
 
     fn abs_mul(&self, rhs: &Self) -> Self {
-        Self::from_mat_translation(
+        Self::from_submatrix_translation(
             self.matrix.abs_mul(&rhs.matrix),
             self.translation.abs_mul(&rhs.translation),
         )

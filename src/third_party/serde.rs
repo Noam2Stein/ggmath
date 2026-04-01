@@ -393,7 +393,7 @@ mod tests {
 
     #[test]
     fn test_affine() -> Result<(), Box<dyn Error>> {
-        let affine = Affine2::<i32>::from_mat_translation(
+        let affine = Affine2::<i32>::from_submatrix_translation(
             Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
             Vec2::new(5, 6),
         );
@@ -404,7 +404,7 @@ mod tests {
         assert!(from_str::<Affine3U<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine3::<i32>::from_mat_translation(
+        let affine = Affine3::<i32>::from_submatrix_translation(
             Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
             Vec3::new(10, 11, 12),
         );
@@ -415,7 +415,7 @@ mod tests {
         assert!(from_str::<Affine2U<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine::<4, i32, Aligned>::from_mat_translation(
+        let affine = Affine::<4, i32, Aligned>::from_submatrix_translation(
             Mat4::from_columns(&[
                 Vec4::new(1, 2, 3, 4),
                 Vec4::new(5, 6, 7, 8),
@@ -431,7 +431,7 @@ mod tests {
         assert!(from_str::<Affine2U<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine3U<i32>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine2U::<i32>::from_mat_translation(
+        let affine = Affine2U::<i32>::from_submatrix_translation(
             Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]),
             Vec2U::new(5, 6),
         );
@@ -442,7 +442,7 @@ mod tests {
         assert!(from_str::<Affine3U<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine3U::<i32>::from_mat_translation(
+        let affine = Affine3U::<i32>::from_submatrix_translation(
             Mat3U::from_columns(&[
                 Vec3U::new(1, 2, 3),
                 Vec3U::new(4, 5, 6),
@@ -457,7 +457,7 @@ mod tests {
         assert!(from_str::<Affine2U<i32>>(&to_string(&affine)?).is_err());
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
-        let affine = Affine::<4, i32, Unaligned>::from_mat_translation(
+        let affine = Affine::<4, i32, Unaligned>::from_submatrix_translation(
             Mat4U::from_columns(&[
                 Vec4U::new(1, 2, 3, 4),
                 Vec4U::new(5, 6, 7, 8),

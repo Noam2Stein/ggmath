@@ -202,7 +202,7 @@ where
     /// an affine transform with no transformation.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
-    pub const ZERO: Self = Self::from_mat_translation(Matrix::ZERO, Vector::ZERO);
+    pub const ZERO: Self = Self::from_submatrix_translation(Matrix::ZERO, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -211,7 +211,7 @@ where
     T: Scalar + Zero + One,
 {
     /// An affine transform with no transformation.
-    pub const IDENTITY: Self = Self::from_mat_translation(Matrix::IDENTITY, Vector::ZERO);
+    pub const IDENTITY: Self = Self::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -220,7 +220,7 @@ where
     T: Scalar + Nan,
 {
     /// An affine transform with all elements set to NaN (Not a Number).
-    pub const NAN: Self = Self::from_mat_translation(Matrix::NAN, Vector::NAN);
+    pub const NAN: Self = Self::from_submatrix_translation(Matrix::NAN, Vector::NAN);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -235,7 +235,7 @@ where
     where
         T: Zero,
     {
-        Self::from_mat_translation(Matrix::from_diagonal(scale), Vector::ZERO)
+        Self::from_submatrix_translation(Matrix::from_diagonal(scale), Vector::ZERO)
     }
 
     /// Creates an affine transform from a `translation` vector.
@@ -245,25 +245,28 @@ where
     where
         T: Zero + One,
     {
-        Self::from_mat_translation(Matrix::IDENTITY, translation)
+        Self::from_submatrix_translation(Matrix::IDENTITY, translation)
     }
 
-    /// Creates an affine transform from a matrix expressing rotation, scaling
-    /// and shear.
+    /// Creates an affine transform from `submatrix` expressing rotation and
+    /// scale, but not translation.
     #[inline]
     #[must_use]
-    pub const fn from_mat(mat: Matrix<N, T, A>) -> Self
+    pub const fn from_submatrix(submatrix: Matrix<N, T, A>) -> Self
     where
         T: Zero,
     {
-        Self::from_mat_translation(mat, Vector::ZERO)
+        Self::from_submatrix_translation(submatrix, Vector::ZERO)
     }
 
-    /// Creates an affine transform from a translation vector, and a matrix
-    /// expressing rotation, scaling and shear.
+    /// Creates an affine transform from `translation` and `submatrix`
+    /// expressing rotation and scale.
     #[inline]
     #[must_use]
-    pub const fn from_mat_translation(mat: Matrix<N, T, A>, translation: Vector<N, T, A>) -> Self {
+    pub const fn from_submatrix_translation(
+        submatrix: Matrix<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self {
         if const {
             size_of::<Affine<N, T, A>>()
                 == size_of::<Matrix<N, T, A>>() + size_of::<Vector<N, T, A>>()
@@ -277,12 +280,12 @@ where
                     Length<N>: SupportedLength,
                     T: Scalar,
                 {
-                    mat: Matrix<N, T, A>,
+                    submatrix: Matrix<N, T, A>,
                     translation: Vector<N, T, A>,
                 }
 
                 transmute_generic::<AffineRepr<N, T, A>, Affine<N, T, A>>(AffineRepr {
-                    mat,
+                    submatrix,
                     translation,
                 })
             }
@@ -298,13 +301,13 @@ where
                     Length<N>: SupportedLength,
                     T: Scalar,
                 {
-                    mat: Matrix<N, T, A>,
+                    submatrix: Matrix<N, T, A>,
                     translation: Vector<N, T, A>,
                     padding: Vector<N, T, A>,
                 }
 
                 transmute_generic::<AffineRepr<N, T, A>, Affine<N, T, A>>(AffineRepr {
-                    mat,
+                    submatrix,
                     translation,
                     padding: translation,
                 })
@@ -326,13 +329,13 @@ where
                     Length<N>: SupportedLength,
                     T: Scalar,
                 {
-                    mat: Matrix<N, T, A>,
+                    submatrix: Matrix<N, T, A>,
                     translation: Vector<N, T, A>,
                     padding: Repr4<T>,
                 }
 
                 transmute_generic::<AffineRepr<N, T, A>, Affine<N, T, A>>(AffineRepr {
-                    mat,
+                    submatrix,
                     translation,
                     padding: Repr4(
                         translation.as_array_ref()[0],
@@ -377,7 +380,7 @@ where
         // implementation of `Deref`.
         let deref = unsafe { transmute_ref::<Affine<N, T, A>, AffineDeref<N, T, A>>(self) };
 
-        Affine::from_mat_translation(
+        Affine::from_submatrix_translation(
             deref.matrix.to_alignment(),
             deref.translation.to_alignment(),
         )
@@ -488,6 +491,40 @@ where
         // guaranteed to have compatible memory layouts if `Repr` is a signed
         // integer.
         unsafe { transmute_generic::<Affine<N, T, A>, Affine<N, T2, A>>(self) }
+    }
+
+    /// Creates an affine transform from `submatrix` expressing rotation and
+    /// scale, but not translation.
+    ///
+    /// This function has been renamed to [`from_submatrix`]. This name will be
+    /// removed in a future version.
+    ///
+    /// [`from_submatrix`]: Self::from_submatrix
+    #[deprecated(since = "0.16.6", note = "renamed to `from_submatrix`")]
+    #[inline]
+    #[must_use]
+    pub const fn from_mat(submatrix: Matrix<N, T, A>) -> Self
+    where
+        T: Zero,
+    {
+        Self::from_submatrix(submatrix)
+    }
+
+    /// Creates an affine transform from `translation` and `submatrix`
+    /// expressing rotation and scale.
+    ///
+    /// This function has been renamed to [`from_submatrix_translation`]. This
+    /// name will be removed in a future version.
+    ///
+    /// [`from_submatrix_translation`]: Self::from_submatrix_translation
+    #[deprecated(since = "0.16.6", note = "renamed to `from_submatrix_translation`")]
+    #[inline]
+    #[must_use]
+    pub const fn from_mat_translation(
+        submatrix: Matrix<N, T, A>,
+        translation: Vector<N, T, A>,
+    ) -> Self {
+        Self::from_submatrix_translation(submatrix, translation)
     }
 }
 
@@ -980,6 +1017,7 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
+    // TODO: Rename `matrix` to `submatrix` for `0.17.0`.
     /// The part representing rotation, scaling and shear.
     pub matrix: Matrix<N, T, A>,
     /// The part representing translation.
@@ -1223,15 +1261,15 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             assert_eq!(
                 Affine::<2, T, A>::ZERO,
-                Affine::from_mat_translation(Matrix::ZERO, Vector::ZERO)
+                Affine::from_submatrix_translation(Matrix::ZERO, Vector::ZERO)
             );
             assert_eq!(
                 Affine::<3, T, A>::ZERO,
-                Affine::from_mat_translation(Matrix::ZERO, Vector::ZERO)
+                Affine::from_submatrix_translation(Matrix::ZERO, Vector::ZERO)
             );
             assert_eq!(
                 Affine::<4, T, A>::ZERO,
-                Affine::from_mat_translation(Matrix::ZERO, Vector::ZERO)
+                Affine::from_submatrix_translation(Matrix::ZERO, Vector::ZERO)
             );
         });
     }
@@ -1241,15 +1279,15 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             assert_eq!(
                 Affine::<2, T, A>::IDENTITY,
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::ZERO)
+                Affine::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO)
             );
             assert_eq!(
                 Affine::<3, T, A>::IDENTITY,
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::ZERO)
+                Affine::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO)
             );
             assert_eq!(
                 Affine::<4, T, A>::IDENTITY,
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::ZERO)
+                Affine::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO)
             );
         });
     }
@@ -1259,15 +1297,15 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A| {
             assert_float_eq!(
                 Affine::<2, T, A>::NAN,
-                Affine::from_mat_translation(Matrix::NAN, Vector::NAN)
+                Affine::from_submatrix_translation(Matrix::NAN, Vector::NAN)
             );
             assert_float_eq!(
                 Affine::<3, T, A>::NAN,
-                Affine::from_mat_translation(Matrix::NAN, Vector::NAN)
+                Affine::from_submatrix_translation(Matrix::NAN, Vector::NAN)
             );
             assert_float_eq!(
                 Affine::<4, T, A>::NAN,
-                Affine::from_mat_translation(Matrix::NAN, Vector::NAN)
+                Affine::from_submatrix_translation(Matrix::NAN, Vector::NAN)
             );
         });
     }
@@ -1279,15 +1317,15 @@ mod tests {
 
             assert_eq!(
                 Affine::<2, T, A>::from_scale(Vector::<2, T, A>::new(x, y)),
-                Affine::from_mat(Matrix::from_diagonal(Vector::<2, T, A>::new(x, y)))
+                Affine::from_submatrix(Matrix::from_diagonal(Vector::<2, T, A>::new(x, y)))
             );
             assert_eq!(
                 Affine::<3, T, A>::from_scale(Vector::<3, T, A>::new(x, y, z)),
-                Affine::from_mat(Matrix::from_diagonal(Vector::<3, T, A>::new(x, y, z)))
+                Affine::from_submatrix(Matrix::from_diagonal(Vector::<3, T, A>::new(x, y, z)))
             );
             assert_eq!(
                 Affine::<4, T, A>::from_scale(Vector::<4, T, A>::new(x, y, z, w)),
-                Affine::from_mat(Matrix::from_diagonal(Vector::<4, T, A>::new(x, y, z, w)))
+                Affine::from_submatrix(Matrix::from_diagonal(Vector::<4, T, A>::new(x, y, z, w)))
             );
         });
     }
@@ -1299,31 +1337,37 @@ mod tests {
 
             assert_eq!(
                 Affine::<2, T, A>::from_translation(Vector::<2, T, A>::new(x, y)),
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<2, T, A>::new(x, y))
+                Affine::from_submatrix_translation(Matrix::IDENTITY, Vector::<2, T, A>::new(x, y))
             );
             assert_eq!(
                 Affine::<3, T, A>::from_translation(Vector::<3, T, A>::new(x, y, z)),
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<3, T, A>::new(x, y, z))
+                Affine::from_submatrix_translation(
+                    Matrix::IDENTITY,
+                    Vector::<3, T, A>::new(x, y, z)
+                )
             );
             assert_eq!(
                 Affine::<4, T, A>::from_translation(Vector::<4, T, A>::new(x, y, z, w)),
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<4, T, A>::new(x, y, z, w))
+                Affine::from_submatrix_translation(
+                    Matrix::IDENTITY,
+                    Vector::<4, T, A>::new(x, y, z, w)
+                )
             );
         });
     }
 
     #[test]
-    fn test_from_mat() {
+    fn test_from_submatrix() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [_, x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat(Matrix::from_columns(&[
+                Affine::<2, T, A>::from_submatrix(Matrix::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, w)
                 ])),
-                Affine::from_mat_translation(
+                Affine::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1332,12 +1376,12 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat(Matrix::from_columns(&[
+                Affine::<3, T, A>::from_submatrix(Matrix::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(w, a, b),
                     Vector::<3, T, A>::new(c, d, e)
                 ])),
-                Affine::from_mat_translation(
+                Affine::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1347,13 +1391,13 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat(Matrix::from_columns(&[
+                Affine::<4, T, A>::from_submatrix(Matrix::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, w),
                     Vector::<4, T, A>::new(a, b, c, d),
                     Vector::<4, T, A>::new(e, f, g, h),
                     Vector::<4, T, A>::new(i, j, k, l)
                 ])),
-                Affine::from_mat_translation(
+                Affine::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1373,7 +1417,7 @@ mod tests {
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1381,7 +1425,7 @@ mod tests {
                     Vector::<2, T, A>::new(a, b)
                 )
                 .to_alignment(),
-                Affine::<2, T, Aligned>::from_mat_translation(
+                Affine::<2, T, Aligned>::from_submatrix_translation(
                     Matrix::<2, T, Aligned>::from_columns(&[
                         Vector::<2, T, Aligned>::new(x, y),
                         Vector::<2, T, Aligned>::new(z, w)
@@ -1390,7 +1434,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1399,7 +1443,7 @@ mod tests {
                     Vector::<3, T, A>::new(f, g, h)
                 )
                 .to_alignment(),
-                Affine::<3, T, Aligned>::from_mat_translation(
+                Affine::<3, T, Aligned>::from_submatrix_translation(
                     Matrix::<3, T, Aligned>::from_columns(&[
                         Vector::<3, T, Aligned>::new(x, y, z),
                         Vector::<3, T, Aligned>::new(w, a, b),
@@ -1409,7 +1453,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1419,7 +1463,7 @@ mod tests {
                     Vector::<4, T, A>::new(m, n, o, p)
                 )
                 .to_alignment(),
-                Affine::<4, T, Aligned>::from_mat_translation(
+                Affine::<4, T, Aligned>::from_submatrix_translation(
                     Matrix::<4, T, Aligned>::from_columns(&[
                         Vector::<4, T, Aligned>::new(x, y, z, w),
                         Vector::<4, T, Aligned>::new(a, b, c, d),
@@ -1431,7 +1475,7 @@ mod tests {
             );
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1439,7 +1483,7 @@ mod tests {
                     Vector::<2, T, A>::new(a, b)
                 )
                 .to_alignment(),
-                Affine::<2, T, Unaligned>::from_mat_translation(
+                Affine::<2, T, Unaligned>::from_submatrix_translation(
                     Matrix::<2, T, Unaligned>::from_columns(&[
                         Vector::<2, T, Unaligned>::new(x, y),
                         Vector::<2, T, Unaligned>::new(z, w)
@@ -1448,7 +1492,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1457,7 +1501,7 @@ mod tests {
                     Vector::<3, T, A>::new(f, g, h)
                 )
                 .to_alignment(),
-                Affine::<3, T, Unaligned>::from_mat_translation(
+                Affine::<3, T, Unaligned>::from_submatrix_translation(
                     Matrix::<3, T, Unaligned>::from_columns(&[
                         Vector::<3, T, Unaligned>::new(x, y, z),
                         Vector::<3, T, Unaligned>::new(w, a, b),
@@ -1467,7 +1511,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1477,7 +1521,7 @@ mod tests {
                     Vector::<4, T, A>::new(m, n, o, p)
                 )
                 .to_alignment(),
-                Affine::<4, T, Unaligned>::from_mat_translation(
+                Affine::<4, T, Unaligned>::from_submatrix_translation(
                     Matrix::<4, T, Unaligned>::from_columns(&[
                         Vector::<4, T, Unaligned>::new(x, y, z, w),
                         Vector::<4, T, Unaligned>::new(a, b, c, d),
@@ -1497,7 +1541,7 @@ mod tests {
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1505,7 +1549,7 @@ mod tests {
                     Vector::<2, T, A>::new(a, b)
                 )
                 .align(),
-                Affine::<2, T, Aligned>::from_mat_translation(
+                Affine::<2, T, Aligned>::from_submatrix_translation(
                     Matrix::<2, T, Aligned>::from_columns(&[
                         Vector::<2, T, Aligned>::new(x, y),
                         Vector::<2, T, Aligned>::new(z, w)
@@ -1514,7 +1558,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1523,7 +1567,7 @@ mod tests {
                     Vector::<3, T, A>::new(f, g, h)
                 )
                 .align(),
-                Affine::<3, T, Aligned>::from_mat_translation(
+                Affine::<3, T, Aligned>::from_submatrix_translation(
                     Matrix::<3, T, Aligned>::from_columns(&[
                         Vector::<3, T, Aligned>::new(x, y, z),
                         Vector::<3, T, Aligned>::new(w, a, b),
@@ -1533,7 +1577,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1543,7 +1587,7 @@ mod tests {
                     Vector::<4, T, A>::new(m, n, o, p)
                 )
                 .align(),
-                Affine::<4, T, Aligned>::from_mat_translation(
+                Affine::<4, T, Aligned>::from_submatrix_translation(
                     Matrix::<4, T, Aligned>::from_columns(&[
                         Vector::<4, T, Aligned>::new(x, y, z, w),
                         Vector::<4, T, Aligned>::new(a, b, c, d),
@@ -1563,7 +1607,7 @@ mod tests {
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1571,7 +1615,7 @@ mod tests {
                     Vector::<2, T, A>::new(a, b)
                 )
                 .unalign(),
-                Affine::<2, T, Unaligned>::from_mat_translation(
+                Affine::<2, T, Unaligned>::from_submatrix_translation(
                     Matrix::<2, T, Unaligned>::from_columns(&[
                         Vector::<2, T, Unaligned>::new(x, y),
                         Vector::<2, T, Unaligned>::new(z, w)
@@ -1580,7 +1624,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1589,7 +1633,7 @@ mod tests {
                     Vector::<3, T, A>::new(f, g, h)
                 )
                 .unalign(),
-                Affine::<3, T, Unaligned>::from_mat_translation(
+                Affine::<3, T, Unaligned>::from_submatrix_translation(
                     Matrix::<3, T, Unaligned>::from_columns(&[
                         Vector::<3, T, Unaligned>::new(x, y, z),
                         Vector::<3, T, Unaligned>::new(w, a, b),
@@ -1599,7 +1643,7 @@ mod tests {
                 )
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1609,7 +1653,7 @@ mod tests {
                     Vector::<4, T, A>::new(m, n, o, p)
                 )
                 .unalign(),
-                Affine::<4, T, Unaligned>::from_mat_translation(
+                Affine::<4, T, Unaligned>::from_submatrix_translation(
                     Matrix::<4, T, Unaligned>::from_columns(&[
                         Vector::<4, T, Unaligned>::new(x, y, z, w),
                         Vector::<4, T, Unaligned>::new(a, b, c, d),
@@ -1628,7 +1672,7 @@ mod tests {
             assert_eq!(
                 // SAFETY: `u32` accepts all bit patterns.
                 unsafe {
-                    Affine::<2, i32, A>::from_mat_translation(
+                    Affine::<2, i32, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<2, i32, A>::new(0, 1),
                             Vector::<2, i32, A>::new(2, 3),
@@ -1637,7 +1681,7 @@ mod tests {
                     )
                     .to_repr()
                 },
-                Affine::<2, u32, A>::from_mat_translation(
+                Affine::<2, u32, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, u32, A>::new(0, 1),
                         Vector::<2, u32, A>::new(2, 3),
@@ -1648,7 +1692,7 @@ mod tests {
             assert_eq!(
                 // SAFETY: `u32` accepts all bit patterns.
                 unsafe {
-                    Affine::<3, i32, A>::from_mat_translation(
+                    Affine::<3, i32, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<3, i32, A>::new(0, 1, 2),
                             Vector::<3, i32, A>::new(3, 4, 5),
@@ -1658,7 +1702,7 @@ mod tests {
                     )
                     .to_repr()
                 },
-                Affine::<3, u32, A>::from_mat_translation(
+                Affine::<3, u32, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, u32, A>::new(0, 1, 2),
                         Vector::<3, u32, A>::new(3, 4, 5),
@@ -1670,7 +1714,7 @@ mod tests {
             assert_eq!(
                 // SAFETY: `u32` accepts all bit patterns.
                 unsafe {
-                    Affine::<4, i32, A>::from_mat_translation(
+                    Affine::<4, i32, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<4, i32, A>::new(0, 1, 2, 3),
                             Vector::<4, i32, A>::new(4, 5, 6, 7),
@@ -1681,7 +1725,7 @@ mod tests {
                     )
                     .to_repr()
                 },
-                Affine::<4, u32, A>::from_mat_translation(
+                Affine::<4, u32, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, u32, A>::new(0, 1, 2, 3),
                         Vector::<4, u32, A>::new(4, 5, 6, 7),
@@ -1706,7 +1750,7 @@ mod tests {
                     Vector::<2, T, A>::new(z, w),
                     Vector::<2, T, A>::new(a, b)
                 ]),
-                Affine::from_mat_translation(
+                Affine::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1721,7 +1765,7 @@ mod tests {
                     Vector::<3, T, A>::new(c, d, e),
                     Vector::<3, T, A>::new(f, g, h)
                 ]),
-                Affine::from_mat_translation(
+                Affine::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1738,7 +1782,7 @@ mod tests {
                     Vector::<4, T, A>::new(i, j, k, l),
                     Vector::<4, T, A>::new(m, n, o, p)
                 ]),
-                Affine::from_mat_translation(
+                Affine::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1796,7 +1840,7 @@ mod tests {
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1811,7 +1855,7 @@ mod tests {
                 ]
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1828,7 +1872,7 @@ mod tests {
                 ]
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1856,7 +1900,7 @@ mod tests {
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1871,7 +1915,7 @@ mod tests {
                 ]
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1888,7 +1932,7 @@ mod tests {
                 ]
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1916,7 +1960,7 @@ mod tests {
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1930,7 +1974,7 @@ mod tests {
                 ])
             );
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -1942,7 +1986,7 @@ mod tests {
             );
 
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1958,7 +2002,7 @@ mod tests {
                 ])
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -1971,7 +2015,7 @@ mod tests {
             );
 
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -1989,7 +2033,7 @@ mod tests {
                 ])
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -2011,7 +2055,7 @@ mod tests {
                 std::array::from_fn(T::as_from);
 
             assert_eq!(
-                &mut Affine::<2, T, A>::from_mat_translation(
+                &mut Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -2025,7 +2069,7 @@ mod tests {
                 ])
             );
             assert_eq!(
-                &mut Affine::<2, T, A>::from_mat_translation(
+                &mut Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::<2, T, A>::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w)
@@ -2037,7 +2081,7 @@ mod tests {
             );
 
             assert_eq!(
-                &mut Affine::<3, T, A>::from_mat_translation(
+                &mut Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -2053,7 +2097,7 @@ mod tests {
                 ])
             );
             assert_eq!(
-                &mut Affine::<3, T, A>::from_mat_translation(
+                &mut Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::<3, T, A>::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(w, a, b),
@@ -2066,7 +2110,7 @@ mod tests {
             );
 
             assert_eq!(
-                &mut Affine::<4, T, A>::from_mat_translation(
+                &mut Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -2084,7 +2128,7 @@ mod tests {
                 ])
             );
             assert_eq!(
-                &mut Affine::<4, T, A>::from_mat_translation(
+                &mut Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::<4, T, A>::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(a, b, c, d),
@@ -2108,7 +2152,7 @@ mod tests {
             assert_eq!(
                 format!(
                     "{:?}",
-                    Affine::<2, T, A>::from_mat_translation(
+                    Affine::<2, T, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<2, T, A>::new(x, y),
                             Vector::<2, T, A>::new(z, w)
@@ -2121,7 +2165,7 @@ mod tests {
             assert_eq!(
                 format!(
                     "{:?}",
-                    Affine::<3, T, A>::from_mat_translation(
+                    Affine::<3, T, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<3, T, A>::new(x, y, z),
                             Vector::<3, T, A>::new(w, a, b),
@@ -2137,7 +2181,7 @@ mod tests {
             assert_eq!(
                 format!(
                     "{:?}",
-                    Affine::<4, T, A>::from_mat_translation(
+                    Affine::<4, T, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<4, T, A>::new(x, y, z, w),
                             Vector::<4, T, A>::new(a, b, c, d),
@@ -2163,7 +2207,7 @@ mod tests {
             assert_eq!(
                 format!(
                     "{}",
-                    Affine::<2, T, A>::from_mat_translation(
+                    Affine::<2, T, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<2, T, A>::new(x, y),
                             Vector::<2, T, A>::new(z, w)
@@ -2176,7 +2220,7 @@ mod tests {
             assert_eq!(
                 format!(
                     "{}",
-                    Affine::<3, T, A>::from_mat_translation(
+                    Affine::<3, T, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<3, T, A>::new(x, y, z),
                             Vector::<3, T, A>::new(w, a, b),
@@ -2190,7 +2234,7 @@ mod tests {
             assert_eq!(
                 format!(
                     "{}",
-                    Affine::<4, T, A>::from_mat_translation(
+                    Affine::<4, T, A>::from_submatrix_translation(
                         Matrix::from_columns(&[
                             Vector::<4, T, A>::new(x, y, z, w),
                             Vector::<4, T, A>::new(a, b, c, d),
@@ -2213,13 +2257,13 @@ mod tests {
             let w = if x > y { x } else { y };
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w),
                     ]),
                     Vector::<2, T, A>::new(x, z),
-                ) == Affine::<2, T, A>::from_mat_translation(
+                ) == Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(z, y),
                         Vector::<2, T, A>::new(z, w),
@@ -2229,13 +2273,13 @@ mod tests {
                 x == z && y == y && z == z && w == w && x == x
             );
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w),
                     ]),
                     Vector::<2, T, A>::new(x, z),
-                ) == Affine::<2, T, A>::from_mat_translation(
+                ) == Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(z, w),
                         Vector::<2, T, A>::new(x, y),
@@ -2246,14 +2290,14 @@ mod tests {
             );
 
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(x, y, w),
                         Vector::<3, T, A>::new(x, y, z),
                     ]),
                     Vector::<3, T, A>::new(x, y, z),
-                ) == Affine::<3, T, A>::from_mat_translation(
+                ) == Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, w),
                         Vector::<3, T, A>::new(x, y, w),
@@ -2264,14 +2308,14 @@ mod tests {
                 x == x && y == y && z == w && w == w
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(z, w, y),
                         Vector::<3, T, A>::new(x, y, z),
                     ]),
                     Vector::<3, T, A>::new(z, x, y),
-                ) == Affine::<3, T, A>::from_mat_translation(
+                ) == Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(z, w, y),
                         Vector::<3, T, A>::new(x, y, z),
@@ -2283,7 +2327,7 @@ mod tests {
             );
 
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(x, y, z, w),
@@ -2291,7 +2335,7 @@ mod tests {
                         Vector::<4, T, A>::new(x, y, z, y),
                     ]),
                     Vector::<4, T, A>::new(x, y, z, w),
-                ) == Affine::<4, T, A>::from_mat_translation(
+                ) == Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(w, y, z, w),
                         Vector::<4, T, A>::new(x, y, z, w),
@@ -2303,7 +2347,7 @@ mod tests {
                 x == w && y == y && z == z && w == w
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(z, w, y, x),
@@ -2311,7 +2355,7 @@ mod tests {
                         Vector::<4, T, A>::new(z, w, y, x),
                     ]),
                     Vector::<4, T, A>::new(z, y, x, w),
-                ) == Affine::<4, T, A>::from_mat_translation(
+                ) == Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(z, w, y, x),
                         Vector::<4, T, A>::new(x, y, z, w),
@@ -2331,13 +2375,13 @@ mod tests {
             let w = if x > y { x } else { y };
 
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w),
                     ]),
                     Vector::<2, T, A>::new(x, z),
-                ) != Affine::<2, T, A>::from_mat_translation(
+                ) != Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(z, y),
                         Vector::<2, T, A>::new(z, w),
@@ -2347,13 +2391,13 @@ mod tests {
                 x != z || y != y || z != z || w != w || x != x
             );
             assert_eq!(
-                Affine::<2, T, A>::from_mat_translation(
+                Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(x, y),
                         Vector::<2, T, A>::new(z, w),
                     ]),
                     Vector::<2, T, A>::new(x, z),
-                ) != Affine::<2, T, A>::from_mat_translation(
+                ) != Affine::<2, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<2, T, A>::new(z, w),
                         Vector::<2, T, A>::new(x, y),
@@ -2364,14 +2408,14 @@ mod tests {
             );
 
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(x, y, w),
                         Vector::<3, T, A>::new(x, y, z),
                     ]),
                     Vector::<3, T, A>::new(x, y, z),
-                ) != Affine::<3, T, A>::from_mat_translation(
+                ) != Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, w),
                         Vector::<3, T, A>::new(x, y, w),
@@ -2382,14 +2426,14 @@ mod tests {
                 x != x || y != y || z != w || w != w
             );
             assert_eq!(
-                Affine::<3, T, A>::from_mat_translation(
+                Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(x, y, z),
                         Vector::<3, T, A>::new(z, w, y),
                         Vector::<3, T, A>::new(x, y, z),
                     ]),
                     Vector::<3, T, A>::new(z, x, y),
-                ) != Affine::<3, T, A>::from_mat_translation(
+                ) != Affine::<3, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<3, T, A>::new(z, w, y),
                         Vector::<3, T, A>::new(x, y, z),
@@ -2401,7 +2445,7 @@ mod tests {
             );
 
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(x, y, z, w),
@@ -2409,7 +2453,7 @@ mod tests {
                         Vector::<4, T, A>::new(x, y, z, y),
                     ]),
                     Vector::<4, T, A>::new(x, y, z, w),
-                ) != Affine::<4, T, A>::from_mat_translation(
+                ) != Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(w, y, z, w),
                         Vector::<4, T, A>::new(x, y, z, w),
@@ -2421,7 +2465,7 @@ mod tests {
                 x != w || y != y || z != z || w != w
             );
             assert_eq!(
-                Affine::<4, T, A>::from_mat_translation(
+                Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(x, y, z, w),
                         Vector::<4, T, A>::new(z, w, y, x),
@@ -2429,7 +2473,7 @@ mod tests {
                         Vector::<4, T, A>::new(z, w, y, x),
                     ]),
                     Vector::<4, T, A>::new(z, y, x, w),
-                ) != Affine::<4, T, A>::from_mat_translation(
+                ) != Affine::<4, T, A>::from_submatrix_translation(
                     Matrix::from_columns(&[
                         Vector::<4, T, A>::new(z, w, y, x),
                         Vector::<4, T, A>::new(x, y, z, w),

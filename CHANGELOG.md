@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed affine transform functions:
+  - `from_mat` to `from_submatrix`
+  - `from_mat_translation` to `from_submatrix_translation`
+
 - Updated documentation.
 
 ## [0.16.5] - 2026-04-01
