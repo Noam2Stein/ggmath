@@ -587,6 +587,39 @@ where
         ])
     }
 
+    /// Creates an affine transform from an affine transformation matrix,
+    /// discarding the last row.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let matrix = Mat3::from_columns(&[
+    ///     Vec3::new(1.0, 2.0, 0.0),
+    ///     Vec3::new(3.0, 4.0, 0.0),
+    ///     Vec3::new(5.0, 6.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_matrix(matrix),
+    ///     Affine2::from_columns(&[
+    ///         Vec2::new(1.0, 2.0),
+    ///         Vec2::new(3.0, 4.0),
+    ///         Vec2::new(5.0, 6.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_matrix(matrix: Matrix<3, T, A>) -> Self {
+        Self::from_columns(&[
+            matrix.column(0).xy(),
+            matrix.column(1).xy(),
+            matrix.column(2).xy(),
+        ])
+    }
+
     /// Returns a reference to the affine transform's columns.
     #[inline]
     #[must_use]
@@ -605,6 +638,41 @@ where
         // `Matrix<2, T, A>` (two vectors) then `Vector<2, T, A>`, which is 3
         // vectors in total.
         unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
+    }
+
+    /// Converts `self` to an affine transformation matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_columns(&[
+    ///     Vec2::new(1.0, 2.0),
+    ///     Vec2::new(3.0, 4.0),
+    ///     Vec2::new(5.0, 6.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     affine.to_matrix(),
+    ///     Mat3::from_columns(&[
+    ///         Vec3::new(1.0, 2.0, 0.0),
+    ///         Vec3::new(3.0, 4.0, 0.0),
+    ///         Vec3::new(5.0, 6.0, 1.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_matrix(&self) -> Matrix<3, T, A>
+    where
+        T: Zero + One,
+    {
+        Matrix::from_columns(&[
+            Vector::<3, T, A>::new(self.matrix.x_axis.x, self.matrix.x_axis.y, T::ZERO),
+            Vector::<3, T, A>::new(self.matrix.y_axis.x, self.matrix.y_axis.y, T::ZERO),
+            Vector::<3, T, A>::new(self.translation.x, self.translation.y, T::ONE),
+        ])
     }
 
     /// Creates a 2D affine transform from three column vectors.
@@ -762,6 +830,40 @@ where
         ])
     }
 
+    /// Creates an affine transform from an affine transformation matrix,
+    /// discarding the last row.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let matrix = Mat3::from_columns(&[
+    ///     Vec3::new(1.0, 2.0, 0.0),
+    ///     Vec3::new(3.0, 4.0, 0.0),
+    ///     Vec3::new(5.0, 6.0, 1.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Affine2::from_matrix(matrix),
+    ///     Affine2::from_columns(&[
+    ///         Vec2::new(1.0, 2.0),
+    ///         Vec2::new(3.0, 4.0),
+    ///         Vec2::new(5.0, 6.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_matrix(matrix: Matrix<4, T, A>) -> Self {
+        Self::from_columns(&[
+            matrix.column(0).xyz(),
+            matrix.column(1).xyz(),
+            matrix.column(2).xyz(),
+            matrix.column(3).xyz(),
+        ])
+    }
+
     /// Returns a reference to the affine transform's columns.
     #[inline]
     #[must_use]
@@ -780,6 +882,62 @@ where
         // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
         // vectors in total.
         unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
+    }
+
+    /// Converts `self` to an affine transformation matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_columns(&[
+    ///     Vec2::new(1.0, 2.0),
+    ///     Vec2::new(3.0, 4.0),
+    ///     Vec2::new(5.0, 6.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     affine.to_matrix(),
+    ///     Mat3::from_columns(&[
+    ///         Vec3::new(1.0, 2.0, 0.0),
+    ///         Vec3::new(3.0, 4.0, 0.0),
+    ///         Vec3::new(5.0, 6.0, 1.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_matrix(&self) -> Matrix<4, T, A>
+    where
+        T: Zero + One,
+    {
+        Matrix::from_columns(&[
+            Vector::<4, T, A>::new(
+                self.matrix.x_axis.x,
+                self.matrix.x_axis.y,
+                self.matrix.x_axis.z,
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                self.matrix.y_axis.x,
+                self.matrix.y_axis.y,
+                self.matrix.y_axis.z,
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                self.matrix.z_axis.x,
+                self.matrix.z_axis.y,
+                self.matrix.z_axis.z,
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                self.translation.x,
+                self.translation.y,
+                self.translation.z,
+                T::ONE,
+            ),
+        ])
     }
 
     /// Creates a 3D affine transform from four column vectors.
@@ -1834,6 +1992,40 @@ mod tests {
     }
 
     #[test]
+    fn test_from_matrix() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_matrix(Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e)
+                ])),
+                Affine::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(w, a),
+                    Vector::<2, T, A>::new(c, d)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_matrix(Matrix::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l)
+                ])),
+                Affine::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(a, b, c),
+                    Vector::<3, T, A>::new(e, f, g),
+                    Vector::<3, T, A>::new(i, j, k)
+                ])
+            );
+        });
+    }
+
+    #[test]
     fn test_as_columns() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
@@ -1949,6 +2141,40 @@ mod tests {
                     Vector::<4, T, A>::new(i, j, k, l),
                     Vector::<4, T, A>::new(m, n, o, p)
                 ]
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_matrix() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            assert_eq!(
+                Affine::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(1.0, 2.0),
+                    Vector::<2, T, A>::new(3.0, 4.0),
+                    Vector::<2, T, A>::new(5.0, 6.0)
+                ])
+                .to_matrix(),
+                Matrix::from_columns(&[
+                    Vector::<3, T, A>::new(1.0, 2.0, 0.0),
+                    Vector::<3, T, A>::new(3.0, 4.0, 0.0),
+                    Vector::<3, T, A>::new(5.0, 6.0, 1.0)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(1.0, 2.0, 3.0),
+                    Vector::<3, T, A>::new(4.0, 5.0, 6.0),
+                    Vector::<3, T, A>::new(7.0, 8.0, 9.0),
+                    Vector::<3, T, A>::new(10.0, 11.0, 12.0)
+                ])
+                .to_matrix(),
+                Matrix::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(1.0, 2.0, 3.0, 0.0),
+                    Vector::<4, T, A>::new(4.0, 5.0, 6.0, 0.0),
+                    Vector::<4, T, A>::new(7.0, 8.0, 9.0, 0.0),
+                    Vector::<4, T, A>::new(10.0, 11.0, 12.0, 1.0)
+                ])
             );
         });
     }
