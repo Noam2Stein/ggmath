@@ -424,6 +424,62 @@ where
         self.to_alignment()
     }
 
+    /// Returns the column at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is greater than the dimension of the affine transform.
+    /// It is fine if `index == N` because of the additional `translation`
+    /// column.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn column(&self, index: usize) -> Vector<N, T, A> {
+        match (N, index) {
+            (2, 0) => self.matrix.column(0),
+            (2, 1) => self.matrix.column(1),
+            (2, 2) => self.translation,
+            (3, 0) => self.matrix.column(0),
+            (3, 1) => self.matrix.column(1),
+            (3, 2) => self.matrix.column(2),
+            (3, 3) => self.translation,
+            (4, 0) => self.matrix.column(0),
+            (4, 1) => self.matrix.column(1),
+            (4, 2) => self.matrix.column(2),
+            (4, 3) => self.matrix.column(3),
+            (4, 4) => self.translation,
+            _ => panic!("index out of bounds"),
+        }
+    }
+
+    /// Returns a mutable reference to the column at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is greater than the dimension of the affine transform.
+    /// It is fine if `index == N` because of the additional `translation`
+    /// column.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn column_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
+        match (N, index) {
+            (2, 0) => self.matrix.column_mut(0),
+            (2, 1) => self.matrix.column_mut(1),
+            (2, 2) => &mut self.translation,
+            (3, 0) => self.matrix.column_mut(0),
+            (3, 1) => self.matrix.column_mut(1),
+            (3, 2) => self.matrix.column_mut(2),
+            (3, 3) => &mut self.translation,
+            (4, 0) => self.matrix.column_mut(0),
+            (4, 1) => self.matrix.column_mut(1),
+            (4, 2) => self.matrix.column_mut(2),
+            (4, 3) => self.matrix.column_mut(3),
+            (4, 4) => &mut self.translation,
+            _ => panic!("index out of bounds"),
+        }
+    }
+
     /// Raw transmutation between scalar types.
     ///
     /// This function's signature staticly guarantees that the types have
@@ -1377,7 +1433,7 @@ mod tests {
     use crate::{
         Affine, Affine2, Affine2U, Affine3, Affine3U, Aligned, Mat2, Mat3, Mat4, Matrix, Unaligned,
         Vec2, Vec3, Vector,
-        utils::{assert_float_eq, for_parameters},
+        utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
@@ -1821,6 +1877,109 @@ mod tests {
                     Vector::<4, T, Unaligned>::new(m, n, o, p)
                 )
             );
+        });
+    }
+
+    #[test]
+    fn test_column() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            let affine = Affine::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(a, b),
+            ]);
+            assert_eq!(affine.column(0), Vector::<2, T, A>::new(x, y));
+            assert_eq!(affine.column(1), Vector::<2, T, A>::new(z, w));
+            assert_eq!(affine.column(2), Vector::<2, T, A>::new(a, b));
+            assert_panic!(affine.column(3));
+
+            let affine = Affine::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+                Vector::<3, T, A>::new(f, g, h),
+            ]);
+            assert_eq!(affine.column(0), Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(affine.column(1), Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(affine.column(2), Vector::<3, T, A>::new(c, d, e));
+            assert_eq!(affine.column(3), Vector::<3, T, A>::new(f, g, h));
+            assert_panic!(affine.column(4));
+
+            let affine = Affine::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+                Vector::<4, T, A>::new(m, n, o, p),
+            ]);
+            assert_eq!(affine.column(0), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(affine.column(1), Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(affine.column(2), Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(affine.column(3), Vector::<4, T, A>::new(i, j, k, l));
+            assert_eq!(affine.column(4), Vector::<4, T, A>::new(m, n, o, p));
+            assert_panic!(affine.column(5));
+        });
+    }
+
+    #[test]
+    fn test_column_mut() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            let mut affine = Affine::<2, T, A>::from_columns(&[
+                Vector::<2, T, A>::new(x, y),
+                Vector::<2, T, A>::new(z, w),
+                Vector::<2, T, A>::new(a, b),
+            ]);
+            assert_eq!(affine.column_mut(0), &mut Vector::<2, T, A>::new(x, y));
+            assert_eq!(affine.column_mut(1), &mut Vector::<2, T, A>::new(z, w));
+            assert_eq!(affine.column_mut(2), &mut Vector::<2, T, A>::new(a, b));
+            assert_panic!(affine.clone().column_mut(3));
+
+            let mut affine = Affine::<3, T, A>::from_columns(&[
+                Vector::<3, T, A>::new(x, y, z),
+                Vector::<3, T, A>::new(w, a, b),
+                Vector::<3, T, A>::new(c, d, e),
+                Vector::<3, T, A>::new(f, g, h),
+            ]);
+            assert_eq!(affine.column_mut(0), &mut Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(affine.column_mut(1), &mut Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(affine.column_mut(2), &mut Vector::<3, T, A>::new(c, d, e));
+            assert_eq!(affine.column_mut(3), &mut Vector::<3, T, A>::new(f, g, h));
+            assert_panic!(affine.clone().column_mut(4));
+
+            let mut affine = Affine::<4, T, A>::from_columns(&[
+                Vector::<4, T, A>::new(x, y, z, w),
+                Vector::<4, T, A>::new(a, b, c, d),
+                Vector::<4, T, A>::new(e, f, g, h),
+                Vector::<4, T, A>::new(i, j, k, l),
+                Vector::<4, T, A>::new(m, n, o, p),
+            ]);
+            assert_eq!(
+                affine.column_mut(0),
+                &mut Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                affine.column_mut(1),
+                &mut Vector::<4, T, A>::new(a, b, c, d)
+            );
+            assert_eq!(
+                affine.column_mut(2),
+                &mut Vector::<4, T, A>::new(e, f, g, h)
+            );
+            assert_eq!(
+                affine.column_mut(3),
+                &mut Vector::<4, T, A>::new(i, j, k, l)
+            );
+            assert_eq!(
+                affine.column_mut(4),
+                &mut Vector::<4, T, A>::new(m, n, o, p)
+            );
+            assert_panic!(affine.clone().column_mut(5));
         });
     }
 
