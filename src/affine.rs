@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, Deref, DerefMut, Mul},
+    ops::{Add, Deref, DerefMut, Mul, MulAssign},
     panic::{RefUnwindSafe, UnwindSafe},
 };
 
@@ -1415,6 +1415,363 @@ where
         Self::IDENTITY
     }
 }
+
+macro_rules! impl_mul {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> Mul for Affine<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Self) -> Self::Output {
+                &self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for Affine<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
+                &self * rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<Affine<N, T, A>> for &Affine<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Affine<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Affine<N, T, A>) -> Self::Output {
+                self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> Mul<&Affine<N, T, A>> for &Affine<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            type Output = Affine<N, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
+                Affine::from_submatrix_translation(
+                    self.matrix * rhs.matrix,
+                    self.matrix * rhs.translation + self.translation,
+                )
+            }
+        }
+    };
+}
+impl_mul!(
+    /// Affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, affine transform
+    /// multiplication first applies the right-hand side transform, then the
+    /// left-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul_matrix {
+    ($N:literal, $N2:literal, $(#[$doc:meta])*) => {
+        impl<T, A: Alignment> Mul<Matrix<$N2, T, A>> for Affine<$N, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Matrix<$N2, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Matrix<$N2, T, A>) -> Self::Output {
+                &self.to_matrix() * &rhs
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Matrix<$N2, T, A>> for Affine<$N, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Matrix<$N2, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Matrix<$N2, T, A>) -> Self::Output {
+                &self.to_matrix() * rhs
+            }
+        }
+
+        impl<T, A: Alignment> Mul<Matrix<$N2, T, A>> for &Affine<$N, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Matrix<$N2, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Matrix<$N2, T, A>) -> Self::Output {
+                &self.to_matrix() * &rhs
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Matrix<$N2, T, A>> for &Affine<$N, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Matrix<$N2, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Matrix<$N2, T, A>) -> Self::Output {
+                &self.to_matrix() * rhs
+            }
+        }
+    };
+}
+impl_mul_matrix!(
+    2,
+    3,
+    /// Matrix affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, multiplication first
+    /// applies the right-hand side matrix, then the left-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+impl_mul_matrix!(
+    3,
+    4,
+    /// Matrix affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, multiplication first
+    /// applies the right-hand side matrix, then the left-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_matrix_mul {
+    ($N:literal, $N2:literal, $(#[$doc:meta])*) => {
+        impl<T, A: Alignment> Mul<Affine<$N, T, A>> for Matrix<$N2, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Affine<$N, T, A>) -> Self::Output {
+                &self * &rhs.to_matrix()
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Affine<$N, T, A>> for Matrix<$N2, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Self;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<$N, T, A>) -> Self::Output {
+                &self * &rhs.to_matrix()
+            }
+        }
+
+        impl<T, A: Alignment> Mul<Affine<$N, T, A>> for &Matrix<$N2, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Matrix<$N2, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: Affine<$N, T, A>) -> Self::Output {
+                self * &rhs.to_matrix()
+            }
+        }
+
+        impl<T, A: Alignment> Mul<&Affine<$N, T, A>> for &Matrix<$N2, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            type Output = Matrix<$N2, T, A>;
+
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul(self, rhs: &Affine<$N, T, A>) -> Self::Output {
+                self * &rhs.to_matrix()
+            }
+        }
+    };
+}
+impl_matrix_mul!(
+    2,
+    3,
+    /// Matrix affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, multiplication first
+    /// applies the right-hand side transform, then the left-hand side matrix.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+impl_matrix_mul!(
+    3,
+    4,
+    /// Matrix affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, multiplication first
+    /// applies the right-hand side transform, then the left-hand side matrix.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_mul_assign {
+    ($(#[$doc:meta])*) => {
+        impl<const N: usize, T, A: Alignment> MulAssign for Affine<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: Self) {
+                *self = &*self * &rhs
+            }
+        }
+
+        impl<const N: usize, T, A: Alignment> MulAssign<&Affine<N, T, A>> for Affine<N, T, A>
+        where
+            Length<N>: SupportedLength,
+            T: Scalar + Add<Output = T> + Mul<Output = T>,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &Affine<N, T, A>) {
+                *self = &*self * rhs
+            }
+        }
+    };
+}
+impl_mul_assign!(
+    /// Affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, affine transform
+    /// multiplication first applies the right-hand side transform, then the
+    /// left-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+
+macro_rules! impl_matrix_mul_assign {
+    ($N:literal, $N2:literal, $(#[$doc:meta])*) => {
+        impl<T, A: Alignment> MulAssign<Affine<$N, T, A>> for Matrix<$N2, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: Affine<$N, T, A>) {
+                *self = &*self * &rhs
+            }
+        }
+
+        impl<T, A: Alignment> MulAssign<&Affine<$N, T, A>> for Matrix<$N2, T, A>
+        where
+            T: Scalar + Add<Output = T> + Mul<Output = T> + Zero + One,
+        {
+            $(#[$doc])*
+            #[inline]
+            #[track_caller]
+            fn mul_assign(&mut self, rhs: &Affine<$N, T, A>) {
+                *self = &*self * rhs
+            }
+        }
+    };
+}
+impl_matrix_mul_assign!(
+    2,
+    3,
+    /// Affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, affine transform
+    /// multiplication first applies the right-hand side transform, then the
+    /// left-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
+impl_matrix_mul_assign!(
+    3,
+    4,
+    /// Affine transform multiplication.
+    ///
+    /// Because vectors are treated as column matrices, affine transform
+    /// multiplication first applies the right-hand side transform, then the
+    /// left-hand side transform.
+    ///
+    /// # Consistency
+    ///
+    /// For primitive types this operation is cross-platform deterministic and
+    /// fully consistent with scalar addition and multiplication, including
+    /// floating-point precision and integer panics.
+);
 
 // SAFETY: Affines are equivalent to values of `T` mixed with padding.
 // Because `T` is `Send` and padding is `Send`, the affine is too.
@@ -2965,6 +3322,123 @@ mod tests {
             assert_eq!(Affine::<2, T, A>::default(), Affine::IDENTITY);
             assert_eq!(Affine::<3, T, A>::default(), Affine::IDENTITY);
             assert_eq!(Affine::<4, T, A>::default(), Affine::IDENTITY);
+        });
+    }
+
+    #[test]
+    fn test_mul() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            if !(x.powi(4) + y.powi(4) + z.powi(4)).is_finite() {
+                return;
+            }
+
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, y, z]);
+            let affine2 = Affine::<2, T, A>::from_column_array(&[w, x, y, z, w, y]);
+            let point = Vector::<2, T, A>::new(x + 1.3, w + 5.4);
+            assert_float_eq!(
+                (affine * affine2).transform_point(point),
+                affine.transform_point(affine2.transform_point(point)),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 1e-5,
+                0.0 = -0.0
+            );
+
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, y, z, x, w, z, w, y, x]);
+            let affine2 =
+                Affine::<3, T, A>::from_column_array(&[w, x, y, z, w, y, y, x, w, x, y, z]);
+            let point = Vector::<3, T, A>::new(x + 1.3, w + 5.4, y + 4.2);
+            assert_float_eq!(
+                (affine * affine2).transform_point(point),
+                affine.transform_point(affine2.transform_point(point)),
+                r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 1e-5,
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_mul_matrix() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, y, z]);
+            let matrix = Matrix::<3, T, A>::from_column_array(&[w, x, y, z, w, y, x, z, w]);
+            assert_float_eq!(affine * matrix, affine.to_matrix() * matrix);
+
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, y, z, x, w, z, w, y, x]);
+            let matrix = Matrix::<4, T, A>::from_column_array(&[
+                w, x, y, z, w, y, x, z, w, x, z, y, w, x, z, w,
+            ]);
+            assert_float_eq!(affine * matrix, affine.to_matrix() * matrix);
+        });
+    }
+
+    #[test]
+    fn test_matrix_mul() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            let matrix = Matrix::<3, T, A>::from_column_array(&[w, x, y, z, w, y, x, z, w]);
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, y, z]);
+            assert_float_eq!(matrix * affine, matrix * affine.to_matrix());
+
+            let matrix = Matrix::<4, T, A>::from_column_array(&[
+                w, x, y, z, w, y, x, z, w, x, z, y, w, x, z, w,
+            ]);
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, y, z, x, w, z, w, y, x]);
+            assert_float_eq!(matrix * affine, matrix * affine.to_matrix());
+        });
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, y, z]);
+            let affine2 = Affine::<2, T, A>::from_column_array(&[w, x, y, z, w, y]);
+            let mut result = affine;
+            result *= affine2;
+            assert_float_eq!(result, affine * affine2);
+
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, y, z, x, w, z, w, y, x]);
+            let affine2 =
+                Affine::<3, T, A>::from_column_array(&[w, x, y, z, w, y, y, x, w, x, y, z]);
+            let mut result = affine;
+            result *= affine2;
+            assert_float_eq!(result, affine * affine2);
+        });
+    }
+
+    #[test]
+    fn test_matrix_mul_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            let matrix = Matrix::<3, T, A>::from_column_array(&[w, x, y, z, w, y, x, z, w]);
+            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, y, z]);
+            let mut result = matrix;
+            result *= affine;
+            assert_float_eq!(result, matrix * affine);
+
+            let matrix = Matrix::<4, T, A>::from_column_array(&[
+                w, x, y, z, w, y, x, z, w, x, z, y, w, x, z, w,
+            ]);
+            let affine =
+                Affine::<3, T, A>::from_column_array(&[x, y, z, w, y, z, x, w, z, w, y, x]);
+            let mut result = matrix;
+            result *= affine;
+            assert_float_eq!(result, matrix * affine);
         });
     }
 }

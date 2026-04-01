@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `is_nan`
   - `is_finite`
 
+- Affine transform multiplication.
+
 ### Changed
 
 - Renamed affine transform functions:
