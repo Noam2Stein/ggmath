@@ -228,6 +228,26 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
+    /// Creates an affine transform from a non-uniform `scale`.
+    #[inline]
+    #[must_use]
+    pub const fn from_scale(scale: Vector<N, T, A>) -> Self
+    where
+        T: Zero,
+    {
+        Self::from_mat_translation(Matrix::from_diagonal(scale), Vector::ZERO)
+    }
+
+    /// Creates an affine transform from a `translation` vector.
+    #[inline]
+    #[must_use]
+    pub const fn from_translation(translation: Vector<N, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_mat_translation(Matrix::IDENTITY, translation)
+    }
+
     /// Creates an affine transform from a matrix expressing rotation, scaling
     /// and shear.
     #[inline]
@@ -237,16 +257,6 @@ where
         T: Zero,
     {
         Self::from_mat_translation(mat, Vector::ZERO)
-    }
-
-    /// Creates an affine transform from a translation vector.
-    #[inline]
-    #[must_use]
-    pub const fn from_translation(translation: Vector<N, T, A>) -> Self
-    where
-        T: Zero + One,
-    {
-        Self::from_mat_translation(Matrix::IDENTITY, translation)
     }
 
     /// Creates an affine transform from a translation vector, and a matrix
@@ -1263,6 +1273,46 @@ mod tests {
     }
 
     #[test]
+    fn test_from_scale() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [_, _, x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_scale(Vector::<2, T, A>::new(x, y)),
+                Affine::from_mat(Matrix::from_diagonal(Vector::<2, T, A>::new(x, y)))
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_scale(Vector::<3, T, A>::new(x, y, z)),
+                Affine::from_mat(Matrix::from_diagonal(Vector::<3, T, A>::new(x, y, z)))
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_scale(Vector::<4, T, A>::new(x, y, z, w)),
+                Affine::from_mat(Matrix::from_diagonal(Vector::<4, T, A>::new(x, y, z, w)))
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_translation() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [_, _, x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_translation(Vector::<2, T, A>::new(x, y)),
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<2, T, A>::new(x, y))
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_translation(Vector::<3, T, A>::new(x, y, z)),
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<3, T, A>::new(x, y, z))
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_translation(Vector::<4, T, A>::new(x, y, z, w)),
+                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<4, T, A>::new(x, y, z, w))
+            );
+        });
+    }
+
+    #[test]
     fn test_from_mat() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [_, x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] =
@@ -1312,26 +1362,6 @@ mod tests {
                     ]),
                     Vector::ZERO
                 )
-            );
-        });
-    }
-
-    #[test]
-    fn test_from_translation() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [_, _, x, y, z, w] = std::array::from_fn(T::as_from);
-
-            assert_eq!(
-                Affine::<2, T, A>::from_translation(Vector::<2, T, A>::new(x, y)),
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<2, T, A>::new(x, y))
-            );
-            assert_eq!(
-                Affine::<3, T, A>::from_translation(Vector::<3, T, A>::new(x, y, z)),
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<3, T, A>::new(x, y, z))
-            );
-            assert_eq!(
-                Affine::<4, T, A>::from_translation(Vector::<4, T, A>::new(x, y, z, w)),
-                Affine::from_mat_translation(Matrix::IDENTITY, Vector::<4, T, A>::new(x, y, z, w))
             );
         });
     }

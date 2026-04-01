@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Affine transform functions:
   - `from_column_array`
+  - `from_scale`
+
+### Changed
+
+- Updated documentation.
 
 ## [0.16.5] - 2026-04-01
 
