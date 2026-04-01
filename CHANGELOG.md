@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `from_scale`
   - `from_matrix`
   - `to_matrix`
+  - `is_nan`
+  - `is_finite`
 
 ### Changed
 
