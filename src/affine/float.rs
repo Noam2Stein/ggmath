@@ -1,4 +1,6 @@
 use crate::{Affine, Alignment, Length, Scalar, SupportedLength, utils::PrimitiveFloat};
+#[cfg(backend)]
+use crate::{Matrix, Vector};
 
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -119,10 +121,97 @@ where
     }
 }
 
+#[expect(private_bounds)]
+impl<T, A: Alignment> Affine<2, T, A>
+where
+    T: Scalar + PrimitiveFloat,
+{
+    /// Creates an affine transform containing a rotation of `angle`
+    /// (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_angle(angle: T) -> Self {
+        Self::from_submatrix(Matrix::<2, T, A>::from_angle(angle))
+    }
+
+    /// Creates an affine transform containing a rotation of `angle`
+    /// (in radians) and `translation`.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
+        Self::from_submatrix_translation(Matrix::<2, T, A>::from_angle(angle), translation)
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale` and
+    /// rotation of `angle` (in radians).
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
+        Self::from_submatrix(Matrix::<2, T, A>::from_scale_angle(scale, angle))
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale`, rotation
+    /// of `angle` (in radians) and `translation`.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_scale_angle_translation(
+        scale: Vector<2, T, A>,
+        angle: T,
+        translation: Vector<2, T, A>,
+    ) -> Self {
+        Self::from_submatrix_translation(
+            Matrix::<2, T, A>::from_scale_angle(scale, angle),
+            translation,
+        )
+    }
+
+    /// Returns the `scale`, `angle` and `translation` of `self`.
+    ///
+    /// `self` must be reversible and not contain shearing. Otherwise the result
+    /// is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
+        let determinant = self.matrix.determinant();
+
+        #[cfg(assertions)]
+        assert!(determinant != T::ZERO);
+
+        let scale = Vector::<2, T, A>::new(
+            self.matrix.x_axis.length() * determinant.signum(),
+            self.matrix.y_axis.length(),
+        );
+
+        let angle = (-self.matrix.y_axis.x).atan2(self.matrix.y_axis.y);
+
+        (scale, angle, self.translation)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, Affine2, Vec2,
+        Affine, Affine2, Vec2, Vector,
         utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
@@ -374,6 +463,124 @@ mod tests {
                     0.125
                 )
             );
+        });
+    }
+
+    #[test]
+    fn test_from_angle() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            assert_float_eq!(
+                Affine::<2, T, A>::from_angle(z).transform_point(Vector::<2, T, A>::new(x, y)),
+                Vector::<2, T, A>::new(x, y).rotate(z),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<2, T, A>::new(x, y);
+            assert_float_eq!(
+                Affine::<2, T, A>::from_scale_angle(scale, z),
+                Affine::<2, T, A>::from_angle(z) * Affine::<2, T, A>::from_scale(scale),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_angle_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let translation = Vector::<2, T, A>::new(x, y);
+            assert_float_eq!(
+                Affine::<2, T, A>::from_angle_translation(z, translation),
+                Affine::<2, T, A>::from_translation(translation) * Affine::<2, T, A>::from_angle(z),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale_angle_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<2, T, A>::new(x, y);
+            let translation = Vector::<2, T, A>::new(x + 1.0, y + 2.0);
+            assert_float_eq!(
+                Affine::<2, T, A>::from_scale_angle_translation(scale, z, translation),
+                Affine::<2, T, A>::from_translation(translation)
+                    * Affine::<2, T, A>::from_angle(z)
+                    * Affine::<2, T, A>::from_scale(scale),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a] = [x * 0.3 + 0.5, x + 1.0];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 1e5
+                || y.abs() > 1e5
+                || z.abs() > 1e5
+            {
+                return;
+            }
+
+            let affine = Affine::<2, T, A>::from_scale_angle_translation(
+                Vector::<2, T, A>::new(x, y),
+                z,
+                Vector::<2, T, A>::new(w, a),
+            );
+            if affine.matrix.determinant() != 0.0 {
+                assert_float_eq!(
+                    affine.to_scale_angle_translation(),
+                    affine.to_matrix().to_scale_angle_translation()
+                );
+            } else if cfg!(assertions) {
+                assert_panic!(affine.to_scale_angle_translation());
+            }
         });
     }
 }

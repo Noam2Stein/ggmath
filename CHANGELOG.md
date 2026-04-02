@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `try_inverse`
   - `inverse_or`
   - `inverse_or_zero`
+  - `from_angle`
+  - `from_angle_translation`
+  - `from_scale_angle`
+  - `from_scale_angle_translation`
+  - `to_scale_angle_translation`
+
+- Matrix functions:
+  - `from_angle_translation`
+  - `to_scale_angle_translation`
 
 - Affine transform multiplication.
 

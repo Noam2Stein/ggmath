@@ -166,6 +166,33 @@ where
     }
 }
 
+impl<Ta, Tb, Tc> FloatEq for (Ta, Tb, Tc)
+where
+    Ta: FloatEq,
+    Tb: FloatEq,
+    Tc: FloatEq,
+{
+    fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
+        self.0.eq(&other.0, zero_eq_neg_zero)
+            && self.1.eq(&other.1, zero_eq_neg_zero)
+            && self.2.eq(&other.2, zero_eq_neg_zero)
+    }
+
+    fn eq_abs(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool) -> bool {
+        self.0.eq_abs(&other.0, &tol.0, zero_eq_neg_zero)
+            && self.1.eq_abs(&other.1, &tol.1, zero_eq_neg_zero)
+            && self.2.eq_abs(&other.2, &tol.2, zero_eq_neg_zero)
+    }
+
+    fn abs_mul(&self, rhs: &Self) -> Self {
+        (
+            self.0.abs_mul(&rhs.0),
+            self.1.abs_mul(&rhs.1),
+            self.2.abs_mul(&rhs.2),
+        )
+    }
+}
+
 impl<const N: usize, T, A: Alignment> FloatEq for Vector<N, T, A>
 where
     Length<N>: SupportedLength,

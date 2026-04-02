@@ -507,6 +507,28 @@ where
         ])
     }
 
+    /// Creates an affine transformation matrix containing a rotation of `angle`
+    /// (in radians) and `translation`.
+    ///
+    /// This rotates `+X` to `+Y`.
+    ///
+    /// The resulting matrix can be used to transform 2D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(cos, sin, T::ZERO),
+            Vector::<3, T, A>::new(-sin, cos, T::ZERO),
+            Vector::<3, T, A>::new(translation.x, translation.y, T::ONE),
+        ])
+    }
+
     /// Creates an affine transformation matrix containing the non-uniform
     /// `scale`, a rotation of `angle` (in radians) and `translation`.
     ///
@@ -806,6 +828,38 @@ where
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
         Self::look_to_rh((center - eye).normalize(), up)
+    }
+
+    /// Returns the `scale`, `angle` and `translation` of `self`.
+    ///
+    /// `self` must contain a valid affine transformation without shearing.
+    /// Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
+        let determinant = self.determinant();
+
+        #[cfg(assertions)]
+        assert!(determinant != T::ZERO);
+
+        let scale = Vector::<2, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+        );
+
+        let angle = (-self.y_axis.x).atan2(self.y_axis.y);
+
+        let translation = self.z_axis.xy();
+
+        (scale, angle, translation)
     }
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
@@ -2358,6 +2412,30 @@ mod tests {
     }
 
     #[test]
+    fn test_from_angle_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let translation = Vector::<2, T, A>::new(x, y);
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_angle_translation(z, translation),
+                Matrix::<3, T, A>::from_translation(translation) * Matrix::<3, T, A>::from_angle(z),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
     fn test_from_scale_angle_translation() {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let _: [T; 3] = [x, y, z];
@@ -2766,6 +2844,41 @@ mod tests {
                 ));
             }
         })
+    }
+
+    #[test]
+    fn test_to_scale_angle_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a] = [x * 0.3 + 0.5, x + 1.0];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 1e5
+                || y.abs() > 1e5
+                || z.abs() > 1e5
+            {
+                return;
+            }
+
+            let scale = Vector::<2, T, A>::new(x, y);
+            let translation = Vector::<2, T, A>::new(w, a);
+
+            let matrix = Matrix::<3, T, A>::from_scale_angle_translation(scale, z, translation);
+
+            if matrix.determinant() != 0.0 {
+                let (scale2, z2, translation2) = matrix.to_scale_angle_translation();
+                assert_float_eq!(
+                    Matrix::<3, T, A>::from_scale_angle_translation(scale2, z2, translation2),
+                    matrix,
+                    abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_column_array(&[1e-4; 9]),
+                    0.0 = -0.0
+                );
+            } else if cfg!(assertions) {
+                assert_panic!(matrix.to_scale_angle_translation());
+            }
+        });
     }
 
     #[test]
