@@ -38,10 +38,21 @@ pub fn assert_panic_eq_helper<T>(
     left: impl FnOnce() -> T + UnwindSafe,
     right: impl FnOnce() -> T + UnwindSafe,
 ) where
-    T: Debug,
+    T: Debug + PartialEq,
 {
     match (catch_unwind(left), catch_unwind(right)) {
-        (Ok(_), Ok(_)) => {}
+        (Ok(left), Ok(right)) => {
+            if left != right {
+                panic!(
+                    concat!(
+                        "assertion `left == right` failed\n",
+                        "  left: {:?}\n",
+                        " right: {:?}",
+                    ),
+                    left, right,
+                );
+            }
+        }
         (Ok(left), Err(_)) => {
             println_panic_expected();
             panic!(
@@ -51,7 +62,7 @@ pub fn assert_panic_eq_helper<T>(
                     " right: panic",
                 ),
                 left
-            )
+            );
         }
         (Err(_), Ok(right)) => {
             println_panic_expected();
@@ -62,7 +73,7 @@ pub fn assert_panic_eq_helper<T>(
                     " right: {:?}",
                 ),
                 right
-            )
+            );
         }
         (Err(_), Err(_)) => println_panic_expected(),
     }
@@ -70,4 +81,27 @@ pub fn assert_panic_eq_helper<T>(
 
 fn println_panic_expected() {
     println!("{}: panic is expected", "ok".green().bold());
+}
+
+mod tests {
+    #[test]
+    #[expect(clippy::diverging_sub_expression)]
+    fn test_assert_panic() {
+        assert_panic!(panic!());
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_assert_panic_panic() {
+        assert_panic!(());
+    }
+
+    #[test]
+    fn test_assert_panic_eq() {
+        assert_panic_eq!(1, 1);
+        assert_panic_eq!(panic!(), panic!());
+        assert_panic!(assert_panic_eq!(1, 2));
+        assert_panic!(assert_panic_eq!(panic!(), 1));
+        assert_panic!(assert_panic_eq!(1, panic!()));
+    }
 }
