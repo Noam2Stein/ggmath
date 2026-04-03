@@ -137,6 +137,11 @@ pub type Mat2<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 column-major matrix.
 ///
+/// `Mat3` can be used for both 3D linear transformations and 2D affine
+/// transformations. For 2D affine transformations, the [`Affine2`] type results
+/// in better performance for some operations (note that benchmarks are
+/// currently missing).
+///
 /// Linear transformations including 3D rotation and scale can be created using
 /// functions [`from_diagonal`], [`from_rotation_x`], [`from_rotation_y`],
 /// [`from_rotation_z`], [`from_quat`], [`from_axis_angle`] and [`from_euler`].
@@ -179,6 +184,7 @@ pub type Mat2<T> = Matrix<2, T, Aligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 1)`.
 ///
+/// [`Affine2`]: crate::Affine2
 /// [`from_diagonal`]: Mat3::from_diagonal
 /// [`from_rotation_x`]: Mat3::from_rotation_x
 /// [`from_rotation_y`]: Mat3::from_rotation_y
@@ -199,6 +205,11 @@ pub type Mat2<T> = Matrix<2, T, Aligned>;
 pub type Mat3<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 column-major matrix.
+///
+/// `Mat4` can be used for both linear transformations and perspective
+/// projections. For affine transformations, the [`Affine3`] type results in
+/// better performance for some operations (note that benchmarks are currently
+/// missing).
 ///
 /// Affine transformations including 3D translation, rotation and scale can be
 /// created using functions such as [`from_scale`], [`from_translation`],
@@ -249,6 +260,7 @@ pub type Mat3<T> = Matrix<3, T, Aligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 0, 1)`.
 ///
+/// [`Affine3`]: crate::Affine3
 /// [`from_scale`]: Mat4::from_scale
 /// [`from_translation`]: Mat4::from_translation
 /// [`from_rotation_x`]: Mat4::from_rotation_x
@@ -304,6 +316,11 @@ pub type Mat2U<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 column-major matrix.
 ///
+/// `Mat3U` can be used for both 3D linear transformations and 2D affine
+/// transformations. For 2D affine transformations, the [`Affine2U`] type
+/// results in better performance for some operations (note that benchmarks are
+/// currently missing).
+///
 /// Linear transformations including 3D rotation and scale can be created using
 /// functions [`from_diagonal`], [`from_rotation_x`], [`from_rotation_y`],
 /// [`from_rotation_z`], [`from_quat`], [`from_axis_angle`] and [`from_euler`].
@@ -345,6 +362,7 @@ pub type Mat2U<T> = Matrix<2, T, Unaligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 1)`.
 ///
+/// [`Affine2U`]: crate::Affine2U
 /// [`from_diagonal`]: Mat3U::from_diagonal
 /// [`from_rotation_x`]: Mat3U::from_rotation_x
 /// [`from_rotation_y`]: Mat3U::from_rotation_y
@@ -365,6 +383,11 @@ pub type Mat2U<T> = Matrix<2, T, Unaligned>;
 pub type Mat3U<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 column-major matrix.
+///
+/// `Mat4U` can be used for both linear transformations and perspective
+/// projections. For affine transformations, the [`Affine3U`] type results in
+/// better performance for some operations (note that benchmarks are currently
+/// missing).
 ///
 /// Affine transformations including 3D translation, rotation and scale can be
 /// created using functions such as [`from_scale`], [`from_translation`],
@@ -414,6 +437,7 @@ pub type Mat3U<T> = Matrix<3, T, Unaligned>;
 ///
 /// This represents the result of multiplying the matrix by `(0, 0, 0, 1)`.
 ///
+/// [`Affine3U`]: crate::Affine3U
 /// [`from_scale`]: Mat4U::from_scale
 /// [`from_translation`]: Mat4U::from_translation
 /// [`from_rotation_x`]: Mat4U::from_rotation_x

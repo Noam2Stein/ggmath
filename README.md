@@ -103,7 +103,7 @@ Feature List:
 - [x] Sufficient Int-Vector functionality
 - [x] Sufficient Matrix functionality
 - [ ] Sufficient Quaternion functionality
-- [ ] Sufficient Affine functionality
+- [x] Sufficient Affine functionality
 
 Crate Support:
 

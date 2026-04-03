@@ -17,8 +17,12 @@ mod float;
 /// An `N`-dimensional affine transform which can represent translation,
 /// rotation, scaling and shear of type `T`.
 ///
-/// Affines are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Equivalent to a [`Matrix`] containing an affine transformation, but results
+/// in better performance for some operations.
+///
+/// Note that currently both [`Matrix`] and `Affine` are missing benchmarks and
+/// possible optimizations. Still, the performance advantages of `Affine` over
+/// [`Matrix`] have been proved by [`glam`].
 ///
 /// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
 /// [`Alignment`] for more details.
@@ -65,6 +69,7 @@ mod float;
 /// and `[T; 6]` have compatible layouts, [`Option<Affine2<T>>`] and
 /// `Option<[T; 6]>` may not.
 ///
+/// [`glam`]: https://docs.rs/glam
 /// [`Affine2<T>`]: crate::Affine2
 /// [`Affine3<T>`]: crate::Affine3
 /// [`Affine2U<T>`]: crate::Affine2U
@@ -86,8 +91,12 @@ where
 /// A 2D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
-/// Affines are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Equivalent to a [`Mat3`] containing a 2D affine transformation, but results
+/// in better performance for some operations.
+///
+/// Note that currently both [`Mat3`] and `Affine2` are missing benchmarks and
+/// possible optimizations. Still, the performance advantages of `Affine2` over
+/// [`Mat3`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
@@ -106,6 +115,8 @@ where
 ///
 /// The part representing translation.
 ///
+/// [`Mat3`]: crate::Mat3
+/// [`glam`]: https://docs.rs/glam
 /// [`from_columns`]: Affine::from_columns
 /// [`Alignment`]: crate::Alignment
 pub type Affine2<T> = Affine<2, T, Aligned>;
@@ -113,8 +124,12 @@ pub type Affine2<T> = Affine<2, T, Aligned>;
 /// A 3D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
-/// Affines are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Equivalent to a [`Mat4`] containing a 3D affine transformation, but results
+/// in better performance for some operations.
+///
+/// Note that currently both [`Mat4`] and `Affine3` are missing benchmarks and
+/// possible optimizations. Still, the performance advantages of `Affine3` over
+/// [`Mat4`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
@@ -133,6 +148,8 @@ pub type Affine2<T> = Affine<2, T, Aligned>;
 ///
 /// The part representing translation.
 ///
+/// [`Mat4`]: crate::Mat4
+/// [`glam`]: https://docs.rs/glam
 /// [`from_columns`]: Affine::from_columns
 /// [`Alignment`]: crate::Alignment
 pub type Affine3<T> = Affine<3, T, Aligned>;
@@ -140,8 +157,12 @@ pub type Affine3<T> = Affine<3, T, Aligned>;
 /// A 2D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
-/// Affines are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Equivalent to a [`Mat3U`] containing a 2D affine transformation, but results
+/// in better performance for some operations.
+///
+/// Note that currently both [`Mat3U`] and `Affine2U` are missing benchmarks and
+/// possible optimizations. Still, the performance advantages of [`Affine`] over
+/// [`Matrix`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
@@ -160,6 +181,8 @@ pub type Affine3<T> = Affine<3, T, Aligned>;
 ///
 /// The part representing translation.
 ///
+/// [`Mat3U`]: crate::Mat3U
+/// [`glam`]: https://docs.rs/glam
 /// [`from_columns`]: Affine::from_columns
 /// [`Alignment`]: crate::Alignment
 pub type Affine2U<T> = Affine<2, T, Unaligned>;
@@ -167,8 +190,12 @@ pub type Affine2U<T> = Affine<2, T, Unaligned>;
 /// A 3D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
-/// Affines are currently missing most functionality. See [`from_columns`] for
-/// raw construction.
+/// Equivalent to a [`Mat4U`] containing a 3D affine transformation, but results
+/// in better performance for some operations.
+///
+/// Note that currently both [`Mat4U`] and `Affine3U` are missing benchmarks and
+/// possible optimizations. Still, the performance advantages of [`Affine`] over
+/// [`Matrix`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
@@ -187,6 +214,8 @@ pub type Affine2U<T> = Affine<2, T, Unaligned>;
 ///
 /// The part representing translation.
 ///
+/// [`Mat4U`]: crate::Mat4U
+/// [`glam`]: https://docs.rs/glam
 /// [`from_columns`]: Affine::from_columns
 /// [`Alignment`]: crate::Alignment
 pub type Affine3U<T> = Affine<3, T, Unaligned>;
