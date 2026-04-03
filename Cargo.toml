@@ -1,6 +1,6 @@
 [package]
 name = "ggmath"
-version = "0.16.5"
+version = "0.16.6"
 
 categories = [
     "data-structures",
