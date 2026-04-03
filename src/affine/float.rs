@@ -1,6 +1,9 @@
-use crate::{Affine, Alignment, Length, Scalar, SupportedLength, utils::PrimitiveFloat};
 #[cfg(backend)]
-use crate::{Matrix, Vector};
+use crate::EulerRot;
+use crate::{
+    Affine, Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+    utils::PrimitiveFloat,
+};
 
 #[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -208,11 +211,286 @@ where
     }
 }
 
+#[expect(private_bounds)]
+impl<T, A: Alignment> Affine<3, T, A>
+where
+    T: Scalar + PrimitiveFloat,
+{
+    /// Creates an affine transform containing a 3D rotation from `angle` (in
+    /// radians) around the x axis.
+    ///
+    /// This rotates `+Y` to `+Z`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_x(angle: T) -> Self {
+        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_x(angle))
+    }
+
+    /// Creates an affine transform containing a 3D rotation from `angle` (in
+    /// radians) around the y axis.
+    ///
+    /// This rotates `+Z` to `+X`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_y(angle: T) -> Self {
+        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_y(angle))
+    }
+
+    /// Creates an affine transform containing a 3D rotation from `angle` (in
+    /// radians) around the z axis.
+    ///
+    /// This rotates `+X` to `+Y`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_rotation_z(angle: T) -> Self {
+        Self::from_submatrix(Matrix::<3, T, A>::from_rotation_z(angle))
+    }
+
+    /// Creates an affine transform containing a 3D rotation from a quaternion.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the quaternion is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_quat(quat: Quaternion<T, A>) -> Self {
+        Self::from_submatrix(Matrix::<3, T, A>::from_quat(quat))
+    }
+
+    /// Creates an affine transform containing a rotation from a rotation `axis`
+    /// and `angle` (in radians).
+    ///
+    /// `axis` must be normalized. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `axis` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
+        Self::from_submatrix(Matrix::<3, T, A>::from_axis_angle(axis, angle))
+    }
+
+    /// Creates an affine transform containing a rotation from an Euler rotation
+    /// order/sequence and angles (in radians).
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
+        Self::from_submatrix(Matrix::<3, T, A>::from_euler(order, a, b, c))
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale` and a 3D
+    /// `rotation`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+        Self::from_submatrix(Matrix::<3, T, A>::from_scale_rotation(scale, rotation))
+    }
+
+    /// Creates an affine transform containing a 3D `rotation` and
+    /// `translation`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_rotation_translation(
+        rotation: Quaternion<T, A>,
+        translation: Vector<3, T, A>,
+    ) -> Self {
+        Self::from_submatrix_translation(Matrix::<3, T, A>::from_quat(rotation), translation)
+    }
+
+    /// Creates an affine transform containing a non-uniform `scale`, a 3D
+    /// `rotation` and `translation`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation_translation(
+        scale: Vector<3, T, A>,
+        rotation: Quaternion<T, A>,
+        translation: Vector<3, T, A>,
+    ) -> Self {
+        Self::from_submatrix_translation(
+            Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+            translation,
+        )
+    }
+
+    /// Creates a left-handed view transform from a camera position, a facing
+    /// direction and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        #[cfg(assertions)]
+        assert!(dir.is_normalized());
+        #[cfg(assertions)]
+        assert!(up.is_normalized());
+
+        let forward = dir;
+        let right = up.cross(forward).normalize();
+        let up = forward.cross(right);
+
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(right.x, up.x, forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, forward.z),
+            Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), -eye.dot(forward)),
+        ])
+    }
+
+    /// Creates a right-handed view transform from a camera position, a facing
+    /// direction and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        #[cfg(assertions)]
+        assert!(dir.is_normalized());
+        #[cfg(assertions)]
+        assert!(up.is_normalized());
+
+        let forward = dir;
+        let right = forward.cross(up).normalize();
+        let up = right.cross(forward);
+
+        Self::from_columns(&[
+            Vector::<3, T, A>::new(right.x, up.x, -forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, -forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, -forward.z),
+            Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward)),
+        ])
+    }
+
+    /// Creates a left-handed view transform from a camera position, a focal
+    /// point and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::look_to_lh(eye, (center - eye).normalize(), up)
+    }
+
+    /// Creates a right-handed view transform from a camera position, a focal
+    /// point and an up direction.
+    ///
+    /// For a view coordinate system with `+X=right`, `+Y=up` and `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::look_to_rh(eye, (center - eye).normalize(), up)
+    }
+
+    /// Returns the Euler angles forming `self` for the given Euler rotation
+    /// order/sequence.
+    ///
+    /// `self` must not contain any non-rotation transformations, excluding
+    /// translation. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if any column of `self`, excluding the translation column, is not
+    /// normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
+        self.matrix.to_euler(order)
+    }
+
+    /// Returns the `scale`, `rotation` and `translation` of `self`.
+    ///
+    /// `self` must be reversible and not contain shearing. Otherwise the result
+    /// is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation_translation(
+        &self,
+    ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
+        self.to_matrix().to_scale_rotation_translation()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
-        Affine, Affine2, Vec2, Vector,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        Affine, Affine2, Matrix, Quaternion, Vec2, Vector,
+        utils::{assert_float_eq, assert_panic, assert_panic_float_eq, for_parameters},
     };
 
     #[test]
@@ -581,6 +859,344 @@ mod tests {
             } else if cfg!(assertions) {
                 assert_panic!(affine.to_scale_angle_translation());
             }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_x() {
+        for_parameters!(|T: PrimitiveFloat, A, x| {
+            assert_float_eq!(
+                Affine::<3, T, A>::from_rotation_x(x).to_matrix(),
+                Matrix::<4, T, A>::from_rotation_x(x),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_y() {
+        for_parameters!(|T: PrimitiveFloat, A, x| {
+            assert_float_eq!(
+                Affine::<3, T, A>::from_rotation_y(x).to_matrix(),
+                Matrix::<4, T, A>::from_rotation_y(x),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_z() {
+        for_parameters!(|T: PrimitiveFloat, A, x| {
+            assert_float_eq!(
+                Affine::<3, T, A>::from_rotation_z(x).to_matrix(),
+                Matrix::<4, T, A>::from_rotation_z(x),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_quat() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.midpoint(y);
+
+            if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
+                let quat = Quaternion::from_vec(normalized);
+                assert_float_eq!(
+                    Affine::<3, T, A>::from_quat(quat).to_matrix(),
+                    Matrix::<4, T, A>::from_quat(quat),
+                    0.0 = -0.0
+                );
+            }
+
+            let invalid_quat = Quaternion::new(x, y, z, w);
+            if cfg!(assertions) && !invalid_quat.to_vec().is_normalized() {
+                assert_panic!(Affine::<3, T, A>::from_quat(invalid_quat));
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_axis_angle() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.midpoint(y);
+
+            if let Some(axis) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
+                assert_float_eq!(
+                    Affine::<3, T, A>::from_axis_angle(axis, w).to_matrix(),
+                    Matrix::<4, T, A>::from_axis_angle(axis, w),
+                    0.0 = -0.0
+                );
+            }
+
+            let invalid_axis = Vector::<3, T, A>::new(x, y, z);
+            if cfg!(assertions) && !invalid_axis.is_normalized() {
+                assert_panic!(Affine::<3, T, A>::from_axis_angle(invalid_axis, w));
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_parameters!(|T: PrimitiveFloat, A, order, x, y, z| {
+            assert_float_eq!(
+                Affine::<3, T, A>::from_euler(order, x, y, z).to_matrix(),
+                Matrix::<4, T, A>::from_euler(order, x, y, z)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.midpoint(y);
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<3, T, A>::new(x, y, z);
+            if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
+                let rotation = Quaternion::from_vec(normalized);
+                assert_float_eq!(
+                    Affine::<3, T, A>::from_scale_rotation(scale, rotation),
+                    Affine::<3, T, A>::from_quat(rotation) * Affine::<3, T, A>::from_scale(scale),
+                    0.0 = -0.0
+                );
+            }
+
+            let invalid_rotation = Quaternion::new(x, y, z, w);
+            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
+                assert_panic!(Affine::<3, T, A>::from_scale_rotation(
+                    scale,
+                    invalid_rotation
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.midpoint(y);
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let translation = Vector::<3, T, A>::new(x, y, z);
+            if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
+                let rotation = Quaternion::from_vec(normalized);
+                assert_float_eq!(
+                    Affine::<3, T, A>::from_rotation_translation(rotation, translation),
+                    Affine::<3, T, A>::from_translation(translation)
+                        * Affine::<3, T, A>::from_quat(rotation),
+                    0.0 = -0.0
+                );
+            }
+
+            let invalid_rotation = Quaternion::new(x, y, z, w);
+            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
+                assert_panic!(Affine::<3, T, A>::from_rotation_translation(
+                    invalid_rotation,
+                    translation
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.midpoint(y);
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<3, T, A>::new(y, z, x);
+            let translation = Vector::<3, T, A>::new(x, y, z);
+            if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
+                let rotation = Quaternion::from_vec(normalized);
+                assert_float_eq!(
+                    Affine::<3, T, A>::from_scale_rotation_translation(
+                        scale,
+                        rotation,
+                        translation
+                    ),
+                    Affine::<3, T, A>::from_translation(translation)
+                        * Affine::<3, T, A>::from_quat(rotation)
+                        * Affine::<3, T, A>::from_scale(scale),
+                    0.0 = -0.0
+                );
+            }
+
+            let invalid_rotation = Quaternion::new(x, y, z, w);
+            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
+                assert_panic!(Affine::<3, T, A>::from_scale_rotation_translation(
+                    scale,
+                    invalid_rotation,
+                    translation
+                ));
+            }
+        });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let Some(dir) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
+                return;
+            };
+
+            let eye = dir * 0.3 + dir.yzx().with_z(0.6);
+            let up = (dir * 0.4 + dir.zxy().with_z(0.3)).normalize();
+
+            assert_float_eq!(
+                Affine::<3, T, A>::look_to_lh(eye, dir, up).to_matrix(),
+                Matrix::<4, T, A>::look_to_lh(eye, dir, up)
+            );
+
+            let xyz = Vector::<3, T, A>::new(x, y, z);
+            if cfg!(assertions) && !xyz.is_normalized() {
+                assert_panic!(Affine::<3, T, A>::look_to_lh(eye, xyz, up));
+                assert_panic!(Affine::<3, T, A>::look_to_lh(eye, dir, xyz));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let Some(dir) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
+                return;
+            };
+
+            let eye = dir * 0.3 + dir.yzx().with_z(0.6);
+            let up = (dir * 0.4 + dir.zxy().with_z(0.3)).normalize();
+
+            assert_float_eq!(
+                Affine::<3, T, A>::look_to_rh(eye, dir, up).to_matrix(),
+                Matrix::<4, T, A>::look_to_rh(eye, dir, up)
+            );
+
+            let xyz = Vector::<3, T, A>::new(x, y, z);
+            if cfg!(assertions) && !xyz.is_normalized() {
+                assert_panic!(Affine::<3, T, A>::look_to_rh(eye, xyz, up));
+                assert_panic!(Affine::<3, T, A>::look_to_rh(eye, dir, xyz));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let eye = Vector::<3, T, A>::new(x, y, z);
+            let center = eye * 0.6 + eye.yzx();
+            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
+                return;
+            };
+
+            assert_panic_float_eq!(
+                Affine::<3, T, A>::look_at_lh(eye, center, up).to_matrix(),
+                Matrix::<4, T, A>::look_at_lh(eye, center, up)
+            );
+
+            let xyz = Vector::<3, T, A>::new(x, y, z);
+            if cfg!(assertions) && !xyz.is_normalized() {
+                assert_panic!(Affine::<3, T, A>::look_at_lh(eye, center, xyz));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let eye = Vector::<3, T, A>::new(x, y, z);
+            let center = eye * 0.6 + eye.yzx();
+            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
+                return;
+            };
+
+            assert_panic_float_eq!(
+                Affine::<3, T, A>::look_at_rh(eye, center, up).to_matrix(),
+                Matrix::<4, T, A>::look_at_rh(eye, center, up)
+            );
+
+            let xyz = Vector::<3, T, A>::new(x, y, z);
+            if cfg!(assertions) && !xyz.is_normalized() {
+                assert_panic!(Affine::<3, T, A>::look_at_rh(eye, center, xyz));
+            }
+        })
+    }
+
+    #[test]
+    fn test_to_euler() {
+        for_parameters!(|T: PrimitiveFloat, A, order, x, y, z| {
+            let affine = Affine::<3, T, A>::from_translation(Vector::<3, T, A>::new(x, y, z))
+                * Affine::<3, T, A>::from_euler(order, x, y, z);
+
+            assert_panic_float_eq!(affine.to_euler(order), affine.to_matrix().to_euler(order));
+
+            let scale = Vector::<3, T, A>::new(x, y, z);
+            let invalid_affine = affine * Affine::from_scale(scale);
+            assert_panic_float_eq!(
+                invalid_affine.to_euler(order),
+                invalid_affine.to_matrix().to_euler(order)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let [w, a, b, c] = [x * 0.3 + 0.5, x + 1.0, y + 2.0, z + 3.0];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<3, T, A>::new(x, y, z);
+            let rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let translation = Vector::<3, T, A>::new(a, b, c);
+
+            let affine =
+                Affine::<3, T, A>::from_scale_rotation_translation(scale, rotation, translation);
+
+            assert_panic_float_eq!(
+                affine.to_scale_rotation_translation(),
+                affine.to_matrix().to_scale_rotation_translation()
+            );
         });
     }
 }

@@ -603,17 +603,9 @@ where
         ])
     }
 
-    /// Creates a 3D rotation matrix from a quaternion.
-    ///
-    /// # Panics
-    ///
-    /// When assertions are enabled (see the crate documentation):
-    ///
-    /// Panics if the quaternion is not normalized.
-    #[inline]
-    #[must_use]
     #[track_caller]
-    pub fn from_quat(quat: Quaternion<T, A>) -> Self {
+    #[inline(always)]
+    fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<3, T, A>; 3] {
         #[cfg(assertions)]
         assert!(quat.to_vec().is_normalized());
 
@@ -630,11 +622,26 @@ where
         let wy2 = quat.w * y2;
         let wz2 = quat.w * z2;
 
-        Self::from_columns(&[
+        [
             Vector::<3, T, A>::new(T::ONE - (yy2 + zz2), xy2 + wz2, xz2 - wy2),
             Vector::<3, T, A>::new(xy2 - wz2, T::ONE - (xx2 + zz2), yz2 + wx2),
             Vector::<3, T, A>::new(xz2 + wy2, yz2 - wx2, T::ONE - (xx2 + yy2)),
-        ])
+        ]
+    }
+
+    /// Creates a 3D rotation matrix from a quaternion.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the quaternion is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_quat(quat: Quaternion<T, A>) -> Self {
+        let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
+        Self::from_columns(&[x_axis, y_axis, z_axis])
     }
 
     /// Creates a 3D rotation matrix from a rotation `axis` and `angle` (in
@@ -730,6 +737,25 @@ where
         }
 
         result
+    }
+
+    /// Creates a matrix containing a non-uniform `scale` and a 3D `rotation`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `rotation` is not normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+        let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
+        Self::from_columns(&[
+            rotation_x * scale.x,
+            rotation_y * scale.y,
+            rotation_z * scale.z,
+        ])
     }
 
     /// Creates a left-handed view matrix from a facing direction and an up
@@ -1111,6 +1137,33 @@ where
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
         Self::from_submatrix(&Matrix::<3, T, A>::from_euler(order, a, b, c))
+    }
+
+    /// Creates an affine transformation matrix containing a non-uniform `scale`
+    /// and a 3D `rotation`.
+    ///
+    /// The resulting matrix can be used to transform 3D points and vectors. See
+    /// [`transform_point`] and [`transform_vector`].
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `rotation` is not normalized.
+    ///
+    /// [`transform_point`]: Self::transform_point
+    /// [`transform_vector`]: Self::transform_vector
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+        let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
+        Self::from_columns(&[
+            rotation_x * scale.x,
+            rotation_y * scale.y,
+            rotation_z * scale.z,
+            Vector::W,
+        ])
     }
 
     /// Creates an affine transformation matrix containing a 3D `rotation` and
@@ -2688,6 +2741,50 @@ mod tests {
                     abs <= Matrix::<4, T, A>::from_column_array(&[1e-5; 16]),
                     0.0 = -0.0
                 );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_scale_rotation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x * 0.3 + 0.5;
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<3, T, A>::new(x, y, z);
+            let rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let invalid_rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w));
+
+            assert_float_eq!(
+                Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+                Matrix::<3, T, A>::from_quat(rotation) * Matrix::<3, T, A>::from_diagonal(scale),
+                0.0 = -0.0
+            );
+            assert_float_eq!(
+                Matrix::<4, T, A>::from_scale_rotation(scale, rotation),
+                Matrix::<4, T, A>::from_quat(rotation) * Matrix::<4, T, A>::from_scale(scale),
+                0.0 = -0.0
+            );
+
+            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
+                assert_panic!(Matrix::<3, T, A>::from_scale_rotation(
+                    scale,
+                    invalid_rotation
+                ));
+                assert_panic!(Matrix::<4, T, A>::from_scale_rotation(
+                    scale,
+                    invalid_rotation
+                ));
             }
         });
     }

@@ -29,10 +29,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `from_scale_angle`
   - `from_scale_angle_translation`
   - `to_scale_angle_translation`
+  - `from_rotation_x`
+  - `from_rotation_y`
+  - `from_rotation_z`
+  - `from_quat`
+  - `from_axis_angle`
+  - `from_euler`
+  - `from_scale_rotation`
+  - `from_rotation_translation`
+  - `from_scale_rotation_translation`
+  - `look_to_lh`
+  - `look_to_rh`
+  - `look_at_lh`
+  - `look_at_rh`
+  - `to_euler`
+  - `to_scale_rotation_translation`
 
 - Matrix functions:
   - `from_angle_translation`
   - `to_scale_angle_translation`
+  - `from_scale_rotation`
 
 - Affine transform multiplication.
 
