@@ -114,7 +114,7 @@ Crate Support:
 - [x] [`mint`](https://crates.io/crates/mint)
 - [x] [`serde`](https://crates.io/crates/serde)
 - [ ] [`wide`](https://crates.io/crates/wide) (partially done)
-- [ ] [`rand`](https://crates.io/crates/rand)
+- [x] [`rand`](https://crates.io/crates/rand)
 
 Performance:
 
@@ -186,6 +186,8 @@ relies on a backend is disabled.
   crate `no_std` even if the `std` feature is not disabled.
 
 - `mint`: Implements conversions between `ggmath` and `mint` types.
+
+- `rand`: Implements `rand` traits for `ggmath` types.
 
 - `serde`: Implements `Serialize` and `Deserialize` for `ggmath` types.
 

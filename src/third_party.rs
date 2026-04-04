@@ -10,6 +10,9 @@ mod fixp;
 #[cfg(feature = "mint")]
 mod mint;
 
+#[cfg(feature = "rand")]
+mod rand;
+
 #[cfg(feature = "serde")]
 mod serde;
 

@@ -108,6 +108,8 @@
 //!
 //! - `mint`: Implements conversions between `ggmath` and `mint` types.
 //!
+//! - `rand`: Implements `rand` traits for `ggmath` types.
+//!
 //! - `serde`: Implements `Serialize` and `Deserialize` for `ggmath` types.
 //!
 //! - `wide`: Implements `Scalar` for SIMD types.

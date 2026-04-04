@@ -3,7 +3,7 @@
 set -e
 
 MAX_PROGRESS=101
-INTEGRATIONS="bytemuck fixed fixp mint serde wide"
+INTEGRATIONS="bytemuck fixed fixp mint rand serde wide"
 
 PROGRESS=0
 WARNINGS=false

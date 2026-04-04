@@ -30,6 +30,7 @@ fixed = ["dep:fixed"]
 fixp = ["dep:fixp"]
 libm = ["dep:libm"]
 mint = ["dep:mint"]
+rand = ["dep:rand"]
 serde = ["dep:serde"]
 wide = ["dep:wide"]
 
@@ -39,6 +40,7 @@ fixed = { version = "1.30.0", optional = true }
 fixp = { version = "0.1.0", optional = true }
 libm = { version = "0.2.16", optional = true }
 mint = { version = "0.5.9", optional = true }
+rand = { version = "0.10.0", optional = true, default-features = false }
 serde = { version = "1.0.228", optional = true }
 wide = { version = "1.1.1", optional = true }
 
@@ -49,6 +51,7 @@ glam = "0.32.0"
 gungraun = "0.17.2"
 itertools = "0.14.0"
 num-primitive = "0.3.6"
+rand = "0.10.0"
 repetitive = "0.3.2"
 serde_json = "1.0.149"
 
