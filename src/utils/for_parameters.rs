@@ -99,6 +99,32 @@ macro_rules! for_parameters {
         for_parameters!(|T: PrimitiveSigned| $expr);
         for_parameters!(|T: PrimitiveUnsigned| $expr);
     }};
+    (|Simd: WideFloat| $expr:expr) => {{
+        {
+            type Simd = wide::f32x4;
+            crate::utils::call_in_context(|| $expr, "T: f32\nLANES: 4");
+        }
+        {
+            type Simd = wide::f32x8;
+            crate::utils::call_in_context(|| $expr, "T: f32\nLANES: 8");
+        }
+        {
+            type Simd = wide::f32x16;
+            crate::utils::call_in_context(|| $expr, "T: f32\nLANES: 16");
+        }
+        {
+            type Simd = wide::f64x2;
+            crate::utils::call_in_context(|| $expr, "T: f64\nLANES: 2");
+        }
+        {
+            type Simd = wide::f64x4;
+            crate::utils::call_in_context(|| $expr, "T: f64\nLANES: 4");
+        }
+        {
+            type Simd = wide::f64x8;
+            crate::utils::call_in_context(|| $expr, "T: f64\nLANES: 8");
+        }
+    }};
     (|A| $expr:expr) => {{
         fn fa<A: crate::Alignment>(a: &'static str) {
             crate::utils::call_in_context(|| $expr, format_args!("A: {a}"));
@@ -144,6 +170,15 @@ macro_rules! for_parameters {
     }};
     (|T: $PrimitiveTrait:ident, $($x:ident),*| $expr:expr) => {{
         for_parameters!(|T: $PrimitiveTrait| for_parameters!(|$($x),*| $expr));
+    }};
+    (|Simd: $Trait:ident, A| $expr:expr) => {{
+        for_parameters!(|A| for_parameters!(|Simd: $Trait| $expr));
+    }};
+    (|Simd: $Trait:ident, A, $($x:ident),*| $expr:expr) => {{
+        for_parameters!(|Simd: $Trait, A| for_parameters!(|$($x),*| $expr));
+    }};
+    (|Simd: $Trait:ident, $($x:ident),*| $expr:expr) => {{
+        for_parameters!(|Simd: $Trait| for_parameters!(|$($x),*| $expr));
     }};
     (|A, $($x:ident),*| $expr:expr) => {{
         for_parameters!(|A| for_parameters!(|$($x),*| $expr));
@@ -473,4 +508,47 @@ pub fn call_in_context(f: impl FnOnce() + UnwindSafe, context: impl Display) {
             resume_unwind(payload);
         }
     }
+}
+
+#[cfg(feature = "wide")]
+mod wide {
+    use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+
+    use crate::utils::{Values, transmute_mut};
+
+    macro_rules! impl_wide {
+        ($Simd:ident, $T:ident, $LANES:literal) => {
+            impl Values for $Simd {
+                const VALUES: &[Self] = {
+                    &const {
+                        let mut result = [Self::splat(0 as $T); $T::VALUES.len()];
+
+                        let mut index = 0;
+                        while index < result.len() {
+                            let mut lane = 0;
+                            while lane < $LANES {
+                                let input_index = (index + lane * 3) % $T::VALUES.len();
+                                // SAFETY: `$Simd` contains exactly `$LANES` values
+                                // of `$T`.
+                                unsafe {
+                                    transmute_mut::<$Simd, [$T; $LANES]>(&mut result[index])
+                                        [lane] = $T::VALUES[input_index];
+                                }
+                                lane += 1;
+                            }
+                            index += 1;
+                        }
+
+                        result
+                    }
+                };
+            }
+        };
+    }
+    impl_wide!(f32x4, f32, 4);
+    impl_wide!(f32x8, f32, 8);
+    impl_wide!(f32x16, f32, 16);
+    impl_wide!(f64x2, f64, 2);
+    impl_wide!(f64x4, f64, 4);
+    impl_wide!(f64x8, f64, 8);
 }

@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `wide` vector functions:
+  - `all`
+  - `any`
+  - `blend`
+  - `is_nan`
+  - `nan_mask`
+  - `is_finite`
+  - `finite_mask`
+  - `recip`
+  - `simd_eq`
+  - `simd_ne`
+  - `simd_eq_mask`
+  - `simd_ne_mask`
+  - `simd_lt_mask`
+  - `simd_gt_mask`
+  - `simd_le_mask`
+  - `simd_ge_mask`
+  - `max`
+  - `min`
+  - `clamp`
+  - `max_element`
+  - `min_element`
+
 - Support for crate `rand`.
 
 ## [0.16.6] - 2026-04-03

@@ -279,3 +279,43 @@ where
         )
     }
 }
+
+#[cfg(feature = "wide")]
+mod wide {
+    use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+
+    use crate::utils::FloatEq;
+
+    macro_rules! impl_wide_float {
+        ($Simd:ident, $T:ident, $LANES:literal) => {
+            impl FloatEq for $Simd {
+                fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
+                    (0..$LANES).all(|i| {
+                        FloatEq::eq(&self.as_array()[i], &other.as_array()[i], zero_eq_neg_zero)
+                    })
+                }
+
+                fn eq_abs(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool) -> bool {
+                    (0..$LANES).all(|i| {
+                        FloatEq::eq_abs(
+                            &self.as_array()[i],
+                            &other.as_array()[i],
+                            &tol.as_array()[i],
+                            zero_eq_neg_zero,
+                        )
+                    })
+                }
+
+                fn abs_mul(&self, rhs: &Self) -> Self {
+                    $Simd::new(self.as_array().map($T::abs)) * rhs
+                }
+            }
+        };
+    }
+    impl_wide_float!(f32x4, f32, 4);
+    impl_wide_float!(f32x8, f32, 8);
+    impl_wide_float!(f32x16, f32, 16);
+    impl_wide_float!(f64x2, f64, 2);
+    impl_wide_float!(f64x4, f64, 4);
+    impl_wide_float!(f64x8, f64, 8);
+}

@@ -22,6 +22,8 @@ mod float;
 mod signed;
 mod swizzle;
 mod unsigned;
+#[cfg(feature = "wide")]
+mod wide_float;
 pub(crate) use float::*;
 pub(crate) use signed::*;
 pub(crate) use unsigned::*;
