@@ -372,7 +372,7 @@ mod tests {
 
     use crate::{
         Vector,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        utils::{assert_assertions_panic, assert_float_eq, for_parameters},
     };
 
     #[test]
@@ -772,15 +772,24 @@ mod tests {
                         .max(Vector::<4, Simd, A>::new(z, w, c, d)),
                     Vector::<4, Simd, A>::new(x.max(z), y.max(w), a.max(c), b.max(d))
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<2, Simd, A>::new(x, y).max(Vector::<2, Simd, A>::new(z, w)));
-                assert_panic!(
-                    Vector::<3, Simd, A>::new(x, y, a).max(Vector::<3, Simd, A>::new(z, w, c))
+            } else {
+                assert_assertions_panic!(
+                    Vector::<2, Simd, A>::new(x, y).max(Vector::<2, Simd, A>::new(z, w))
                 );
-                assert_panic!(
-                    Vector::<4, Simd, A>::new(x, y, a, b)
-                        .max(Vector::<4, Simd, A>::new(z, w, c, d))
-                );
+                assert_assertions_panic!(Vector::<3, Simd, A>::new(x, y, a).max(Vector::<
+                    3,
+                    Simd,
+                    A,
+                >::new(
+                    z, w, c
+                )));
+                assert_assertions_panic!(Vector::<4, Simd, A>::new(x, y, a, b).max(Vector::<
+                    4,
+                    Simd,
+                    A,
+                >::new(
+                    z, w, c, d
+                )));
             }
         });
     }
@@ -813,15 +822,24 @@ mod tests {
                         .min(Vector::<4, Simd, A>::new(z, w, c, d)),
                     Vector::<4, Simd, A>::new(x.min(z), y.min(w), a.min(c), b.min(d))
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<2, Simd, A>::new(x, y).min(Vector::<2, Simd, A>::new(z, w)));
-                assert_panic!(
-                    Vector::<3, Simd, A>::new(x, y, a).min(Vector::<3, Simd, A>::new(z, w, c))
+            } else {
+                assert_assertions_panic!(
+                    Vector::<2, Simd, A>::new(x, y).min(Vector::<2, Simd, A>::new(z, w))
                 );
-                assert_panic!(
-                    Vector::<4, Simd, A>::new(x, y, a, b)
-                        .min(Vector::<4, Simd, A>::new(z, w, c, d))
-                );
+                assert_assertions_panic!(Vector::<3, Simd, A>::new(x, y, a).min(Vector::<
+                    3,
+                    Simd,
+                    A,
+                >::new(
+                    z, w, c
+                )));
+                assert_assertions_panic!(Vector::<4, Simd, A>::new(x, y, a, b).min(Vector::<
+                    4,
+                    Simd,
+                    A,
+                >::new(
+                    z, w, c, d
+                )));
             }
         });
     }
@@ -845,8 +863,8 @@ mod tests {
                     ),
                     Vector::<2, Simd, A>::new(x.max(z).min(a), y.max(w).min(b))
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<2, Simd, A>::new(x, y).clamp(
+            } else {
+                assert_assertions_panic!(Vector::<2, Simd, A>::new(x, y).clamp(
                     Vector::<2, Simd, A>::new(z, w),
                     Vector::<2, Simd, A>::new(a, b)
                 ));
@@ -864,8 +882,8 @@ mod tests {
                     ),
                     Vector::<3, Simd, A>::new(x.max(w).min(c), y.max(a).min(d), z.max(b).min(e))
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<3, Simd, A>::new(x, y, z).clamp(
+            } else {
+                assert_assertions_panic!(Vector::<3, Simd, A>::new(x, y, z).clamp(
                     Vector::<3, Simd, A>::new(w, a, b),
                     Vector::<3, Simd, A>::new(c, d, e)
                 ));
@@ -888,8 +906,8 @@ mod tests {
                         w.max(d).min(h)
                     )
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<4, Simd, A>::new(x, y, z, w).clamp(
+            } else {
+                assert_assertions_panic!(Vector::<4, Simd, A>::new(x, y, z, w).clamp(
                     Vector::<4, Simd, A>::new(a, b, c, d),
                     Vector::<4, Simd, A>::new(e, f, g, h)
                 ));
@@ -905,8 +923,8 @@ mod tests {
 
             if x.is_nan() | y.is_nan() == Simd::splat(0.0) {
                 assert_float_eq!(Vector::<2, Simd, A>::new(x, y).max_element(), x.max(y));
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<2, Simd, A>::new(x, y).max_element());
+            } else {
+                assert_assertions_panic!(Vector::<2, Simd, A>::new(x, y).max_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() == Simd::splat(0.0) {
@@ -914,8 +932,8 @@ mod tests {
                     Vector::<3, Simd, A>::new(x, y, z).max_element(),
                     x.max(y).max(z)
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<3, Simd, A>::new(x, y, z).max_element());
+            } else {
+                assert_assertions_panic!(Vector::<3, Simd, A>::new(x, y, z).max_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Simd::splat(0.0) {
@@ -923,8 +941,8 @@ mod tests {
                     Vector::<4, Simd, A>::new(x, y, z, w).max_element(),
                     x.max(y).max(z).max(w)
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<4, Simd, A>::new(x, y, z, w).max_element());
+            } else {
+                assert_assertions_panic!(Vector::<4, Simd, A>::new(x, y, z, w).max_element());
             }
         });
     }
@@ -937,8 +955,8 @@ mod tests {
 
             if x.is_nan() | y.is_nan() == Simd::splat(0.0) {
                 assert_float_eq!(Vector::<2, Simd, A>::new(x, y).min_element(), x.min(y));
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<2, Simd, A>::new(x, y).min_element());
+            } else {
+                assert_assertions_panic!(Vector::<2, Simd, A>::new(x, y).min_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() == Simd::splat(0.0) {
@@ -946,8 +964,8 @@ mod tests {
                     Vector::<3, Simd, A>::new(x, y, z).min_element(),
                     x.min(y).min(z)
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<3, Simd, A>::new(x, y, z).min_element());
+            } else {
+                assert_assertions_panic!(Vector::<3, Simd, A>::new(x, y, z).min_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Simd::splat(0.0) {
@@ -955,8 +973,8 @@ mod tests {
                     Vector::<4, Simd, A>::new(x, y, z, w).min_element(),
                     x.min(y).min(z).min(w)
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(Vector::<4, Simd, A>::new(x, y, z, w).min_element());
+            } else {
+                assert_assertions_panic!(Vector::<4, Simd, A>::new(x, y, z, w).min_element());
             }
         });
     }

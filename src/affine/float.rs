@@ -490,7 +490,7 @@ where
 mod tests {
     use crate::{
         Affine, Affine2, Matrix, Quaternion, Vec2, Vector,
-        utils::{assert_float_eq, assert_panic, assert_panic_float_eq, for_parameters},
+        utils::{assert_assertions_panic, assert_float_eq, assert_panic_float_eq, for_parameters},
     };
 
     #[test]
@@ -588,8 +588,8 @@ mod tests {
                     abs <= Affine::<2, T, A>::from_column_array(&[tol; 6]),
                     0.0 = -0.0
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(affine.inverse());
+            } else {
+                assert_assertions_panic!(affine.inverse());
             }
 
             let affine =
@@ -612,8 +612,8 @@ mod tests {
                     abs <= Affine::<3, T, A>::from_column_array(&[tol; 12]),
                     0.0 = -0.0
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(affine.inverse());
+            } else {
+                assert_assertions_panic!(affine.inverse());
             }
         });
     }
@@ -629,16 +629,16 @@ mod tests {
             let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse(), inverse);
-            } else if cfg!(assertions) {
-                assert_panic!(affine.inverse());
+            } else {
+                assert_assertions_panic!(affine.inverse());
             }
 
             let affine =
                 Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse(), inverse);
-            } else if cfg!(assertions) {
-                assert_panic!(affine.inverse());
+            } else {
+                assert_assertions_panic!(affine.inverse());
             }
         });
     }
@@ -856,8 +856,8 @@ mod tests {
                     affine.to_scale_angle_translation(),
                     affine.to_matrix().to_scale_angle_translation()
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(affine.to_scale_angle_translation());
+            } else {
+                assert_assertions_panic!(affine.to_scale_angle_translation());
             }
         });
     }
@@ -911,8 +911,8 @@ mod tests {
             }
 
             let invalid_quat = Quaternion::new(x, y, z, w);
-            if cfg!(assertions) && !invalid_quat.to_vec().is_normalized() {
-                assert_panic!(Affine::<3, T, A>::from_quat(invalid_quat));
+            if !invalid_quat.to_vec().is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::from_quat(invalid_quat));
             }
         });
     }
@@ -932,8 +932,8 @@ mod tests {
             }
 
             let invalid_axis = Vector::<3, T, A>::new(x, y, z);
-            if cfg!(assertions) && !invalid_axis.is_normalized() {
-                assert_panic!(Affine::<3, T, A>::from_axis_angle(invalid_axis, w));
+            if !invalid_axis.is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::from_axis_angle(invalid_axis, w));
             }
         });
     }
@@ -975,8 +975,8 @@ mod tests {
             }
 
             let invalid_rotation = Quaternion::new(x, y, z, w);
-            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
-                assert_panic!(Affine::<3, T, A>::from_scale_rotation(
+            if !invalid_rotation.to_vec().is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
                 ));
@@ -1012,8 +1012,8 @@ mod tests {
             }
 
             let invalid_rotation = Quaternion::new(x, y, z, w);
-            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
-                assert_panic!(Affine::<3, T, A>::from_rotation_translation(
+            if !invalid_rotation.to_vec().is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::from_rotation_translation(
                     invalid_rotation,
                     translation
                 ));
@@ -1055,8 +1055,8 @@ mod tests {
             }
 
             let invalid_rotation = Quaternion::new(x, y, z, w);
-            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
-                assert_panic!(Affine::<3, T, A>::from_scale_rotation_translation(
+            if !invalid_rotation.to_vec().is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::from_scale_rotation_translation(
                     scale,
                     invalid_rotation,
                     translation
@@ -1081,9 +1081,9 @@ mod tests {
             );
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
-            if cfg!(assertions) && !xyz.is_normalized() {
-                assert_panic!(Affine::<3, T, A>::look_to_lh(eye, xyz, up));
-                assert_panic!(Affine::<3, T, A>::look_to_lh(eye, dir, xyz));
+            if !xyz.is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::look_to_lh(eye, xyz, up));
+                assert_assertions_panic!(Affine::<3, T, A>::look_to_lh(eye, dir, xyz));
             }
         })
     }
@@ -1104,9 +1104,9 @@ mod tests {
             );
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
-            if cfg!(assertions) && !xyz.is_normalized() {
-                assert_panic!(Affine::<3, T, A>::look_to_rh(eye, xyz, up));
-                assert_panic!(Affine::<3, T, A>::look_to_rh(eye, dir, xyz));
+            if !xyz.is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::look_to_rh(eye, xyz, up));
+                assert_assertions_panic!(Affine::<3, T, A>::look_to_rh(eye, dir, xyz));
             }
         })
     }
@@ -1126,8 +1126,8 @@ mod tests {
             );
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
-            if cfg!(assertions) && !xyz.is_normalized() {
-                assert_panic!(Affine::<3, T, A>::look_at_lh(eye, center, xyz));
+            if !xyz.is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::look_at_lh(eye, center, xyz));
             }
         })
     }
@@ -1147,8 +1147,8 @@ mod tests {
             );
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
-            if cfg!(assertions) && !xyz.is_normalized() {
-                assert_panic!(Affine::<3, T, A>::look_at_rh(eye, center, xyz));
+            if !xyz.is_normalized() {
+                assert_assertions_panic!(Affine::<3, T, A>::look_at_rh(eye, center, xyz));
             }
         })
     }

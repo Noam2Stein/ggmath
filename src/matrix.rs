@@ -2825,7 +2825,7 @@ mod tests {
     use crate::{
         Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4,
         Vector,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        utils::{assert_assertions_panic, assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
@@ -3994,21 +3994,19 @@ mod tests {
             Vec3::new(-25, -30, -35)
         );
 
-        if cfg!(assertions) {
-            assert_panic!(
-                Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
-                    .transform_point(Vec2::new(-1, -2))
-            );
-            assert_panic!(
-                Mat4::from_columns(&[
-                    Vec4::new(2, 3, 4, 0),
-                    Vec4::new(5, 6, 7, 0),
-                    Vec4::new(8, 9, 10, 1),
-                    Vec4::new(11, 12, 13, 1)
-                ])
-                .transform_point(Vec3::new(-1, -2, -3))
-            );
-        }
+        assert_assertions_panic!(
+            Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
+                .transform_point(Vec2::new(-1, -2))
+        );
+        assert_assertions_panic!(
+            Mat4::from_columns(&[
+                Vec4::new(2, 3, 4, 0),
+                Vec4::new(5, 6, 7, 0),
+                Vec4::new(8, 9, 10, 1),
+                Vec4::new(11, 12, 13, 1)
+            ])
+            .transform_point(Vec3::new(-1, -2, -3))
+        );
     }
 
     #[test]
@@ -4029,21 +4027,19 @@ mod tests {
             Vec3::new(-36, -42, -48)
         );
 
-        if cfg!(assertions) {
-            assert_panic!(
-                Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
-                    .transform_vector(Vec2::new(-1, -2))
-            );
-            assert_panic!(
-                Mat4::from_columns(&[
-                    Vec4::new(2, 3, 4, 0),
-                    Vec4::new(5, 6, 7, 0),
-                    Vec4::new(8, 9, 10, 1),
-                    Vec4::new(11, 12, 13, 1)
-                ])
-                .transform_vector(Vec3::new(-1, -2, -3))
-            );
-        }
+        assert_assertions_panic!(
+            Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
+                .transform_vector(Vec2::new(-1, -2))
+        );
+        assert_assertions_panic!(
+            Mat4::from_columns(&[
+                Vec4::new(2, 3, 4, 0),
+                Vec4::new(5, 6, 7, 0),
+                Vec4::new(8, 9, 10, 1),
+                Vec4::new(11, 12, 13, 1)
+            ])
+            .transform_vector(Vec3::new(-1, -2, -3))
+        );
     }
 
     #[test]

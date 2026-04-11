@@ -2021,7 +2021,7 @@ mod tests {
 
     use crate::{
         EulerRot, Matrix, Quaternion, Vector,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        utils::{assert_assertions_panic, assert_float_eq, for_parameters},
     };
 
     #[test]
@@ -2110,8 +2110,8 @@ mod tests {
                         * mat.determinant().abs().log2().abs().exp2().powi(2),
                     0.0 = -0.0
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(mat.inverse());
+            } else {
+                assert_assertions_panic!(mat.inverse());
             }
 
             let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
@@ -2123,8 +2123,8 @@ mod tests {
                         * mat.determinant().abs().log2().abs().exp2().powi(2),
                     0.0 = -0.0
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(mat.inverse());
+            } else {
+                assert_assertions_panic!(mat.inverse());
             }
 
             let mat = Matrix::<4, T, A>::from_column_array(&[
@@ -2138,8 +2138,8 @@ mod tests {
                         * mat.determinant().abs().log2().abs().exp2().powi(2),
                     0.0 = -0.0
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(mat.inverse());
+            } else {
+                assert_assertions_panic!(mat.inverse());
             }
         });
     }
@@ -2156,15 +2156,15 @@ mod tests {
             let mat = Matrix::<2, T, A>::from_column_array(&[x, y, z, w]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse(), inverse);
-            } else if cfg!(assertions) {
-                assert_panic!(mat.inverse());
+            } else {
+                assert_assertions_panic!(mat.inverse());
             }
 
             let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse(), inverse);
-            } else if cfg!(assertions) {
-                assert_panic!(mat.inverse());
+            } else {
+                assert_assertions_panic!(mat.inverse());
             }
 
             let mat = Matrix::<4, T, A>::from_column_array(&[
@@ -2172,8 +2172,8 @@ mod tests {
             ]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse(), inverse);
-            } else if cfg!(assertions) {
-                assert_panic!(mat.inverse());
+            } else {
+                assert_assertions_panic!(mat.inverse());
             }
         });
     }
@@ -2190,14 +2190,14 @@ mod tests {
             let mat = Matrix::<2, T, A>::from_column_array(&[x, y, z, w]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse_or(&Matrix::NAN), inverse);
-            } else if cfg!(assertions) {
+            } else {
                 assert_float_eq!(mat.inverse_or(&Matrix::NAN), Matrix::NAN);
             }
 
             let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse_or(&Matrix::NAN), inverse);
-            } else if cfg!(assertions) {
+            } else {
                 assert_float_eq!(mat.inverse_or(&Matrix::NAN), Matrix::NAN);
             }
 
@@ -2206,7 +2206,7 @@ mod tests {
             ]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse_or(&Matrix::NAN), inverse);
-            } else if cfg!(assertions) {
+            } else {
                 assert_float_eq!(mat.inverse_or(&Matrix::NAN), Matrix::NAN);
             }
         });
@@ -2224,14 +2224,14 @@ mod tests {
             let mat = Matrix::<2, T, A>::from_column_array(&[x, y, z, w]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse_or_zero(), inverse);
-            } else if cfg!(assertions) {
+            } else {
                 assert_float_eq!(mat.inverse_or_zero(), Matrix::ZERO);
             }
 
             let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse_or_zero(), inverse);
-            } else if cfg!(assertions) {
+            } else {
                 assert_float_eq!(mat.inverse_or_zero(), Matrix::ZERO);
             }
 
@@ -2240,7 +2240,7 @@ mod tests {
             ]);
             if let Some(inverse) = mat.try_inverse() {
                 assert_float_eq!(mat.inverse_or_zero(), inverse);
-            } else if cfg!(assertions) {
+            } else {
                 assert_float_eq!(mat.inverse_or_zero(), Matrix::ZERO);
             }
         });
@@ -2628,9 +2628,9 @@ mod tests {
                 abs <= 1e-5
             );
 
-            if cfg!(assertions) && !invalid.to_vec().is_normalized() {
-                assert_panic!(Matrix::<3, T, A>::from_quat(invalid));
-                assert_panic!(Matrix::<4, T, A>::from_quat(invalid));
+            if !invalid.to_vec().is_normalized() {
+                assert_assertions_panic!(Matrix::<3, T, A>::from_quat(invalid));
+                assert_assertions_panic!(Matrix::<4, T, A>::from_quat(invalid));
             }
         });
     }
@@ -2776,12 +2776,12 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
-                assert_panic!(Matrix::<3, T, A>::from_scale_rotation(
+            if !invalid_rotation.to_vec().is_normalized() {
+                assert_assertions_panic!(Matrix::<3, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
                 ));
-                assert_panic!(Matrix::<4, T, A>::from_scale_rotation(
+                assert_assertions_panic!(Matrix::<4, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
                 ));
@@ -2818,12 +2818,12 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_panic!(Matrix::<3, T, A>::look_to_lh(
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Matrix::<3, T, A>::look_to_lh(
                     Vector::<3, T, A>::new(x, y, z),
                     up
                 ));
-                assert_panic!(Matrix::<3, T, A>::look_to_lh(
+                assert_assertions_panic!(Matrix::<3, T, A>::look_to_lh(
                     forward,
                     Vector::<3, T, A>::new(x, y, z)
                 ));
@@ -2860,12 +2860,12 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_panic!(Matrix::<3, T, A>::look_to_rh(
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Matrix::<3, T, A>::look_to_rh(
                     Vector::<3, T, A>::new(x, y, z),
                     up
                 ));
-                assert_panic!(Matrix::<3, T, A>::look_to_rh(
+                assert_assertions_panic!(Matrix::<3, T, A>::look_to_rh(
                     forward,
                     Vector::<3, T, A>::new(x, y, z)
                 ));
@@ -2898,8 +2898,8 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_panic!(Matrix::<3, T, A>::look_at_lh(
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Matrix::<3, T, A>::look_at_lh(
                     eye,
                     center,
                     Vector::<3, T, A>::new(x, y, z),
@@ -2933,8 +2933,8 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if cfg!(assertions) && !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_panic!(Matrix::<3, T, A>::look_at_rh(
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Matrix::<3, T, A>::look_at_rh(
                     eye,
                     center,
                     Vector::<3, T, A>::new(x, y, z),
@@ -2972,8 +2972,8 @@ mod tests {
                     abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_column_array(&[1e-4; 9]),
                     0.0 = -0.0
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(matrix.to_scale_angle_translation());
+            } else {
+                assert_assertions_panic!(matrix.to_scale_angle_translation());
             }
         });
     }
@@ -3013,23 +3013,21 @@ mod tests {
             );
 
             let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, z, x, x, y, y, z]);
-            if cfg!(assertions)
-                && !(mat.x_axis.is_normalized()
-                    && mat.y_axis.is_normalized()
-                    && mat.z_axis.is_normalized())
+            if !mat.x_axis.is_normalized()
+                || !mat.y_axis.is_normalized()
+                || !mat.z_axis.is_normalized()
             {
-                assert_panic!(mat.to_euler(order));
+                assert_assertions_panic!(mat.to_euler(order));
             }
 
             let mat = Matrix::<4, T, A>::from_column_array(&[
                 x, y, z, z, x, x, y, y, z, z, x, y, y, z, z, x,
             ]);
-            if cfg!(assertions)
-                && !(mat.x_axis.xyz().is_normalized()
-                    && mat.y_axis.xyz().is_normalized()
-                    && mat.z_axis.xyz().is_normalized())
+            if !mat.x_axis.xyz().is_normalized()
+                || !mat.y_axis.xyz().is_normalized()
+                || !mat.z_axis.xyz().is_normalized()
             {
-                assert_panic!(mat.to_euler(order));
+                assert_assertions_panic!(mat.to_euler(order));
             }
         });
     }
@@ -3061,8 +3059,8 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
-                assert_panic!(Matrix::<4, T, A>::from_rotation_translation(
+            if !invalid_rotation.to_vec().is_normalized() {
+                assert_assertions_panic!(Matrix::<4, T, A>::from_rotation_translation(
                     invalid_rotation,
                     translation
                 ));
@@ -3099,8 +3097,8 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if cfg!(assertions) && !invalid_rotation.to_vec().is_normalized() {
-                assert_panic!(Matrix::<4, T, A>::from_scale_rotation_translation(
+            if !invalid_rotation.to_vec().is_normalized() {
+                assert_assertions_panic!(Matrix::<4, T, A>::from_scale_rotation_translation(
                     scale,
                     invalid_rotation,
                     translation
@@ -3145,20 +3143,18 @@ mod tests {
                 );
             }
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::perspective_lh(
-                    vertical_fov,
-                    aspect_ratio,
-                    -1.0,
-                    4.0
-                ));
-                assert_panic!(Matrix::<4, T, A>::perspective_lh(
-                    vertical_fov,
-                    aspect_ratio,
-                    6.0,
-                    4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_lh(
+                vertical_fov,
+                aspect_ratio,
+                -1.0,
+                4.0
+            ));
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_lh(
+                vertical_fov,
+                aspect_ratio,
+                6.0,
+                4.0
+            ));
         });
     }
 
@@ -3185,20 +3181,18 @@ mod tests {
                 ) * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::perspective_rh(
-                    vertical_fov,
-                    aspect_ratio,
-                    -1.0,
-                    4.0
-                ));
-                assert_panic!(Matrix::<4, T, A>::perspective_rh(
-                    vertical_fov,
-                    aspect_ratio,
-                    6.0,
-                    4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh(
+                vertical_fov,
+                aspect_ratio,
+                -1.0,
+                4.0
+            ));
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh(
+                vertical_fov,
+                aspect_ratio,
+                6.0,
+                4.0
+            ));
         });
     }
 
@@ -3228,20 +3222,18 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::perspective_rh_gl(
-                    vertical_fov,
-                    aspect_ratio,
-                    -1.0,
-                    4.0
-                ));
-                assert_panic!(Matrix::<4, T, A>::perspective_rh_gl(
-                    vertical_fov,
-                    aspect_ratio,
-                    6.0,
-                    4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh_gl(
+                vertical_fov,
+                aspect_ratio,
+                -1.0,
+                4.0
+            ));
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh_gl(
+                vertical_fov,
+                aspect_ratio,
+                6.0,
+                4.0
+            ));
         });
     }
 
@@ -3276,13 +3268,11 @@ mod tests {
                 );
             }
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::perspective_infinite_lh(
-                    vertical_fov,
-                    aspect_ratio,
-                    -1.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_lh(
+                vertical_fov,
+                aspect_ratio,
+                -1.0
+            ));
         });
     }
 
@@ -3299,13 +3289,11 @@ mod tests {
                     * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::perspective_infinite_rh(
-                    vertical_fov,
-                    aspect_ratio,
-                    -1.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_rh(
+                vertical_fov,
+                aspect_ratio,
+                -1.0
+            ));
         });
     }
 
@@ -3331,13 +3319,11 @@ mod tests {
                     )
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_lh(
-                    vertical_fov,
-                    aspect_ratio,
-                    -1.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_lh(
+                vertical_fov,
+                aspect_ratio,
+                -1.0
+            ));
         });
     }
 
@@ -3361,13 +3347,11 @@ mod tests {
                 ) * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_rh(
-                    vertical_fov,
-                    aspect_ratio,
-                    -1.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_rh(
+                vertical_fov,
+                aspect_ratio,
+                -1.0
+            ));
         });
     }
 
@@ -3400,24 +3384,22 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::frustum_lh(
-                    -half_width,
-                    half_width,
-                    -half_height,
-                    half_height,
-                    -1.0,
-                    4.0
-                ));
-                assert_panic!(Matrix::<4, T, A>::frustum_lh(
-                    -half_width,
-                    half_width,
-                    -half_height,
-                    half_height,
-                    6.0,
-                    4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::frustum_lh(
+                -half_width,
+                half_width,
+                -half_height,
+                half_height,
+                -1.0,
+                4.0
+            ));
+            assert_assertions_panic!(Matrix::<4, T, A>::frustum_lh(
+                -half_width,
+                half_width,
+                -half_height,
+                half_height,
+                6.0,
+                4.0
+            ));
         });
     }
 
@@ -3450,24 +3432,22 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::frustum_rh(
-                    -half_width,
-                    half_width,
-                    -half_height,
-                    half_height,
-                    -1.0,
-                    4.0
-                ));
-                assert_panic!(Matrix::<4, T, A>::frustum_rh(
-                    -half_width,
-                    half_width,
-                    -half_height,
-                    half_height,
-                    6.0,
-                    4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh(
+                -half_width,
+                half_width,
+                -half_height,
+                half_height,
+                -1.0,
+                4.0
+            ));
+            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh(
+                -half_width,
+                half_width,
+                -half_height,
+                half_height,
+                6.0,
+                4.0
+            ));
         });
     }
 
@@ -3491,14 +3471,12 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::frustum_rh_gl(
-                    left, right, bottom, top, -1.0, 4.0
-                ));
-                assert_panic!(Matrix::<4, T, A>::frustum_rh_gl(
-                    left, right, bottom, top, 6.0, 4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh_gl(
+                left, right, bottom, top, -1.0, 4.0
+            ));
+            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh_gl(
+                left, right, bottom, top, 6.0, 4.0
+            ));
         });
     }
 
@@ -3526,11 +3504,9 @@ mod tests {
                 );
             }
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::orthographic_lh(
-                    left, right, bottom, top, 6.0, 4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::orthographic_lh(
+                left, right, bottom, top, 6.0, 4.0
+            ));
         });
     }
 
@@ -3550,11 +3526,9 @@ mod tests {
                     * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::orthographic_rh(
-                    left, right, bottom, top, 6.0, 4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::orthographic_rh(
+                left, right, bottom, top, 6.0, 4.0
+            ));
         });
     }
 
@@ -3576,11 +3550,9 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            if cfg!(assertions) {
-                assert_panic!(Matrix::<4, T, A>::orthographic_rh_gl(
-                    left, right, bottom, top, 6.0, 4.0
-                ));
-            }
+            assert_assertions_panic!(Matrix::<4, T, A>::orthographic_rh_gl(
+                left, right, bottom, top, 6.0, 4.0
+            ));
         });
     }
 
@@ -3624,8 +3596,8 @@ mod tests {
                     abs <= mat.abs() * 1e-4 + Matrix::<4, T, A>::from_column_array(&[1e-3; 16]),
                     0.0 = -0.0
                 );
-            } else if cfg!(assertions) {
-                assert_panic!(mat.to_scale_rotation_translation());
+            } else {
+                assert_assertions_panic!(mat.to_scale_rotation_translation());
             }
         });
     }
