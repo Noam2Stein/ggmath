@@ -16,4 +16,4 @@ For new math types, open a github discussion.
 
 Before opening github issues, check if similar issues already exist. Before
 submitting code, run `cargo fmt`, `cargo clippy`, `cargo test` and preferably
-`./verify.sh`.
+`./scripts/test.rs`.
