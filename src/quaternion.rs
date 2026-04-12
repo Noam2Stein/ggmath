@@ -1,7 +1,7 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, AddAssign, Deref, DerefMut, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 use crate::{
@@ -329,6 +329,72 @@ where
         &mut self.0
     }
 
+    /// Returns the quaternion conjugate of `self`.
+    ///
+    /// Equivalent to the inverse if `self` is normalized.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn conjugate(self) -> Self
+    where
+        T: Neg<Output = T>,
+    {
+        Self::from_xyzw(-self.x, -self.y, -self.z, self.w)
+    }
+
+    /// Returns the canonical version of `self`.
+    ///
+    /// This flips the sign of `self` to make `w` positive. The result still
+    /// represents the same rotation as `self`.
+    ///
+    /// Equivalent to:
+    ///
+    /// ```ignore
+    /// if self.w < 0.0 { -self } else { self }
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn canonical(self) -> Self
+    where
+        T: PartialOrd + Neg<Output = T> + Zero,
+    {
+        if self.w < T::ZERO { -self } else { self }
+    }
+
+    /// Computes the dot product of quaternions `self` and `rhs`.
+    ///
+    /// Equivalent to `self.angle_between(rhs).cos()`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn dot(self, rhs: Self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.to_vector().dot(rhs.to_vector())
+    }
+
+    /// Computes the squared length/magnitude of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Quat;
+    /// #
+    /// let quat = Quat::new(0, 1, 2, 3);
+    /// assert_eq!(quat.length_squared(), 14);
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn length_squared(self) -> T
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        self.to_vector().length_squared()
+    }
+
     /// Raw transmutation between scalar types.
     ///
     /// This function's signature staticly guarantees that the types have
@@ -627,6 +693,22 @@ where
     }
 }
 
+impl<T, A: Alignment> Div<T> for Quaternion<T, A>
+where
+    T: Scalar + Div<Output = T>,
+{
+    type Output = Self;
+
+    /// Divides a quaternion by a scalar value.
+    ///
+    /// The division is not guaranteed to be normalized.
+    #[inline]
+    #[track_caller]
+    fn div(self, rhs: T) -> Self::Output {
+        Self(self.0 / rhs)
+    }
+}
+
 impl<T, A: Alignment> AddAssign for Quaternion<T, A>
 where
     T: Scalar + Add<Output = T>,
@@ -673,11 +755,25 @@ where
     }
 }
 
+impl<T, A: Alignment> DivAssign<T> for Quaternion<T, A>
+where
+    T: Scalar + Div<Output = T>,
+{
+    /// Divides the quaternion by a scalar value.
+    ///
+    /// The division is not guaranteed to be normalized.
+    #[inline]
+    #[track_caller]
+    fn div_assign(&mut self, rhs: T) {
+        *self = Self(self.0 / rhs);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{
         Aligned, Quaternion, Unaligned, Vector,
-        utils::{assert_float_eq, for_parameters},
+        utils::{assert_float_eq, float_eq, for_parameters},
     };
 
     #[test]
@@ -858,6 +954,61 @@ mod tests {
     }
 
     #[test]
+    fn test_conjugate() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+            let [z, w] = [x + 1.0, y + 2.0];
+
+            assert_float_eq!(
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).conjugate(),
+                Quaternion::from_xyzw(-x, -y, -z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_canonical() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+            let [z, w] = [x + 1.0, y + 2.0];
+
+            if !x.is_finite() || !y.is_finite() {
+                return;
+            }
+
+            let quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
+            assert!(float_eq!(quat.canonical(), quat) || float_eq!(quat.canonical(), -quat));
+            assert!(quat.canonical().w >= 0.0);
+        });
+    }
+
+    #[test]
+    fn test_dot() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            assert_float_eq!(
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).dot(Quaternion::from_xyzw(y, z, w, x)),
+                Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(y, z, w, x))
+            );
+        });
+    }
+
+    #[test]
+    fn test_length_squared() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+            let [z, w] = [x + 1.0, y + 2.0];
+
+            assert_float_eq!(
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).length_squared(),
+                Vector::<4, T, A>::new(x, y, z, w).length_squared()
+            );
+        });
+    }
+
+    #[test]
     fn test_to_repr() {
         for_parameters!(|A| {
             assert_eq!(
@@ -1000,6 +1151,18 @@ mod tests {
     }
 
     #[test]
+    fn test_div() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let [w, a] = [T::max(x, y), T::min(x, y)];
+
+            assert_float_eq!(
+                Quaternion::<T, A>::from_xyzw(x, y, z, w) / a,
+                Quaternion::from_xyzw(x / a, y / a, z / a, w / a)
+            );
+        });
+    }
+
+    #[test]
     fn test_add_assign() {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
@@ -1029,6 +1192,17 @@ mod tests {
             let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
             quat *= w;
             assert_float_eq!(quat, Quaternion::from_xyzw(x * w, y * w, z * w, w * w));
+        });
+    }
+
+    #[test]
+    fn test_div_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let [w, a] = [T::max(x, y), T::min(x, y)];
+
+            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
+            quat /= a;
+            assert_float_eq!(quat, Quaternion::from_xyzw(x / a, y / a, z / a, w / a));
         });
     }
 }

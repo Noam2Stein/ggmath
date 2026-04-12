@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Quaternion functions:
+  - `conjugate`
+  - `canonical`
+  - `dot`
+  - `length_squared`
+  - `from_rotation_x`
+  - `from_rotation_y`
+  - `from_rotation_z`
+  - `from_axis_angle`
+  - `is_nan`
+  - `is_finite`
+  - `inverse`
+  - `angle_between`
+  - `length`
+  - `normalize`
+  - `try_normalize`
+  - `normalize_or`
+  - `is_normalized`
+
+- Quaternion scalar division.
+
 - `wide` vector functions:
   - `all`
   - `any`
