@@ -34,6 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for crate `rand`.
 
+### Changed
+
+- Updated dependency minor versions and removed unnecessary features.
+
 ## [0.16.6] - 2026-04-03
 
 ### Added

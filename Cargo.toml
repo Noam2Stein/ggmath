@@ -35,23 +35,23 @@ serde = ["dep:serde"]
 wide = ["dep:wide"]
 
 [dependencies]
-bytemuck = { version = "1.25.0", optional = true }
-fixed = { version = "1.30.0", optional = true }
-fixp = { version = "0.1.0", optional = true }
-libm = { version = "0.2.16", optional = true }
-mint = { version = "0.5.9", optional = true }
-rand = { version = "0.10.0", optional = true, default-features = false }
-serde = { version = "1.0.228", optional = true }
-wide = { version = "1.1.1", optional = true }
+bytemuck = { version = "1.25.0", optional = true, default-features = false }
+fixed = { version = "1.31.0", optional = true, default-features = false }
+fixp = { version = "0.1.0", optional = true, default-features = false }
+libm = { version = "0.2.16", optional = true, default-features = false }
+mint = { version = "0.5.9", optional = true, default-features = false }
+rand = { version = "0.10.1", optional = true, default-features = false }
+serde = { version = "1.0.228", optional = true, default-features = false }
+wide = { version = "1.2.0", optional = true, default-features = false }
 
 [dev-dependencies]
 assert-impl-trait = "1.0.0"
 colored = "3.1.1"
-glam = "0.32.0"
-gungraun = "0.17.2"
+glam = "0.32.1"
+gungraun = "0.18.1"
 itertools = "0.14.0"
-num-primitive = "0.3.6"
-rand = "0.10.0"
+num-primitive = "0.3.7"
+rand = "0.10.1"
 repetitive = "0.3.2"
 serde_json = "1.0.149"
 
