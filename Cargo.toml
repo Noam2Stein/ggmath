@@ -1,7 +1,7 @@
 [package]
 name = "ggmath"
 version = "0.16.6"
-
+authors = ["Noam Stein <noamsteindev@proton.me>"]
 categories = [
     "data-structures",
     "game-development",
@@ -14,16 +14,14 @@ keywords = ["math", "matrix", "simd", "vector"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Noam2Stein/ggmath"
 rust-version = "1.90.0"
-
 description = "A linear algebra library for games and graphics with generic SIMD types."
 
 [features]
-std = []
+default = ["std"]
 
+std = []
 assertions = []
 no-assertions = []
-
-default = ["std"]
 
 bytemuck = ["dep:bytemuck"]
 fixed = ["dep:fixed"]
