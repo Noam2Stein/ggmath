@@ -607,7 +607,7 @@ where
     #[inline(always)]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<3, T, A>; 3] {
         #[cfg(assertions)]
-        assert!(quat.to_vec().is_normalized());
+        assert!(quat.to_vector().is_normalized());
 
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
@@ -1039,7 +1039,7 @@ where
     #[track_caller]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<4, T, A>; 3] {
         #[cfg(assertions)]
-        assert!(quat.to_vec().is_normalized());
+        assert!(quat.to_vector().is_normalized());
 
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
@@ -1887,7 +1887,7 @@ where
                 let four_xsq = omm22 - dif10;
                 let inv4x = T::as_from(0.5) / four_xsq.sqrt();
 
-                Quaternion::new(
+                Quaternion::from_xyzw(
                     four_xsq * inv4x,
                     (m01 + m10) * inv4x,
                     (m02 + m20) * inv4x,
@@ -1898,7 +1898,7 @@ where
                 let four_ysq = omm22 + dif10;
                 let inv4y = T::as_from(0.5) / four_ysq.sqrt();
 
-                Quaternion::new(
+                Quaternion::from_xyzw(
                     (m01 + m10) * inv4y,
                     four_ysq * inv4y,
                     (m12 + m21) * inv4y,
@@ -1915,7 +1915,7 @@ where
                 let four_zsq = opm22 - sum10;
                 let inv4z = T::as_from(0.5) / four_zsq.sqrt();
 
-                Quaternion::new(
+                Quaternion::from_xyzw(
                     (m02 + m20) * inv4z,
                     (m12 + m21) * inv4z,
                     four_zsq * inv4z,
@@ -1926,7 +1926,7 @@ where
                 let four_wsq = opm22 + sum10;
                 let inv4w = T::as_from(0.5) / four_wsq.sqrt();
 
-                Quaternion::new(
+                Quaternion::from_xyzw(
                     (m12 - m21) * inv4w,
                     (m20 - m02) * inv4w,
                     (m01 - m10) * inv4w,
@@ -2614,8 +2614,8 @@ mod tests {
                 return;
             }
 
-            let quat = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
-            let invalid = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w));
+            let quat = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let invalid = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w));
 
             assert_float_eq!(
                 Matrix::<3, T, A>::from_quat(quat).determinant(),
@@ -2628,7 +2628,7 @@ mod tests {
                 abs <= 1e-5
             );
 
-            if !invalid.to_vec().is_normalized() {
+            if !invalid.to_vector().is_normalized() {
                 assert_assertions_panic!(Matrix::<3, T, A>::from_quat(invalid));
                 assert_assertions_panic!(Matrix::<4, T, A>::from_quat(invalid));
             }
@@ -2762,8 +2762,8 @@ mod tests {
             }
 
             let scale = Vector::<3, T, A>::new(x, y, z);
-            let rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
-            let invalid_rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w));
+            let rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let invalid_rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w));
 
             assert_float_eq!(
                 Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
@@ -2776,7 +2776,7 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if !invalid_rotation.to_vec().is_normalized() {
+            if !invalid_rotation.to_vector().is_normalized() {
                 assert_assertions_panic!(Matrix::<3, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
@@ -3048,9 +3048,9 @@ mod tests {
                 return;
             }
 
-            let rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize());
             let translation = Vector::<3, T, A>::new(x, y, z);
-            let invalid_rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w));
+            let invalid_rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w));
 
             assert_float_eq!(
                 Matrix::<4, T, A>::from_rotation_translation(rotation, translation),
@@ -3059,7 +3059,7 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if !invalid_rotation.to_vec().is_normalized() {
+            if !invalid_rotation.to_vector().is_normalized() {
                 assert_assertions_panic!(Matrix::<4, T, A>::from_rotation_translation(
                     invalid_rotation,
                     translation
@@ -3085,9 +3085,9 @@ mod tests {
             }
 
             let scale = Vector::<3, T, A>::new(x, y, z);
-            let rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize());
             let translation = Vector::<3, T, A>::new(a, b, c);
-            let invalid_rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w));
+            let invalid_rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w));
 
             assert_float_eq!(
                 Matrix::<4, T, A>::from_scale_rotation_translation(scale, rotation, translation),
@@ -3097,7 +3097,7 @@ mod tests {
                 0.0 = -0.0
             );
 
-            if !invalid_rotation.to_vec().is_normalized() {
+            if !invalid_rotation.to_vector().is_normalized() {
                 assert_assertions_panic!(Matrix::<4, T, A>::from_scale_rotation_translation(
                     scale,
                     invalid_rotation,
@@ -3573,7 +3573,7 @@ mod tests {
             }
 
             let scale = Vector::<3, T, A>::new(x, y, z);
-            let rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize());
             let translation = Vector::<3, T, A>::new(a, b, c);
 
             let mat =

@@ -380,11 +380,11 @@ mod tests {
 
     #[test]
     fn test_quaternion() -> Result<(), Box<dyn Error>> {
-        let quat = Quat::<i32>::new(1, 2, 3, 4);
+        let quat = Quat::<i32>::from_xyzw(1, 2, 3, 4);
         assert_eq!(quat, from_str(&to_string(&quat)?)?);
         assert_eq!(quat.unalign(), from_str(&to_string(&quat)?)?);
 
-        let quat = QuatU::<i32>::new(1, 2, 3, 4);
+        let quat = QuatU::<i32>::from_xyzw(1, 2, 3, 4);
         assert_eq!(quat, from_str(&to_string(&quat)?)?);
         assert_eq!(quat.align(), from_str(&to_string(&quat)?)?);
 

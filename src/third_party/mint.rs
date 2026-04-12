@@ -375,7 +375,7 @@ where
 {
     #[inline]
     fn from(value: mint::Quaternion<T>) -> Self {
-        Self::new(value.v.x, value.v.y, value.v.z, value.s)
+        Self::from_xyzw(value.v.x, value.v.y, value.v.z, value.s)
     }
 }
 
@@ -564,10 +564,10 @@ mod tests {
 
     #[test]
     fn test_quaternion() {
-        let quat = Quat::new(1, 2, 3, 4);
+        let quat = Quat::from_xyzw(1, 2, 3, 4);
         assert_eq!(quat, mint::Quaternion::from(quat).into());
 
-        let quat = QuatU::new(1, 2, 3, 4);
+        let quat = QuatU::from_xyzw(1, 2, 3, 4);
         assert_eq!(quat, mint::Quaternion::from(quat).into());
     }
 

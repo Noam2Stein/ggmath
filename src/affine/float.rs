@@ -902,7 +902,7 @@ mod tests {
             let w = x.midpoint(y);
 
             if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                let quat = Quaternion::from_vec(normalized);
+                let quat = Quaternion::from_vector(normalized);
                 assert_float_eq!(
                     Affine::<3, T, A>::from_quat(quat).to_matrix(),
                     Matrix::<4, T, A>::from_quat(quat),
@@ -910,8 +910,8 @@ mod tests {
                 );
             }
 
-            let invalid_quat = Quaternion::new(x, y, z, w);
-            if !invalid_quat.to_vec().is_normalized() {
+            let invalid_quat = Quaternion::from_xyzw(x, y, z, w);
+            if !invalid_quat.to_vector().is_normalized() {
                 assert_assertions_panic!(Affine::<3, T, A>::from_quat(invalid_quat));
             }
         });
@@ -966,7 +966,7 @@ mod tests {
 
             let scale = Vector::<3, T, A>::new(x, y, z);
             if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                let rotation = Quaternion::from_vec(normalized);
+                let rotation = Quaternion::from_vector(normalized);
                 assert_float_eq!(
                     Affine::<3, T, A>::from_scale_rotation(scale, rotation),
                     Affine::<3, T, A>::from_quat(rotation) * Affine::<3, T, A>::from_scale(scale),
@@ -974,8 +974,8 @@ mod tests {
                 );
             }
 
-            let invalid_rotation = Quaternion::new(x, y, z, w);
-            if !invalid_rotation.to_vec().is_normalized() {
+            let invalid_rotation = Quaternion::from_xyzw(x, y, z, w);
+            if !invalid_rotation.to_vector().is_normalized() {
                 assert_assertions_panic!(Affine::<3, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
@@ -1002,7 +1002,7 @@ mod tests {
 
             let translation = Vector::<3, T, A>::new(x, y, z);
             if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                let rotation = Quaternion::from_vec(normalized);
+                let rotation = Quaternion::from_vector(normalized);
                 assert_float_eq!(
                     Affine::<3, T, A>::from_rotation_translation(rotation, translation),
                     Affine::<3, T, A>::from_translation(translation)
@@ -1011,8 +1011,8 @@ mod tests {
                 );
             }
 
-            let invalid_rotation = Quaternion::new(x, y, z, w);
-            if !invalid_rotation.to_vec().is_normalized() {
+            let invalid_rotation = Quaternion::from_xyzw(x, y, z, w);
+            if !invalid_rotation.to_vector().is_normalized() {
                 assert_assertions_panic!(Affine::<3, T, A>::from_rotation_translation(
                     invalid_rotation,
                     translation
@@ -1040,7 +1040,7 @@ mod tests {
             let scale = Vector::<3, T, A>::new(y, z, x);
             let translation = Vector::<3, T, A>::new(x, y, z);
             if let Some(normalized) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                let rotation = Quaternion::from_vec(normalized);
+                let rotation = Quaternion::from_vector(normalized);
                 assert_float_eq!(
                     Affine::<3, T, A>::from_scale_rotation_translation(
                         scale,
@@ -1054,8 +1054,8 @@ mod tests {
                 );
             }
 
-            let invalid_rotation = Quaternion::new(x, y, z, w);
-            if !invalid_rotation.to_vec().is_normalized() {
+            let invalid_rotation = Quaternion::from_xyzw(x, y, z, w);
+            if !invalid_rotation.to_vector().is_normalized() {
                 assert_assertions_panic!(Affine::<3, T, A>::from_scale_rotation_translation(
                     scale,
                     invalid_rotation,
@@ -1187,7 +1187,7 @@ mod tests {
             }
 
             let scale = Vector::<3, T, A>::new(x, y, z);
-            let rotation = Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w).normalize());
+            let rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize());
             let translation = Vector::<3, T, A>::new(a, b, c);
 
             let affine =

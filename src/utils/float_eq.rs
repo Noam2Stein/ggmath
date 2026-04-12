@@ -237,20 +237,24 @@ where
     T: Scalar + FloatEq,
 {
     fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
-        FloatEq::eq(self.as_vec_ref(), other.as_vec_ref(), zero_eq_neg_zero)
+        FloatEq::eq(
+            self.as_vector_ref(),
+            other.as_vector_ref(),
+            zero_eq_neg_zero,
+        )
     }
 
     fn eq_abs(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool) -> bool {
         FloatEq::eq_abs(
-            self.as_vec_ref(),
-            other.as_vec_ref(),
-            tol.as_vec_ref(),
+            self.as_vector_ref(),
+            other.as_vector_ref(),
+            tol.as_vector_ref(),
             zero_eq_neg_zero,
         )
     }
 
     fn abs_mul(&self, rhs: &Self) -> Self {
-        Self::from_vec(self.as_vec_ref().abs_mul(rhs.as_vec_ref()))
+        Self::from_vector(self.as_vector_ref().abs_mul(rhs.as_vector_ref()))
     }
 }
 

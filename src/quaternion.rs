@@ -138,7 +138,7 @@ where
     /// quaternion with no rotation.
     ///
     /// [`IDENTITY`]: Self::IDENTITY
-    pub const ZERO: Self = Self::from_vec(Vector::ZERO);
+    pub const ZERO: Self = Self::from_vector(Vector::ZERO);
 }
 
 impl<T, A: Alignment> Quaternion<T, A>
@@ -154,14 +154,16 @@ where
     T: Scalar + Nan,
 {
     /// A quaternion with all elements set to NaN (Not a Number).
-    pub const NAN: Self = Self::from_vec(Vector::NAN);
+    pub const NAN: Self = Self::from_vector(Vector::NAN);
 }
 
 impl<T, A: Alignment> Quaternion<T, A>
 where
     T: Scalar,
 {
-    /// Creates a rotation quaternion from its `x`, `y`, `z` and `w` elements.
+    /// Creates a quaternion from 4 components.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
     ///
     /// # Unchecked
     ///
@@ -169,12 +171,14 @@ where
     /// to provide normalized input or to normalize the resulting quaternion.
     #[inline]
     #[must_use]
-    pub const fn new(x: T, y: T, z: T, w: T) -> Self {
+    pub const fn from_xyzw(x: T, y: T, z: T, w: T) -> Self {
         Self(Vector::<4, T, A>::new(x, y, z, w))
     }
 
-    /// Creates a rotation quaternion from an array containing `x`, `y`, `z` and
-    /// `w`.
+    /// Creates a quaternion from a 4-element array.
+    ///
+    /// The first 3 elements `x`, `y` and `z` are the imaginary parts and the
+    /// last element `w` is the real part.
     ///
     /// # Unchecked
     ///
@@ -186,7 +190,9 @@ where
         Self(Vector::from_array(array))
     }
 
-    /// Creates a rotation quaternion from a 4-dimensional vector.
+    /// Creates a quaternion from a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
     ///
     /// # Unchecked
     ///
@@ -194,8 +200,8 @@ where
     /// to provide normalized input or to normalize the resulting quaternion.
     #[inline]
     #[must_use]
-    pub const fn from_vec(vec: Vector<4, T, A>) -> Self {
-        Self(vec)
+    pub const fn from_vector(vector: Vector<4, T, A>) -> Self {
+        Self(vector)
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -265,7 +271,10 @@ where
         Quaternion(self.0.unalign())
     }
 
-    /// Converts the quaternion to an array containing `x`, `y`, `z` and `w`.
+    /// Converts the quaternion `self` to a 4-element array.
+    ///
+    /// The first 3 elements `x`, `y` and `z` are the imaginary parts and the
+    /// last element `w` is the real part.
     #[inline]
     #[must_use]
     pub const fn to_array(self) -> [T; 4] {
@@ -273,6 +282,9 @@ where
     }
 
     /// Returns a reference to the quaternion's elements.
+    ///
+    /// The first 3 elements `x`, `y` and `z` are the imaginary parts and the
+    /// last element `w` is the real part.
     #[inline]
     #[must_use]
     pub const fn as_array_ref(&self) -> &[T; 4] {
@@ -280,30 +292,40 @@ where
     }
 
     /// Returns a mutable reference to the quaternion's elements.
+    ///
+    /// The first 3 elements `x`, `y` and `z` are the imaginary parts and the
+    /// last element `w` is the real part.
     #[inline]
     #[must_use]
     pub const fn as_array_mut(&mut self) -> &mut [T; 4] {
         self.0.as_array_mut()
     }
 
-    /// Converts the quaternion to a 4-dimensional vector.
+    /// Converts the quaternion `self` to a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
     #[inline]
     #[must_use]
-    pub const fn to_vec(self) -> Vector<4, T, A> {
+    pub const fn to_vector(self) -> Vector<4, T, A> {
         self.0
     }
 
-    /// Returns a reference to the quaternion as a 4-dimensional vector.
+    /// Returns a reference to the quaternion `self` as a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
     #[inline]
     #[must_use]
-    pub const fn as_vec_ref(&self) -> &Vector<4, T, A> {
+    pub const fn as_vector_ref(&self) -> &Vector<4, T, A> {
         &self.0
     }
 
-    /// Returns a mutable reference to the quaternion as a 4-dimensional vector.
+    /// Returns a mutable reference to the quaternion `self` as a 4-dimensional
+    /// vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
     #[inline]
     #[must_use]
-    pub const fn as_vec_mut(&mut self) -> &mut Vector<4, T, A> {
+    pub const fn as_vector_mut(&mut self) -> &mut Vector<4, T, A> {
         &mut self.0
     }
 
@@ -359,6 +381,67 @@ where
         T::Repr: SignedInteger,
     {
         unsafe { Quaternion(self.0.to_repr()) }
+    }
+
+    /// Creates a quaternion from 4 components.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the input is normalized. It is up to the user
+    /// to provide normalized input or to normalize the resulting quaternion.
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.16.7", note = "renamed to `from_xyzw`")]
+    pub const fn new(x: T, y: T, z: T, w: T) -> Self {
+        Self::from_xyzw(x, y, z, w)
+    }
+
+    /// Creates a quaternion from a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    ///
+    /// # Unchecked
+    ///
+    /// This does not check that the input is normalized. It is up to the user
+    /// to provide normalized input or to normalize the resulting quaternion.
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.16.7", note = "renamed to `from_vector`")]
+    pub const fn from_vec(vector: Vector<4, T, A>) -> Self {
+        Self::from_vector(vector)
+    }
+
+    /// Converts the quaternion `self` to a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.16.7", note = "renamed to `to_vector`")]
+    pub const fn to_vec(self) -> Vector<4, T, A> {
+        self.0
+    }
+
+    /// Returns a reference to the quaternion `self` as a 4-dimensional vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    #[inline]
+    #[must_use]
+    #[deprecated(since = "0.16.7", note = "renamed to `as_vector_ref`")]
+    pub const fn as_vec_ref(&self) -> &Vector<4, T, A> {
+        &self.0
+    }
+
+    /// Returns a mutable reference to the quaternion `self` as a 4-dimensional
+    /// vector.
+    ///
+    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
+    #[deprecated(since = "0.16.7", note = "renamed to `as_vector_mut`")]
+    #[inline]
+    #[must_use]
+    pub const fn as_vec_mut(&mut self) -> &mut Vector<4, T, A> {
+        &mut self.0
     }
 }
 
@@ -613,7 +696,7 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             assert_eq!(
                 Quaternion::<T, A>::ZERO,
-                Quaternion::new(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(0))
+                Quaternion::from_xyzw(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(0))
             );
         });
     }
@@ -623,7 +706,7 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             assert_eq!(
                 Quaternion::<T, A>::IDENTITY,
-                Quaternion::new(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(1))
+                Quaternion::from_xyzw(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(1))
             );
         });
     }
@@ -633,7 +716,7 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A| {
             assert_float_eq!(
                 Quaternion::<T, A>::NAN,
-                Quaternion::new(T::NAN, T::NAN, T::NAN, T::NAN)
+                Quaternion::from_xyzw(T::NAN, T::NAN, T::NAN, T::NAN)
             );
         });
     }
@@ -645,19 +728,19 @@ mod tests {
 
             assert_eq!(
                 Quaternion::<T, A>::from_array([x, y, z, w]),
-                Quaternion::new(x, y, z, w)
+                Quaternion::from_xyzw(x, y, z, w)
             );
         });
     }
 
     #[test]
-    fn test_from_vec() {
+    fn test_from_vector() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::from_vec(Vector::<4, T, A>::new(x, y, z, w)),
-                Quaternion::new(x, y, z, w)
+                Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w)),
+                Quaternion::from_xyzw(x, y, z, w)
             );
         });
     }
@@ -668,12 +751,12 @@ mod tests {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).to_alignment(),
-                Quaternion::<T, Aligned>::new(x, y, z, w)
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).to_alignment(),
+                Quaternion::<T, Aligned>::from_xyzw(x, y, z, w)
             );
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).to_alignment(),
-                Quaternion::<T, Unaligned>::new(x, y, z, w)
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).to_alignment(),
+                Quaternion::<T, Unaligned>::from_xyzw(x, y, z, w)
             );
         });
     }
@@ -684,8 +767,8 @@ mod tests {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).align(),
-                Quaternion::<T, Aligned>::new(x, y, z, w)
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).align(),
+                Quaternion::<T, Aligned>::from_xyzw(x, y, z, w)
             );
         });
     }
@@ -696,8 +779,8 @@ mod tests {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).unalign(),
-                Quaternion::<T, Unaligned>::new(x, y, z, w)
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).unalign(),
+                Quaternion::<T, Unaligned>::from_xyzw(x, y, z, w)
             );
         });
     }
@@ -707,7 +790,10 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
-            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).to_array(), [x, y, z, w]);
+            assert_eq!(
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).to_array(),
+                [x, y, z, w]
+            );
         });
     }
 
@@ -717,7 +803,7 @@ mod tests {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).as_array_ref(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_array_ref(),
                 &[x, y, z, w]
             );
         });
@@ -729,43 +815,43 @@ mod tests {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).as_array_mut(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_array_mut(),
                 &mut [x, y, z, w]
             );
         });
     }
 
     #[test]
-    fn test_to_vec() {
+    fn test_to_vector() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).to_vec(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).to_vector(),
                 Vector::<4, T, A>::new(x, y, z, w)
             );
         });
     }
 
     #[test]
-    fn test_as_vec_ref() {
+    fn test_as_vector_ref() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).as_vec_ref(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector_ref(),
                 &Vector::<4, T, A>::new(x, y, z, w)
             );
         });
     }
 
     #[test]
-    fn test_as_vec_mut() {
+    fn test_as_vector_mut() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w).as_vec_mut(),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector_mut(),
                 &mut Vector::<4, T, A>::new(x, y, z, w)
             );
         });
@@ -776,8 +862,8 @@ mod tests {
         for_parameters!(|A| {
             assert_eq!(
                 // SAFETY: `u32` accepts all bit patterns.
-                unsafe { Quaternion::<i32, A>::new(0, 1, 2, 3).to_repr() },
-                Quaternion::<u32, A>::new(0, 1, 2, 3)
+                unsafe { Quaternion::<i32, A>::from_xyzw(0, 1, 2, 3).to_repr() },
+                Quaternion::<u32, A>::from_xyzw(0, 1, 2, 3)
             );
         });
     }
@@ -787,10 +873,10 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
-            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).x, x);
-            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).y, y);
-            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).z, z);
-            assert_eq!(Quaternion::<T, A>::new(x, y, z, w).w, w);
+            assert_eq!(Quaternion::<T, A>::from_xyzw(x, y, z, w).x, x);
+            assert_eq!(Quaternion::<T, A>::from_xyzw(x, y, z, w).y, y);
+            assert_eq!(Quaternion::<T, A>::from_xyzw(x, y, z, w).z, z);
+            assert_eq!(Quaternion::<T, A>::from_xyzw(x, y, z, w).w, w);
         });
     }
 
@@ -799,10 +885,10 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [mut x, mut y, mut z, mut w] = std::array::from_fn(T::as_from);
 
-            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).x, &mut x);
-            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).y, &mut y);
-            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).z, &mut z);
-            assert_eq!(&mut Quaternion::<T, A>::new(x, y, z, w).w, &mut w);
+            assert_eq!(&mut Quaternion::<T, A>::from_xyzw(x, y, z, w).x, &mut x);
+            assert_eq!(&mut Quaternion::<T, A>::from_xyzw(x, y, z, w).y, &mut y);
+            assert_eq!(&mut Quaternion::<T, A>::from_xyzw(x, y, z, w).z, &mut z);
+            assert_eq!(&mut Quaternion::<T, A>::from_xyzw(x, y, z, w).w, &mut w);
         });
     }
 
@@ -812,7 +898,7 @@ mod tests {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                format!("{:?}", Quaternion::<T, A>::new(x, y, z, w)),
+                format!("{:?}", Quaternion::<T, A>::from_xyzw(x, y, z, w)),
                 format!("Quat({x:?}, {y:?}, {z:?}, {w:?})")
             );
         });
@@ -824,7 +910,7 @@ mod tests {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
-                format!("{}", Quaternion::<T, A>::new(x, y, z, w)),
+                format!("{}", Quaternion::<T, A>::from_xyzw(x, y, z, w)),
                 format!("({x}, {y}, {z}, {w})")
             );
         });
@@ -836,7 +922,8 @@ mod tests {
             let w = if x > y { x } else { y };
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w) == Quaternion::<T, A>::new(z, w, y, x),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w)
+                    == Quaternion::<T, A>::from_xyzw(z, w, y, x),
                 x == z && y == w && z == y && w == x
             );
         });
@@ -848,7 +935,8 @@ mod tests {
             let w = if x > y { x } else { y };
 
             assert_eq!(
-                Quaternion::<T, A>::new(x, y, z, w) != Quaternion::<T, A>::new(z, w, y, x),
+                Quaternion::<T, A>::from_xyzw(x, y, z, w)
+                    != Quaternion::<T, A>::from_xyzw(z, w, y, x),
                 x != z || y != w || z != y || w != x
             );
         });
@@ -867,8 +955,8 @@ mod tests {
             let w = T::max(x, y);
 
             assert_float_eq!(
-                -Quaternion::<T, A>::new(x, y, z, w),
-                Quaternion::new(-x, -y, -z, -w)
+                -Quaternion::<T, A>::from_xyzw(x, y, z, w),
+                Quaternion::from_xyzw(-x, -y, -z, -w)
             );
         });
     }
@@ -879,8 +967,9 @@ mod tests {
             let w = T::max(x, y);
 
             assert_float_eq!(
-                Quaternion::<T, A>::new(x, y, z, w) + Quaternion::<T, A>::new(z, w, y, x),
-                Quaternion::new(x + z, y + w, z + y, w + x)
+                Quaternion::<T, A>::from_xyzw(x, y, z, w)
+                    + Quaternion::<T, A>::from_xyzw(z, w, y, x),
+                Quaternion::from_xyzw(x + z, y + w, z + y, w + x)
             );
         });
     }
@@ -891,8 +980,9 @@ mod tests {
             let w = T::max(x, y);
 
             assert_float_eq!(
-                Quaternion::<T, A>::new(x, y, z, w) - Quaternion::<T, A>::new(z, w, y, x),
-                Quaternion::new(x - z, y - w, z - y, w - x)
+                Quaternion::<T, A>::from_xyzw(x, y, z, w)
+                    - Quaternion::<T, A>::from_xyzw(z, w, y, x),
+                Quaternion::from_xyzw(x - z, y - w, z - y, w - x)
             );
         });
     }
@@ -903,8 +993,8 @@ mod tests {
             let w = T::max(x, y);
 
             assert_float_eq!(
-                Quaternion::<T, A>::new(x, y, z, w) * w,
-                Quaternion::new(x * w, y * w, z * w, w * w)
+                Quaternion::<T, A>::from_xyzw(x, y, z, w) * w,
+                Quaternion::from_xyzw(x * w, y * w, z * w, w * w)
             );
         });
     }
@@ -914,9 +1004,9 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut quat = Quaternion::<T, A>::new(x, y, z, w);
-            quat += Quaternion::<T, A>::new(z, w, y, x);
-            assert_float_eq!(quat, Quaternion::new(x + z, y + w, z + y, w + x));
+            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
+            quat += Quaternion::<T, A>::from_xyzw(z, w, y, x);
+            assert_float_eq!(quat, Quaternion::from_xyzw(x + z, y + w, z + y, w + x));
         });
     }
 
@@ -925,9 +1015,9 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut quat = Quaternion::<T, A>::new(x, y, z, w);
-            quat -= Quaternion::<T, A>::new(z, w, y, x);
-            assert_float_eq!(quat, Quaternion::new(x - z, y - w, z - y, w - x));
+            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
+            quat -= Quaternion::<T, A>::from_xyzw(z, w, y, x);
+            assert_float_eq!(quat, Quaternion::from_xyzw(x - z, y - w, z - y, w - x));
         });
     }
 
@@ -936,9 +1026,9 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut quat = Quaternion::<T, A>::new(x, y, z, w);
+            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
             quat *= w;
-            assert_float_eq!(quat, Quaternion::new(x * w, y * w, z * w, w * w));
+            assert_float_eq!(quat, Quaternion::from_xyzw(x * w, y * w, z * w, w * w));
         });
     }
 }

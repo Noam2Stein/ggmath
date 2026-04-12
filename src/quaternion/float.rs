@@ -13,7 +13,8 @@ where
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(self, other: Self, max_abs_diff: T) -> bool {
-        self.to_vec().abs_diff_eq(other.to_vec(), max_abs_diff)
+        self.to_vector()
+            .abs_diff_eq(other.to_vector(), max_abs_diff)
     }
 }
 
@@ -25,12 +26,12 @@ mod tests {
     fn test_abs_diff_eq() {
         for_parameters!(|T: PrimitiveFloat| {
             assert!(
-                Quat::<T>::new(0.0, 1.0, 2.0, 3.0)
-                    .abs_diff_eq(Quat::new(0.0, 1.1, 2.05, 2.9), 0.125)
+                Quat::<T>::from_xyzw(0.0, 1.0, 2.0, 3.0)
+                    .abs_diff_eq(Quat::from_xyzw(0.0, 1.1, 2.05, 2.9), 0.125)
             );
             assert!(
-                !Quat::<T>::new(0.0, 1.0, 2.0, 3.0)
-                    .abs_diff_eq(Quat::new(0.0, 1.1, 2.5, 2.9), 0.125)
+                !Quat::<T>::from_xyzw(0.0, 1.0, 2.0, 3.0)
+                    .abs_diff_eq(Quat::from_xyzw(0.0, 1.1, 2.5, 2.9), 0.125)
             );
         });
     }

@@ -36,7 +36,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed quaternion functions:
+  - `new` to `from_xyzw`
+  - `from_vec` to `from_vector`
+  - `to_vec` to `to_vector`
+  - `as_vec_ref` to `as_vector_ref`
+  - `as_vec_mut` to `as_vector_mut`
+
 - Updated dependency minor versions and removed unnecessary features.
+
+- Updated documentation.
 
 ## [0.16.6] - 2026-04-03
 
