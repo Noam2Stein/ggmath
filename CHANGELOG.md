@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Quaternion functions:
+  - `xyz`
   - `conjugate`
   - `canonical`
   - `dot`
@@ -19,19 +20,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `from_rotation_z`
   - `from_axis_angle`
   - `from_scaled_axis`
+  - `from_rotation_arc`
+  - `from_rotation_arc_colinear`
   - `from_euler`
+  - `from_matrix`
   - `look_to_lh`
   - `look_to_rh`
   - `look_at_lh`
   - `look_at_rh`
+  - `to_axis_angle`
+  - `to_scaled_axis`
+  - `to_euler`
   - `is_nan`
   - `is_finite`
   - `inverse`
   - `angle_between`
+  - `lerp`
+  - `slerp`
+  - `rotate_towards`
   - `length`
   - `normalize`
   - `try_normalize`
   - `normalize_or`
+  - `normalize_and_length`
   - `is_normalized`
 
 - Quaternion multiplication and scalar division.

@@ -330,6 +330,13 @@ where
         &mut self.0
     }
 
+    /// Returns the imaginary components `x`, `y` and `z`.
+    #[inline]
+    #[must_use]
+    pub fn xyz(self) -> Vector<3, T, A> {
+        self.0.xyz()
+    }
+
     /// Returns the quaternion conjugate of `self`.
     ///
     /// Equivalent to the inverse if `self` is normalized.
@@ -1021,6 +1028,18 @@ mod tests {
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector_mut(),
                 &mut Vector::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
+    fn test_xyz() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Quaternion::<T, A>::from_xyzw(x, y, z, w).xyz(),
+                Vector::<3, T, A>::new(x, y, z)
             );
         });
     }
