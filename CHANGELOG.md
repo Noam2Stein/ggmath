@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `from_rotation_y`
   - `from_rotation_z`
   - `from_axis_angle`
+  - `from_scaled_axis`
+  - `from_euler`
+  - `look_to_lh`
+  - `look_to_rh`
+  - `look_at_lh`
+  - `look_at_rh`
   - `is_nan`
   - `is_finite`
   - `inverse`
@@ -28,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `normalize_or`
   - `is_normalized`
 
-- Quaternion scalar division.
+- Quaternion multiplication and scalar division.
 
 - `wide` vector functions:
   - `all`
@@ -67,6 +73,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated dependency minor versions and removed unnecessary features.
 
 - Updated documentation.
+
+### Deprecated
+
+- `Quaternion::ZERO` because it does not represent a valid rotation.
 
 ## [0.16.6] - 2026-04-03
 

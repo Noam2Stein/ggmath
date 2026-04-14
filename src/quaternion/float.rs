@@ -1,4 +1,6 @@
 use crate::{Alignment, Quaternion, Scalar, Vector, utils::PrimitiveFloat};
+#[cfg(backend)]
+use crate::{EulerRot, Matrix};
 
 #[expect(private_bounds)]
 impl<T, A: Alignment> Quaternion<T, A>
@@ -58,6 +60,222 @@ where
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         let xyz = axis * sin;
         Self::from_xyzw(xyz.x, xyz.y, xyz.z, cos)
+    }
+
+    /// Creates a quaternion that rotates `scaled_axis.length()` radians around
+    /// `scaled_axis.normalize()`.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
+        let angle = scaled_axis.length();
+        if angle == T::ZERO {
+            Self::IDENTITY
+        } else {
+            Self::from_axis_angle(scaled_axis / angle, angle)
+        }
+    }
+
+    /// Creates a quaternion from an Euler rotation order/sequence and angles
+    /// (in radians).
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
+        // Academic Press Professional, Inc., USA, 222–229.
+
+        let order = order.properties();
+        let (i, j, k) = order.axes_indices();
+
+        let mut angles = if order.frame_static {
+            Vector::<3, T, A>::new(a, b, c)
+        } else {
+            Vector::<3, T, A>::new(c, b, a)
+        };
+
+        if order.parity_even {
+            angles.y = -angles.y;
+        }
+
+        let ti = angles.x * T::as_from(0.5);
+        let tj = angles.y * T::as_from(0.5);
+        let th = angles.z * T::as_from(0.5);
+        let (si, ci) = ti.sin_cos();
+        let (sj, cj) = tj.sin_cos();
+        let (sh, ch) = th.sin_cos();
+        let cc = ci * ch;
+        let cs = ci * sh;
+        let sc = si * ch;
+        let ss = si * sh;
+
+        let parity = if !order.parity_even {
+            T::ONE
+        } else {
+            T::NEG_ONE
+        };
+
+        let mut result = Vector::ZERO;
+
+        if order.initial_repeated {
+            result[i] = cj * (cs + sc);
+            result[j] = sj * (cc + ss) * parity;
+            result[k] = sj * (cs - sc);
+            result[3] = cj * (cc - ss);
+        } else {
+            result[i] = cj * sc - sj * cs;
+            result[j] = (cj * ss + sj * cc) * parity;
+            result[k] = cj * cs - sj * sc;
+            result[3] = cj * cc + sj * ss;
+        }
+
+        Self::from_vector(result)
+    }
+
+    #[cfg(backend)]
+    #[inline(always)]
+    fn from_matrix3(matrix: &Matrix<3, T, A>) -> Quaternion<T, A> {
+        // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
+        // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
+
+        let [m00, m01, m02] = matrix.x_axis.to_array();
+        let [m10, m11, m12] = matrix.y_axis.to_array();
+        let [m20, m21, m22] = matrix.z_axis.to_array();
+
+        if m22 <= T::ZERO {
+            // x^2 + y^2 >= z^2 + w^2
+            let dif10 = m11 - m00;
+            let omm22 = T::ONE - m22;
+
+            if dif10 <= T::ZERO {
+                // x^2 >= y^2
+                let four_xsq = omm22 - dif10;
+                let inv4x = T::as_from(0.5) / four_xsq.sqrt();
+
+                Quaternion::from_xyzw(
+                    four_xsq * inv4x,
+                    (m01 + m10) * inv4x,
+                    (m02 + m20) * inv4x,
+                    (m12 - m21) * inv4x,
+                )
+            } else {
+                // y^2 >= x^2
+                let four_ysq = omm22 + dif10;
+                let inv4y = T::as_from(0.5) / four_ysq.sqrt();
+
+                Quaternion::from_xyzw(
+                    (m01 + m10) * inv4y,
+                    four_ysq * inv4y,
+                    (m12 + m21) * inv4y,
+                    (m20 - m02) * inv4y,
+                )
+            }
+        } else {
+            // z^2 + w^2 >= x^2 + y^2
+            let sum10 = m11 + m00;
+            let opm22 = T::ONE + m22;
+
+            if sum10 <= T::ZERO {
+                // z^2 >= w^2
+                let four_zsq = opm22 - sum10;
+                let inv4z = T::as_from(0.5) / four_zsq.sqrt();
+
+                Quaternion::from_xyzw(
+                    (m02 + m20) * inv4z,
+                    (m12 + m21) * inv4z,
+                    four_zsq * inv4z,
+                    (m01 - m10) * inv4z,
+                )
+            } else {
+                // w^2 >= z^2
+                let four_wsq = opm22 + sum10;
+                let inv4w = T::as_from(0.5) / four_wsq.sqrt();
+
+                Quaternion::from_xyzw(
+                    (m12 - m21) * inv4w,
+                    (m20 - m02) * inv4w,
+                    (m01 - m10) * inv4w,
+                    four_wsq * inv4w,
+                )
+            }
+        }
+    }
+
+    /// Creates a quaternion from a facing direction and an up direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_lh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix3(&Matrix::<3, T, A>::look_to_lh(dir, up))
+    }
+
+    /// Creates a quaternion from a facing direction and an up direction.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `dir` or `up` are not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_to_rh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix3(&Matrix::<3, T, A>::look_to_rh(dir, up))
+    }
+
+    /// Creates a quaternion from a camera position, a focal point and an up
+    /// direction.
+    ///
+    /// For a left-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=forward`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix3(&Matrix::<3, T, A>::look_at_lh(eye, center, up))
+    }
+
+    /// Creates a quaternion from a camera position, a focal point and an up
+    /// direction.
+    ///
+    /// For a right-handed view coordinate system with `+X=right`, `+Y=up` and
+    /// `+Z=back`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `up` is not normalized.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
+        Self::from_matrix3(&Matrix::<3, T, A>::look_at_rh(eye, center, up))
     }
 
     /// Returns `true` if any element is NaN.
@@ -184,13 +402,16 @@ where
     #[track_caller]
     pub fn normalize(self) -> Self {
         #[cfg(assertions)]
-        assert!(self != Self::ZERO, "cannot normalize a zero quaternion");
+        assert!(
+            self != Self::from_vector(Vector::ZERO),
+            "cannot normalize a zero quaternion"
+        );
 
         let result = self / self.length();
 
         #[cfg(assertions)]
         assert!(
-            result.is_finite() && result != Self::ZERO,
+            result.is_finite() && result != Self::from_vector(Vector::ZERO),
             "non finite result: {self:?}.normalize()"
         );
 
@@ -340,6 +561,164 @@ mod tests {
                 assert_assertions_panic!(Quaternion::<T, A>::from_axis_angle(axis, angle));
             }
         });
+    }
+
+    #[test]
+    fn test_from_scaled_axis() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let angle = x + y + z + 1.0;
+
+            if let Some(axis) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
+                assert_panic_float_eq!(
+                    Quaternion::<T, A>::from_scaled_axis(axis * angle),
+                    Quaternion::<T, A>::from_axis_angle(axis, angle),
+                    abs <= Quaternion::from_vector(
+                        Vector::splat(1e-6) * x.abs().max(y.abs()).max(z.abs())
+                    ),
+                    0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_from_euler() {
+        for_parameters!(|T: PrimitiveFloat, A, order, a, b, c| {
+            let _: [T; 3] = [a, b, c];
+
+            if !a.is_finite() || !b.is_finite() || !c.is_finite() || a > 1e6 || b > 1e6 || c > 1e6 {
+                return;
+            }
+
+            assert_float_eq!(
+                Quaternion::<T, A>::from_euler(order, a, b, c).canonical(),
+                Matrix::<4, T, A>::from_euler(order, a, b, c)
+                    .to_scale_rotation_translation()
+                    .1
+                    .canonical(),
+                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
+                0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_look_to_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let Some(dir) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
+                return;
+            };
+
+            let up = (dir * 0.4 + dir.zxy().with_z(0.3)).normalize();
+
+            assert_float_eq!(
+                Quaternion::<T, A>::look_to_lh(dir, up).canonical(),
+                Matrix::<4, T, A>::look_to_lh(Vector::ZERO, dir, up)
+                    .to_scale_rotation_translation()
+                    .1
+                    .canonical(),
+                abs <= Quaternion::from_vector(Vector::splat(1e-6))
+            );
+
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Quaternion::<T, A>::look_to_lh(
+                    Vector::<3, T, A>::new(x, y, z),
+                    up
+                ));
+                assert_assertions_panic!(Quaternion::<T, A>::look_to_lh(
+                    dir,
+                    Vector::<3, T, A>::new(x, y, z)
+                ));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_to_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let Some(dir) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
+                return;
+            };
+
+            let up = (dir * 0.4 + dir.zxy().with_z(0.3)).normalize();
+
+            assert_float_eq!(
+                Quaternion::<T, A>::look_to_rh(dir, up).canonical(),
+                Matrix::<4, T, A>::look_to_rh(Vector::ZERO, dir, up)
+                    .to_scale_rotation_translation()
+                    .1
+                    .canonical(),
+                abs <= Quaternion::from_vector(Vector::splat(1e-6))
+            );
+
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Quaternion::<T, A>::look_to_rh(
+                    Vector::<3, T, A>::new(x, y, z),
+                    up
+                ));
+                assert_assertions_panic!(Quaternion::<T, A>::look_to_rh(
+                    dir,
+                    Vector::<3, T, A>::new(x, y, z)
+                ));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_at_lh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let eye = Vector::<3, T, A>::new(x, y, z);
+            let center = eye * 0.6 + eye.yzx();
+            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
+                return;
+            };
+
+            assert_panic_float_eq!(
+                Quaternion::<T, A>::look_at_lh(eye, center, up).canonical(),
+                Matrix::<4, T, A>::look_at_lh(eye, center, up)
+                    .to_scale_rotation_translation()
+                    .1
+                    .canonical(),
+                abs <= Quaternion::from_vector(Vector::splat(1e-6))
+            );
+
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Quaternion::<T, A>::look_at_lh(
+                    eye,
+                    center,
+                    Vector::<3, T, A>::new(x, y, z),
+                ));
+            }
+        })
+    }
+
+    #[test]
+    fn test_look_at_rh() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let eye = Vector::<3, T, A>::new(x, y, z);
+            let center = eye * 0.6 + eye.yzx();
+            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
+                return;
+            };
+
+            assert_panic_float_eq!(
+                Quaternion::<T, A>::look_at_rh(eye, center, up).canonical(),
+                Matrix::<4, T, A>::look_at_rh(eye, center, up)
+                    .to_scale_rotation_translation()
+                    .1
+                    .canonical(),
+                abs <= Quaternion::from_vector(Vector::splat(1e-6))
+            );
+
+            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
+                assert_assertions_panic!(Quaternion::<T, A>::look_at_rh(
+                    eye,
+                    center,
+                    Vector::<3, T, A>::new(x, y, z),
+                ));
+            }
+        })
     }
 
     #[test]
