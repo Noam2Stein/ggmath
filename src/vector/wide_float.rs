@@ -3,7 +3,7 @@ use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, CmpNe, f32x4, f32x8, f32x16, f64x2
 use crate::{Alignment, Length, SupportedLength, Vector};
 
 macro_rules! impl_wide_float {
-    ($Simd:ident, $fast_max:ident, $fast_min:ident) => {
+    ($Simd:ident) => {
         impl<const N: usize, A: Alignment> Vector<N, $Simd, A>
         where
             Length<N>: SupportedLength,
@@ -230,7 +230,7 @@ macro_rules! impl_wide_float {
                     "NaN: {self:?}.max({other:?})"
                 );
 
-                Self::from_fn(|i| self[i].$fast_max(other[i]))
+                Self::from_fn(|i| self[i].fast_max(other[i]))
             }
 
             /// Returns the minimum elements between `self` and `other`.
@@ -255,7 +255,7 @@ macro_rules! impl_wide_float {
                     "NaN: {self:?}.min({other:?})"
                 );
 
-                Self::from_fn(|i| self[i].$fast_min(other[i]))
+                Self::from_fn(|i| self[i].fast_min(other[i]))
             }
 
             /// For each lane, clamps the elements of `self` between the
@@ -318,9 +318,12 @@ macro_rules! impl_wide_float {
                 );
 
                 match N {
-                    2 => self[0].max(self[1]),
-                    3 => self[0].max(self[1]).max(self[2]),
-                    4 => self[0].max(self[1]).max(self[2]).max(self[3]),
+                    2 => self[0].fast_max(self[1]),
+                    3 => self[0].fast_max(self[1]).fast_max(self[2]),
+                    4 => self[0]
+                        .fast_max(self[1])
+                        .fast_max(self[2])
+                        .fast_max(self[3]),
                     _ => unreachable!(),
                 }
             }
@@ -349,22 +352,24 @@ macro_rules! impl_wide_float {
                 );
 
                 match N {
-                    2 => self[0].min(self[1]),
-                    3 => self[0].min(self[1]).min(self[2]),
-                    4 => self[0].min(self[1]).min(self[2]).min(self[3]),
+                    2 => self[0].fast_min(self[1]),
+                    3 => self[0].fast_min(self[1]).fast_min(self[2]),
+                    4 => self[0]
+                        .fast_min(self[1])
+                        .fast_min(self[2])
+                        .fast_min(self[3]),
                     _ => unreachable!(),
                 }
             }
         }
     };
 }
-impl_wide_float!(f32x4, fast_max, fast_min);
-impl_wide_float!(f32x8, fast_max, fast_min);
-// `f32x16` is missing `fast_max` and `fast_min`.
-impl_wide_float!(f32x16, max, min);
-impl_wide_float!(f64x2, fast_max, fast_min);
-impl_wide_float!(f64x4, fast_max, fast_min);
-impl_wide_float!(f64x8, fast_max, fast_min);
+impl_wide_float!(f32x4);
+impl_wide_float!(f32x8);
+impl_wide_float!(f32x16);
+impl_wide_float!(f64x2);
+impl_wide_float!(f64x4);
+impl_wide_float!(f64x8);
 
 #[cfg(test)]
 mod tests {

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Modified `wide` vector function implementations for `max`, `min`, `clamp`,
+  `max_element` and `min_element`. This may change NaN handling.
+
+- Updated dependency minor versions.
+
 ## [0.16.7] - 2026-04-15
 
 ### Added
