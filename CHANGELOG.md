@@ -47,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Quaternion multiplication and scalar division.
 
+- Vector functions:
+  - `extend`
+  - `truncate`
+
 - `wide` vector functions:
   - `all`
   - `any`

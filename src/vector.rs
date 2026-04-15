@@ -990,6 +990,16 @@ where
         unsafe { transmute_generic::<Repr2<T>, Vector<2, T, A>>(Repr2(x, y)) }
     }
 
+    /// Returns a 3-dimensional vector containing the elements of `self` then
+    /// the scalar `value`.
+    ///
+    /// Equivalent to `(self, value)`.
+    #[inline]
+    #[must_use]
+    pub fn extend(self, value: T) -> Vector<3, T, A> {
+        Vector::<3, T, A>::new(self.x, self.y, value)
+    }
+
     /// Returns `self` rotated by 90 degrees.
     ///
     /// This rotates `+X` to `+Y`.
@@ -1067,6 +1077,26 @@ where
         }
     }
 
+    /// Returns a 4-dimensional vector containing the elements of `self` then
+    /// the scalar `value`.
+    ///
+    /// Equivalent to `(self, value)`.
+    #[inline]
+    #[must_use]
+    pub fn extend(self, value: T) -> Vector<4, T, A> {
+        Vector::<4, T, A>::new(self.x, self.y, self.z, value)
+    }
+
+    /// Returns a 2-dimensional vector containing the first 2 elements of
+    /// `self`, discarding the last element.
+    ///
+    /// Equivalent to `self.xy`.
+    #[inline]
+    #[must_use]
+    pub fn truncate(self) -> Vector<2, T, A> {
+        self.xy()
+    }
+
     /// Computes the cross product of `self` and `rhs`.
     ///
     /// # Examples
@@ -1136,6 +1166,16 @@ where
         // SAFETY: `Vector<4, T, A>` is guaranteed to be made out of 4
         // consecutive values of `T`, with no additional padding.
         unsafe { transmute_generic::<Repr4<T>, Vector<4, T, A>>(Repr4(x, y, z, w)) }
+    }
+
+    /// Returns a 3-dimensional vector containing the first 3 elements of
+    /// `self`, discarding the last element.
+    ///
+    /// Equivalent to `self.xyz`.
+    #[inline]
+    #[must_use]
+    pub fn truncate(self) -> Vector<3, T, A> {
+        self.xyz()
     }
 }
 
@@ -3323,6 +3363,22 @@ mod tests {
     }
 
     #[test]
+    fn test_extend() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::new(x, y).extend(z),
+                Vector::<3, T, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).extend(w),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+        });
+    }
+
+    #[test]
     fn test_perp() {
         for_parameters!(|T: PrimitiveFloat, A| {
             assert_eq!(Vector::<2, T, A>::X.perp(), Vector::<2, T, A>::Y);
@@ -3335,6 +3391,22 @@ mod tests {
             assert_eq!(Vector::<2, T, A>::Y.perp(), Vector::<2, T, A>::NEG_X);
             assert_eq!(Vector::<2, T, A>::NEG_X.perp(), Vector::<2, T, A>::NEG_Y);
             assert_eq!(Vector::<2, T, A>::NEG_Y.perp(), Vector::<2, T, A>::X);
+        });
+    }
+
+    #[test]
+    fn test_truncate() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).truncate(),
+                Vector::<2, T, A>::new(x, y)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).truncate(),
+                Vector::<3, T, A>::new(x, y, z)
+            );
         });
     }
 
