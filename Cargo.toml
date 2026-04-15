@@ -1,6 +1,6 @@
 [package]
 name = "ggmath"
-version = "0.16.6"
+version = "0.16.7"
 authors = ["Noam Stein <noamsteindev@proton.me>"]
 categories = [
     "data-structures",
