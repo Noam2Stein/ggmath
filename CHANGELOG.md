@@ -47,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Quaternion multiplication and scalar division.
 
+- Matrix functions:
+  - `to_scale_angle`
+  - `to_scale_rotation`
+
 - Vector functions:
   - `extend`
   - `truncate`

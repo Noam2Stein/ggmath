@@ -456,6 +456,35 @@ where
             Vector::<2, T, A>::new(-sin * scale.y, cos * scale.y),
         ])
     }
+
+    /// Returns the `scale` and `angle` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
+        let determinant = self.determinant();
+
+        #[cfg(assertions)]
+        assert!(determinant != T::ZERO);
+
+        let scale = Vector::<2, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+        );
+
+        let angle = (-self.y_axis.x).atan2(self.y_axis.y);
+
+        (scale, angle)
+    }
 }
 
 #[expect(private_bounds)]
@@ -958,6 +987,42 @@ where
         }
 
         (ea.x, ea.y, ea.z)
+    }
+
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must not contain shearing. Otherwise the result is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[cfg(backend)]
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
+        let determinant = self.determinant();
+
+        #[cfg(assertions)]
+        assert!(determinant != T::ZERO);
+
+        let scale = Vector::<3, T, A>::new(
+            self.x_axis.length() * determinant.signum(),
+            self.y_axis.length(),
+            self.z_axis.length(),
+        );
+
+        let scale_recip = scale.recip();
+
+        let rotation = Quaternion::from_matrix(&Self::from_columns(&[
+            self.x_axis * scale_recip.x,
+            self.y_axis * scale_recip.y,
+            self.z_axis * scale_recip.z,
+        ]));
+
+        (scale, rotation)
     }
 }
 
@@ -2465,6 +2530,38 @@ mod tests {
     }
 
     #[test]
+    fn test_to_scale_angle() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 1e5
+                || y.abs() > 1e5
+                || z.abs() > 1e5
+            {
+                return;
+            }
+
+            let scale = Vector::<2, T, A>::new(x, y);
+            let matrix = Matrix::<2, T, A>::from_scale_angle(scale, z);
+
+            if matrix.determinant() != 0.0 {
+                let (scale2, z2) = matrix.to_scale_angle();
+                assert_float_eq!(
+                    Matrix::<2, T, A>::from_scale_angle(scale2, z2),
+                    matrix,
+                    abs <= matrix.abs() * 1e-4 + Matrix::<2, T, A>::from_column_array(&[1e-4; 4]),
+                    0.0 = -0.0
+                );
+            } else {
+                assert_assertions_panic!(matrix.to_scale_angle());
+            }
+        });
+    }
+
+    #[test]
     fn test_from_angle_translation() {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let _: [T; 3] = [x, y, z];
@@ -3028,6 +3125,41 @@ mod tests {
                 || !mat.z_axis.xyz().is_normalized()
             {
                 assert_assertions_panic!(mat.to_euler(order));
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x * 0.3 + 0.5;
+
+            if !x.is_finite()
+                || !y.is_finite()
+                || !z.is_finite()
+                || x.abs() > 100000.0
+                || y.abs() > 100000.0
+                || z.abs() > 100000.0
+            {
+                return;
+            }
+
+            let scale = Vector::<3, T, A>::new(x, y, z);
+            let rotation = Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize());
+
+            let matrix = Matrix::<3, T, A>::from_scale_rotation(scale, rotation);
+            if matrix.determinant() != 0.0 {
+                let (scale2, rotation2) = matrix.to_scale_rotation();
+
+                assert_float_eq!(
+                    Matrix::<3, T, A>::from_scale_rotation(scale2, rotation2),
+                    Matrix::<3, T, A>::from_scale_rotation(scale, rotation),
+                    abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_column_array(&[1e-3; 9]),
+                    0.0 = -0.0
+                );
+            } else {
+                assert_assertions_panic!(matrix.to_scale_rotation());
             }
         });
     }
