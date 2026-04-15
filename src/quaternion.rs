@@ -17,8 +17,6 @@ mod float;
 /// `A` controls SIMD alignment and is either [`Aligned`] or [`Unaligned`]. See
 /// [`Alignment`] for more details.
 ///
-/// Quaternions are currently missing most functionality.
-///
 /// This quaternion is intended to be of unit length but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
@@ -59,8 +57,6 @@ where
 
 /// A quaternion representing an orientation.
 ///
-/// Quaternions are currently missing most functionality.
-///
 /// This quaternion is intended to be of unit length but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
@@ -94,8 +90,6 @@ where
 pub type Quat<T> = Quaternion<T, Aligned>;
 
 /// A quaternion representing an orientation.
-///
-/// Quaternions are currently missing most functionality.
 ///
 /// This quaternion is intended to be of unit length but may denormalize due to
 /// floating point "error creep" which can occur when successive quaternion

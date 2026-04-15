@@ -90,8 +90,6 @@ standard-library functions.
 
 ## Development status
 
-`ggmath` is not mature yet but is under active development.
-
 Feature List:
 
 - [x] Vectors
@@ -102,7 +100,7 @@ Feature List:
 - [x] Sufficient Float-Vector functionality
 - [x] Sufficient Int-Vector functionality
 - [x] Sufficient Matrix functionality
-- [ ] Sufficient Quaternion functionality
+- [x] Sufficient Quaternion functionality
 - [x] Sufficient Affine functionality
 
 Crate Support:
