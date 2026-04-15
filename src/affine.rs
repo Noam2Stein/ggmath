@@ -13,6 +13,8 @@ use crate::{
 };
 
 mod float;
+#[cfg(feature = "wide")]
+mod wide_float;
 
 /// An `N`-dimensional affine transform which can represent translation,
 /// rotation, scaling and shear of type `T`.

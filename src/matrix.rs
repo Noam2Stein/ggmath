@@ -16,6 +16,8 @@ use crate::{
 
 mod constructor;
 mod float;
+#[cfg(feature = "wide")]
+mod wide_float;
 
 /// An `N`x`N` column-major matrix of type `T`.
 ///

@@ -362,6 +362,63 @@ macro_rules! impl_wide_float {
                 }
             }
         }
+
+        // MISSING: sign_positive_mask
+        // MISSING: sign_negative_mask
+        // MISSING: abs
+        // MISSING: signum
+        // MISSING: copysign
+        // MISSING: floor
+        // MISSING: ceil
+        // MISSING: round
+        // MISSING: trunc
+        // MISSING: fract
+        // MISSING: mul_add
+        // MISSING: div_euclid
+        // MISSING: rem_euclid
+        // MISSING: powf
+        // MISSING: sqrt
+        // MISSING: exp
+        // MISSING: exp2
+        // MISSING: ln
+        // MISSING: log2
+        // MISSING: sin
+        // MISSING: cos
+        // MISSING: tan
+        // MISSING: asin
+        // MISSING: acos
+        // MISSING: atan
+        // MISSING: sin_cos
+        // MISSING: lerp
+        // MISSING: midpoint
+        // MISSING: move_towards
+        // MISSING: length
+        // MISSING: distance
+        // MISSING: distance_squared
+        // MISSING: normalize
+        // MISSING: try_normalize
+        // MISSING: normalize_or
+        // MISSING: normalize_or_zero
+        // MISSING: normalize_and_length
+        // MISSING: is_normalized
+        // MISSING: with_max_length
+        // MISSING: with_min_length
+        // MISSING: clamp_length
+        // MISSING: angle_between
+        // MISSING: project_onto
+        // MISSING: project_onto_normalized
+        // MISSING: reject_from
+        // MISSING: reject_from_normalized
+        // MISSING: reflect
+        // MISSING: refract
+        // MISSING: abs_diff_eq
+        // MISSING: rotate
+        // MISSING: rotate_x
+        // MISSING: rotate_y
+        // MISSING: rotate_z
+        // MISSING: any_orthogonal_vector
+        // MISSING: any_orthonormal_vector
+        // MISSING: any_orthonormal_pair
     };
 }
 impl_wide_float!(f32x4);
