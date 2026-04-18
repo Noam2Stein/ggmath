@@ -138,7 +138,7 @@ Performance:
 
 ## Usage
 
-Rust must be updated to version `1.90.0` or later.
+Rust must be updated to version `1.95.0` or later.
 
 Add this to your Cargo.toml:
 

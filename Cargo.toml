@@ -13,7 +13,7 @@ edition = "2024"
 keywords = ["math", "matrix", "simd", "vector"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Noam2Stein/ggmath"
-rust-version = "1.90.0"
+rust-version = "1.95.0"
 description = "A linear algebra library for games and graphics with generic SIMD types."
 
 [features]
