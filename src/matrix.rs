@@ -949,8 +949,7 @@ where
     /// ```
     #[inline]
     #[must_use]
-    pub fn transpose(self) -> Self {
-        // TODO: Replace `self` with `&self` for `v0.17.0`.
+    pub fn transpose(&self) -> Self {
         Self::from_column_fn(|i| self.row(i))
     }
 

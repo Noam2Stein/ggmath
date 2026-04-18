@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Renamed affine `matrix` field to `submatrix`.
 
+- Changed the receiver of `Matrix::transpose` from `self` to `&self`.
+
 - Made the `FloatExt` trait sealed.
 
 - Changed the addition/multiplication order of `element_sum` and
