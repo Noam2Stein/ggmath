@@ -1,6 +1,6 @@
-use crate::{Alignment, Quaternion, Scalar, Vector, utils::PrimitiveFloat};
+use crate::{Alignment, Quaternion, Scalar, utils::PrimitiveFloat};
 #[cfg(backend)]
-use crate::{EulerRot, Matrix};
+use crate::{EulerRot, Matrix, Vector};
 
 #[expect(private_bounds)]
 impl<T, A: Alignment> Quaternion<T, A>

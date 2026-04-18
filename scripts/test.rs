@@ -135,6 +135,8 @@ fn cargo_command(
         command.env("RUSTFLAGS", rustflags.trim());
     }
 
+    command.arg("--no-default-features");
+
     if !features.is_empty() {
         command.arg("--features").arg(features.trim());
     }

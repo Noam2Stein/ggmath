@@ -71,6 +71,7 @@ pub(crate) trait PrimitiveFloat:
 
     fn recip(self) -> Self;
 
+    #[cfg(backend)]
     fn clamp(self, min: Self, max: Self) -> Self;
 
     fn abs(self) -> Self;
@@ -176,6 +177,7 @@ macro_rules! impl_primitive_float {
                 self.recip()
             }
 
+            #[cfg(backend)]
             #[inline(always)]
             fn clamp(self, min: Self, max: Self) -> Self {
                 self.clamp(min, max)
