@@ -35,7 +35,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_nan(&self) -> bool {
-        self.matrix.is_nan() || self.translation.is_nan()
+        self.submatrix.is_nan() || self.translation.is_nan()
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
@@ -62,7 +62,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_finite(&self) -> bool {
-        self.matrix.is_finite() && self.translation.is_finite()
+        self.submatrix.is_finite() && self.translation.is_finite()
     }
 
     /// Returns the inverse of `self`.
@@ -78,7 +78,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn inverse(&self) -> Self {
-        let submatrix = self.matrix.inverse();
+        let submatrix = self.submatrix.inverse();
         let translation = -(submatrix * self.translation);
 
         Self::from_submatrix_translation(submatrix, translation)
@@ -88,7 +88,7 @@ where
     #[inline]
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
-        let submatrix = self.matrix.try_inverse()?;
+        let submatrix = self.submatrix.try_inverse()?;
         let translation = -(submatrix * self.translation);
 
         Some(Self::from_submatrix_translation(submatrix, translation))
@@ -117,7 +117,7 @@ where
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        self.matrix.abs_diff_eq(&other.matrix, max_abs_diff)
+        self.submatrix.abs_diff_eq(&other.submatrix, max_abs_diff)
             && self
                 .translation
                 .abs_diff_eq(other.translation, max_abs_diff)
@@ -195,17 +195,17 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
-        let determinant = self.matrix.determinant();
+        let determinant = self.submatrix.determinant();
 
         #[cfg(assertions)]
         assert!(determinant != T::ZERO);
 
         let scale = Vector::<2, T, A>::new(
-            self.matrix.x_axis.length() * determinant.signum(),
-            self.matrix.y_axis.length(),
+            self.submatrix.x_axis.length() * determinant.signum(),
+            self.submatrix.y_axis.length(),
         );
 
-        let angle = (-self.matrix.y_axis.x).atan2(self.matrix.y_axis.y);
+        let angle = (-self.submatrix.y_axis.x).atan2(self.submatrix.y_axis.y);
 
         (scale, angle, self.translation)
     }
@@ -462,7 +462,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_euler(&self, order: EulerRot) -> (T, T, T) {
-        self.matrix.to_euler(order)
+        self.submatrix.to_euler(order)
     }
 
     /// Returns the `scale`, `rotation` and `translation` of `self`.
@@ -570,9 +570,9 @@ mod tests {
             }
 
             let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
-            if affine.matrix.determinant() != 0.0 {
+            if affine.submatrix.determinant() != 0.0 {
                 let tol = (affine
-                    .matrix
+                    .submatrix
                     .determinant()
                     .abs()
                     .log2()
@@ -594,9 +594,9 @@ mod tests {
 
             let affine =
                 Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            if affine.matrix.determinant() != 0.0 {
+            if affine.submatrix.determinant() != 0.0 {
                 let tol = (affine
-                    .matrix
+                    .submatrix
                     .determinant()
                     .abs()
                     .log2()
@@ -851,7 +851,7 @@ mod tests {
                 z,
                 Vector::<2, T, A>::new(w, a),
             );
-            if affine.matrix.determinant() != 0.0 {
+            if affine.submatrix.determinant() != 0.0 {
                 assert_float_eq!(
                     affine.to_scale_angle_translation(),
                     affine.to_matrix().to_scale_angle_translation()

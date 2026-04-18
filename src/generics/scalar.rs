@@ -712,7 +712,7 @@ where
     where
         Self: Scalar + PartialEq,
     {
-        affine.matrix == rhs.matrix && affine.translation == rhs.translation
+        affine.submatrix == rhs.submatrix && affine.translation == rhs.translation
     }
 
     /// Overridable implementation for the `affine != affine` operation.

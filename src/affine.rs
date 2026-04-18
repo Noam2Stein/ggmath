@@ -38,7 +38,7 @@ mod wide_float;
 ///
 /// # Fields
 ///
-/// `matrix: Matrix<N, T, A>`
+/// `submatrix: Matrix<N, T, A>`
 ///
 /// The part representing rotation, scaling and shear.
 ///
@@ -109,7 +109,7 @@ where
 ///
 /// # Fields
 ///
-/// `matrix: Mat2<T>`
+/// `submatrix: Mat2<T>`
 ///
 /// The part representing rotation, scaling and shear.
 ///
@@ -142,7 +142,7 @@ pub type Affine2<T> = Affine<2, T, Aligned>;
 ///
 /// # Fields
 ///
-/// `matrix: Mat3<T>`
+/// `submatrix: Mat3<T>`
 ///
 /// The part representing rotation, scaling and shear.
 ///
@@ -175,7 +175,7 @@ pub type Affine3<T> = Affine<3, T, Aligned>;
 ///
 /// # Fields
 ///
-/// `matrix: Mat2U<T>`
+/// `submatrix: Mat2U<T>`
 ///
 /// The part representing rotation, scaling and shear.
 ///
@@ -208,7 +208,7 @@ pub type Affine2U<T> = Affine<2, T, Unaligned>;
 ///
 /// # Fields
 ///
-/// `matrix: Mat3U<T>`
+/// `submatrix: Mat3U<T>`
 ///
 /// The part representing rotation, scaling and shear.
 ///
@@ -412,7 +412,7 @@ where
         let deref = unsafe { transmute_ref::<Affine<N, T, A>, AffineDeref<N, T, A>>(self) };
 
         Affine::from_submatrix_translation(
-            deref.matrix.to_alignment(),
+            deref.submatrix.to_alignment(),
             deref.translation.to_alignment(),
         )
     }
@@ -467,17 +467,17 @@ where
     #[track_caller]
     pub fn column(&self, index: usize) -> Vector<N, T, A> {
         match (N, index) {
-            (2, 0) => self.matrix.column(0),
-            (2, 1) => self.matrix.column(1),
+            (2, 0) => self.submatrix.column(0),
+            (2, 1) => self.submatrix.column(1),
             (2, 2) => self.translation,
-            (3, 0) => self.matrix.column(0),
-            (3, 1) => self.matrix.column(1),
-            (3, 2) => self.matrix.column(2),
+            (3, 0) => self.submatrix.column(0),
+            (3, 1) => self.submatrix.column(1),
+            (3, 2) => self.submatrix.column(2),
             (3, 3) => self.translation,
-            (4, 0) => self.matrix.column(0),
-            (4, 1) => self.matrix.column(1),
-            (4, 2) => self.matrix.column(2),
-            (4, 3) => self.matrix.column(3),
+            (4, 0) => self.submatrix.column(0),
+            (4, 1) => self.submatrix.column(1),
+            (4, 2) => self.submatrix.column(2),
+            (4, 3) => self.submatrix.column(3),
             (4, 4) => self.translation,
             _ => panic!("index out of bounds"),
         }
@@ -495,17 +495,17 @@ where
     #[track_caller]
     pub fn column_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
         match (N, index) {
-            (2, 0) => self.matrix.column_mut(0),
-            (2, 1) => self.matrix.column_mut(1),
+            (2, 0) => self.submatrix.column_mut(0),
+            (2, 1) => self.submatrix.column_mut(1),
             (2, 2) => &mut self.translation,
-            (3, 0) => self.matrix.column_mut(0),
-            (3, 1) => self.matrix.column_mut(1),
-            (3, 2) => self.matrix.column_mut(2),
+            (3, 0) => self.submatrix.column_mut(0),
+            (3, 1) => self.submatrix.column_mut(1),
+            (3, 2) => self.submatrix.column_mut(2),
             (3, 3) => &mut self.translation,
-            (4, 0) => self.matrix.column_mut(0),
-            (4, 1) => self.matrix.column_mut(1),
-            (4, 2) => self.matrix.column_mut(2),
-            (4, 3) => self.matrix.column_mut(3),
+            (4, 0) => self.submatrix.column_mut(0),
+            (4, 1) => self.submatrix.column_mut(1),
+            (4, 2) => self.submatrix.column_mut(2),
+            (4, 3) => self.submatrix.column_mut(3),
             (4, 4) => &mut self.translation,
             _ => panic!("index out of bounds"),
         }
@@ -519,7 +519,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        self.matrix * point + self.translation
+        self.submatrix * point + self.translation
     }
 
     /// Transforms the given vector applying scale and rotation, but not
@@ -535,7 +535,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        self.matrix * vector
+        self.submatrix * vector
     }
 
     /// Raw transmutation between scalar types.
@@ -749,8 +749,8 @@ where
         T: Zero + One,
     {
         Matrix::from_columns(&[
-            Vector::<3, T, A>::new(self.matrix.x_axis.x, self.matrix.x_axis.y, T::ZERO),
-            Vector::<3, T, A>::new(self.matrix.y_axis.x, self.matrix.y_axis.y, T::ZERO),
+            Vector::<3, T, A>::new(self.submatrix.x_axis.x, self.submatrix.x_axis.y, T::ZERO),
+            Vector::<3, T, A>::new(self.submatrix.y_axis.x, self.submatrix.y_axis.y, T::ZERO),
             Vector::<3, T, A>::new(self.translation.x, self.translation.y, T::ONE),
         ])
     }
@@ -925,21 +925,21 @@ where
     {
         Matrix::from_columns(&[
             Vector::<4, T, A>::new(
-                self.matrix.x_axis.x,
-                self.matrix.x_axis.y,
-                self.matrix.x_axis.z,
+                self.submatrix.x_axis.x,
+                self.submatrix.x_axis.y,
+                self.submatrix.x_axis.z,
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
-                self.matrix.y_axis.x,
-                self.matrix.y_axis.y,
-                self.matrix.y_axis.z,
+                self.submatrix.y_axis.x,
+                self.submatrix.y_axis.y,
+                self.submatrix.y_axis.z,
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
-                self.matrix.z_axis.x,
-                self.matrix.z_axis.y,
-                self.matrix.z_axis.z,
+                self.submatrix.z_axis.x,
+                self.submatrix.z_axis.y,
+                self.submatrix.z_axis.z,
                 T::ZERO,
             ),
             Vector::<4, T, A>::new(
@@ -1045,9 +1045,8 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    // TODO: Rename `matrix` to `submatrix` for `0.17.0`.
     /// The part representing rotation, scaling and shear.
-    pub matrix: Matrix<N, T, A>,
+    pub submatrix: Matrix<N, T, A>,
     /// The part representing translation.
     pub translation: Vector<N, T, A>,
 }
@@ -1092,25 +1091,25 @@ where
             2 => write!(
                 f,
                 "[{:?}, {:?}, {:?}]",
-                self.matrix.column(0),
-                self.matrix.column(1),
+                self.submatrix.column(0),
+                self.submatrix.column(1),
                 self.translation
             ),
             3 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}]",
-                self.matrix.column(0),
-                self.matrix.column(1),
-                self.matrix.column(2),
+                self.submatrix.column(0),
+                self.submatrix.column(1),
+                self.submatrix.column(2),
                 self.translation
             ),
             4 => write!(
                 f,
                 "[{:?}, {:?}, {:?}, {:?}, {:?}]",
-                self.matrix.column(0),
-                self.matrix.column(1),
-                self.matrix.column(2),
-                self.matrix.column(3),
+                self.submatrix.column(0),
+                self.submatrix.column(1),
+                self.submatrix.column(2),
+                self.submatrix.column(3),
                 self.translation
             ),
             _ => unreachable!(),
@@ -1128,25 +1127,25 @@ where
             2 => write!(
                 f,
                 "[{}, {}, {}]",
-                self.matrix.column(0),
-                self.matrix.column(1),
+                self.submatrix.column(0),
+                self.submatrix.column(1),
                 self.translation
             ),
             3 => write!(
                 f,
                 "[{}, {}, {}, {}]",
-                self.matrix.column(0),
-                self.matrix.column(1),
-                self.matrix.column(2),
+                self.submatrix.column(0),
+                self.submatrix.column(1),
+                self.submatrix.column(2),
                 self.translation
             ),
             4 => write!(
                 f,
                 "[{}, {}, {}, {}, {}]",
-                self.matrix.column(0),
-                self.matrix.column(1),
-                self.matrix.column(2),
-                self.matrix.column(3),
+                self.submatrix.column(0),
+                self.submatrix.column(1),
+                self.submatrix.column(2),
+                self.submatrix.column(3),
                 self.translation
             ),
             _ => unreachable!(),
@@ -1184,7 +1183,7 @@ where
     T: Scalar + Hash,
 {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.matrix.hash(state);
+        self.submatrix.hash(state);
         self.translation.hash(state);
     }
 }
@@ -1262,8 +1261,8 @@ macro_rules! impl_mul {
             #[track_caller]
             fn mul(self, rhs: &Affine<N, T, A>) -> Self::Output {
                 Affine::from_submatrix_translation(
-                    self.matrix * rhs.matrix,
-                    self.matrix * rhs.translation + self.translation,
+                    self.submatrix * rhs.submatrix,
+                    self.submatrix * rhs.translation + self.translation,
                 )
             }
         }
@@ -2583,7 +2582,7 @@ mod tests {
                     ]),
                     Vector::<2, T, A>::new(a, b)
                 )
-                .matrix,
+                .submatrix,
                 Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, w)
@@ -2610,7 +2609,7 @@ mod tests {
                     ]),
                     Vector::<3, T, A>::new(f, g, h)
                 )
-                .matrix,
+                .submatrix,
                 Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(w, a, b),
@@ -2640,7 +2639,7 @@ mod tests {
                     ]),
                     Vector::<4, T, A>::new(m, n, o, p)
                 )
-                .matrix,
+                .submatrix,
                 Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, w),
                     Vector::<4, T, A>::new(a, b, c, d),
@@ -2678,7 +2677,7 @@ mod tests {
                     ]),
                     Vector::<2, T, A>::new(a, b)
                 )
-                .matrix,
+                .submatrix,
                 &mut Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(x, y),
                     Vector::<2, T, A>::new(z, w)
@@ -2705,7 +2704,7 @@ mod tests {
                     ]),
                     Vector::<3, T, A>::new(f, g, h)
                 )
-                .matrix,
+                .submatrix,
                 &mut Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(x, y, z),
                     Vector::<3, T, A>::new(w, a, b),
@@ -2735,7 +2734,7 @@ mod tests {
                     ]),
                     Vector::<4, T, A>::new(m, n, o, p)
                 )
-                .matrix,
+                .submatrix,
                 &mut Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(x, y, z, w),
                     Vector::<4, T, A>::new(a, b, c, d),

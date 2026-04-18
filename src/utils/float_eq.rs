@@ -264,13 +264,13 @@ where
     T: Scalar + FloatEq,
 {
     fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
-        self.matrix.eq(&other.matrix, zero_eq_neg_zero)
+        self.submatrix.eq(&other.submatrix, zero_eq_neg_zero)
             && self.translation.eq(&other.translation, zero_eq_neg_zero)
     }
 
     fn eq_abs(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool) -> bool {
-        self.matrix
-            .eq_abs(&other.matrix, &tol.matrix, zero_eq_neg_zero)
+        self.submatrix
+            .eq_abs(&other.submatrix, &tol.submatrix, zero_eq_neg_zero)
             && self
                 .translation
                 .eq_abs(&other.translation, &tol.translation, zero_eq_neg_zero)
@@ -278,7 +278,7 @@ where
 
     fn abs_mul(&self, rhs: &Self) -> Self {
         Self::from_submatrix_translation(
-            self.matrix.abs_mul(&rhs.matrix),
+            self.submatrix.abs_mul(&rhs.submatrix),
             self.translation.abs_mul(&rhs.translation),
         )
     }
