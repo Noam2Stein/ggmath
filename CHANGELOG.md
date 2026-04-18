@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated dependency minor versions.
 
+### Fixed
+
+- `NAN` constant for `wide` types was previously incorrect.
+
 ## [0.16.7] - 2026-04-15
 
 ### Added

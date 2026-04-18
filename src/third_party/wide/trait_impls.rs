@@ -39,7 +39,7 @@ macro_rules! float_impl {
         }
 
         impl Nan for $T {
-            const NAN: Self = unsafe { transmute::<[$F; $N], $T>([$F::MAX; $N]) };
+            const NAN: Self = unsafe { transmute::<[$F; $N], $T>([$F::NAN; $N]) };
         }
 
         impl Infinity for $T {
