@@ -126,20 +126,6 @@ pub type QuatU<T> = Quaternion<T, Unaligned>;
 
 impl<T, A: Alignment> Quaternion<T, A>
 where
-    T: Scalar + Zero,
-{
-    /// A quaternion with all elements set to `0`.
-    ///
-    /// This does not represent a valid rotation. See [`IDENTITY`] for a
-    /// quaternion with no rotation.
-    ///
-    /// [`IDENTITY`]: Self::IDENTITY
-    #[deprecated(since = "0.16.7", note = "`0` does not represent a valid rotation")]
-    pub const ZERO: Self = Self::from_vector(Vector::ZERO);
-}
-
-impl<T, A: Alignment> Quaternion<T, A>
-where
     T: Scalar + Zero + One,
 {
     /// A quaternion with no rotation.
@@ -213,13 +199,13 @@ where
     /// ```
     /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
     /// #
-    /// let aligned = Quat::new(0.5, 0.5, 0.5, 0.5);
+    /// let aligned = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
     /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, QuatU::new(0.5, 0.5, 0.5, 0.5));
+    /// assert_eq!(unaligned, QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5));
     ///
-    /// let unaligned = QuatU::new(0.5, 0.5, 0.5, 0.5);
+    /// let unaligned = QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5);
     /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Quat::new(0.5, 0.5, 0.5, 0.5));
+    /// assert_eq!(aligned, Quat::from_xyzw(0.5, 0.5, 0.5, 0.5));
     /// ```
     ///
     /// [`align`]: Self::align
@@ -239,9 +225,9 @@ where
     /// ```
     /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
     /// #
-    /// let unaligned = QuatU::new(0.5, 0.5, 0.5, 0.5);
+    /// let unaligned = QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5);
     /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Quat::new(0.5, 0.5, 0.5, 0.5));
+    /// assert_eq!(aligned, Quat::from_xyzw(0.5, 0.5, 0.5, 0.5));
     /// ```
     #[inline]
     #[must_use]
@@ -258,9 +244,9 @@ where
     /// ```
     /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
     /// #
-    /// let aligned = Quat::new(0.5, 0.5, 0.5, 0.5);
+    /// let aligned = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
     /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, QuatU::new(0.5, 0.5, 0.5, 0.5));
+    /// assert_eq!(unaligned, QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5));
     /// ```
     #[inline]
     #[must_use]
@@ -386,7 +372,7 @@ where
     /// ```
     /// # use ggmath::Quat;
     /// #
-    /// let quat = Quat::new(0, 1, 2, 3);
+    /// let quat = Quat::from_xyzw(0, 1, 2, 3);
     /// assert_eq!(quat.length_squared(), 14);
     /// ```
     #[inline]
@@ -424,12 +410,12 @@ where
     /// ```
     /// # use ggmath::Quat;
     /// #
-    /// let bits = Quat::<u8>::new(1, 0, 0, 1);
+    /// let bits = Quat::<u8>::from_xyzw(1, 0, 0, 1);
     ///
     /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
     /// let bools = unsafe { bits.to_repr::<bool>() };
     ///
-    /// assert_eq!(bools, Quat::new(true, false, false, true));
+    /// assert_eq!(bools, Quat::from_xyzw(true, false, false, true));
     /// ```
     ///
     /// Incorrect usage:
@@ -451,67 +437,6 @@ where
         T::Repr: SignedInteger,
     {
         unsafe { Quaternion(self.0.to_repr()) }
-    }
-
-    /// Creates a quaternion from 4 components.
-    ///
-    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
-    ///
-    /// # Unchecked
-    ///
-    /// This does not check that the input is normalized. It is up to the user
-    /// to provide normalized input or to normalize the resulting quaternion.
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.16.7", note = "renamed to `from_xyzw`")]
-    pub const fn new(x: T, y: T, z: T, w: T) -> Self {
-        Self::from_xyzw(x, y, z, w)
-    }
-
-    /// Creates a quaternion from a 4-dimensional vector.
-    ///
-    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
-    ///
-    /// # Unchecked
-    ///
-    /// This does not check that the input is normalized. It is up to the user
-    /// to provide normalized input or to normalize the resulting quaternion.
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.16.7", note = "renamed to `from_vector`")]
-    pub const fn from_vec(vector: Vector<4, T, A>) -> Self {
-        Self::from_vector(vector)
-    }
-
-    /// Converts the quaternion `self` to a 4-dimensional vector.
-    ///
-    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.16.7", note = "renamed to `to_vector`")]
-    pub const fn to_vec(self) -> Vector<4, T, A> {
-        self.0
-    }
-
-    /// Returns a reference to the quaternion `self` as a 4-dimensional vector.
-    ///
-    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
-    #[inline]
-    #[must_use]
-    #[deprecated(since = "0.16.7", note = "renamed to `as_vector_ref`")]
-    pub const fn as_vec_ref(&self) -> &Vector<4, T, A> {
-        &self.0
-    }
-
-    /// Returns a mutable reference to the quaternion `self` as a 4-dimensional
-    /// vector.
-    ///
-    /// `x`, `y` and `z` are the imaginary parts and `w` is the real part.
-    #[deprecated(since = "0.16.7", note = "renamed to `as_vector_mut`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_vec_mut(&mut self) -> &mut Vector<4, T, A> {
-        &mut self.0
     }
 }
 
@@ -857,17 +782,6 @@ mod tests {
             assert_eq!(
                 align_of::<Quaternion<T, A>>(),
                 align_of::<Vector<4, T, A>>()
-            );
-        });
-    }
-
-    #[test]
-    #[expect(deprecated)]
-    fn test_zero() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            assert_eq!(
-                Quaternion::<T, A>::ZERO,
-                Quaternion::from_xyzw(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(0))
             );
         });
     }

@@ -606,40 +606,6 @@ where
         // integer.
         unsafe { transmute_generic::<Affine<N, T, A>, Affine<N, T2, A>>(self) }
     }
-
-    /// Creates an affine transform from `submatrix` expressing rotation and
-    /// scale, but not translation.
-    ///
-    /// This function has been renamed to [`from_submatrix`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`from_submatrix`]: Self::from_submatrix
-    #[deprecated(since = "0.16.6", note = "renamed to `from_submatrix`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_mat(submatrix: Matrix<N, T, A>) -> Self
-    where
-        T: Zero,
-    {
-        Self::from_submatrix(submatrix)
-    }
-
-    /// Creates an affine transform from `translation` and `submatrix`
-    /// expressing rotation and scale.
-    ///
-    /// This function has been renamed to [`from_submatrix_translation`]. This
-    /// name will be removed in a future version.
-    ///
-    /// [`from_submatrix_translation`]: Self::from_submatrix_translation
-    #[deprecated(since = "0.16.6", note = "renamed to `from_submatrix_translation`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_mat_translation(
-        submatrix: Matrix<N, T, A>,
-        translation: Vector<N, T, A>,
-    ) -> Self {
-        Self::from_submatrix_translation(submatrix, translation)
-    }
 }
 
 impl<T, A: Alignment> Affine<2, T, A>
@@ -787,75 +753,6 @@ where
             Vector::<3, T, A>::new(self.matrix.y_axis.x, self.matrix.y_axis.y, T::ZERO),
             Vector::<3, T, A>::new(self.translation.x, self.translation.y, T::ONE),
         ])
-    }
-
-    /// Creates a 2D affine transform from three column vectors.
-    ///
-    /// This function has been replaced by [`from_columns`] and will be
-    /// removed in a future version.
-    ///
-    /// [`from_columns`]: Self::from_columns
-    #[deprecated(since = "0.16.3", note = "replaced by `from_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_cols(
-        x_axis: Vector<2, T, A>,
-        y_axis: Vector<2, T, A>,
-        translation: Vector<2, T, A>,
-    ) -> Self {
-        Self::from_columns(&[x_axis, y_axis, translation])
-    }
-
-    /// Creates a 2D affine transform from three column vectors.
-    ///
-    /// This function has been renamed to [`from_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`from_columns`]: Self::from_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `from_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_col_array(array: &[Vector<2, T, A>; 3]) -> Self {
-        Self::from_columns(array)
-    }
-
-    /// Converts the affine transform to three column vectors.
-    ///
-    /// This function has been replaced by [`as_columns`] and will be removed in
-    /// a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn to_col_array(&self) -> [Vector<2, T, A>; 3] {
-        *self.as_columns()
-    }
-
-    /// Returns a reference to the affine transform's columns.
-    ///
-    /// This function has been renamed to [`as_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_ref(&self) -> &[Vector<2, T, A>; 3] {
-        self.as_columns()
-    }
-
-    /// Returns a mutable reference to the affine transform's columns.
-    ///
-    /// This function has been renamed to [`as_columns_mut`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns_mut`]: Self::as_columns_mut
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns_mut`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_mut(&mut self) -> &mut [Vector<2, T, A>; 3] {
-        self.as_columns_mut()
     }
 }
 
@@ -1053,76 +950,6 @@ where
             ),
         ])
     }
-
-    /// Creates a 3D affine transform from four column vectors.
-    ///
-    /// This function has been replaced by [`from_columns`] and will be
-    /// removed in a future version.
-    ///
-    /// [`from_columns`]: Self::from_columns
-    #[deprecated(since = "0.16.3", note = "replaced by `from_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_cols(
-        x_axis: Vector<3, T, A>,
-        y_axis: Vector<3, T, A>,
-        z_axis: Vector<3, T, A>,
-        translation: Vector<3, T, A>,
-    ) -> Self {
-        Self::from_columns(&[x_axis, y_axis, z_axis, translation])
-    }
-
-    /// Creates a 3D affine transform from four column vectors.
-    ///
-    /// This function has been renamed to [`from_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`from_columns`]: Self::from_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `from_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_col_array(array: &[Vector<3, T, A>; 4]) -> Self {
-        Self::from_columns(array)
-    }
-
-    /// Converts the affine transform to four column vectors.
-    ///
-    /// This function has been replaced by [`as_columns`] and will be removed in
-    /// a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn to_col_array(&self) -> [Vector<3, T, A>; 4] {
-        *self.as_columns()
-    }
-
-    /// Returns a reference to the affine transform's columns.
-    ///
-    /// This function has been renamed to [`as_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_ref(&self) -> &[Vector<3, T, A>; 4] {
-        self.as_columns()
-    }
-
-    /// Returns a mutable reference to the affine transform's columns.
-    ///
-    /// This function has been renamed to [`as_columns_mut`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns_mut`]: Self::as_columns_mut
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns_mut`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_mut(&mut self) -> &mut [Vector<3, T, A>; 4] {
-        self.as_columns_mut()
-    }
 }
 
 impl<T, A: Alignment> Affine<4, T, A>
@@ -1190,77 +1017,6 @@ where
         // `Matrix<4, T, A>` (four vectors) then `Vector<4, T, A>`, which is 5
         // vectors in total.
         unsafe { transmute_mut::<Affine<4, T, A>, [Vector<4, T, A>; 5]>(self) }
-    }
-
-    /// Creates a 4D affine transform from five column vectors.
-    ///
-    /// This function has been replaced by [`from_columns`] and will be
-    /// removed in a future version.
-    ///
-    /// [`from_columns`]: Self::from_columns
-    #[deprecated(since = "0.16.3", note = "replaced by `from_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_cols(
-        x_axis: Vector<4, T, A>,
-        y_axis: Vector<4, T, A>,
-        z_axis: Vector<4, T, A>,
-        w_axis: Vector<4, T, A>,
-        translation: Vector<4, T, A>,
-    ) -> Self {
-        Self::from_columns(&[x_axis, y_axis, z_axis, w_axis, translation])
-    }
-
-    /// Creates a 4D affine transform from five column vectors.
-    ///
-    /// This function has been renamed to [`from_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`from_columns`]: Self::from_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `from_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_col_array(array: &[Vector<4, T, A>; 5]) -> Self {
-        Self::from_columns(array)
-    }
-
-    /// Converts the affine transform to five column vectors.
-    ///
-    /// This function has been replaced by [`as_columns`] and will be removed in
-    /// a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn to_col_array(&self) -> [Vector<4, T, A>; 5] {
-        *self.as_columns()
-    }
-
-    /// Returns a reference to the affine transform's columns.
-    ///
-    /// This function has been renamed to [`as_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_ref(&self) -> &[Vector<4, T, A>; 5] {
-        self.as_columns()
-    }
-
-    /// Returns a mutable reference to the affine transform's columns.
-    ///
-    /// This function has been renamed to [`as_columns_mut`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns_mut`]: Self::as_columns_mut
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns_mut`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_mut(&mut self) -> &mut [Vector<4, T, A>; 5] {
-        self.as_columns_mut()
     }
 }
 

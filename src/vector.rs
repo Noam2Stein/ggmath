@@ -17,7 +17,6 @@ use crate::{
 };
 
 mod bool;
-mod constructor;
 mod float;
 mod signed;
 mod swizzle;
@@ -645,7 +644,7 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Vec3, vec3};
+    /// # use ggmath::Vec3;
     /// #
     /// let vec = Vec3::new(1, 2, 3).reverse();
     /// assert_eq!(vec, Vec3::new(3, 2, 1));
@@ -1375,6 +1374,116 @@ where
         // SAFETY: `Vector<4, T, A>` is guaranteed to begin with 4 consecutive
         // values of `T`, and so begin with `Xyzw<T>`.
         unsafe { transmute_mut::<Vector<4, T, A>, Vec4Fields<T>>(self) }
+    }
+}
+
+impl<T, A: Alignment> From<(T, T)> for Vector<2, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (T, T)) -> Self {
+        Self::new(value.0, value.1)
+    }
+}
+
+impl<T, A: Alignment> From<(T, T, T)> for Vector<3, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (T, T, T)) -> Self {
+        Self::new(value.0, value.1, value.2)
+    }
+}
+
+impl<T, A: Alignment> From<(T, Vector<2, T, A>)> for Vector<3, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (T, Vector<2, T, A>)) -> Self {
+        Self::new(value.0, value.1[0], value.1[1])
+    }
+}
+
+impl<T, A: Alignment> From<(Vector<2, T, A>, T)> for Vector<3, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (Vector<2, T, A>, T)) -> Self {
+        Self::new(value.0[0], value.0[1], value.1)
+    }
+}
+
+impl<T, A: Alignment> From<(T, T, T, T)> for Vector<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (T, T, T, T)) -> Self {
+        Self::new(value.0, value.1, value.2, value.3)
+    }
+}
+
+impl<T, A: Alignment> From<(T, T, Vector<2, T, A>)> for Vector<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (T, T, Vector<2, T, A>)) -> Self {
+        Self::new(value.0, value.1, value.2[0], value.2[1])
+    }
+}
+
+impl<T, A: Alignment> From<(T, Vector<2, T, A>, T)> for Vector<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (T, Vector<2, T, A>, T)) -> Self {
+        Self::new(value.0, value.1[0], value.1[1], value.2)
+    }
+}
+
+impl<T, A: Alignment> From<(T, Vector<3, T, A>)> for Vector<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (T, Vector<3, T, A>)) -> Self {
+        Self::new(value.0, value.1[0], value.1[1], value.1[2])
+    }
+}
+
+impl<T, A: Alignment> From<(Vector<2, T, A>, T, T)> for Vector<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (Vector<2, T, A>, T, T)) -> Self {
+        Self::new(value.0[0], value.0[1], value.1, value.2)
+    }
+}
+
+impl<T, A: Alignment> From<(Vector<2, T, A>, Vector<2, T, A>)> for Vector<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (Vector<2, T, A>, Vector<2, T, A>)) -> Self {
+        Self::new(value.0[0], value.0[1], value.1[0], value.1[1])
+    }
+}
+
+impl<T, A: Alignment> From<(Vector<3, T, A>, T)> for Vector<4, T, A>
+where
+    T: Scalar,
+{
+    #[inline]
+    fn from(value: (Vector<3, T, A>, T)) -> Self {
+        Self::new(value.0[0], value.0[1], value.0[2], value.1)
     }
 }
 
@@ -3593,6 +3702,63 @@ mod tests {
             assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w).y, &mut y);
             assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w).z, &mut z);
             assert_eq!(&mut Vector::<4, T, A>::new(x, y, z, w).w, &mut w);
+        });
+    }
+
+    #[test]
+    fn test_from_tuples() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<2, T, A>::from((x, y)),
+                Vector::<2, T, A>::new(x, y)
+            );
+
+            assert_eq!(
+                Vector::<3, T, A>::from((x, y, z)),
+                Vector::<3, T, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::from((x, Vector::<2, T, A>::new(y, z))),
+                Vector::<3, T, A>::new(x, y, z)
+            );
+            assert_eq!(
+                Vector::<3, T, A>::from((Vector::<2, T, A>::new(x, y), z)),
+                Vector::<3, T, A>::new(x, y, z)
+            );
+
+            assert_eq!(
+                Vector::<4, T, A>::from((x, y, z, w)),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from((x, y, Vector::<2, T, A>::new(z, w))),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from((x, Vector::<2, T, A>::new(y, z), w)),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from((x, Vector::<3, T, A>::new(y, z, w))),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from((Vector::<2, T, A>::new(x, y), z, w)),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from((
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w)
+                )),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                Vector::<4, T, A>::from((Vector::<3, T, A>::new(x, y, z), w)),
+                Vector::<4, T, A>::new(x, y, z, w)
+            );
         });
     }
 

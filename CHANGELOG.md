@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `NAN` constant for `wide` types was previously incorrect.
 
+### Removed
+
+- Deprecated items.
+
+- Vector `From<(_,)>` implementations.
+
+- Matrix `From` implementations.
+
 ## [0.16.7] - 2026-04-15
 
 ### Added

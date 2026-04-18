@@ -14,7 +14,6 @@ use crate::{
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
-mod constructor;
 mod float;
 #[cfg(feature = "wide")]
 mod wide_float;
@@ -1152,115 +1151,6 @@ where
         // guaranteed to have compatible memory layouts if `Repr` is a signed
         // integer.
         unsafe { transmute_generic::<Matrix<N, T, A>, Matrix<N, T2, A>>(self) }
-    }
-
-    /// Creates a matrix from an array of column vectors.
-    ///
-    /// This function has been renamed to [`from_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`from_columns`]: Self::from_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `from_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn from_col_array(array: &[Vector<N, T, A>; N]) -> Self {
-        Self::from_columns(array)
-    }
-
-    /// Creates a matrix by calling function `f` for each column index.
-    ///
-    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column
-    /// vectors.
-    ///
-    /// This function has been renamed to [`from_column_fn`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`from_column_fn`]: Self::from_column_fn
-    #[deprecated(since = "0.16.3", note = "renamed to `from_column_fn`")]
-    #[inline]
-    #[must_use]
-    pub fn from_col_fn<F>(f: F) -> Self
-    where
-        F: FnMut(usize) -> Vector<N, T, A>,
-    {
-        Self::from_column_fn(f)
-    }
-
-    /// Converts the matrix to an array of column vectors.
-    ///
-    /// This function has been replaced by [`as_columns`] and will be removed in
-    /// a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "replaced by `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn to_col_array(&self) -> [Vector<N, T, A>; N] {
-        *self.as_columns()
-    }
-
-    /// Returns a reference to the matrix's columns.
-    ///
-    /// This function has been renamed to [`as_columns`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns`]: Self::as_columns
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_ref(&self) -> &[Vector<N, T, A>; N] {
-        self.as_columns()
-    }
-
-    /// Returns a mutable reference to the matrix's columns.
-    ///
-    /// This function has been renamed to [`as_columns_mut`]. This name will be
-    /// removed in a future version.
-    ///
-    /// [`as_columns_mut`]: Self::as_columns_mut
-    #[deprecated(since = "0.16.3", note = "renamed to `as_columns_mut`")]
-    #[inline]
-    #[must_use]
-    pub const fn as_col_array_mut(&mut self) -> &mut [Vector<N, T, A>; N] {
-        self.as_columns_mut()
-    }
-
-    /// Returns the column at the given index.
-    ///
-    /// This function has been renamed to [`column`]. This name will be removed
-    /// in a future version.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `index` is greater than or equal to the dimension of the
-    /// matrix.
-    ///
-    /// [`column`]: Self::column
-    #[deprecated(since = "0.16.3", note = "renamed to `column`")]
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub const fn col(&self, index: usize) -> Vector<N, T, A> {
-        self.column(index)
-    }
-
-    /// Returns a mutable reference to the column at the given index.
-    ///
-    /// This function has been renamed to [`column_mut`]. This name will be
-    /// removed in a future version.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `index` is greater than or equal to the dimension of the
-    /// matrix.
-    ///
-    /// [`column_mut`]: Self::column_mut
-    #[deprecated(since = "0.16.3", note = "renamed to `column_mut`")]
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub const fn col_mut(&mut self, index: usize) -> &mut Vector<N, T, A> {
-        self.column_mut(index)
     }
 }
 

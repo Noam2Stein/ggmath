@@ -618,7 +618,7 @@ where
     /// ```
     /// # use ggmath::Quat;
     /// #
-    /// let quat = Quat::new(2.0, 3.0, 1.0, 1.0);
+    /// let quat = Quat::from_xyzw(2.0, 3.0, 1.0, 1.0);
     ///
     /// assert_eq!(quat.length(), 15.0_f32.sqrt());
     /// ```
@@ -643,7 +643,7 @@ where
     /// ```
     /// # use ggmath::Quat;
     /// #
-    /// let quat = Quat::new(1.0, 2.0, 3.0, 4.0);
+    /// let quat = Quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
     ///
     /// assert_eq!(quat.normalize(), quat / quat.length());
     /// ```
@@ -677,8 +677,8 @@ where
     /// ```
     /// # use ggmath::Quat;
     /// #
-    /// let non_zero = Quat::new(1.0, 2.0, 3.0, 4.0);
-    /// let zero = Quat::new(0.0, 0.0, 0.0, 0.0);
+    /// let non_zero = Quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
+    /// let zero = Quat::from_xyzw(0.0, 0.0, 0.0, 0.0);
     ///
     /// assert_eq!(non_zero.try_normalize(), Some(non_zero.normalize()));
     /// assert_eq!(zero.try_normalize(), None);
@@ -700,9 +700,9 @@ where
     /// ```
     /// # use ggmath::Quat;
     /// #
-    /// let non_zero = Quat::new(1.0, 2.0, 3.0, 4.0);
-    /// let zero = Quat::new(0.0, 0.0, 0.0, 0.0);
-    /// let fallback = Quat::new(2.0, 4.0, 0.0, 1.0);
+    /// let non_zero = Quat::from_xyzw(1.0, 2.0, 3.0, 4.0);
+    /// let zero = Quat::from_xyzw(0.0, 0.0, 0.0, 0.0);
+    /// let fallback = Quat::from_xyzw(2.0, 4.0, 0.0, 1.0);
     ///
     /// assert_eq!(non_zero.normalize_or(fallback), non_zero.normalize());
     /// assert_eq!(zero.normalize_or(fallback), fallback);
