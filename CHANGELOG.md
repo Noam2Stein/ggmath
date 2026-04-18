@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Made the `FloatExt` trait sealed.
+
 - Changed the addition/multiplication order of `element_sum` and
   `element_product` to make them cross platform deterministic. This breaks
   promises in the function's documentation. This indirectly modifies the precise

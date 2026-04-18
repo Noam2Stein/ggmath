@@ -1,7 +1,8 @@
 use crate::utils::PrimitiveFloat;
 
 /// Extends floating-point primitives with extra functionality.
-pub trait FloatExt {
+#[expect(private_bounds)]
+pub trait FloatExt: PrimitiveFloat {
     /// Computes the linear interpolation between `self` and `other` based on
     /// the value `t`.
     ///
@@ -17,15 +18,7 @@ pub trait FloatExt {
     /// This can be used to compare two values that should be equal, but may
     /// have a slight difference due to operations having rounding errors.
     #[must_use]
-    fn abs_diff_eq(self, other: Self, max_abs_diff: Self) -> bool
-    where
-        Self: Sized,
-    {
-        // TODO: remove this default implementation and make `FloatExt` sealed
-        // for `0.17.0`.
-        let _ = (other, max_abs_diff);
-        unimplemented!()
-    }
+    fn abs_diff_eq(self, other: Self, max_abs_diff: Self) -> bool;
 }
 
 impl<T: PrimitiveFloat> FloatExt for T {
