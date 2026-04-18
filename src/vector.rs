@@ -665,12 +665,13 @@ where
     /// When assertions are enabled (see the crate documentation) or overflow
     /// checks are enabled:
     ///
-    /// For integers this panics if any addition overflows (performed in order).
+    /// For integers this panics if any addition overflows (order unspecified).
     ///
     /// # Consistency
     ///
-    /// For floats, order of addition and handling of `-0.0` may differ across
-    /// target architectures.
+    /// For primitive types this operation is cross platform deterministic, with
+    /// one exception. For floats, when the result is zero either `0.0` or
+    /// `-0.0` is returned non-deterministically.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -690,12 +691,11 @@ where
     /// When assertions are enabled (see the crate documentation) or overflow
     /// checks are enabled:
     ///
-    /// For integers this panics if any multiplication overflows (performed in order).
+    /// For integers this panics if any multiplication overflows (order unspecified).
     ///
     /// # Consistency
     ///
-    /// For floats, order of multiplication and handling of `-0.0` may differ
-    /// across target architectures.
+    /// For primitive types this operation is cross platform deterministic.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2986,14 +2986,9 @@ mod tests {
                 x + y + z,
                 0.0 = -0.0
             );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_sum(),
-                    x + y + z + w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_sum(),
-                    x + y + (z + w)
-                )
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).element_sum(),
+                x + y + (z + w)
             );
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
@@ -3003,7 +2998,7 @@ mod tests {
             assert_panic_eq!(Vector::<3, T, A>::new(x, y, z).element_sum(), x + y + z);
             assert_panic_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).element_sum(),
-                x + y + z + w
+                x + y + (z + w)
             );
         });
     }
@@ -3014,19 +3009,10 @@ mod tests {
             let w = T::max(x, y);
 
             assert_float_eq!(Vector::<2, T, A>::new(x, y).element_product(), x * y);
+            assert_float_eq!(Vector::<3, T, A>::new(x, y, z).element_product(), x * y * z);
             assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).element_product(),
-                x * y * z,
-                0.0 = -0.0
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_product(),
-                    x * y * z * w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).element_product(),
-                    x * y * (z * w)
-                )
+                Vector::<4, T, A>::new(x, y, z, w).element_product(),
+                x * y * (z * w)
             );
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
@@ -3036,7 +3022,7 @@ mod tests {
             assert_panic_eq!(Vector::<3, T, A>::new(x, y, z).element_product(), x * y * z);
             assert_panic_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).element_product(),
-                x * y * z * w
+                x * y * (z * w)
             );
         });
     }
@@ -3198,7 +3184,7 @@ mod tests {
             );
             assert_panic_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, x)),
-                x * z + y * w + z * y + w * x
+                x * z + y * w + (z * y + w * x)
             );
         });
     }

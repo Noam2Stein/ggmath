@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed the addition/multiplication order of `element_sum` and
+  `element_product` to make them cross platform deterministic. This breaks
+  promises in the function's documentation. This indirectly modifies the precise
+  result of many functions.
+
 - Modified `wide` vector function implementations for `max`, `min`, `clamp`,
   `max_element` and `min_element`. This may change NaN handling.
 

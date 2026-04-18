@@ -531,7 +531,12 @@ where
     where
         Self: Scalar + Add<Output = Self>,
     {
-        vec.iter().reduce(Self::add).unwrap()
+        match N {
+            2 => vec[0] + vec[1],
+            3 => vec[0] + vec[1] + vec[2],
+            4 => vec[0] + vec[1] + (vec[2] + vec[3]),
+            _ => unreachable!(),
+        }
     }
 
     /// Overridable implementation for [`Vector::element_product`].
@@ -541,7 +546,12 @@ where
     where
         Self: Scalar + Mul<Output = Self>,
     {
-        vec.iter().reduce(Self::mul).unwrap()
+        match N {
+            2 => vec[0] * vec[1],
+            3 => vec[0] * vec[1] * vec[2],
+            4 => vec[0] * vec[1] * (vec[2] * vec[3]),
+            _ => unreachable!(),
+        }
     }
 
     /// Overridable implementation for [`Vector::eq_mask`].
