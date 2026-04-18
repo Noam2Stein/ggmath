@@ -395,8 +395,8 @@ where
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let vec = Vec3::splat(5);
-    /// assert_eq!(vec, Vec3::new(5, 5, 5));
+    /// let vector = Vec3::splat(5);
+    /// assert_eq!(vector, Vec3::new(5, 5, 5));
     /// ```
     #[inline]
     #[must_use]
@@ -442,8 +442,8 @@ where
     /// let indices = Vec3::from_fn(|i| i);
     /// assert_eq!(indices, Vec3::new(0, 1, 2));
     ///
-    /// let vec = Vec3::from_fn(|i| i % 2);
-    /// assert_eq!(vec, Vec3::new(0, 1, 0));
+    /// let vector = Vec3::from_fn(|i| i % 2);
+    /// assert_eq!(vector, Vec3::new(0, 1, 0));
     /// ```
     #[inline]
     #[must_use]
@@ -646,8 +646,8 @@ where
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let vec = Vec3::new(1, 2, 3).reverse();
-    /// assert_eq!(vec, Vec3::new(3, 2, 1));
+    /// let vector = Vec3::new(1, 2, 3).reverse();
+    /// assert_eq!(vector, Vec3::new(3, 2, 1));
     /// ```
     #[inline]
     #[must_use]
@@ -678,7 +678,7 @@ where
     where
         T: Add<Output = T>,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_element_sum(self))
+        specialize!(<T as ScalarBackend<N, A>>::vector_element_sum(self))
     }
 
     /// Computes the product of the elements of `self`.
@@ -702,7 +702,7 @@ where
     where
         T: Mul<Output = T>,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_element_product(self))
+        specialize!(<T as ScalarBackend<N, A>>::vector_element_product(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -715,8 +715,8 @@ where
     /// ```
     /// # use ggmath::{Mask3, Vec3};
     /// #
-    /// let vec = Vec3::new(1, 2, 3);
-    /// let mask = vec.eq_mask(Vec3::new(0, 2, 5));
+    /// let vector = Vec3::new(1, 2, 3);
+    /// let mask = vector.eq_mask(Vec3::new(0, 2, 5));
     /// assert_eq!(mask, Mask3::new(false, true, false));
     /// ```
     #[inline]
@@ -725,7 +725,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_eq_mask(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_eq_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -738,8 +738,8 @@ where
     /// ```
     /// # use ggmath::{Mask3, Vec3};
     /// #
-    /// let vec = Vec3::new(1, 2, 3);
-    /// let mask = vec.ne_mask(Vec3::new(0, 2, 5));
+    /// let vector = Vec3::new(1, 2, 3);
+    /// let mask = vector.ne_mask(Vec3::new(0, 2, 5));
     /// assert_eq!(mask, Mask3::new(true, false, true));
     /// ```
     #[inline]
@@ -748,7 +748,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_ne_mask(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_ne_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -761,8 +761,8 @@ where
     /// ```
     /// # use ggmath::{Mask3, Vec3};
     /// #
-    /// let vec = Vec3::new(1, 2, 3);
-    /// let mask = vec.lt_mask(Vec3::new(0, 2, 5));
+    /// let vector = Vec3::new(1, 2, 3);
+    /// let mask = vector.lt_mask(Vec3::new(0, 2, 5));
     /// assert_eq!(mask, Mask3::new(false, false, true));
     /// ```
     #[inline]
@@ -771,7 +771,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_lt_mask(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_lt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -784,8 +784,8 @@ where
     /// ```
     /// # use ggmath::{Mask3, Vec3};
     /// #
-    /// let vec = Vec3::new(1, 2, 3);
-    /// let mask = vec.gt_mask(Vec3::new(0, 2, 5));
+    /// let vector = Vec3::new(1, 2, 3);
+    /// let mask = vector.gt_mask(Vec3::new(0, 2, 5));
     /// assert_eq!(mask, Mask3::new(true, false, false));
     /// ```
     #[inline]
@@ -794,7 +794,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_gt_mask(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_gt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -808,8 +808,8 @@ where
     /// ```
     /// # use ggmath::{Mask3, Vec3};
     /// #
-    /// let vec = Vec3::new(1, 2, 3);
-    /// let mask = vec.le_mask(Vec3::new(0, 2, 5));
+    /// let vector = Vec3::new(1, 2, 3);
+    /// let mask = vector.le_mask(Vec3::new(0, 2, 5));
     /// assert_eq!(mask, Mask3::new(false, true, true));
     /// ```
     #[inline]
@@ -818,7 +818,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_le_mask(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_le_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -832,8 +832,8 @@ where
     /// ```
     /// # use ggmath::{Mask3, Vec3};
     /// #
-    /// let vec = Vec3::new(1, 2, 3);
-    /// let mask = vec.ge_mask(Vec3::new(0, 2, 5));
+    /// let vector = Vec3::new(1, 2, 3);
+    /// let mask = vector.ge_mask(Vec3::new(0, 2, 5));
     /// assert_eq!(mask, Mask3::new(true, true, false));
     /// ```
     #[inline]
@@ -842,7 +842,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vec_ge_mask(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_ge_mask(self, other))
     }
 
     /// Computes the dot product of `self` and `rhs`.
@@ -890,8 +890,8 @@ where
     /// ```
     /// # use ggmath::Vec2;
     /// #
-    /// let vec = Vec2::new(1, 2);
-    /// assert_eq!(vec.length_squared(), 5);
+    /// let vector = Vec2::new(1, 2);
+    /// assert_eq!(vector.length_squared(), 5);
     /// ```
     #[inline]
     #[must_use]
@@ -1530,13 +1530,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::vec_eq(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::vec_ne(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::vector_ne(self, other))
     }
 }
 
@@ -1570,7 +1570,7 @@ where
 }
 
 macro_rules! impl_unary_operator {
-    ($Op:ident, $op:ident, $vec_op:ident, $(#[$doc:meta])*) => {
+    ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
@@ -1582,7 +1582,7 @@ macro_rules! impl_unary_operator {
             #[inline]
             #[track_caller]
             fn $op(self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::$vec_op(self))
+                specialize!(<T as ScalarBackend<N, A>>::$vector_op(self))
             }
         }
 
@@ -1605,7 +1605,7 @@ macro_rules! impl_unary_operator {
 impl_unary_operator!(
     Neg,
     neg,
-    vec_neg,
+    vector_neg,
     /// Performs the unary `-` operation for each vector element.
     ///
     /// # Examples
@@ -1613,8 +1613,8 @@ impl_unary_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let vec = -Vec3::new(1, 2, 3);
-    /// assert_eq!(vec, Vec3::new(-1, -2, -3));
+    /// let vector = -Vec3::new(1, 2, 3);
+    /// assert_eq!(vector, Vec3::new(-1, -2, -3));
     /// ```
     ///
     /// # Consistency
@@ -1625,7 +1625,7 @@ impl_unary_operator!(
 impl_unary_operator!(
     Not,
     not,
-    vec_not,
+    vector_not,
     /// Performs the unary `!` operation for each vector element.
     ///
     /// # Examples
@@ -1633,13 +1633,13 @@ impl_unary_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let vec = !Vec3::new(1, 2, 3);
-    /// assert_eq!(vec, Vec3::new(!1, !2, !3));
+    /// let vector = !Vec3::new(1, 2, 3);
+    /// assert_eq!(vector, Vec3::new(!1, !2, !3));
     /// ```
 );
 
 macro_rules! impl_binary_operator {
-    ($Op:ident, $op:ident, $vec_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
+    ($Op:ident, $op:ident, $vector_op:ident, $(#[$doc:meta])*, $(#[$doc_scalar:meta])*) => {
         impl<const N: usize, T, A: Alignment> $Op for Vector<N, T, A>
         where
             Length<N>: SupportedLength,
@@ -1651,7 +1651,7 @@ macro_rules! impl_binary_operator {
             #[inline]
             #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::$vec_op(self, rhs))
+                specialize!(<T as ScalarBackend<N, A>>::$vector_op(self, rhs))
             }
         }
 
@@ -1764,7 +1764,7 @@ macro_rules! impl_binary_operator {
 impl_binary_operator!(
     Add,
     add,
-    vec_add,
+    vector_add,
     /// Performs the `+` operation for each vector element.
     ///
     /// # Examples
@@ -1799,12 +1799,12 @@ impl_binary_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec + splat(scalar)`.
+    /// This operation is fully consistent with `vector + splat(scalar)`.
 );
 impl_binary_operator!(
     Sub,
     sub,
-    vec_sub,
+    vector_sub,
     /// Performs the `-` operation for each vector element.
     ///
     /// # Examples
@@ -1839,12 +1839,12 @@ impl_binary_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec - splat(scalar)`.
+    /// This operation is fully consistent with `vector - splat(scalar)`.
 );
 impl_binary_operator!(
     Mul,
     mul,
-    vec_mul,
+    vector_mul,
     /// Performs the `*` operation for each vector element.
     ///
     /// # Examples
@@ -1879,12 +1879,12 @@ impl_binary_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec * splat(scalar)`.
+    /// This operation is fully consistent with `vector * splat(scalar)`.
 );
 impl_binary_operator!(
     Div,
     div,
-    vec_div,
+    vector_div,
     /// Performs the `/` operation for each vector element.
     ///
     /// # Examples
@@ -1919,12 +1919,12 @@ impl_binary_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec / splat(scalar)`.
+    /// This operation is fully consistent with `vector / splat(scalar)`.
 );
 impl_binary_operator!(
     Rem,
     rem,
-    vec_rem,
+    vector_rem,
     /// Performs the `%` operation for each vector element.
     ///
     /// # Examples
@@ -1965,12 +1965,12 @@ impl_binary_operator!(
     /// For floats this operation may be inconsistent with the scalar operation,
     /// regarding precision and NaN propagation.
     ///
-    /// This operation is fully consistent with `vec % splat(scalar)`.
+    /// This operation is fully consistent with `vector % splat(scalar)`.
 );
 impl_binary_operator!(
     Shl,
     shl,
-    vec_shl,
+    vector_shl,
     /// Performs the `<<` operation for each vector element.
     ///
     /// # Examples
@@ -2006,12 +2006,12 @@ impl_binary_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including integer panics.
     ///
-    /// This operation is fully consistent with `vec << splat(scalar)`.
+    /// This operation is fully consistent with `vector << splat(scalar)`.
 );
 impl_binary_operator!(
     Shr,
     shr,
-    vec_shr,
+    vector_shr,
     /// Performs the `>>` operation for each vector element.
     ///
     /// # Examples
@@ -2047,12 +2047,12 @@ impl_binary_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including integer panics.
     ///
-    /// This operation is fully consistent with `vec >> splat(scalar)`.
+    /// This operation is fully consistent with `vector >> splat(scalar)`.
 );
 impl_binary_operator!(
     BitAnd,
     bitand,
-    vec_bitand,
+    vector_bitand,
     /// Performs the `&` operation for each vector element.
     ///
     /// # Examples
@@ -2079,12 +2079,12 @@ impl_binary_operator!(
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec & splat(scalar)`.
+    /// This operation is fully consistent with `vector & splat(scalar)`.
 );
 impl_binary_operator!(
     BitOr,
     bitor,
-    vec_bitor,
+    vector_bitor,
     /// Performs the `|` operation for each vector element.
     ///
     /// # Examples
@@ -2111,12 +2111,12 @@ impl_binary_operator!(
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec | splat(scalar)`.
+    /// This operation is fully consistent with `vector | splat(scalar)`.
 );
 impl_binary_operator!(
     BitXor,
     bitxor,
-    vec_bitxor,
+    vector_bitxor,
     /// Performs the `^` operation for each vector element.
     ///
     /// # Examples
@@ -2143,7 +2143,7 @@ impl_binary_operator!(
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec ^ splat(scalar)`.
+    /// This operation is fully consistent with `vector ^ splat(scalar)`.
 );
 
 macro_rules! impl_assign_operator {
@@ -2213,9 +2213,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec += Vec3::new(4, 5, 6);
-    /// assert_eq!(vec, Vec3::new(1 + 4, 2 + 5, 3 + 6));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector += Vec3::new(4, 5, 6);
+    /// assert_eq!(vector, Vec3::new(1 + 4, 2 + 5, 3 + 6));
     /// ```
     ///
     /// # Consistency
@@ -2223,7 +2223,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec + vec`.
+    /// This operation is fully consistent with `vector + vector`.
     ,
     /// Performs the `+=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2233,9 +2233,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec += 4;
-    /// assert_eq!(vec, Vec3::new(1 + 4, 2 + 4, 3 + 4));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector += 4;
+    /// assert_eq!(vector, Vec3::new(1 + 4, 2 + 4, 3 + 4));
     /// ```
     ///
     /// # Consistency
@@ -2243,7 +2243,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec + vec`.
+    /// This operation is fully consistent with `vector + vector`.
 );
 impl_assign_operator!(
     Sub,
@@ -2257,9 +2257,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(5, 7, 9);
-    /// vec -= Vec3::new(1, 2, 3);
-    /// assert_eq!(vec, Vec3::new(5 - 1, 7 - 2, 9 - 3));
+    /// let mut vector = Vec3::new(5, 7, 9);
+    /// vector -= Vec3::new(1, 2, 3);
+    /// assert_eq!(vector, Vec3::new(5 - 1, 7 - 2, 9 - 3));
     /// ```
     ///
     /// # Consistency
@@ -2267,7 +2267,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec - vec`.
+    /// This operation is fully consistent with `vector - vector`.
     ,
     /// Performs the `-=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2277,9 +2277,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(5, 7, 9);
-    /// vec -= 2;
-    /// assert_eq!(vec, Vec3::new(5 - 2, 7 - 2, 9 - 2));
+    /// let mut vector = Vec3::new(5, 7, 9);
+    /// vector -= 2;
+    /// assert_eq!(vector, Vec3::new(5 - 2, 7 - 2, 9 - 2));
     /// ```
     ///
     /// # Consistency
@@ -2287,7 +2287,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec - vec`.
+    /// This operation is fully consistent with `vector - vector`.
 );
 impl_assign_operator!(
     Mul,
@@ -2301,9 +2301,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec *= Vec3::new(4, 5, 6);
-    /// assert_eq!(vec, Vec3::new(1 * 4, 2 * 5, 3 * 6));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector *= Vec3::new(4, 5, 6);
+    /// assert_eq!(vector, Vec3::new(1 * 4, 2 * 5, 3 * 6));
     /// ```
     ///
     /// # Consistency
@@ -2311,7 +2311,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec * vec`.
+    /// This operation is fully consistent with `vector * vector`.
     ,
     /// Performs the `*=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2321,9 +2321,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec *= 4;
-    /// assert_eq!(vec, Vec3::new(1 * 4, 2 * 4, 3 * 4));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector *= 4;
+    /// assert_eq!(vector, Vec3::new(1 * 4, 2 * 4, 3 * 4));
     /// ```
     ///
     /// # Consistency
@@ -2331,7 +2331,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec * vec`.
+    /// This operation is fully consistent with `vector * vector`.
 );
 impl_assign_operator!(
     Div,
@@ -2345,9 +2345,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(8, 10, 12);
-    /// vec /= Vec3::new(2, 5, 3);
-    /// assert_eq!(vec, Vec3::new(8 / 2, 10 / 5, 12 / 3));
+    /// let mut vector = Vec3::new(8, 10, 12);
+    /// vector /= Vec3::new(2, 5, 3);
+    /// assert_eq!(vector, Vec3::new(8 / 2, 10 / 5, 12 / 3));
     /// ```
     ///
     /// # Consistency
@@ -2355,7 +2355,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec / vec`.
+    /// This operation is fully consistent with `vector / vector`.
     ,
     /// Performs the `/=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2365,9 +2365,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(8, 10, 12);
-    /// vec /= 2;
-    /// assert_eq!(vec, Vec3::new(8 / 2, 10 / 2, 12 / 2));
+    /// let mut vector = Vec3::new(8, 10, 12);
+    /// vector /= 2;
+    /// assert_eq!(vector, Vec3::new(8 / 2, 10 / 2, 12 / 2));
     /// ```
     ///
     /// # Consistency
@@ -2375,7 +2375,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `vec / vec`.
+    /// This operation is fully consistent with `vector / vector`.
 );
 impl_assign_operator!(
     Rem,
@@ -2389,9 +2389,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(5, 7, 9);
-    /// vec %= Vec3::new(2, 3, 4);
-    /// assert_eq!(vec, Vec3::new(5 % 2, 7 % 3, 9 % 4));
+    /// let mut vector = Vec3::new(5, 7, 9);
+    /// vector %= Vec3::new(2, 3, 4);
+    /// assert_eq!(vector, Vec3::new(5 % 2, 7 % 3, 9 % 4));
     /// ```
     ///
     /// # Consistency
@@ -2402,7 +2402,7 @@ impl_assign_operator!(
     /// For floats this operation may be inconsistent with the scalar operation,
     /// regarding precision and NaN propagation.
     ///
-    /// This operation is fully consistent with `vec % vec`.
+    /// This operation is fully consistent with `vector % vector`.
     ,
     /// Performs the `%=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2412,9 +2412,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(5, 7, 9);
-    /// vec %= 2;
-    /// assert_eq!(vec, Vec3::new(5 % 2, 7 % 2, 9 % 2));
+    /// let mut vector = Vec3::new(5, 7, 9);
+    /// vector %= 2;
+    /// assert_eq!(vector, Vec3::new(5 % 2, 7 % 2, 9 % 2));
     /// ```
     ///
     /// # Consistency
@@ -2425,7 +2425,7 @@ impl_assign_operator!(
     /// For floats this operation may be inconsistent with the scalar operation,
     /// regarding precision and NaN propagation.
     ///
-    /// This operation is fully consistent with `vec % vec`.
+    /// This operation is fully consistent with `vector % vector`.
 );
 impl_assign_operator!(
     Shl,
@@ -2439,9 +2439,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec <<= Vec3::new(1, 2, 3);
-    /// assert_eq!(vec, Vec3::new(1 << 1, 2 << 2, 3 << 3));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector <<= Vec3::new(1, 2, 3);
+    /// assert_eq!(vector, Vec3::new(1 << 1, 2 << 2, 3 << 3));
     /// ```
     ///
     /// # Consistency
@@ -2449,7 +2449,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including integer panics.
     ///
-    /// This operation is fully consistent with `vec << vec`.
+    /// This operation is fully consistent with `vector << vector`.
     ,
     /// Performs the `<<=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2459,9 +2459,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec <<= 1;
-    /// assert_eq!(vec, Vec3::new(1 << 1, 2 << 1, 3 << 1));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector <<= 1;
+    /// assert_eq!(vector, Vec3::new(1 << 1, 2 << 1, 3 << 1));
     /// ```
     ///
     /// # Consistency
@@ -2469,7 +2469,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including integer panics.
     ///
-    /// This operation is fully consistent with `vec << vec`.
+    /// This operation is fully consistent with `vector << vector`.
 );
 impl_assign_operator!(
     Shr,
@@ -2483,9 +2483,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(8, 16, 32);
-    /// vec >>= Vec3::new(1, 2, 3);
-    /// assert_eq!(vec, Vec3::new(8 >> 1, 16 >> 2, 32 >> 3));
+    /// let mut vector = Vec3::new(8, 16, 32);
+    /// vector >>= Vec3::new(1, 2, 3);
+    /// assert_eq!(vector, Vec3::new(8 >> 1, 16 >> 2, 32 >> 3));
     /// ```
     ///
     /// # Consistency
@@ -2493,7 +2493,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including integer panics.
     ///
-    /// This operation is fully consistent with `vec >> vec`.
+    /// This operation is fully consistent with `vector >> vector`.
     ,
     /// Performs the `>>=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2503,9 +2503,9 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(8, 16, 32);
-    /// vec >>= 1;
-    /// assert_eq!(vec, Vec3::new(8 >> 1, 16 >> 1, 32 >> 1));
+    /// let mut vector = Vec3::new(8, 16, 32);
+    /// vector >>= 1;
+    /// assert_eq!(vector, Vec3::new(8 >> 1, 16 >> 1, 32 >> 1));
     /// ```
     ///
     /// # Consistency
@@ -2513,7 +2513,7 @@ impl_assign_operator!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including integer panics.
     ///
-    /// This operation is fully consistent with `vec >> vec`.
+    /// This operation is fully consistent with `vector >> vector`.
 );
 impl_assign_operator!(
     BitAnd,
@@ -2527,14 +2527,14 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec &= Vec3::new(4, 5, 6);
-    /// assert_eq!(vec, Vec3::new(1 & 4, 2 & 5, 3 & 6));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector &= Vec3::new(4, 5, 6);
+    /// assert_eq!(vector, Vec3::new(1 & 4, 2 & 5, 3 & 6));
     /// ```
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec & vec`.
+    /// This operation is fully consistent with `vector & vector`.
     ,
     /// Performs the `&=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2544,14 +2544,14 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec &= 4;
-    /// assert_eq!(vec, Vec3::new(1 & 4, 2 & 4, 3 & 4));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector &= 4;
+    /// assert_eq!(vector, Vec3::new(1 & 4, 2 & 4, 3 & 4));
     /// ```
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec & vec`.
+    /// This operation is fully consistent with `vector & vector`.
 );
 impl_assign_operator!(
     BitOr,
@@ -2565,14 +2565,14 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec |= Vec3::new(4, 5, 6);
-    /// assert_eq!(vec, Vec3::new(1 | 4, 2 | 5, 3 | 6));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector |= Vec3::new(4, 5, 6);
+    /// assert_eq!(vector, Vec3::new(1 | 4, 2 | 5, 3 | 6));
     /// ```
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec | vec`.
+    /// This operation is fully consistent with `vector | vector`.
     ,
     /// Performs the `|=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2582,14 +2582,14 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec |= 4;
-    /// assert_eq!(vec, Vec3::new(1 | 4, 2 | 4, 3 | 4));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector |= 4;
+    /// assert_eq!(vector, Vec3::new(1 | 4, 2 | 4, 3 | 4));
     /// ```
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec | vec`.
+    /// This operation is fully consistent with `vector | vector`.
 );
 impl_assign_operator!(
     BitXor,
@@ -2603,14 +2603,14 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec ^= Vec3::new(4, 5, 6);
-    /// assert_eq!(vec, Vec3::new(1 ^ 4, 2 ^ 5, 3 ^ 6));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector ^= Vec3::new(4, 5, 6);
+    /// assert_eq!(vector, Vec3::new(1 ^ 4, 2 ^ 5, 3 ^ 6));
     /// ```
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec ^ vec`.
+    /// This operation is fully consistent with `vector ^ vector`.
     ,
     /// Performs the `^=` operation for each vector element and the scalar
     /// `rhs`.
@@ -2620,14 +2620,14 @@ impl_assign_operator!(
     /// ```
     /// # use ggmath::Vec3;
     /// #
-    /// let mut vec = Vec3::new(1, 2, 3);
-    /// vec ^= 4;
-    /// assert_eq!(vec, Vec3::new(1 ^ 4, 2 ^ 4, 3 ^ 4));
+    /// let mut vector = Vec3::new(1, 2, 3);
+    /// vector ^= 4;
+    /// assert_eq!(vector, Vec3::new(1 ^ 4, 2 ^ 4, 3 ^ 4));
     /// ```
     ///
     /// # Consistency
     ///
-    /// This operation is fully consistent with `vec ^ vec`.
+    /// This operation is fully consistent with `vector ^ vector`.
 );
 
 // SAFETY: Vectors are equivalent to consecutive values of `T` plus padding.
@@ -4219,43 +4219,43 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec += Vector::<2, T, A>::new(z, w);
-            assert_float_eq!(vec, Vector::<2, T, A>::new(x + z, y + w));
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector += Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vector, Vector::<2, T, A>::new(x + z, y + w));
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec += Vector::<3, T, A>::new(z, w, y);
-            assert_float_eq!(vec, Vector::<3, T, A>::new(x + z, y + w, z + y));
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector += Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vector, Vector::<3, T, A>::new(x + z, y + w, z + y));
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec += Vector::<4, T, A>::new(z, w, y, x);
-            assert_float_eq!(vec, Vector::<4, T, A>::new(x + z, y + w, z + y, w + x));
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector += Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vector, Vector::<4, T, A>::new(x + z, y + w, z + y, w + x));
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<2, T, A>::new(x, y);
-                    vec += Vector::<2, T, A>::new(z, w);
-                    vec
+                    let mut vector = Vector::<2, T, A>::new(x, y);
+                    vector += Vector::<2, T, A>::new(z, w);
+                    vector
                 },
                 Vector::<2, T, A>::new(x + z, y + w)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<3, T, A>::new(x, y, z);
-                    vec += Vector::<3, T, A>::new(z, w, y);
-                    vec
+                    let mut vector = Vector::<3, T, A>::new(x, y, z);
+                    vector += Vector::<3, T, A>::new(z, w, y);
+                    vector
                 },
                 Vector::<3, T, A>::new(x + z, y + w, z + y)
             );
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                    vec += Vector::<4, T, A>::new(z, w, y, x);
-                    vec
+                    let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                    vector += Vector::<4, T, A>::new(z, w, y, x);
+                    vector
                 },
                 Vector::<4, T, A>::new(x + z, y + w, z + y, w + x)
             );
@@ -4267,42 +4267,42 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec -= Vector::<2, T, A>::new(z, w);
-            assert_float_eq!(vec, Vector::<2, T, A>::new(x - z, y - w));
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector -= Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vector, Vector::<2, T, A>::new(x - z, y - w));
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec -= Vector::<3, T, A>::new(z, w, y);
-            assert_float_eq!(vec, Vector::<3, T, A>::new(x - z, y - w, z - y));
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector -= Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vector, Vector::<3, T, A>::new(x - z, y - w, z - y));
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec -= Vector::<4, T, A>::new(z, w, y, x);
-            assert_float_eq!(vec, Vector::<4, T, A>::new(x - z, y - w, z - y, w - x));
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector -= Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vector, Vector::<4, T, A>::new(x - z, y - w, z - y, w - x));
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<2, T, A>::new(x, y);
-                    vec -= Vector::<2, T, A>::new(z, w);
-                    vec
+                    let mut vector = Vector::<2, T, A>::new(x, y);
+                    vector -= Vector::<2, T, A>::new(z, w);
+                    vector
                 },
                 Vector::<2, T, A>::new(x - z, y - w)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<3, T, A>::new(x, y, z);
-                    vec -= Vector::<3, T, A>::new(z, w, y);
-                    vec
+                    let mut vector = Vector::<3, T, A>::new(x, y, z);
+                    vector -= Vector::<3, T, A>::new(z, w, y);
+                    vector
                 },
                 Vector::<3, T, A>::new(x - z, y - w, z - y)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                    vec -= Vector::<4, T, A>::new(z, w, y, x);
-                    vec
+                    let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                    vector -= Vector::<4, T, A>::new(z, w, y, x);
+                    vector
                 },
                 Vector::<4, T, A>::new(x - z, y - w, z - y, w - x)
             );
@@ -4314,42 +4314,42 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec *= Vector::<2, T, A>::new(z, w);
-            assert_float_eq!(vec, Vector::<2, T, A>::new(x * z, y * w));
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector *= Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vector, Vector::<2, T, A>::new(x * z, y * w));
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec *= Vector::<3, T, A>::new(z, w, y);
-            assert_float_eq!(vec, Vector::<3, T, A>::new(x * z, y * w, z * y));
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector *= Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vector, Vector::<3, T, A>::new(x * z, y * w, z * y));
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec *= Vector::<4, T, A>::new(z, w, y, x);
-            assert_float_eq!(vec, Vector::<4, T, A>::new(x * z, y * w, z * y, w * x));
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector *= Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vector, Vector::<4, T, A>::new(x * z, y * w, z * y, w * x));
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<2, T, A>::new(x, y);
-                    vec *= Vector::<2, T, A>::new(z, w);
-                    vec
+                    let mut vector = Vector::<2, T, A>::new(x, y);
+                    vector *= Vector::<2, T, A>::new(z, w);
+                    vector
                 },
                 Vector::<2, T, A>::new(x * z, y * w)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<3, T, A>::new(x, y, z);
-                    vec *= Vector::<3, T, A>::new(z, w, y);
-                    vec
+                    let mut vector = Vector::<3, T, A>::new(x, y, z);
+                    vector *= Vector::<3, T, A>::new(z, w, y);
+                    vector
                 },
                 Vector::<3, T, A>::new(x * z, y * w, z * y)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                    vec *= Vector::<4, T, A>::new(z, w, y, x);
-                    vec
+                    let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                    vector *= Vector::<4, T, A>::new(z, w, y, x);
+                    vector
                 },
                 Vector::<4, T, A>::new(x * z, y * w, z * y, w * x)
             );
@@ -4361,42 +4361,42 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec /= Vector::<2, T, A>::new(z, w);
-            assert_float_eq!(vec, Vector::<2, T, A>::new(x / z, y / w));
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector /= Vector::<2, T, A>::new(z, w);
+            assert_float_eq!(vector, Vector::<2, T, A>::new(x / z, y / w));
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec /= Vector::<3, T, A>::new(z, w, y);
-            assert_float_eq!(vec, Vector::<3, T, A>::new(x / z, y / w, z / y));
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector /= Vector::<3, T, A>::new(z, w, y);
+            assert_float_eq!(vector, Vector::<3, T, A>::new(x / z, y / w, z / y));
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec /= Vector::<4, T, A>::new(z, w, y, x);
-            assert_float_eq!(vec, Vector::<4, T, A>::new(x / z, y / w, z / y, w / x));
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector /= Vector::<4, T, A>::new(z, w, y, x);
+            assert_float_eq!(vector, Vector::<4, T, A>::new(x / z, y / w, z / y, w / x));
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<2, T, A>::new(x, y);
-                    vec /= Vector::<2, T, A>::new(z, w);
-                    vec
+                    let mut vector = Vector::<2, T, A>::new(x, y);
+                    vector /= Vector::<2, T, A>::new(z, w);
+                    vector
                 },
                 Vector::<2, T, A>::new(x / z, y / w)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<3, T, A>::new(x, y, z);
-                    vec /= Vector::<3, T, A>::new(z, w, y);
-                    vec
+                    let mut vector = Vector::<3, T, A>::new(x, y, z);
+                    vector /= Vector::<3, T, A>::new(z, w, y);
+                    vector
                 },
                 Vector::<3, T, A>::new(x / z, y / w, z / y)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                    vec /= Vector::<4, T, A>::new(z, w, y, x);
-                    vec
+                    let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                    vector /= Vector::<4, T, A>::new(z, w, y, x);
+                    vector
                 },
                 Vector::<4, T, A>::new(x / z, y / w, z / y, w / x)
             );
@@ -4412,26 +4412,26 @@ mod tests {
                 return;
             }
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec %= Vector::<2, T, A>::new(z, w);
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector %= Vector::<2, T, A>::new(z, w);
             assert_float_eq!(
-                vec,
+                vector,
                 Vector::<2, T, A>::new(x % z, y % w),
                 abs <= Vector::<2, T, A>::new(x, y).abs() * 0.00001
             );
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec %= Vector::<3, T, A>::new(z, w, y);
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector %= Vector::<3, T, A>::new(z, w, y);
             assert_float_eq!(
-                vec,
+                vector,
                 Vector::<3, T, A>::new(x % z, y % w, z % y),
                 abs <= Vector::<3, T, A>::new(x, y, z).abs() * 0.00001
             );
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec %= Vector::<4, T, A>::new(z, w, y, x);
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector %= Vector::<4, T, A>::new(z, w, y, x);
             assert_float_eq!(
-                vec,
+                vector,
                 Vector::<4, T, A>::new(x % z, y % w, z % y, w % x),
                 abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 0.00001
             );
@@ -4441,25 +4441,25 @@ mod tests {
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<2, T, A>::new(x, y);
-                    vec %= Vector::<2, T, A>::new(z, w);
-                    vec
+                    let mut vector = Vector::<2, T, A>::new(x, y);
+                    vector %= Vector::<2, T, A>::new(z, w);
+                    vector
                 },
                 Vector::<2, T, A>::new(x % z, y % w)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<3, T, A>::new(x, y, z);
-                    vec %= Vector::<3, T, A>::new(z, w, y);
-                    vec
+                    let mut vector = Vector::<3, T, A>::new(x, y, z);
+                    vector %= Vector::<3, T, A>::new(z, w, y);
+                    vector
                 },
                 Vector::<3, T, A>::new(x % z, y % w, z % y)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                    vec %= Vector::<4, T, A>::new(z, w, y, x);
-                    vec
+                    let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                    vector %= Vector::<4, T, A>::new(z, w, y, x);
+                    vector
                 },
                 Vector::<4, T, A>::new(x % z, y % w, z % y, w % x)
             );
@@ -4473,25 +4473,25 @@ mod tests {
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<2, T, A>::new(x, y);
-                    vec <<= Vector::<2, T, A>::new(z, w);
-                    vec
+                    let mut vector = Vector::<2, T, A>::new(x, y);
+                    vector <<= Vector::<2, T, A>::new(z, w);
+                    vector
                 },
                 Vector::<2, T, A>::new(x << z, y << w)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<3, T, A>::new(x, y, z);
-                    vec <<= Vector::<3, T, A>::new(z, w, y);
-                    vec
+                    let mut vector = Vector::<3, T, A>::new(x, y, z);
+                    vector <<= Vector::<3, T, A>::new(z, w, y);
+                    vector
                 },
                 Vector::<3, T, A>::new(x << z, y << w, z << y)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                    vec <<= Vector::<4, T, A>::new(z, w, y, x);
-                    vec
+                    let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                    vector <<= Vector::<4, T, A>::new(z, w, y, x);
+                    vector
                 },
                 Vector::<4, T, A>::new(x << z, y << w, z << y, w << x)
             );
@@ -4505,25 +4505,25 @@ mod tests {
 
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<2, T, A>::new(x, y);
-                    vec >>= Vector::<2, T, A>::new(z, w);
-                    vec
+                    let mut vector = Vector::<2, T, A>::new(x, y);
+                    vector >>= Vector::<2, T, A>::new(z, w);
+                    vector
                 },
                 Vector::<2, T, A>::new(x >> z, y >> w)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<3, T, A>::new(x, y, z);
-                    vec >>= Vector::<3, T, A>::new(z, w, y);
-                    vec
+                    let mut vector = Vector::<3, T, A>::new(x, y, z);
+                    vector >>= Vector::<3, T, A>::new(z, w, y);
+                    vector
                 },
                 Vector::<3, T, A>::new(x >> z, y >> w, z >> y)
             );
             assert_panic_eq!(
                 {
-                    let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                    vec >>= Vector::<4, T, A>::new(z, w, y, x);
-                    vec
+                    let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                    vector >>= Vector::<4, T, A>::new(z, w, y, x);
+                    vector
                 },
                 Vector::<4, T, A>::new(x >> z, y >> w, z >> y, w >> x)
             );
@@ -4535,17 +4535,17 @@ mod tests {
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec &= Vector::<2, T, A>::new(z, w);
-            assert_eq!(vec, Vector::<2, T, A>::new(x & z, y & w));
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector &= Vector::<2, T, A>::new(z, w);
+            assert_eq!(vector, Vector::<2, T, A>::new(x & z, y & w));
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec &= Vector::<3, T, A>::new(z, w, y);
-            assert_eq!(vec, Vector::<3, T, A>::new(x & z, y & w, z & y));
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector &= Vector::<3, T, A>::new(z, w, y);
+            assert_eq!(vector, Vector::<3, T, A>::new(x & z, y & w, z & y));
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec &= Vector::<4, T, A>::new(z, w, y, x);
-            assert_eq!(vec, Vector::<4, T, A>::new(x & z, y & w, z & y, w & x));
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector &= Vector::<4, T, A>::new(z, w, y, x);
+            assert_eq!(vector, Vector::<4, T, A>::new(x & z, y & w, z & y, w & x));
         });
     }
 
@@ -4554,17 +4554,17 @@ mod tests {
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec |= Vector::<2, T, A>::new(z, w);
-            assert_eq!(vec, Vector::<2, T, A>::new(x | z, y | w));
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector |= Vector::<2, T, A>::new(z, w);
+            assert_eq!(vector, Vector::<2, T, A>::new(x | z, y | w));
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec |= Vector::<3, T, A>::new(z, w, y);
-            assert_eq!(vec, Vector::<3, T, A>::new(x | z, y | w, z | y));
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector |= Vector::<3, T, A>::new(z, w, y);
+            assert_eq!(vector, Vector::<3, T, A>::new(x | z, y | w, z | y));
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec |= Vector::<4, T, A>::new(z, w, y, x);
-            assert_eq!(vec, Vector::<4, T, A>::new(x | z, y | w, z | y, w | x));
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector |= Vector::<4, T, A>::new(z, w, y, x);
+            assert_eq!(vector, Vector::<4, T, A>::new(x | z, y | w, z | y, w | x));
         });
     }
 
@@ -4573,17 +4573,17 @@ mod tests {
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut vec = Vector::<2, T, A>::new(x, y);
-            vec ^= Vector::<2, T, A>::new(z, w);
-            assert_eq!(vec, Vector::<2, T, A>::new(x ^ z, y ^ w));
+            let mut vector = Vector::<2, T, A>::new(x, y);
+            vector ^= Vector::<2, T, A>::new(z, w);
+            assert_eq!(vector, Vector::<2, T, A>::new(x ^ z, y ^ w));
 
-            let mut vec = Vector::<3, T, A>::new(x, y, z);
-            vec ^= Vector::<3, T, A>::new(z, w, y);
-            assert_eq!(vec, Vector::<3, T, A>::new(x ^ z, y ^ w, z ^ y));
+            let mut vector = Vector::<3, T, A>::new(x, y, z);
+            vector ^= Vector::<3, T, A>::new(z, w, y);
+            assert_eq!(vector, Vector::<3, T, A>::new(x ^ z, y ^ w, z ^ y));
 
-            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-            vec ^= Vector::<4, T, A>::new(z, w, y, x);
-            assert_eq!(vec, Vector::<4, T, A>::new(x ^ z, y ^ w, z ^ y, w ^ x));
+            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+            vector ^= Vector::<4, T, A>::new(z, w, y, x);
+            assert_eq!(vector, Vector::<4, T, A>::new(x ^ z, y ^ w, z ^ y, w ^ x));
         });
     }
 }

@@ -871,9 +871,9 @@ mod tests {
                     assert_eq!(
                         Vector::<2, T, A>::new(x, y).@['with_ x](z),
                         {
-                            let mut vec = Vector::<2, T, A>::new(x, y);
-                            vec.@x = z;
-                            vec
+                            let mut vector = Vector::<2, T, A>::new(x, y);
+                            vector.@x = z;
+                            vector
                         }
                     );
                 }
@@ -881,9 +881,9 @@ mod tests {
                     assert_eq!(
                         Vector::<3, T, A>::new(x, y, z).@['with_ x](w),
                         {
-                            let mut vec = Vector::<3, T, A>::new(x, y, z);
-                            vec.@x = w;
-                            vec
+                            let mut vector = Vector::<3, T, A>::new(x, y, z);
+                            vector.@x = w;
+                            vector
                         }
                     );
                 }
@@ -891,9 +891,9 @@ mod tests {
                     assert_eq!(
                         Vector::<4, T, A>::new(x, y, z, w).@['with_ x](a),
                         {
-                            let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                            vec.@x = a;
-                            vec
+                            let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                            vector.@x = a;
+                            vector
                         }
                     );
                 }
@@ -913,10 +913,10 @@ mod tests {
                             Vector::<2, T, A>::new(x, y)
                                 .@['with_ x y](Vector::<2, T, A>::new(z, w)),
                             {
-                                let mut vec = Vector::<2, T, A>::new(x, y);
-                                vec.@x = z;
-                                vec.@y = w;
-                                vec
+                                let mut vector = Vector::<2, T, A>::new(x, y);
+                                vector.@x = z;
+                                vector.@y = w;
+                                vector
                             }
                         );
                     }
@@ -927,10 +927,10 @@ mod tests {
                             Vector::<3, T, A>::new(x, y, z)
                                 .@['with_ x y](Vector::<2, T, A>::new(w, a)),
                             {
-                                let mut vec = Vector::<3, T, A>::new(x, y, z);
-                                vec.@x = w;
-                                vec.@y = a;
-                                vec
+                                let mut vector = Vector::<3, T, A>::new(x, y, z);
+                                vector.@x = w;
+                                vector.@y = a;
+                                vector
                             }
                         );
                     }
@@ -941,10 +941,10 @@ mod tests {
                             Vector::<4, T, A>::new(x, y, z, w)
                                 .@['with_ x y](Vector::<2, T, A>::new(a, b)),
                             {
-                                let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                                vec.@x = a;
-                                vec.@y = b;
-                                vec
+                                let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                                vector.@x = a;
+                                vector.@y = b;
+                                vector
                             }
                         );
                     }
@@ -965,11 +965,11 @@ mod tests {
                             Vector::<3, T, A>::new(x, y, z)
                                 .@['with_ x y z](Vector::<3, T, A>::new(w, a, b)),
                             {
-                                let mut vec = Vector::<3, T, A>::new(x, y, z);
-                                vec.@x = w;
-                                vec.@y = a;
-                                vec.@z = b;
-                                vec
+                                let mut vector = Vector::<3, T, A>::new(x, y, z);
+                                vector.@x = w;
+                                vector.@y = a;
+                                vector.@z = b;
+                                vector
                             }
                         );
                     }
@@ -980,11 +980,11 @@ mod tests {
                             Vector::<4, T, A>::new(x, y, z, w)
                                 .@['with_ x y z](Vector::<3, T, A>::new(a, b, c)),
                             {
-                                let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                                vec.@x = a;
-                                vec.@y = b;
-                                vec.@z = c;
-                                vec
+                                let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                                vector.@x = a;
+                                vector.@y = b;
+                                vector.@z = c;
+                                vector
                             }
                         );
                     }
@@ -1010,12 +1010,12 @@ mod tests {
                             Vector::<4, T, A>::new(x, y, z, w)
                                 .@['with_ x y z w](Vector::<4, T, A>::new(a, b, c, d)),
                             {
-                                let mut vec = Vector::<4, T, A>::new(x, y, z, w);
-                                vec.@x = a;
-                                vec.@y = b;
-                                vec.@z = c;
-                                vec.@w = d;
-                                vec
+                                let mut vector = Vector::<4, T, A>::new(x, y, z, w);
+                                vector.@x = a;
+                                vector.@y = b;
+                                vector.@z = c;
+                                vector.@w = d;
+                                vector
                             }
                         );
                     }

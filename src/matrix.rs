@@ -556,12 +556,12 @@ where
     /// ```
     /// # use ggmath::{Mat4, Vec4};
     /// #
-    /// let mat = Mat4::from_column_fn(|i| Vec4::new(i, i, i, 0));
+    /// let matrix = Mat4::from_column_fn(|i| Vec4::new(i, i, i, 0));
     ///
-    /// assert_eq!(mat.column(0), Vec4::new(0, 0, 0, 0));
-    /// assert_eq!(mat.column(1), Vec4::new(1, 1, 1, 0));
-    /// assert_eq!(mat.column(2), Vec4::new(2, 2, 2, 0));
-    /// assert_eq!(mat.column(3), Vec4::new(3, 3, 3, 0));
+    /// assert_eq!(matrix.column(0), Vec4::new(0, 0, 0, 0));
+    /// assert_eq!(matrix.column(1), Vec4::new(1, 1, 1, 0));
+    /// assert_eq!(matrix.column(2), Vec4::new(2, 2, 2, 0));
+    /// assert_eq!(matrix.column(3), Vec4::new(3, 3, 3, 0));
     /// ```
     #[inline]
     #[must_use]
@@ -581,17 +581,17 @@ where
     /// ```
     /// # use ggmath::{Mat4, Vec4};
     /// #
-    /// let mat = Mat4::from_diagonal(Vec4::new(2, 2, 2, 1));
+    /// let matrix = Mat4::from_diagonal(Vec4::new(2, 2, 2, 1));
     ///
-    /// assert_eq!(mat.column(0), Vec4::new(2, 0, 0, 0));
-    /// assert_eq!(mat.column(1), Vec4::new(0, 2, 0, 0));
-    /// assert_eq!(mat.column(2), Vec4::new(0, 0, 2, 0));
-    /// assert_eq!(mat.column(3), Vec4::new(0, 0, 0, 1));
+    /// assert_eq!(matrix.column(0), Vec4::new(2, 0, 0, 0));
+    /// assert_eq!(matrix.column(1), Vec4::new(0, 2, 0, 0));
+    /// assert_eq!(matrix.column(2), Vec4::new(0, 0, 2, 0));
+    /// assert_eq!(matrix.column(3), Vec4::new(0, 0, 0, 1));
     ///
-    /// assert_eq!(mat.row(0), Vec4::new(2, 0, 0, 0));
-    /// assert_eq!(mat.row(1), Vec4::new(0, 2, 0, 0));
-    /// assert_eq!(mat.row(2), Vec4::new(0, 0, 2, 0));
-    /// assert_eq!(mat.row(3), Vec4::new(0, 0, 0, 1));
+    /// assert_eq!(matrix.row(0), Vec4::new(2, 0, 0, 0));
+    /// assert_eq!(matrix.row(1), Vec4::new(0, 2, 0, 0));
+    /// assert_eq!(matrix.row(2), Vec4::new(0, 0, 2, 0));
+    /// assert_eq!(matrix.row(3), Vec4::new(0, 0, 0, 1));
     /// ```
     #[inline]
     #[must_use]
@@ -700,12 +700,12 @@ where
             // are the same type, and `Matrix<N, T, A2>` and `Matrix<3, T, A2>`
             // are the same type.
             (3, false) => unsafe {
-                let mat = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
+                let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
                 transmute_generic::<Matrix<3, T, A2>, Matrix<N, T, A2>>(
                     Matrix::<3, T, A2>::from_columns(&[
-                        mat.as_columns()[0].to_alignment(),
-                        mat.as_columns()[1].to_alignment(),
-                        mat.as_columns()[2].to_alignment(),
+                        matrix.as_columns()[0].to_alignment(),
+                        matrix.as_columns()[1].to_alignment(),
+                        matrix.as_columns()[2].to_alignment(),
                     ]),
                 )
             },
@@ -808,17 +808,17 @@ where
     /// ```
     /// # use ggmath::{Mat4, Vec4};
     /// #
-    /// let mat = Mat4::from_columns(&[
+    /// let matrix = Mat4::from_columns(&[
     ///     Vec4::new(1, 2, 3, 4),
     ///     Vec4::new(1, 2, 3, 4),
     ///     Vec4::new(1, 2, 3, 4),
     ///     Vec4::new(0, 0, 0, 1),
     /// ]);
     ///
-    /// assert_eq!(mat.row(0), Vec4::new(1, 1, 1, 0));
-    /// assert_eq!(mat.row(1), Vec4::new(2, 2, 2, 0));
-    /// assert_eq!(mat.row(2), Vec4::new(3, 3, 3, 0));
-    /// assert_eq!(mat.row(3), Vec4::new(4, 4, 4, 1));
+    /// assert_eq!(matrix.row(0), Vec4::new(1, 1, 1, 0));
+    /// assert_eq!(matrix.row(1), Vec4::new(2, 2, 2, 0));
+    /// assert_eq!(matrix.row(2), Vec4::new(3, 3, 3, 0));
+    /// assert_eq!(matrix.row(3), Vec4::new(4, 4, 4, 1));
     /// ```
     #[inline]
     #[must_use]
@@ -829,10 +829,10 @@ where
             // are the same type, and `Vector<2, T, A>` and `Vector<N, T, A>`
             // are the same type.
             2 => unsafe {
-                let mat = transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
+                let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
                 transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(Vector::<2, T, A>::new(
-                    mat.as_columns()[0].as_array_ref()[index],
-                    mat.as_columns()[1].as_array_ref()[index],
+                    matrix.as_columns()[0].as_array_ref()[index],
+                    matrix.as_columns()[1].as_array_ref()[index],
                 ))
             },
 
@@ -840,11 +840,11 @@ where
             // are the same type, and `Vector<3, T, A>` and `Vector<N, T, A>`
             // are the same type.
             3 => unsafe {
-                let mat = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
+                let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
                 transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(Vector::<3, T, A>::new(
-                    mat.as_columns()[0].as_array_ref()[index],
-                    mat.as_columns()[1].as_array_ref()[index],
-                    mat.as_columns()[2].as_array_ref()[index],
+                    matrix.as_columns()[0].as_array_ref()[index],
+                    matrix.as_columns()[1].as_array_ref()[index],
+                    matrix.as_columns()[2].as_array_ref()[index],
                 ))
             },
 
@@ -852,12 +852,12 @@ where
             // are the same type, and `Vector<4, T, A>` and `Vector<N, T, A>`
             // are the same type.
             4 => unsafe {
-                let mat = transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
+                let matrix = transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
                 transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(Vector::<4, T, A>::new(
-                    mat.as_columns()[0].as_array_ref()[index],
-                    mat.as_columns()[1].as_array_ref()[index],
-                    mat.as_columns()[2].as_array_ref()[index],
-                    mat.as_columns()[3].as_array_ref()[index],
+                    matrix.as_columns()[0].as_array_ref()[index],
+                    matrix.as_columns()[1].as_array_ref()[index],
+                    matrix.as_columns()[2].as_array_ref()[index],
+                    matrix.as_columns()[3].as_array_ref()[index],
                 ))
             },
 
@@ -876,18 +876,18 @@ where
     /// ```
     /// # use ggmath::{Mat4, Vec4};
     /// #
-    /// let mut mat = Mat4::from_columns(&[
+    /// let mut matrix = Mat4::from_columns(&[
     ///     Vec4::new(1, 2, 3, 4),
     ///     Vec4::new(1, 2, 3, 4),
     ///     Vec4::new(1, 2, 3, 4),
     ///     Vec4::new(0, 0, 0, 1),
     /// ]);
-    /// mat.set_row(1, Vec4::new(5, 5, 5, 0));
+    /// matrix.set_row(1, Vec4::new(5, 5, 5, 0));
     ///
-    /// assert_eq!(mat.column(0), Vec4::new(1, 5, 3, 4));
-    /// assert_eq!(mat.column(1), Vec4::new(1, 5, 3, 4));
-    /// assert_eq!(mat.column(2), Vec4::new(1, 5, 3, 4));
-    /// assert_eq!(mat.column(3), Vec4::new(0, 0, 0, 1));
+    /// assert_eq!(matrix.column(0), Vec4::new(1, 5, 3, 4));
+    /// assert_eq!(matrix.column(1), Vec4::new(1, 5, 3, 4));
+    /// assert_eq!(matrix.column(2), Vec4::new(1, 5, 3, 4));
+    /// assert_eq!(matrix.column(3), Vec4::new(0, 0, 0, 1));
     /// ```
     #[inline]
     #[track_caller]
@@ -896,28 +896,28 @@ where
             // SAFETY: Because `N == 2`, `Matrix<N, T, A>` and `Matrix<2, T, A>`
             // are the same type.
             2 => unsafe {
-                let mat = transmute_mut::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
-                mat.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                mat.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
+                let matrix = transmute_mut::<Matrix<N, T, A>, Matrix<2, T, A>>(self);
+                matrix.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
+                matrix.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
             },
 
             // SAFETY: Because `N == 3`, `Matrix<N, T, A>` and `Matrix<3, T, A>`
             // are the same type.
             3 => unsafe {
-                let mat = transmute_mut::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
-                mat.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                mat.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
-                mat.as_columns_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
+                let matrix = transmute_mut::<Matrix<N, T, A>, Matrix<3, T, A>>(self);
+                matrix.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
+                matrix.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
+                matrix.as_columns_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
             },
 
             // SAFETY: Because `N == 4`, `Matrix<N, T, A>` and `Matrix<4, T, A>`
             // are the same type.
             4 => unsafe {
-                let mat = transmute_mut::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
-                mat.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
-                mat.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
-                mat.as_columns_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
-                mat.as_columns_mut()[3].as_array_mut()[index] = value.as_array_ref()[3];
+                let matrix = transmute_mut::<Matrix<N, T, A>, Matrix<4, T, A>>(self);
+                matrix.as_columns_mut()[0].as_array_mut()[index] = value.as_array_ref()[0];
+                matrix.as_columns_mut()[1].as_array_mut()[index] = value.as_array_ref()[1];
+                matrix.as_columns_mut()[2].as_array_mut()[index] = value.as_array_ref()[2];
+                matrix.as_columns_mut()[3].as_array_mut()[index] = value.as_array_ref()[3];
             },
 
             _ => unreachable!(),
@@ -931,14 +931,14 @@ where
     /// ```
     /// # use ggmath::{Mat4, Vec4};
     /// #
-    /// let mat = Mat4::from_columns(&[
+    /// let matrix = Mat4::from_columns(&[
     ///     Vec4::new(1, 1, 1, 0),
     ///     Vec4::new(2, 2, 2, 0),
     ///     Vec4::new(3, 3, 3, 0),
     ///     Vec4::new(4, 4, 4, 1),
     /// ]);
     /// assert_eq!(
-    ///     mat.transpose(),
+    ///     matrix.transpose(),
     ///     Mat4::from_columns(&[
     ///         Vec4::new(1, 2, 3, 4),
     ///         Vec4::new(1, 2, 3, 4),
@@ -960,7 +960,7 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn transpose_mul_vec(&self, rhs: Vector<N, T, A>) -> Vector<N, T, A>
+    pub fn transpose_mul_vector(&self, rhs: Vector<N, T, A>) -> Vector<N, T, A>
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
@@ -974,14 +974,14 @@ where
     /// ```
     /// # use ggmath::{Mat4, Vec4};
     /// #
-    /// let mat = Mat4::from_columns(&[
+    /// let matrix = Mat4::from_columns(&[
     ///     Vec4::new(1, 1, 1, 0),
     ///     Vec4::new(2, 2, 2, 0),
     ///     Vec4::new(3, 3, 3, 0),
     ///     Vec4::new(4, 4, 4, 1),
     /// ]);
     ///
-    /// assert_eq!(mat.diagonal(), Vec4::new(1, 2, 3, 1));
+    /// assert_eq!(matrix.diagonal(), Vec4::new(1, 2, 3, 1));
     /// ```
     #[inline]
     #[must_use]
@@ -1047,9 +1047,9 @@ where
     /// ```
     /// # use ggmath::{Mat3, Vec2};
     /// #
-    /// let mat = Mat3::from_scale(Vec2::new(2, 2));
+    /// let matrix = Mat3::from_scale(Vec2::new(2, 2));
     ///
-    /// assert_eq!(mat.determinant(), 4);
+    /// assert_eq!(matrix.determinant(), 4);
     /// ```
     #[must_use]
     #[track_caller]
@@ -1060,24 +1060,24 @@ where
         match N {
             2 => {
                 // SAFETY: Because `N == 2`, `Matrix<N, T, A>` is `Matrix<2, T, A>`.
-                let mat = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self) };
+                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self) };
 
-                mat.x_axis.x * mat.y_axis.y - mat.x_axis.y * mat.y_axis.x
+                matrix.x_axis.x * matrix.y_axis.y - matrix.x_axis.y * matrix.y_axis.x
             }
             3 => {
                 // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is `Matrix<3, T, A>`.
-                let mat = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self) };
+                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self) };
 
-                mat.x_axis.cross(mat.y_axis).dot(mat.z_axis)
+                matrix.x_axis.cross(matrix.y_axis).dot(matrix.z_axis)
             }
             4 => {
                 // SAFETY: Because `N == 4`, `Matrix<N, T, A>` is `Matrix<4, T, A>`.
-                let mat = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self) };
+                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self) };
 
-                let [m00, m01, m02, m03] = mat.x_axis.to_array();
-                let [m10, m11, m12, m13] = mat.y_axis.to_array();
-                let [m20, m21, m22, m23] = mat.z_axis.to_array();
-                let [m30, m31, m32, m33] = mat.w_axis.to_array();
+                let [m00, m01, m02, m03] = matrix.x_axis.to_array();
+                let [m10, m11, m12, m13] = matrix.y_axis.to_array();
+                let [m20, m21, m22, m23] = matrix.z_axis.to_array();
+                let [m30, m31, m32, m33] = matrix.w_axis.to_array();
 
                 let a2323 = m22 * m33 - m23 * m32;
                 let a1323 = m21 * m33 - m23 * m31;
@@ -1164,8 +1164,8 @@ where
     /// ```
     /// # use ggmath::{Mat2, Vec2};
     /// #
-    /// let mat = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
-    /// assert_eq!(mat, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
+    /// let matrix = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(matrix, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
     /// ```
     #[inline]
     #[must_use]
@@ -1188,8 +1188,8 @@ where
     /// ```
     /// # use ggmath::{Mat2, Vec2};
     /// #
-    /// let mat = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
-    /// assert_eq!(mat, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
+    /// let matrix = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(matrix, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
     /// ```
     #[inline]
     #[must_use]
@@ -1410,8 +1410,8 @@ where
     /// ```
     /// # use ggmath::{Mat2, Vec2};
     /// #
-    /// let mat = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
-    /// assert_eq!(mat, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
+    /// let matrix = Mat2::from_column_array(&[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(matrix, Mat2::from_columns(&[Vec2::new(1.0, 2.0), Vec2::new(3.0, 4.0)]));
     /// ```
     #[inline]
     #[must_use]
@@ -1893,13 +1893,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::mat_eq(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::matrix_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::mat_ne(self, other))
+        specialize!(<T as ScalarBackend<N, A>>::matrix_ne(self, other))
     }
 }
 
@@ -1962,7 +1962,7 @@ macro_rules! impl_neg {
             #[inline]
             #[track_caller]
             fn neg(self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::mat_neg(self))
+                specialize!(<T as ScalarBackend<N, A>>::matrix_neg(self))
             }
         }
     };
@@ -2036,7 +2036,7 @@ macro_rules! impl_add {
             #[inline]
             #[track_caller]
             fn add(self, rhs: Self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::mat_add(self, rhs))
+                specialize!(<T as ScalarBackend<N, A>>::matrix_add(self, rhs))
             }
         }
     };
@@ -2098,7 +2098,7 @@ impl_add_assign!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `mat + mat`.
+    /// This operation is fully consistent with `matrix + matrix`.
 );
 
 macro_rules! impl_sub {
@@ -2159,7 +2159,7 @@ macro_rules! impl_sub {
             #[inline]
             #[track_caller]
             fn sub(self, rhs: Self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::mat_sub(self, rhs))
+                specialize!(<T as ScalarBackend<N, A>>::matrix_sub(self, rhs))
             }
         }
     };
@@ -2221,7 +2221,7 @@ impl_sub_assign!(
     /// For primitive types this operation is fully consistent with the scalar
     /// operation, including floating-point precision and integer panics.
     ///
-    /// This operation is fully consistent with `mat - mat`.
+    /// This operation is fully consistent with `matrix - matrix`.
 );
 
 macro_rules! impl_mul_scalar {
@@ -2267,7 +2267,7 @@ macro_rules! impl_mul_scalar {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: T) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::mat_mul_scalar(self, rhs))
+                specialize!(<T as ScalarBackend<N, A>>::matrix_mul_scalar(self, rhs))
             }
         }
 
@@ -2346,7 +2346,7 @@ impl_mul_assign_scalar!(
     /// This operation is fully consistent with `matrix * scalar`.
 );
 
-macro_rules! impl_mul_vec {
+macro_rules! impl_mul_vector {
     ($(#[$doc:meta])*) => {
         impl<const N: usize, T, A: Alignment> Mul<Vector<N, T, A>> for Matrix<N, T, A>
         where
@@ -2389,7 +2389,7 @@ macro_rules! impl_mul_vec {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Vector<N, T, A>) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::mat_mul_vec(self, rhs))
+                specialize!(<T as ScalarBackend<N, A>>::matrix_mul_vector(self, rhs))
             }
         }
 
@@ -2409,7 +2409,7 @@ macro_rules! impl_mul_vec {
         }
     };
 }
-impl_mul_vec!(
+impl_mul_vector!(
     /// Matrix-vector multiplication.
     ///
     /// Because vectors are treated as column matrices, they always go on the
@@ -2482,7 +2482,7 @@ macro_rules! impl_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Matrix<N, T, A>) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::mat_mul(self, rhs))
+                specialize!(<T as ScalarBackend<N, A>>::matrix_mul(self, rhs))
             }
         }
     };
@@ -2593,7 +2593,7 @@ macro_rules! impl_div_scalar {
             #[inline]
             #[track_caller]
             fn div(self, rhs: T) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::mat_div_scalar(self, rhs))
+                specialize!(<T as ScalarBackend<N, A>>::matrix_div_scalar(self, rhs))
             }
         }
 
@@ -3182,35 +3182,35 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
 
-            let mat = Matrix::<2, T, A>::from_columns(&[
+            let matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            assert_eq!(mat.column(0), Vector::<2, T, A>::new(x, y));
-            assert_eq!(mat.column(1), Vector::<2, T, A>::new(z, w));
-            assert_panic!(mat.column(2));
+            assert_eq!(matrix.column(0), Vector::<2, T, A>::new(x, y));
+            assert_eq!(matrix.column(1), Vector::<2, T, A>::new(z, w));
+            assert_panic!(matrix.column(2));
 
-            let mat = Matrix::<3, T, A>::from_columns(&[
+            let matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(w, a, b),
                 Vector::<3, T, A>::new(c, d, e),
             ]);
-            assert_eq!(mat.column(0), Vector::<3, T, A>::new(x, y, z));
-            assert_eq!(mat.column(1), Vector::<3, T, A>::new(w, a, b));
-            assert_eq!(mat.column(2), Vector::<3, T, A>::new(c, d, e));
-            assert_panic!(mat.column(3));
+            assert_eq!(matrix.column(0), Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(matrix.column(1), Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(matrix.column(2), Vector::<3, T, A>::new(c, d, e));
+            assert_panic!(matrix.column(3));
 
-            let mat = Matrix::<4, T, A>::from_columns(&[
+            let matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(a, b, c, d),
                 Vector::<4, T, A>::new(e, f, g, h),
                 Vector::<4, T, A>::new(i, j, k, l),
             ]);
-            assert_eq!(mat.column(0), Vector::<4, T, A>::new(x, y, z, w));
-            assert_eq!(mat.column(1), Vector::<4, T, A>::new(a, b, c, d));
-            assert_eq!(mat.column(2), Vector::<4, T, A>::new(e, f, g, h));
-            assert_eq!(mat.column(3), Vector::<4, T, A>::new(i, j, k, l));
-            assert_panic!(mat.column(4));
+            assert_eq!(matrix.column(0), Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(matrix.column(1), Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(matrix.column(2), Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(matrix.column(3), Vector::<4, T, A>::new(i, j, k, l));
+            assert_panic!(matrix.column(4));
         });
     }
 
@@ -3219,35 +3219,47 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
 
-            let mut mat = Matrix::<2, T, A>::from_columns(&[
+            let mut matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            assert_eq!(mat.column_mut(0), &mut Vector::<2, T, A>::new(x, y));
-            assert_eq!(mat.column_mut(1), &mut Vector::<2, T, A>::new(z, w));
-            assert_panic!(mat.clone().column_mut(2));
+            assert_eq!(matrix.column_mut(0), &mut Vector::<2, T, A>::new(x, y));
+            assert_eq!(matrix.column_mut(1), &mut Vector::<2, T, A>::new(z, w));
+            assert_panic!(matrix.clone().column_mut(2));
 
-            let mut mat = Matrix::<3, T, A>::from_columns(&[
+            let mut matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(w, a, b),
                 Vector::<3, T, A>::new(c, d, e),
             ]);
-            assert_eq!(mat.column_mut(0), &mut Vector::<3, T, A>::new(x, y, z));
-            assert_eq!(mat.column_mut(1), &mut Vector::<3, T, A>::new(w, a, b));
-            assert_eq!(mat.column_mut(2), &mut Vector::<3, T, A>::new(c, d, e));
-            assert_panic!(mat.clone().column_mut(3));
+            assert_eq!(matrix.column_mut(0), &mut Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(matrix.column_mut(1), &mut Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(matrix.column_mut(2), &mut Vector::<3, T, A>::new(c, d, e));
+            assert_panic!(matrix.clone().column_mut(3));
 
-            let mut mat = Matrix::<4, T, A>::from_columns(&[
+            let mut matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(a, b, c, d),
                 Vector::<4, T, A>::new(e, f, g, h),
                 Vector::<4, T, A>::new(i, j, k, l),
             ]);
-            assert_eq!(mat.column_mut(0), &mut Vector::<4, T, A>::new(x, y, z, w));
-            assert_eq!(mat.column_mut(1), &mut Vector::<4, T, A>::new(a, b, c, d));
-            assert_eq!(mat.column_mut(2), &mut Vector::<4, T, A>::new(e, f, g, h));
-            assert_eq!(mat.column_mut(3), &mut Vector::<4, T, A>::new(i, j, k, l));
-            assert_panic!(mat.clone().column_mut(4));
+            assert_eq!(
+                matrix.column_mut(0),
+                &mut Vector::<4, T, A>::new(x, y, z, w)
+            );
+            assert_eq!(
+                matrix.column_mut(1),
+                &mut Vector::<4, T, A>::new(a, b, c, d)
+            );
+            assert_eq!(
+                matrix.column_mut(2),
+                &mut Vector::<4, T, A>::new(e, f, g, h)
+            );
+            assert_eq!(
+                matrix.column_mut(3),
+                &mut Vector::<4, T, A>::new(i, j, k, l)
+            );
+            assert_panic!(matrix.clone().column_mut(4));
         });
     }
 
@@ -3256,35 +3268,35 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
 
-            let mat = Matrix::<2, T, A>::from_columns(&[
+            let matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            assert_eq!(mat.row(0), Vector::<2, T, A>::new(x, z));
-            assert_eq!(mat.row(1), Vector::<2, T, A>::new(y, w));
-            assert_panic!(mat.row(2));
+            assert_eq!(matrix.row(0), Vector::<2, T, A>::new(x, z));
+            assert_eq!(matrix.row(1), Vector::<2, T, A>::new(y, w));
+            assert_panic!(matrix.row(2));
 
-            let mat = Matrix::<3, T, A>::from_columns(&[
+            let matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(w, a, b),
                 Vector::<3, T, A>::new(c, d, e),
             ]);
-            assert_eq!(mat.row(0), Vector::<3, T, A>::new(x, w, c));
-            assert_eq!(mat.row(1), Vector::<3, T, A>::new(y, a, d));
-            assert_eq!(mat.row(2), Vector::<3, T, A>::new(z, b, e));
-            assert_panic!(mat.row(3));
+            assert_eq!(matrix.row(0), Vector::<3, T, A>::new(x, w, c));
+            assert_eq!(matrix.row(1), Vector::<3, T, A>::new(y, a, d));
+            assert_eq!(matrix.row(2), Vector::<3, T, A>::new(z, b, e));
+            assert_panic!(matrix.row(3));
 
-            let mat = Matrix::<4, T, A>::from_columns(&[
+            let matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(a, b, c, d),
                 Vector::<4, T, A>::new(e, f, g, h),
                 Vector::<4, T, A>::new(i, j, k, l),
             ]);
-            assert_eq!(mat.row(0), Vector::<4, T, A>::new(x, a, e, i));
-            assert_eq!(mat.row(1), Vector::<4, T, A>::new(y, b, f, j));
-            assert_eq!(mat.row(2), Vector::<4, T, A>::new(z, c, g, k));
-            assert_eq!(mat.row(3), Vector::<4, T, A>::new(w, d, h, l));
-            assert_panic!(mat.row(4));
+            assert_eq!(matrix.row(0), Vector::<4, T, A>::new(x, a, e, i));
+            assert_eq!(matrix.row(1), Vector::<4, T, A>::new(y, b, f, j));
+            assert_eq!(matrix.row(2), Vector::<4, T, A>::new(z, c, g, k));
+            assert_eq!(matrix.row(3), Vector::<4, T, A>::new(w, d, h, l));
+            assert_panic!(matrix.row(4));
         });
     }
 
@@ -3293,71 +3305,71 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
 
-            let mut mat = Matrix::<2, T, A>::from_columns(&[
+            let mut matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            mat.set_row(0, Vector::<2, T, A>::new(a, b));
+            matrix.set_row(0, Vector::<2, T, A>::new(a, b));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(a, y),
                     Vector::<2, T, A>::new(b, w)
                 ])
             );
-            mat.set_row(1, Vector::<2, T, A>::new(c, d));
+            matrix.set_row(1, Vector::<2, T, A>::new(c, d));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<2, T, A>::from_columns(&[
                     Vector::<2, T, A>::new(a, c),
                     Vector::<2, T, A>::new(b, d)
                 ])
             );
-            assert_panic!(mat.clone().set_row(2, Vector::ZERO));
+            assert_panic!(matrix.clone().set_row(2, Vector::ZERO));
 
-            let mut mat = Matrix::<3, T, A>::from_columns(&[
+            let mut matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(w, a, b),
                 Vector::<3, T, A>::new(c, d, e),
             ]);
-            mat.set_row(0, Vector::<3, T, A>::new(a, b, d));
+            matrix.set_row(0, Vector::<3, T, A>::new(a, b, d));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(a, y, z),
                     Vector::<3, T, A>::new(b, a, b),
                     Vector::<3, T, A>::new(d, d, e)
                 ])
             );
-            mat.set_row(1, Vector::<3, T, A>::new(x, y, z));
+            matrix.set_row(1, Vector::<3, T, A>::new(x, y, z));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(a, x, z),
                     Vector::<3, T, A>::new(b, y, b),
                     Vector::<3, T, A>::new(d, z, e)
                 ])
             );
-            mat.set_row(2, Vector::<3, T, A>::new(e, f, g));
+            matrix.set_row(2, Vector::<3, T, A>::new(e, f, g));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<3, T, A>::from_columns(&[
                     Vector::<3, T, A>::new(a, x, e),
                     Vector::<3, T, A>::new(b, y, f),
                     Vector::<3, T, A>::new(d, z, g)
                 ])
             );
-            assert_panic!(mat.clone().set_row(3, Vector::ZERO));
+            assert_panic!(matrix.clone().set_row(3, Vector::ZERO));
 
-            let mut mat = Matrix::<4, T, A>::from_columns(&[
+            let mut matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(a, b, c, d),
                 Vector::<4, T, A>::new(e, f, g, h),
                 Vector::<4, T, A>::new(i, j, k, l),
             ]);
-            mat.set_row(0, Vector::<4, T, A>::new(a, b, c, d));
+            matrix.set_row(0, Vector::<4, T, A>::new(a, b, c, d));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(a, y, z, w),
                     Vector::<4, T, A>::new(b, b, c, d),
@@ -3365,9 +3377,9 @@ mod tests {
                     Vector::<4, T, A>::new(d, j, k, l)
                 ])
             );
-            mat.set_row(1, Vector::<4, T, A>::new(x, y, z, w));
+            matrix.set_row(1, Vector::<4, T, A>::new(x, y, z, w));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(a, x, z, w),
                     Vector::<4, T, A>::new(b, y, c, d),
@@ -3375,9 +3387,9 @@ mod tests {
                     Vector::<4, T, A>::new(d, w, k, l)
                 ])
             );
-            mat.set_row(2, Vector::<4, T, A>::new(a, b, c, d));
+            matrix.set_row(2, Vector::<4, T, A>::new(a, b, c, d));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(a, x, a, w),
                     Vector::<4, T, A>::new(b, y, b, d),
@@ -3385,9 +3397,9 @@ mod tests {
                     Vector::<4, T, A>::new(d, w, d, l)
                 ])
             );
-            mat.set_row(3, Vector::<4, T, A>::new(e, f, g, h));
+            matrix.set_row(3, Vector::<4, T, A>::new(e, f, g, h));
             assert_eq!(
-                mat,
+                matrix,
                 Matrix::<4, T, A>::from_columns(&[
                     Vector::<4, T, A>::new(a, x, a, e),
                     Vector::<4, T, A>::new(b, y, b, f),
@@ -3395,7 +3407,7 @@ mod tests {
                     Vector::<4, T, A>::new(d, w, d, h)
                 ])
             );
-            assert_panic!(mat.clone().set_row(4, Vector::ZERO));
+            assert_panic!(matrix.clone().set_row(4, Vector::ZERO));
         });
     }
 
@@ -3444,7 +3456,7 @@ mod tests {
     }
 
     #[test]
-    fn test_transpose_mul_vec() {
+    fn test_transpose_mul_vector() {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
@@ -3452,39 +3464,39 @@ mod tests {
                 return;
             }
 
-            let mat = Matrix::<2, T, A>::from_columns(&[
+            let matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            let vec = Vector::<2, T, A>::new(x, z);
+            let vector = Vector::<2, T, A>::new(x, z);
             assert_float_eq!(
-                mat.transpose_mul_vec(vec),
-                mat.transpose() * vec,
+                matrix.transpose_mul_vector(vector),
+                matrix.transpose() * vector,
                 abs <= Vector::splat((x * x).max(y * y).max(z * z)) * 1e-6
             );
 
-            let mat = Matrix::<3, T, A>::from_columns(&[
+            let matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, z, y),
             ]);
-            let vec = Vector::<3, T, A>::new(z, y, w);
+            let vector = Vector::<3, T, A>::new(z, y, w);
             assert_float_eq!(
-                mat.transpose_mul_vec(vec),
-                mat.transpose() * vec,
+                matrix.transpose_mul_vector(vector),
+                matrix.transpose() * vector,
                 abs <= Vector::splat((x * x).max(y * y).max(z * z)) * 1e-6
             );
 
-            let mat = Matrix::<4, T, A>::from_columns(&[
+            let matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(x, z, y, z),
                 Vector::<4, T, A>::new(y, y, z, x),
             ]);
-            let vec = Vector::<4, T, A>::new(z, y, w, z);
+            let vector = Vector::<4, T, A>::new(z, y, w, z);
             assert_float_eq!(
-                mat.transpose_mul_vec(vec),
-                mat.transpose() * vec,
+                matrix.transpose_mul_vector(vector),
+                matrix.transpose() * vector,
                 abs <= Vector::splat((x * x).max(y * y).max(z * z)) * 1e-6
             );
         });
@@ -3534,30 +3546,30 @@ mod tests {
                 return;
             }
 
-            let mat = Matrix::<2, T, A>::from_columns(&[
+            let matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
             let scale = Vector::<2, T, A>::new(x, z);
             assert_float_eq!(
-                mat.mul_diagonal(scale),
-                mat * Matrix::from_diagonal(scale),
+                matrix.mul_diagonal(scale),
+                matrix * Matrix::from_diagonal(scale),
                 0.0 = -0.0
             );
 
-            let mat = Matrix::<3, T, A>::from_columns(&[
+            let matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, z, y),
             ]);
             let scale = Vector::<3, T, A>::new(z, y, w);
             assert_float_eq!(
-                mat.mul_diagonal(scale),
-                mat * Matrix::from_diagonal(scale),
+                matrix.mul_diagonal(scale),
+                matrix * Matrix::from_diagonal(scale),
                 0.0 = -0.0
             );
 
-            let mat = Matrix::<4, T, A>::from_columns(&[
+            let matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(x, z, y, z),
@@ -3565,8 +3577,8 @@ mod tests {
             ]);
             let scale = Vector::<4, T, A>::new(z, y, w, z);
             assert_float_eq!(
-                mat.mul_diagonal(scale),
-                mat * Matrix::from_diagonal(scale),
+                matrix.mul_diagonal(scale),
+                matrix * Matrix::from_diagonal(scale),
                 0.0 = -0.0
             );
         });
@@ -3596,24 +3608,24 @@ mod tests {
                 return;
             }
 
-            let mat = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
+            let matrix = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
             assert_float_eq!(
-                mat.determinant(),
-                x * mat.remove(0, 0).determinant() - y * mat.remove(0, 1).determinant()
-                    + z * mat.remove(0, 2).determinant(),
-                abs <= mat.determinant().abs() * 1e-4 + 1e-4,
+                matrix.determinant(),
+                x * matrix.remove(0, 0).determinant() - y * matrix.remove(0, 1).determinant()
+                    + z * matrix.remove(0, 2).determinant(),
+                abs <= matrix.determinant().abs() * 1e-4 + 1e-4,
                 0.0 = -0.0
             );
 
-            let mat = Matrix::<4, T, A>::from_column_array(&[
+            let matrix = Matrix::<4, T, A>::from_column_array(&[
                 x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
             ]);
             assert_float_eq!(
-                mat.determinant(),
-                x * mat.remove(0, 0).determinant() - y * mat.remove(0, 1).determinant()
-                    + z * mat.remove(0, 2).determinant()
-                    - w * mat.remove(0, 3).determinant(),
-                abs <= mat.determinant().abs() * 1e-4 + 1e-4,
+                matrix.determinant(),
+                x * matrix.remove(0, 0).determinant() - y * matrix.remove(0, 1).determinant()
+                    + z * matrix.remove(0, 2).determinant()
+                    - w * matrix.remove(0, 3).determinant(),
+                abs <= matrix.determinant().abs() * 1e-4 + 1e-4,
                 0.0 = -0.0
             );
         });
@@ -3811,17 +3823,18 @@ mod tests {
 
     #[test]
     fn test_remove() {
-        let mat = Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
+        let matrix =
+            Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
 
-        assert_panic!(mat.remove(1, 3));
-        assert_panic!(mat.remove(3, 1));
+        assert_panic!(matrix.remove(1, 3));
+        assert_panic!(matrix.remove(3, 1));
 
         for column in 0..3 {
             for row in 0..3 {
                 let columns = match column {
-                    0 => [mat.column(1), mat.column(2)],
-                    1 => [mat.column(0), mat.column(2)],
-                    2 => [mat.column(0), mat.column(1)],
+                    0 => [matrix.column(1), matrix.column(2)],
+                    1 => [matrix.column(0), matrix.column(2)],
+                    2 => [matrix.column(0), matrix.column(1)],
                     _ => unreachable!(),
                 };
                 let columns = match row {
@@ -3831,27 +3844,27 @@ mod tests {
                     _ => unreachable!(),
                 };
 
-                assert_eq!(mat.remove(column, row), Mat2::from_columns(&columns));
+                assert_eq!(matrix.remove(column, row), Mat2::from_columns(&columns));
             }
         }
 
-        let mat = Mat4::from_columns(&[
+        let matrix = Mat4::from_columns(&[
             Vec4::new(1, 2, 3, 4),
             Vec4::new(5, 6, 7, 8),
             Vec4::new(9, 10, 11, 12),
             Vec4::new(13, 14, 15, 16),
         ]);
 
-        assert_panic!(mat.remove(1, 4));
-        assert_panic!(mat.remove(4, 1));
+        assert_panic!(matrix.remove(1, 4));
+        assert_panic!(matrix.remove(4, 1));
 
         for column in 0..4 {
             for row in 0..4 {
                 let columns = match column {
-                    0 => [mat.column(1), mat.column(2), mat.column(3)],
-                    1 => [mat.column(0), mat.column(2), mat.column(3)],
-                    2 => [mat.column(0), mat.column(1), mat.column(3)],
-                    3 => [mat.column(0), mat.column(1), mat.column(2)],
+                    0 => [matrix.column(1), matrix.column(2), matrix.column(3)],
+                    1 => [matrix.column(0), matrix.column(2), matrix.column(3)],
+                    2 => [matrix.column(0), matrix.column(1), matrix.column(3)],
+                    3 => [matrix.column(0), matrix.column(1), matrix.column(2)],
                     _ => unreachable!(),
                 };
                 let columns = match row {
@@ -3862,7 +3875,7 @@ mod tests {
                     _ => unreachable!(),
                 };
 
-                assert_eq!(mat.remove(column, row), Mat3::from_columns(&columns));
+                assert_eq!(matrix.remove(column, row), Mat3::from_columns(&columns));
             }
         }
     }
@@ -3938,32 +3951,32 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
 
-            let mat = Matrix::<2, T, A>::from_columns(&[
+            let matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            assert_eq!(mat.x_axis, Vector::<2, T, A>::new(x, y));
-            assert_eq!(mat.y_axis, Vector::<2, T, A>::new(z, w));
+            assert_eq!(matrix.x_axis, Vector::<2, T, A>::new(x, y));
+            assert_eq!(matrix.y_axis, Vector::<2, T, A>::new(z, w));
 
-            let mat = Matrix::<3, T, A>::from_columns(&[
+            let matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(w, a, b),
                 Vector::<3, T, A>::new(c, d, e),
             ]);
-            assert_eq!(mat.x_axis, Vector::<3, T, A>::new(x, y, z));
-            assert_eq!(mat.y_axis, Vector::<3, T, A>::new(w, a, b));
-            assert_eq!(mat.z_axis, Vector::<3, T, A>::new(c, d, e));
+            assert_eq!(matrix.x_axis, Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(matrix.y_axis, Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(matrix.z_axis, Vector::<3, T, A>::new(c, d, e));
 
-            let mat = Matrix::<4, T, A>::from_columns(&[
+            let matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(a, b, c, d),
                 Vector::<4, T, A>::new(e, f, g, h),
                 Vector::<4, T, A>::new(i, j, k, l),
             ]);
-            assert_eq!(mat.x_axis, Vector::<4, T, A>::new(x, y, z, w));
-            assert_eq!(mat.y_axis, Vector::<4, T, A>::new(a, b, c, d));
-            assert_eq!(mat.z_axis, Vector::<4, T, A>::new(e, f, g, h));
-            assert_eq!(mat.w_axis, Vector::<4, T, A>::new(i, j, k, l));
+            assert_eq!(matrix.x_axis, Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(matrix.y_axis, Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(matrix.z_axis, Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(matrix.w_axis, Vector::<4, T, A>::new(i, j, k, l));
         });
     }
 
@@ -3972,32 +3985,32 @@ mod tests {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l] = std::array::from_fn(T::as_from);
 
-            let mut mat = Matrix::<2, T, A>::from_columns(&[
+            let mut matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            assert_eq!(&mut mat.x_axis, &mut Vector::<2, T, A>::new(x, y));
-            assert_eq!(&mut mat.y_axis, &mut Vector::<2, T, A>::new(z, w));
+            assert_eq!(&mut matrix.x_axis, &mut Vector::<2, T, A>::new(x, y));
+            assert_eq!(&mut matrix.y_axis, &mut Vector::<2, T, A>::new(z, w));
 
-            let mut mat = Matrix::<3, T, A>::from_columns(&[
+            let mut matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(w, a, b),
                 Vector::<3, T, A>::new(c, d, e),
             ]);
-            assert_eq!(&mut mat.x_axis, &mut Vector::<3, T, A>::new(x, y, z));
-            assert_eq!(&mut mat.y_axis, &mut Vector::<3, T, A>::new(w, a, b));
-            assert_eq!(&mut mat.z_axis, &mut Vector::<3, T, A>::new(c, d, e));
+            assert_eq!(&mut matrix.x_axis, &mut Vector::<3, T, A>::new(x, y, z));
+            assert_eq!(&mut matrix.y_axis, &mut Vector::<3, T, A>::new(w, a, b));
+            assert_eq!(&mut matrix.z_axis, &mut Vector::<3, T, A>::new(c, d, e));
 
-            let mut mat = Matrix::<4, T, A>::from_columns(&[
+            let mut matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(a, b, c, d),
                 Vector::<4, T, A>::new(e, f, g, h),
                 Vector::<4, T, A>::new(i, j, k, l),
             ]);
-            assert_eq!(&mut mat.x_axis, &mut Vector::<4, T, A>::new(x, y, z, w));
-            assert_eq!(&mut mat.y_axis, &mut Vector::<4, T, A>::new(a, b, c, d));
-            assert_eq!(&mut mat.z_axis, &mut Vector::<4, T, A>::new(e, f, g, h));
-            assert_eq!(&mut mat.w_axis, &mut Vector::<4, T, A>::new(i, j, k, l));
+            assert_eq!(&mut matrix.x_axis, &mut Vector::<4, T, A>::new(x, y, z, w));
+            assert_eq!(&mut matrix.y_axis, &mut Vector::<4, T, A>::new(a, b, c, d));
+            assert_eq!(&mut matrix.z_axis, &mut Vector::<4, T, A>::new(e, f, g, h));
+            assert_eq!(&mut matrix.w_axis, &mut Vector::<4, T, A>::new(i, j, k, l));
         });
     }
 
@@ -4365,34 +4378,34 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut mat = Matrix::<2, T, A>::from_columns(&[
+            let mut matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            mat += Matrix::<2, T, A>::from_columns(&[
+            matrix += Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(z, w),
                 Vector::<2, T, A>::new(x, y),
             ]);
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<2, T, A>::new(x + z, y + w),
                     Vector::<2, T, A>::new(z + x, w + y),
                 ])
             );
 
-            let mut mat = Matrix::<3, T, A>::from_columns(&[
+            let mut matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, z),
             ]);
-            mat += Matrix::<3, T, A>::from_columns(&[
+            matrix += Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
             ]);
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<3, T, A>::new(x + z, y + w, z + y),
                     Vector::<3, T, A>::new(z + x, w + y, y + z),
@@ -4400,20 +4413,20 @@ mod tests {
                 ])
             );
 
-            let mut mat = Matrix::<4, T, A>::from_columns(&[
+            let mut matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(y, x, w, z),
                 Vector::<4, T, A>::new(w, z, x, y),
             ]);
-            mat += Matrix::<4, T, A>::from_columns(&[
+            matrix += Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(w, z, x, y),
                 Vector::<4, T, A>::new(y, x, w, z),
             ]);
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<4, T, A>::new(x + z, y + w, z + y, w + x),
                     Vector::<4, T, A>::new(z + x, w + y, y + z, x + w),
@@ -4485,34 +4498,34 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut mat = Matrix::<2, T, A>::from_columns(&[
+            let mut matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(x, y),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            mat -= Matrix::<2, T, A>::from_columns(&[
+            matrix -= Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(z, w),
                 Vector::<2, T, A>::new(x, y),
             ]);
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<2, T, A>::new(x - z, y - w),
                     Vector::<2, T, A>::new(z - x, w - y),
                 ])
             );
 
-            let mut mat = Matrix::<3, T, A>::from_columns(&[
+            let mut matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, z),
             ]);
-            mat -= Matrix::<3, T, A>::from_columns(&[
+            matrix -= Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
             ]);
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<3, T, A>::new(x - z, y - w, z - y),
                     Vector::<3, T, A>::new(z - x, w - y, y - z),
@@ -4520,20 +4533,20 @@ mod tests {
                 ])
             );
 
-            let mut mat = Matrix::<4, T, A>::from_columns(&[
+            let mut matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(y, x, w, z),
                 Vector::<4, T, A>::new(w, z, x, y),
             ]);
-            mat -= Matrix::<4, T, A>::from_columns(&[
+            matrix -= Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(w, z, x, y),
                 Vector::<4, T, A>::new(y, x, w, z),
             ]);
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<4, T, A>::new(x - z, y - w, z - y, w - x),
                     Vector::<4, T, A>::new(z - x, w - y, y - z, x - w),
@@ -4593,27 +4606,27 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut mat = Matrix::<2, T, A>::from_columns(&[
+            let mut matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(z, w),
                 Vector::<2, T, A>::new(x, y),
             ]);
-            mat *= w;
+            matrix *= w;
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<2, T, A>::new(z * w, w * w),
                     Vector::<2, T, A>::new(x * w, y * w),
                 ])
             );
 
-            let mut mat = Matrix::<3, T, A>::from_columns(&[
+            let mut matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, z),
             ]);
-            mat *= w;
+            matrix *= w;
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<3, T, A>::new(x * w, y * w, z * w),
                     Vector::<3, T, A>::new(z * w, w * w, y * w),
@@ -4621,15 +4634,15 @@ mod tests {
                 ])
             );
 
-            let mut mat = Matrix::<4, T, A>::from_columns(&[
+            let mut matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(y, x, w, z),
                 Vector::<4, T, A>::new(w, z, x, y),
             ]);
-            mat *= w;
+            matrix *= w;
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<4, T, A>::new(x * w, y * w, z * w, w * w),
                     Vector::<4, T, A>::new(z * w, w * w, y * w, x * w),
@@ -4641,7 +4654,7 @@ mod tests {
     }
 
     #[test]
-    fn test_mul_vec() {
+    fn test_mul_vector() {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
@@ -4690,56 +4703,56 @@ mod tests {
                 return;
             }
 
-            let mat = Matrix::<2, T, A>::from_columns(&[
+            let matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(z, w),
                 Vector::<2, T, A>::new(x, y),
             ]);
-            let mat2 = Matrix::<2, T, A>::from_columns(&[
+            let matrix2 = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(y, x),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            let vec = Vector::<2, T, A>::new(x, w);
+            let vector = Vector::<2, T, A>::new(x, w);
             assert_float_eq!(
-                mat * mat2 * vec,
-                mat * (mat2 * vec),
+                matrix * matrix2 * vector,
+                matrix * (matrix2 * vector),
                 r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
                 0.0 = -0.0
             );
 
-            let mat = Matrix::<3, T, A>::from_columns(&[
+            let matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, w),
             ]);
-            let mat2 = Matrix::<3, T, A>::from_columns(&[
+            let matrix2 = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, y),
                 Vector::<3, T, A>::new(z, x, z),
                 Vector::<3, T, A>::new(y, z, x),
             ]);
-            let vec = Vector::<3, T, A>::new(x, w, y);
+            let vector = Vector::<3, T, A>::new(x, w, y);
             assert_float_eq!(
-                mat * mat2 * vec,
-                mat * (mat2 * vec),
+                matrix * matrix2 * vector,
+                matrix * (matrix2 * vector),
                 r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
                 0.0 = -0.0
             );
 
-            let mat = Matrix::<4, T, A>::from_columns(&[
+            let matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(y, x, w, z),
                 Vector::<4, T, A>::new(w, z, x, y),
             ]);
-            let mat2 = Matrix::<4, T, A>::from_columns(&[
+            let matrix2 = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, z, y, x),
                 Vector::<4, T, A>::new(z, w, x, w),
                 Vector::<4, T, A>::new(y, y, x, w),
                 Vector::<4, T, A>::new(w, x, y, y),
             ]);
-            let vec = Vector::<4, T, A>::new(x, w, y, z);
+            let vector = Vector::<4, T, A>::new(x, w, y, z);
             assert_float_eq!(
-                mat * mat2 * vec,
-                mat * (mat2 * vec),
+                matrix * matrix2 * vector,
+                matrix * (matrix2 * vector),
                 r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
                 0.0 = -0.0
             );
@@ -4755,65 +4768,65 @@ mod tests {
                 return;
             }
 
-            let mat = Matrix::<2, T, A>::from_columns(&[
+            let matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(z, w),
                 Vector::<2, T, A>::new(x, y),
             ]);
-            let mat2 = Matrix::<2, T, A>::from_columns(&[
+            let matrix2 = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(y, x),
                 Vector::<2, T, A>::new(z, w),
             ]);
-            let vec = Vector::<2, T, A>::new(x, w);
+            let vector = Vector::<2, T, A>::new(x, w);
 
-            let mut mat12 = mat;
-            mat12 *= mat2;
+            let mut matrix12 = matrix;
+            matrix12 *= matrix2;
             assert_float_eq!(
-                mat12 * vec,
-                mat * (mat2 * vec),
+                matrix12 * vector,
+                matrix * (matrix2 * vector),
                 r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
                 0.0 = -0.0
             );
 
-            let mat = Matrix::<3, T, A>::from_columns(&[
+            let matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, w),
             ]);
-            let mat2 = Matrix::<3, T, A>::from_columns(&[
+            let matrix2 = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, y),
                 Vector::<3, T, A>::new(z, x, z),
                 Vector::<3, T, A>::new(y, z, x),
             ]);
-            let vec = Vector::<3, T, A>::new(x, w, y);
+            let vector = Vector::<3, T, A>::new(x, w, y);
 
-            let mut mat12 = mat;
-            mat12 *= mat2;
+            let mut matrix12 = matrix;
+            matrix12 *= matrix2;
             assert_float_eq!(
-                mat12 * vec,
-                mat * (mat2 * vec),
+                matrix12 * vector,
+                matrix * (matrix2 * vector),
                 r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
                 0.0 = -0.0
             );
 
-            let mat = Matrix::<4, T, A>::from_columns(&[
+            let matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(y, x, w, z),
                 Vector::<4, T, A>::new(w, z, x, y),
             ]);
-            let mat2 = Matrix::<4, T, A>::from_columns(&[
+            let matrix2 = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, z, y, x),
                 Vector::<4, T, A>::new(z, w, x, w),
                 Vector::<4, T, A>::new(y, y, x, w),
                 Vector::<4, T, A>::new(w, x, y, y),
             ]);
-            let vec = Vector::<4, T, A>::new(x, w, y, z);
+            let vector = Vector::<4, T, A>::new(x, w, y, z);
 
-            let mut mat12 = mat;
-            mat12 *= mat2;
+            let mut matrix12 = matrix;
+            matrix12 *= matrix2;
             assert_float_eq!(
-                mat12 * vec,
-                mat * (mat2 * vec),
+                matrix12 * vector,
+                matrix * (matrix2 * vector),
                 r2nd <= Vector::splat(x.abs().max(y.abs()).max(z.abs())) * 0.00001,
                 0.0 = -0.0
             );
@@ -4869,27 +4882,27 @@ mod tests {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let w = T::max(x, y);
 
-            let mut mat = Matrix::<2, T, A>::from_columns(&[
+            let mut matrix = Matrix::<2, T, A>::from_columns(&[
                 Vector::<2, T, A>::new(z, w),
                 Vector::<2, T, A>::new(x, y),
             ]);
-            mat /= w;
+            matrix /= w;
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<2, T, A>::new(z / w, w / w),
                     Vector::<2, T, A>::new(x / w, y / w),
                 ])
             );
 
-            let mut mat = Matrix::<3, T, A>::from_columns(&[
+            let mut matrix = Matrix::<3, T, A>::from_columns(&[
                 Vector::<3, T, A>::new(x, y, z),
                 Vector::<3, T, A>::new(z, w, y),
                 Vector::<3, T, A>::new(x, y, z),
             ]);
-            mat /= w;
+            matrix /= w;
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<3, T, A>::new(x / w, y / w, z / w),
                     Vector::<3, T, A>::new(z / w, w / w, y / w),
@@ -4897,15 +4910,15 @@ mod tests {
                 ])
             );
 
-            let mut mat = Matrix::<4, T, A>::from_columns(&[
+            let mut matrix = Matrix::<4, T, A>::from_columns(&[
                 Vector::<4, T, A>::new(x, y, z, w),
                 Vector::<4, T, A>::new(z, w, y, x),
                 Vector::<4, T, A>::new(y, x, w, z),
                 Vector::<4, T, A>::new(w, z, x, y),
             ]);
-            mat /= w;
+            matrix /= w;
             assert_float_eq!(
-                mat,
+                matrix,
                 Matrix::from_columns(&[
                     Vector::<4, T, A>::new(x / w, y / w, z / w, w / w),
                     Vector::<4, T, A>::new(z / w, w / w, y / w, x / w),

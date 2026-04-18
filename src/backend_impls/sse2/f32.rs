@@ -15,89 +15,89 @@ impl ScalarBackend<3, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vec_eq(vec: &Vec3<f32>, other: &Vec3<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpeq_ps(vec.0, other.0)) as u32 & 0b111 == 0b111
+        fn vector_eq(vector: &Vec3<f32>, other: &Vec3<f32>) -> bool {
+            _mm_movemask_ps(_mm_cmpeq_ps(vector.0, other.0)) as u32 & 0b111 == 0b111
         }
 
         #[inline]
-        fn vec_ne(vec: &Vec3<f32>, other: &Vec3<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpneq_ps(vec.0, other.0)) as u32 & 0b111 != 0
+        fn vector_ne(vector: &Vec3<f32>, other: &Vec3<f32>) -> bool {
+            _mm_movemask_ps(_mm_cmpneq_ps(vector.0, other.0)) as u32 & 0b111 != 0
         }
 
         #[inline]
-        fn vec_neg(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(neg(vec.0))
+        fn vector_neg(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(neg(vector.0))
         }
 
         #[inline]
-        fn vec_add(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_add_ps(vec.0, rhs.0))
+        fn vector_add(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_add_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_sub(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_sub_ps(vec.0, rhs.0))
+        fn vector_sub(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_sub_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_mul(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_mul_ps(vec.0, rhs.0))
+        fn vector_mul(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_mul_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_div(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_div_ps(vec.0, rhs.0))
+        fn vector_div(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_div_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_rem(vec: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
-            Vector(rem(vec.0, rhs.0))
+        fn vector_rem(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+            Vector(rem(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_element_sum(vec: Vec3<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(0.0), 0b00_11_00_01));
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
+        fn vector_element_sum(vector: Vec3<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, _mm_set1_ps(0.0), 0b00_11_00_01));
+            let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
+            _mm_cvtss_f32(vector)
         }
 
         #[inline]
-        fn vec_element_product(vec: Vec3<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, _mm_set1_ps(1.0), 0b00_11_00_01));
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
+        fn vector_element_product(vector: Vec3<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, _mm_set1_ps(1.0), 0b00_11_00_01));
+            let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
+            _mm_cvtss_f32(vector)
         }
 
         #[inline]
-        fn vec_eq_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
-            Mask(_mm_cmpeq_ps(vec.0, other.0))
+        fn vector_eq_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpeq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_ne_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
-            Mask(_mm_cmpneq_ps(vec.0, other.0))
+        fn vector_ne_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpneq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_lt_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
-            Mask(_mm_cmplt_ps(vec.0, other.0))
+        fn vector_lt_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmplt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_gt_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
-            Mask(_mm_cmpgt_ps(vec.0, other.0))
+        fn vector_gt_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpgt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_le_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
-            Mask(_mm_cmple_ps(vec.0, other.0))
+        fn vector_le_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmple_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_ge_mask(vec: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
-            Mask(_mm_cmpge_ps(vec.0, other.0))
+        fn vector_ge_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+            Mask(_mm_cmpge_ps(vector.0, other.0))
         }
     }
 }
@@ -107,89 +107,89 @@ impl ScalarBackend<4, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vec_eq(vec: &Vec4<f32>, other: &Vec4<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpeq_ps(vec.0, other.0)) as u32 == 0xf
+        fn vector_eq(vector: &Vec4<f32>, other: &Vec4<f32>) -> bool {
+            _mm_movemask_ps(_mm_cmpeq_ps(vector.0, other.0)) as u32 == 0xf
         }
 
         #[inline]
-        fn vec_ne(vec: &Vec4<f32>, other: &Vec4<f32>) -> bool {
-            _mm_movemask_ps(_mm_cmpneq_ps(vec.0, other.0)) as u32 != 0
+        fn vector_ne(vector: &Vec4<f32>, other: &Vec4<f32>) -> bool {
+            _mm_movemask_ps(_mm_cmpneq_ps(vector.0, other.0)) as u32 != 0
         }
 
         #[inline]
-        fn vec_neg(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(neg(vec.0))
+        fn vector_neg(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(neg(vector.0))
         }
 
         #[inline]
-        fn vec_add(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_add_ps(vec.0, rhs.0))
+        fn vector_add(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_add_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_sub(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_sub_ps(vec.0, rhs.0))
+        fn vector_sub(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_sub_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_mul(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_mul_ps(vec.0, rhs.0))
+        fn vector_mul(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_mul_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_div(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_div_ps(vec.0, rhs.0))
+        fn vector_div(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_div_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_rem(vec: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
-            Vector(rem(vec.0, rhs.0))
+        fn vector_rem(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+            Vector(rem(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vec_element_sum(vec: Vec4<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
-            let vec = _mm_add_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
+        fn vector_element_sum(vector: Vec4<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_11_00_01));
+            let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
+            _mm_cvtss_f32(vector)
         }
 
         #[inline]
-        fn vec_element_product(vec: Vec4<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_11_00_01));
-            let vec = _mm_mul_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_10));
-            _mm_cvtss_f32(vec)
+        fn vector_element_product(vector: Vec4<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_11_00_01));
+            let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
+            _mm_cvtss_f32(vector)
         }
 
         #[inline]
-        fn vec_eq_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
-            Mask(_mm_cmpeq_ps(vec.0, other.0))
+        fn vector_eq_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpeq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_ne_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
-            Mask(_mm_cmpneq_ps(vec.0, other.0))
+        fn vector_ne_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpneq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_lt_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
-            Mask(_mm_cmplt_ps(vec.0, other.0))
+        fn vector_lt_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmplt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_gt_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
-            Mask(_mm_cmpgt_ps(vec.0, other.0))
+        fn vector_gt_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpgt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_le_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
-            Mask(_mm_cmple_ps(vec.0, other.0))
+        fn vector_le_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmple_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_ge_mask(vec: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
-            Mask(_mm_cmpge_ps(vec.0, other.0))
+        fn vector_ge_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+            Mask(_mm_cmpge_ps(vector.0, other.0))
         }
     }
 }
@@ -205,94 +205,94 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vec_nan_mask(vec: Vec3<f32>) -> Mask3<f32> {
-            Mask(nan_mask(vec.0))
+        fn vector_nan_mask(vector: Vec3<f32>) -> Mask3<f32> {
+            Mask(nan_mask(vector.0))
         }
 
         #[inline]
-        fn vec_finite_mask(vec: Vec3<f32>) -> Mask3<f32> {
-            Mask(finite_mask(vec.0))
+        fn vector_finite_mask(vector: Vec3<f32>) -> Mask3<f32> {
+            Mask(finite_mask(vector.0))
         }
 
         #[inline]
-        fn vec_sign_positive_mask(vec: Vec3<f32>) -> Mask3<f32> {
-            Mask(sign_positive_mask(vec.0))
+        fn vector_sign_positive_mask(vector: Vec3<f32>) -> Mask3<f32> {
+            Mask(sign_positive_mask(vector.0))
         }
 
         #[inline]
-        fn vec_sign_negative_mask(vec: Vec3<f32>) -> Mask3<f32> {
-            Mask(sign_negative_mask(vec.0))
+        fn vector_sign_negative_mask(vector: Vec3<f32>) -> Mask3<f32> {
+            Mask(sign_negative_mask(vector.0))
         }
 
         #[inline]
-        fn vec_max(vec: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_max_ps(vec.0, other.0))
+        fn vector_max(vector: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_max_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_min(vec: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_min_ps(vec.0, other.0))
+        fn vector_min(vector: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_min_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_abs(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(abs(vec.0))
+        fn vector_abs(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(abs(vector.0))
         }
 
         #[inline]
-        fn vec_signum(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(signum(vec.0))
+        fn vector_signum(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(signum(vector.0))
         }
 
         #[inline]
-        fn vec_copysign(vec: Vec3<f32>, sign: Vec3<f32>) -> Vec3<f32> {
-            Vector(copysign(vec.0, sign.0))
+        fn vector_copysign(vector: Vec3<f32>, sign: Vec3<f32>) -> Vec3<f32> {
+            Vector(copysign(vector.0, sign.0))
         }
 
         #[inline]
-        fn vec_max_element(vec: Vec3<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_10_10));
-            let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
-            _mm_cvtss_f32(vec)
+        fn vector_max_element(vector: Vec3<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_10_10));
+            let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
+            _mm_cvtss_f32(vector)
         }
 
         #[inline]
-        fn vec_min_element(vec: Vec3<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b01_01_10_10));
-            let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
-            _mm_cvtss_f32(vec)
+        fn vector_min_element(vector: Vec3<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b01_01_10_10));
+            let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
+            _mm_cvtss_f32(vector)
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_floor(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(floor(vec.0))
+        fn vector_floor(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(floor(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_ceil(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(ceil(vec.0))
+        fn vector_ceil(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(ceil(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_round(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(round(vec.0))
+        fn vector_round(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(round(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_trunc(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(trunc(vec.0))
+        fn vector_trunc(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(trunc(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_sqrt(vec: Vec3<f32>) -> Vec3<f32> {
-            Vector(_mm_sqrt_ps(vec.0))
+        fn vector_sqrt(vector: Vec3<f32>) -> Vec3<f32> {
+            Vector(_mm_sqrt_ps(vector.0))
         }
     }
 }
@@ -302,94 +302,94 @@ impl PrimitiveFloatBackend<4, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vec_nan_mask(vec: Vec4<f32>) -> Mask4<f32> {
-            Mask(nan_mask(vec.0))
+        fn vector_nan_mask(vector: Vec4<f32>) -> Mask4<f32> {
+            Mask(nan_mask(vector.0))
         }
 
         #[inline]
-        fn vec_finite_mask(vec: Vec4<f32>) -> Mask4<f32> {
-            Mask(finite_mask(vec.0))
+        fn vector_finite_mask(vector: Vec4<f32>) -> Mask4<f32> {
+            Mask(finite_mask(vector.0))
         }
 
         #[inline]
-        fn vec_sign_positive_mask(vec: Vec4<f32>) -> Mask4<f32> {
-            Mask(sign_positive_mask(vec.0))
+        fn vector_sign_positive_mask(vector: Vec4<f32>) -> Mask4<f32> {
+            Mask(sign_positive_mask(vector.0))
         }
 
         #[inline]
-        fn vec_sign_negative_mask(vec: Vec4<f32>) -> Mask4<f32> {
-            Mask(sign_negative_mask(vec.0))
+        fn vector_sign_negative_mask(vector: Vec4<f32>) -> Mask4<f32> {
+            Mask(sign_negative_mask(vector.0))
         }
 
         #[inline]
-        fn vec_max(vec: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_max_ps(vec.0, other.0))
+        fn vector_max(vector: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_max_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_min(vec: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_min_ps(vec.0, other.0))
+        fn vector_min(vector: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_min_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vec_abs(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(abs(vec.0))
+        fn vector_abs(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(abs(vector.0))
         }
 
         #[inline]
-        fn vec_signum(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(signum(vec.0))
+        fn vector_signum(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(signum(vector.0))
         }
 
         #[inline]
-        fn vec_copysign(vec: Vec4<f32>, sign: Vec4<f32>) -> Vec4<f32> {
-            Vector(copysign(vec.0, sign.0))
+        fn vector_copysign(vector: Vec4<f32>, sign: Vec4<f32>) -> Vec4<f32> {
+            Vector(copysign(vector.0, sign.0))
         }
 
         #[inline]
-        fn vec_max_element(vec: Vec4<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_11_10));
-            let vec = _mm_max_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
-            _mm_cvtss_f32(vec)
+        fn vector_max_element(vector: Vec4<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_11_10));
+            let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
+            _mm_cvtss_f32(vector)
         }
 
         #[inline]
-        fn vec_min_element(vec: Vec4<f32>) -> f32 {
-            let vec = vec.0;
-            let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_11_10));
-            let vec = _mm_min_ps(vec, _mm_shuffle_ps(vec, vec, 0b00_00_00_01));
-            _mm_cvtss_f32(vec)
+        fn vector_min_element(vector: Vec4<f32>) -> f32 {
+            let vector = vector.0;
+            let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_11_10));
+            let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
+            _mm_cvtss_f32(vector)
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_floor(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(floor(vec.0))
+        fn vector_floor(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(floor(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_ceil(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(ceil(vec.0))
+        fn vector_ceil(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(ceil(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_round(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(round(vec.0))
+        fn vector_round(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(round(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_trunc(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(trunc(vec.0))
+        fn vector_trunc(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(trunc(vector.0))
         }
 
         #[cfg(backend)]
         #[inline(always)]
-        fn vec_sqrt(vec: Vec4<f32>) -> Vec4<f32> {
-            Vector(_mm_sqrt_ps(vec.0))
+        fn vector_sqrt(vector: Vec4<f32>) -> Vec4<f32> {
+            Vector(_mm_sqrt_ps(vector.0))
         }
     }
 }
@@ -400,71 +400,71 @@ impl PrimitiveFloatBackend<4, Unaligned> for f32 {}
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn neg(vec: __m128) -> __m128 {
-    _mm_xor_ps(vec, _mm_set1_ps(-0.0))
+fn neg(vector: __m128) -> __m128 {
+    _mm_xor_ps(vector, _mm_set1_ps(-0.0))
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn rem(vec: __m128, rhs: __m128) -> __m128 {
-    let result = _mm_sub_ps(vec, _mm_mul_ps(trunc(_mm_div_ps(vec, rhs)), rhs));
+fn rem(vector: __m128, rhs: __m128) -> __m128 {
+    let result = _mm_sub_ps(vector, _mm_mul_ps(trunc(_mm_div_ps(vector, rhs)), rhs));
 
     let inf_mask = _mm_cmpeq_ps(abs(rhs), _mm_set1_ps(f32::INFINITY));
     let zero_mask = _mm_cmpeq_ps(rhs, _mm_set1_ps(0.0));
-    let result = select(_mm_or_ps(inf_mask, _mm_set1_ps(-0.0)), vec, result);
+    let result = select(_mm_or_ps(inf_mask, _mm_set1_ps(-0.0)), vector, result);
 
     select(zero_mask, _mm_set1_ps(f32::NAN), result)
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn nan_mask(vec: __m128) -> __m128 {
-    _mm_cmpneq_ps(vec, vec)
+fn nan_mask(vector: __m128) -> __m128 {
+    _mm_cmpneq_ps(vector, vector)
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn finite_mask(vec: __m128) -> __m128 {
-    _mm_cmplt_ps(abs(vec), _mm_set1_ps(f32::INFINITY))
+fn finite_mask(vector: __m128) -> __m128 {
+    _mm_cmplt_ps(abs(vector), _mm_set1_ps(f32::INFINITY))
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn sign_positive_mask(vec: __m128) -> __m128 {
+fn sign_positive_mask(vector: __m128) -> __m128 {
     _mm_castsi128_ps(_mm_cmpeq_epi32(
-        _mm_castps_si128(vec),
-        _mm_castps_si128(abs(vec)),
+        _mm_castps_si128(vector),
+        _mm_castps_si128(abs(vector)),
     ))
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn sign_negative_mask(vec: __m128) -> __m128 {
+fn sign_negative_mask(vector: __m128) -> __m128 {
     _mm_castsi128_ps(_mm_cmpeq_epi32(
-        _mm_castps_si128(vec),
-        _mm_castps_si128(_mm_or_ps(_mm_set1_ps(-0.0), vec)),
+        _mm_castps_si128(vector),
+        _mm_castps_si128(_mm_or_ps(_mm_set1_ps(-0.0), vector)),
     ))
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn abs(vec: __m128) -> __m128 {
-    _mm_and_ps(_mm_set1_ps(f32::from_bits(0x7fffffff)), vec)
+fn abs(vector: __m128) -> __m128 {
+    _mm_and_ps(_mm_set1_ps(f32::from_bits(0x7fffffff)), vector)
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn signum(vec: __m128) -> __m128 {
-    let result = _mm_or_ps(_mm_set1_ps(1.0), _mm_and_ps(vec, _mm_set1_ps(-0.0)));
-    let nan_mask = _mm_cmpneq_ps(vec, vec);
+fn signum(vector: __m128) -> __m128 {
+    let result = _mm_or_ps(_mm_set1_ps(1.0), _mm_and_ps(vector, _mm_set1_ps(-0.0)));
+    let nan_mask = _mm_cmpneq_ps(vector, vector);
 
-    select(nan_mask, vec, result)
+    select(nan_mask, vector, result)
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn copysign(vec: __m128, sign: __m128) -> __m128 {
-    select(_mm_set1_ps(-0.0), sign, vec)
+fn copysign(vector: __m128, sign: __m128) -> __m128 {
+    select(_mm_set1_ps(-0.0), sign, vector)
 }
 
 #[inline]
@@ -522,29 +522,29 @@ fn ceil(v: __m128) -> __m128 {
 #[cfg(backend)]
 #[inline]
 #[target_feature(enable = "sse2")]
-fn round(vec: __m128) -> __m128 {
-    let magic_val = copysign(_mm_set1_ps(8388608.0), vec);
-    let result = _mm_sub_ps(_mm_add_ps(vec, magic_val), magic_val);
+fn round(vector: __m128) -> __m128 {
+    let magic_val = copysign(_mm_set1_ps(8388608.0), vector);
+    let result = _mm_sub_ps(_mm_add_ps(vector, magic_val), magic_val);
 
-    let in_bounds_mask = _mm_cmple_ps(abs(vec), _mm_set1_ps(8388608.0));
+    let in_bounds_mask = _mm_cmple_ps(abs(vector), _mm_set1_ps(8388608.0));
 
-    select(abs(in_bounds_mask), result, vec)
+    select(abs(in_bounds_mask), result, vector)
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn trunc(vec: __m128) -> __m128 {
-    let result = _mm_cvtepi32_ps(_mm_cvttps_epi32(vec));
+fn trunc(vector: __m128) -> __m128 {
+    let result = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
 
     // Large value, infinity, and NaN need special handling.
     let in_bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(abs(vec)),
+        _mm_castps_si128(abs(vector)),
         _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
     ));
 
     select(
         _mm_and_ps(in_bounds_mask, _mm_set1_ps(f32::from_bits(0x7fffffff))),
         result,
-        vec,
+        vector,
     )
 }

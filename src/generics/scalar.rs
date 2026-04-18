@@ -147,7 +147,7 @@ use crate::{
 /// ```
 ///
 /// Currently `Foo` vector addition doesn't use SIMD. To fix this let's override
-/// the implementation for [`ScalarBackend::vec_add`] which controls vector
+/// the implementation for [`ScalarBackend::vector_add`] which controls vector
 /// addition:
 ///
 /// ```
@@ -179,8 +179,8 @@ use crate::{
 ///     Length<N>: SupportedLength,
 /// {
 ///     #[inline]
-///     fn vec_add(
-///         vec: Vector<N, Self, A>,
+///     fn vector_add(
+///         vector: Vector<N, Self, A>,
 ///         rhs: Vector<N, Self, A>,
 ///     ) -> Vector<N, Self, A> {
 ///         unimplemented!()
@@ -258,7 +258,7 @@ use crate::{
 /// }
 /// ```
 ///
-/// Finally let's implement `vec_add` using these methods:
+/// Finally let's implement `vector_add` using these methods:
 ///
 /// ```
 /// # use std::ops::Add;
@@ -327,11 +327,11 @@ use crate::{
 ///     Length<N>: SupportedLength,
 /// {
 ///     #[inline]
-///     fn vec_add(
-///         vec: Vector<N, Self, A>,
+///     fn vector_add(
+///         vector: Vector<N, Self, A>,
 ///         rhs: Vector<N, Self, A>,
 ///     ) -> Vector<N, Self, A> {
-///         (vec.to_f32() + rhs.to_f32()).to_foo()
+///         (vector.to_f32() + rhs.to_f32()).to_foo()
 ///     }
 /// }
 /// ```
@@ -388,153 +388,153 @@ where
 {
     /// Overridable implementation for the `vector == vector` operation.
     #[inline]
-    fn vec_eq(vec: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
+    fn vector_eq(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
         Self: Scalar + PartialEq,
     {
-        (0..N).all(|i| vec[i] == other[i])
+        (0..N).all(|i| vector[i] == other[i])
     }
 
     /// Overridable implementation for the `vector != vector` operation.
     #[inline]
-    fn vec_ne(vec: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
+    fn vector_ne(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
         Self: Scalar + PartialEq,
     {
-        !Self::vec_eq(vec, other)
+        !Self::vector_eq(vector, other)
     }
 
     /// Overridable implementation for the unary `-vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_neg(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_neg(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Neg<Output = Self>,
     {
-        vec.map(Self::neg)
+        vector.map(Self::neg)
     }
 
     /// Overridable implementation for the unary `!vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_not(vec: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_not(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Not<Output = Self>,
     {
-        vec.map(Self::not)
+        vector.map(Self::not)
     }
 
     /// Overridable implementation for the `vector + vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_add(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_add(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Add<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] + rhs[i])
+        Vector::from_fn(|i| vector[i] + rhs[i])
     }
 
     /// Overridable implementation for the `vector - vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_sub(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_sub(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Sub<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] - rhs[i])
+        Vector::from_fn(|i| vector[i] - rhs[i])
     }
 
     /// Overridable implementation for the `vector * vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_mul(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_mul(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Mul<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] * rhs[i])
+        Vector::from_fn(|i| vector[i] * rhs[i])
     }
 
     /// Overridable implementation for the `vector / vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_div(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_div(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Div<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] / rhs[i])
+        Vector::from_fn(|i| vector[i] / rhs[i])
     }
 
     /// Overridable implementation for the `vector % vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_rem(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_rem(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Rem<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] % rhs[i])
+        Vector::from_fn(|i| vector[i] % rhs[i])
     }
 
     /// Overridable implementation for the `vector << vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_shl(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_shl(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Shl<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] << rhs[i])
+        Vector::from_fn(|i| vector[i] << rhs[i])
     }
 
     /// Overridable implementation for the `vector >> vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_shr(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_shr(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Shr<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] >> rhs[i])
+        Vector::from_fn(|i| vector[i] >> rhs[i])
     }
 
     /// Overridable implementation for the `vector & vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_bitand(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_bitand(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + BitAnd<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] & rhs[i])
+        Vector::from_fn(|i| vector[i] & rhs[i])
     }
 
     /// Overridable implementation for the `vector | vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_bitor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_bitor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + BitOr<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] | rhs[i])
+        Vector::from_fn(|i| vector[i] | rhs[i])
     }
 
     /// Overridable implementation for the `vector ^ vector` operation.
     #[inline]
     #[track_caller]
-    fn vec_bitxor(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_bitxor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + BitXor<Output = Self>,
     {
-        Vector::from_fn(|i| vec[i] ^ rhs[i])
+        Vector::from_fn(|i| vector[i] ^ rhs[i])
     }
 
     /// Overridable implementation for [`Vector::element_sum`].
     #[inline]
     #[track_caller]
-    fn vec_element_sum(vec: Vector<N, Self, A>) -> Self
+    fn vector_element_sum(vector: Vector<N, Self, A>) -> Self
     where
         Self: Scalar + Add<Output = Self>,
     {
         match N {
-            2 => vec[0] + vec[1],
-            3 => vec[0] + vec[1] + vec[2],
-            4 => vec[0] + vec[1] + (vec[2] + vec[3]),
+            2 => vector[0] + vector[1],
+            3 => vector[0] + vector[1] + vector[2],
+            4 => vector[0] + vector[1] + (vector[2] + vector[3]),
             _ => unreachable!(),
         }
     }
@@ -542,145 +542,145 @@ where
     /// Overridable implementation for [`Vector::element_product`].
     #[inline]
     #[track_caller]
-    fn vec_element_product(vec: Vector<N, Self, A>) -> Self
+    fn vector_element_product(vector: Vector<N, Self, A>) -> Self
     where
         Self: Scalar + Mul<Output = Self>,
     {
         match N {
-            2 => vec[0] * vec[1],
-            3 => vec[0] * vec[1] * vec[2],
-            4 => vec[0] * vec[1] * (vec[2] * vec[3]),
+            2 => vector[0] * vector[1],
+            3 => vector[0] * vector[1] * vector[2],
+            4 => vector[0] * vector[1] * (vector[2] * vector[3]),
             _ => unreachable!(),
         }
     }
 
     /// Overridable implementation for [`Vector::eq_mask`].
     #[inline]
-    fn vec_eq_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    fn vector_eq_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialEq,
     {
-        Mask::from_fn(|i| vec[i] == other[i])
+        Mask::from_fn(|i| vector[i] == other[i])
     }
 
     /// Overridable implementation for [`Vector::ne_mask`].
     #[inline]
-    fn vec_ne_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    fn vector_ne_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialEq,
     {
-        Mask::from_fn(|i| vec[i] != other[i])
+        Mask::from_fn(|i| vector[i] != other[i])
     }
 
     /// Overridable implementation for [`Vector::lt_mask`].
     #[inline]
-    fn vec_lt_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    fn vector_lt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialOrd,
     {
-        Mask::from_fn(|i| vec[i] < other[i])
+        Mask::from_fn(|i| vector[i] < other[i])
     }
 
     /// Overridable implementation for [`Vector::gt_mask`].
     #[inline]
-    fn vec_gt_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    fn vector_gt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialOrd,
     {
-        Mask::from_fn(|i| vec[i] > other[i])
+        Mask::from_fn(|i| vector[i] > other[i])
     }
 
     /// Overridable implementation for [`Vector::le_mask`].
     #[inline]
-    fn vec_le_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    fn vector_le_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialOrd,
     {
-        Mask::from_fn(|i| vec[i] <= other[i])
+        Mask::from_fn(|i| vector[i] <= other[i])
     }
 
     /// Overridable implementation for [`Vector::ge_mask`].
     #[inline]
-    fn vec_ge_mask(vec: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
+    fn vector_ge_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
         Self: Scalar + PartialOrd,
     {
-        Mask::from_fn(|i| vec[i] >= other[i])
+        Mask::from_fn(|i| vector[i] >= other[i])
     }
 
     /// Overridable implementation for the `matrix == matrix` operation.
     #[inline]
-    fn mat_eq(mat: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
+    fn matrix_eq(matrix: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
     where
         Self: Scalar + PartialEq,
     {
-        (0..N).all(|i| mat.column(i) == other.column(i))
+        (0..N).all(|i| matrix.column(i) == other.column(i))
     }
 
     /// Overridable implementation for the `matrix != matrix` operation.
     #[inline]
-    fn mat_ne(mat: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
+    fn matrix_ne(matrix: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
     where
         Self: Scalar + PartialEq,
     {
-        !Self::mat_eq(mat, other)
+        !Self::matrix_eq(matrix, other)
     }
 
     /// Overridable implementation for the unary `-matrix` operation.
     #[inline]
     #[track_caller]
-    fn mat_neg(mat: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    fn matrix_neg(matrix: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
     where
         Self: Scalar + Neg<Output = Self>,
     {
-        Matrix::from_column_fn(|i| -mat.column(i))
+        Matrix::from_column_fn(|i| -matrix.column(i))
     }
 
     /// Overridable implementation for the `matrix + matrix` operation.
     #[inline]
     #[track_caller]
-    fn mat_add(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    fn matrix_add(matrix: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
     where
         Self: Scalar + Add<Output = Self>,
     {
-        Matrix::from_column_fn(|i| mat.column(i) + rhs.column(i))
+        Matrix::from_column_fn(|i| matrix.column(i) + rhs.column(i))
     }
 
     /// Overridable implementation for the `matrix - matrix` operation.
     #[inline]
     #[track_caller]
-    fn mat_sub(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    fn matrix_sub(matrix: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
     where
         Self: Scalar + Sub<Output = Self>,
     {
-        Matrix::from_column_fn(|i| mat.column(i) - rhs.column(i))
+        Matrix::from_column_fn(|i| matrix.column(i) - rhs.column(i))
     }
 
     /// Overridable implementation for the `matrix * scalar` operation.
     #[inline]
     #[track_caller]
-    fn mat_mul_scalar(mat: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
+    fn matrix_mul_scalar(matrix: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
     where
         Self: Scalar + Mul<Output = Self>,
     {
-        Matrix::from_column_fn(|i| mat.column(i) * rhs)
+        Matrix::from_column_fn(|i| matrix.column(i) * rhs)
     }
 
     /// Overridable implementation for the `matrix * vector` operation.
     #[inline]
     #[track_caller]
-    fn mat_mul_vec(mat: &Matrix<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn matrix_mul_vector(matrix: &Matrix<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: Scalar + Add<Output = Self> + Mul<Output = Self>,
     {
         match N {
-            2 => mat.column(0) * rhs[0] + mat.column(1) * rhs[1],
-            3 => mat.column(0) * rhs[0] + mat.column(1) * rhs[1] + mat.column(2) * rhs[2],
+            2 => matrix.column(0) * rhs[0] + matrix.column(1) * rhs[1],
+            3 => matrix.column(0) * rhs[0] + matrix.column(1) * rhs[1] + matrix.column(2) * rhs[2],
             4 => {
-                mat.column(0) * rhs[0]
-                    + mat.column(1) * rhs[1]
-                    + mat.column(2) * rhs[2]
-                    + mat.column(3) * rhs[3]
+                matrix.column(0) * rhs[0]
+                    + matrix.column(1) * rhs[1]
+                    + matrix.column(2) * rhs[2]
+                    + matrix.column(3) * rhs[3]
             }
             _ => unreachable!(),
         }
@@ -689,21 +689,21 @@ where
     /// Overridable implementation for the `matrix * matrix` operation.
     #[inline]
     #[track_caller]
-    fn mat_mul(mat: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
+    fn matrix_mul(matrix: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
     where
         Self: Scalar + Add<Output = Self> + Mul<Output = Self>,
     {
-        Matrix::from_column_fn(|i| mat * rhs.column(i))
+        Matrix::from_column_fn(|i| matrix * rhs.column(i))
     }
 
     /// Overridable implementation for the `matrix / scalar` operation.
     #[inline]
     #[track_caller]
-    fn mat_div_scalar(mat: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
+    fn matrix_div_scalar(matrix: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
     where
         Self: Scalar + Div<Output = Self>,
     {
-        Matrix::from_column_fn(|i| mat.column(i) / rhs)
+        Matrix::from_column_fn(|i| matrix.column(i) / rhs)
     }
 
     /// Overridable implementation for the `affine == affine` operation.

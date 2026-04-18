@@ -24,7 +24,7 @@ macro_rules! impl_uint {
             #[inline]
             #[must_use]
             pub fn max(self, other: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_max(self, other))
+                specialize!(<$T as $Backend<N, A>>::vector_max(self, other))
             }
 
             /// Returns the minimum elements between `self` and `other`.
@@ -45,7 +45,7 @@ macro_rules! impl_uint {
             #[inline]
             #[must_use]
             pub fn min(self, other: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_min(self, other))
+                specialize!(<$T as $Backend<N, A>>::vector_min(self, other))
             }
 
             /// Clamps the elements of `self` between the elements of `min` and
@@ -64,10 +64,10 @@ macro_rules! impl_uint {
             /// ```
             /// # use ggmath::Vec4;
             /// #
-            /// let vec = Vec4::<u32>::new(1, 2, 3, 9);
+            /// let vector = Vec4::<u32>::new(1, 2, 3, 9);
             /// let min = Vec4::new(0, 5, 1, 2);
             /// let max = Vec4::new(3, 6, 2, 3);
-            /// let clamp = vec.clamp(min, max);
+            /// let clamp = vector.clamp(min, max);
             ///
             /// assert_eq!(clamp, Vec4::new(1, 5, 2, 3));
             /// ```
@@ -89,13 +89,13 @@ macro_rules! impl_uint {
             /// ```
             /// # use ggmath::Vec3;
             /// #
-            /// let vec = Vec3::<u32>::new(1, 7, 3);
-            /// assert_eq!(vec.max_element(), 7);
+            /// let vector = Vec3::<u32>::new(1, 7, 3);
+            /// assert_eq!(vector.max_element(), 7);
             /// ```
             #[inline]
             #[must_use]
             pub fn max_element(self) -> $T {
-                specialize!(<$T as $Backend<N, A>>::vec_max_element(self))
+                specialize!(<$T as $Backend<N, A>>::vector_max_element(self))
             }
 
             /// Returns the minimum between the elements of `self`.
@@ -107,48 +107,48 @@ macro_rules! impl_uint {
             /// ```
             /// # use ggmath::Vec3;
             /// #
-            /// let vec = Vec3::<u32>::new(7, 0, 3);
-            /// assert_eq!(vec.min_element(), 0);
+            /// let vector = Vec3::<u32>::new(7, 0, 3);
+            /// assert_eq!(vector.min_element(), 0);
             /// ```
             #[inline]
             #[must_use]
             pub fn min_element(self) -> $T {
-                specialize!(<$T as $Backend<N, A>>::vec_min_element(self))
+                specialize!(<$T as $Backend<N, A>>::vector_min_element(self))
             }
 
             /// Computes `self + rhs`, returning `None` if overflow occured.
             #[inline]
             #[must_use]
             pub fn checked_add(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vec_checked_add(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_checked_add(self, rhs))
             }
 
             /// Computes `self - rhs`, returning `None` if overflow occured.
             #[inline]
             #[must_use]
             pub fn checked_sub(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vec_checked_sub(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_checked_sub(self, rhs))
             }
 
             /// Computes `self * rhs`, returning `None` if overflow occured.
             #[inline]
             #[must_use]
             pub fn checked_mul(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vec_checked_mul(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_checked_mul(self, rhs))
             }
 
             /// Computes `self / rhs`, returning `None` if division by zero occured.
             #[inline]
             #[must_use]
             pub fn checked_div(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vec_checked_div(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_checked_div(self, rhs))
             }
 
             /// Computes `self % rhs`, returning `None` if division by zero occurred.
             #[inline]
             #[must_use]
             pub fn checked_rem(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vec_checked_rem(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_checked_rem(self, rhs))
             }
 
             /// Computes `self + rhs`, saturating at the numeric bounds instead of
@@ -156,7 +156,7 @@ macro_rules! impl_uint {
             #[inline]
             #[must_use]
             pub fn saturating_add(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_saturating_add(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_saturating_add(self, rhs))
             }
 
             /// Computes `self - rhs`, saturating at the numeric bounds instead of
@@ -164,7 +164,7 @@ macro_rules! impl_uint {
             #[inline]
             #[must_use]
             pub fn saturating_sub(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_saturating_sub(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_saturating_sub(self, rhs))
             }
 
             /// Computes `self * rhs`, saturating at the numeric bounds instead of
@@ -172,28 +172,28 @@ macro_rules! impl_uint {
             #[inline]
             #[must_use]
             pub fn saturating_mul(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_saturating_mul(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_saturating_mul(self, rhs))
             }
 
             /// Computes `self + rhs`, wrapping around at the boundary of the type.
             #[inline]
             #[must_use]
             pub fn wrapping_add(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_wrapping_add(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_wrapping_add(self, rhs))
             }
 
             /// Computes `self - rhs`, wrapping around at the boundary of the type.
             #[inline]
             #[must_use]
             pub fn wrapping_sub(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_wrapping_sub(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_wrapping_sub(self, rhs))
             }
 
             /// Computes `self * rhs`, wrapping around at the boundary of the type.
             #[inline]
             #[must_use]
             pub fn wrapping_mul(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vec_wrapping_mul(self, rhs))
+                specialize!(<$T as $Backend<N, A>>::vector_wrapping_mul(self, rhs))
             }
         }
 
@@ -202,121 +202,130 @@ macro_rules! impl_uint {
             Length<N>: SupportedLength,
         {
             #[inline]
-            fn vec_max(vec: Vector<N, $T, A>, other: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].max(other[i]))
+            fn vector_max(vector: Vector<N, $T, A>, other: Vector<N, $T, A>) -> Vector<N, $T, A> {
+                Vector::from_fn(|i| vector[i].max(other[i]))
             }
 
             #[inline]
-            fn vec_min(vec: Vector<N, $T, A>, other: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].min(other[i]))
+            fn vector_min(vector: Vector<N, $T, A>, other: Vector<N, $T, A>) -> Vector<N, $T, A> {
+                Vector::from_fn(|i| vector[i].min(other[i]))
             }
 
             #[inline]
-            fn vec_max_element(vec: Vector<N, $T, A>) -> $T {
-                vec.iter().reduce($T::max).unwrap()
+            fn vector_max_element(vector: Vector<N, $T, A>) -> $T {
+                vector.iter().reduce($T::max).unwrap()
             }
 
             #[inline]
-            fn vec_min_element(vec: Vector<N, $T, A>) -> $T {
-                vec.iter().reduce($T::min).unwrap()
+            fn vector_min_element(vector: Vector<N, $T, A>) -> $T {
+                vector.iter().reduce($T::min).unwrap()
             }
 
             #[inline]
-            fn vec_checked_add(
-                mut vec: Vector<N, $T, A>,
+            fn vector_checked_add(
+                mut vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Option<Vector<N, $T, A>> {
                 for i in 0..N {
-                    vec[i] = vec[i].checked_add(rhs[i])?;
+                    vector[i] = vector[i].checked_add(rhs[i])?;
                 }
 
-                Some(vec)
+                Some(vector)
             }
 
             #[inline]
-            fn vec_checked_sub(
-                mut vec: Vector<N, $T, A>,
+            fn vector_checked_sub(
+                mut vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Option<Vector<N, $T, A>> {
                 for i in 0..N {
-                    vec[i] = vec[i].checked_sub(rhs[i])?;
+                    vector[i] = vector[i].checked_sub(rhs[i])?;
                 }
 
-                Some(vec)
+                Some(vector)
             }
 
             #[inline]
-            fn vec_checked_mul(
-                mut vec: Vector<N, $T, A>,
+            fn vector_checked_mul(
+                mut vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Option<Vector<N, $T, A>> {
                 for i in 0..N {
-                    vec[i] = vec[i].checked_mul(rhs[i])?;
+                    vector[i] = vector[i].checked_mul(rhs[i])?;
                 }
 
-                Some(vec)
+                Some(vector)
             }
 
             #[inline]
-            fn vec_checked_div(
-                mut vec: Vector<N, $T, A>,
+            fn vector_checked_div(
+                mut vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Option<Vector<N, $T, A>> {
                 for i in 0..N {
-                    vec[i] = vec[i].checked_div(rhs[i])?;
+                    vector[i] = vector[i].checked_div(rhs[i])?;
                 }
 
-                Some(vec)
+                Some(vector)
             }
 
             #[inline]
-            fn vec_checked_rem(
-                mut vec: Vector<N, $T, A>,
+            fn vector_checked_rem(
+                mut vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Option<Vector<N, $T, A>> {
                 for i in 0..N {
-                    vec[i] = vec[i].checked_rem(rhs[i])?;
+                    vector[i] = vector[i].checked_rem(rhs[i])?;
                 }
-                Some(vec)
+                Some(vector)
             }
 
             #[inline]
-            fn vec_saturating_add(
-                vec: Vector<N, $T, A>,
+            fn vector_saturating_add(
+                vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].saturating_add(rhs[i]))
+                Vector::from_fn(|i| vector[i].saturating_add(rhs[i]))
             }
 
             #[inline]
-            fn vec_saturating_sub(
-                vec: Vector<N, $T, A>,
+            fn vector_saturating_sub(
+                vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].saturating_sub(rhs[i]))
+                Vector::from_fn(|i| vector[i].saturating_sub(rhs[i]))
             }
 
             #[inline]
-            fn vec_saturating_mul(
-                vec: Vector<N, $T, A>,
+            fn vector_saturating_mul(
+                vector: Vector<N, $T, A>,
                 rhs: Vector<N, $T, A>,
             ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].saturating_mul(rhs[i]))
+                Vector::from_fn(|i| vector[i].saturating_mul(rhs[i]))
             }
 
             #[inline]
-            fn vec_wrapping_add(vec: Vector<N, $T, A>, rhs: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].wrapping_add(rhs[i]))
+            fn vector_wrapping_add(
+                vector: Vector<N, $T, A>,
+                rhs: Vector<N, $T, A>,
+            ) -> Vector<N, $T, A> {
+                Vector::from_fn(|i| vector[i].wrapping_add(rhs[i]))
             }
 
             #[inline]
-            fn vec_wrapping_sub(vec: Vector<N, $T, A>, rhs: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].wrapping_sub(rhs[i]))
+            fn vector_wrapping_sub(
+                vector: Vector<N, $T, A>,
+                rhs: Vector<N, $T, A>,
+            ) -> Vector<N, $T, A> {
+                Vector::from_fn(|i| vector[i].wrapping_sub(rhs[i]))
             }
 
             #[inline]
-            fn vec_wrapping_mul(vec: Vector<N, $T, A>, rhs: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vec[i].wrapping_mul(rhs[i]))
+            fn vector_wrapping_mul(
+                vector: Vector<N, $T, A>,
+                rhs: Vector<N, $T, A>,
+            ) -> Vector<N, $T, A> {
+                Vector::from_fn(|i| vector[i].wrapping_mul(rhs[i]))
             }
         }
     };

@@ -256,124 +256,124 @@ mod tests {
 
     #[test]
     fn test_vector() -> Result<(), Box<dyn Error>> {
-        let vec = Vec2::<i32>::new(1, 2);
-        assert_eq!(vec, from_str(&to_string(&vec)?)?);
-        assert_eq!(vec.unalign(), from_str(&to_string(&vec)?)?);
-        assert!(from_str::<Vec3<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec3U<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4U<i32>>(&to_string(&vec)?).is_err());
+        let vector = Vec2::<i32>::new(1, 2);
+        assert_eq!(vector, from_str(&to_string(&vector)?)?);
+        assert_eq!(vector.unalign(), from_str(&to_string(&vector)?)?);
+        assert!(from_str::<Vec3<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec3U<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4U<i32>>(&to_string(&vector)?).is_err());
 
-        let vec = Vec3::<i32>::new(1, 2, 3);
-        assert_eq!(vec, from_str(&to_string(&vec)?)?);
-        assert_eq!(vec.unalign(), from_str(&to_string(&vec)?)?);
-        assert!(from_str::<Vec2<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec2U<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4U<i32>>(&to_string(&vec)?).is_err());
+        let vector = Vec3::<i32>::new(1, 2, 3);
+        assert_eq!(vector, from_str(&to_string(&vector)?)?);
+        assert_eq!(vector.unalign(), from_str(&to_string(&vector)?)?);
+        assert!(from_str::<Vec2<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec2U<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4U<i32>>(&to_string(&vector)?).is_err());
 
-        let vec = Vec4::<i32>::new(1, 2, 3, 4);
-        assert_eq!(vec, from_str(&to_string(&vec)?)?);
-        assert_eq!(vec.unalign(), from_str(&to_string(&vec)?)?);
-        assert!(from_str::<Vec2<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec3<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec2U<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec3U<i32>>(&to_string(&vec)?).is_err());
+        let vector = Vec4::<i32>::new(1, 2, 3, 4);
+        assert_eq!(vector, from_str(&to_string(&vector)?)?);
+        assert_eq!(vector.unalign(), from_str(&to_string(&vector)?)?);
+        assert!(from_str::<Vec2<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec3<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec2U<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec3U<i32>>(&to_string(&vector)?).is_err());
 
-        let vec = Vec2U::<i32>::new(1, 2);
-        assert_eq!(vec, from_str(&to_string(&vec)?)?);
-        assert_eq!(vec.align(), from_str(&to_string(&vec)?)?);
-        assert!(from_str::<Vec3<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec3U<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4U<i32>>(&to_string(&vec)?).is_err());
+        let vector = Vec2U::<i32>::new(1, 2);
+        assert_eq!(vector, from_str(&to_string(&vector)?)?);
+        assert_eq!(vector.align(), from_str(&to_string(&vector)?)?);
+        assert!(from_str::<Vec3<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec3U<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4U<i32>>(&to_string(&vector)?).is_err());
 
-        let vec = Vec3U::<i32>::new(1, 2, 3);
-        assert_eq!(vec, from_str(&to_string(&vec)?)?);
-        assert_eq!(vec.align(), from_str(&to_string(&vec)?)?);
-        assert!(from_str::<Vec2<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec2U<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec4U<i32>>(&to_string(&vec)?).is_err());
+        let vector = Vec3U::<i32>::new(1, 2, 3);
+        assert_eq!(vector, from_str(&to_string(&vector)?)?);
+        assert_eq!(vector.align(), from_str(&to_string(&vector)?)?);
+        assert!(from_str::<Vec2<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec2U<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec4U<i32>>(&to_string(&vector)?).is_err());
 
-        let vec = Vec4U::<i32>::new(1, 2, 3, 4);
-        assert_eq!(vec, from_str(&to_string(&vec)?)?);
-        assert_eq!(vec.align(), from_str(&to_string(&vec)?)?);
-        assert!(from_str::<Vec2<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec3<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec2U<i32>>(&to_string(&vec)?).is_err());
-        assert!(from_str::<Vec3U<i32>>(&to_string(&vec)?).is_err());
+        let vector = Vec4U::<i32>::new(1, 2, 3, 4);
+        assert_eq!(vector, from_str(&to_string(&vector)?)?);
+        assert_eq!(vector.align(), from_str(&to_string(&vector)?)?);
+        assert!(from_str::<Vec2<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec3<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec2U<i32>>(&to_string(&vector)?).is_err());
+        assert!(from_str::<Vec3U<i32>>(&to_string(&vector)?).is_err());
 
         Ok(())
     }
 
     #[test]
     fn test_matrix() -> Result<(), Box<dyn Error>> {
-        let mat = Mat2::<i32>::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
-        assert_eq!(mat, from_str(&to_string(&mat)?)?);
-        assert_eq!(mat.unalign(), from_str(&to_string(&mat)?)?);
-        assert!(from_str::<Mat3<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat3U<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4U<i32>>(&to_string(&mat)?).is_err());
+        let matrix = Mat2::<i32>::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
+        assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
+        assert_eq!(matrix.unalign(), from_str(&to_string(&matrix)?)?);
+        assert!(from_str::<Mat3<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat3U<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let mat = Mat3::<i32>::from_columns(&[
+        let matrix = Mat3::<i32>::from_columns(&[
             Vec3::new(1, 2, 3),
             Vec3::new(4, 5, 6),
             Vec3::new(7, 8, 9),
         ]);
-        assert_eq!(mat, from_str(&to_string(&mat)?)?);
-        assert_eq!(mat.unalign(), from_str(&to_string(&mat)?)?);
-        assert!(from_str::<Mat2<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat2U<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4U<i32>>(&to_string(&mat)?).is_err());
+        assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
+        assert_eq!(matrix.unalign(), from_str(&to_string(&matrix)?)?);
+        assert!(from_str::<Mat2<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat2U<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let mat = Mat4::<i32>::from_columns(&[
+        let matrix = Mat4::<i32>::from_columns(&[
             Vec4::new(1, 2, 3, 4),
             Vec4::new(5, 6, 7, 8),
             Vec4::new(9, 10, 11, 12),
             Vec4::new(13, 14, 15, 16),
         ]);
-        assert_eq!(mat, from_str(&to_string(&mat)?)?);
-        assert_eq!(mat.unalign(), from_str(&to_string(&mat)?)?);
-        assert!(from_str::<Mat2<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat3<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat2U<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat3U<i32>>(&to_string(&mat)?).is_err());
+        assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
+        assert_eq!(matrix.unalign(), from_str(&to_string(&matrix)?)?);
+        assert!(from_str::<Mat2<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat3<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat2U<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat3U<i32>>(&to_string(&matrix)?).is_err());
 
-        let mat = Mat2U::<i32>::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
-        assert_eq!(mat, from_str(&to_string(&mat)?)?);
-        assert_eq!(mat.align(), from_str(&to_string(&mat)?)?);
-        assert!(from_str::<Mat3<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat3U<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4U<i32>>(&to_string(&mat)?).is_err());
+        let matrix = Mat2U::<i32>::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
+        assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
+        assert_eq!(matrix.align(), from_str(&to_string(&matrix)?)?);
+        assert!(from_str::<Mat3<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat3U<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let mat = Mat3U::<i32>::from_columns(&[
+        let matrix = Mat3U::<i32>::from_columns(&[
             Vec3U::new(1, 2, 3),
             Vec3U::new(4, 5, 6),
             Vec3U::new(7, 8, 9),
         ]);
-        assert_eq!(mat, from_str(&to_string(&mat)?)?);
-        assert_eq!(mat.align(), from_str(&to_string(&mat)?)?);
-        assert!(from_str::<Mat2<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat2U<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat4U<i32>>(&to_string(&mat)?).is_err());
+        assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
+        assert_eq!(matrix.align(), from_str(&to_string(&matrix)?)?);
+        assert!(from_str::<Mat2<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat2U<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let mat = Mat4U::<i32>::from_columns(&[
+        let matrix = Mat4U::<i32>::from_columns(&[
             Vec4U::new(1, 2, 3, 4),
             Vec4U::new(5, 6, 7, 8),
             Vec4U::new(9, 10, 11, 12),
             Vec4U::new(13, 14, 15, 16),
         ]);
-        assert_eq!(mat, from_str(&to_string(&mat)?)?);
-        assert_eq!(mat.align(), from_str(&to_string(&mat)?)?);
-        assert!(from_str::<Mat2<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat3<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat2U<i32>>(&to_string(&mat)?).is_err());
-        assert!(from_str::<Mat3U<i32>>(&to_string(&mat)?).is_err());
+        assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
+        assert_eq!(matrix.align(), from_str(&to_string(&matrix)?)?);
+        assert!(from_str::<Mat2<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat3<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat2U<i32>>(&to_string(&matrix)?).is_err());
+        assert!(from_str::<Mat3U<i32>>(&to_string(&matrix)?).is_err());
 
         Ok(())
     }

@@ -34,8 +34,8 @@ where
     Length<N>: SupportedLength,
 {
     #[inline]
-    fn vec_add(vec: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
-        (vec.to_f32() + rhs.to_f32()).to_foo()
+    fn vector_add(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
+        (vector.to_f32() + rhs.to_f32()).to_foo()
     }
 }
 

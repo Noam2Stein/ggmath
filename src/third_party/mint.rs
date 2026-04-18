@@ -498,68 +498,69 @@ mod tests {
 
     #[test]
     fn test_vector() {
-        let vec = Vec2::new(1, 2);
-        assert_eq!(vec, mint::Point2::from(vec).into());
-        assert_eq!(vec, mint::Vector2::from(vec).into());
+        let vector = Vec2::new(1, 2);
+        assert_eq!(vector, mint::Point2::from(vector).into());
+        assert_eq!(vector, mint::Vector2::from(vector).into());
 
-        let vec = Vec3::new(1, 2, 3);
-        assert_eq!(vec, mint::Point3::from(vec).into());
-        assert_eq!(vec, mint::Vector3::from(vec).into());
+        let vector = Vec3::new(1, 2, 3);
+        assert_eq!(vector, mint::Point3::from(vector).into());
+        assert_eq!(vector, mint::Vector3::from(vector).into());
 
-        let vec = Vec4::new(1, 2, 3, 4);
-        assert_eq!(vec, mint::Vector4::from(vec).into());
+        let vector = Vec4::new(1, 2, 3, 4);
+        assert_eq!(vector, mint::Vector4::from(vector).into());
 
-        let vec = Vec2U::new(1, 2);
-        assert_eq!(vec, mint::Point2::from(vec).into());
-        assert_eq!(vec, mint::Vector2::from(vec).into());
+        let vector = Vec2U::new(1, 2);
+        assert_eq!(vector, mint::Point2::from(vector).into());
+        assert_eq!(vector, mint::Vector2::from(vector).into());
 
-        let vec = Vec3U::new(1, 2, 3);
-        assert_eq!(vec, mint::Point3::from(vec).into());
-        assert_eq!(vec, mint::Vector3::from(vec).into());
+        let vector = Vec3U::new(1, 2, 3);
+        assert_eq!(vector, mint::Point3::from(vector).into());
+        assert_eq!(vector, mint::Vector3::from(vector).into());
 
-        let vec = Vec4U::new(1, 2, 3, 4);
-        assert_eq!(vec, mint::Vector4::from(vec).into());
+        let vector = Vec4U::new(1, 2, 3, 4);
+        assert_eq!(vector, mint::Vector4::from(vector).into());
     }
 
     #[test]
     fn test_matrix() {
-        let mat = Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
-        assert_eq!(mat, mint::ColumnMatrix2::from(mat).into());
-        assert_eq!(mat, mint::RowMatrix2::from(mat).into());
+        let matrix = Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
+        assert_eq!(matrix, mint::ColumnMatrix2::from(matrix).into());
+        assert_eq!(matrix, mint::RowMatrix2::from(matrix).into());
 
-        let mat = Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
-        assert_eq!(mat, mint::ColumnMatrix3::from(mat).into());
-        assert_eq!(mat, mint::RowMatrix3::from(mat).into());
+        let matrix =
+            Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
+        assert_eq!(matrix, mint::ColumnMatrix3::from(matrix).into());
+        assert_eq!(matrix, mint::RowMatrix3::from(matrix).into());
 
-        let mat = Mat4::from_columns(&[
+        let matrix = Mat4::from_columns(&[
             Vec4::new(1, 2, 3, 4),
             Vec4::new(5, 6, 7, 8),
             Vec4::new(9, 10, 11, 12),
             Vec4::new(13, 14, 15, 16),
         ]);
-        assert_eq!(mat, mint::ColumnMatrix4::from(mat).into());
-        assert_eq!(mat, mint::RowMatrix4::from(mat).into());
+        assert_eq!(matrix, mint::ColumnMatrix4::from(matrix).into());
+        assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
 
-        let mat = Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
-        assert_eq!(mat, mint::ColumnMatrix2::from(mat).into());
-        assert_eq!(mat, mint::RowMatrix2::from(mat).into());
+        let matrix = Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
+        assert_eq!(matrix, mint::ColumnMatrix2::from(matrix).into());
+        assert_eq!(matrix, mint::RowMatrix2::from(matrix).into());
 
-        let mat = Mat3U::from_columns(&[
+        let matrix = Mat3U::from_columns(&[
             Vec3U::new(1, 2, 3),
             Vec3U::new(4, 5, 6),
             Vec3U::new(7, 8, 9),
         ]);
-        assert_eq!(mat, mint::ColumnMatrix3::from(mat).into());
-        assert_eq!(mat, mint::RowMatrix3::from(mat).into());
+        assert_eq!(matrix, mint::ColumnMatrix3::from(matrix).into());
+        assert_eq!(matrix, mint::RowMatrix3::from(matrix).into());
 
-        let mat = Mat4U::from_columns(&[
+        let matrix = Mat4U::from_columns(&[
             Vec4U::new(1, 2, 3, 4),
             Vec4U::new(5, 6, 7, 8),
             Vec4U::new(9, 10, 11, 12),
             Vec4U::new(13, 14, 15, 16),
         ]);
-        assert_eq!(mat, mint::ColumnMatrix4::from(mat).into());
-        assert_eq!(mat, mint::RowMatrix4::from(mat).into());
+        assert_eq!(matrix, mint::ColumnMatrix4::from(matrix).into());
+        assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
     }
 
     #[test]

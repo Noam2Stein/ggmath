@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed many functions to use `vector` and `matrix` instead of
+  `vec` and `mat`.
+
 - Renamed affine `matrix` field to `submatrix`.
 
 - Changed the receiver of `Matrix::transpose` from `self` to `&self`.
