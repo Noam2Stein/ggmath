@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `wide` vector functions:
+  - `from_lanes`
+  - `from_lane_fn`
+  - `to_lanes`
+  - `lane`
+  - `set_lane`
+
 ### Changed
 
 - Updated minimum supported Rust version to `1.95.0`.

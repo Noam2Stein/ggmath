@@ -1,13 +1,173 @@
 use wide::{CmpGe, CmpLe, CmpNe};
 
-use crate::{Alignment, Length, SupportedLength, Vector, utils::WideTy};
+use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::WideTy};
 
 #[expect(private_bounds)]
-impl<const N: usize, Wide, A: Alignment> Vector<N, Wide, A>
+impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Vector<N, Wide, A>
 where
     Length<N>: SupportedLength,
-    Wide: WideTy,
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
 {
+    /// Creates an SoA (Structure of Arrays) vector from an array of
+    /// lanes or scalar vectors.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// # use wide::i32x4;
+    /// #
+    /// let lanes = [
+    ///     Vec3::new(1, 2, 3),
+    ///     Vec3::new(4, 5, 6),
+    ///     Vec3::new(7, 8, 9),
+    ///     Vec3::new(10, 11, 12),
+    /// ];
+    /// assert_eq!(
+    ///     Vec3::<i32x4>::from_lanes(&lanes),
+    ///     Vec3::new(
+    ///         i32x4::new([1, 4, 7, 10]),
+    ///         i32x4::new([2, 5, 8, 11]),
+    ///         i32x4::new([3, 6, 9, 12]),
+    ///     ),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_lanes(lanes: &[Vector<N, T, A>; LANES]) -> Self {
+        Self::from_fn(|i| Wide::new(lanes.map(|lane| lane[i])))
+    }
+
+    /// Creates an SoA (Structure of Arrays) vector by calling function
+    /// `f` for each lane index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// # use wide::i32x4;
+    /// #
+    /// let lanes = [
+    ///     Vec3::new(1, 2, 3),
+    ///     Vec3::new(4, 5, 6),
+    ///     Vec3::new(7, 8, 9),
+    ///     Vec3::new(10, 11, 12),
+    /// ];
+    /// assert_eq!(
+    ///     Vec3::<i32x4>::from_lane_fn(|lane_index| lanes[lane_index]),
+    ///     Vec3::new(
+    ///         i32x4::new([1, 4, 7, 10]),
+    ///         i32x4::new([2, 5, 8, 11]),
+    ///         i32x4::new([3, 6, 9, 12]),
+    ///     ),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_lane_fn<F>(f: F) -> Self
+    where
+        F: FnMut(usize) -> Vector<N, T, A>,
+    {
+        Self::from_lanes(&core::array::from_fn(f))
+    }
+
+    /// Converts an SoA (Structure of Arrays) vector to an array of
+    /// lanes or scalar vectors.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// # use wide::i32x4;
+    /// #
+    /// let vector = Vec3::new(
+    ///     i32x4::new([1, 4, 7, 10]),
+    ///     i32x4::new([2, 5, 8, 11]),
+    ///     i32x4::new([3, 6, 9, 12]),
+    /// );
+    /// assert_eq!(
+    ///     vector.to_lanes(),
+    ///     [
+    ///         Vec3::new(1, 2, 3),
+    ///         Vec3::new(4, 5, 6),
+    ///         Vec3::new(7, 8, 9),
+    ///         Vec3::new(10, 11, 12),
+    ///     ],
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn to_lanes(self) -> [Vector<N, T, A>; LANES] {
+        core::array::from_fn(|lane| self.lane(lane))
+    }
+
+    /// Takes an SoA (Structure of Arrays) vector and returns the lane
+    /// at the given index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `lane` is greater than or equal to the number of
+    /// lanes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// # use wide::i32x4;
+    /// #
+    /// let vector = Vec3::new(
+    ///     i32x4::new([1, 4, 7, 10]),
+    ///     i32x4::new([2, 5, 8, 11]),
+    ///     i32x4::new([3, 6, 9, 12]),
+    /// );
+    /// assert_eq!(vector.lane(1), Vec3::new(4, 5, 6));
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn lane(self, lane: usize) -> Vector<N, T, A> {
+        Vector::from_fn(|i| self[i].to_array()[lane])
+    }
+
+    /// Takes an SoA (Structure of Arrays) vector and sets the lane at
+    /// the given index to `value`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `lane` is greater than or equal to the number of
+    /// lanes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// # use wide::i32x4;
+    /// #
+    /// let mut vector = Vec3::new(
+    ///     i32x4::new([1, 4, 7, 10]),
+    ///     i32x4::new([2, 5, 8, 11]),
+    ///     i32x4::new([3, 6, 9, 12]),
+    /// );
+    /// vector.set_lane(1, Vec3::ZERO);
+    /// assert_eq!(
+    ///     vector,
+    ///     Vec3::new(
+    ///         i32x4::new([1, 0, 7, 10]),
+    ///         i32x4::new([2, 0, 8, 11]),
+    ///         i32x4::new([3, 0, 9, 12]),
+    ///     ),
+    /// );
+    /// ```
+    #[inline]
+    #[track_caller]
+    pub fn set_lane(&mut self, lane: usize, value: Vector<N, T, A>) {
+        for i in 0..N {
+            self[i].as_mut_array()[lane] = value[i];
+        }
+    }
+
     /// For each lane, returns `true` if all elements of `self` are `true`.
     #[inline]
     #[must_use]
@@ -162,12 +322,126 @@ where
 
 #[cfg(test)]
 mod tests {
-    use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, CmpNe};
+    use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, CmpNe, i32x4};
 
     use crate::{
-        Vector,
-        utils::{assert_float_eq, for_parameters},
+        Vec3, Vector,
+        utils::{assert_float_eq, assert_panic, for_parameters},
     };
+
+    #[test]
+    fn test_from_lanes() {
+        assert_eq!(
+            Vec3::<i32x4>::from_lanes(&[
+                Vec3::new(1, 2, 3),
+                Vec3::new(4, 5, 6),
+                Vec3::new(7, 8, 9),
+                Vec3::new(10, 11, 12),
+            ]),
+            Vec3::new(
+                i32x4::new([1, 4, 7, 10]),
+                i32x4::new([2, 5, 8, 11]),
+                i32x4::new([3, 6, 9, 12]),
+            ),
+        );
+    }
+
+    #[test]
+    fn test_from_lane_fn() {
+        assert_eq!(
+            Vec3::<i32x4>::from_lane_fn(|lane| [
+                Vec3::new(1, 2, 3),
+                Vec3::new(4, 5, 6),
+                Vec3::new(7, 8, 9),
+                Vec3::new(10, 11, 12),
+            ][lane]),
+            Vec3::new(
+                i32x4::new([1, 4, 7, 10]),
+                i32x4::new([2, 5, 8, 11]),
+                i32x4::new([3, 6, 9, 12]),
+            ),
+        );
+    }
+
+    #[test]
+    fn test_to_lanes() {
+        assert_eq!(
+            Vec3::new(
+                i32x4::new([1, 4, 7, 10]),
+                i32x4::new([2, 5, 8, 11]),
+                i32x4::new([3, 6, 9, 12]),
+            )
+            .to_lanes(),
+            [
+                Vec3::new(1, 2, 3),
+                Vec3::new(4, 5, 6),
+                Vec3::new(7, 8, 9),
+                Vec3::new(10, 11, 12),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_lane() {
+        let vector = Vec3::new(
+            i32x4::new([1, 4, 7, 10]),
+            i32x4::new([2, 5, 8, 11]),
+            i32x4::new([3, 6, 9, 12]),
+        );
+
+        assert_eq!(vector.lane(0), Vec3::new(1, 2, 3));
+        assert_eq!(vector.lane(1), Vec3::new(4, 5, 6));
+        assert_eq!(vector.lane(2), Vec3::new(7, 8, 9));
+        assert_eq!(vector.lane(3), Vec3::new(10, 11, 12));
+        assert_panic!(vector.lane(4));
+    }
+
+    #[test]
+    fn test_set_lane() {
+        let mut vector = Vec3::new(
+            i32x4::new([1, 4, 7, 10]),
+            i32x4::new([2, 5, 8, 11]),
+            i32x4::new([3, 6, 9, 12]),
+        );
+
+        vector.set_lane(0, Vec3::new(-1, -2, -3));
+        assert_eq!(
+            vector,
+            Vec3::new(
+                i32x4::new([-1, 4, 7, 10]),
+                i32x4::new([-2, 5, 8, 11]),
+                i32x4::new([-3, 6, 9, 12]),
+            )
+        );
+        vector.set_lane(1, Vec3::new(-4, -5, -6));
+        assert_eq!(
+            vector,
+            Vec3::new(
+                i32x4::new([-1, -4, 7, 10]),
+                i32x4::new([-2, -5, 8, 11]),
+                i32x4::new([-3, -6, 9, 12]),
+            )
+        );
+        vector.set_lane(2, Vec3::new(-7, -8, -9));
+        assert_eq!(
+            vector,
+            Vec3::new(
+                i32x4::new([-1, -4, -7, 10]),
+                i32x4::new([-2, -5, -8, 11]),
+                i32x4::new([-3, -6, -9, 12]),
+            )
+        );
+        vector.set_lane(3, Vec3::new(-10, -11, -12));
+        assert_eq!(
+            vector,
+            Vec3::new(
+                i32x4::new([-1, -4, -7, -10]),
+                i32x4::new([-2, -5, -8, -11]),
+                i32x4::new([-3, -6, -9, -12]),
+            )
+        );
+        assert_panic!(vector.clone().set_lane(4, Vector::ZERO));
+    }
 
     #[test]
     fn test_all() {

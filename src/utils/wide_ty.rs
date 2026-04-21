@@ -18,15 +18,40 @@ pub(crate) trait WideTy:
     + CmpLt<Output = Self>
     + CmpGt<Output = Self>
 {
+    type Array;
+
+    fn new(array: Self::Array) -> Self;
+
     fn blend(self, t: Self, f: Self) -> Self;
+
+    fn to_array(self) -> Self::Array;
+
+    fn as_mut_array(&mut self) -> &mut Self::Array;
 }
 
 macro_rules! impl_wide {
     ($Wide:ident, $T:ident, $LANES:literal) => {
         impl WideTy for $Wide {
+            type Array = [$T; $LANES];
+
+            #[inline(always)]
+            fn new(array: Self::Array) -> Self {
+                Self::new(array)
+            }
+
             #[inline(always)]
             fn blend(self, t: Self, f: Self) -> Self {
                 self.blend(t, f)
+            }
+
+            #[inline(always)]
+            fn to_array(self) -> Self::Array {
+                self.to_array()
+            }
+
+            #[inline(always)]
+            fn as_mut_array(&mut self) -> &mut Self::Array {
+                self.as_mut_array()
             }
         }
     };
