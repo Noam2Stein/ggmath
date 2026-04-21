@@ -1,5 +1,5 @@
 macro_rules! impl_wide_float {
-    ($Simd:ident) => {
+    ($Wide:ident) => {
         // MISSING: is_nan
         // MISSING: is_finite
         // MISSING: inverse

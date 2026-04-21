@@ -1,5 +1,5 @@
 macro_rules! impl_wide_float {
-    ($Simd:ident) => {
+    ($Wide:ident) => {
         // MISSING: from_rotation_x
         // MISSING: from_rotation_y
         // MISSING: from_rotation_z

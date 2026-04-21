@@ -291,8 +291,8 @@ mod wide {
     use crate::utils::FloatEq;
 
     macro_rules! impl_wide_float {
-        ($Simd:ident, $T:ident, $LANES:literal) => {
-            impl FloatEq for $Simd {
+        ($Wide:ident, $T:ident, $LANES:literal) => {
+            impl FloatEq for $Wide {
                 fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
                     (0..$LANES).all(|i| {
                         FloatEq::eq(&self.as_array()[i], &other.as_array()[i], zero_eq_neg_zero)
@@ -311,7 +311,7 @@ mod wide {
                 }
 
                 fn abs_mul(&self, rhs: &Self) -> Self {
-                    $Simd::new(self.as_array().map($T::abs)) * rhs
+                    $Wide::new(self.as_array().map($T::abs)) * rhs
                 }
             }
         };

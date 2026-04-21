@@ -1,5 +1,5 @@
 macro_rules! impl_wide_signed {
-    ($Simd:ident) => {
+    ($Wide:ident) => {
         // MISSING: all
         // MISSING: any
         // MISSING: blend

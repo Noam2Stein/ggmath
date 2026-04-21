@@ -22,6 +22,8 @@ mod signed;
 mod swizzle;
 mod unsigned;
 #[cfg(feature = "wide")]
+mod wide;
+#[cfg(feature = "wide")]
 mod wide_float;
 #[cfg(feature = "wide")]
 mod wide_signed;
