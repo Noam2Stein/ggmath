@@ -102,26 +102,50 @@ macro_rules! for_parameters {
     (|Wide: WideFloat| $expr:expr) => {{
         {
             type Wide = wide::f32x4;
+            #[allow(dead_code)]
+            type T = f32;
+            #[allow(dead_code)]
+            const LANES: usize = 4;
             crate::utils::call_in_context(|| $expr, "T: f32\nLANES: 4");
         }
         {
             type Wide = wide::f32x8;
+            #[allow(dead_code)]
+            type T = f32;
+            #[allow(dead_code)]
+            const LANES: usize = 8;
             crate::utils::call_in_context(|| $expr, "T: f32\nLANES: 8");
         }
         {
             type Wide = wide::f32x16;
+            #[allow(dead_code)]
+            type T = f32;
+            #[allow(dead_code)]
+            const LANES: usize = 16;
             crate::utils::call_in_context(|| $expr, "T: f32\nLANES: 16");
         }
         {
             type Wide = wide::f64x2;
+            #[allow(dead_code)]
+            type T = f64;
+            #[allow(dead_code)]
+            const LANES: usize = 2;
             crate::utils::call_in_context(|| $expr, "T: f64\nLANES: 2");
         }
         {
             type Wide = wide::f64x4;
+            #[allow(dead_code)]
+            type T = f64;
+            #[allow(dead_code)]
+            const LANES: usize = 4;
             crate::utils::call_in_context(|| $expr, "T: f64\nLANES: 4");
         }
         {
             type Wide = wide::f64x8;
+            #[allow(dead_code)]
+            type T = f64;
+            #[allow(dead_code)]
+            const LANES: usize = 8;
             crate::utils::call_in_context(|| $expr, "T: f64\nLANES: 8");
         }
     }};

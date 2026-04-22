@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `lane`
   - `set_lane`
 
+- more `wide` float-vector functions.
+
 ### Changed
 
 - Updated minimum supported Rust version to `1.95.0`.
