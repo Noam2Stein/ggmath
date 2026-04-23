@@ -2671,6 +2671,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
+    use std::{format, vec};
+
     use itertools::Itertools;
 
     use crate::{

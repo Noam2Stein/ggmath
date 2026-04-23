@@ -427,7 +427,6 @@ where
     ///
     /// assert_eq!(vector.floor(), Vec3::new(3.0, 3.0, -4.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn floor(self) -> Self {
@@ -448,7 +447,6 @@ where
     ///
     /// assert_eq!(vector.ceil(), Vec3::new(4.0, 4.0, -4.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn ceil(self) -> Self {
@@ -469,7 +467,6 @@ where
     ///
     /// assert_eq!(vector.round(), Vec3::new(3.0, -3.0, 4.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn round(self) -> Self {
@@ -490,7 +487,6 @@ where
     ///
     /// assert_eq!(vector.trunc(), Vec3::new(3.0, 3.0, -3.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn trunc(self) -> Self {
@@ -511,7 +507,6 @@ where
     ///
     /// assert_eq!(vector.fract(), Vec2::new(0.25, -0.25));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn fract(self) -> Self {
@@ -529,7 +524,6 @@ where
     /// The result of this operation is guaranteed to be the rounded
     /// infinite-precision result. It is specified by IEEE 754 as
     /// `fusedMultiplyAdd` and guaranteed not to change.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn mul_add(self, a: Self, b: Self) -> Self {
@@ -551,7 +545,6 @@ where
     /// infinite-precision result.
     ///
     /// [`f32::div_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.div_euclid
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn div_euclid(self, rhs: Self) -> Self {
@@ -573,7 +566,6 @@ where
     /// infinite-precision result.
     ///
     /// [`f32::rem_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.rem_euclid
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn rem_euclid(self, rhs: Self) -> Self {
@@ -589,7 +581,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn powf(self, n: T) -> Self {
@@ -617,7 +608,6 @@ where
     /// assert_eq!(vector.sqrt().y, 4.0);
     /// assert!(vector.sqrt().z.is_nan());
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn sqrt(self) -> Self {
@@ -631,7 +621,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn exp(self) -> Self {
@@ -645,7 +634,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn exp2(self) -> Self {
@@ -659,7 +647,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn ln(self) -> Self {
@@ -683,7 +670,6 @@ where
     ///
     /// assert_eq!(vector.log2(), Vec3::new(1.0, 2.0, 3.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn log2(self) -> Self {
@@ -697,7 +683,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn sin(self) -> Self {
@@ -711,7 +696,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn cos(self) -> Self {
@@ -725,7 +709,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn tan(self) -> Self {
@@ -739,7 +722,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn asin(self) -> Self {
@@ -753,7 +735,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn acos(self) -> Self {
@@ -767,7 +748,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn atan(self) -> Self {
@@ -784,7 +764,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn sin_cos(self) -> (Self, Self) {
@@ -828,7 +807,6 @@ where
     ///
     /// assert_eq!(move_towards, Vec3::new(3.0, 0.0, 0.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn move_towards(self, target: Self, max_delta: T) -> Self {
@@ -853,7 +831,6 @@ where
     ///
     /// assert_eq!(vector.length(), 14.0_f32.sqrt());
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
@@ -872,7 +849,6 @@ where
     ///
     /// assert_eq!(a.distance(b), (a - b).length());
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn distance(self, other: Self) -> T {
@@ -904,7 +880,6 @@ where
     ///
     /// assert_eq!(vector.normalize(), vector / vector.length());
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -939,7 +914,6 @@ where
     /// ```
     ///
     /// [`normalize`]: Self::normalize
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
@@ -968,7 +942,6 @@ where
     /// ```
     ///
     /// [`normalize`]: Self::normalize
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn normalize_or(self, fallback: Self) -> Self {
@@ -991,7 +964,6 @@ where
     /// ```
     ///
     /// [`normalize`]: Self::normalize
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn normalize_or_zero(self) -> Self {
@@ -1016,7 +988,6 @@ where
     ///
     /// [`normalize`]: Self::normalize
     /// [`length`]: Self::length
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
@@ -1071,7 +1042,6 @@ where
     /// assert_eq!(a.with_max_length(max), Vec3::new(2.0, 0.0, 0.0));
     /// assert_eq!(b.with_max_length(max), Vec3::new(4.0, 0.0, 0.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1107,7 +1077,6 @@ where
     /// assert_eq!(a.with_min_length(min), Vec3::new(4.0, 0.0, 0.0));
     /// assert_eq!(b.with_min_length(min), Vec3::new(6.0, 0.0, 0.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1147,7 +1116,6 @@ where
     /// assert_eq!(b.clamp_length(min, max), Vec3::new(6.0, 0.0, 0.0));
     /// assert_eq!(c.clamp_length(min, max), Vec3::new(8.0, 0.0, 0.0));
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1191,7 +1159,6 @@ where
     ///
     /// assert!((angle - 90.0_f32.to_radians()).abs() < 1e-5);
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn angle_between(self, other: Self) -> T {
@@ -1307,7 +1274,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `self` or `normal` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1356,7 +1322,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn rotate(self, angle: T) -> Self {
@@ -1382,7 +1347,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn rotate_x(self, angle: T) -> Self {
@@ -1403,7 +1367,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn rotate_y(self, angle: T) -> Self {
@@ -1424,7 +1387,6 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn rotate_z(self, angle: T) -> Self {
@@ -1622,7 +1584,6 @@ where
         Vector::from_fn(|i| vector[i].copysign(sign[i]))
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_floor(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1631,7 +1592,6 @@ where
         vector.map(Self::floor)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_ceil(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1640,7 +1600,6 @@ where
         vector.map(Self::ceil)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_round(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1649,7 +1608,6 @@ where
         vector.map(Self::round)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_trunc(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1658,7 +1616,6 @@ where
         vector.map(Self::trunc)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_mul_add(
         vector: Vector<N, Self, A>,
@@ -1671,7 +1628,6 @@ where
         Vector::from_fn(|i| vector[i].mul_add(a[i], b[i]))
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_div_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1680,7 +1636,6 @@ where
         Vector::from_fn(|i| vector[i].div_euclid(rhs[i]))
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_rem_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1689,7 +1644,6 @@ where
         Vector::from_fn(|i| vector[i].rem_euclid(rhs[i]))
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_sqrt(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1698,7 +1652,6 @@ where
         vector.map(Self::sqrt)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_sin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1707,7 +1660,6 @@ where
         vector.map(Self::sin)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_cos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1716,7 +1668,6 @@ where
         vector.map(Self::cos)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_tan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1725,7 +1676,6 @@ where
         vector.map(Self::tan)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_asin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1734,7 +1684,6 @@ where
         vector.map(Self::asin)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_acos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1743,7 +1692,6 @@ where
         vector.map(Self::acos)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_atan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
@@ -1752,7 +1700,6 @@ where
         vector.map(Self::atan)
     }
 
-    #[cfg(backend)]
     #[inline]
     fn vector_sin_cos(vector: Vector<N, Self, A>) -> (Vector<N, Self, A>, Vector<N, Self, A>)
     where

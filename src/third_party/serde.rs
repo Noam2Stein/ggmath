@@ -244,7 +244,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::error::Error;
+    extern crate std;
+
+    use std::{boxed::Box, error::Error};
 
     use serde_json::{from_str, to_string};
 

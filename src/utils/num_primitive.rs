@@ -58,7 +58,6 @@ pub(crate) trait PrimitiveFloat:
     + PrimitiveFloatBackend<3, Unaligned>
     + PrimitiveFloatBackend<4, Unaligned>
 {
-    #[cfg(backend)]
     const EPSILON: Self;
 
     fn is_nan(self) -> bool;
@@ -71,7 +70,6 @@ pub(crate) trait PrimitiveFloat:
 
     fn recip(self) -> Self;
 
-    #[cfg(backend)]
     fn clamp(self, min: Self, max: Self) -> Self;
 
     fn abs(self) -> Self;
@@ -80,67 +78,46 @@ pub(crate) trait PrimitiveFloat:
 
     fn copysign(self, sign: Self) -> Self;
 
-    #[cfg(backend)]
     fn floor(self) -> Self;
 
-    #[cfg(backend)]
     fn ceil(self) -> Self;
 
-    #[cfg(backend)]
     fn round(self) -> Self;
 
-    #[cfg(backend)]
     fn trunc(self) -> Self;
 
-    #[cfg(backend)]
     fn mul_add(self, a: Self, b: Self) -> Self;
 
-    #[cfg(backend)]
     fn div_euclid(self, rhs: Self) -> Self;
 
-    #[cfg(backend)]
     fn rem_euclid(self, rhs: Self) -> Self;
 
-    #[cfg(backend)]
     fn powf(self, n: Self) -> Self;
 
-    #[cfg(backend)]
     fn sqrt(self) -> Self;
 
-    #[cfg(backend)]
     fn exp(self) -> Self;
 
-    #[cfg(backend)]
     fn exp2(self) -> Self;
 
-    #[cfg(backend)]
     fn ln(self) -> Self;
 
-    #[cfg(backend)]
     fn log2(self) -> Self;
 
-    #[cfg(backend)]
     fn sin(self) -> Self;
 
-    #[cfg(backend)]
     fn cos(self) -> Self;
 
-    #[cfg(backend)]
     fn tan(self) -> Self;
 
-    #[cfg(backend)]
     fn asin(self) -> Self;
 
-    #[cfg(backend)]
     fn acos(self) -> Self;
 
-    #[cfg(backend)]
     fn atan(self) -> Self;
 
-    #[cfg(backend)]
     fn atan2(self, other: Self) -> Self;
 
-    #[cfg(backend)]
     fn sin_cos(self) -> (Self, Self);
 
     fn as_from(value: f64) -> Self;
@@ -149,7 +126,6 @@ pub(crate) trait PrimitiveFloat:
 macro_rules! impl_primitive_float {
     ($T:ident) => {
         impl PrimitiveFloat for $T {
-            #[cfg(backend)]
             const EPSILON: Self = Self::EPSILON;
 
             #[inline(always)]
@@ -177,7 +153,6 @@ macro_rules! impl_primitive_float {
                 self.recip()
             }
 
-            #[cfg(backend)]
             #[inline(always)]
             fn clamp(self, min: Self, max: Self) -> Self {
                 self.clamp(min, max)
@@ -198,7 +173,7 @@ macro_rules! impl_primitive_float {
                 self.copysign(sign)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn floor(self) -> Self {
                 self.floor()
@@ -210,7 +185,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::floor(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn ceil(self) -> Self {
                 self.ceil()
@@ -222,7 +197,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::ceil(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn round(self) -> Self {
                 self.round()
@@ -234,7 +209,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::round(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn trunc(self) -> Self {
                 self.trunc()
@@ -246,7 +221,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::trunc(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn mul_add(self, a: Self, b: Self) -> Self {
                 self.mul_add(a, b)
@@ -258,7 +233,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::fma(self, a, b)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn div_euclid(self, rhs: Self) -> Self {
                 self.div_euclid(rhs)
@@ -276,7 +251,7 @@ macro_rules! impl_primitive_float {
                 q
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn rem_euclid(self, rhs: Self) -> Self {
                 self.rem_euclid(rhs)
@@ -290,7 +265,7 @@ macro_rules! impl_primitive_float {
                 if r < 0.0 { r + rhs.abs() } else { r }
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn powf(self, n: Self) -> Self {
                 self.powf(n)
@@ -302,7 +277,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::pow(self, n)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn sqrt(self) -> Self {
                 self.sqrt()
@@ -314,7 +289,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::sqrt(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn exp(self) -> Self {
                 self.exp()
@@ -326,7 +301,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::exp(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn exp2(self) -> Self {
                 self.exp2()
@@ -338,7 +313,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::exp2(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn ln(self) -> Self {
                 self.ln()
@@ -350,7 +325,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::log(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn log2(self) -> Self {
                 self.log2()
@@ -362,7 +337,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::log2(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn sin(self) -> Self {
                 self.sin()
@@ -374,7 +349,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::sin(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn cos(self) -> Self {
                 self.cos()
@@ -386,7 +361,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::cos(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn tan(self) -> Self {
                 self.tan()
@@ -398,7 +373,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::tan(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn asin(self) -> Self {
                 self.asin()
@@ -410,7 +385,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::asin(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn acos(self) -> Self {
                 self.acos()
@@ -422,7 +397,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::acos(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn atan(self) -> Self {
                 self.atan()
@@ -434,7 +409,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::atan(self)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn atan2(self, other: Self) -> Self {
                 self.atan2(other)
@@ -446,7 +421,7 @@ macro_rules! impl_primitive_float {
                 Libm::<$T>::atan2(self, other)
             }
 
-            #[cfg(all(feature = "std", not(feature = "libm")))]
+            #[cfg(not(feature = "libm"))]
             #[inline(always)]
             fn sin_cos(self) -> (Self, Self) {
                 self.sin_cos()

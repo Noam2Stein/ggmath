@@ -1,6 +1,4 @@
-use crate::{Alignment, Quaternion, Scalar, utils::PrimitiveFloat};
-#[cfg(backend)]
-use crate::{EulerRot, Matrix, Vector};
+use crate::{Alignment, EulerRot, Matrix, Quaternion, Scalar, Vector, utils::PrimitiveFloat};
 
 #[expect(private_bounds)]
 impl<T, A: Alignment> Quaternion<T, A>
@@ -10,7 +8,6 @@ where
     /// Creates a quaternion from an `angle` (in radians) around the x axis.
     ///
     /// This rotates `+Y` to `+Z`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
@@ -21,7 +18,6 @@ where
     /// Creates a quaternion from an `angle` (in radians) around the y axis.
     ///
     /// This rotates `+Z` to `+X`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
@@ -32,7 +28,6 @@ where
     /// Creates a quaternion from an `angle` (in radians) around the z axis.
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
@@ -49,7 +44,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `axis` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -64,7 +58,6 @@ where
 
     /// Creates a quaternion that rotates `scaled_axis.length()` radians around
     /// `scaled_axis.normalize()`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -91,7 +84,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `from` or `to` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -136,7 +128,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `from` or `to` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -167,7 +158,6 @@ where
 
     /// Creates a quaternion from an Euler rotation order/sequence and angles
     /// (in radians).
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
@@ -230,7 +220,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `matrix.determinant()` is not `1`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_matrix(matrix: &Matrix<3, T, A>) -> Self {
@@ -313,7 +302,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -331,7 +319,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -350,7 +337,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -369,7 +355,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -379,7 +364,6 @@ where
 
     /// Converts the quaternion `self` to a normalized rotation axis and an
     /// angle (in radians).
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn to_axis_angle(self) -> (Vector<3, T, A>, T) {
@@ -398,7 +382,6 @@ where
 
     /// Converts the quaternion `self` to a rotation axis scaled by an angle (in
     /// radians).
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn to_scaled_axis(self) -> Vector<3, T, A> {
@@ -408,7 +391,6 @@ where
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
     /// order/sequence.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -487,7 +469,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `self` or `other` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -509,7 +490,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `self` or `other` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -539,7 +519,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `self` or `other` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -594,7 +573,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `self` or `target` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -622,7 +600,6 @@ where
     ///
     /// assert_eq!(quat.length(), 15.0_f32.sqrt());
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
@@ -647,7 +624,6 @@ where
     ///
     /// assert_eq!(quat.normalize(), quat / quat.length());
     /// ```
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -685,7 +661,6 @@ where
     /// ```
     ///
     /// [`normalize`]: Self::normalize
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
@@ -709,7 +684,6 @@ where
     /// ```
     ///
     /// [`normalize`]: Self::normalize
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn normalize_or(self, fallback: Self) -> Self {
@@ -720,7 +694,6 @@ where
     ///
     /// [`normalize`]: Self::normalize
     /// [`length`]: Self::length
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
@@ -1337,10 +1310,6 @@ mod tests {
                 return;
             };
             let angle = quat.angle_between(target);
-
-            dbg!(quat);
-            dbg!(target);
-            dbg!(angle);
 
             assert_float_eq!(
                 quat.rotate_towards(target, 0.0).canonical(),

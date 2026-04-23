@@ -1,3 +1,5 @@
+extern crate std;
+
 use std::fmt::Debug;
 
 use crate::{Affine, Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector};

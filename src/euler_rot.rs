@@ -91,7 +91,6 @@ impl Default for EulerRot {
     }
 }
 
-#[cfg(backend)]
 #[derive(Clone, Copy)]
 pub(crate) struct EulerRotProperties {
     pub(crate) initial_axis: usize,
@@ -100,7 +99,6 @@ pub(crate) struct EulerRotProperties {
     pub(crate) frame_static: bool,
 }
 
-#[cfg(backend)]
 impl EulerRot {
     pub(crate) fn properties(self) -> EulerRotProperties {
         enum Axis {
@@ -170,7 +168,6 @@ impl EulerRot {
     }
 }
 
-#[cfg(backend)]
 impl EulerRotProperties {
     pub(crate) fn axes_indices(self) -> (usize, usize, usize) {
         fn next_axis(i: usize) -> usize {

@@ -24,12 +24,12 @@ const THIRD_PARTY_CRATES: &str = "bytemuck fixed fixp mint rand serde wide";
 fn main() {
     let mut commands = Vec::new();
 
-    for (target, backend, release_mode, assertions, overflow_checks) in iproduct!(
+    for (target, release_mode, assertions, overflow_checks, libm) in iproduct!(
         ["x86_64-unknown-linux-gnu", "riscv64gc-unknown-linux-gnu"],
-        [Some("std"), Some("libm"), None],
         [false, true],
         [false, true],
-        [false, true]
+        [false, true],
+        [false, true],
     ) {
         let third_party_crates = !release_mode;
 
@@ -37,39 +37,38 @@ fn main() {
             "clippy",
             &[],
             Some(target),
-            backend,
             release_mode,
             assertions,
             overflow_checks,
+            libm,
             third_party_crates,
         ));
         commands.push(cargo_command(
             "doc",
             &["--no-deps"],
             Some(target),
-            backend,
             release_mode,
             assertions,
             overflow_checks,
+            libm,
             third_party_crates,
         ));
     }
 
-    for (backend, release_mode, overflow_checks) in
-        iproduct!(["std", "libm"], [false, true], [false, true])
+    for (release_mode, overflow_checks, libm) in
+        iproduct!([false, true], [false, true], [false, true])
     {
         let assertions = release_mode;
-        let third_party_crates = backend == "std";
 
         commands.push(cargo_command(
             "test",
             &[],
             None,
-            Some(backend),
             release_mode,
             assertions,
             overflow_checks,
-            third_party_crates,
+            libm,
+            true,
         ));
     }
 
@@ -80,10 +79,10 @@ fn cargo_command(
     cargo_command: &str,
     cargo_command_args: &[&str],
     target: Option<&str>,
-    backend: Option<&str>,
     release_mode: bool,
     assertions: bool,
     overflow_checks: bool,
+    libm: bool,
     third_party_crates: bool,
 ) -> Command {
     let mut command = Command::new("cargo");
@@ -92,11 +91,6 @@ fn cargo_command(
 
     command.arg(cargo_command);
     command.args(cargo_command_args);
-
-    if let Some(backend) = backend {
-        features += " ";
-        features += backend;
-    }
 
     if release_mode {
         command.arg("--release");
@@ -112,6 +106,10 @@ fn cargo_command(
         rustflags += " -C overflow-checks=on";
     } else {
         rustflags += " -C overflow-checks=off";
+    }
+
+    if libm {
+        features += " libm";
     }
 
     if third_party_crates {

@@ -1,5 +1,3 @@
-#![cfg_attr(not(backend), expect(rustdoc::broken_intra_doc_links))]
-
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
@@ -2713,6 +2711,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
+    use std::format;
+
     use crate::{
         Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4,
         Vector,

@@ -154,19 +154,7 @@ For `no_std` support, enable the `libm` feature:
 ggmath = { version = "0.16.7", features = ["libm"] }
 ```
 
-For `no_std` without `libm`, disable default features:
-
-```toml
-[dependencies]
-ggmath = { version = "0.16.7", default-features = false }
-```
-
-Without `std` or `libm`, the crate compiles but all float functionality that
-relies on a backend is disabled.
-
 ## Optional features
-
-- `std` (default feature): Uses `std` as the backend for float functionality.
 
 - `assertions`: Enables assertions in release mode. Assertions are panics that
   catch invalid input and are enabled by default in debug mode.
@@ -180,8 +168,8 @@ relies on a backend is disabled.
 
 - `fixp`: Implements `Scalar` for fixed-point numbers.
 
-- `libm`: Uses `libm` as the backend for float functionality. This makes the
-  crate `no_std` even if the `std` feature is not disabled.
+- `libm`: Uses `libm` as the backend for float functionality instead of `std`.
+  This makes the crate `no_std`.
 
 - `mint`: Implements conversions between `ggmath` and `mint` types.
 

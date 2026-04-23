@@ -770,6 +770,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
+    use std::format;
+
     use crate::{
         Aligned, Matrix, Quaternion, Unaligned, Vector,
         utils::{assert_float_eq, float_eq, for_parameters},

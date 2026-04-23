@@ -120,7 +120,7 @@
 //! [Structure of Arrays]: https://en.wikipedia.org/wiki/AoS_and_SoA
 
 #![forbid(missing_docs)]
-#![cfg_attr(all(any(not(feature = "std"), feature = "libm"), not(test)), no_std)]
+#![cfg_attr(feature = "libm", no_std)]
 
 mod affine;
 mod euler_rot;

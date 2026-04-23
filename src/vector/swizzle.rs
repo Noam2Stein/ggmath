@@ -768,6 +768,8 @@ use declare_with_swizzle_fns;
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use repetitive::repetitive;
 
     use crate::{Vector, utils::for_parameters};

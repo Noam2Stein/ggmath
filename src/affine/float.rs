@@ -1,7 +1,5 @@
-#[cfg(backend)]
-use crate::EulerRot;
 use crate::{
-    Affine, Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+    Affine, Alignment, EulerRot, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
     utils::PrimitiveFloat,
 };
 
@@ -133,7 +131,6 @@ where
     /// (in radians).
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -144,7 +141,6 @@ where
     /// (in radians) and `translation`.
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
@@ -155,7 +151,6 @@ where
     /// rotation of `angle` (in radians).
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
@@ -166,7 +161,6 @@ where
     /// of `angle` (in radians) and `translation`.
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_scale_angle_translation(
@@ -190,7 +184,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if the determinant of `self` is zero.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -220,7 +213,6 @@ where
     /// radians) around the x axis.
     ///
     /// This rotates `+Y` to `+Z`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
@@ -231,7 +223,6 @@ where
     /// radians) around the y axis.
     ///
     /// This rotates `+Z` to `+X`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
@@ -242,7 +233,6 @@ where
     /// radians) around the z axis.
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
@@ -273,7 +263,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `axis` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -283,7 +272,6 @@ where
 
     /// Creates an affine transform containing a rotation from an Euler rotation
     /// order/sequence and angles (in radians).
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
@@ -355,7 +343,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -387,7 +374,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -419,7 +405,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -437,7 +422,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -457,7 +441,6 @@ where
     ///
     /// Panics if any column of `self`, excluding the translation column, is not
     /// normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -475,7 +458,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if the determinant of `self` is zero.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]

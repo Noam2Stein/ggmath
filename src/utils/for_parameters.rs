@@ -1,6 +1,9 @@
+extern crate std;
+
 use std::{
     fmt::Display,
     panic::{UnwindSafe, catch_unwind, resume_unwind},
+    println,
 };
 
 use crate::EulerRot;

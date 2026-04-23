@@ -1,6 +1,9 @@
+extern crate std;
+
 use std::{
     fmt::Debug,
     panic::{UnwindSafe, catch_unwind},
+    println,
 };
 
 use colored::Colorize;

@@ -1,9 +1,7 @@
 use core::convert::identity;
 
-#[cfg(backend)]
-use crate::EulerRot;
 use crate::{
-    Alignment, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+    Alignment, EulerRot, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
     utils::{PrimitiveFloat, transmute_generic, transmute_ref},
 };
 
@@ -431,7 +429,6 @@ where
     /// Creates a matrix containing a rotation of `angle` (in radians).
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -446,7 +443,6 @@ where
     /// `angle` (in radians).
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
@@ -466,7 +462,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if the determinant of `self` is zero.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -502,7 +497,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_angle(angle: T) -> Self {
@@ -524,7 +518,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
@@ -546,7 +539,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_angle_translation(angle: T, translation: Vector<2, T, A>) -> Self {
@@ -568,7 +560,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_scale_angle_translation(
@@ -588,7 +579,6 @@ where
     /// axis.
     ///
     /// This rotates `+Y` to `+Z`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
@@ -604,7 +594,6 @@ where
     /// axis.
     ///
     /// This rotates `+Z` to `+X`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
@@ -620,7 +609,6 @@ where
     /// axis.
     ///
     /// This rotates `+X` to `+Y`.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
@@ -683,7 +671,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `axis` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -709,7 +696,6 @@ where
 
     /// Creates a 3D rotation matrix from an Euler rotation order/sequence and
     /// angles (in radians).
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
@@ -797,7 +783,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -828,7 +813,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `dir` or `up` are not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -859,7 +843,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -877,7 +860,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if `up` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -895,7 +877,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if the determinant of `self` is zero.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -928,7 +909,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if any column of `self` is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -998,7 +978,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if the determinant of `self` is zero.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1041,7 +1020,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_x(angle: T) -> Self {
@@ -1064,7 +1042,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_y(angle: T) -> Self {
@@ -1087,7 +1064,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_rotation_z(angle: T) -> Self {
@@ -1164,7 +1140,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1197,7 +1172,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     pub fn from_euler(order: EulerRot, a: T, b: T, c: T) -> Self {
@@ -1308,7 +1282,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1346,7 +1319,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1384,7 +1356,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1408,7 +1379,6 @@ where
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1432,7 +1402,6 @@ where
     /// is less than or equal to `near_plane`.
     ///
     /// [`project_point`]: Self::project_point
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1469,7 +1438,6 @@ where
     /// is less than or equal to `near_plane`.
     ///
     /// [`project_point`]: Self::project_point
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1506,7 +1474,6 @@ where
     ///
     /// [`gluPerspective`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
     /// [`project_point`]: Self::project_point
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1558,7 +1525,6 @@ where
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
     /// [`project_point`]: Self::project_point
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1594,7 +1560,6 @@ where
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
     /// [`project_point`]: Self::project_point
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1629,7 +1594,6 @@ where
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
     /// [`project_point`]: Self::project_point
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1668,7 +1632,6 @@ where
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
     /// [`project_point`]: Self::project_point
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1928,7 +1891,6 @@ where
         ])
     }
 
-    #[cfg(backend)]
     #[inline(always)]
     fn quat_from_axes(
         x_axis: Vector<4, T, A>,
@@ -2012,7 +1974,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if any column of the upper 3x3 matrix is not normalized.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2030,7 +1991,6 @@ where
     /// When assertions are enabled (see the crate documentation):
     ///
     /// Panics if the determinant of `self` is zero.
-    #[cfg(backend)]
     #[inline]
     #[must_use]
     #[track_caller]

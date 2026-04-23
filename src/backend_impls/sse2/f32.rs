@@ -267,31 +267,26 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
             _mm_cvtss_f32(vector)
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_floor(vector: Vec3<f32>) -> Vec3<f32> {
             Vector(floor(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_ceil(vector: Vec3<f32>) -> Vec3<f32> {
             Vector(ceil(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_round(vector: Vec3<f32>) -> Vec3<f32> {
             Vector(round(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_trunc(vector: Vec3<f32>) -> Vec3<f32> {
             Vector(trunc(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_sqrt(vector: Vec3<f32>) -> Vec3<f32> {
             Vector(_mm_sqrt_ps(vector.0))
@@ -364,31 +359,26 @@ impl PrimitiveFloatBackend<4, Aligned> for f32 {
             _mm_cvtss_f32(vector)
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_floor(vector: Vec4<f32>) -> Vec4<f32> {
             Vector(floor(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_ceil(vector: Vec4<f32>) -> Vec4<f32> {
             Vector(ceil(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_round(vector: Vec4<f32>) -> Vec4<f32> {
             Vector(round(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_trunc(vector: Vec4<f32>) -> Vec4<f32> {
             Vector(trunc(vector.0))
         }
 
-        #[cfg(backend)]
         #[inline(always)]
         fn vector_sqrt(vector: Vec4<f32>) -> Vec4<f32> {
             Vector(_mm_sqrt_ps(vector.0))
@@ -475,7 +465,6 @@ fn select(mask: __m128, if_true: __m128, if_false: __m128) -> __m128 {
     _mm_or_ps(_mm_and_ps(mask, if_true), _mm_andnot_ps(mask, if_false))
 }
 
-#[cfg(backend)]
 #[inline]
 #[target_feature(enable = "sse2")]
 fn floor(v: __m128) -> __m128 {
@@ -498,7 +487,6 @@ fn floor(v: __m128) -> __m128 {
     )
 }
 
-#[cfg(backend)]
 #[inline]
 #[target_feature(enable = "sse2")]
 fn ceil(v: __m128) -> __m128 {
@@ -521,7 +509,6 @@ fn ceil(v: __m128) -> __m128 {
     )
 }
 
-#[cfg(backend)]
 #[inline]
 #[target_feature(enable = "sse2")]
 fn round(vector: __m128) -> __m128 {

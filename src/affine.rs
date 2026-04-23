@@ -1600,6 +1600,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
+    use std::format;
+
     use crate::{
         Affine, Affine2, Affine2U, Affine3, Affine3U, Aligned, Mat2, Mat3, Mat4, Matrix, Unaligned,
         Vec2, Vec3, Vector,
