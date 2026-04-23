@@ -57,7 +57,9 @@ impl ScalarBackend<3, Aligned> for f32 {
         #[inline]
         fn vector_element_sum(vector: Vec3<f32>) -> f32 {
             let vector = vector.0;
-            let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, _mm_set1_ps(0.0), 0b00_11_00_01));
+            // Add `-0.0` to retain the sign of the left operand. Adding `+0.0`
+            // would incorrectly reset the sign when `z` is `-0.0`.
+            let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, _mm_set1_ps(-0.0), 0b00_11_00_01));
             let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
             _mm_cvtss_f32(vector)
         }

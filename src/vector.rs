@@ -670,9 +670,7 @@ where
     ///
     /// # Consistency
     ///
-    /// For primitive types this operation is cross platform deterministic, with
-    /// one exception. For floats, when the result is zero either `0.0` or
-    /// `-0.0` is returned non-deterministically.
+    /// For primitive types this operation is cross platform deterministic.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2677,7 +2675,7 @@ mod tests {
 
     use crate::{
         Aligned, Mask, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
-        utils::{assert_float_eq, assert_panic, assert_panic_eq, float_eq, for_parameters},
+        utils::{assert_float_eq, assert_panic, assert_panic_eq, for_parameters},
     };
 
     #[test]
@@ -3092,11 +3090,7 @@ mod tests {
             let w = T::max(x, y);
 
             assert_float_eq!(Vector::<2, T, A>::new(x, y).element_sum(), x + y);
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).element_sum(),
-                x + y + z,
-                0.0 = -0.0
-            );
+            assert_float_eq!(Vector::<3, T, A>::new(x, y, z).element_sum(), x + y + z);
             assert_float_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).element_sum(),
                 x + y + (z + w)
@@ -3269,17 +3263,11 @@ mod tests {
             );
             assert_float_eq!(
                 Vector::<3, T, A>::new(x, y, z).dot(Vector::<3, T, A>::new(z, w, y)),
-                x * z + y * w + z * y,
-                0.0 = -0.0
+                x * z + y * w + z * y
             );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, w)),
-                    x * z + y * w + z * y + w * w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, w)),
-                    x * z + y * w + (z * y + w * w)
-                )
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(z, w, y, w)),
+                x * z + y * w + (z * y + w * w)
             );
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
@@ -3310,14 +3298,9 @@ mod tests {
                 Vector::<3, T, A>::new(x, y, z).length_squared(),
                 x * x + y * y + z * z
             );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).length_squared(),
-                    x * x + y * y + z * z + w * w
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).length_squared(),
-                    x * x + y * y + (z * z + w * w)
-                )
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).length_squared(),
+                x * x + y * y + (z * z + w * w)
             );
         });
         for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
