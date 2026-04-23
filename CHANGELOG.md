@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Made `Vector::distance_squared` generic over `T`.
+
 - Removed the `std` feature flag.
 
 - Updated minimum supported Rust version to `1.95.0`.

@@ -492,14 +492,6 @@ macro_rules! impl_wide_float {
                 (self - other).length()
             }
 
-            /// Computes the squared Euclidean distance between `self` and
-            /// `other`.
-            #[inline]
-            #[must_use]
-            pub fn distance_squared(self, other: Self) -> $Wide {
-                (self - other).length_squared()
-            }
-
             /// For each lane, returns a vector with the direction of `self` and
             /// length `1`.
             ///
@@ -1860,30 +1852,6 @@ mod tests {
                     .distance(Vector::<4, Wide, A>::new(z, w, y, z)),
                 ((x - z) * (x - z) + (y - w) * (y - w) + ((z - y) * (z - y) + (w - z) * (w - z)))
                     .sqrt()
-            );
-        });
-    }
-
-    #[test]
-    fn test_distance_squared() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).distance_squared(Vector::<2, Wide, A>::new(z, w)),
-                (x - z) * (x - z) + (y - w) * (y - w)
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z)
-                    .distance_squared(Vector::<3, Wide, A>::new(z, w, y)),
-                (x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .distance_squared(Vector::<4, Wide, A>::new(z, w, y, z)),
-                (x - z) * (x - z) + (y - w) * (y - w) + ((z - y) * (z - y) + (w - z) * (w - z))
             );
         });
     }

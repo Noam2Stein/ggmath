@@ -902,6 +902,37 @@ where
         (self * self).element_sum()
     }
 
+    /// Computes the squared Euclidean distance between `self` and `other`.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation) or
+    /// overflow checks are enabled:
+    ///
+    /// For integers this panics if an overflow occurs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec3;
+    /// #
+    /// let x = Vec3::<i32>::new(2, 0, 0);
+    /// let y = Vec3::<i32>::new(0, 3, 0);
+    ///
+    /// assert_eq!(x.distance_squared(y), 13);
+    /// assert_eq!(x.distance_squared(x), 0);
+    /// assert_eq!(y.distance_squared(y), 0);
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn distance_squared(self, other: Self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        (self - other).length_squared()
+    }
+
     /// Raw transmutation between scalar types.
     ///
     /// This function's signature staticly guarantees that the types have
@@ -3318,6 +3349,44 @@ mod tests {
             assert_panic_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).length_squared(),
                 x * x + y * y + z * z + w * w
+            );
+        });
+    }
+
+    #[test]
+    fn test_distance_squared() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_float_eq!(
+                Vector::<2, T, A>::new(x, y).distance_squared(Vector::<2, T, A>::new(z, w)),
+                (x - z) * (x - z) + (y - w) * (y - w)
+            );
+            assert_float_eq!(
+                Vector::<3, T, A>::new(x, y, z).distance_squared(Vector::<3, T, A>::new(z, w, y)),
+                (x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y)
+            );
+            assert_float_eq!(
+                Vector::<4, T, A>::new(x, y, z, w)
+                    .distance_squared(Vector::<4, T, A>::new(z, w, y, z)),
+                (x - z) * (x - z) + (y - w) * (y - w) + ((z - y) * (z - y) + (w - z) * (w - z))
+            );
+        });
+        for_parameters!(|T: PrimitiveSigned, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y).distance_squared(Vector::<2, T, A>::new(z, w)),
+                (x - z) * (x - z) + (y - w) * (y - w)
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z).distance_squared(Vector::<3, T, A>::new(z, w, y)),
+                (x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y)
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w)
+                    .distance_squared(Vector::<4, T, A>::new(z, w, y, z)),
+                (x - z) * (x - z) + (y - w) * (y - w) + ((z - y) * (z - y) + (w - z) * (w - z))
             );
         });
     }

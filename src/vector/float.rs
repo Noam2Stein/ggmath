@@ -855,13 +855,6 @@ where
         (self - other).length()
     }
 
-    /// Computes the squared Euclidean distance between `self` and `other`.
-    #[inline]
-    #[must_use]
-    pub fn distance_squared(self, other: Self) -> T {
-        (self - other).length_squared()
-    }
-
     /// Returns a vector with the direction of `self` and length `1.0`.
     ///
     /// # Panics
@@ -2855,33 +2848,6 @@ mod tests {
                         + (y - w) * (y - w)
                         + ((z - y) * (z - y) + (w - z) * (w - z)))
                         .sqrt()
-                )
-            );
-        });
-    }
-
-    #[test]
-    fn test_distance_squared() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).distance_squared(Vector::<2, T, A>::new(z, w)),
-                (x - z) * (x - z) + (y - w) * (y - w)
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).distance_squared(Vector::<3, T, A>::new(z, w, y)),
-                (x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y)
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w)
-                        .distance_squared(Vector::<4, T, A>::new(z, w, y, z)),
-                    (x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y) + (w - z) * (w - z)
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w)
-                        .distance_squared(Vector::<4, T, A>::new(z, w, y, z)),
-                    (x - z) * (x - z) + (y - w) * (y - w) + ((z - y) * (z - y) + (w - z) * (w - z))
                 )
             );
         });

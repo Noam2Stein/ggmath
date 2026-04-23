@@ -168,35 +168,6 @@ macro_rules! impl_int {
                 specialize!(<$T as $Backend<N, A>>::vector_signum(self))
             }
 
-            /// Computes the squared Euclidean distance between `self` and
-            /// `other`.
-            ///
-            /// # Panics
-            ///
-            /// When assertions are enabled (see the crate documentation) or
-            /// overflow checks are enabled:
-            ///
-            /// Panics if an overflow occurs.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// # use ggmath::Vec3;
-            /// #
-            /// let x = Vec3::<i32>::new(2, 0, 0);
-            /// let y = Vec3::<i32>::new(0, 3, 0);
-            ///
-            /// assert_eq!(x.distance_squared(y), 13);
-            /// assert_eq!(x.distance_squared(x), 0);
-            /// assert_eq!(y.distance_squared(y), 0);
-            /// ```
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn distance_squared(self, other: Self) -> $T {
-                (self - other).length_squared()
-            }
-
             /// Computes `self + rhs`, returning `None` if overflow occured.
             #[inline]
             #[must_use]
@@ -639,27 +610,6 @@ mod tests {
             assert_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).signum(),
                 Vector::<4, T, A>::new(x.signum(), y.signum(), z.signum(), w.signum())
-            );
-        });
-    }
-
-    #[test]
-    fn test_distance_squared() {
-        for_parameters!(|T: PrimitiveSigned, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_eq!(
-                Vector::<2, T, A>::new(x, y).distance_squared(Vector::<2, T, A>::new(z, w)),
-                (x - z) * (x - z) + (y - w) * (y - w)
-            );
-            assert_panic_eq!(
-                Vector::<3, T, A>::new(x, y, z).distance_squared(Vector::<3, T, A>::new(z, w, w)),
-                (x - z) * (x - z) + (y - w) * (y - w) + (z - w) * (z - w)
-            );
-            assert_panic_eq!(
-                Vector::<4, T, A>::new(x, y, z, w)
-                    .distance_squared(Vector::<4, T, A>::new(z, w, w, x)),
-                (x - z) * (x - z) + (y - w) * (y - w) + (z - w) * (z - w) + (w - x) * (w - x)
             );
         });
     }
