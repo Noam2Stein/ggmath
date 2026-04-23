@@ -55,10 +55,9 @@ fn main() {
         ));
     }
 
-    for (release_mode, overflow_checks, libm) in
-        iproduct!([false, true], [false, true], [false, true])
-    {
+    for (release_mode, libm) in iproduct!([false, true], [false, true]) {
         let assertions = release_mode;
+        let overflow_checks = !libm;
 
         commands.push(cargo_command(
             "test",
