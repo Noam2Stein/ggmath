@@ -995,7 +995,7 @@ where
 
         let scale_recip = scale.recip();
 
-        let rotation = Quaternion::from_matrix(&Self::from_columns(&[
+        let rotation = Quaternion::<T, A>::from_matrix(&Self::from_columns(&[
             self.x_axis * scale_recip.x,
             self.y_axis * scale_recip.y,
             self.z_axis * scale_recip.z,

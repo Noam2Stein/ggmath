@@ -889,11 +889,11 @@ mod tests {
 
             let non_normalized = Vector::<3, T, A>::new(x, y, z);
             if !non_normalized.is_normalized() {
-                assert_assertions_panic!(Quaternion::from_rotation_arc_colinear(
+                assert_assertions_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
                     non_normalized,
                     to
                 ));
-                assert_assertions_panic!(Quaternion::from_rotation_arc_colinear(
+                assert_assertions_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
                     from,
                     non_normalized
                 ));
@@ -938,9 +938,9 @@ mod tests {
                         * Matrix::<3, T, A>::from_rotation_z(z))
                 )
                 .canonical(),
-                (Quaternion::from_rotation_x(x)
-                    * Quaternion::from_rotation_y(y)
-                    * Quaternion::from_rotation_z(z))
+                (Quaternion::<T, A>::from_rotation_x(x)
+                    * Quaternion::<T, A>::from_rotation_y(y)
+                    * Quaternion::<T, A>::from_rotation_z(z))
                 .canonical(),
                 abs <= Quaternion::from_vector(Vector::splat(1e-6)),
                 0.0 = -0.0
@@ -948,7 +948,7 @@ mod tests {
 
             let matrix = Matrix::<3, T, A>::from_column_array(&[x, y, z, y, z, x, y, x, z]);
             if matrix.determinant() != 1.0 {
-                assert_assertions_panic!(Quaternion::from_matrix(&matrix));
+                assert_assertions_panic!(Quaternion::<T, A>::from_matrix(&matrix));
             }
         });
     }
@@ -1120,7 +1120,7 @@ mod tests {
             let scaled_axis = axis * angle;
 
             assert_float_eq!(
-                Quaternion::from_scaled_axis(scaled_axis).to_scaled_axis(),
+                Quaternion::<T, A>::from_scaled_axis(scaled_axis).to_scaled_axis(),
                 scaled_axis,
                 abs <= Vector::splat(1e-6),
                 0.0 = -0.0
