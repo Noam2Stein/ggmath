@@ -259,6 +259,34 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
+    /// Creates an affine transform by calling function `f` for each column
+    /// index.
+    ///
+    /// Equivalent to `[f(0), f(1), f(2), ...]` where each item is a column
+    /// vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine3, Vec3};
+    /// #
+    /// let affine = Affine3::from_column_fn(|i| Vec3::splat(i));
+    ///
+    /// assert_eq!(affine.column(0), Vec3::new(0, 0, 0));
+    /// assert_eq!(affine.column(1), Vec3::new(1, 1, 1));
+    /// assert_eq!(affine.column(2), Vec3::new(2, 2, 2));
+    /// assert_eq!(affine.translation, Vec3::new(3, 3, 3));
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn from_column_fn<F>(mut f: F) -> Self
+    where
+        F: FnMut(usize) -> Vector<N, T, A>,
+    {
+        Self::from_submatrix_translation(Matrix::from_column_fn(&mut f), f(N))
+    }
+
     /// Creates an affine transform from a non-uniform `scale`.
     #[inline]
     #[must_use]
@@ -1694,6 +1722,57 @@ mod tests {
             assert_float_eq!(
                 Affine::<4, T, A>::NAN,
                 Affine::from_submatrix_translation(Matrix::NAN, Vector::NAN)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_column_fn() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
+                std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Affine::<2, T, A>::from_column_fn(|i| [
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
+                ][i]),
+                Affine::<2, T, A>::from_columns(&[
+                    Vector::<2, T, A>::new(x, y),
+                    Vector::<2, T, A>::new(z, w),
+                    Vector::<2, T, A>::new(a, b)
+                ])
+            );
+            assert_eq!(
+                Affine::<3, T, A>::from_column_fn(|i| [
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
+                ][i]),
+                Affine::<3, T, A>::from_columns(&[
+                    Vector::<3, T, A>::new(x, y, z),
+                    Vector::<3, T, A>::new(w, a, b),
+                    Vector::<3, T, A>::new(c, d, e),
+                    Vector::<3, T, A>::new(f, g, h)
+                ])
+            );
+            assert_eq!(
+                Affine::<4, T, A>::from_column_fn(|index| [
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                ][index]),
+                Affine::<4, T, A>::from_columns(&[
+                    Vector::<4, T, A>::new(x, y, z, w),
+                    Vector::<4, T, A>::new(a, b, c, d),
+                    Vector::<4, T, A>::new(e, f, g, h),
+                    Vector::<4, T, A>::new(i, j, k, l),
+                    Vector::<4, T, A>::new(m, n, o, p)
+                ])
             );
         });
     }

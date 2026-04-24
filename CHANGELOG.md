@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Affine function `from_column_fn`.
+
 - `wide` vector functions:
   - `from_lanes`
   - `from_lane_fn`
