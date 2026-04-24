@@ -14,6 +14,8 @@ use crate::{
 
 mod float;
 #[cfg(feature = "wide")]
+mod wide;
+#[cfg(feature = "wide")]
 mod wide_float;
 
 /// An `N`-dimensional affine transform which can represent translation,

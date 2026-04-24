@@ -12,6 +12,8 @@ use crate::{
 
 mod float;
 #[cfg(feature = "wide")]
+mod wide;
+#[cfg(feature = "wide")]
 mod wide_float;
 
 /// A quaternion representing an orientation of type `T`.

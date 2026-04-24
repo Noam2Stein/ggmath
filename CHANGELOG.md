@@ -11,12 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Affine function `from_column_fn`.
 
-- `wide` vector functions:
+- `wide` functions:
   - `from_lanes`
   - `from_lane_fn`
   - `to_lanes`
   - `lane`
   - `set_lane`
+  - `simd_eq`
+  - `simd_ne`
 
 - more `wide` float-vector functions.
 
