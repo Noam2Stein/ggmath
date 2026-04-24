@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `simd_eq`
   - `simd_ne`
 
-- more `wide` float-vector functions.
+- more missing `wide` functions.
 
 ### Changed
 
