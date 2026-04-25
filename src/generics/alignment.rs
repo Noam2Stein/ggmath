@@ -1,11 +1,15 @@
+use core::{fmt::Debug, hash::Hash};
+
 /// A marker type specifying SIMD alignment.
 ///
 /// See [`Alignment`] for more details.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Aligned;
 
 /// A marker type specifying lack of SIMD alignment.
 ///
 /// See [`Alignment`] for more details.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Unaligned;
 
 /// A marker trait controlling SIMD alignment for types.
@@ -55,7 +59,10 @@ impl Alignment for Unaligned {
     type Select<A: Copy, U: Copy> = U;
 }
 
-trait Sealed: 'static {}
+trait Sealed:
+    'static + Send + Sync + Debug + Clone + Copy + PartialEq + Eq + PartialOrd + Ord + Hash + Default
+{
+}
 
 impl Sealed for Aligned {}
 impl Sealed for Unaligned {}
