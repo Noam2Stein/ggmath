@@ -135,6 +135,8 @@ macro_rules! impl_float {
                         && self.is_sign_positive() == other.is_sign_positive()
                 } else if *self == 0.0 && *other == 0.0 {
                     zero_eq_neg_zero || self.signum() == other.signum()
+                } else if tol.is_nan() {
+                    self == other
                 } else {
                     (self - other).abs() <= *tol
                 }
