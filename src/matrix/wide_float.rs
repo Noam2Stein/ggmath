@@ -54,7 +54,11 @@ macro_rules! impl_wide_float {
 
             #[inline(always)]
             #[track_caller]
-            fn generic_inverse<Output, W, C>(&self, wrap_result: W, check_determinant: C) -> Output
+            pub(crate) fn generic_inverse<Output, W, C>(
+                &self,
+                wrap_result: W,
+                check_determinant: C,
+            ) -> Output
             where
                 W: FnOnce($Wide, Self) -> Output,
                 C: FnOnce($Wide) -> Result<(), Output>,
