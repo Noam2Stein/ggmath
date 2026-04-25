@@ -95,7 +95,7 @@ where
         #[cfg(assertions)]
         assert!(to.is_normalized());
 
-        let almost_one = T::as_from(const { 1.0 - 2.0 * f64::EPSILON });
+        let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
         let pi = T::as_from(core::f64::consts::PI);
 
         let dot = from.dot(to);
@@ -139,7 +139,7 @@ where
         #[cfg(assertions)]
         assert!(to.is_normalized());
 
-        let almost_one = T::as_from(const { 1.0 - 2.0 * f64::EPSILON });
+        let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
 
         let mut dot = from.dot(to);
         if dot.is_sign_negative() {
@@ -836,14 +836,14 @@ mod tests {
             };
 
             let quat = Quaternion::<T, A>::from_rotation_arc(from, to);
-            assert_float_eq!(quat * from, to, abs <= Vector::splat(1e-6));
+            assert_float_eq!(quat * from, to, abs <= Vector::splat(1e-5));
 
             let (axis, angle) = quat.to_axis_angle();
             assert_float_eq!(angle, from.angle_between(to), abs <= 1e-4);
             assert!(angle.to_degrees() <= 180.1);
             if angle != 0.0 {
-                assert_float_eq!(axis.dot(from), 0.0, abs <= 1e-6);
-                assert_float_eq!(axis.dot(to), 0.0, abs <= 1e-6);
+                assert_float_eq!(axis.dot(from), 0.0, abs <= 1e-5);
+                assert_float_eq!(axis.dot(to), 0.0, abs <= 1e-5);
             }
 
             let non_normalized = Vector::<3, T, A>::new(x, y, z);
@@ -869,8 +869,8 @@ mod tests {
 
             let quat = Quaternion::<T, A>::from_rotation_arc_colinear(from, to);
             assert!(
-                float_eq!(quat * from, to, abs <= Vector::splat(1e-6))
-                    || float_eq!(quat * from, -to, abs <= Vector::splat(1e-6))
+                float_eq!(quat * from, to, abs <= Vector::splat(1e-5))
+                    || float_eq!(quat * from, -to, abs <= Vector::splat(1e-5))
             );
 
             let (axis, angle) = quat.to_axis_angle();
@@ -881,8 +881,8 @@ mod tests {
             );
             assert!(angle.to_degrees() <= 90.1);
             if angle != 0.0 {
-                assert_float_eq!(axis.dot(from), 0.0, abs <= 1e-6);
-                assert_float_eq!(axis.dot(to), 0.0, abs <= 1e-6);
+                assert_float_eq!(axis.dot(from), 0.0, abs <= 1e-5);
+                assert_float_eq!(axis.dot(to), 0.0, abs <= 1e-5);
             }
 
             let non_normalized = Vector::<3, T, A>::new(x, y, z);

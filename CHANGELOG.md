@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Fixed the behavior of quaternion functions `from_rotation_arc` and
+  `from_rotation_arc_colinear` for specific edge case.
+
 - Made `Vector::distance_squared` generic over `T`.
 
 - Removed the `std` feature flag.
