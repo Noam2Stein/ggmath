@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Fixed rare panic in quaternion function `from_scaled_axis`.
+
 - Fixed the behavior of quaternion functions `from_rotation_arc` and
   `from_rotation_arc_colinear` for specific edge case.
 

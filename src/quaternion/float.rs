@@ -66,7 +66,9 @@ where
         if angle == T::ZERO {
             Self::IDENTITY
         } else {
-            Self::from_axis_angle(scaled_axis / angle, angle)
+            let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
+            let xyz = scaled_axis / angle * sin;
+            Self::from_xyzw(xyz.x, xyz.y, xyz.z, cos)
         }
     }
 
