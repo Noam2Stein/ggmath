@@ -6,8 +6,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Scalar, ScalarBackend, ScalarRepr, SignedInteger, SupportedLength,
-    Unaligned, Vector,
+    Aligned, Alignment, Length, PrimitiveSigned, Scalar, ScalarBackend, ScalarRepr,
+    SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
@@ -1140,11 +1140,10 @@ where
     /// ```
     #[inline]
     #[must_use]
-    #[expect(private_bounds)]
     pub const unsafe fn to_repr<T2>(self) -> Matrix<N, T2, A>
     where
         T2: Scalar<Repr = T::Repr>,
-        T::Repr: SignedInteger,
+        T::Repr: PrimitiveSigned,
     {
         // SAFETY: Matrices of scalars with the same `Scalar::Repr` are
         // guaranteed to have compatible memory layouts if `Repr` is a signed

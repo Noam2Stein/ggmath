@@ -10,7 +10,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Mask, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
+    Aligned, Alignment, Length, Mask, PrimitiveSigned, Scalar, ScalarBackend, ScalarRepr,
     SupportedLength, Unaligned,
     constants::{False, Infinity, Max, Min, Nan, NegInfinity, NegOne, One, True, Zero},
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
@@ -976,11 +976,10 @@ where
     /// ```
     #[inline]
     #[must_use]
-    #[expect(private_bounds)]
     pub const unsafe fn to_repr<U>(self) -> Vector<N, U, A>
     where
         U: Scalar<Repr = T::Repr>,
-        T::Repr: SignedInteger,
+        T::Repr: PrimitiveSigned,
     {
         // SAFETY: Vectors of scalars with the same `Scalar::Repr` are
         // guaranteed to have compatible memory layouts if `Repr` is a signed

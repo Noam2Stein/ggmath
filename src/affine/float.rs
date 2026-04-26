@@ -1,13 +1,12 @@
 use crate::{
-    Affine, Alignment, EulerRot, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
-    utils::PrimitiveFloat,
+    Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
+    Vector,
 };
 
-#[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Returns `true` if any element is NaN.
     ///
@@ -122,10 +121,9 @@ where
     }
 }
 
-#[expect(private_bounds)]
 impl<T, A: Alignment> Affine<2, T, A>
 where
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Creates an affine transform containing a rotation of `angle`
     /// (in radians).
@@ -204,10 +202,9 @@ where
     }
 }
 
-#[expect(private_bounds)]
 impl<T, A: Alignment> Affine<3, T, A>
 where
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Creates an affine transform containing a 3D rotation from `angle` (in
     /// radians) around the x axis.

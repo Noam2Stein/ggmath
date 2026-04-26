@@ -1,7 +1,6 @@
-use crate::utils::PrimitiveFloat;
+use crate::PrimitiveFloat;
 
 /// Extends floating-point primitives with extra functionality.
-#[expect(private_bounds)]
 pub trait FloatExt: PrimitiveFloat {
     /// Computes the linear interpolation between `self` and `other` based on
     /// the value `t`.

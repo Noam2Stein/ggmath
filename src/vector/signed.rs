@@ -1,7 +1,134 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
+use crate::{Alignment, Length, PrimitiveSigned, SupportedLength, Vector, utils::specialize};
 
-macro_rules! impl_int {
-    ($T:ident, $Backend:ident) => {
+impl<const N: usize, T, A: Alignment> Vector<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: PrimitiveSigned,
+{
+    /// Computes `self + rhs`, returning `None` if overflow occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_add(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_checked_add(self, rhs))
+    }
+
+    /// Computes `self - rhs`, returning `None` if overflow occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_sub(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_checked_sub(self, rhs))
+    }
+
+    /// Computes `self * rhs`, returning `None` if overflow occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_mul(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_checked_mul(self, rhs))
+    }
+
+    /// Computes `self / rhs`, returning `None` if overflow or division
+    /// by zero occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_div(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_checked_div(self, rhs))
+    }
+
+    /// Computes `self % rhs`, returning `None` if overflow or division
+    /// by zero occurred.
+    #[inline]
+    #[must_use]
+    pub fn checked_rem(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_checked_rem(self, rhs))
+    }
+
+    /// Computes `self + rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    #[inline]
+    #[must_use]
+    pub fn saturating_add(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_saturating_add(self, rhs))
+    }
+
+    /// Computes `self - rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    #[inline]
+    #[must_use]
+    pub fn saturating_sub(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_saturating_sub(self, rhs))
+    }
+
+    /// Computes `self * rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    #[inline]
+    #[must_use]
+    pub fn saturating_mul(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_saturating_mul(self, rhs))
+    }
+
+    /// Computes `self / rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any component of `rhs` is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn saturating_div(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_saturating_div(self, rhs))
+    }
+
+    /// Computes `self + rhs`, wrapping around at the boundary of the type.
+    #[inline]
+    #[must_use]
+    pub fn wrapping_add(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_wrapping_add(self, rhs))
+    }
+
+    /// Computes `self - rhs`, wrapping around at the boundary of the type.
+    #[inline]
+    #[must_use]
+    pub fn wrapping_sub(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_wrapping_sub(self, rhs))
+    }
+
+    /// Computes `self * rhs`, wrapping around at the boundary of the type.
+    #[inline]
+    #[must_use]
+    pub fn wrapping_mul(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_wrapping_mul(self, rhs))
+    }
+
+    /// Computes `self / rhs`, wrapping around at the boundary of the type.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any component of `rhs` is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn wrapping_div(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveSignedVectorBackend<N, A>>::vector_wrapping_div(self, rhs))
+    }
+
+    /// Computes `self % rhs`, wrapping around at the boundary of the type.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any component of `rhs` is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn wrapping_rem(self, rhs: Self) -> Self {
+        specialize!(
+            <T as PrimitiveSignedVectorBackend<N, A>>::vector_wrapping_rem(self, rhs)
+        )
+    }
+}
+
+macro_rules! impl_signed {
+    ($T:ident) => {
         impl<const N: usize, A: Alignment> Vector<N, $T, A>
         where
             Length<N>: SupportedLength,
@@ -24,7 +151,9 @@ macro_rules! impl_int {
             #[inline]
             #[must_use]
             pub fn max(self, other: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_max(self, other))
+                specialize!(<$T as PrimitiveSignedVectorBackend<N, A>>::vector_max(
+                    self, other
+                ))
             }
 
             /// Returns the minimum elements between `self` and `other`.
@@ -45,7 +174,9 @@ macro_rules! impl_int {
             #[inline]
             #[must_use]
             pub fn min(self, other: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_min(self, other))
+                specialize!(<$T as PrimitiveSignedVectorBackend<N, A>>::vector_min(
+                    self, other
+                ))
             }
 
             /// Clamps the elements of `self` between the elements of `min` and
@@ -95,7 +226,7 @@ macro_rules! impl_int {
             #[inline]
             #[must_use]
             pub fn max_element(self) -> $T {
-                specialize!(<$T as $Backend<N, A>>::vector_max_element(self))
+                specialize!(<$T as PrimitiveSignedVectorBackend<N, A>>::vector_max_element(self))
             }
 
             /// Returns the minimum between the elements of `self`.
@@ -113,7 +244,7 @@ macro_rules! impl_int {
             #[inline]
             #[must_use]
             pub fn min_element(self) -> $T {
-                specialize!(<$T as $Backend<N, A>>::vector_min_element(self))
+                specialize!(<$T as PrimitiveSignedVectorBackend<N, A>>::vector_min_element(self))
             }
 
             /// Returns the absolute values of the elements of `self`.
@@ -141,7 +272,7 @@ macro_rules! impl_int {
             #[must_use]
             #[track_caller]
             pub fn abs(self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_abs(self))
+                specialize!(<$T as PrimitiveSignedVectorBackend<N, A>>::vector_abs(self))
             }
 
             /// Returns the signum of the elements of `self`.
@@ -165,306 +296,249 @@ macro_rules! impl_int {
             #[inline]
             #[must_use]
             pub fn signum(self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_signum(self))
-            }
-
-            /// Computes `self + rhs`, returning `None` if overflow occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_add(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vector_checked_add(self, rhs))
-            }
-
-            /// Computes `self - rhs`, returning `None` if overflow occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_sub(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vector_checked_sub(self, rhs))
-            }
-
-            /// Computes `self * rhs`, returning `None` if overflow occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_mul(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vector_checked_mul(self, rhs))
-            }
-
-            /// Computes `self / rhs`, returning `None` if overflow or division
-            /// by zero occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_div(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vector_checked_div(self, rhs))
-            }
-
-            /// Computes `self % rhs`, returning `None` if overflow or division
-            /// by zero occurred.
-            #[inline]
-            #[must_use]
-            pub fn checked_rem(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as $Backend<N, A>>::vector_checked_rem(self, rhs))
-            }
-
-            /// Computes `self + rhs`, saturating at the numeric bounds instead of
-            /// overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_add(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_saturating_add(self, rhs))
-            }
-
-            /// Computes `self - rhs`, saturating at the numeric bounds instead of
-            /// overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_sub(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_saturating_sub(self, rhs))
-            }
-
-            /// Computes `self * rhs`, saturating at the numeric bounds instead of
-            /// overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_mul(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_saturating_mul(self, rhs))
-            }
-
-            /// Computes `self / rhs`, saturating at the numeric bounds instead of
-            /// overflowing.
-            ///
-            /// # Panics
-            ///
-            /// Panics if any component of `rhs` is `0`.
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn saturating_div(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_saturating_div(self, rhs))
-            }
-
-            /// Computes `self + rhs`, wrapping around at the boundary of the type.
-            #[inline]
-            #[must_use]
-            pub fn wrapping_add(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_wrapping_add(self, rhs))
-            }
-
-            /// Computes `self - rhs`, wrapping around at the boundary of the type.
-            #[inline]
-            #[must_use]
-            pub fn wrapping_sub(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_wrapping_sub(self, rhs))
-            }
-
-            /// Computes `self * rhs`, wrapping around at the boundary of the type.
-            #[inline]
-            #[must_use]
-            pub fn wrapping_mul(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_wrapping_mul(self, rhs))
-            }
-
-            /// Computes `self / rhs`, wrapping around at the boundary of the type.
-            ///
-            /// # Panics
-            ///
-            /// Panics if any component of `rhs` is `0`.
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn wrapping_div(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_wrapping_div(self, rhs))
-            }
-
-            /// Computes `self % rhs`, wrapping around at the boundary of the type.
-            ///
-            /// # Panics
-            ///
-            /// Panics if any component of `rhs` is `0`.
-            #[inline]
-            #[must_use]
-            #[track_caller]
-            pub fn wrapping_rem(self, rhs: Self) -> Self {
-                specialize!(<$T as $Backend<N, A>>::vector_wrapping_rem(self, rhs))
-            }
-        }
-
-        pub(crate) trait $Backend<const N: usize, A: Alignment>: Scalar
-        where
-            Length<N>: SupportedLength,
-        {
-            #[inline]
-            fn vector_max(vector: Vector<N, $T, A>, other: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].max(other[i]))
-            }
-
-            #[inline]
-            fn vector_min(vector: Vector<N, $T, A>, other: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].min(other[i]))
-            }
-
-            #[inline]
-            fn vector_max_element(vector: Vector<N, $T, A>) -> $T {
-                vector.iter().reduce($T::max).unwrap()
-            }
-
-            #[inline]
-            fn vector_min_element(vector: Vector<N, $T, A>) -> $T {
-                vector.iter().reduce($T::min).unwrap()
-            }
-
-            #[inline]
-            #[track_caller]
-            fn vector_abs(vector: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                vector.map($T::abs)
-            }
-
-            #[inline]
-            fn vector_signum(vector: Vector<N, $T, A>) -> Vector<N, $T, A> {
-                vector.map($T::signum)
-            }
-
-            #[inline]
-            fn vector_checked_add(
-                mut vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Option<Vector<N, $T, A>> {
-                for i in 0..N {
-                    vector[i] = vector[i].checked_add(rhs[i])?;
-                }
-
-                Some(vector)
-            }
-
-            #[inline]
-            fn vector_checked_sub(
-                mut vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Option<Vector<N, $T, A>> {
-                for i in 0..N {
-                    vector[i] = vector[i].checked_sub(rhs[i])?;
-                }
-
-                Some(vector)
-            }
-
-            #[inline]
-            fn vector_checked_mul(
-                mut vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Option<Vector<N, $T, A>> {
-                for i in 0..N {
-                    vector[i] = vector[i].checked_mul(rhs[i])?;
-                }
-
-                Some(vector)
-            }
-
-            #[inline]
-            fn vector_checked_div(
-                mut vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Option<Vector<N, $T, A>> {
-                for i in 0..N {
-                    vector[i] = vector[i].checked_div(rhs[i])?;
-                }
-
-                Some(vector)
-            }
-
-            #[inline]
-            fn vector_checked_rem(
-                mut vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Option<Vector<N, $T, A>> {
-                for i in 0..N {
-                    vector[i] = vector[i].checked_rem(rhs[i])?;
-                }
-                Some(vector)
-            }
-
-            #[inline]
-            fn vector_saturating_add(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].saturating_add(rhs[i]))
-            }
-
-            #[inline]
-            fn vector_saturating_sub(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].saturating_sub(rhs[i]))
-            }
-
-            #[inline]
-            fn vector_saturating_mul(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].saturating_mul(rhs[i]))
-            }
-
-            #[inline]
-            #[track_caller]
-            fn vector_saturating_div(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].saturating_div(rhs[i]))
-            }
-
-            #[inline]
-            fn vector_wrapping_add(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].wrapping_add(rhs[i]))
-            }
-
-            #[inline]
-            fn vector_wrapping_sub(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].wrapping_sub(rhs[i]))
-            }
-
-            #[inline]
-            fn vector_wrapping_mul(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].wrapping_mul(rhs[i]))
-            }
-
-            #[inline]
-            #[track_caller]
-            fn vector_wrapping_div(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].wrapping_div(rhs[i]))
-            }
-
-            #[inline]
-            #[track_caller]
-            fn vector_wrapping_rem(
-                vector: Vector<N, $T, A>,
-                rhs: Vector<N, $T, A>,
-            ) -> Vector<N, $T, A> {
-                Vector::from_fn(|i| vector[i].wrapping_rem(rhs[i]))
+                specialize!(<$T as PrimitiveSignedVectorBackend<N, A>>::vector_signum(
+                    self
+                ))
             }
         }
     };
 }
-impl_int!(i8, I8VectorBackend);
-impl_int!(i16, I16VectorBackend);
-impl_int!(i32, I32VectorBackend);
-impl_int!(i64, I64VectorBackend);
-impl_int!(i128, I128VectorBackend);
-impl_int!(isize, IsizeVectorBackend);
+impl_signed!(i8);
+impl_signed!(i16);
+impl_signed!(i32);
+impl_signed!(i64);
+impl_signed!(i128);
+impl_signed!(isize);
+
+pub(crate) trait PrimitiveSignedVectorBackend<const N: usize, A: Alignment>
+where
+    Length<N>: SupportedLength,
+{
+    #[inline]
+    fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].max(other[i]))
+    }
+
+    #[inline]
+    fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].min(other[i]))
+    }
+
+    #[inline]
+    fn vector_max_element(vector: Vector<N, Self, A>) -> Self
+    where
+        Self: PrimitiveSigned,
+    {
+        vector.iter().reduce(Self::max).unwrap()
+    }
+
+    #[inline]
+    fn vector_min_element(vector: Vector<N, Self, A>) -> Self
+    where
+        Self: PrimitiveSigned,
+    {
+        vector.iter().reduce(Self::min).unwrap()
+    }
+
+    #[inline]
+    #[track_caller]
+    fn vector_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        vector.map(Self::abs)
+    }
+
+    #[inline]
+    fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        vector.map(Self::signum)
+    }
+
+    #[inline]
+    fn vector_checked_add(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveSigned,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_add(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_sub(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveSigned,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_sub(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_mul(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveSigned,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_mul(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_div(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveSigned,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_div(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_rem(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveSigned,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_rem(rhs[i])?;
+        }
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_saturating_add(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].saturating_add(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_saturating_sub(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].saturating_sub(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_saturating_mul(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].saturating_mul(rhs[i]))
+    }
+
+    #[inline]
+    #[track_caller]
+    fn vector_saturating_div(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].saturating_div(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_wrapping_add(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_add(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_wrapping_sub(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_sub(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_wrapping_mul(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_mul(rhs[i]))
+    }
+
+    #[inline]
+    #[track_caller]
+    fn vector_wrapping_div(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_div(rhs[i]))
+    }
+
+    #[inline]
+    #[track_caller]
+    fn vector_wrapping_rem(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_rem(rhs[i]))
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -761,16 +761,6 @@ pub(crate) unsafe trait ScalarRepr:
         Length<N>: SupportedLength;
 }
 
-/// A trait used by [`to_repr`] to reject transmuting between types of
-/// `Repr = ()`.
-///
-/// # Safety
-///
-/// `Self` must be a signed integer primitive.
-///
-/// [`to_repr`]: Vector::to_repr
-pub(crate) unsafe trait SignedInteger {}
-
 // SAFETY: `f32` and `i32` are both 4-bytes long, and `f32` does not contain
 // uninitialized bytes.
 unsafe impl Scalar for f32 {
@@ -874,11 +864,3 @@ unsafe impl Scalar for usize {
 unsafe impl Scalar for bool {
     type Repr = i8;
 }
-
-// SAFETY: all of these types are signed integer primitives.
-unsafe impl SignedInteger for i8 {}
-unsafe impl SignedInteger for i16 {}
-unsafe impl SignedInteger for i32 {}
-unsafe impl SignedInteger for i64 {}
-unsafe impl SignedInteger for i128 {}
-unsafe impl SignedInteger for isize {}

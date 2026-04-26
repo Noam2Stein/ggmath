@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Scalar, SignedInteger, Unaligned, Vector,
+    Aligned, Alignment, PrimitiveSigned, Scalar, Unaligned, Vector,
     constants::{Nan, One, Zero},
     utils::{transmute_mut, transmute_ref},
 };
@@ -432,11 +432,10 @@ where
     /// ```
     #[inline]
     #[must_use]
-    #[expect(private_bounds)]
     pub const unsafe fn to_repr<T2>(self) -> Quaternion<T2, A>
     where
         T2: Scalar<Repr = T::Repr>,
-        T::Repr: SignedInteger,
+        T::Repr: PrimitiveSigned,
     {
         unsafe { Quaternion(self.0.to_repr()) }
     }

@@ -1,15 +1,14 @@
 use core::convert::identity;
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, Quaternion, Scalar, SupportedLength, Vector,
-    utils::{PrimitiveFloat, transmute_generic, transmute_ref},
+    Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength, Vector,
+    utils::{transmute_generic, transmute_ref},
 };
 
-#[expect(private_bounds)]
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
     Length<N>: SupportedLength,
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Returns `true` if any element is NaN.
     ///
@@ -421,10 +420,9 @@ where
     }
 }
 
-#[expect(private_bounds)]
 impl<T, A: Alignment> Matrix<2, T, A>
 where
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Creates a matrix containing a rotation of `angle` (in radians).
     ///
@@ -482,10 +480,9 @@ where
     }
 }
 
-#[expect(private_bounds)]
 impl<T, A: Alignment> Matrix<3, T, A>
 where
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Creates an affine transformation matrix containing a rotation of `angle`
     /// (in radians).
@@ -1005,10 +1002,9 @@ where
     }
 }
 
-#[expect(private_bounds)]
 impl<T, A: Alignment> Matrix<4, T, A>
 where
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Creates an affine transformation matrix containing a 3D rotation from
     /// `angle` (in radians) around the x axis.

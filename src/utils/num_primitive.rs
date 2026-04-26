@@ -1,71 +1,21 @@
-use core::{
-    fmt::Debug,
-    iter::{Product, Sum},
-    ops::{Add, Div, Mul, Neg, Rem, Sub},
-};
-
 #[cfg(feature = "libm")]
 use libm::Libm;
 
-use crate::{
-    Aligned, PrimitiveFloatBackend, Unaligned,
-    constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
-};
-
-/// A trait for all primitive float-point types.
-///
-/// This is modeled after [`num-primitive`], but only includes functionality
-/// needed for [`Vector<N, T, A>`], [`Matrix<N, T, A>`] and
-/// [`Quaternion<T, A>`].
-///
-/// Ideally, there would be [`PrimitiveSigned`] and [`PrimitiveUnsigned`] traits
-/// as well, but the type system cannot currently express mutually exclusive
-/// traits, so multiple implementations that are generic over `T` are
-/// impossible.
-///
-/// [`num-primitive`]: https://crates.io/crates/num-primitive
-/// [`Vector<N, T, A>`]: crate::Vector
-/// [`Matrix<N, T, A>`]: crate::Matrix
-/// [`Quaternion<T, A>`]: crate::Quaternion
-/// [`PrimitiveSigned`]: https://docs.rs/num-primitive/latest/num_primitive/trait.PrimitiveSigned.html
-/// [`PrimitiveUnsigned`]: https://docs.rs/num-primitive/latest/num_primitive/trait.PrimitiveUnsigned.html
-pub(crate) trait PrimitiveFloat:
-    Debug
-    + Clone
-    + Copy
-    + PartialEq
-    + PartialOrd
-    + Neg<Output = Self>
-    + Add<Output = Self>
-    + Sub<Output = Self>
-    + Mul<Output = Self>
-    + Div<Output = Self>
-    + Rem<Output = Self>
-    + Sum
-    + Product
-    + Zero
-    + One
-    + NegOne
-    + Min
-    + Max
-    + Nan
-    + Infinity
-    + NegInfinity
-    + PrimitiveFloatBackend<2, Aligned>
-    + PrimitiveFloatBackend<3, Aligned>
-    + PrimitiveFloatBackend<4, Aligned>
-    + PrimitiveFloatBackend<2, Unaligned>
-    + PrimitiveFloatBackend<3, Unaligned>
-    + PrimitiveFloatBackend<4, Unaligned>
-{
+/// An internal trait that wraps primitive-float functions used in generic
+/// contexts.
+pub(crate) trait PrimitiveFloatFns: Sized {
     const EPSILON: Self;
 
+    #[expect(clippy::wrong_self_convention)]
     fn is_nan(self) -> bool;
 
+    #[expect(clippy::wrong_self_convention)]
     fn is_finite(self) -> bool;
 
+    #[expect(clippy::wrong_self_convention)]
     fn is_sign_positive(self) -> bool;
 
+    #[expect(clippy::wrong_self_convention)]
     fn is_sign_negative(self) -> bool;
 
     fn recip(self) -> Self;
@@ -123,9 +73,71 @@ pub(crate) trait PrimitiveFloat:
     fn as_from(value: f64) -> Self;
 }
 
-macro_rules! impl_primitive_float {
+/// An internal trait that wraps primitive-signed-integer functions used in
+/// generic contexts.
+pub(crate) trait PrimitiveSignedFns: Sized {
+    fn checked_add(self, rhs: Self) -> Option<Self>;
+
+    fn checked_sub(self, rhs: Self) -> Option<Self>;
+
+    fn checked_mul(self, rhs: Self) -> Option<Self>;
+
+    fn checked_div(self, rhs: Self) -> Option<Self>;
+
+    fn checked_rem(self, rhs: Self) -> Option<Self>;
+
+    fn saturating_add(self, rhs: Self) -> Self;
+
+    fn saturating_sub(self, rhs: Self) -> Self;
+
+    fn saturating_mul(self, rhs: Self) -> Self;
+
+    fn saturating_div(self, rhs: Self) -> Self;
+
+    fn wrapping_add(self, rhs: Self) -> Self;
+
+    fn wrapping_sub(self, rhs: Self) -> Self;
+
+    fn wrapping_mul(self, rhs: Self) -> Self;
+
+    fn wrapping_div(self, rhs: Self) -> Self;
+
+    fn wrapping_rem(self, rhs: Self) -> Self;
+
+    fn abs(self) -> Self;
+
+    fn signum(self) -> Self;
+}
+
+/// An internal trait that wraps primitive-unsigned-integer functions used in
+/// generic contexts.
+pub(crate) trait PrimitiveUnsignedFns: Sized {
+    fn checked_add(self, rhs: Self) -> Option<Self>;
+
+    fn checked_sub(self, rhs: Self) -> Option<Self>;
+
+    fn checked_mul(self, rhs: Self) -> Option<Self>;
+
+    fn checked_div(self, rhs: Self) -> Option<Self>;
+
+    fn checked_rem(self, rhs: Self) -> Option<Self>;
+
+    fn saturating_add(self, rhs: Self) -> Self;
+
+    fn saturating_sub(self, rhs: Self) -> Self;
+
+    fn saturating_mul(self, rhs: Self) -> Self;
+
+    fn wrapping_add(self, rhs: Self) -> Self;
+
+    fn wrapping_sub(self, rhs: Self) -> Self;
+
+    fn wrapping_mul(self, rhs: Self) -> Self;
+}
+
+macro_rules! impl_float {
     ($T:ident) => {
-        impl PrimitiveFloat for $T {
+        impl PrimitiveFloatFns for $T {
             const EPSILON: Self = Self::EPSILON;
 
             #[inline(always)]
@@ -440,5 +452,164 @@ macro_rules! impl_primitive_float {
         }
     };
 }
-impl_primitive_float!(f32);
-impl_primitive_float!(f64);
+impl_float!(f32);
+impl_float!(f64);
+
+macro_rules! impl_signed {
+    ($T:ident) => {
+        impl PrimitiveSignedFns for $T {
+            #[inline(always)]
+            fn checked_add(self, rhs: Self) -> Option<Self> {
+                self.checked_add(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_sub(self, rhs: Self) -> Option<Self> {
+                self.checked_sub(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_mul(self, rhs: Self) -> Option<Self> {
+                self.checked_mul(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_div(self, rhs: Self) -> Option<Self> {
+                self.checked_div(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_rem(self, rhs: Self) -> Option<Self> {
+                self.checked_rem(rhs)
+            }
+
+            #[inline(always)]
+            fn saturating_add(self, rhs: Self) -> Self {
+                self.saturating_add(rhs)
+            }
+
+            #[inline(always)]
+            fn saturating_sub(self, rhs: Self) -> Self {
+                self.saturating_sub(rhs)
+            }
+
+            #[inline(always)]
+            fn saturating_mul(self, rhs: Self) -> Self {
+                self.saturating_mul(rhs)
+            }
+
+            #[inline(always)]
+            fn saturating_div(self, rhs: Self) -> Self {
+                self.saturating_div(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_add(self, rhs: Self) -> Self {
+                self.wrapping_add(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_sub(self, rhs: Self) -> Self {
+                self.wrapping_sub(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_mul(self, rhs: Self) -> Self {
+                self.wrapping_mul(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_div(self, rhs: Self) -> Self {
+                self.wrapping_div(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_rem(self, rhs: Self) -> Self {
+                self.wrapping_rem(rhs)
+            }
+
+            #[inline(always)]
+            fn abs(self) -> Self {
+                self.abs()
+            }
+
+            #[inline(always)]
+            fn signum(self) -> Self {
+                self.signum()
+            }
+        }
+    };
+}
+impl_signed!(i8);
+impl_signed!(i16);
+impl_signed!(i32);
+impl_signed!(i64);
+impl_signed!(i128);
+impl_signed!(isize);
+
+macro_rules! impl_unsigned {
+    ($T:ident) => {
+        impl PrimitiveUnsignedFns for $T {
+            #[inline(always)]
+            fn checked_add(self, rhs: Self) -> Option<Self> {
+                self.checked_add(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_sub(self, rhs: Self) -> Option<Self> {
+                self.checked_sub(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_mul(self, rhs: Self) -> Option<Self> {
+                self.checked_mul(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_div(self, rhs: Self) -> Option<Self> {
+                self.checked_div(rhs)
+            }
+
+            #[inline(always)]
+            fn checked_rem(self, rhs: Self) -> Option<Self> {
+                self.checked_rem(rhs)
+            }
+
+            #[inline(always)]
+            fn saturating_add(self, rhs: Self) -> Self {
+                self.saturating_add(rhs)
+            }
+
+            #[inline(always)]
+            fn saturating_sub(self, rhs: Self) -> Self {
+                self.saturating_sub(rhs)
+            }
+
+            #[inline(always)]
+            fn saturating_mul(self, rhs: Self) -> Self {
+                self.saturating_mul(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_add(self, rhs: Self) -> Self {
+                self.wrapping_add(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_sub(self, rhs: Self) -> Self {
+                self.wrapping_sub(rhs)
+            }
+
+            #[inline(always)]
+            fn wrapping_mul(self, rhs: Self) -> Self {
+                self.wrapping_mul(rhs)
+            }
+        }
+    };
+}
+impl_unsigned!(u8);
+impl_unsigned!(u16);
+impl_unsigned!(u32);
+impl_unsigned!(u64);
+impl_unsigned!(u128);
+impl_unsigned!(usize);

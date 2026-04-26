@@ -6,7 +6,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, Scalar, ScalarBackend, ScalarRepr, SignedInteger,
+    Aligned, Alignment, Length, Matrix, PrimitiveSigned, Scalar, ScalarBackend, ScalarRepr,
     SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
     utils::{Repr3, Repr4, Repr5, specialize, transmute_generic, transmute_mut, transmute_ref},
@@ -625,11 +625,10 @@ where
     /// ```
     #[inline]
     #[must_use]
-    #[expect(private_bounds)]
     pub const unsafe fn to_repr<T2>(self) -> Affine<N, T2, A>
     where
         T2: Scalar<Repr = T::Repr>,
-        T::Repr: SignedInteger,
+        T::Repr: PrimitiveSigned,
     {
         // SAFETY: Affines of scalars with the same `Scalar::Repr` are
         // guaranteed to have compatible memory layouts if `Repr` is a signed

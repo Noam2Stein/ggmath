@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Primitive traits:
+  - `PrimitiveFloat`
+  - `PrimitiveSigned`
+  - `PrimitiveUnsigned`
+
 - Implementation of common traits for `Alignment` marker types.
 
 - Affine function `from_column_fn`.

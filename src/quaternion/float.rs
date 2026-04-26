@@ -1,9 +1,8 @@
-use crate::{Alignment, EulerRot, Matrix, Quaternion, Scalar, Vector, utils::PrimitiveFloat};
+use crate::{Alignment, EulerRot, Matrix, PrimitiveFloat, Quaternion, Vector};
 
-#[expect(private_bounds)]
 impl<T, A: Alignment> Quaternion<T, A>
 where
-    T: Scalar + PrimitiveFloat,
+    T: PrimitiveFloat,
 {
     /// Creates a quaternion from an `angle` (in radians) around the x axis.
     ///
