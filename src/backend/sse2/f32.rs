@@ -4,13 +4,17 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 use crate::{
-    Aligned, Mask, Mask3, Mask4, PrimitiveFloatVectorBackend, ScalarBackend, Unaligned, Vec3, Vec4,
-    Vector, utils::safe_arch,
+    Aligned, Backend, Mask, Mask3, Mask4, PrimitiveFloatBackend, Vec3, Vec4, Vector,
+    utils::{Repr3, Repr4, Repr5, safe_arch},
 };
 
-impl ScalarBackend<2, Aligned> for f32 {}
+// SAFETY: All associated types uphold requirements.
+unsafe impl Backend<3, Aligned> for f32 {
+    type Vector = __m128;
+    type Matrix = Repr3<__m128>;
+    type Affine = Repr4<__m128>;
+    type Mask = __m128;
 
-impl ScalarBackend<3, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
@@ -102,9 +106,135 @@ impl ScalarBackend<3, Aligned> for f32 {
             Mask(_mm_cmpge_ps(vector.0, other.0))
         }
     }
+
+    #[inline]
+    fn mask_from_array(array: [bool; 3]) -> Mask3<f32> {
+        // SAFETY: The two intrinsics are part of SSE2.
+        unsafe {
+            Mask(_mm_castsi128_ps(_mm_set_epi32(
+                -(array[2] as i32),
+                -(array[2] as i32),
+                -(array[1] as i32),
+                -(array[0] as i32),
+            )))
+        }
+    }
+
+    #[inline]
+    fn mask_splat(value: bool) -> Mask3<f32> {
+        // SAFETY: The two intrinsics are part of SSE2.
+        unsafe { Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32)))) }
+    }
+
+    #[inline]
+    fn mask_from_fn<F>(mut f: F) -> Mask3<f32>
+    where
+        F: FnMut(usize) -> bool,
+    {
+        Mask::from_array([f(0), f(1), f(2)])
+    }
+
+    #[inline]
+    fn mask_to_array(mask: Mask3<f32>) -> [bool; 3] {
+        // SAFETY: The intrinsic is part of SSE.
+        let bits = unsafe { _mm_movemask_ps(mask.0) };
+        [bits & 0x1 != 0, bits & 0x2 != 0, bits & 0x4 != 0]
+    }
+
+    #[inline]
+    fn mask_all(mask: Mask3<f32>) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe { _mm_movemask_ps(mask.0) & 0x7 == 0x7 }
+    }
+
+    #[inline]
+    fn mask_any(mask: Mask3<f32>) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe { _mm_movemask_ps(mask.0) & 0x7 != 0 }
+    }
+
+    #[inline]
+    fn mask_select(mask: Mask3<f32>, if_true: Vec3<f32>, if_false: Vec3<f32>) -> Vec3<f32> {
+        // SAFETY: The three intrinsics are part of SSE.
+        Vector(unsafe {
+            _mm_or_ps(
+                _mm_andnot_ps(mask.0, if_false.0),
+                _mm_and_ps(if_true.0, mask.0),
+            )
+        })
+    }
+
+    #[inline]
+    fn mask_get(mask: Mask3<f32>, index: usize) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe {
+            match index {
+                0 => _mm_movemask_ps(mask.0) & 0x1 != 0,
+                1 => _mm_movemask_ps(mask.0) & 0x2 != 0,
+                2 => _mm_movemask_ps(mask.0) & 0x4 != 0,
+                _ => panic!("index out of bounds"),
+            }
+        }
+    }
+
+    #[inline]
+    fn mask_set(mask: &mut Mask3<f32>, index: usize, value: bool) {
+        if index < 3 {
+            // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
+            // `index` is valid because it was just checked to be less then 3,
+            // and the result is a pointer to a valid `i32`.
+            let slot = unsafe {
+                core::ptr::from_mut::<__m128>(&mut mask.0)
+                    .cast::<i32>()
+                    .add(index)
+                    .as_mut()
+                    .unwrap_unchecked()
+            };
+
+            *slot = -(value as i32);
+        } else {
+            panic!("index out of bounds")
+        }
+    }
+
+    #[inline]
+    fn mask_eq(mask: &Mask3<f32>, other: &Mask3<f32>) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe { _mm_movemask_ps(mask.0) & 0x7 == _mm_movemask_ps(other.0) & 0x7 }
+    }
+
+    #[inline]
+    fn mask_not(mask: Mask3<f32>) -> Mask3<f32> {
+        // SAFETY: The two intrinsics are part of SSE.
+        Mask(unsafe { _mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))) })
+    }
+
+    #[inline]
+    fn mask_bitand(mask: Mask3<f32>, rhs: Mask3<f32>) -> Mask3<f32> {
+        // SAFETY: The intrinsic is part of SSE.
+        Mask(unsafe { _mm_and_ps(mask.0, rhs.0) })
+    }
+
+    #[inline]
+    fn mask_bitor(mask: Mask3<f32>, rhs: Mask3<f32>) -> Mask3<f32> {
+        // SAFETY: The intrinsic is part of SSE.
+        Mask(unsafe { _mm_or_ps(mask.0, rhs.0) })
+    }
+
+    #[inline]
+    fn mask_bitxor(mask: Mask3<f32>, rhs: Mask3<f32>) -> Mask3<f32> {
+        // SAFETY: The intrinsic is part of SSE.
+        Mask(unsafe { _mm_xor_ps(mask.0, rhs.0) })
+    }
 }
 
-impl ScalarBackend<4, Aligned> for f32 {
+// SAFETY: All associated types uphold requirements.
+unsafe impl Backend<4, Aligned> for f32 {
+    type Vector = __m128;
+    type Matrix = Repr4<__m128>;
+    type Affine = Repr5<__m128>;
+    type Mask = __m128;
+
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
@@ -194,15 +324,135 @@ impl ScalarBackend<4, Aligned> for f32 {
             Mask(_mm_cmpge_ps(vector.0, other.0))
         }
     }
+
+    #[inline]
+    fn mask_from_array(array: [bool; 4]) -> Mask4<f32> {
+        // SAFETY: The two intrinsics are part of SSE2.
+        unsafe {
+            Mask(_mm_castsi128_ps(_mm_set_epi32(
+                -(array[3] as i32),
+                -(array[2] as i32),
+                -(array[1] as i32),
+                -(array[0] as i32),
+            )))
+        }
+    }
+
+    #[inline]
+    fn mask_splat(value: bool) -> Mask4<f32> {
+        // SAFETY: The two intrinsics are part of SSE2.
+        unsafe { Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32)))) }
+    }
+
+    #[inline]
+    fn mask_from_fn<F>(mut f: F) -> Mask4<f32>
+    where
+        F: FnMut(usize) -> bool,
+    {
+        Mask::from_array([f(0), f(1), f(2), f(3)])
+    }
+
+    #[inline]
+    fn mask_to_array(mask: Mask4<f32>) -> [bool; 4] {
+        // SAFETY: The intrinsic is part of SSE.
+        let bits = unsafe { _mm_movemask_ps(mask.0) };
+        [
+            bits & 0x1 != 0,
+            bits & 0x2 != 0,
+            bits & 0x4 != 0,
+            bits & 0x8 != 0,
+        ]
+    }
+
+    #[inline]
+    fn mask_all(mask: Mask4<f32>) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe { _mm_movemask_ps(mask.0) == 0xf }
+    }
+
+    #[inline]
+    fn mask_any(mask: Mask4<f32>) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe { _mm_movemask_ps(mask.0) != 0 }
+    }
+
+    #[inline]
+    fn mask_select(mask: Mask4<f32>, if_true: Vec4<f32>, if_false: Vec4<f32>) -> Vec4<f32> {
+        // SAFETY: The three intrinsics are part of SSE.
+        Vector(unsafe {
+            _mm_or_ps(
+                _mm_andnot_ps(mask.0, if_false.0),
+                _mm_and_ps(if_true.0, mask.0),
+            )
+        })
+    }
+
+    #[inline]
+    fn mask_get(mask: Mask4<f32>, index: usize) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe {
+            match index {
+                0 => _mm_movemask_ps(mask.0) & 0x1 != 0,
+                1 => _mm_movemask_ps(mask.0) & 0x2 != 0,
+                2 => _mm_movemask_ps(mask.0) & 0x4 != 0,
+                3 => _mm_movemask_ps(mask.0) & 0x8 != 0,
+                _ => panic!("index out of bounds"),
+            }
+        }
+    }
+
+    #[inline]
+    fn mask_set(mask: &mut Mask4<f32>, index: usize, value: bool) {
+        if index < 4 {
+            // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
+            // `index` is valid because it was just checked to be less then 4,
+            // and the result is a pointer to a valid `i32`.
+            let slot = unsafe {
+                core::ptr::from_mut::<__m128>(&mut mask.0)
+                    .cast::<i32>()
+                    .add(index)
+                    .as_mut()
+                    .unwrap_unchecked()
+            };
+
+            *slot = -(value as i32);
+        } else {
+            panic!("index out of bounds")
+        }
+    }
+
+    #[inline]
+    fn mask_eq(mask: &Mask4<f32>, other: &Mask4<f32>) -> bool {
+        // SAFETY: The intrinsic is part of SSE.
+        unsafe { _mm_movemask_ps(mask.0) == _mm_movemask_ps(other.0) }
+    }
+
+    #[inline]
+    fn mask_not(mask: Mask4<f32>) -> Mask4<f32> {
+        // SAFETY: The two intrinsics are part of SSE.
+        Mask(unsafe { _mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))) })
+    }
+
+    #[inline]
+    fn mask_bitand(mask: Mask4<f32>, rhs: Mask4<f32>) -> Mask4<f32> {
+        // SAFETY: The intrinsic is part of SSE.
+        Mask(unsafe { _mm_and_ps(mask.0, rhs.0) })
+    }
+
+    #[inline]
+    fn mask_bitor(mask: Mask4<f32>, rhs: Mask4<f32>) -> Mask4<f32> {
+        // SAFETY: The intrinsic is part of SSE.
+        Mask(unsafe { _mm_or_ps(mask.0, rhs.0) })
+    }
+
+    #[inline]
+    fn mask_bitxor(mask: Mask4<f32>, rhs: Mask4<f32>) -> Mask4<f32> {
+        // SAFETY: The intrinsic is part of SSE.
+        Mask(unsafe { _mm_xor_ps(mask.0, rhs.0) })
+    }
 }
 
-impl ScalarBackend<2, Unaligned> for f32 {}
-impl ScalarBackend<3, Unaligned> for f32 {}
-impl ScalarBackend<4, Unaligned> for f32 {}
-
-impl PrimitiveFloatVectorBackend<2, Aligned> for f32 {}
-
-impl PrimitiveFloatVectorBackend<3, Aligned> for f32 {
+impl PrimitiveFloatBackend<3, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
@@ -294,7 +544,7 @@ impl PrimitiveFloatVectorBackend<3, Aligned> for f32 {
     }
 }
 
-impl PrimitiveFloatVectorBackend<4, Aligned> for f32 {
+impl PrimitiveFloatBackend<4, Aligned> for f32 {
     safe_arch! {
         #![target_feature(enable = "sse2")]
 
@@ -385,10 +635,6 @@ impl PrimitiveFloatVectorBackend<4, Aligned> for f32 {
         }
     }
 }
-
-impl PrimitiveFloatVectorBackend<2, Unaligned> for f32 {}
-impl PrimitiveFloatVectorBackend<3, Unaligned> for f32 {}
-impl PrimitiveFloatVectorBackend<4, Unaligned> for f32 {}
 
 #[inline]
 #[target_feature(enable = "sse2")]

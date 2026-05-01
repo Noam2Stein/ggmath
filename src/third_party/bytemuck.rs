@@ -69,8 +69,8 @@ where
 {
 }
 
-// SAFETY: Masks are guaranteed to have no uninitialized bytes, and are either
-// `[bool; N]` or an intrinsic type. Both are inhabited.
+// SAFETY: Masks are guaranteed to have no uninitialized bytes, and accept the
+// zero bit-pattern, meaning they are inhabited.
 unsafe impl<const N: usize, T, A: Alignment> NoUninit for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -78,8 +78,7 @@ where
 {
 }
 
-// SAFETY: Masks are guaranteed to be zeroable, and are either `[bool; N]` or an
-// intrinsic type. Both are inhabited.
+// SAFETY: Masks are guaranteed to accept the zero bit-pattern.
 unsafe impl<const N: usize, T, A: Alignment> Zeroable for Mask<N, T, A>
 where
     Length<N>: SupportedLength,

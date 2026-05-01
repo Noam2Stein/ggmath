@@ -123,6 +123,7 @@
 #![cfg_attr(feature = "libm", no_std)]
 
 mod affine;
+mod backend;
 mod euler_rot;
 mod float_ext;
 mod generics;
@@ -131,6 +132,7 @@ mod matrix;
 mod quaternion;
 mod vector;
 pub use affine::*;
+pub use backend::*;
 pub use euler_rot::*;
 pub use float_ext::*;
 pub use generics::*;
@@ -139,6 +141,5 @@ pub use matrix::*;
 pub use quaternion::*;
 pub use vector::*;
 
-mod backend_impls;
 mod third_party;
 mod utils;

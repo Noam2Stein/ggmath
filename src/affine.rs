@@ -6,8 +6,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, PrimitiveSigned, Scalar, ScalarBackend, ScalarRepr,
-    SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Backend, Length, Matrix, Scalar, SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
     utils::{Repr3, Repr4, Repr5, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
@@ -64,15 +63,6 @@ mod wide_float;
 /// accepts all bit patterns, it is not sound to assume padding contains valid
 /// values of `T`.
 ///
-/// Affines of compatible [`Scalar::Repr`] types have the same size. This means
-/// that they are transmutable, but can still have different alignments (see
-/// [`to_repr`]).
-///
-/// Types containing compatible affines, matrices, vectors and arrays may not
-/// have compatible layouts themselves. For example, even though [`Affine2<T>`]
-/// and `[T; 6]` have compatible layouts, [`Option<Affine2<T>>`] and
-/// `Option<[T; 6]>` may not.
-///
 /// [`glam`]: https://docs.rs/glam
 /// [`Affine2<T>`]: crate::Affine2
 /// [`Affine3<T>`]: crate::Affine3
@@ -83,10 +73,35 @@ mod wide_float;
 /// [`Vec3<T>`]: crate::Vec3
 /// [`Mat4<T>`]: crate::Mat4
 /// [`from_columns`]: Self::from_columns
-/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Affine<const N: usize, T, A: Alignment>(
-    pub(crate) <T::Repr as ScalarRepr>::AffineRepr<N, T, A>,
+    /// The internal representation of the affine transform.
+    ///
+    /// This field's insane type corresponds to [`<T as Backend<N, A>>::Affine`]
+    /// which cannot be used directly because of type system limitations. In
+    /// generic contexts this field will not work, in which case you should use
+    /// [`from_inner`], [`inner`] and [`inner_mut`].
+    ///
+    /// This field should only be accessed from the crate defining `T`, else its
+    /// type may change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>::Affine`]: Backend
+    /// [`from_inner`]: Self::from_inner
+    /// [`inner`]: Self::inner
+    /// [`inner_mut`]: Self::inner_mut
+    #[expect(clippy::type_complexity)]
+    pub  <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Aligned>>::Affine,
+            <T as Backend<3, Aligned>>::Affine,
+            <T as Backend<4, Aligned>>::Affine,
+        >,
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Unaligned>>::Affine,
+            <T as Backend<3, Unaligned>>::Affine,
+            <T as Backend<4, Unaligned>>::Affine,
+        >,
+    >,
 )
 where
     Length<N>: SupportedLength,
@@ -568,72 +583,64 @@ where
         self.submatrix * vector
     }
 
-    /// Raw transmutation between scalar types.
+    /// Creates an affine transform from its internal representation.
     ///
-    /// This function's signature staticly guarantees that the types have
-    /// compatible memory layouts.
+    /// Equivalent to `Affine(inner)` but works in generic contexts.
     ///
-    /// This function is used to make SIMD optimizations in implementations of
-    /// [`Scalar`].
+    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the input type may
+    /// change silently as it is considered an implementation detail.
     ///
-    /// # Safety
-    ///
-    /// The elements of `self` must contain bit patterns that are valid for the
-    /// output type. For example, when converting affines from `u8` to `bool`,
-    /// the input elements must be either `0` or `1` (that example is
-    /// unconventional, but the rule applies for any scalar that does not accept
-    /// all bit patterns).
-    ///
-    /// The padding does not need to contain valid values of the output type.
-    ///
-    /// # Examples
-    ///
-    /// Correct usage:
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Vec2};
-    /// #
-    /// let bits = Affine2::<u8>::from_columns(&[
-    ///     Vec2::new(1, 0),
-    ///     Vec2::new(0, 1),
-    ///     Vec2::new(0, 1),
-    /// ]);
-    ///
-    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
-    /// let bools = unsafe { bits.to_repr::<bool>() };
-    ///
-    /// assert_eq!(bools, Affine2::from_columns(&[
-    ///     Vec2::new(true, false),
-    ///     Vec2::new(false, true),
-    ///     Vec2::new(false, true),
-    /// ]));
-    /// ```
-    ///
-    /// Incorrect usage:
-    ///
-    /// ```compile_fail
-    /// # use ggmath::{Affine2, Vec2};
-    /// #
-    /// let a = Affine2::<i32>::from_columns(&[
-    ///     Vec2::new(1, 2),
-    ///     Vec2::new(3, 4),
-    ///     Vec2::new(5, 6),
-    /// ]);
-    ///
-    /// // This does not compile since `i32` and `i64` are not compatible.
-    /// let _ = unsafe { a.to_repr::<i64>() };
-    /// ```
+    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const unsafe fn to_repr<T2>(self) -> Affine<N, T2, A>
+    pub const fn from_inner(inner: <T as Backend<N, A>>::Affine) -> Self
     where
-        T2: Scalar<Repr = T::Repr>,
-        T::Repr: PrimitiveSigned,
+        T: Backend<N, A>,
     {
-        // SAFETY: Affines of scalars with the same `Scalar::Repr` are
-        // guaranteed to have compatible memory layouts if `Repr` is a signed
-        // integer.
-        unsafe { transmute_generic::<Affine<N, T, A>, Affine<N, T2, A>>(self) }
+        // SAFETY: `Affine<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Affine`.
+        unsafe { transmute_generic::<<T as Backend<N, A>>::Affine, Affine<N, T, A>>(inner) }
+    }
+
+    /// Returns the internal representation of `self`.
+    ///
+    /// Equivalent to `self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner(self) -> <T as Backend<N, A>>::Affine
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Affine<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Affine`.
+        unsafe { transmute_generic::<Affine<N, T, A>, <T as Backend<N, A>>::Affine>(self) }
+    }
+
+    /// Returns a mutable reference to the internal representation of `self`.
+    ///
+    /// Equivalent to `&mut self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Affine
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Affine<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Affine`.
+        unsafe { transmute_mut::<Affine<N, T, A>, <T as Backend<N, A>>::Affine>(self) }
     }
 }
 
@@ -1189,13 +1196,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::affine_eq(self, other))
+        specialize!(<T as Backend<N, A>>::affine_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::affine_ne(self, other))
+        specialize!(<T as Backend<N, A>>::affine_ne(self, other))
     }
 }
 
@@ -1636,7 +1643,7 @@ mod tests {
     use crate::{
         Affine, Affine2, Affine2U, Affine3, Affine3U, Aligned, Mat2, Mat3, Mat4, Matrix, Unaligned,
         Vec2, Vec3, Vector,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        utils::{Repr3, Repr4, assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
@@ -2298,75 +2305,42 @@ mod tests {
     }
 
     #[test]
-    fn test_to_repr() {
-        for_parameters!(|A| {
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe {
-                    Affine::<2, i32, A>::from_submatrix_translation(
-                        Matrix::from_columns(&[
-                            Vector::<2, i32, A>::new(0, 1),
-                            Vector::<2, i32, A>::new(2, 3),
-                        ]),
-                        Vector::<2, i32, A>::new(4, 5),
-                    )
-                    .to_repr()
-                },
-                Affine::<2, u32, A>::from_submatrix_translation(
-                    Matrix::from_columns(&[
-                        Vector::<2, u32, A>::new(0, 1),
-                        Vector::<2, u32, A>::new(2, 3),
-                    ]),
-                    Vector::<2, u32, A>::new(4, 5),
-                )
-            );
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe {
-                    Affine::<3, i32, A>::from_submatrix_translation(
-                        Matrix::from_columns(&[
-                            Vector::<3, i32, A>::new(0, 1, 2),
-                            Vector::<3, i32, A>::new(3, 4, 5),
-                            Vector::<3, i32, A>::new(6, 7, 8),
-                        ]),
-                        Vector::<3, i32, A>::new(9, 10, 11),
-                    )
-                    .to_repr()
-                },
-                Affine::<3, u32, A>::from_submatrix_translation(
-                    Matrix::from_columns(&[
-                        Vector::<3, u32, A>::new(0, 1, 2),
-                        Vector::<3, u32, A>::new(3, 4, 5),
-                        Vector::<3, u32, A>::new(6, 7, 8),
-                    ]),
-                    Vector::<3, u32, A>::new(9, 10, 11)
-                )
-            );
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe {
-                    Affine::<4, i32, A>::from_submatrix_translation(
-                        Matrix::from_columns(&[
-                            Vector::<4, i32, A>::new(0, 1, 2, 3),
-                            Vector::<4, i32, A>::new(4, 5, 6, 7),
-                            Vector::<4, i32, A>::new(8, 9, 10, 11),
-                            Vector::<4, i32, A>::new(12, 13, 14, 15),
-                        ]),
-                        Vector::<4, i32, A>::new(16, 17, 18, 19),
-                    )
-                    .to_repr()
-                },
-                Affine::<4, u32, A>::from_submatrix_translation(
-                    Matrix::from_columns(&[
-                        Vector::<4, u32, A>::new(0, 1, 2, 3),
-                        Vector::<4, u32, A>::new(4, 5, 6, 7),
-                        Vector::<4, u32, A>::new(8, 9, 10, 11),
-                        Vector::<4, u32, A>::new(12, 13, 14, 15),
-                    ]),
-                    Vector::<4, u32, A>::new(16, 17, 18, 19),
-                )
-            );
-        });
+    fn test_from_inner() {
+        assert_eq!(
+            Affine3U::<u32>::from_inner(Repr4(
+                Repr3(0, 1, 2),
+                Repr3(3, 4, 5),
+                Repr3(6, 7, 8),
+                Repr3(9, 10, 11),
+            )),
+            Affine3U::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+        );
+    }
+
+    #[test]
+    fn test_inner() {
+        assert_eq!(
+            Affine3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]).inner(),
+            Repr4(
+                Repr3(0, 1, 2),
+                Repr3(3, 4, 5),
+                Repr3(6, 7, 8),
+                Repr3(9, 10, 11)
+            )
+        );
+    }
+
+    #[test]
+    fn test_inner_mut() {
+        assert_eq!(
+            Affine3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]).inner_mut(),
+            &mut Repr4(
+                Repr3(0, 1, 2),
+                Repr3(3, 4, 5),
+                Repr3(6, 7, 8),
+                Repr3(9, 10, 11)
+            )
+        );
     }
 
     #[test]

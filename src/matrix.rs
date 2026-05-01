@@ -6,8 +6,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, PrimitiveSigned, Scalar, ScalarBackend, ScalarRepr,
-    SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Backend, Length, Scalar, SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
@@ -75,15 +74,6 @@ mod wide_float;
 /// accepts all bit patterns, it is not sound to assume padding contains valid
 /// values of `T`.
 ///
-/// Matrices of compatible [`Scalar::Repr`] types have the same size. This means
-/// that they are transmutable, but can still have different alignments (see
-/// [`to_repr`]).
-///
-/// Types containing compatible matrices, vectors and arrays may not have
-/// compatible layouts themselves. For example, even though [`Mat2<T>`] and
-/// [`Vec4<T>`] have compatible layouts, [`Option<Mat2<T>>`] and
-/// [`Option<Vec4<T>>`] may not.
-///
 /// [`from_columns`]: Self::from_columns
 /// [`Mat2<T>`]: crate::Mat2
 /// [`Mat3<T>`]: crate::Mat3
@@ -92,10 +82,35 @@ mod wide_float;
 /// [`Mat3U<T>`]: crate::Mat3U
 /// [`Mat4U<T>`]: crate::Mat4U
 /// [`Vec4<T>`]: crate::Vec4
-/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
-    pub(crate) <T::Repr as ScalarRepr>::MatrixRepr<N, T, A>,
+    /// The internal representation of the matrix.
+    ///
+    /// This field's insane type corresponds to [`<T as Backend<N, A>>::Matrix`]
+    /// which cannot be used directly because of type system limitations. In
+    /// generic contexts this field will not work, in which case you should use
+    /// [`from_inner`], [`inner`] and [`inner_mut`].
+    ///
+    /// This field should only be accessed from the crate defining `T`, else its
+    /// type may change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>::Matrix`]: Backend
+    /// [`from_inner`]: Self::from_inner
+    /// [`inner`]: Self::inner
+    /// [`inner_mut`]: Self::inner_mut
+    #[expect(clippy::type_complexity)]
+    pub  <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Aligned>>::Matrix,
+            <T as Backend<3, Aligned>>::Matrix,
+            <T as Backend<4, Aligned>>::Matrix,
+        >,
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Unaligned>>::Matrix,
+            <T as Backend<3, Unaligned>>::Matrix,
+            <T as Backend<4, Unaligned>>::Matrix,
+        >,
+    >,
 )
 where
     Length<N>: SupportedLength,
@@ -1095,60 +1110,64 @@ where
         }
     }
 
-    /// Raw transmutation between scalar types.
+    /// Creates a matrix from its internal representation.
     ///
-    /// This function's signature staticly guarantees that the types have
-    /// compatible memory layouts.
+    /// Equivalent to `Matrix(inner)` but works in generic contexts.
     ///
-    /// This function is used to make SIMD optimizations in implementations of
-    /// [`Scalar`].
+    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the input type may
+    /// change silently as it is considered an implementation detail.
     ///
-    /// # Safety
-    ///
-    /// The elements of `self` must contain bit patterns that are valid for the
-    /// output type. For example, when converting matrices from `u8` to `bool`,
-    /// the input elements must be either `0` or `1` (that example is
-    /// unconventional, but the rule applies for any scalar that does not accept
-    /// all bit patterns).
-    ///
-    /// The padding does not need to contain valid values of the output type.
-    ///
-    /// # Examples
-    ///
-    /// Correct usage:
-    ///
-    /// ```
-    /// # use ggmath::{Mat2, Vec2};
-    /// #
-    /// let bits = Mat2::<u8>::from_columns(&[Vec2::new(1, 0), Vec2::new(0, 1)]);
-    ///
-    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
-    /// let bools = unsafe { bits.to_repr::<bool>() };
-    ///
-    /// assert_eq!(bools, Mat2::from_columns(&[Vec2::new(true, false), Vec2::new(false, true)]));
-    /// ```
-    ///
-    /// Incorrect usage:
-    ///
-    /// ```compile_fail
-    /// # use ggmath::{Mat2, Vec2};
-    /// #
-    /// let a = Mat2::<i32>::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
-    ///
-    /// // This does not compile since `i32` and `i64` are not compatible.
-    /// let _ = unsafe { a.to_repr::<i64>() };
-    /// ```
+    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const unsafe fn to_repr<T2>(self) -> Matrix<N, T2, A>
+    pub const fn from_inner(inner: <T as Backend<N, A>>::Matrix) -> Self
     where
-        T2: Scalar<Repr = T::Repr>,
-        T::Repr: PrimitiveSigned,
+        T: Backend<N, A>,
     {
-        // SAFETY: Matrices of scalars with the same `Scalar::Repr` are
-        // guaranteed to have compatible memory layouts if `Repr` is a signed
-        // integer.
-        unsafe { transmute_generic::<Matrix<N, T, A>, Matrix<N, T2, A>>(self) }
+        // SAFETY: `Matrix<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Matrix`.
+        unsafe { transmute_generic::<<T as Backend<N, A>>::Matrix, Matrix<N, T, A>>(inner) }
+    }
+
+    /// Returns the internal representation of `self`.
+    ///
+    /// Equivalent to `self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner(self) -> <T as Backend<N, A>>::Matrix
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Matrix<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Matrix`.
+        unsafe { transmute_generic::<Matrix<N, T, A>, <T as Backend<N, A>>::Matrix>(self) }
+    }
+
+    /// Returns a mutable reference to the internal representation of `self`.
+    ///
+    /// Equivalent to `&mut self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Matrix
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Matrix<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Matrix`.
+        unsafe { transmute_mut::<Matrix<N, T, A>, <T as Backend<N, A>>::Matrix>(self) }
     }
 }
 
@@ -1892,13 +1911,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::matrix_eq(self, other))
+        specialize!(<T as Backend<N, A>>::matrix_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::matrix_ne(self, other))
+        specialize!(<T as Backend<N, A>>::matrix_ne(self, other))
     }
 }
 
@@ -1961,7 +1980,7 @@ macro_rules! impl_neg {
             #[inline]
             #[track_caller]
             fn neg(self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::matrix_neg(self))
+                specialize!(<T as Backend<N, A>>::matrix_neg(self))
             }
         }
     };
@@ -2035,7 +2054,7 @@ macro_rules! impl_add {
             #[inline]
             #[track_caller]
             fn add(self, rhs: Self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::matrix_add(self, rhs))
+                specialize!(<T as Backend<N, A>>::matrix_add(self, rhs))
             }
         }
     };
@@ -2158,7 +2177,7 @@ macro_rules! impl_sub {
             #[inline]
             #[track_caller]
             fn sub(self, rhs: Self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::matrix_sub(self, rhs))
+                specialize!(<T as Backend<N, A>>::matrix_sub(self, rhs))
             }
         }
     };
@@ -2266,7 +2285,7 @@ macro_rules! impl_mul_scalar {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: T) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::matrix_mul_scalar(self, rhs))
+                specialize!(<T as Backend<N, A>>::matrix_mul_scalar(self, rhs))
             }
         }
 
@@ -2388,7 +2407,7 @@ macro_rules! impl_mul_vector {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Vector<N, T, A>) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::matrix_mul_vector(self, rhs))
+                specialize!(<T as Backend<N, A>>::matrix_mul_vector(self, rhs))
             }
         }
 
@@ -2481,7 +2500,7 @@ macro_rules! impl_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Matrix<N, T, A>) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::matrix_mul(self, rhs))
+                specialize!(<T as Backend<N, A>>::matrix_mul(self, rhs))
             }
         }
     };
@@ -2592,7 +2611,7 @@ macro_rules! impl_div_scalar {
             #[inline]
             #[track_caller]
             fn div(self, rhs: T) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::matrix_div_scalar(self, rhs))
+                specialize!(<T as Backend<N, A>>::matrix_div_scalar(self, rhs))
             }
         }
 
@@ -2717,9 +2736,11 @@ mod tests {
     use std::format;
 
     use crate::{
-        Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4,
+        Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4, Vec4U,
         Vector,
-        utils::{assert_assertions_panic, assert_float_eq, assert_panic, for_parameters},
+        utils::{
+            Repr3, Repr4, assert_assertions_panic, assert_float_eq, assert_panic, for_parameters,
+        },
     };
 
     #[test]
@@ -3635,57 +3656,72 @@ mod tests {
     }
 
     #[test]
-    fn test_to_repr() {
-        for_parameters!(|A| {
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe {
-                    Matrix::<2, i32, A>::from_columns(&[
-                        Vector::<2, i32, A>::new(0, 1),
-                        Vector::<2, i32, A>::new(2, 3),
-                    ])
-                    .to_repr()
-                },
-                Matrix::<2, u32, A>::from_columns(&[
-                    Vector::<2, u32, A>::new(0, 1),
-                    Vector::<2, u32, A>::new(2, 3)
-                ])
-            );
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe {
-                    Matrix::<3, i32, A>::from_columns(&[
-                        Vector::<3, i32, A>::new(0, 1, 2),
-                        Vector::<3, i32, A>::new(3, 4, 5),
-                        Vector::<3, i32, A>::new(6, 7, 8),
-                    ])
-                    .to_repr()
-                },
-                Matrix::<3, u32, A>::from_columns(&[
-                    Vector::<3, u32, A>::new(0, 1, 2),
-                    Vector::<3, u32, A>::new(3, 4, 5),
-                    Vector::<3, u32, A>::new(6, 7, 8)
-                ])
-            );
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe {
-                    Matrix::<4, i32, A>::from_columns(&[
-                        Vector::<4, i32, A>::new(0, 1, 2, 3),
-                        Vector::<4, i32, A>::new(4, 5, 6, 7),
-                        Vector::<4, i32, A>::new(8, 9, 10, 11),
-                        Vector::<4, i32, A>::new(12, 13, 14, 15),
-                    ])
-                    .to_repr()
-                },
-                Matrix::<4, u32, A>::from_columns(&[
-                    Vector::<4, u32, A>::new(0, 1, 2, 3),
-                    Vector::<4, u32, A>::new(4, 5, 6, 7),
-                    Vector::<4, u32, A>::new(8, 9, 10, 11),
-                    Vector::<4, u32, A>::new(12, 13, 14, 15)
-                ])
-            );
-        });
+    fn test_from_inner() {
+        assert_eq!(
+            Mat2U::<u32>::from_inner(Vec4U::new(0, 1, 2, 3)),
+            Mat2U::from_column_array(&[0, 1, 2, 3])
+        );
+        assert_eq!(
+            Mat3U::<u32>::from_inner(Repr3(Repr3(0, 1, 2), Repr3(3, 4, 5), Repr3(6, 7, 8))),
+            Mat3U::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8])
+        );
+        assert_eq!(
+            Mat4U::<u32>::from_inner(Repr4(
+                Repr4(0, 1, 2, 3),
+                Repr4(4, 5, 6, 7),
+                Repr4(8, 9, 10, 11),
+                Repr4(12, 13, 14, 15),
+            )),
+            Mat4U::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+        );
+    }
+
+    #[test]
+    fn test_inner() {
+        assert_eq!(
+            Mat2U::<u32>::from_column_array(&[0, 1, 2, 3]).inner(),
+            Vec4U::new(0, 1, 2, 3)
+        );
+        assert_eq!(
+            Mat3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]).inner(),
+            Repr3(Repr3(0, 1, 2), Repr3(3, 4, 5), Repr3(6, 7, 8))
+        );
+        assert_eq!(
+            Mat4U::<u32>::from_column_array(&[
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+            ])
+            .inner(),
+            Repr4(
+                Repr4(0, 1, 2, 3),
+                Repr4(4, 5, 6, 7),
+                Repr4(8, 9, 10, 11),
+                Repr4(12, 13, 14, 15),
+            )
+        );
+    }
+
+    #[test]
+    fn test_inner_mut() {
+        assert_eq!(
+            Mat2U::<u32>::from_column_array(&[0, 1, 2, 3]).inner_mut(),
+            &mut Vec4U::new(0, 1, 2, 3)
+        );
+        assert_eq!(
+            Mat3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]).inner_mut(),
+            &mut Repr3(Repr3(0, 1, 2), Repr3(3, 4, 5), Repr3(6, 7, 8))
+        );
+        assert_eq!(
+            Mat4U::<u32>::from_column_array(&[
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+            ])
+            .inner_mut(),
+            &mut Repr4(
+                Repr4(0, 1, 2, 3),
+                Repr4(4, 5, 6, 7),
+                Repr4(8, 9, 10, 11),
+                Repr4(12, 13, 14, 15),
+            )
+        );
     }
 
     #[test]

@@ -10,8 +10,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Mask, PrimitiveSigned, Scalar, ScalarBackend, ScalarRepr,
-    SupportedLength, Unaligned,
+    Aligned, Alignment, Backend, Length, Mask, Scalar, SupportedLength, Unaligned,
     constants::{False, Infinity, Max, Min, Nan, NegInfinity, NegOne, One, True, Zero},
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
@@ -29,9 +28,6 @@ mod wide_float;
 mod wide_signed;
 #[cfg(feature = "wide")]
 mod wide_unsigned;
-pub(crate) use float::*;
-pub(crate) use signed::*;
-pub(crate) use unsigned::*;
 
 /// An `N`-dimensional vector of type `T`.
 ///
@@ -78,24 +74,41 @@ pub(crate) use unsigned::*;
 /// accepts all bit patterns, it is not sound to assume padding contains valid
 /// values of `T`.
 ///
-/// Vectors of compatible [`Scalar::Repr`] types have the same size. This means
-/// that they are transmutable, but can still have different alignments (see
-/// [`to_repr`]).
-///
-/// Types containing compatible vectors and arrays may not have compatible
-/// layouts themselves. For example, even though [`Vec2U<T>`] and `[T; 2]` have
-/// compatible layouts, [`Option<Vec2U<T>>`] and `Option<[T; 2]>` may not.
-///
 /// [`Vec2<T>`]: crate::Vec2
 /// [`Vec3<T>`]: crate::Vec3
 /// [`Vec4<T>`]: crate::Vec4
 /// [`Vec2U<T>`]: crate::Vec2U
 /// [`Vec3U<T>`]: crate::Vec3U
 /// [`Vec4U<T>`]: crate::Vec4U
-/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Vector<const N: usize, T, A: Alignment>(
-    pub(crate) <T::Repr as ScalarRepr>::VectorRepr<N, T, A>,
+    /// The internal representation of the vector.
+    ///
+    /// This field's insane type corresponds to [`<T as Backend<N, A>>::Vector`]
+    /// which cannot be used directly because of type system limitations. In
+    /// generic contexts this field will not work, in which case you should use
+    /// [`from_inner`], [`inner`] and [`inner_mut`].
+    ///
+    /// This field should only be accessed from the crate defining `T`, else its
+    /// type may change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>::Vector`]: Backend
+    /// [`from_inner`]: Self::from_inner
+    /// [`inner`]: Self::inner
+    /// [`inner_mut`]: Self::inner_mut
+    #[expect(clippy::type_complexity)]
+    pub  <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Aligned>>::Vector,
+            <T as Backend<3, Aligned>>::Vector,
+            <T as Backend<4, Aligned>>::Vector,
+        >,
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Unaligned>>::Vector,
+            <T as Backend<3, Unaligned>>::Vector,
+            <T as Backend<4, Unaligned>>::Vector,
+        >,
+    >,
 )
 where
     Length<N>: SupportedLength,
@@ -678,7 +691,7 @@ where
     where
         T: Add<Output = T>,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_element_sum(self))
+        specialize!(<T as Backend<N, A>>::vector_element_sum(self))
     }
 
     /// Computes the product of the elements of `self`.
@@ -702,7 +715,7 @@ where
     where
         T: Mul<Output = T>,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_element_product(self))
+        specialize!(<T as Backend<N, A>>::vector_element_product(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -725,7 +738,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_eq_mask(self, other))
+        specialize!(<T as Backend<N, A>>::vector_eq_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -748,7 +761,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_ne_mask(self, other))
+        specialize!(<T as Backend<N, A>>::vector_ne_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -771,7 +784,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_lt_mask(self, other))
+        specialize!(<T as Backend<N, A>>::vector_lt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -794,7 +807,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_gt_mask(self, other))
+        specialize!(<T as Backend<N, A>>::vector_gt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -818,7 +831,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_le_mask(self, other))
+        specialize!(<T as Backend<N, A>>::vector_le_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -842,7 +855,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as ScalarBackend<N, A>>::vector_ge_mask(self, other))
+        specialize!(<T as Backend<N, A>>::vector_ge_mask(self, other))
     }
 
     /// Computes the dot product of `self` and `rhs`.
@@ -933,58 +946,79 @@ where
         (self - other).length_squared()
     }
 
-    /// Raw transmutation between scalar types.
+    /// Creates a vector from its internal representation.
     ///
-    /// This function's signature staticly guarantees that the types have
-    /// compatible memory layouts.
+    /// Equivalent to `Vector(inner)` but works in generic contexts.
     ///
-    /// This function is used to make SIMD optimizations in implementations of
-    /// [`Scalar`].
+    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the input type may
+    /// change silently as it is considered an implementation detail.
     ///
-    /// # Safety
-    ///
-    /// The elements of `self` must contain bit patterns that are valid for the
-    /// output type. For example, when converting vectors from `u8` to `bool`,
-    /// the input elements must be either `0` or `1`.
-    ///
-    /// The padding does not need to contain valid values of the output type.
-    ///
-    /// # Examples
-    ///
-    /// Correct usage:
-    ///
-    /// ```
-    /// # use ggmath::Vec3;
-    /// #
-    /// let bits = Vec3::<u8>::new(0, 1, 1);
-    ///
-    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
-    /// let bools = unsafe { bits.to_repr::<bool>() };
-    ///
-    /// assert_eq!(bools, Vec3::new(false, true, true));
-    /// ```
-    ///
-    /// Incorrect usage:
-    ///
-    /// ```compile_fail
-    /// # use ggmath::Vec3;
-    /// #
-    /// let a = Vec3::<i32>::new(1, 2, 3);
-    ///
-    /// // This does not compile since `i32` and `i64` are not compatible.
-    /// let _ = unsafe { a.to_repr::<i64>() };
-    /// ```
+    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const unsafe fn to_repr<U>(self) -> Vector<N, U, A>
+    pub const fn from_inner(inner: <T as Backend<N, A>>::Vector) -> Self
     where
-        U: Scalar<Repr = T::Repr>,
-        T::Repr: PrimitiveSigned,
+        T: Backend<N, A>,
     {
-        // SAFETY: Vectors of scalars with the same `Scalar::Repr` are
-        // guaranteed to have compatible memory layouts if `Repr` is a signed
-        // integer.
-        unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, U, A>>(self) }
+        // SAFETY: These always correspond to the same type.
+        Self(unsafe {
+            transmute_generic::<
+                <T as Backend<N, A>>::Vector,
+                <A as Alignment>::Select<
+                    <Length<N> as SupportedLength>::Select<
+                        <T as Backend<2, Aligned>>::Vector,
+                        <T as Backend<3, Aligned>>::Vector,
+                        <T as Backend<4, Aligned>>::Vector,
+                    >,
+                    <Length<N> as SupportedLength>::Select<
+                        <T as Backend<2, Unaligned>>::Vector,
+                        <T as Backend<3, Unaligned>>::Vector,
+                        <T as Backend<4, Unaligned>>::Vector,
+                    >,
+                >,
+            >(inner)
+        })
+    }
+
+    /// Returns the internal representation of `self`.
+    ///
+    /// Equivalent to `self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner(self) -> <T as Backend<N, A>>::Vector
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Vector`.
+        unsafe { transmute_generic::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
+    }
+
+    /// Returns a mutable reference to the internal representation of `self`.
+    ///
+    /// Equivalent to `&mut self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Vector
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Vector`.
+        unsafe { transmute_mut::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
     }
 }
 
@@ -1560,13 +1594,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::vector_eq(self, other))
+        specialize!(<T as Backend<N, A>>::vector_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as ScalarBackend<N, A>>::vector_ne(self, other))
+        specialize!(<T as Backend<N, A>>::vector_ne(self, other))
     }
 }
 
@@ -1612,7 +1646,7 @@ macro_rules! impl_unary_operator {
             #[inline]
             #[track_caller]
             fn $op(self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::$vector_op(self))
+                specialize!(<T as Backend<N, A>>::$vector_op(self))
             }
         }
 
@@ -1681,7 +1715,7 @@ macro_rules! impl_binary_operator {
             #[inline]
             #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T as ScalarBackend<N, A>>::$vector_op(self, rhs))
+                specialize!(<T as Backend<N, A>>::$vector_op(self, rhs))
             }
         }
 
@@ -2709,7 +2743,9 @@ mod tests {
 
     use crate::{
         Aligned, Mask, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
-        utils::{assert_float_eq, assert_panic, assert_panic_eq, for_parameters},
+        utils::{
+            Repr2, Repr3, Repr4, assert_float_eq, assert_panic, assert_panic_eq, for_parameters,
+        },
     };
 
     #[test]
@@ -3391,24 +3427,33 @@ mod tests {
     }
 
     #[test]
-    fn test_to_repr() {
-        for_parameters!(|A| {
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe { Vector::<2, i32, A>::new(0, 1).to_repr() },
-                Vector::<2, u32, A>::new(0, 1)
-            );
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe { Vector::<3, i32, A>::new(0, 1, 2).to_repr() },
-                Vector::<3, u32, A>::new(0, 1, 2)
-            );
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe { Vector::<4, i32, A>::new(0, 1, 2, 3).to_repr() },
-                Vector::<4, u32, A>::new(0, 1, 2, 3)
-            );
-        });
+    fn test_from_inner() {
+        assert_eq!(Vec2U::<u32>::from_inner(Repr2(0, 1)), Vec2U::new(0, 1));
+        assert_eq!(
+            Vec3U::<u32>::from_inner(Repr3(0, 1, 2)),
+            Vec3U::new(0, 1, 2)
+        );
+        assert_eq!(
+            Vec4U::<u32>::from_inner(Repr4(0, 1, 2, 3)),
+            Vec4U::new(0, 1, 2, 3)
+        );
+    }
+
+    #[test]
+    fn test_inner() {
+        assert_eq!(Vec2U::<u32>::new(0, 1).inner(), Repr2(0, 1));
+        assert_eq!(Vec3U::<u32>::new(0, 1, 2).inner(), Repr3(0, 1, 2));
+        assert_eq!(Vec4U::<u32>::new(0, 1, 2, 3).inner(), Repr4(0, 1, 2, 3));
+    }
+
+    #[test]
+    fn test_inner_mut() {
+        assert_eq!(Vec2U::<u32>::new(0, 1).inner_mut(), &mut Repr2(0, 1));
+        assert_eq!(Vec3U::<u32>::new(0, 1, 2).inner_mut(), &mut Repr3(0, 1, 2));
+        assert_eq!(
+            Vec4U::<u32>::new(0, 1, 2, 3).inner_mut(),
+            &mut Repr4(0, 1, 2, 3)
+        );
     }
 
     #[test]

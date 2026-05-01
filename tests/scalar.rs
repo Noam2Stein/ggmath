@@ -1,9 +1,12 @@
 use std::ops::Add;
 
-use ggmath::{Alignment, Length, Scalar, ScalarBackend, SupportedLength, Vec3, Vector};
+use ggmath::{
+    Affine, Aligned, Backend, DefaultBackend, Length, Mask, Matrix, Scalar, SupportedLength,
+    Unaligned, Vec3, Vector,
+};
 
 #[test]
-fn test_overriden_add() {
+fn test_add() {
     let a = Vec3::new(Foo(1.0), Foo(2.0), Foo(3.0));
     let b = Vec3::new(Foo(4.0), Foo(5.0), Foo(6.0));
 
@@ -23,56 +26,35 @@ impl Add for Foo {
     }
 }
 
-// SAFETY: `Foo` and `i32` are both 4-bytes long, and `Foo` has no uninitialized
-// bytes because its a simple wrapper around `f32`.
-unsafe impl Scalar for Foo {
-    type Repr = i32;
-}
+impl Scalar for Foo {}
 
-impl<const N: usize, A: Alignment> ScalarBackend<N, A> for Foo
+impl<const N: usize> DefaultBackend<N, Unaligned> for Foo {}
+
+// SAFETY: All associated types uphold requirements.
+unsafe impl<const N: usize> Backend<N, Aligned> for Foo
 where
     Length<N>: SupportedLength,
 {
+    type Vector = Vector<N, f32, Aligned>;
+    type Matrix = Matrix<N, f32, Aligned>;
+    type Affine = Affine<N, f32, Aligned>;
+    type Mask = Mask<N, f32, Aligned>;
+
     #[inline]
-    fn vector_add(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A> {
-        (vector.to_f32() + rhs.to_f32()).to_foo()
+    fn vector_add(
+        vector: Vector<N, Self, Aligned>,
+        rhs: Vector<N, Self, Aligned>,
+    ) -> Vector<N, Self, Aligned> {
+        Vector::from_inner(vector.inner() + rhs.inner())
     }
-}
-
-trait ToF32 {
-    type Output;
-
-    fn to_f32(self) -> Self::Output;
-}
-
-trait ToFoo {
-    type Output;
-
-    fn to_foo(self) -> Self::Output;
-}
-
-impl<const N: usize, A: Alignment> ToF32 for Vector<N, Foo, A>
-where
-    Length<N>: SupportedLength,
-{
-    type Output = Vector<N, f32, A>;
 
     #[inline]
-    fn to_f32(self) -> Self::Output {
-        // `f32` accepts all bit-patterns.
-        unsafe { self.to_repr() }
+    fn mask_from_array(array: [bool; N]) -> Mask<N, Self, Aligned> {
+        Mask::from_inner(Mask::from_array(array))
     }
-}
-
-impl<const N: usize, A: Alignment> ToFoo for Vector<N, f32, A>
-where
-    Length<N>: SupportedLength,
-{
-    type Output = Vector<N, Foo, A>;
 
     #[inline]
-    fn to_foo(self) -> Self::Output {
-        // `Foo` accepts all bit-patterns.
-        unsafe { self.to_repr() }
+    fn mask_to_array(mask: Mask<N, Self, Aligned>) -> [bool; N] {
+        mask.inner().to_array()
     }
 }

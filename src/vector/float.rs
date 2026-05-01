@@ -1,4 +1,7 @@
-use crate::{Alignment, Length, Mask, PrimitiveFloat, SupportedLength, Vector, utils::specialize};
+use crate::{
+    Alignment, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, SupportedLength, Vector,
+    utils::specialize,
+};
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
@@ -42,9 +45,7 @@ where
     #[inline]
     #[must_use]
     pub fn nan_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_nan_mask(
-            self
-        ))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_nan_mask(self))
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
@@ -88,7 +89,7 @@ where
     #[inline]
     #[must_use]
     pub fn finite_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_finite_mask(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_finite_mask(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -111,7 +112,7 @@ where
     #[inline]
     #[must_use]
     pub fn sign_positive_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_sign_positive_mask(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_sign_positive_mask(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -134,7 +135,7 @@ where
     #[inline]
     #[must_use]
     pub fn sign_negative_mask(self) -> Mask<N, T, A> {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_sign_negative_mask(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_sign_negative_mask(self))
     }
 
     /// Returns the element-wise reciprocal (inverse) of a vector, `1 / self`.
@@ -190,9 +191,7 @@ where
             "NaN: {self:?}.max({other:?})"
         );
 
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_max(
-            self, other
-        ))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_max(self, other))
     }
 
     /// Returns the minimum elements between `self` and `other`.
@@ -229,9 +228,7 @@ where
             "NaN: {self:?}.min({other:?})"
         );
 
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_min(
-            self, other
-        ))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_min(self, other))
     }
 
     /// Clamps the elements of `self` between the elements of `min` and `max`.
@@ -309,7 +306,7 @@ where
         #[cfg(assertions)]
         assert!(!self.is_nan(), "NaN: {self:?}.max_element()");
 
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_max_element(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_max_element(self))
     }
 
     /// Returns the minimum between the elements of `self`.
@@ -341,7 +338,7 @@ where
         #[cfg(assertions)]
         assert!(!self.is_nan(), "NaN: {self:?}.min_element()");
 
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_min_element(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_min_element(self))
     }
 
     /// Returns the absolute values of elements of `self`.
@@ -360,7 +357,7 @@ where
     #[inline]
     #[must_use]
     pub fn abs(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_abs(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_abs(self))
     }
 
     /// Returns the signum of the elements of `self`.
@@ -388,9 +385,7 @@ where
     #[inline]
     #[must_use]
     pub fn signum(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_signum(
-            self
-        ))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_signum(self))
     }
 
     /// Returns a vector with the element magnitudes of `self` and the element
@@ -412,7 +407,7 @@ where
     #[inline]
     #[must_use]
     pub fn copysign(self, sign: Self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_copysign(
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_copysign(
             self, sign
         ))
     }
@@ -434,7 +429,7 @@ where
     #[inline]
     #[must_use]
     pub fn floor(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_floor(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_floor(self))
     }
 
     /// Returns the smallest integers greater than or equal to the elements of
@@ -454,7 +449,7 @@ where
     #[inline]
     #[must_use]
     pub fn ceil(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_ceil(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_ceil(self))
     }
 
     /// Returns the nearest integers to the elements of `self`.
@@ -474,7 +469,7 @@ where
     #[inline]
     #[must_use]
     pub fn round(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_round(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_round(self))
     }
 
     /// Returns the integer part of the elements of `self`. This means that
@@ -494,7 +489,7 @@ where
     #[inline]
     #[must_use]
     pub fn trunc(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_trunc(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_trunc(self))
     }
 
     /// Returns the fractional part of `self`. Equivalent to
@@ -531,7 +526,7 @@ where
     #[inline]
     #[must_use]
     pub fn mul_add(self, a: Self, b: Self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_mul_add(
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_mul_add(
             self, a, b
         ))
     }
@@ -552,7 +547,7 @@ where
     #[inline]
     #[must_use]
     pub fn div_euclid(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_div_euclid(
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_div_euclid(
             self, rhs
         ))
     }
@@ -573,7 +568,7 @@ where
     #[inline]
     #[must_use]
     pub fn rem_euclid(self, rhs: Self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_rem_euclid(
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_rem_euclid(
             self, rhs
         ))
     }
@@ -615,7 +610,7 @@ where
     #[inline]
     #[must_use]
     pub fn sqrt(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_sqrt(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_sqrt(self))
     }
 
     /// Computes the exponential function `e^x` for the elements of `self`.
@@ -690,7 +685,7 @@ where
     #[inline]
     #[must_use]
     pub fn sin(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_sin(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_sin(self))
     }
 
     /// Computes the cosine of the elements of `self`.
@@ -703,7 +698,7 @@ where
     #[inline]
     #[must_use]
     pub fn cos(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_cos(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_cos(self))
     }
 
     /// Computes the tangent of the elements of `self`.
@@ -716,7 +711,7 @@ where
     #[inline]
     #[must_use]
     pub fn tan(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_tan(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_tan(self))
     }
 
     /// Computes the arcsine of the elements of `self`.
@@ -729,7 +724,7 @@ where
     #[inline]
     #[must_use]
     pub fn asin(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_asin(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_asin(self))
     }
 
     /// Computes the arccosine of the elements of `self`.
@@ -742,7 +737,7 @@ where
     #[inline]
     #[must_use]
     pub fn acos(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_acos(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_acos(self))
     }
 
     /// Computes the arctangent of the elements of `self`.
@@ -755,7 +750,7 @@ where
     #[inline]
     #[must_use]
     pub fn atan(self) -> Self {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_atan(self))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_atan(self))
     }
 
     /// Simultaneously computes the sine and cosine of the elements of `self`.
@@ -771,9 +766,7 @@ where
     #[inline]
     #[must_use]
     pub fn sin_cos(self) -> (Self, Self) {
-        specialize!(<T as PrimitiveFloatVectorBackend<N, A>>::vector_sin_cos(
-            self
-        ))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_sin_cos(self))
     }
 
     /// Computes the linear interpolation between `self` and `other` based on
@@ -1467,246 +1460,6 @@ where
                 -sign * self.x,
             ),
             Self::new(b, sign + self.y * self.y * a, -self.y),
-        )
-    }
-}
-
-pub(crate) trait PrimitiveFloatVectorBackend<const N: usize, A: Alignment>
-where
-    Length<N>: SupportedLength,
-{
-    #[inline]
-    fn vector_nan_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_nan())
-    }
-
-    #[inline]
-    fn vector_finite_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_finite())
-    }
-
-    #[inline]
-    fn vector_sign_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_sign_positive())
-    }
-
-    #[inline]
-    fn vector_sign_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_sign_negative())
-    }
-
-    #[inline]
-    fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| {
-            if vector[i] > other[i] {
-                vector[i]
-            } else {
-                other[i]
-            }
-        })
-    }
-
-    #[inline]
-    fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| {
-            if vector[i] < other[i] {
-                vector[i]
-            } else {
-                other[i]
-            }
-        })
-    }
-
-    #[inline]
-    fn vector_max_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveFloat,
-    {
-        vector
-            .iter()
-            .reduce(|a, b| if a > b { a } else { b })
-            .unwrap()
-    }
-
-    #[inline]
-    fn vector_min_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveFloat,
-    {
-        vector
-            .iter()
-            .reduce(|a, b| if a < b { a } else { b })
-            .unwrap()
-    }
-
-    #[inline]
-    fn vector_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::abs)
-    }
-
-    #[inline]
-    fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::signum)
-    }
-
-    #[inline]
-    fn vector_copysign(vector: Vector<N, Self, A>, sign: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| vector[i].copysign(sign[i]))
-    }
-
-    #[inline]
-    fn vector_floor(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::floor)
-    }
-
-    #[inline]
-    fn vector_ceil(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::ceil)
-    }
-
-    #[inline]
-    fn vector_round(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::round)
-    }
-
-    #[inline]
-    fn vector_trunc(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::trunc)
-    }
-
-    #[inline]
-    fn vector_mul_add(
-        vector: Vector<N, Self, A>,
-        a: Vector<N, Self, A>,
-        b: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| vector[i].mul_add(a[i], b[i]))
-    }
-
-    #[inline]
-    fn vector_div_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| vector[i].div_euclid(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_rem_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| vector[i].rem_euclid(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_sqrt(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::sqrt)
-    }
-
-    #[inline]
-    fn vector_sin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::sin)
-    }
-
-    #[inline]
-    fn vector_cos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::cos)
-    }
-
-    #[inline]
-    fn vector_tan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::tan)
-    }
-
-    #[inline]
-    fn vector_asin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::asin)
-    }
-
-    #[inline]
-    fn vector_acos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::acos)
-    }
-
-    #[inline]
-    fn vector_atan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::atan)
-    }
-
-    #[inline]
-    fn vector_sin_cos(vector: Vector<N, Self, A>) -> (Vector<N, Self, A>, Vector<N, Self, A>)
-    where
-        Self: PrimitiveFloat,
-    {
-        let array = vector.to_array().map(|x| x.sin_cos());
-
-        (
-            Vector::from_fn(|i| array[i].0),
-            Vector::from_fn(|i| array[i].1),
         )
     }
 }

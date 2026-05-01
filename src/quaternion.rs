@@ -5,7 +5,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, PrimitiveSigned, Scalar, Unaligned, Vector,
+    Aligned, Alignment, Scalar, Unaligned, Vector,
     constants::{Nan, One, Zero},
     utils::{transmute_mut, transmute_ref},
 };
@@ -385,59 +385,6 @@ where
         T: Add<Output = T> + Mul<Output = T>,
     {
         self.to_vector().length_squared()
-    }
-
-    /// Raw transmutation between scalar types.
-    ///
-    /// This function's signature staticly guarantees that the types have
-    /// compatible memory layouts.
-    ///
-    /// This function is used to make SIMD optimizations in implementations of
-    /// [`Scalar`].
-    ///
-    /// # Safety
-    ///
-    /// The elements of `self` must contain bit patterns that are valid for the
-    /// output type. For example, when converting quaternions from `u8` to
-    /// `bool`, the input elements must be either `0` or `1` (that example is
-    /// unconventional, but the rule applies for any scalar that does not accept
-    /// all bit patterns).
-    ///
-    /// The padding does not need to contain valid values of the output type.
-    ///
-    /// # Examples
-    ///
-    /// Correct usage:
-    ///
-    /// ```
-    /// # use ggmath::Quat;
-    /// #
-    /// let bits = Quat::<u8>::from_xyzw(1, 0, 0, 1);
-    ///
-    /// // SAFETY: `bool` accepts both the `0` and `1` bit patterns.
-    /// let bools = unsafe { bits.to_repr::<bool>() };
-    ///
-    /// assert_eq!(bools, Quat::from_xyzw(true, false, false, true));
-    /// ```
-    ///
-    /// Incorrect usage:
-    ///
-    /// ```compile_fail
-    /// # use ggmath::Quat;
-    /// #
-    /// let a = Quat::<i32>::new(1, 2, 3, 4);
-    ///
-    /// // This does not compile since `i32` and `i64` are not compatible.
-    /// let _ = unsafe { a.to_repr::<i64>() };
-    /// ```
-    #[inline]
-    #[must_use]
-    pub const unsafe fn to_repr<T2>(self) -> Quaternion<T2, A>
-    where
-        T2: Scalar<Repr = T::Repr>,
-        T::Repr: PrimitiveSigned,
-    {
-        unsafe { Quaternion(self.0.to_repr()) }
     }
 }
 
@@ -1010,17 +957,6 @@ mod tests {
             assert_float_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).length_squared(),
                 Vector::<4, T, A>::new(x, y, z, w).length_squared()
-            );
-        });
-    }
-
-    #[test]
-    fn test_to_repr() {
-        for_parameters!(|A| {
-            assert_eq!(
-                // SAFETY: `u32` accepts all bit patterns.
-                unsafe { Quaternion::<i32, A>::from_xyzw(0, 1, 2, 3).to_repr() },
-                Quaternion::<u32, A>::from_xyzw(0, 1, 2, 3)
             );
         });
     }

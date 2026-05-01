@@ -5,8 +5,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, PrimitiveFloatVectorBackend, PrimitiveSignedVectorBackend,
-    PrimitiveUnsignedVectorBackend, Scalar, Unaligned,
+    Aligned, PrimitiveFloatBackend, PrimitiveSignedBackend, PrimitiveUnsignedBackend, Scalar,
+    Unaligned,
     constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
     utils::{PrimitiveFloatFns, PrimitiveSignedFns, PrimitiveUnsignedFns},
 };
@@ -59,12 +59,12 @@ pub trait PrimitiveFloat:
     + Infinity
     + NegInfinity
     + PrimitiveFloatFns
-    + PrimitiveFloatVectorBackend<2, Aligned>
-    + PrimitiveFloatVectorBackend<3, Aligned>
-    + PrimitiveFloatVectorBackend<4, Aligned>
-    + PrimitiveFloatVectorBackend<2, Unaligned>
-    + PrimitiveFloatVectorBackend<3, Unaligned>
-    + PrimitiveFloatVectorBackend<4, Unaligned>
+    + PrimitiveFloatBackend<2, Aligned>
+    + PrimitiveFloatBackend<3, Aligned>
+    + PrimitiveFloatBackend<4, Aligned>
+    + PrimitiveFloatBackend<2, Unaligned>
+    + PrimitiveFloatBackend<3, Unaligned>
+    + PrimitiveFloatBackend<4, Unaligned>
 {
 }
 
@@ -124,12 +124,12 @@ pub trait PrimitiveSigned:
     + Min
     + Max
     + PrimitiveSignedFns
-    + PrimitiveSignedVectorBackend<2, Aligned>
-    + PrimitiveSignedVectorBackend<3, Aligned>
-    + PrimitiveSignedVectorBackend<4, Aligned>
-    + PrimitiveSignedVectorBackend<2, Unaligned>
-    + PrimitiveSignedVectorBackend<3, Unaligned>
-    + PrimitiveSignedVectorBackend<4, Unaligned>
+    + PrimitiveSignedBackend<2, Aligned>
+    + PrimitiveSignedBackend<3, Aligned>
+    + PrimitiveSignedBackend<4, Aligned>
+    + PrimitiveSignedBackend<2, Unaligned>
+    + PrimitiveSignedBackend<3, Unaligned>
+    + PrimitiveSignedBackend<4, Unaligned>
 {
 }
 
@@ -172,12 +172,12 @@ pub trait PrimitiveUnsigned:
     + Min
     + Max
     + PrimitiveUnsignedFns
-    + PrimitiveUnsignedVectorBackend<2, Aligned>
-    + PrimitiveUnsignedVectorBackend<3, Aligned>
-    + PrimitiveUnsignedVectorBackend<4, Aligned>
-    + PrimitiveUnsignedVectorBackend<2, Unaligned>
-    + PrimitiveUnsignedVectorBackend<3, Unaligned>
-    + PrimitiveUnsignedVectorBackend<4, Unaligned>
+    + PrimitiveUnsignedBackend<2, Aligned>
+    + PrimitiveUnsignedBackend<3, Aligned>
+    + PrimitiveUnsignedBackend<4, Aligned>
+    + PrimitiveUnsignedBackend<2, Unaligned>
+    + PrimitiveUnsignedBackend<3, Unaligned>
+    + PrimitiveUnsignedBackend<4, Unaligned>
 {
 }
 

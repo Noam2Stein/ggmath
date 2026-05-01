@@ -7,8 +7,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Scalar, ScalarRepr, SupportedLength, Unaligned, Vector,
-    utils::specialize,
+    Aligned, Alignment, Backend, Length, Scalar, SupportedLength, Unaligned, Vector,
+    utils::{specialize, transmute_generic, transmute_mut},
 };
 
 /// An `N`-element vector mask optimized for type `T`.
@@ -36,15 +36,6 @@ use crate::{
 /// `Mask<N, T, A>` does not contain any uninitialized bytes.
 /// `Mask<N, T, A>` accepts the all-zero byte-pattern.
 ///
-/// Masks of compatible [`Scalar::Repr`] types have the same representation,
-/// size, and alignment. This means that they are transmutable (see
-/// [`to_repr`]).
-///
-/// Types containing compatible masks may not have compatible layouts
-/// themselves. For example, even though [`Mask2<i32>`] and [`Mask2<u32>`] have
-/// compatible layouts, [`Option<Mask2<i32>>`] and [`Option<Mask2<u32>>`] may
-/// not.
-///
 /// [`Mask2<T>`]: crate::Mask2
 /// [`Mask3<T>`]: crate::Mask3
 /// [`Mask4<T>`]: crate::Mask4
@@ -53,10 +44,35 @@ use crate::{
 /// [`Mask4U<T>`]: crate::Mask4U
 /// [`Mask2<i32>`]: crate::Mask2
 /// [`Mask2<u32>`]: crate::Mask2
-/// [`to_repr`]: Self::to_repr
 #[repr(transparent)]
 pub struct Mask<const N: usize, T, A: Alignment>(
-    pub(crate) <T::Repr as ScalarRepr>::MaskRepr<N, A>,
+    /// The internal representation of the vector mask.
+    ///
+    /// This field's insane type corresponds to [`<T as Backend<N, A>>::Mask`]
+    /// which cannot be used directly because of type system limitations. In
+    /// generic contexts this field will not work, in which case you should use
+    /// [`from_inner`], [`inner`] and [`inner_mut`].
+    ///
+    /// This field should only be accessed from the crate defining `T`, else its
+    /// type may change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>::Mask`]: Backend
+    /// [`from_inner`]: Self::from_inner
+    /// [`inner`]: Self::inner
+    /// [`inner_mut`]: Self::inner_mut
+    #[expect(clippy::type_complexity)]
+    pub  <A as Alignment>::Select<
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Aligned>>::Mask,
+            <T as Backend<3, Aligned>>::Mask,
+            <T as Backend<4, Aligned>>::Mask,
+        >,
+        <Length<N> as SupportedLength>::Select<
+            <T as Backend<2, Unaligned>>::Mask,
+            <T as Backend<3, Unaligned>>::Mask,
+            <T as Backend<4, Unaligned>>::Mask,
+        >,
+    >,
 )
 where
     Length<N>: SupportedLength,
@@ -143,7 +159,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_array(array: [bool; N]) -> Self {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_from_array(array))
+        specialize!(<T as Backend<N, A>>::mask_from_array(array))
     }
 
     /// Creates a vector mask with all elements set to `value`.
@@ -159,7 +175,7 @@ where
     #[inline]
     #[must_use]
     pub fn splat(value: bool) -> Self {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_splat(value))
+        specialize!(<T as Backend<N, A>>::mask_splat(value))
     }
 
     /// Creates a vector mask by calling function `f` for each element index.
@@ -182,7 +198,39 @@ where
     where
         F: FnMut(usize) -> bool,
     {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_from_fn((f,)))
+        (const {
+            // SAFETY: All transmutations are between types that are previously
+            // checked to be the same type.
+            unsafe {
+                match (N, A::IS_ALIGNED) {
+                    (2, true) => transmute::<fn(F) -> Mask<2, T, Aligned>, fn(F) -> Mask<N, T, A>>(
+                        <T as Backend<2, Aligned>>::mask_from_fn,
+                    ),
+                    (3, true) => transmute::<fn(F) -> Mask<3, T, Aligned>, fn(F) -> Mask<N, T, A>>(
+                        <T as Backend<3, Aligned>>::mask_from_fn,
+                    ),
+                    (4, true) => transmute::<fn(F) -> Mask<4, T, Aligned>, fn(F) -> Mask<N, T, A>>(
+                        <T as Backend<4, Aligned>>::mask_from_fn,
+                    ),
+                    (2, false) => {
+                        transmute::<fn(F) -> Mask<2, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
+                            <T as Backend<2, Unaligned>>::mask_from_fn,
+                        )
+                    }
+                    (3, false) => {
+                        transmute::<fn(F) -> Mask<3, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
+                            <T as Backend<3, Unaligned>>::mask_from_fn,
+                        )
+                    }
+                    (4, false) => {
+                        transmute::<fn(F) -> Mask<4, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
+                            <T as Backend<4, Unaligned>>::mask_from_fn,
+                        )
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        })(f)
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.
@@ -270,7 +318,7 @@ where
     #[inline]
     #[must_use]
     pub fn to_array(self) -> [bool; N] {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_to_array(self))
+        specialize!(<T as Backend<N, A>>::mask_to_array(self))
     }
 
     /// Returns `true` if all elements of `self` are `true`.
@@ -289,7 +337,7 @@ where
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_all(self))
+        specialize!(<T as Backend<N, A>>::mask_all(self))
     }
 
     /// Returns `true` if any element of `self` is `true`.
@@ -308,7 +356,7 @@ where
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_any(self))
+        specialize!(<T as Backend<N, A>>::mask_any(self))
     }
 
     /// Selects between the elements of `if_true` and `if_false` based on the
@@ -329,9 +377,7 @@ where
     #[inline]
     #[must_use]
     pub fn select(self, if_true: Vector<N, T, A>, if_false: Vector<N, T, A>) -> Vector<N, T, A> {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_select(
-            self, if_true, if_false
-        ))
+        specialize!(<T as Backend<N, A>>::mask_select(self, if_true, if_false))
     }
 
     /// Returns an iterator over the vector mask's elements.
@@ -350,7 +396,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn get(self, index: usize) -> bool {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_get(self, index))
+        specialize!(<T as Backend<N, A>>::mask_get(self, index))
     }
 
     /// Sets the element at the given index to `value`.
@@ -361,47 +407,67 @@ where
     #[inline]
     #[track_caller]
     pub fn set(&mut self, index: usize, value: bool) {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_set(self, index, value))
+        specialize!(<T as Backend<N, A>>::mask_set(self, index, value))
     }
 
-    /// Raw transmutation between scalar types.
+    /// Creates a vector mask from its internal representation.
     ///
-    /// This function's signature staticly guarantees that the types have
-    /// compatible memory layouts.
+    /// Equivalent to `Mask(inner)` but works in generic contexts.
     ///
-    /// This function is used to make SIMD optimizations in implementations of
-    /// [`Scalar`].
+    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the input type may
+    /// change silently as it is considered an implementation detail.
     ///
-    /// # Examples
-    ///
-    /// Correct usage:
-    ///
-    /// ```
-    /// # use ggmath::Mask3;
-    /// #
-    /// let a = Mask3::<i32>::new(false, true, false);
-    /// let b = a.to_repr::<u32>();
-    ///
-    /// assert_eq!(b, Mask3::<u32>::new(false, true, false));
-    /// ```
-    ///
-    /// Incorrect usage:
-    ///
-    /// ```compile_fail
-    /// # use ggmath::Mask3;
-    /// #
-    /// let a = Mask3::<i32>::new(false, true, false);
-    ///
-    /// // This does not compile since `i32` and `i64` are not compatible.
-    /// let _ = a.to_repr::<i64>();
-    /// ```
+    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn to_repr<T2>(self) -> Mask<N, T2, A>
+    pub const fn from_inner(inner: <T as Backend<N, A>>::Mask) -> Self
     where
-        T2: Scalar<Repr = T::Repr>,
+        T: Backend<N, A>,
     {
-        Mask(self.0)
+        // SAFETY: `Mask<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Mask`.
+        unsafe { transmute_generic::<<T as Backend<N, A>>::Mask, Mask<N, T, A>>(inner) }
+    }
+
+    /// Returns the internal representation of `self`.
+    ///
+    /// Equivalent to `self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner(self) -> <T as Backend<N, A>>::Mask
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Mask<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Mask`.
+        unsafe { transmute_generic::<Mask<N, T, A>, <T as Backend<N, A>>::Mask>(self) }
+    }
+
+    /// Returns a mutable reference to the internal representation of `self`.
+    ///
+    /// Equivalent to `&mut self.0` but works in generic contexts.
+    ///
+    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
+    /// only be called from the crate defining `T`, else the resulting type may
+    /// change silently as it is considered an implementation detail.
+    ///
+    /// [`<T as Backend<N, A>>`]: Backend
+    #[inline]
+    #[must_use]
+    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Mask
+    where
+        T: Backend<N, A>,
+    {
+        // SAFETY: `Mask<N, T, A>` is a transparent wrapper over
+        // `<T as Backend<N, A>>::Mask`.
+        unsafe { transmute_mut::<Mask<N, T, A>, <T as Backend<N, A>>::Mask>(self) }
     }
 }
 
@@ -516,7 +582,7 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T::Repr as MaskBackend<N, A>>::mask_eq(self, other))
+        specialize!(<T as Backend<N, A>>::mask_eq(self, other))
     }
 }
 
@@ -561,7 +627,7 @@ macro_rules! impl_not {
             $(#[$doc])*
             #[inline]
             fn not(self) -> Self::Output {
-                specialize!(<T::Repr as MaskBackend<N, A>>::mask_not(self))
+                specialize!(<T as Backend<N, A>>::mask_not(self))
             }
         }
 
@@ -605,7 +671,7 @@ macro_rules! impl_binary_operator {
             $(#[$doc])*
             #[inline]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T::Repr as MaskBackend<N, A>>::$mask_op(self, rhs))
+                specialize!(<T as Backend<N, A>>::$mask_op(self, rhs))
             }
         }
 
@@ -943,8 +1009,7 @@ impl_assign_operator!(
     /// ```
 );
 
-// SAFETY: Mask representations must be either equivalent to `[bool; N]` or be
-// simple intrinsic types. Both are `Send`.
+// SAFETY: Mask representations implement `Send` and `Sync`.
 unsafe impl<const N: usize, T, A: Alignment> Send for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -952,8 +1017,7 @@ where
 {
 }
 
-// SAFETY: Mask representations must be either equivalent to `[bool; N]` or be
-// simple intrinsic types. Both are `Sync`.
+// SAFETY: Mask representations implement `Send` and `Sync`.
 unsafe impl<const N: usize, T, A: Alignment> Sync for Mask<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -982,87 +1046,6 @@ where
 {
 }
 
-/// Controls the implementation of vector mask functions.
-///
-/// Unlike [`ScalarBackend<N, A>`], `MaskBackend<N, A>` is implemented for
-/// [`T::Repr`] instead of `T`.
-///
-/// Unlike [`ScalarBackend<N, A>`], `MaskBackend<N, A>` functions have no
-/// default implementation. This is because there are not enough guarantees
-/// about the representation of vector masks to make a default implementation.
-///
-/// [`ScalarBackend<N, A>`]: crate::ScalarBackend
-/// [`T::Repr`]: Scalar::Repr
-pub(crate) trait MaskBackend<const N: usize, A: Alignment>
-where
-    Length<N>: SupportedLength,
-{
-    fn mask_from_array<T>(array: [bool; N]) -> Mask<N, T, A>
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_splat<T>(value: bool) -> Mask<N, T, A>
-    where
-        T: Scalar<Repr = Self>;
-
-    /// A one member tuple is used to fix type inference in the macro
-    /// [`specialize`], which fails for generic function types.
-    fn mask_from_fn<T, F>(f: (F,)) -> Mask<N, T, A>
-    where
-        T: Scalar<Repr = Self>,
-        F: FnMut(usize) -> bool;
-
-    fn mask_to_array<T>(mask: Mask<N, T, A>) -> [bool; N]
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_all<T>(mask: Mask<N, T, A>) -> bool
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_any<T>(mask: Mask<N, T, A>) -> bool
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_select<T>(
-        mask: Mask<N, T, A>,
-        if_true: Vector<N, T, A>,
-        if_false: Vector<N, T, A>,
-    ) -> Vector<N, T, A>
-    where
-        T: Scalar<Repr = Self>;
-
-    #[track_caller]
-    fn mask_get<T>(mask: Mask<N, T, A>, index: usize) -> bool
-    where
-        T: Scalar<Repr = Self>;
-
-    #[track_caller]
-    fn mask_set<T>(mask: &mut Mask<N, T, A>, index: usize, value: bool)
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_eq<T>(mask: &Mask<N, T, A>, other: &Mask<N, T, A>) -> bool
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_not<T>(mask: Mask<N, T, A>) -> Mask<N, T, A>
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_bitand<T>(mask: Mask<N, T, A>, rhs: Mask<N, T, A>) -> Mask<N, T, A>
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_bitor<T>(mask: Mask<N, T, A>, rhs: Mask<N, T, A>) -> Mask<N, T, A>
-    where
-        T: Scalar<Repr = Self>;
-
-    fn mask_bitxor<T>(mask: Mask<N, T, A>, rhs: Mask<N, T, A>) -> Mask<N, T, A>
-    where
-        T: Scalar<Repr = Self>;
-}
-
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -1074,7 +1057,7 @@ mod tests {
     use crate::{
         Aligned, Mask, Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Unaligned, Vec2, Vec3, Vec4,
         Vector,
-        utils::{assert_panic, for_parameters},
+        utils::{Repr2, Repr3, Repr4, assert_panic, for_parameters},
     };
 
     #[test]
@@ -1353,21 +1336,48 @@ mod tests {
     }
 
     #[test]
-    fn test_to_repr() {
-        for_parameters!(|A, x, y, z, w| {
-            assert_eq!(
-                Mask::<2, i32, A>::new(x, y).to_repr(),
-                Mask::<2, u32, A>::new(x, y)
-            );
-            assert_eq!(
-                Mask::<3, i32, A>::new(x, y, z).to_repr(),
-                Mask::<3, u32, A>::new(x, y, z)
-            );
-            assert_eq!(
-                Mask::<4, i32, A>::new(x, y, z, w).to_repr(),
-                Mask::<4, u32, A>::new(x, y, z, w)
-            );
-        });
+    fn test_from_inner() {
+        assert_eq!(
+            Mask2U::<u32>::from_inner(Repr2(false, true)),
+            Mask2U::new(false, true)
+        );
+        assert_eq!(
+            Mask3U::<u32>::from_inner(Repr3(false, true, false)),
+            Mask3U::new(false, true, false)
+        );
+        assert_eq!(
+            Mask4U::<u32>::from_inner(Repr4(false, true, false, true)),
+            Mask4U::new(false, true, false, true)
+        );
+    }
+
+    #[test]
+    fn test_inner() {
+        assert_eq!(Mask2U::<u32>::new(false, true).inner(), Repr2(false, true));
+        assert_eq!(
+            Mask3U::<u32>::new(false, true, false).inner(),
+            Repr3(false, true, false)
+        );
+        assert_eq!(
+            Mask4U::<u32>::new(false, true, false, true).inner(),
+            Repr4(false, true, false, true)
+        );
+    }
+
+    #[test]
+    fn test_inner_mut() {
+        assert_eq!(
+            Mask2U::<u32>::new(false, true).inner_mut(),
+            &mut Repr2(false, true)
+        );
+        assert_eq!(
+            Mask3U::<u32>::new(false, true, false).inner_mut(),
+            &mut Repr3(false, true, false)
+        );
+        assert_eq!(
+            Mask4U::<u32>::new(false, true, false, true).inner_mut(),
+            &mut Repr4(false, true, false, true)
+        );
     }
 
     #[test]
