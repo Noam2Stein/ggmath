@@ -1,8 +1,8 @@
 use std::ops::Add;
 
 use ggmath::{
-    Affine, Aligned, Backend, DefaultBackend, Length, Mask, Matrix, Scalar, SupportedLength,
-    Unaligned, Vec3, Vector,
+    Aligned, Backend, DefaultBackend, Length, Mask, Scalar, SupportedLength, Unaligned, Vec3,
+    Vector,
 };
 
 #[test]
@@ -36,8 +36,6 @@ where
     Length<N>: SupportedLength,
 {
     type Vector = Vector<N, f32, Aligned>;
-    type Matrix = Matrix<N, f32, Aligned>;
-    type Affine = Affine<N, f32, Aligned>;
     type Mask = Mask<N, f32, Aligned>;
 
     #[inline]

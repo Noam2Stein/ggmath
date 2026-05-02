@@ -6,9 +6,9 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
-    utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
+    utils::{Repr3, Repr4, transmute_generic, transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -63,16 +63,12 @@ mod wide_float;
 /// # Memory layout
 ///
 /// `Matrix<N, T, A>` contains `N` consecutive values of [`Vector<N, T, A>`]
-/// followed by optional padding.
+/// with no additional padding.
 ///
-/// `Matrix<N, T, Unaligned>` has the alignment of `T` and has no padding.
-/// `Matrix<N, T, Aligned>` may have higher alignment than
-/// [`Vector<N, T, Aligned>`]. [`Mat2<T>`] has the exact layout of [`Vec4<T>`].
-/// [`Mat3<T>`] may have one padding vector. [`Mat4<T>`] has no padding.
+/// For `N = 2` this type has the size and alignment of [`Vector<4, T, A>`].
 ///
-/// Padding is fully initialized and accepts all bit patterns. Unless `T`
-/// accepts all bit patterns, it is not sound to assume padding contains valid
-/// values of `T`.
+/// For `N = 3` and `N = 4` this type has the size and alignment of
+/// `[Vector<N, T, A>; N]`.
 ///
 /// [`from_columns`]: Self::from_columns
 /// [`Mat2<T>`]: crate::Mat2
@@ -84,32 +80,11 @@ mod wide_float;
 /// [`Vec4<T>`]: crate::Vec4
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
-    /// The internal representation of the matrix.
-    ///
-    /// This field's insane type corresponds to [`<T as Backend<N, A>>::Matrix`]
-    /// which cannot be used directly because of type system limitations. In
-    /// generic contexts this field will not work, in which case you should use
-    /// [`from_inner`], [`inner`] and [`inner_mut`].
-    ///
-    /// This field should only be accessed from the crate defining `T`, else its
-    /// type may change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>::Matrix`]: Backend
-    /// [`from_inner`]: Self::from_inner
-    /// [`inner`]: Self::inner
-    /// [`inner_mut`]: Self::inner_mut
     #[expect(clippy::type_complexity)]
-    pub  <A as Alignment>::Select<
-        <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Aligned>>::Matrix,
-            <T as Backend<3, Aligned>>::Matrix,
-            <T as Backend<4, Aligned>>::Matrix,
-        >,
-        <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Unaligned>>::Matrix,
-            <T as Backend<3, Unaligned>>::Matrix,
-            <T as Backend<4, Unaligned>>::Matrix,
-        >,
+    <Length<N> as SupportedLength>::Select<
+        Vector<4, T, A>,
+        Repr3<Vector<3, T, A>>,
+        Repr4<Vector<4, T, A>>,
     >,
 )
 where
@@ -516,49 +491,9 @@ where
     #[inline]
     #[must_use]
     pub const fn from_columns(columns: &[Vector<N, T, A>; N]) -> Self {
-        match N {
-            // SAFETY: Because `N == 2`, `Matrix<N, T, A>` is the same type as
-            // `Matrix<2, T, A>` which contains 2 values of `Vector<2, T, A>`.
-            2 => unsafe {
-                transmute_generic::<Repr2<Vector<N, T, A>>, Matrix<N, T, A>>(Repr2(
-                    columns[0], columns[1],
-                ))
-            },
-
-            3 => {
-                match size_of::<Matrix<3, T, A>>() / size_of::<Vector<3, T, A>>() {
-                    // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is the same
-                    // type as `Matrix<3, T, A>` which is checked to contain
-                    // exactly 3 values of `Vector<3, T, A>`.
-                    3 => unsafe {
-                        transmute_generic::<Repr3<Vector<N, T, A>>, Matrix<N, T, A>>(Repr3(
-                            columns[0], columns[1], columns[2],
-                        ))
-                    },
-
-                    // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is the same
-                    // type as `Matrix<3, T, A>` which is checked to contain
-                    // exactly 4 values of `Vector<3, T, A>`.
-                    4 => unsafe {
-                        transmute_generic::<Repr4<Vector<N, T, A>>, Matrix<N, T, A>>(Repr4(
-                            columns[0], columns[1], columns[2], columns[2],
-                        ))
-                    },
-
-                    _ => unreachable!(),
-                }
-            }
-
-            // SAFETY: Because `N == 4`, `Matrix<N, T, A>` is the same type as
-            // `Matrix<4, T, A>` which contains 4 values of `Vector<4, T, A>`.
-            4 => unsafe {
-                transmute_generic::<Repr4<Vector<N, T, A>>, Matrix<N, T, A>>(Repr4(
-                    columns[0], columns[1], columns[2], columns[3],
-                ))
-            },
-
-            _ => unreachable!(),
-        }
+        // SAFETY: `Matrix<N, T, A>` contains `N` consecutive values of
+        // `Vector<N, T, A>` with no additional padding.
+        unsafe { transmute_generic::<[Vector<N, T, A>; N], Matrix<N, T, A>>(*columns) }
     }
 
     /// Creates a matrix by calling function `f` for each column index.
@@ -1108,66 +1043,6 @@ where
             }
             _ => unreachable!(),
         }
-    }
-
-    /// Creates a matrix from its internal representation.
-    ///
-    /// Equivalent to `Matrix(inner)` but works in generic contexts.
-    ///
-    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the input type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
-    #[inline]
-    #[must_use]
-    pub const fn from_inner(inner: <T as Backend<N, A>>::Matrix) -> Self
-    where
-        T: Backend<N, A>,
-    {
-        // SAFETY: `Matrix<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Matrix`.
-        unsafe { transmute_generic::<<T as Backend<N, A>>::Matrix, Matrix<N, T, A>>(inner) }
-    }
-
-    /// Returns the internal representation of `self`.
-    ///
-    /// Equivalent to `self.0` but works in generic contexts.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
-    #[inline]
-    #[must_use]
-    pub const fn inner(self) -> <T as Backend<N, A>>::Matrix
-    where
-        T: Backend<N, A>,
-    {
-        // SAFETY: `Matrix<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Matrix`.
-        unsafe { transmute_generic::<Matrix<N, T, A>, <T as Backend<N, A>>::Matrix>(self) }
-    }
-
-    /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// Equivalent to `&mut self.0` but works in generic contexts.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
-    #[inline]
-    #[must_use]
-    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Matrix
-    where
-        T: Backend<N, A>,
-    {
-        // SAFETY: `Matrix<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Matrix`.
-        unsafe { transmute_mut::<Matrix<N, T, A>, <T as Backend<N, A>>::Matrix>(self) }
     }
 }
 
@@ -1911,13 +1786,7 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::matrix_eq(self, other))
-    }
-
-    #[expect(clippy::partialeq_ne_impl)]
-    #[inline]
-    fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::matrix_ne(self, other))
+        (0..N).all(|i| self.column(i) == other.column(i))
     }
 }
 
@@ -1980,7 +1849,7 @@ macro_rules! impl_neg {
             #[inline]
             #[track_caller]
             fn neg(self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::matrix_neg(self))
+                Matrix::from_column_fn(|i| -self.column(i))
             }
         }
     };
@@ -2054,7 +1923,7 @@ macro_rules! impl_add {
             #[inline]
             #[track_caller]
             fn add(self, rhs: Self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::matrix_add(self, rhs))
+                Matrix::from_column_fn(|i| self.column(i) + rhs.column(i))
             }
         }
     };
@@ -2177,7 +2046,7 @@ macro_rules! impl_sub {
             #[inline]
             #[track_caller]
             fn sub(self, rhs: Self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::matrix_sub(self, rhs))
+                Matrix::from_column_fn(|i| self.column(i) - rhs.column(i))
             }
         }
     };
@@ -2285,7 +2154,7 @@ macro_rules! impl_mul_scalar {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: T) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::matrix_mul_scalar(self, rhs))
+                Matrix::from_column_fn(|i| self.column(i) * rhs)
             }
         }
 
@@ -2407,7 +2276,19 @@ macro_rules! impl_mul_vector {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Vector<N, T, A>) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::matrix_mul_vector(self, rhs))
+                match N {
+                    2 => self.column(0) * rhs[0] + self.column(1) * rhs[1],
+                    3 => {
+                        self.column(0) * rhs[0] + self.column(1) * rhs[1] + self.column(2) * rhs[2]
+                    }
+                    4 => {
+                        self.column(0) * rhs[0]
+                            + self.column(1) * rhs[1]
+                            + self.column(2) * rhs[2]
+                            + self.column(3) * rhs[3]
+                    }
+                    _ => unreachable!(),
+                }
             }
         }
 
@@ -2500,7 +2381,7 @@ macro_rules! impl_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Matrix<N, T, A>) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::matrix_mul(self, rhs))
+                Matrix::from_column_fn(|i| self * rhs.column(i))
             }
         }
     };
@@ -2611,7 +2492,7 @@ macro_rules! impl_div_scalar {
             #[inline]
             #[track_caller]
             fn div(self, rhs: T) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::matrix_div_scalar(self, rhs))
+                Matrix::from_column_fn(|i| self.column(i) / rhs)
             }
         }
 
@@ -2736,11 +2617,9 @@ mod tests {
     use std::format;
 
     use crate::{
-        Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4, Vec4U,
+        Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4,
         Vector,
-        utils::{
-            Repr3, Repr4, assert_assertions_panic, assert_float_eq, assert_panic, for_parameters,
-        },
+        utils::{assert_assertions_panic, assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
@@ -3653,75 +3532,6 @@ mod tests {
                 0.0 = -0.0
             );
         });
-    }
-
-    #[test]
-    fn test_from_inner() {
-        assert_eq!(
-            Mat2U::<u32>::from_inner(Vec4U::new(0, 1, 2, 3)),
-            Mat2U::from_column_array(&[0, 1, 2, 3])
-        );
-        assert_eq!(
-            Mat3U::<u32>::from_inner(Repr3(Repr3(0, 1, 2), Repr3(3, 4, 5), Repr3(6, 7, 8))),
-            Mat3U::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8])
-        );
-        assert_eq!(
-            Mat4U::<u32>::from_inner(Repr4(
-                Repr4(0, 1, 2, 3),
-                Repr4(4, 5, 6, 7),
-                Repr4(8, 9, 10, 11),
-                Repr4(12, 13, 14, 15),
-            )),
-            Mat4U::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
-        );
-    }
-
-    #[test]
-    fn test_inner() {
-        assert_eq!(
-            Mat2U::<u32>::from_column_array(&[0, 1, 2, 3]).inner(),
-            Vec4U::new(0, 1, 2, 3)
-        );
-        assert_eq!(
-            Mat3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]).inner(),
-            Repr3(Repr3(0, 1, 2), Repr3(3, 4, 5), Repr3(6, 7, 8))
-        );
-        assert_eq!(
-            Mat4U::<u32>::from_column_array(&[
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-            ])
-            .inner(),
-            Repr4(
-                Repr4(0, 1, 2, 3),
-                Repr4(4, 5, 6, 7),
-                Repr4(8, 9, 10, 11),
-                Repr4(12, 13, 14, 15),
-            )
-        );
-    }
-
-    #[test]
-    fn test_inner_mut() {
-        assert_eq!(
-            Mat2U::<u32>::from_column_array(&[0, 1, 2, 3]).inner_mut(),
-            &mut Vec4U::new(0, 1, 2, 3)
-        );
-        assert_eq!(
-            Mat3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8]).inner_mut(),
-            &mut Repr3(Repr3(0, 1, 2), Repr3(3, 4, 5), Repr3(6, 7, 8))
-        );
-        assert_eq!(
-            Mat4U::<u32>::from_column_array(&[
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-            ])
-            .inner_mut(),
-            &mut Repr4(
-                Repr4(0, 1, 2, 3),
-                Repr4(4, 5, 6, 7),
-                Repr4(8, 9, 10, 11),
-                Repr4(12, 13, 14, 15),
-            )
-        );
     }
 
     #[test]

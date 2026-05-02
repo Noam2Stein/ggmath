@@ -136,7 +136,6 @@ assert_impl!(
         Matrix<3, T, A>: Deref,
         Matrix<4, T, A>: Deref,
         Quaternion<T, A>: Deref,
-        Affine<N, T, A>: Deref,
 
         Vector<2, T, A>: DerefMut,
         Vector<3, T, A>: DerefMut,
@@ -145,7 +144,6 @@ assert_impl!(
         Matrix<3, T, A>: DerefMut,
         Matrix<4, T, A>: DerefMut,
         Quaternion<T, A>: DerefMut,
-        Affine<N, T, A>: DerefMut,
 
         where T: Neg<Output = T> {
             Vector<N, T, A>: Neg<Output = Vector<N, T, A>>,

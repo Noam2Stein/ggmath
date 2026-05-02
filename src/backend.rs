@@ -1,9 +1,9 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
 use crate::{
-    Affine, Aligned, Alignment, Length, Mask, Matrix, PrimitiveFloat, PrimitiveSigned,
-    PrimitiveUnsigned, Scalar, SupportedLength, Unaligned, Vector,
-    utils::{Repr2, Repr3, Repr4, Repr5},
+    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveSigned, PrimitiveUnsigned, Scalar,
+    SupportedLength, Unaligned, Vector,
+    utils::{Repr2, Repr3, Repr4},
 };
 
 #[cfg(not(target_feature = "sse2"))]
@@ -13,9 +13,9 @@ mod sse2;
 
 /// A trait for optimizing the implementation of vectors.
 ///
-/// More specifically, [`Backend<N, A>`] controls the internal representation and function
-/// implementations of vectors, matrices, affine transforms and vector masks
-/// of length `N` and alignment `A`.
+/// More specifically, [`Backend<N, A>`] controls the internal representation
+/// and function implementations of vectors and vector masks of length `N` and
+/// alignment `A`.
 ///
 /// This is automatically implemented for types implementing
 /// [`DefaultBackend<N, A>`]. Manual implementations should only exist to make
@@ -27,10 +27,9 @@ mod sse2;
 ///
 /// # Safety
 ///
-/// The associated types [`Vector`](Backend::Vector),
-/// [`Matrix`](Backend::Matrix), [`Affine`](Backend::Affine) and
-/// [`Mask`](Backend::Mask) control internal representations. See their
-/// documentation for specific guarantees that implementations must uphold.
+/// The associated types [`Vector`](Backend::Vector) and [`Mask`](Backend::Mask)
+/// control internal representations. See their documentation for specific
+/// guarantees that implementations must uphold.
 ///
 /// # Example
 ///
@@ -68,8 +67,6 @@ mod sse2;
 /// {
 ///     // This uses whatever SIMD alignment `f32` types use.
 ///     type Vector = Vector<N, f32, Aligned>;
-///     type Matrix = Matrix<N, f32, Aligned>;
-///     type Affine = Affine<N, f32, Aligned>;
 ///     type Mask = Mask<N, f32, Aligned>;
 ///
 ///     #[inline]
@@ -129,57 +126,6 @@ where
     /// of `[T; 4]` the padding must be initialized memory accept all
     /// bit-patterns.
     type Vector: Copy;
-
-    /// Controls the internal representation of [`Matrix<N, Self, A>`].
-    ///
-    /// # Safety
-    ///
-    /// References to this type must be transmutable to and from references to
-    /// `[T::Vector; N]`, meaning any bit-patterns accepted by `T` must be
-    /// accepted by this type, and any bit-patterns accepted by this type must
-    /// be accepted by `T`.
-    ///
-    /// For `A = Unaligned` this type must have the size and alignment of
-    /// `[T::Vector; N]`.
-    ///
-    /// For `N = 2, A = Aligned` this type must have the size and alignment of
-    /// [`Vec4<T>`].
-    ///
-    /// For `N = 3, A = Aligned` this type must have the size of either
-    /// `[T::Vector; 3]` or `[T::Vector; 4]` and may have additional alignment.
-    /// If this type has the size of `[T::Vector; 4]` the padding must be
-    /// initialized memory accept all bit-patterns.
-    ///
-    /// For `N = 4, A = Aligned` this type must have the size of
-    /// `[T::Vector; N]` and may have additional alignment.
-    ///
-    /// [`Vec4<T>`]: crate::Vec4
-    type Matrix: Copy;
-
-    /// Controls the internal representation of [`Affine<N, Self, A>`].
-    ///
-    /// # Safety
-    ///
-    /// References to this type must be transmutable to and from references to
-    /// `(T::Matrix, T::Vector)`, meaning any bit-patterns accepted by `T` must
-    /// be accepted by this type, and any bit-patterns accepted by this type
-    /// must be accepted by `T`.
-    ///
-    /// For `A = Unaligned` this type must have the size and alignment of
-    /// `[T::Vector; N + 1]`.
-    ///
-    /// For `N = 2, A = Aligned` this type must have the size of either `[T; 6]`
-    /// or `[T; 8]` and may have additional alignment.
-    ///
-    /// For `N = 3, A = Aligned` this type must have the size of either
-    /// `(T::Matrix, T::Vector)` or `[T; 16]` if `T::Matrix` and `T::Vector`
-    /// have no padding, and may have additional alignment. If this type has the
-    /// size of `[T; 16]` the padding must be initialized memory accept all
-    /// bit-patterns.
-    ///
-    /// For `N = 4, A = Aligned` this type must have the size and alignment of
-    /// `(T::Matrix, T::Vector)`.
-    type Affine: Copy;
 
     /// Controls the internal representation of [`Mask<N, Self, A>`].
     ///
@@ -411,122 +357,6 @@ where
         Mask::from_fn(|i| vector[i] >= other[i])
     }
 
-    /// Overridable implementation for the `matrix == matrix` operation.
-    #[inline]
-    fn matrix_eq(matrix: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
-    where
-        Self: Scalar + PartialEq,
-    {
-        (0..N).all(|i| matrix.column(i) == other.column(i))
-    }
-
-    /// Overridable implementation for the `matrix != matrix` operation.
-    #[inline]
-    fn matrix_ne(matrix: &Matrix<N, Self, A>, other: &Matrix<N, Self, A>) -> bool
-    where
-        Self: Scalar + PartialEq,
-    {
-        !Self::matrix_eq(matrix, other)
-    }
-
-    /// Overridable implementation for the unary `-matrix` operation.
-    #[inline]
-    #[track_caller]
-    fn matrix_neg(matrix: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
-    where
-        Self: Scalar + Neg<Output = Self>,
-    {
-        Matrix::from_column_fn(|i| -matrix.column(i))
-    }
-
-    /// Overridable implementation for the `matrix + matrix` operation.
-    #[inline]
-    #[track_caller]
-    fn matrix_add(matrix: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
-    where
-        Self: Scalar + Add<Output = Self>,
-    {
-        Matrix::from_column_fn(|i| matrix.column(i) + rhs.column(i))
-    }
-
-    /// Overridable implementation for the `matrix - matrix` operation.
-    #[inline]
-    #[track_caller]
-    fn matrix_sub(matrix: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
-    where
-        Self: Scalar + Sub<Output = Self>,
-    {
-        Matrix::from_column_fn(|i| matrix.column(i) - rhs.column(i))
-    }
-
-    /// Overridable implementation for the `matrix * scalar` operation.
-    #[inline]
-    #[track_caller]
-    fn matrix_mul_scalar(matrix: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
-    where
-        Self: Scalar + Mul<Output = Self>,
-    {
-        Matrix::from_column_fn(|i| matrix.column(i) * rhs)
-    }
-
-    /// Overridable implementation for the `matrix * vector` operation.
-    #[inline]
-    #[track_caller]
-    fn matrix_mul_vector(matrix: &Matrix<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: Scalar + Add<Output = Self> + Mul<Output = Self>,
-    {
-        match N {
-            2 => matrix.column(0) * rhs[0] + matrix.column(1) * rhs[1],
-            3 => matrix.column(0) * rhs[0] + matrix.column(1) * rhs[1] + matrix.column(2) * rhs[2],
-            4 => {
-                matrix.column(0) * rhs[0]
-                    + matrix.column(1) * rhs[1]
-                    + matrix.column(2) * rhs[2]
-                    + matrix.column(3) * rhs[3]
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    /// Overridable implementation for the `matrix * matrix` operation.
-    #[inline]
-    #[track_caller]
-    fn matrix_mul(matrix: &Matrix<N, Self, A>, rhs: &Matrix<N, Self, A>) -> Matrix<N, Self, A>
-    where
-        Self: Scalar + Add<Output = Self> + Mul<Output = Self>,
-    {
-        Matrix::from_column_fn(|i| matrix * rhs.column(i))
-    }
-
-    /// Overridable implementation for the `matrix / scalar` operation.
-    #[inline]
-    #[track_caller]
-    fn matrix_div_scalar(matrix: &Matrix<N, Self, A>, rhs: Self) -> Matrix<N, Self, A>
-    where
-        Self: Scalar + Div<Output = Self>,
-    {
-        Matrix::from_column_fn(|i| matrix.column(i) / rhs)
-    }
-
-    /// Overridable implementation for the `affine == affine` operation.
-    #[inline]
-    fn affine_eq(affine: &Affine<N, Self, A>, rhs: &Affine<N, Self, A>) -> bool
-    where
-        Self: Scalar + PartialEq,
-    {
-        affine.submatrix == rhs.submatrix && affine.translation == rhs.translation
-    }
-
-    /// Overridable implementation for the `affine != affine` operation.
-    #[inline]
-    fn affine_ne(affine: &Affine<N, Self, A>, rhs: &Affine<N, Self, A>) -> bool
-    where
-        Self: Scalar + PartialEq,
-    {
-        !Self::affine_eq(affine, rhs)
-    }
-
     /// Controls the implementation of [`Mask::from_array`].
     fn mask_from_array(array: [bool; N]) -> Mask<N, Self, A>
     where
@@ -627,6 +457,15 @@ where
         Self: Scalar,
     {
         mask.to_array() == other.to_array()
+    }
+
+    /// Overridable implementation for `mask != mask`.
+    #[inline]
+    fn mask_ne(mask: &Mask<N, Self, A>, other: &Mask<N, Self, A>) -> bool
+    where
+        Self: Scalar,
+    {
+        !Self::mask_eq(mask, other)
     }
 
     /// Overridable implementation for `!mask`.
@@ -1337,16 +1176,6 @@ where
     }
 }
 
-#[doc(hidden)]
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct Affine2Default<T, A: Alignment>(
-    <T as Backend<2, A>>::Matrix,
-    <T as Backend<2, A>>::Vector,
-)
-where
-    T: DefaultBackend<2, A>;
-
 impl DefaultBackend<2, Aligned> for f32 {}
 
 impl<const N: usize> DefaultBackend<N, Unaligned> for f32 {}
@@ -1385,8 +1214,6 @@ where
     T: DefaultBackend<2, A>,
 {
     type Vector = Repr2<T>;
-    type Matrix = Vector<4, T, A>;
-    type Affine = Affine2Default<T, A>;
     type Mask = Repr2<bool>;
 
     #[inline]
@@ -1452,8 +1279,6 @@ where
     T: DefaultBackend<3, A>,
 {
     type Vector = Repr3<T>;
-    type Matrix = Repr3<Repr3<T>>;
-    type Affine = Repr4<Repr3<T>>;
     type Mask = Repr3<bool>;
 
     #[inline]
@@ -1521,8 +1346,6 @@ where
     T: DefaultBackend<4, A>,
 {
     type Vector = Repr4<T>;
-    type Matrix = Repr4<Repr4<T>>;
-    type Affine = Repr5<Repr4<T>>;
     type Mask = Repr4<bool>;
 
     #[inline]

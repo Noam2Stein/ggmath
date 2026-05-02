@@ -584,6 +584,12 @@ where
     fn eq(&self, other: &Self) -> bool {
         specialize!(<T as Backend<N, A>>::mask_eq(self, other))
     }
+
+    #[expect(clippy::partialeq_ne_impl)]
+    #[inline]
+    fn ne(&self, other: &Self) -> bool {
+        specialize!(<T as Backend<N, A>>::mask_ne(self, other))
+    }
 }
 
 impl<const N: usize, T, A: Alignment> Eq for Mask<N, T, A>

@@ -5,14 +5,12 @@ use core::arch::x86_64::*;
 
 use crate::{
     Aligned, Backend, Mask, Mask3, Mask4, PrimitiveFloatBackend, Vec3, Vec4, Vector,
-    utils::{Repr3, Repr4, Repr5, safe_arch},
+    utils::safe_arch,
 };
 
 // SAFETY: All associated types uphold requirements.
 unsafe impl Backend<3, Aligned> for f32 {
     type Vector = __m128;
-    type Matrix = Repr3<__m128>;
-    type Affine = Repr4<__m128>;
     type Mask = __m128;
 
     safe_arch! {
@@ -231,8 +229,6 @@ unsafe impl Backend<3, Aligned> for f32 {
 // SAFETY: All associated types uphold requirements.
 unsafe impl Backend<4, Aligned> for f32 {
     type Vector = __m128;
-    type Matrix = Repr4<__m128>;
-    type Affine = Repr5<__m128>;
     type Mask = __m128;
 
     safe_arch! {

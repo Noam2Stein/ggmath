@@ -1,14 +1,13 @@
 use core::{
     fmt::{Debug, Display},
     hash::Hash,
-    ops::{Add, Deref, DerefMut, Mul, MulAssign},
-    panic::{RefUnwindSafe, UnwindSafe},
+    ops::{Add, Mul, MulAssign},
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Matrix, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Length, Matrix, Scalar, SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
-    utils::{Repr3, Repr4, Repr5, specialize, transmute_generic, transmute_mut, transmute_ref},
+    utils::{transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -37,32 +36,6 @@ mod wide_float;
 /// - [`Affine2U<T>`] for `Affine<2, T, Unaligned>`.
 /// - [`Affine3U<T>`] for `Affine<3, T, Unaligned>`.
 ///
-/// # Fields
-///
-/// `submatrix: Matrix<N, T, A>`
-///
-/// The part representing rotation, scaling and shear.
-///
-/// `translation: Vector<N, T, A>`
-///
-/// The part representing translation.
-///
-/// # Memory layout
-///
-/// `Affine<N, T, A>` contains [`Matrix<N, T, A>`] followed by
-/// [`Vector<N, T, A>`] followed by optional padding.
-///
-/// `Affine<N, T, Unaligned>` has the alignment of `T` and has no padding.
-/// [`Affine2<T>`] may have one padding vector and may have higher alignment
-/// than [`Mat2<T>`]. [`Affine3<T>`] may have four padding elements if both
-/// [`Mat3<T>`] and [`Vec3<T>`] have no padding, and may have higher alignment
-/// than [`Mat3<T>`]. [`Affine<4, T, Aligned>`] has the alignment of [`Mat4<T>`]
-/// and has no padding.
-///
-/// Padding is fully initialized and accepts all bit patterns. Unless `T`
-/// accepts all bit patterns, it is not sound to assume padding contains valid
-/// values of `T`.
-///
 /// [`glam`]: https://docs.rs/glam
 /// [`Affine2<T>`]: crate::Affine2
 /// [`Affine3<T>`]: crate::Affine3
@@ -73,39 +46,17 @@ mod wide_float;
 /// [`Vec3<T>`]: crate::Vec3
 /// [`Mat4<T>`]: crate::Mat4
 /// [`from_columns`]: Self::from_columns
-#[repr(transparent)]
-pub struct Affine<const N: usize, T, A: Alignment>(
-    /// The internal representation of the affine transform.
-    ///
-    /// This field's insane type corresponds to [`<T as Backend<N, A>>::Affine`]
-    /// which cannot be used directly because of type system limitations. In
-    /// generic contexts this field will not work, in which case you should use
-    /// [`from_inner`], [`inner`] and [`inner_mut`].
-    ///
-    /// This field should only be accessed from the crate defining `T`, else its
-    /// type may change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>::Affine`]: Backend
-    /// [`from_inner`]: Self::from_inner
-    /// [`inner`]: Self::inner
-    /// [`inner_mut`]: Self::inner_mut
-    #[expect(clippy::type_complexity)]
-    pub  <A as Alignment>::Select<
-        <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Aligned>>::Affine,
-            <T as Backend<3, Aligned>>::Affine,
-            <T as Backend<4, Aligned>>::Affine,
-        >,
-        <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Unaligned>>::Affine,
-            <T as Backend<3, Unaligned>>::Affine,
-            <T as Backend<4, Unaligned>>::Affine,
-        >,
-    >,
-)
+#[repr(C)]
+pub struct Affine<const N: usize, T, A: Alignment>
 where
     Length<N>: SupportedLength,
-    T: Scalar;
+    T: Scalar,
+{
+    /// The part representing rotation, scaling and shear.
+    pub submatrix: Matrix<N, T, A>,
+    /// The part representing translation.
+    pub translation: Vector<N, T, A>,
+}
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
 /// shear.
@@ -123,16 +74,6 @@ where
 /// [`Affine2U<T>`] for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
-///
-/// # Fields
-///
-/// `submatrix: Mat2<T>`
-///
-/// The part representing rotation, scaling and shear.
-///
-/// `translation: Vec2<T>`
-///
-/// The part representing translation.
 ///
 /// [`Mat3`]: crate::Mat3
 /// [`glam`]: https://docs.rs/glam
@@ -157,16 +98,6 @@ pub type Affine2<T> = Affine<2, T, Aligned>;
 ///
 /// See [`Alignment`] for more details.
 ///
-/// # Fields
-///
-/// `submatrix: Mat3<T>`
-///
-/// The part representing rotation, scaling and shear.
-///
-/// `translation: Vec3<T>`
-///
-/// The part representing translation.
-///
 /// [`Mat4`]: crate::Mat4
 /// [`glam`]: https://docs.rs/glam
 /// [`from_columns`]: Affine::from_columns
@@ -190,16 +121,6 @@ pub type Affine3<T> = Affine<3, T, Aligned>;
 ///
 /// See [`Alignment`] for more details.
 ///
-/// # Fields
-///
-/// `submatrix: Mat2U<T>`
-///
-/// The part representing rotation, scaling and shear.
-///
-/// `translation: Vec2U<T>`
-///
-/// The part representing translation.
-///
 /// [`Mat3U`]: crate::Mat3U
 /// [`glam`]: https://docs.rs/glam
 /// [`from_columns`]: Affine::from_columns
@@ -222,16 +143,6 @@ pub type Affine2U<T> = Affine<2, T, Unaligned>;
 /// variant.
 ///
 /// See [`Alignment`] for more details.
-///
-/// # Fields
-///
-/// `submatrix: Mat3U<T>`
-///
-/// The part representing rotation, scaling and shear.
-///
-/// `translation: Vec3U<T>`
-///
-/// The part representing translation.
 ///
 /// [`Mat4U`]: crate::Mat4U
 /// [`glam`]: https://docs.rs/glam
@@ -301,7 +212,10 @@ where
     where
         F: FnMut(usize) -> Vector<N, T, A>,
     {
-        Self::from_submatrix_translation(Matrix::from_column_fn(&mut f), f(N))
+        Self {
+            submatrix: Matrix::from_column_fn(&mut f),
+            translation: f(N),
+        }
     }
 
     /// Creates an affine transform from a non-uniform `scale`.
@@ -311,7 +225,10 @@ where
     where
         T: Zero,
     {
-        Self::from_submatrix_translation(Matrix::from_diagonal(scale), Vector::ZERO)
+        Self {
+            submatrix: Matrix::from_diagonal(scale),
+            translation: Vector::ZERO,
+        }
     }
 
     /// Creates an affine transform from a `translation` vector.
@@ -321,7 +238,10 @@ where
     where
         T: Zero + One,
     {
-        Self::from_submatrix_translation(Matrix::IDENTITY, translation)
+        Self {
+            submatrix: Matrix::IDENTITY,
+            translation,
+        }
     }
 
     /// Creates an affine transform from `submatrix` expressing rotation and
@@ -332,7 +252,10 @@ where
     where
         T: Zero,
     {
-        Self::from_submatrix_translation(submatrix, Vector::ZERO)
+        Self {
+            submatrix,
+            translation: Vector::ZERO,
+        }
     }
 
     /// Creates an affine transform from `translation` and `submatrix`
@@ -343,86 +266,9 @@ where
         submatrix: Matrix<N, T, A>,
         translation: Vector<N, T, A>,
     ) -> Self {
-        if const {
-            size_of::<Affine<N, T, A>>()
-                == size_of::<Matrix<N, T, A>>() + size_of::<Vector<N, T, A>>()
-        } {
-            // SAFETY: `AffineRepr` is a matrix then a vector, like `Affine`,
-            // with no padding because the size was checked to have no padding.
-            unsafe {
-                #[repr(C)]
-                struct AffineRepr<const N: usize, T, A: Alignment>
-                where
-                    Length<N>: SupportedLength,
-                    T: Scalar,
-                {
-                    submatrix: Matrix<N, T, A>,
-                    translation: Vector<N, T, A>,
-                }
-
-                transmute_generic::<AffineRepr<N, T, A>, Affine<N, T, A>>(AffineRepr {
-                    submatrix,
-                    translation,
-                })
-            }
-        } else if const { N == 2 && size_of::<Affine<2, T, A>>() / size_of::<Vector<2, T, A>>() == 4 }
-        {
-            // SAFETY: `AffineRepr` is a matrix then a vector, like `Affine`,
-            // then another padding vector because it was checked that there is
-            // exactly one padding vector.
-            unsafe {
-                #[repr(C)]
-                struct AffineRepr<const N: usize, T, A: Alignment>
-                where
-                    Length<N>: SupportedLength,
-                    T: Scalar,
-                {
-                    submatrix: Matrix<N, T, A>,
-                    translation: Vector<N, T, A>,
-                    padding: Vector<N, T, A>,
-                }
-
-                transmute_generic::<AffineRepr<N, T, A>, Affine<N, T, A>>(AffineRepr {
-                    submatrix,
-                    translation,
-                    padding: translation,
-                })
-            }
-        } else if const {
-            N == 3
-                && size_of::<Affine<3, T, A>>()
-                    - size_of::<Matrix<3, T, A>>()
-                    - size_of::<Vector<3, T, A>>()
-                    == size_of::<T>() * 4
-        } {
-            // SAFETY: `AffineRepr` is a matrix then a vector, like `Affine`,
-            // then 4 padding elements because it was checked that there are
-            // exactly 4 padding elements.
-            unsafe {
-                #[repr(C)]
-                struct AffineRepr<const N: usize, T, A: Alignment>
-                where
-                    Length<N>: SupportedLength,
-                    T: Scalar,
-                {
-                    submatrix: Matrix<N, T, A>,
-                    translation: Vector<N, T, A>,
-                    padding: Repr4<T>,
-                }
-
-                transmute_generic::<AffineRepr<N, T, A>, Affine<N, T, A>>(AffineRepr {
-                    submatrix,
-                    translation,
-                    padding: Repr4(
-                        translation.as_array_ref()[0],
-                        translation.as_array_ref()[1],
-                        translation.as_array_ref()[2],
-                        translation.as_array_ref()[2],
-                    ),
-                })
-            }
-        } else {
-            unreachable!()
+        Self {
+            submatrix,
+            translation,
         }
     }
 
@@ -452,13 +298,9 @@ where
     #[inline]
     #[must_use]
     pub const fn to_alignment<A2: Alignment>(&self) -> Affine<N, T, A2> {
-        // SAFETY: This operation is identical to the one used in the
-        // implementation of `Deref`.
-        let deref = unsafe { transmute_ref::<Affine<N, T, A>, AffineDeref<N, T, A>>(self) };
-
         Affine::from_submatrix_translation(
-            deref.submatrix.to_alignment(),
-            deref.translation.to_alignment(),
+            self.submatrix.to_alignment(),
+            self.translation.to_alignment(),
         )
     }
 
@@ -582,66 +424,6 @@ where
     {
         self.submatrix * vector
     }
-
-    /// Creates an affine transform from its internal representation.
-    ///
-    /// Equivalent to `Affine(inner)` but works in generic contexts.
-    ///
-    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the input type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
-    #[inline]
-    #[must_use]
-    pub const fn from_inner(inner: <T as Backend<N, A>>::Affine) -> Self
-    where
-        T: Backend<N, A>,
-    {
-        // SAFETY: `Affine<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Affine`.
-        unsafe { transmute_generic::<<T as Backend<N, A>>::Affine, Affine<N, T, A>>(inner) }
-    }
-
-    /// Returns the internal representation of `self`.
-    ///
-    /// Equivalent to `self.0` but works in generic contexts.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
-    #[inline]
-    #[must_use]
-    pub const fn inner(self) -> <T as Backend<N, A>>::Affine
-    where
-        T: Backend<N, A>,
-    {
-        // SAFETY: `Affine<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Affine`.
-        unsafe { transmute_generic::<Affine<N, T, A>, <T as Backend<N, A>>::Affine>(self) }
-    }
-
-    /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// Equivalent to `&mut self.0` but works in generic contexts.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
-    #[inline]
-    #[must_use]
-    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Affine
-    where
-        T: Backend<N, A>,
-    {
-        // SAFETY: `Affine<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Affine`.
-        unsafe { transmute_mut::<Affine<N, T, A>, <T as Backend<N, A>>::Affine>(self) }
-    }
 }
 
 impl<T, A: Alignment> Affine<2, T, A>
@@ -652,27 +434,9 @@ where
     #[inline]
     #[must_use]
     pub const fn from_columns(array: &[Vector<2, T, A>; 3]) -> Self {
-        match size_of::<Affine<2, T, A>>() / size_of::<Vector<2, T, A>>() {
-            // SAFETY: `Repr3<Vector<2, T, A>>` is `Matrix<2, T, A>` (two vectors)
-            // followed by `Vector<2, T, A>` followed by no padding, because
-            // the size has been checked to have no padding.
-            3 => unsafe {
-                transmute_generic::<Repr3<Vector<2, T, A>>, Affine<2, T, A>>(Repr3(
-                    array[0], array[1], array[2],
-                ))
-            },
-
-            // SAFETY: `Repr4<Vector<2, T, A>>` is `Matrix<2, T, A>` (two vectors)
-            // followed by `Vector<2, T, A>` followed by one padding vector,
-            // because the size has been checked to have exactly one padding
-            // vector.
-            4 => unsafe {
-                transmute_generic::<Repr4<Vector<2, T, A>>, Affine<2, T, A>>(Repr4(
-                    array[0], array[1], array[2], array[2],
-                ))
-            },
-
-            _ => unreachable!(),
+        Self {
+            submatrix: Matrix::from_columns(&[array[0], array[1]]),
+            translation: array[2],
         }
     }
 
@@ -800,52 +564,9 @@ where
     #[inline]
     #[must_use]
     pub const fn from_columns(array: &[Vector<3, T, A>; 4]) -> Self {
-        match const {
-            (size_of::<Affine<3, T, A>>()
-                - size_of::<Matrix<3, T, A>>()
-                - size_of::<Vector<3, T, A>>())
-                / size_of::<T>()
-        } {
-            // SAFETY: `Repr4<Vector<3, T, A>>` is `Matrix<3, T, A>` (three
-            // vectors) followed by `Vector<3, T, A>` followed by no padding,
-            // because the number of padding elements has been checked to be 0.
-            0 => unsafe {
-                transmute_generic::<Repr4<Vector<3, T, A>>, Affine<3, T, A>>(Repr4(
-                    array[0], array[1], array[2], array[3],
-                ))
-            },
-
-            // SAFETY: `AffineRepr` is `Matrix<3, T, A>` (three vectors)
-            // followed by `Vector<3, T, A>` followed by four padding elements,
-            // because the number of padding elements has been checked to be 4.
-            4 => unsafe {
-                #[repr(C)]
-                struct AffineRepr<T, A: Alignment>
-                where
-                    T: Scalar,
-                {
-                    x_axis: Vector<3, T, A>,
-                    y_axis: Vector<3, T, A>,
-                    z_axis: Vector<3, T, A>,
-                    w_axis: Vector<3, T, A>,
-                    padding: Repr4<T>,
-                }
-
-                transmute_generic::<AffineRepr<T, A>, Affine<3, T, A>>(AffineRepr {
-                    x_axis: array[0],
-                    y_axis: array[1],
-                    z_axis: array[2],
-                    w_axis: array[3],
-                    padding: Repr4(
-                        array[0].as_array_ref()[0],
-                        array[0].as_array_ref()[1],
-                        array[0].as_array_ref()[2],
-                        array[0].as_array_ref()[2],
-                    ),
-                })
-            },
-
-            _ => unreachable!(),
+        Self {
+            submatrix: Matrix::from_columns(&[array[0], array[1], array[2]]),
+            translation: array[3],
         }
     }
 
@@ -996,13 +717,9 @@ where
     #[inline]
     #[must_use]
     pub const fn from_columns(array: &[Vector<4, T, A>; 5]) -> Self {
-        // SAFETY: `Repr5<Vector<4, T, A>>` is `Matrix<4, T, A>` (four vectors)
-        // followed by `Vector<4, T, A>` followed by no padding, because
-        // `Affine<4, T, Aligned>` has no padding.
-        unsafe {
-            transmute_generic::<Repr5<Vector<4, T, A>>, Affine<4, T, A>>(Repr5(
-                array[0], array[1], array[2], array[3], array[4],
-            ))
+        Self {
+            submatrix: Matrix::from_columns(&[array[0], array[1], array[2], array[3]]),
+            translation: array[4],
         }
     }
 
@@ -1072,49 +789,6 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-}
-
-#[doc(hidden)]
-#[repr(C)]
-pub struct AffineDeref<const N: usize, T, A: Alignment>
-where
-    Length<N>: SupportedLength,
-    T: Scalar,
-{
-    /// The part representing rotation, scaling and shear.
-    pub submatrix: Matrix<N, T, A>,
-    /// The part representing translation.
-    pub translation: Vector<N, T, A>,
-}
-
-impl<const N: usize, T, A: Alignment> Deref for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar,
-{
-    type Target = AffineDeref<N, T, A>;
-
-    #[inline]
-    fn deref(&self) -> &Self::Target {
-        // SAFETY: `Affine<N, T, A>` is guaranteed to begin with
-        // `Matrix<N, T, A>` followed by `Vector<N, T, A>`, and so begin with
-        // `AffineDeref<N, T, A>`.
-        unsafe { transmute_ref::<Affine<N, T, A>, AffineDeref<N, T, A>>(self) }
-    }
-}
-
-impl<const N: usize, T, A: Alignment> DerefMut for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar,
-{
-    #[inline]
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        // SAFETY: `Affine<N, T, A>` is guaranteed to begin with
-        // `Matrix<N, T, A>` followed by `Vector<N, T, A>`, and so begin with
-        // `AffineDeref<N, T, A>`.
-        unsafe { transmute_mut::<Affine<N, T, A>, AffineDeref<N, T, A>>(self) }
-    }
 }
 
 impl<const N: usize, T, A: Alignment> Debug for Affine<N, T, A>
@@ -1196,13 +870,7 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::affine_eq(self, other))
-    }
-
-    #[expect(clippy::partialeq_ne_impl)]
-    #[inline]
-    fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::affine_ne(self, other))
+        self.submatrix == other.submatrix && self.translation == other.translation
     }
 }
 
@@ -1595,45 +1263,6 @@ impl_matrix_mul_assign!(
     /// floating-point precision and integer panics.
 );
 
-// SAFETY: Affines are equivalent to values of `T` mixed with padding.
-// Because `T` is `Send` and padding is `Send`, the affine is too.
-unsafe impl<const N: usize, T, A: Alignment> Send for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Send,
-{
-}
-
-// SAFETY: Affines are equivalent to values of `T` mixed with padding.
-// Because `T` is `Sync` and padding is `Sync`, the affine is too.
-unsafe impl<const N: usize, T, A: Alignment> Sync for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Sync,
-{
-}
-
-impl<const N: usize, T, A: Alignment> Unpin for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Unpin,
-{
-}
-
-impl<const N: usize, T, A: Alignment> UnwindSafe for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + UnwindSafe,
-{
-}
-
-impl<const N: usize, T, A: Alignment> RefUnwindSafe for Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + RefUnwindSafe,
-{
-}
-
 #[cfg(test)]
 mod tests {
     extern crate std;
@@ -1641,44 +1270,9 @@ mod tests {
     use std::format;
 
     use crate::{
-        Affine, Affine2, Affine2U, Affine3, Affine3U, Aligned, Mat2, Mat3, Mat4, Matrix, Unaligned,
-        Vec2, Vec3, Vector,
-        utils::{Repr3, Repr4, assert_float_eq, assert_panic, for_parameters},
+        Affine, Aligned, Matrix, Unaligned, Vector,
+        utils::{assert_float_eq, assert_panic, for_parameters},
     };
-
-    #[test]
-    fn test_layout() {
-        for_parameters!(|T: PrimitiveNumber| {
-            assert!(
-                size_of::<Affine2<T>>() == size_of::<T>() * 6
-                    && align_of::<Affine2<T>>() == align_of::<Vec2<T>>()
-                    || size_of::<Affine2<T>>() == size_of::<T>() * 8
-                        && (align_of::<Affine2<T>>() == align_of::<Mat2<T>>()
-                            || align_of::<Affine2<T>>() == size_of::<T>() * 8)
-            );
-
-            assert!(
-                size_of::<Affine3<T>>() == size_of::<Mat3<T>>() + size_of::<Vec3<T>>()
-                    && align_of::<Affine3<T>>() == align_of::<Mat3<T>>()
-                    || size_of::<Affine3<T>>() == size_of::<T>() * 16
-                        && align_of::<Affine3<T>>() == size_of::<T>() * 16
-                        && size_of::<Mat3<T>>() == size_of::<T>() * 9
-                        && size_of::<Vec3<T>>() == size_of::<T>() * 3
-            );
-
-            assert_eq!(size_of::<Affine<4, T, Aligned>>(), size_of::<T>() * 20);
-            assert_eq!(align_of::<Affine<4, T, Aligned>>(), align_of::<Mat4<T>>());
-
-            assert_eq!(size_of::<Affine2U<T>>(), size_of::<T>() * 6);
-            assert_eq!(align_of::<Affine2U<T>>(), align_of::<T>());
-
-            assert_eq!(size_of::<Affine3U<T>>(), size_of::<T>() * 12);
-            assert_eq!(align_of::<Affine3U<T>>(), align_of::<T>());
-
-            assert_eq!(size_of::<Affine<4, T, Unaligned>>(), size_of::<T>() * 20);
-            assert_eq!(align_of::<Affine<4, T, Unaligned>>(), align_of::<T>());
-        });
-    }
 
     #[test]
     fn test_zero() {
@@ -2305,45 +1899,6 @@ mod tests {
     }
 
     #[test]
-    fn test_from_inner() {
-        assert_eq!(
-            Affine3U::<u32>::from_inner(Repr4(
-                Repr3(0, 1, 2),
-                Repr3(3, 4, 5),
-                Repr3(6, 7, 8),
-                Repr3(9, 10, 11),
-            )),
-            Affine3U::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
-        );
-    }
-
-    #[test]
-    fn test_inner() {
-        assert_eq!(
-            Affine3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]).inner(),
-            Repr4(
-                Repr3(0, 1, 2),
-                Repr3(3, 4, 5),
-                Repr3(6, 7, 8),
-                Repr3(9, 10, 11)
-            )
-        );
-    }
-
-    #[test]
-    fn test_inner_mut() {
-        assert_eq!(
-            Affine3U::<u32>::from_column_array(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]).inner_mut(),
-            &mut Repr4(
-                Repr3(0, 1, 2),
-                Repr3(3, 4, 5),
-                Repr3(6, 7, 8),
-                Repr3(9, 10, 11)
-            )
-        );
-    }
-
-    #[test]
     fn test_from_columns() {
         for_parameters!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
@@ -2622,196 +2177,6 @@ mod tests {
                     Vector::<4, T, A>::new(7.0, 8.0, 9.0, 0.0),
                     Vector::<4, T, A>::new(10.0, 11.0, 12.0, 1.0)
                 ])
-            );
-        });
-    }
-
-    #[test]
-    fn test_deref() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
-                std::array::from_fn(T::as_from);
-
-            assert_eq!(
-                Affine::<2, T, A>::from_submatrix_translation(
-                    Matrix::<2, T, A>::from_columns(&[
-                        Vector::<2, T, A>::new(x, y),
-                        Vector::<2, T, A>::new(z, w)
-                    ]),
-                    Vector::<2, T, A>::new(a, b)
-                )
-                .submatrix,
-                Matrix::<2, T, A>::from_columns(&[
-                    Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(z, w)
-                ])
-            );
-            assert_eq!(
-                Affine::<2, T, A>::from_submatrix_translation(
-                    Matrix::<2, T, A>::from_columns(&[
-                        Vector::<2, T, A>::new(x, y),
-                        Vector::<2, T, A>::new(z, w)
-                    ]),
-                    Vector::<2, T, A>::new(a, b)
-                )
-                .translation,
-                Vector::<2, T, A>::new(a, b)
-            );
-
-            assert_eq!(
-                Affine::<3, T, A>::from_submatrix_translation(
-                    Matrix::<3, T, A>::from_columns(&[
-                        Vector::<3, T, A>::new(x, y, z),
-                        Vector::<3, T, A>::new(w, a, b),
-                        Vector::<3, T, A>::new(c, d, e)
-                    ]),
-                    Vector::<3, T, A>::new(f, g, h)
-                )
-                .submatrix,
-                Matrix::<3, T, A>::from_columns(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
-                ])
-            );
-            assert_eq!(
-                Affine::<3, T, A>::from_submatrix_translation(
-                    Matrix::<3, T, A>::from_columns(&[
-                        Vector::<3, T, A>::new(x, y, z),
-                        Vector::<3, T, A>::new(w, a, b),
-                        Vector::<3, T, A>::new(c, d, e)
-                    ]),
-                    Vector::<3, T, A>::new(f, g, h)
-                )
-                .translation,
-                Vector::<3, T, A>::new(f, g, h)
-            );
-
-            assert_eq!(
-                Affine::<4, T, A>::from_submatrix_translation(
-                    Matrix::<4, T, A>::from_columns(&[
-                        Vector::<4, T, A>::new(x, y, z, w),
-                        Vector::<4, T, A>::new(a, b, c, d),
-                        Vector::<4, T, A>::new(e, f, g, h),
-                        Vector::<4, T, A>::new(i, j, k, l)
-                    ]),
-                    Vector::<4, T, A>::new(m, n, o, p)
-                )
-                .submatrix,
-                Matrix::<4, T, A>::from_columns(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
-                ])
-            );
-            assert_eq!(
-                Affine::<4, T, A>::from_submatrix_translation(
-                    Matrix::<4, T, A>::from_columns(&[
-                        Vector::<4, T, A>::new(x, y, z, w),
-                        Vector::<4, T, A>::new(a, b, c, d),
-                        Vector::<4, T, A>::new(e, f, g, h),
-                        Vector::<4, T, A>::new(i, j, k, l)
-                    ]),
-                    Vector::<4, T, A>::new(m, n, o, p)
-                )
-                .translation,
-                Vector::<4, T, A>::new(m, n, o, p)
-            );
-        });
-    }
-
-    #[test]
-    fn test_deref_mut() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p] =
-                std::array::from_fn(T::as_from);
-
-            assert_eq!(
-                &mut Affine::<2, T, A>::from_submatrix_translation(
-                    Matrix::<2, T, A>::from_columns(&[
-                        Vector::<2, T, A>::new(x, y),
-                        Vector::<2, T, A>::new(z, w)
-                    ]),
-                    Vector::<2, T, A>::new(a, b)
-                )
-                .submatrix,
-                &mut Matrix::<2, T, A>::from_columns(&[
-                    Vector::<2, T, A>::new(x, y),
-                    Vector::<2, T, A>::new(z, w)
-                ])
-            );
-            assert_eq!(
-                &mut Affine::<2, T, A>::from_submatrix_translation(
-                    Matrix::<2, T, A>::from_columns(&[
-                        Vector::<2, T, A>::new(x, y),
-                        Vector::<2, T, A>::new(z, w)
-                    ]),
-                    Vector::<2, T, A>::new(a, b)
-                )
-                .translation,
-                &mut Vector::<2, T, A>::new(a, b)
-            );
-
-            assert_eq!(
-                &mut Affine::<3, T, A>::from_submatrix_translation(
-                    Matrix::<3, T, A>::from_columns(&[
-                        Vector::<3, T, A>::new(x, y, z),
-                        Vector::<3, T, A>::new(w, a, b),
-                        Vector::<3, T, A>::new(c, d, e)
-                    ]),
-                    Vector::<3, T, A>::new(f, g, h)
-                )
-                .submatrix,
-                &mut Matrix::<3, T, A>::from_columns(&[
-                    Vector::<3, T, A>::new(x, y, z),
-                    Vector::<3, T, A>::new(w, a, b),
-                    Vector::<3, T, A>::new(c, d, e)
-                ])
-            );
-            assert_eq!(
-                &mut Affine::<3, T, A>::from_submatrix_translation(
-                    Matrix::<3, T, A>::from_columns(&[
-                        Vector::<3, T, A>::new(x, y, z),
-                        Vector::<3, T, A>::new(w, a, b),
-                        Vector::<3, T, A>::new(c, d, e)
-                    ]),
-                    Vector::<3, T, A>::new(f, g, h)
-                )
-                .translation,
-                &mut Vector::<3, T, A>::new(f, g, h)
-            );
-
-            assert_eq!(
-                &mut Affine::<4, T, A>::from_submatrix_translation(
-                    Matrix::<4, T, A>::from_columns(&[
-                        Vector::<4, T, A>::new(x, y, z, w),
-                        Vector::<4, T, A>::new(a, b, c, d),
-                        Vector::<4, T, A>::new(e, f, g, h),
-                        Vector::<4, T, A>::new(i, j, k, l)
-                    ]),
-                    Vector::<4, T, A>::new(m, n, o, p)
-                )
-                .submatrix,
-                &mut Matrix::<4, T, A>::from_columns(&[
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    Vector::<4, T, A>::new(a, b, c, d),
-                    Vector::<4, T, A>::new(e, f, g, h),
-                    Vector::<4, T, A>::new(i, j, k, l)
-                ])
-            );
-            assert_eq!(
-                &mut Affine::<4, T, A>::from_submatrix_translation(
-                    Matrix::<4, T, A>::from_columns(&[
-                        Vector::<4, T, A>::new(x, y, z, w),
-                        Vector::<4, T, A>::new(a, b, c, d),
-                        Vector::<4, T, A>::new(e, f, g, h),
-                        Vector::<4, T, A>::new(i, j, k, l)
-                    ]),
-                    Vector::<4, T, A>::new(m, n, o, p)
-                )
-                .translation,
-                &mut Vector::<4, T, A>::new(m, n, o, p)
             );
         });
     }
