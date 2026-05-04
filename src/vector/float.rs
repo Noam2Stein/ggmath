@@ -1328,6 +1328,14 @@ impl<T, A: Alignment> Vector<3, T, A>
 where
     T: PrimitiveFloat,
 {
+    /// Creates a 3D vector from homogeneous coordinates by performing
+    /// perspective divide.
+    ///
+    /// Equivalent to `homogeneous.xyz / homogeneous.w`.
+    pub fn from_homogeneous(homogeneous: Vector<4, T, A>) -> Self {
+        homogeneous.xyz() / homogeneous.w
+    }
+
     /// Rotates `self` around the x axis by `angle` (in radians).
     ///
     /// This rotates `+Y` to `+Z`.
@@ -3416,6 +3424,19 @@ mod tests {
                 Vector::<2, T, A>::new(2.0, 0.0).rotate(T::to_radians(45.0)),
                 Vector::<2, T, A>::new(2.0, 2.0).sqrt(),
                 abs <= Vector::splat(1e-5)
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_parameters!(|T: PrimitiveFloat, A, x| {
+            let _: T = x;
+            let [y, z, w] = [x + 1.0, x + 2.0, x + 3.0];
+
+            assert_float_eq!(
+                Vector::<3, T, A>::from_homogeneous(Vector::<4, T, A>::new(x, y, z, w)),
+                Vector::<3, T, A>::new(x, y, z) / w
             );
         });
     }

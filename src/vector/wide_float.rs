@@ -840,6 +840,14 @@ macro_rules! impl_wide_float {
         }
 
         impl<A: Alignment> Vector<3, $Wide, A> {
+            /// For each lane, creates a 3D vector from homogeneous coordinates
+            /// by performing perspective divide.
+            ///
+            /// Equivalent to `homogeneous.xyz / homogeneous.w`.
+            pub fn from_homogeneous(homogeneous: Vector<4, $Wide, A>) -> Self {
+                homogeneous.xyz() / homogeneous.w
+            }
+
             /// For each lane, rotates `self` around the x axis by `angle` (in
             /// radians).
             ///
@@ -2572,6 +2580,19 @@ mod tests {
                 Vector::from_lane_fn(|lane| vector.lane(lane).rotate(z.to_array()[lane])),
                 r2nd <= Vector::splat(Wide::splat(1e-5)) * z.abs(),
                 0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_homogeneous() {
+        for_parameters!(|Wide: WideFloat, A, x| {
+            let _: Wide = x;
+            let [y, z, w] = [x + 1.0, x + 2.0, x + 3.0];
+
+            assert_float_eq!(
+                Vector::<3, Wide, A>::from_homogeneous(Vector::<4, Wide, A>::new(x, y, z, w)),
+                Vector::<3, Wide, A>::new(x, y, z) / w
             );
         });
     }

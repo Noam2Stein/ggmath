@@ -1164,6 +1164,18 @@ where
         self.xy()
     }
 
+    /// Converts `self` to homogeneous coordinates.
+    ///
+    /// Equivalent to `self.extend(1)`.
+    #[inline]
+    #[must_use]
+    pub fn to_homogeneous(self) -> Vector<4, T, A>
+    where
+        T: One,
+    {
+        self.extend(T::ONE)
+    }
+
     /// Computes the cross product of `self` and `rhs`.
     ///
     /// # Examples
@@ -3607,6 +3619,18 @@ mod tests {
             assert_eq!(
                 Vector::<4, T, A>::new(x, y, z, w).truncate(),
                 Vector::<3, T, A>::new(x, y, z)
+            );
+        });
+    }
+
+    #[test]
+    fn test_to_homogeneous() {
+        for_parameters!(|T: PrimitiveNumber, A| {
+            let [x, y, z] = std::array::from_fn(T::as_from);
+
+            assert_eq!(
+                Vector::<3, T, A>::new(x, y, z).to_homogeneous(),
+                Vector::<4, T, A>::new(x, y, z, T::ONE)
             );
         });
     }
