@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Functions:
+  - `Vector::wedge`
   - `Vector::to_homogeneous`
   - `Vector::from_homogeneous`
   - `Vector::angle_to`

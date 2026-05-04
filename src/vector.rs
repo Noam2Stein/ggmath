@@ -1093,6 +1093,32 @@ where
     {
         Self::new(-self.y, self.x)
     }
+
+    /// Computes the wedge product of `self` and `rhs`.
+    ///
+    /// Also reffered to as the 2D cross product, the determinant and the
+    /// signed area.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let x = Vec2::new(1, 0);
+    /// let y = Vec2::new(0, 1);
+    ///
+    /// assert_eq!(x.wedge(y), 1);
+    /// assert_eq!(y.wedge(x), -1);
+    /// ```
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn wedge(self, rhs: Self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        self.x * rhs.y - self.y * rhs.x
+    }
 }
 
 impl<T, A: Alignment> Vector<3, T, A>
@@ -2754,7 +2780,7 @@ mod tests {
     use itertools::Itertools;
 
     use crate::{
-        Aligned, Mask, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
+        Aligned, Mask, Matrix, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
         utils::{
             Repr2, Repr3, Repr4, assert_float_eq, assert_panic, assert_panic_eq, for_parameters,
         },
@@ -3604,6 +3630,20 @@ mod tests {
             assert_eq!(Vector::<2, T, A>::Y.perp(), Vector::<2, T, A>::NEG_X);
             assert_eq!(Vector::<2, T, A>::NEG_X.perp(), Vector::<2, T, A>::NEG_Y);
             assert_eq!(Vector::<2, T, A>::NEG_Y.perp(), Vector::<2, T, A>::X);
+        });
+    }
+
+    #[test]
+    fn test_wedge() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+            let x_axis = Vector::<2, T, A>::new(x, y);
+            let y_axis = Vector::<2, T, A>::new(x * 0.3 + y * 1.5, x * 1.1 + y * 0.5);
+
+            assert_float_eq!(
+                x_axis.wedge(y_axis),
+                Matrix::from_columns(&[x_axis, y_axis]).determinant()
+            );
         });
     }
 
