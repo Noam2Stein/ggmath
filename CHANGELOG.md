@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Functions:
   - `Matrix::translation`
+  - `FloatExt::move_towards`
 
 - Primitive traits:
   - `PrimitiveFloat`

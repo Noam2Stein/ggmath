@@ -11,6 +11,20 @@ pub trait FloatExt: PrimitiveFloat {
     #[must_use]
     fn lerp(self, other: Self, t: Self) -> Self;
 
+    /// Moves `self` towards `other` by at most `max_delta`.
+    ///
+    /// When `max_delta` is `0`, the result is `self`. When `max_delta` is equal
+    /// to or greater than `(self - target).abs()`, the result is `target`.
+    ///
+    /// ```
+    /// # use ggmath::FloatExt;
+    /// #
+    /// assert_eq!(2.0.move_towards(5.0, 1.0), 3.0);
+    /// assert_eq!(2.0.move_towards(-5.0, 1.0), 1.0);
+    /// ```
+    #[must_use]
+    fn move_towards(self, target: Self, max_delta: Self) -> Self;
+
     /// Returns `true` if the absolute difference between `self` and `other` is
     /// less than or equal to `max_abs_diff`.
     ///
@@ -24,6 +38,18 @@ impl<T: PrimitiveFloat> FloatExt for T {
     #[inline]
     fn lerp(self, other: Self, t: Self) -> Self {
         self * (T::as_from(1.0) - t) + other * t
+    }
+
+    #[inline]
+    fn move_towards(self, target: Self, max_delta: Self) -> Self {
+        let delta = target - self;
+        let delta_abs = delta.abs();
+
+        if delta_abs <= max_delta || delta_abs <= Self::as_from(1e-4) {
+            target
+        } else {
+            self + max_delta * delta.signum()
+        }
     }
 
     #[inline]
@@ -49,6 +75,20 @@ mod tests {
             assert_float_eq!(x.lerp(y, 0.0), x, 0.0 = -0.0);
             assert_float_eq!(x.lerp(y, 0.5), x * 0.5 + y * 0.5, 0.0 = -0.0);
             assert_float_eq!(x.lerp(y, 1.0), y, 0.0 = -0.0);
+        });
+    }
+
+    #[test]
+    fn test_move_towards() {
+        for_parameters!(|T: PrimitiveFloat| {
+            assert!(T::abs_diff_eq(5.0.move_towards(10.0, 2.0), 7.0, 1e-5));
+            assert!(T::abs_diff_eq(10.0.move_towards(5.0, 2.0), 8.0, 1e-5));
+            assert!(T::abs_diff_eq((-5.0).move_towards(10.0, 2.0), -3.0, 1e-5));
+            assert!(T::abs_diff_eq(10.0.move_towards(-5.0, 2.0), 8.0, 1e-5));
+            assert!(T::abs_diff_eq(5.0.move_towards(10.0, 20.0), 10.0, 1e-5));
+            assert!(T::abs_diff_eq(10.0.move_towards(5.0, 20.0), 5.0, 1e-5));
+            assert!(T::abs_diff_eq((-5.0).move_towards(10.0, 20.0), 10.0, 1e-5));
+            assert!(T::abs_diff_eq(10.0.move_towards(-5.0, 20.0), -5.0, 1e-5));
         });
     }
 
