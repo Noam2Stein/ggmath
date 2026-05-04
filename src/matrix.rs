@@ -1218,6 +1218,26 @@ where
         ])
     }
 
+    /// Returns the translation of an affine transformation matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat3, Vec2, Vec3};
+    /// #
+    /// let matrix = Mat3::from_columns(&[
+    ///     Vec3::new(1, 0, 0),
+    ///     Vec3::new(0, 1, 0),
+    ///     Vec3::new(6, 8, 1),
+    /// ]);
+    /// assert_eq!(matrix.translation(), Vec2::new(6, 8));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn translation(&self) -> Vector<2, T, A> {
+        self.z_axis.truncate()
+    }
+
     /// Returns a 2x2 matrix discarding the given `column` and `row`.
     ///
     /// # Panics
@@ -1466,6 +1486,26 @@ where
                 self.column(2).as_array_ref()[2],
             ),
         ])
+    }
+
+    /// Returns the translation of an affine transformation matrix.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mat3, Vec2, Vec3};
+    /// #
+    /// let matrix = Mat3::from_columns(&[
+    ///     Vec3::new(1, 0, 0),
+    ///     Vec3::new(0, 1, 0),
+    ///     Vec3::new(6, 8, 1),
+    /// ]);
+    /// assert_eq!(matrix.translation(), Vec2::new(6, 8));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn translation(&self) -> Vector<3, T, A> {
+        self.w_axis.truncate()
     }
 
     /// Returns a 3x3 matrix discarding the given `column` and `row`.
@@ -3667,6 +3707,25 @@ mod tests {
             ])
             .submatrix(),
             Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(5, 6, 7), Vec3::new(9, 10, 11)])
+        );
+    }
+
+    #[test]
+    fn test_translation() {
+        assert_eq!(
+            Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)])
+                .translation(),
+            Vec2::new(7, 8)
+        );
+        assert_eq!(
+            Mat4::from_columns(&[
+                Vec4::new(1, 2, 3, 4),
+                Vec4::new(5, 6, 7, 8),
+                Vec4::new(9, 10, 11, 12),
+                Vec4::new(13, 14, 15, 16)
+            ])
+            .translation(),
+            Vec3::new(13, 14, 15)
         );
     }
 
