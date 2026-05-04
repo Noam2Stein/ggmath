@@ -1304,6 +1304,70 @@ impl<T, A: Alignment> Vector<2, T, A>
 where
     T: PrimitiveFloat,
 {
+    /// Returns the angle (in radians) that rotates `self` to `other` in the
+    /// range `-π..=+π`.
+    ///
+    /// The vectors do not need to be unit vectors but they do need to be
+    /// non-zero.
+    ///
+    /// Equivalent to `other.angle_from(self)`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let x = Vec2::new(2.0, 0.0);
+    /// let y = Vec2::new(0.0, 3.0);
+    ///
+    /// assert!(x.angle_to(y) > 0.0);
+    /// assert!(y.angle_to(x) < 0.0);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn angle_to(self, other: Self) -> T {
+        let outer_product = (self.x * other.y) - (self.y * other.x);
+        self.angle_between(other) * outer_product.signum()
+    }
+
+    /// Returns the angle (in radians) that rotates `other` to `self` in the
+    /// range `-π..=+π`.
+    ///
+    /// The vectors do not need to be unit vectors but they do need to be
+    /// non-zero.
+    ///
+    /// Equivalent to `other.angle_to(self)`.
+    ///
+    /// # Unspecified precision
+    ///
+    /// The precision of this function is non-deterministic. This means it
+    /// varies by platform, version, and can even differ within the same
+    /// execution from one invocation to the next.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::Vec2;
+    /// #
+    /// let x = Vec2::new(2.0, 0.0);
+    /// let y = Vec2::new(0.0, 3.0);
+    ///
+    /// assert!(x.angle_from(y) < 0.0);
+    /// assert!(y.angle_from(x) > 0.0);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn angle_from(self, other: Self) -> T {
+        let outer_product = (other.x * self.y) - (other.y * self.x);
+        self.angle_between(other) * outer_product.signum()
+    }
+
     /// Rotates `self` by `angle` (in radians).
     ///
     /// This rotates `+X` to `+Y`.
@@ -3394,6 +3458,46 @@ mod tests {
             assert!(!Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.2, 1.0), 0.125));
             assert!(!Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.1, 0.8), 0.125));
             assert!(!Vec2::<T>::new(5.0, 1.0).abs_diff_eq(Vec2::new(4.5, 0.0), 0.125));
+        });
+    }
+
+    #[test]
+    fn test_angle_to() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+            let start = Vector::<2, T, A>::new(x, y);
+            let end = Vector::<2, T, A>::new(x * 1.3 + y, x + y * 0.1);
+            let angle = start.angle_to(end);
+
+            if let Some(start) = start.try_normalize()
+                && let Some(end) = end.try_normalize()
+            {
+                assert_float_eq!(
+                    start.rotate(angle),
+                    end,
+                    abs <= Vector::splat(1e-4) * x.abs().max(y.abs())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_angle_from() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y| {
+            let _: [T; 2] = [x, y];
+            let start = Vector::<2, T, A>::new(x, y);
+            let end = Vector::<2, T, A>::new(x * 1.3 + y, x + y * 0.1);
+            let angle = end.angle_from(start);
+
+            if let Some(start) = start.try_normalize()
+                && let Some(end) = end.try_normalize()
+            {
+                assert_float_eq!(
+                    start.rotate(angle),
+                    end,
+                    abs <= Vector::splat(1e-4) * x.abs().max(y.abs())
+                );
+            }
         });
     }
 

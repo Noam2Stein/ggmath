@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Functions:
   - `Vector::to_homogeneous`
   - `Vector::from_homogeneous`
+  - `Vector::angle_to`
+  - `Vector::angle_from`
   - `Matrix::translation`
   - `FloatExt::move_towards`
 

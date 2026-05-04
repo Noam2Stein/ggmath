@@ -940,6 +940,8 @@ macro_rules! impl_wide_float {
         // MISSING: rem_euclid
         // MISSING: exp2
         // MISSING: abs_diff_eq
+        // MISSING: angle_to
+        // MISSING: angle_from
         // MISSING: any_orthonormal_vector
         // MISSING: any_orthonormal_pair
     };
