@@ -1154,7 +1154,10 @@ where
     #[inline]
     #[must_use]
     pub fn angle_between(self, other: Self) -> T {
-        (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
+        (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
+            .max(T::NEG_ONE)
+            .min(T::ONE)
+            .acos()
     }
 
     /// Returns the vector projection of `self` onto `other`.

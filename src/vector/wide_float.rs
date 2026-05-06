@@ -684,7 +684,10 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn angle_between(self, other: Self) -> $Wide {
-                (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
+                (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
+                    .fast_max(-$Wide::ONE)
+                    .fast_min($Wide::ONE)
+                    .acos()
             }
 
             /// Returns the vector projection of `self` onto `other`.

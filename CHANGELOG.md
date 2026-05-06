@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Fixed `Vector::angle_between` edge case.
+
 - Made vector functions generic over `N`:
   - `any_orthogonal_vector`
   - `any_orthonormal_vector`
