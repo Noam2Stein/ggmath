@@ -1,6 +1,6 @@
 use crate::{
     Alignment, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, SupportedLength, Vector,
-    utils::specialize,
+    utils::{specialize, transmute_generic},
 };
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
@@ -1285,6 +1285,121 @@ where
         }
     }
 
+    /// Returns some vector that is orthogonal to `self`.
+    ///
+    /// The result is not necessarily normalized. For that use
+    /// [`any_orthonormal_vector`] instead.
+    ///
+    /// For 2D vectors this is equivalent to [`perp`].
+    ///
+    /// [`any_orthonormal_vector`]: Self::any_orthonormal_vector
+    /// [`perp`]: Vector::perp
+    #[inline]
+    #[must_use]
+    pub fn any_orthogonal_vector(self) -> Self {
+        match N {
+            2 => {
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
+
+                let result = self_.perp();
+
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
+            }
+            3 => {
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
+
+                let result = if self_.x.abs() > self_.y.abs() {
+                    Vector::<3, T, A>::new(-self_.z, T::ZERO, self_.x)
+                } else {
+                    Vector::<3, T, A>::new(T::ZERO, self_.z, -self_.y)
+                };
+
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
+            }
+            4 => {
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
+
+                let self_abs = self_.abs();
+                let result = if self_abs.x > self_abs.y {
+                    if self_abs.x > self_abs.z {
+                        Vector::<4, T, A>::new(-self_.w, T::ZERO, T::ZERO, self_.x)
+                    } else {
+                        Vector::<4, T, A>::new(T::ZERO, T::ZERO, -self_.w, self_.z)
+                    }
+                } else if self_abs.y > self_abs.z {
+                    Vector::<4, T, A>::new(T::ZERO, -self_.w, T::ZERO, self_.y)
+                } else {
+                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, -self_.w, self_.z)
+                };
+
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    /// Returns some unit vector that is orthogonal to `self`.
+    ///
+    /// `self` must normalized.
+    ///
+    /// For 2D vectors this is equivalent to [`perp`].
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `self` is not normalized.
+    ///
+    /// [`perp`]: Vector::perp
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn any_orthonormal_vector(self) -> Self {
+        #[cfg(assertions)]
+        assert!(self.is_normalized());
+
+        match N {
+            2 => {
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
+
+                let result = self_.perp();
+
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
+            }
+            3 => {
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
+
+                // Ported from https://github.com/bitshifter/glam-rs.
+                let sign = self_.z.signum();
+                let a = T::NEG_ONE / (sign + self_.z);
+                let b = self_.x * self_.y * a;
+                let result = Vector::<3, T, A>::new(b, sign + self_.y * self_.y * a, -self_.y);
+
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
+            }
+            4 => {
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
+
+                let result = self_.any_orthogonal_vector().normalize();
+
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
+            }
+            _ => unreachable!(),
+        }
+    }
+
     /// Returns `true` if the absolute difference of all elements between `self`
     /// and `other` is less than or equal to `max_abs_diff`.
     ///
@@ -1458,49 +1573,6 @@ where
             self.x * angle_sin + self.y * angle_cos,
             self.z,
         )
-    }
-
-    /// Returns some vector that is orthogonal to `self`.
-    ///
-    /// `self` must be finite and not a zero vector.
-    ///
-    /// The result is not necessarily normalized. For that use
-    /// [`any_orthonormal_vector`] instead.
-    ///
-    /// [`any_orthonormal_vector`]: Self::any_orthonormal_vector
-    #[inline]
-    #[must_use]
-    pub fn any_orthogonal_vector(self) -> Self {
-        if self.x.abs() > self.y.abs() {
-            // self.cross(Self::Y)
-            Self::new(-self.z, T::as_from(0.0), self.x)
-        } else {
-            // self.cross(Self::X)
-            Self::new(T::as_from(0.0), self.z, -self.y)
-        }
-    }
-
-    /// Returns some unit vector that is orthogonal to `self`.
-    ///
-    /// `self` must normalized.
-    ///
-    /// # Panics
-    ///
-    /// When assertions are enabled (see the crate documentation):
-    ///
-    /// Panics if `self` is not normalized.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn any_orthonormal_vector(self) -> Self {
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
-
-        // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
-        let sign = self.z.signum();
-        let a = T::as_from(-1.0) / (sign + self.z);
-        let b = self.x * self.y * a;
-        Self::new(b, sign + self.y * self.y * a, -self.y)
     }
 
     /// Returns two unit vectors that are orthogonal to `self` and to each
@@ -3450,6 +3522,80 @@ mod tests {
     }
 
     #[test]
+    fn test_any_orthogonal_vector() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x + y;
+
+            let vector = Vector::<2, T, A>::new(x, y);
+            assert_float_eq!(vector.any_orthogonal_vector(), vector.perp());
+            if vector != Vector::ZERO {
+                assert!(vector.any_orthogonal_vector() != Vector::ZERO);
+            }
+
+            let vector = Vector::<3, T, A>::new(x, y, z);
+            if vector.length().is_finite() {
+                assert_float_eq!(vector.any_orthogonal_vector().dot(vector), 0.0);
+                if vector != Vector::ZERO {
+                    assert!(vector.any_orthogonal_vector() != Vector::ZERO);
+                }
+            }
+
+            let vector = Vector::<4, T, A>::new(x, y, z, w);
+            if vector.length().is_finite() {
+                assert_float_eq!(vector.any_orthogonal_vector().dot(vector), 0.0);
+                if vector != Vector::ZERO {
+                    assert!(vector.any_orthogonal_vector() != Vector::ZERO);
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn test_any_orthonormal_vector() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x * 0.3 + y * 0.1;
+
+            let vector = Vector::<2, T, A>::new(x, y);
+            if let Some(vector) = vector.try_normalize() {
+                assert_float_eq!(vector.any_orthonormal_vector(), vector.perp());
+            }
+            if !vector.is_normalized() {
+                assert_assertions_panic!(vector.any_orthonormal_vector());
+            }
+
+            let vector = Vector::<3, T, A>::new(x, y, z);
+            if let Some(vector) = vector.try_normalize() {
+                assert_float_eq!(
+                    vector.any_orthonormal_vector().dot(vector),
+                    0.0,
+                    abs <= 1e-5 * x.abs().max(y.abs()).max(z.abs()),
+                    0.0 = -0.0
+                );
+                assert!(vector.any_orthonormal_vector().is_normalized());
+            }
+            if !vector.is_normalized() {
+                assert_assertions_panic!(vector.any_orthonormal_vector());
+            }
+
+            let vector = Vector::<4, T, A>::new(x, y, z, w);
+            if let Some(vector) = vector.try_normalize() {
+                assert_float_eq!(
+                    vector.any_orthonormal_vector().dot(vector),
+                    0.0,
+                    abs <= 1e-5 * x.abs().max(y.abs()).max(z.abs()),
+                    0.0 = -0.0
+                );
+                assert!(vector.any_orthonormal_vector().is_normalized());
+            }
+            if !vector.is_normalized() {
+                assert_assertions_panic!(vector.any_orthonormal_vector());
+            }
+        });
+    }
+
+    #[test]
     fn test_abs_diff_eq() {
         for_parameters!(|T: PrimitiveFloat| {
             assert!(Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.0, 1.0), 0.125));
@@ -3614,59 +3760,6 @@ mod tests {
                 abs <= Vector::splat(1e-5),
                 0.0 = -0.0
             );
-        });
-    }
-
-    #[test]
-    fn test_any_orthogonal_vector() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            if !T::is_finite(x * 2.0)
-                || !T::is_finite(y * 2.0)
-                || !T::is_finite(z * 2.0)
-                || x == 0.0 && y == 0.0 && z == 0.0
-            {
-                return;
-            }
-
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z)
-                    .any_orthogonal_vector()
-                    .dot(Vector::<3, T, A>::new(x, y, z)),
-                0.0
-            );
-        });
-    }
-
-    #[test]
-    fn test_any_orthonormal_vector() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            if !T::is_finite(x * 2.0)
-                || !T::is_finite(y * 2.0)
-                || !T::is_finite(z * 2.0)
-                || x == 0.0 && y == 0.0 && z == 0.0
-            {
-                return;
-            }
-
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z)
-                    .normalize()
-                    .any_orthonormal_vector()
-                    .dot(Vector::<3, T, A>::new(x, y, z)),
-                0.0,
-                abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
-                0.0 = -0.0
-            );
-            assert!(
-                Vector::<3, T, A>::new(x, y, z)
-                    .normalize()
-                    .any_orthonormal_vector()
-                    .is_normalized()
-            );
-
-            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).any_orthonormal_vector());
-            }
         });
     }
 

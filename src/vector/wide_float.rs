@@ -1,6 +1,6 @@
 use wide::{CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{Alignment, Length, SupportedLength, Vector};
+use crate::{Alignment, Length, SupportedLength, Vector, utils::transmute_generic};
 
 macro_rules! impl_wide_float {
     ($Wide:ident, $powf:ident) => {
@@ -816,6 +816,96 @@ macro_rules! impl_wide_float {
                     Self::ZERO,
                 )
             }
+
+            /// For each lane, returns some vector that is orthogonal to `self`.
+            ///
+            /// The result is not necessarily normalized.
+            ///
+            /// For 2D vectors this is equivalent to [`perp`].
+            ///
+            /// [`perp`]: Vector::perp
+            #[inline]
+            #[must_use]
+            pub fn any_orthogonal_vector(self) -> Self {
+                match N {
+                    2 => {
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
+                        };
+
+                        let result = self_.perp();
+
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    3 => {
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
+                        };
+
+                        let result =
+                            Vector::<3, $Wide, A>::splat(self_.x.abs().simd_gt(self_.y.abs()))
+                                .blend(
+                                    Vector::<3, $Wide, A>::new(-self_.z, $Wide::ZERO, self_.x),
+                                    Vector::<3, $Wide, A>::new($Wide::ZERO, self_.z, -self_.y),
+                                );
+
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    4 => {
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
+                        };
+
+                        let self_abs = self_.abs();
+                        let result = Vector::<4, $Wide, A>::splat(self_abs.x.simd_gt(self_abs.y))
+                            .blend(
+                                Vector::<4, $Wide, A>::splat(self_abs.x.simd_gt(self_abs.z)).blend(
+                                    Vector::<4, $Wide, A>::new(
+                                        -self_.w,
+                                        $Wide::ZERO,
+                                        $Wide::ZERO,
+                                        self_.x,
+                                    ),
+                                    Vector::<4, $Wide, A>::new(
+                                        $Wide::ZERO,
+                                        $Wide::ZERO,
+                                        -self_.w,
+                                        self_.z,
+                                    ),
+                                ),
+                                Vector::<4, $Wide, A>::splat(self_abs.y.simd_gt(self_abs.z)).blend(
+                                    Vector::<4, $Wide, A>::new(
+                                        $Wide::ZERO,
+                                        -self_.w,
+                                        $Wide::ZERO,
+                                        self_.y,
+                                    ),
+                                    Vector::<4, $Wide, A>::new(
+                                        $Wide::ZERO,
+                                        $Wide::ZERO,
+                                        -self_.w,
+                                        self_.z,
+                                    ),
+                                ),
+                            );
+
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
         }
 
         impl<A: Alignment> Vector<2, $Wide, A> {
@@ -908,25 +998,6 @@ macro_rules! impl_wide_float {
                     self.x * angle_cos - self.y * angle_sin,
                     self.x * angle_sin + self.y * angle_cos,
                     self.z,
-                )
-            }
-
-            /// For each lane, returns some vector that is orthogonal to `self`.
-            ///
-            /// `self` must be finite and not a zero vector.
-            ///
-            /// The result is not necessarily normalized. For that use
-            /// [`any_orthonormal_vector`] instead.
-            ///
-            /// [`any_orthonormal_vector`]: Self::any_orthonormal_vector
-            #[inline]
-            #[must_use]
-            pub fn any_orthogonal_vector(self) -> Self {
-                Self::splat(self.x.abs().simd_gt(self.y.abs())).blend(
-                    // self.cross(Self::Y)
-                    Self::new(-self.z, $Wide::ZERO, self.x),
-                    // self.cross(Self::X)
-                    Self::new($Wide::ZERO, self.z, -self.y),
                 )
             }
         }
@@ -2567,6 +2638,32 @@ mod tests {
     }
 
     #[test]
+    fn test_any_orthogonal_vector() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x + y;
+
+            let vector = Vector::<2, Wide, A>::new(x, y);
+            assert_float_eq!(
+                vector.any_orthogonal_vector(),
+                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
+            );
+
+            let vector = Vector::<3, Wide, A>::new(x, y, z);
+            assert_float_eq!(
+                vector.any_orthogonal_vector(),
+                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
+            );
+
+            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
+            assert_float_eq!(
+                vector.any_orthogonal_vector(),
+                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
+            );
+        });
+    }
+
+    #[test]
     fn test_rotate() {
         for_parameters!(|Wide: WideFloat, A, x, y, z| {
             let _: [Wide; 3] = [x, y, z];
@@ -2658,19 +2755,6 @@ mod tests {
                 Vector::from_lane_fn(|lane| vector.lane(lane).rotate_z(w.to_array()[lane])),
                 r2nd <= Vector::splat(Wide::splat(1e-5)) * w.abs(),
                 0.0 = -0.0
-            );
-        });
-    }
-
-    #[test]
-    fn test_any_orthogonal_vector() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.any_orthogonal_vector(),
-                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
             );
         });
     }
