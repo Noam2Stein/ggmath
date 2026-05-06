@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Vector::wedge`
   - `Vector::to_homogeneous`
   - `Vector::from_homogeneous`
+  - `Vector::slerp`
+  - `Vector::rotate_towards`
   - `Vector::angle_to`
   - `Vector::angle_from`
   - `Matrix::translation`

@@ -5,6 +5,9 @@ use libm::Libm;
 /// contexts.
 pub(crate) trait PrimitiveFloatFns: Sized {
     const EPSILON: Self;
+    const PI: Self;
+    #[cfg(test)]
+    const TAU: Self;
 
     #[expect(clippy::wrong_self_convention)]
     fn is_nan(self) -> bool;
@@ -143,6 +146,9 @@ macro_rules! impl_float {
     ($T:ident) => {
         impl PrimitiveFloatFns for $T {
             const EPSILON: Self = Self::EPSILON;
+            const PI: Self = core::$T::consts::PI;
+            #[cfg(test)]
+            const TAU: Self = core::$T::consts::TAU;
 
             #[inline(always)]
             fn is_nan(self) -> bool {

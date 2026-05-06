@@ -1013,6 +1013,8 @@ macro_rules! impl_wide_float {
         // MISSING: div_euclid
         // MISSING: rem_euclid
         // MISSING: exp2
+        // MISSING: slerp
+        // MISSING: rotate_towards
         // MISSING: abs_diff_eq
         // MISSING: angle_to
         // MISSING: angle_from

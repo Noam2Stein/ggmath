@@ -1,5 +1,6 @@
 use crate::{
-    Alignment, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, SupportedLength, Vector,
+    Alignment, FloatExt, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, Quaternion,
+    SupportedLength, Vector,
     utils::{specialize, transmute_generic},
 };
 
@@ -819,6 +820,247 @@ where
         }
     }
 
+    /// Computes the spherical linear interpolation between `self` and `other`
+    /// based on the value `t`.
+    ///
+    /// When `t` is `0`, the result is `self`.  When `t` is `1`, the result
+    /// is `other`. When `t` is outside of the range `0..=1`, the result is
+    /// spherically linearly extrapolated.
+    ///
+    /// The vectors do not need to be unit vectors but they do need to be
+    /// non-zero.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn slerp(self, other: Self, t: T) -> Self {
+        let self_length = self.length();
+        let other_length = other.length();
+
+        #[cfg(assertions)]
+        assert!(self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7));
+
+        match N {
+            2 => {
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                let other = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(other) };
+
+                let self_normalized = self_ / self_length;
+                let angle_cos = self_normalized.dot(other) / other_length;
+                let angle = angle_cos.acos() * self_normalized.wedge(other).signum();
+
+                let result_length = self_length.lerp(other_length, t);
+                let result = self_normalized.rotate(angle * t) * result_length;
+
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
+            }
+            3 => {
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                let other = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(other) };
+
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let angle_cos = self_.dot(other) / (self_length * other_length);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+                let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+                    let angle = angle_cos.acos();
+                    let angle_sin = angle.sin();
+                    let self_factor = (angle * (T::ONE - t)).sin();
+                    let other_factor = (angle * t).sin();
+
+                    let result_length = self_length.lerp(other_length, t);
+
+                    (self_ * (result_length / self_length) * self_factor
+                        + other * (result_length / other_length) * other_factor)
+                        / angle_sin
+                } else if angle_cos.is_sign_negative() {
+                    // Vectors are almost parallel in opposing directions.
+
+                    let axis = self_.any_orthogonal_vector().normalize();
+                    let rotation = Quaternion::<T, A>::from_axis_angle(axis, t * T::PI);
+
+                    let result_length = self_length.lerp(other_length, t);
+                    rotation * self_ * (result_length / self_length)
+                } else {
+                    // Vectors are almost parallel in the same direction.
+                    self_.lerp(other, t)
+                };
+
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
+            }
+            4 => {
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                let other = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(other) };
+
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let angle_cos = self_.dot(other) / (self_length * other_length);
+
+                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                // calculation breaks down.
+                let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+                    let angle = angle_cos.acos();
+                    let angle_sin = angle.sin();
+                    let t1 = (angle * (T::ONE - t)).sin();
+                    let t2 = (angle * t).sin();
+
+                    let result_length = self_length.lerp(other_length, t);
+
+                    (self_ * (result_length / self_length) * t1
+                        + other * (result_length / other_length) * t2)
+                        / angle_sin
+                } else if angle_cos.is_sign_negative() {
+                    // Vectors are almost parallel in opposing directions.
+
+                    let axis = self_.any_orthogonal_vector().normalize();
+                    let (sin, cos) = (t * T::PI).sin_cos();
+
+                    let result_dir = self_ * cos + axis * sin;
+                    let result_length = self_length.lerp(other_length, t);
+                    result_dir * (result_length / result_dir.length())
+                } else {
+                    // Vectors are almost parallel in the same direction.
+                    self_.lerp(other, t)
+                };
+
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    /// Rotates `self` towards `target` by at most `max_angle` (in radians).
+    ///
+    /// When `max_angle` is `0`, the result is `self`. When `max_angle` is equal
+    /// to or greater than `self.angle_between(target)`, the result is `target`.
+    /// When `max_angle` is negative, this rotates towards `-target`.
+    ///
+    /// The vectors do not need to be unit vectors but `target` does need to be
+    /// non-zero.
+    ///
+    /// # Panics
+    ///
+    /// When assertions are enabled (see the crate documentation):
+    ///
+    /// Panics if `target` is a zero vector.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
+        let self_length = self.length();
+        let target_length = target.length();
+
+        #[cfg(assertions)]
+        assert!(target_length >= T::as_from(1e-7));
+
+        if self == Self::ZERO {
+            return self;
+        }
+
+        match N {
+            2 => {
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                let target =
+                    unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(target) };
+
+                let target_angle = (self_.dot(target) / self_length / target_length)
+                    .max(T::NEG_ONE)
+                    .min(T::ONE)
+                    .acos();
+                let angle_sign = self_.wedge(target).signum();
+                let angle = max_angle.clamp(target_angle - T::PI, target_angle) * angle_sign;
+
+                let result = self_.rotate(angle);
+
+                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
+                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
+            }
+            3 => {
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                let target =
+                    unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(target) };
+
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let target_angle = (self_.dot(target) / (self_length * target_length))
+                    .max(T::NEG_ONE)
+                    .min(T::ONE)
+                    .acos();
+                let angle = max_angle.clamp(target_angle - T::PI, target_angle);
+                let axis = self_
+                    .cross(target)
+                    .try_normalize()
+                    .unwrap_or_else(|| self_.any_orthonormal_vector());
+
+                let result = Quaternion::<T, A>::from_axis_angle(axis, angle) * self_;
+
+                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
+                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
+            }
+            4 => {
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                let target =
+                    unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(target) };
+
+                let target_angle_cos = self_.dot(target) / (self_length * target_length);
+                let target_angle = target_angle_cos.max(T::NEG_ONE).min(T::ONE).acos();
+                let angle = max_angle.clamp(target_angle - T::PI, target_angle);
+
+                if angle == T::ZERO {
+                    return self;
+                }
+
+                // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+                // normal calculation breaks down.
+                let result = if target_angle_cos.abs() <= T::as_from(1.0 - 3e-7) {
+                    let self_factor = (target_angle - angle).sin();
+                    let target_factor = angle.sin();
+
+                    (self_ * self_factor + target * (self_length / target_length) * target_factor)
+                        .normalize()
+                        * self_length
+                } else if target_angle_cos.is_sign_negative() {
+                    // Vectors are almost parallel in opposing directions.
+
+                    let axis = self_.any_orthogonal_vector().normalize();
+                    let (sin, cos) = angle.sin_cos();
+
+                    let result_dir = self_ * cos + axis * sin;
+                    result_dir * (self_length / result_dir.length())
+                } else {
+                    // Vectors are almost parallel in the same direction.
+                    target / target_length * self_length
+                };
+
+                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
+            }
+            _ => unreachable!(),
+        }
+    }
+
     /// Returns the length/magnitude of `self`.
     ///
     /// # Examples
@@ -1614,8 +1856,10 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Mask, Vec2, Vector,
-        utils::{assert_assertions_panic, assert_float_eq, float_eq, for_parameters},
+        FloatExt, Mask, Vec2, Vector,
+        utils::{
+            PrimitiveFloatFns, assert_assertions_panic, assert_float_eq, float_eq, for_parameters,
+        },
     };
 
     #[test]
@@ -2698,6 +2942,397 @@ mod tests {
                         .max(0.0),
                     abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
                     0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_slerp() {
+        for_parameters!(|T: PrimitiveFloat, A, t| {
+            let _: T = t;
+            let t = (t + 5.0) % 10.0 - 5.0;
+            let t = if t.is_finite() { t } else { 0.0 };
+
+            for (vector, other) in [
+                (
+                    Vector::<2, T, A>::new(1.0, 0.3),
+                    Vector::<2, T, A>::new(-1.5, 3.3),
+                ),
+                (
+                    Vector::<2, T, A>::new(-10.0, 5.3),
+                    Vector::<2, T, A>::new(1.5, 30.3),
+                ),
+                (
+                    Vector::<2, T, A>::new(1.0, 0.03),
+                    Vector::<2, T, A>::new(1.0, 0.0),
+                ),
+                (
+                    Vector::<2, T, A>::new(1.0, 0.03),
+                    Vector::<2, T, A>::new(20.0, 0.0),
+                ),
+                (
+                    Vector::<2, T, A>::new(1.0, 0.03),
+                    Vector::<2, T, A>::new(-1.0, 0.0),
+                ),
+                (
+                    Vector::<2, T, A>::new(1.0, 0.03),
+                    Vector::<2, T, A>::new(-20.0, 0.0),
+                ),
+            ] {
+                assert_float_eq!(
+                    vector.slerp(other, t).length(),
+                    vector.length().lerp(other.length(), t).abs(),
+                    abs <= vector.slerp(other, t).length() * 1e-2 + 1e-2
+                );
+                assert_float_eq!(
+                    vector
+                        .normalize()
+                        .slerp(other.normalize(), t)
+                        .angle_between(vector),
+                    T::PI - (vector.angle_between(other) * t.abs() % T::TAU - T::PI).abs(),
+                    abs <= 1e-2
+                );
+                assert_float_eq!(
+                    vector
+                        .normalize()
+                        .slerp(other.normalize(), t)
+                        .angle_between(other),
+                    T::PI - (vector.angle_between(other) * (1.0 - t).abs() % T::TAU - T::PI).abs(),
+                    abs <= 1e-2
+                );
+            }
+            assert_assertions_panic!(Vector::<2, T, A>::ZERO.slerp(Vector::ONE, t));
+            assert_assertions_panic!(Vector::<2, T, A>::ONE.slerp(Vector::ZERO, t));
+
+            for (vector, other) in [
+                (
+                    Vector::<3, T, A>::new(1.0, 0.3, 1.4),
+                    Vector::<3, T, A>::new(-1.5, 3.3, -0.3),
+                ),
+                (
+                    Vector::<3, T, A>::new(-10.0, 5.3, 3.0),
+                    Vector::<3, T, A>::new(1.5, 30.3, 1.3),
+                ),
+                (
+                    Vector::<3, T, A>::new(1.0, 0.03, 3.0),
+                    Vector::<3, T, A>::new(1.0, 0.0, 3.0001),
+                ),
+                (
+                    Vector::<3, T, A>::new(1.0, 0.03, 500.0),
+                    Vector::<3, T, A>::new(10.0, 0.0, 499.9),
+                ),
+                (
+                    Vector::<3, T, A>::new(1.0, 0.03, 3.0),
+                    Vector::<3, T, A>::new(1.0, 0.0, -3.0001),
+                ),
+                (
+                    Vector::<3, T, A>::new(1.0, 0.03, 500.0),
+                    Vector::<3, T, A>::new(1.0, 0.0, -499.9),
+                ),
+            ] {
+                assert_float_eq!(
+                    vector.slerp(other, t).length(),
+                    vector.length().lerp(other.length(), t).abs(),
+                    abs <= vector.slerp(other, t).length() * 1e-2 + 1e-2
+                );
+                assert_float_eq!(
+                    vector
+                        .normalize()
+                        .slerp(other.normalize(), t)
+                        .angle_between(vector),
+                    T::PI - (vector.angle_between(other) * t.abs() % T::TAU - T::PI).abs(),
+                    abs <= 1e-2
+                );
+                assert_float_eq!(
+                    vector
+                        .normalize()
+                        .slerp(other.normalize(), t)
+                        .angle_between(other),
+                    T::PI - (vector.angle_between(other) * (1.0 - t).abs() % T::TAU - T::PI).abs(),
+                    abs <= 1e-2
+                );
+            }
+            assert_assertions_panic!(Vector::<3, T, A>::ZERO.slerp(Vector::ONE, t));
+            assert_assertions_panic!(Vector::<3, T, A>::ONE.slerp(Vector::ZERO, t));
+
+            for (vector, other) in [
+                (
+                    Vector::<4, T, A>::new(1.0, 0.3, 1.4, -2.0),
+                    Vector::<4, T, A>::new(-1.5, 3.3, -0.3, -0.1),
+                ),
+                (
+                    Vector::<4, T, A>::new(-10.0, 5.3, 3.0, 5.0),
+                    Vector::<4, T, A>::new(1.5, 30.3, 1.3, -1.4),
+                ),
+                (
+                    Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
+                    Vector::<4, T, A>::new(1.0, 0.0, 3.0001, 4.2),
+                ),
+                (
+                    Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
+                    Vector::<4, T, A>::new(20.0, 0.0, 499.9, 2.0),
+                ),
+                (
+                    Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
+                    Vector::<4, T, A>::new(1.0, 0.0, -3.0001, 4.2),
+                ),
+                (
+                    Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
+                    Vector::<4, T, A>::new(20.0, 0.0, -499.9, 2.0),
+                ),
+            ] {
+                assert_float_eq!(
+                    vector.slerp(other, t).length(),
+                    vector.length().lerp(other.length(), t).abs(),
+                    abs <= vector.slerp(other, t).length() * 1e-2 + 1e-2
+                );
+                assert_float_eq!(
+                    vector
+                        .normalize()
+                        .slerp(other.normalize(), t)
+                        .angle_between(vector),
+                    T::PI - (vector.angle_between(other) * t.abs() % T::TAU - T::PI).abs(),
+                    abs <= 1e-2
+                );
+                assert_float_eq!(
+                    vector
+                        .normalize()
+                        .slerp(other.normalize(), t)
+                        .angle_between(other),
+                    T::PI - (vector.angle_between(other) * (1.0 - t).abs() % T::TAU - T::PI).abs(),
+                    abs <= 1e-2
+                );
+            }
+            assert_assertions_panic!(Vector::<4, T, A>::ZERO.slerp(Vector::ONE, t));
+            assert_assertions_panic!(Vector::<4, T, A>::ONE.slerp(Vector::ZERO, t));
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards() {
+        for_parameters!(|T: PrimitiveFloat, A| {
+            for max_angle in [0.0, 1.0, -1.0, 1.5, -1.5, 4.0, -4.0, 10.0, -1.0] {
+                for (vector, target) in [
+                    (
+                        Vector::<2, T, A>::new(1.0, 0.3),
+                        Vector::<2, T, A>::new(-1.5, 3.3),
+                    ),
+                    (
+                        Vector::<2, T, A>::new(-10.0, 5.3),
+                        Vector::<2, T, A>::new(1.5, 30.3),
+                    ),
+                    (
+                        Vector::<2, T, A>::new(1.0, 0.03),
+                        Vector::<2, T, A>::new(1.0, 0.0),
+                    ),
+                    (
+                        Vector::<2, T, A>::new(1.0, 0.03),
+                        Vector::<2, T, A>::new(20.0, 0.0),
+                    ),
+                    (
+                        Vector::<2, T, A>::new(1.0, 0.03),
+                        Vector::<2, T, A>::new(-1.0, 0.0),
+                    ),
+                    (
+                        Vector::<2, T, A>::new(1.0, 0.03),
+                        Vector::<2, T, A>::new(-20.0, 0.0),
+                    ),
+                ] {
+                    assert_float_eq!(
+                        vector.rotate_towards(target, max_angle).length(),
+                        vector.length(),
+                        r2nd <= 1e-2
+                    );
+                    if max_angle >= vector.angle_between(target) {
+                        assert_float_eq!(
+                            vector.rotate_towards(target, max_angle),
+                            target.normalize() * vector.length(),
+                            abs <= Vector::splat(1e-2)
+                        );
+                    } else if max_angle <= vector.angle_between(target) - T::PI {
+                        assert_float_eq!(
+                            vector.rotate_towards(target, max_angle),
+                            -target.normalize() * vector.length(),
+                            abs <= Vector::splat(1e-2)
+                        );
+                    } else {
+                        assert_float_eq!(
+                            vector
+                                .rotate_towards(target, max_angle)
+                                .angle_between(vector),
+                            max_angle.abs(),
+                            abs <= 1e-2
+                        );
+                        assert_float_eq!(
+                            vector
+                                .rotate_towards(target, max_angle)
+                                .angle_between(target),
+                            vector.angle_between(target) - max_angle,
+                            abs <= 1e-2
+                        );
+                    }
+                    assert_float_eq!(
+                        vector.rotate_towards(target, -max_angle),
+                        vector.rotate_towards(-target, max_angle),
+                        abs <= Vector::splat(1e-2)
+                    );
+
+                    assert_float_eq!(
+                        Vector::<2, T, A>::ZERO.rotate_towards(target, max_angle),
+                        Vector::ZERO
+                    );
+                }
+                assert_assertions_panic!(
+                    Vector::<2, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle)
+                );
+
+                for (vector, target) in [
+                    (
+                        Vector::<3, T, A>::new(1.0, 0.3, 1.4),
+                        Vector::<3, T, A>::new(-1.5, 3.3, -0.3),
+                    ),
+                    (
+                        Vector::<3, T, A>::new(-10.0, 5.3, 3.0),
+                        Vector::<3, T, A>::new(1.5, 30.3, 1.3),
+                    ),
+                    (
+                        Vector::<3, T, A>::new(1.0, 0.03, 3.0),
+                        Vector::<3, T, A>::new(1.0, 0.0, 3.0001),
+                    ),
+                    (
+                        Vector::<3, T, A>::new(1.0, 0.03, 500.0),
+                        Vector::<3, T, A>::new(10.0, 0.0, 499.9),
+                    ),
+                    (
+                        Vector::<3, T, A>::new(1.0, 0.03, 3.0),
+                        Vector::<3, T, A>::new(1.0, 0.0, -3.0001),
+                    ),
+                    (
+                        Vector::<3, T, A>::new(1.0, 0.03, 500.0),
+                        Vector::<3, T, A>::new(1.0, 0.0, -499.9),
+                    ),
+                ] {
+                    assert_float_eq!(
+                        vector.rotate_towards(target, max_angle).length(),
+                        vector.length(),
+                        r2nd <= 1e-2
+                    );
+                    if max_angle >= vector.angle_between(target) {
+                        assert_float_eq!(
+                            vector.rotate_towards(target, max_angle),
+                            target.normalize() * vector.length(),
+                            abs <= Vector::splat(1e-2)
+                        );
+                    } else if max_angle <= vector.angle_between(target) - T::PI {
+                        assert_float_eq!(
+                            vector.rotate_towards(target, max_angle),
+                            -target.normalize() * vector.length(),
+                            abs <= Vector::splat(1e-2)
+                        );
+                    } else {
+                        assert_float_eq!(
+                            vector
+                                .rotate_towards(target, max_angle)
+                                .angle_between(vector),
+                            max_angle.abs(),
+                            abs <= 1e-2
+                        );
+                        assert_float_eq!(
+                            vector
+                                .rotate_towards(target, max_angle)
+                                .angle_between(target),
+                            vector.angle_between(target) - max_angle,
+                            abs <= 1e-2
+                        );
+                    }
+                    assert_float_eq!(
+                        vector.rotate_towards(target, -max_angle),
+                        vector.rotate_towards(-target, max_angle),
+                        abs <= Vector::splat(1e-2)
+                    );
+
+                    assert_float_eq!(
+                        Vector::<3, T, A>::ZERO.rotate_towards(target, max_angle),
+                        Vector::ZERO
+                    );
+                }
+                assert_assertions_panic!(
+                    Vector::<3, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle)
+                );
+
+                for (vector, target) in [
+                    (
+                        Vector::<4, T, A>::new(1.0, 0.3, 1.4, -2.0),
+                        Vector::<4, T, A>::new(-1.5, 3.3, -0.3, -0.1),
+                    ),
+                    (
+                        Vector::<4, T, A>::new(-10.0, 5.3, 3.0, 5.0),
+                        Vector::<4, T, A>::new(1.5, 30.3, 1.3, -1.4),
+                    ),
+                    (
+                        Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
+                        Vector::<4, T, A>::new(1.0, 0.0, 3.0001, 4.2),
+                    ),
+                    (
+                        Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
+                        Vector::<4, T, A>::new(20.0, 0.0, 499.9, 2.0),
+                    ),
+                    (
+                        Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
+                        Vector::<4, T, A>::new(1.0, 0.0, -3.0001, 4.2),
+                    ),
+                    (
+                        Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
+                        Vector::<4, T, A>::new(20.0, 0.0, -499.9, 2.0),
+                    ),
+                ] {
+                    assert_float_eq!(
+                        vector.rotate_towards(target, max_angle).length(),
+                        vector.length(),
+                        r2nd <= 1e-2
+                    );
+                    if max_angle >= vector.angle_between(target) {
+                        assert_float_eq!(
+                            vector.rotate_towards(target, max_angle),
+                            target.normalize() * vector.length(),
+                            abs <= Vector::splat(1e-2)
+                        );
+                    } else if max_angle <= vector.angle_between(target) - T::PI {
+                        assert_float_eq!(
+                            vector.rotate_towards(target, max_angle),
+                            -target.normalize() * vector.length(),
+                            abs <= Vector::splat(1e-2)
+                        );
+                    } else {
+                        assert_float_eq!(
+                            vector
+                                .rotate_towards(target, max_angle)
+                                .angle_between(vector),
+                            max_angle.abs(),
+                            abs <= 1e-2
+                        );
+                        assert_float_eq!(
+                            vector
+                                .rotate_towards(target, max_angle)
+                                .angle_between(target),
+                            vector.angle_between(target) - max_angle,
+                            abs <= 1e-2
+                        );
+                    }
+                    assert_float_eq!(
+                        vector.rotate_towards(target, -max_angle),
+                        vector.rotate_towards(-target, max_angle),
+                        abs <= Vector::splat(1e-2)
+                    );
+
+                    assert_float_eq!(
+                        Vector::<4, T, A>::ZERO.rotate_towards(target, max_angle),
+                        Vector::ZERO
+                    );
+                }
+                assert_assertions_panic!(
+                    Vector::<4, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle)
                 );
             }
         });
