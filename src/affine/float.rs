@@ -68,7 +68,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant is `0`.
     #[inline]
@@ -179,7 +179,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant of `self` is zero.
     #[inline]
@@ -188,8 +188,7 @@ where
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
         let determinant = self.submatrix.determinant();
 
-        #[cfg(assertions)]
-        assert!(determinant != T::ZERO);
+        debug_assert!(determinant != T::ZERO);
 
         let scale = Vector::<2, T, A>::new(
             self.submatrix.x_axis.length() * determinant.signum(),
@@ -240,7 +239,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the quaternion is not normalized.
     #[inline]
@@ -257,7 +256,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `axis` is not normalized.
     #[inline]
@@ -280,7 +279,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
     #[inline]
@@ -295,7 +294,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
     #[inline]
@@ -313,7 +312,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
     #[inline]
@@ -337,17 +336,15 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        #[cfg(assertions)]
-        assert!(dir.is_normalized());
-        #[cfg(assertions)]
-        assert!(up.is_normalized());
+        debug_assert!(dir.is_normalized());
+        debug_assert!(up.is_normalized());
 
         let forward = dir;
         let right = up.cross(forward).normalize();
@@ -368,17 +365,15 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        #[cfg(assertions)]
-        assert!(dir.is_normalized());
-        #[cfg(assertions)]
-        assert!(up.is_normalized());
+        debug_assert!(dir.is_normalized());
+        debug_assert!(up.is_normalized());
 
         let forward = dir;
         let right = forward.cross(up).normalize();
@@ -399,7 +394,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     #[inline]
@@ -416,7 +411,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     #[inline]
@@ -434,7 +429,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any column of `self`, excluding the translation column, is not
     /// normalized.
@@ -452,7 +447,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant of `self` is zero.
     #[inline]
@@ -469,7 +464,7 @@ where
 mod tests {
     use crate::{
         Affine, Affine2, Matrix, Quaternion, Vec2, Vector,
-        utils::{assert_assertions_panic, assert_float_eq, assert_panic_float_eq, for_parameters},
+        utils::{assert_debug_panic, assert_float_eq, assert_panic_float_eq, for_parameters},
     };
 
     #[test]
@@ -568,7 +563,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(affine.inverse());
+                assert_debug_panic!(affine.inverse());
             }
 
             let affine =
@@ -592,7 +587,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(affine.inverse());
+                assert_debug_panic!(affine.inverse());
             }
         });
     }
@@ -609,7 +604,7 @@ mod tests {
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse(), inverse);
             } else {
-                assert_assertions_panic!(affine.inverse());
+                assert_debug_panic!(affine.inverse());
             }
 
             let affine =
@@ -617,7 +612,7 @@ mod tests {
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse(), inverse);
             } else {
-                assert_assertions_panic!(affine.inverse());
+                assert_debug_panic!(affine.inverse());
             }
         });
     }
@@ -836,7 +831,7 @@ mod tests {
                     affine.to_matrix().to_scale_angle_translation()
                 );
             } else {
-                assert_assertions_panic!(affine.to_scale_angle_translation());
+                assert_debug_panic!(affine.to_scale_angle_translation());
             }
         });
     }
@@ -891,7 +886,7 @@ mod tests {
 
             let invalid_quat = Quaternion::from_xyzw(x, y, z, w);
             if !invalid_quat.to_vector().is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::from_quat(invalid_quat));
+                assert_debug_panic!(Affine::<3, T, A>::from_quat(invalid_quat));
             }
         });
     }
@@ -912,7 +907,7 @@ mod tests {
 
             let invalid_axis = Vector::<3, T, A>::new(x, y, z);
             if !invalid_axis.is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::from_axis_angle(invalid_axis, w));
+                assert_debug_panic!(Affine::<3, T, A>::from_axis_angle(invalid_axis, w));
             }
         });
     }
@@ -955,7 +950,7 @@ mod tests {
 
             let invalid_rotation = Quaternion::from_xyzw(x, y, z, w);
             if !invalid_rotation.to_vector().is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::from_scale_rotation(
+                assert_debug_panic!(Affine::<3, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
                 ));
@@ -992,7 +987,7 @@ mod tests {
 
             let invalid_rotation = Quaternion::from_xyzw(x, y, z, w);
             if !invalid_rotation.to_vector().is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::from_rotation_translation(
+                assert_debug_panic!(Affine::<3, T, A>::from_rotation_translation(
                     invalid_rotation,
                     translation
                 ));
@@ -1035,7 +1030,7 @@ mod tests {
 
             let invalid_rotation = Quaternion::from_xyzw(x, y, z, w);
             if !invalid_rotation.to_vector().is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::from_scale_rotation_translation(
+                assert_debug_panic!(Affine::<3, T, A>::from_scale_rotation_translation(
                     scale,
                     invalid_rotation,
                     translation
@@ -1061,8 +1056,8 @@ mod tests {
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
             if !xyz.is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::look_to_lh(eye, xyz, up));
-                assert_assertions_panic!(Affine::<3, T, A>::look_to_lh(eye, dir, xyz));
+                assert_debug_panic!(Affine::<3, T, A>::look_to_lh(eye, xyz, up));
+                assert_debug_panic!(Affine::<3, T, A>::look_to_lh(eye, dir, xyz));
             }
         })
     }
@@ -1084,8 +1079,8 @@ mod tests {
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
             if !xyz.is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::look_to_rh(eye, xyz, up));
-                assert_assertions_panic!(Affine::<3, T, A>::look_to_rh(eye, dir, xyz));
+                assert_debug_panic!(Affine::<3, T, A>::look_to_rh(eye, xyz, up));
+                assert_debug_panic!(Affine::<3, T, A>::look_to_rh(eye, dir, xyz));
             }
         })
     }
@@ -1106,7 +1101,7 @@ mod tests {
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
             if !xyz.is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::look_at_lh(eye, center, xyz));
+                assert_debug_panic!(Affine::<3, T, A>::look_at_lh(eye, center, xyz));
             }
         })
     }
@@ -1127,7 +1122,7 @@ mod tests {
 
             let xyz = Vector::<3, T, A>::new(x, y, z);
             if !xyz.is_normalized() {
-                assert_assertions_panic!(Affine::<3, T, A>::look_at_rh(eye, center, xyz));
+                assert_debug_panic!(Affine::<3, T, A>::look_at_rh(eye, center, xyz));
             }
         })
     }

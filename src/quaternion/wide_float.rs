@@ -45,15 +45,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `axis` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(axis.is_normalized().all());
+                debug_assert!(axis.is_normalized().all());
 
                 let (sin, cos) = (angle * $Wide::HALF).sin_cos();
                 let xyz = axis * sin;
@@ -91,7 +90,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `from` or `to` are not normalized.
             #[inline]
@@ -103,10 +102,8 @@ macro_rules! impl_wide_float {
             ) -> Self {
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
-                #[cfg(assertions)]
-                assert!(from.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(to.is_normalized().all());
+                debug_assert!(from.is_normalized().all());
+                debug_assert!(to.is_normalized().all());
 
                 let almost_one = $Wide::splat(const { 1.0 - 2.0 * $T::EPSILON });
 
@@ -188,7 +185,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `matrix.determinant()` is not `1`.
             #[inline]
@@ -197,8 +194,7 @@ macro_rules! impl_wide_float {
                 // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
                 // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
 
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     (matrix.determinant() - $Wide::ONE)
                         .abs()
                         .simd_le($Wide::splat(1e-4))
@@ -270,7 +266,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
@@ -288,7 +284,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
@@ -306,7 +302,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             #[inline]
@@ -328,7 +324,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             #[inline]
@@ -398,15 +394,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panic if for any lane `self` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn inverse(self) -> Self {
-                #[cfg(assertions)]
-                assert!(self.is_normalized().all());
+                debug_assert!(self.is_normalized().all());
 
                 self.conjugate()
             }
@@ -418,15 +413,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `self` or `other` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn angle_between(self, other: Self) -> $Wide {
-                #[cfg(assertions)]
-                assert!((self.is_normalized() & other.is_normalized()).all());
+                debug_assert!((self.is_normalized() & other.is_normalized()).all());
 
                 self.dot(other).abs().acos() * $Wide::splat(2.0)
             }
@@ -439,17 +433,15 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `self` or `other` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn lerp(self, other: Self, t: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(self.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(other.is_normalized().all());
+                debug_assert!(self.is_normalized().all());
+                debug_assert!(other.is_normalized().all());
 
                 let other = Self(other.0 ^ (self.dot(other) & $Wide::splat(-0.0)));
 
@@ -464,7 +456,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `self` or `other` are not normalized.
             #[inline]
@@ -474,10 +466,8 @@ macro_rules! impl_wide_float {
                 // Ported from https://github.com/bitshifter/glam-rs
                 // See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
 
-                #[cfg(assertions)]
-                assert!(self.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(other.is_normalized().all());
+                debug_assert!(self.is_normalized().all());
+                debug_assert!(other.is_normalized().all());
 
                 // Note that a rotation can be represented by two quaternions:
                 // `q` and `-q`. The slerp path between `q` and `other` will be
@@ -525,7 +515,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `self` is a zero quaternion, or if the
             /// result is non finite or zero.
@@ -533,16 +523,14 @@ macro_rules! impl_wide_float {
             #[must_use]
             #[track_caller]
             pub fn normalize(self) -> Self {
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self != Self::from_vector(Vector::ZERO),
                     "cannot normalize a zero quaternion"
                 );
 
                 let result = self / self.length();
 
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     (result.is_finite() & result.simd_ne(&Self::from_vector(Vector::ZERO))).all(),
                     "non finite result: {self:?}.normalize()"
                 );

@@ -286,8 +286,7 @@ macro_rules! impl_signed {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation) or
-            /// overflow checks are enabled:
+            /// When debug assertions or overflow checks are enabled:
             ///
             /// Panics if any component is [`T::MIN`].
             ///

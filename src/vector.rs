@@ -676,8 +676,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation) or overflow
-    /// checks are enabled:
+    /// When debug assertions or overflow checks are enabled:
     ///
     /// For integers this panics if any addition overflows (order unspecified).
     ///
@@ -700,8 +699,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation) or overflow
-    /// checks are enabled:
+    /// When debug assertions or overflow checks are enabled:
     ///
     /// For integers this panics if any multiplication overflows (order unspecified).
     ///
@@ -862,8 +860,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation) or
-    /// overflow checks are enabled:
+    /// When debug assertions or overflow checks are enabled:
     ///
     /// For integers this panics if an overflow occurs.
     ///
@@ -893,8 +890,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation) or
-    /// overflow checks are enabled:
+    /// When debug assertions or overflow checks are enabled:
     ///
     /// For integers this panics if an overflow occurs.
     ///
@@ -919,8 +915,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation) or
-    /// overflow checks are enabled:
+    /// When debug assertions or overflow checks are enabled:
     ///
     /// For integers this panics if an overflow occurs.
     ///

@@ -40,15 +40,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `axis` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        #[cfg(assertions)]
-        assert!(axis.is_normalized());
+        debug_assert!(axis.is_normalized());
 
         let (sin, cos) = (angle * T::as_from(0.5)).sin_cos();
         let xyz = axis * sin;
@@ -82,7 +81,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `from` or `to` are not normalized.
     #[inline]
@@ -91,10 +90,8 @@ where
     pub fn from_rotation_arc(from: Vector<3, T, A>, to: Vector<3, T, A>) -> Self {
         // Ported from `https://github.com/bitshifter/glam-rs`.
 
-        #[cfg(assertions)]
-        assert!(from.is_normalized());
-        #[cfg(assertions)]
-        assert!(to.is_normalized());
+        debug_assert!(from.is_normalized());
+        debug_assert!(to.is_normalized());
 
         let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
         let pi = T::as_from(core::f64::consts::PI);
@@ -126,7 +123,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `from` or `to` are not normalized.
     #[inline]
@@ -135,10 +132,8 @@ where
     pub fn from_rotation_arc_colinear(from: Vector<3, T, A>, mut to: Vector<3, T, A>) -> Self {
         // Ported from `https://github.com/bitshifter/glam-rs`.
 
-        #[cfg(assertions)]
-        assert!(from.is_normalized());
-        #[cfg(assertions)]
-        assert!(to.is_normalized());
+        debug_assert!(from.is_normalized());
+        debug_assert!(to.is_normalized());
 
         let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
 
@@ -218,7 +213,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `matrix.determinant()` is not `1`.
     #[inline]
@@ -227,8 +222,7 @@ where
         // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
         // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
 
-        #[cfg(assertions)]
-        assert!((matrix.determinant() - T::ONE).abs() <= T::as_from(1e-4));
+        debug_assert!((matrix.determinant() - T::ONE).abs() <= T::as_from(1e-4));
 
         let [m00, m01, m02] = matrix.x_axis.to_array();
         let [m10, m11, m12] = matrix.y_axis.to_array();
@@ -300,7 +294,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     #[inline]
@@ -317,7 +311,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     #[inline]
@@ -335,7 +329,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     #[inline]
@@ -353,7 +347,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     #[inline]
@@ -447,15 +441,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panic if `self` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn inverse(self) -> Self {
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
+        debug_assert!(self.is_normalized());
 
         self.conjugate()
     }
@@ -467,15 +460,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn angle_between(self, other: Self) -> T {
-        #[cfg(assertions)]
-        assert!(self.is_normalized() && other.is_normalized());
+        debug_assert!(self.is_normalized() && other.is_normalized());
 
         self.dot(other).abs().acos() * T::as_from(2.0)
     }
@@ -488,17 +480,15 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` or `other` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn lerp(self, other: Self, t: T) -> Self {
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
-        #[cfg(assertions)]
-        assert!(other.is_normalized());
+        debug_assert!(self.is_normalized());
+        debug_assert!(other.is_normalized());
 
         let other = if self.dot(other).is_sign_negative() {
             -other
@@ -517,7 +507,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` or `other` are not normalized.
     #[inline]
@@ -527,10 +517,8 @@ where
         // Ported from https://github.com/bitshifter/glam-rs
         // See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
 
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
-        #[cfg(assertions)]
-        assert!(other.is_normalized());
+        debug_assert!(self.is_normalized());
+        debug_assert!(other.is_normalized());
 
         // Note that a rotation can be represented by two quaternions: `q` and
         // `-q`. The slerp path between `q` and `other` will be different from
@@ -571,15 +559,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` or `target` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
-        #[cfg(assertions)]
-        assert!(self.is_normalized() && target.is_normalized());
+        debug_assert!(self.is_normalized() && target.is_normalized());
 
         let angle = self.angle_between(target);
         if angle <= T::as_from(1e-4) {
@@ -611,7 +598,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` is a zero quaternion, or if the result is non finite or
     /// zero.
@@ -629,16 +616,14 @@ where
     #[must_use]
     #[track_caller]
     pub fn normalize(self) -> Self {
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             self != Self::from_vector(Vector::ZERO),
             "cannot normalize a zero quaternion"
         );
 
         let result = self / self.length();
 
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             result.is_finite() && result != Self::from_vector(Vector::ZERO),
             "non finite result: {self:?}.normalize()"
         );
@@ -742,8 +727,7 @@ mod tests {
     use crate::{
         Matrix, Quat, Quaternion, Vector,
         utils::{
-            assert_assertions_panic, assert_float_eq, assert_panic_float_eq, float_eq,
-            for_parameters,
+            assert_debug_panic, assert_float_eq, assert_panic_float_eq, float_eq, for_parameters,
         },
     };
 
@@ -799,7 +783,7 @@ mod tests {
 
             let axis = Vector::<3, T, A>::new(x, y, z);
             if !axis.is_normalized() {
-                assert_assertions_panic!(Quaternion::<T, A>::from_axis_angle(axis, angle));
+                assert_debug_panic!(Quaternion::<T, A>::from_axis_angle(axis, angle));
             }
         });
     }
@@ -849,8 +833,8 @@ mod tests {
 
             let non_normalized = Vector::<3, T, A>::new(x, y, z);
             if !non_normalized.is_normalized() {
-                assert_assertions_panic!(Quaternion::from_rotation_arc(non_normalized, to));
-                assert_assertions_panic!(Quaternion::from_rotation_arc(from, non_normalized));
+                assert_debug_panic!(Quaternion::from_rotation_arc(non_normalized, to));
+                assert_debug_panic!(Quaternion::from_rotation_arc(from, non_normalized));
             }
         });
     }
@@ -888,11 +872,11 @@ mod tests {
 
             let non_normalized = Vector::<3, T, A>::new(x, y, z);
             if !non_normalized.is_normalized() {
-                assert_assertions_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
+                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
                     non_normalized,
                     to
                 ));
-                assert_assertions_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
+                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
                     from,
                     non_normalized
                 ));
@@ -947,7 +931,7 @@ mod tests {
 
             let matrix = Matrix::<3, T, A>::from_column_array(&[x, y, z, y, z, x, y, x, z]);
             if matrix.determinant() != 1.0 {
-                assert_assertions_panic!(Quaternion::<T, A>::from_matrix(&matrix));
+                assert_debug_panic!(Quaternion::<T, A>::from_matrix(&matrix));
             }
         });
     }
@@ -971,11 +955,11 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Quaternion::<T, A>::look_to_lh(
+                assert_debug_panic!(Quaternion::<T, A>::look_to_lh(
                     Vector::<3, T, A>::new(x, y, z),
                     up
                 ));
-                assert_assertions_panic!(Quaternion::<T, A>::look_to_lh(
+                assert_debug_panic!(Quaternion::<T, A>::look_to_lh(
                     dir,
                     Vector::<3, T, A>::new(x, y, z)
                 ));
@@ -1002,11 +986,11 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Quaternion::<T, A>::look_to_rh(
+                assert_debug_panic!(Quaternion::<T, A>::look_to_rh(
                     Vector::<3, T, A>::new(x, y, z),
                     up
                 ));
-                assert_assertions_panic!(Quaternion::<T, A>::look_to_rh(
+                assert_debug_panic!(Quaternion::<T, A>::look_to_rh(
                     dir,
                     Vector::<3, T, A>::new(x, y, z)
                 ));
@@ -1033,7 +1017,7 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Quaternion::<T, A>::look_at_lh(
+                assert_debug_panic!(Quaternion::<T, A>::look_at_lh(
                     eye,
                     center,
                     Vector::<3, T, A>::new(x, y, z),
@@ -1061,7 +1045,7 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Quaternion::<T, A>::look_at_rh(
+                assert_debug_panic!(Quaternion::<T, A>::look_at_rh(
                     eye,
                     center,
                     Vector::<3, T, A>::new(x, y, z),
@@ -1174,7 +1158,7 @@ mod tests {
             if quat.is_normalized() {
                 assert_float_eq!(quat.inverse(), quat.conjugate());
             } else {
-                assert_assertions_panic!(quat.inverse());
+                assert_debug_panic!(quat.inverse());
             }
         });
     }

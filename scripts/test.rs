@@ -24,21 +24,19 @@ const THIRD_PARTY_CRATES: &str = "bytemuck fixed fixp mint rand serde wide";
 fn main() {
     let mut commands = Vec::new();
 
-    for (target, release_mode, assertions, overflow_checks, libm) in iproduct!(
+    for (target, release_mode, overflow_checks, libm) in iproduct!(
         ["x86_64-unknown-linux-gnu", "riscv64gc-unknown-linux-gnu"],
         [false, true],
         [false, true],
         [false, true],
-        [false, true],
     ) {
-        let third_party_crates = !release_mode;
+        let third_party_crates = !libm;
 
         commands.push(cargo_command(
             "clippy",
             &[],
             Some(target),
             release_mode,
-            assertions,
             overflow_checks,
             libm,
             third_party_crates,
@@ -48,7 +46,6 @@ fn main() {
             &["--no-deps"],
             Some(target),
             release_mode,
-            assertions,
             overflow_checks,
             libm,
             third_party_crates,
@@ -56,7 +53,6 @@ fn main() {
     }
 
     for (release_mode, libm) in iproduct!([false, true], [false, true]) {
-        let assertions = release_mode;
         let overflow_checks = !libm;
 
         commands.push(cargo_command(
@@ -64,7 +60,6 @@ fn main() {
             &[],
             None,
             release_mode,
-            assertions,
             overflow_checks,
             libm,
             true,
@@ -79,7 +74,6 @@ fn cargo_command(
     cargo_command_args: &[&str],
     target: Option<&str>,
     release_mode: bool,
-    assertions: bool,
     overflow_checks: bool,
     libm: bool,
     third_party_crates: bool,
@@ -93,12 +87,6 @@ fn cargo_command(
 
     if release_mode {
         command.arg("--release");
-    }
-
-    if assertions {
-        features += " assertions";
-    } else {
-        features += " no-assertions";
     }
 
     if overflow_checks {

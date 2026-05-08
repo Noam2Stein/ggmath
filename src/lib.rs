@@ -88,13 +88,6 @@
 //! - `std` (default feature): Uses `std` as the backend for float
 //!   functionality.
 //!
-//! - `assertions`: Enables assertions in release mode. Assertions are panics
-//!   that catch invalid input and are enabled by default in debug mode.
-//!
-//! - `no-assertions`: Disables assertions in debug mode. Assertions should only
-//!   be controlled by binary crates. Library crates should not set this flag
-//!   directly.
-//!
 //! - `bytemuck`: Implements `bytemuck` traits for `ggmath` types.
 //!
 //! - `fixed`: Implements `Scalar` for fixed-point numbers.

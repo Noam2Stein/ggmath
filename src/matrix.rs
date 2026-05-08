@@ -1270,7 +1270,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the third row of `self` is not `(0, 0, 1)`.
     #[inline]
@@ -1280,8 +1280,7 @@ where
     where
         T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
     {
-        #[cfg(assertions)]
-        assert!(self.row(2) == Vector::<3, T, A>::Z);
+        debug_assert!(self.row(2) == Vector::<3, T, A>::Z);
 
         self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
     }
@@ -1295,7 +1294,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the third row of `self` is not `(0, 0, 1)`.
     #[inline]
@@ -1305,8 +1304,7 @@ where
     where
         T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
     {
-        #[cfg(assertions)]
-        assert!(self.row(2) == Vector::<3, T, A>::Z);
+        debug_assert!(self.row(2) == Vector::<3, T, A>::Z);
 
         self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
     }
@@ -1580,7 +1578,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the fourth row of `self` is not `(0, 0, 0, 1)`.
     #[inline]
@@ -1590,8 +1588,7 @@ where
     where
         T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
     {
-        #[cfg(assertions)]
-        assert!(self.row(3) == Vector::<4, T, A>::W);
+        debug_assert!(self.row(3) == Vector::<4, T, A>::W);
 
         self.x_axis.xyz() * point.x
             + self.y_axis.xyz() * point.y
@@ -1608,7 +1605,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the fourth row of `self` is not `(0, 0, 0, 1)`.
     #[inline]
@@ -1618,8 +1615,7 @@ where
     where
         T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
     {
-        #[cfg(assertions)]
-        assert!(self.row(3) == Vector::<4, T, A>::W);
+        debug_assert!(self.row(3) == Vector::<4, T, A>::W);
 
         self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
     }
@@ -2659,7 +2655,7 @@ mod tests {
     use crate::{
         Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4,
         Vector,
-        utils::{assert_assertions_panic, assert_float_eq, assert_panic, for_parameters},
+        utils::{assert_debug_panic, assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
@@ -3806,11 +3802,11 @@ mod tests {
             Vec3::new(-25, -30, -35)
         );
 
-        assert_assertions_panic!(
+        assert_debug_panic!(
             Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
                 .transform_point(Vec2::new(-1, -2))
         );
-        assert_assertions_panic!(
+        assert_debug_panic!(
             Mat4::from_columns(&[
                 Vec4::new(2, 3, 4, 0),
                 Vec4::new(5, 6, 7, 0),
@@ -3839,11 +3835,11 @@ mod tests {
             Vec3::new(-36, -42, -48)
         );
 
-        assert_assertions_panic!(
+        assert_debug_panic!(
             Mat3::from_columns(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
                 .transform_vector(Vec2::new(-1, -2))
         );
-        assert_assertions_panic!(
+        assert_debug_panic!(
             Mat4::from_columns(&[
                 Vec4::new(2, 3, 4, 0),
                 Vec4::new(5, 6, 7, 0),

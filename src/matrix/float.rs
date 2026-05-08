@@ -250,13 +250,13 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant is `0`.
     #[must_use]
     #[track_caller]
     pub fn inverse(&self) -> Self {
-        #[cfg(assertions)]
+        #[cfg(debug_assertions)]
         {
             let mut determinant_is_zero = false;
             let result = self.generic_inverse(identity, |determinant| {
@@ -270,7 +270,7 @@ where
 
             result
         }
-        #[cfg(not(assertions))]
+        #[cfg(not(debug_assertions))]
         {
             self.generic_inverse(identity, |_| Ok(()))
         }
@@ -457,7 +457,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant of `self` is zero.
     #[inline]
@@ -466,8 +466,7 @@ where
     pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
         let determinant = self.determinant();
 
-        #[cfg(assertions)]
-        assert!(determinant != T::ZERO);
+        debug_assert!(determinant != T::ZERO);
 
         let scale = Vector::<2, T, A>::new(
             self.x_axis.length() * determinant.signum(),
@@ -620,8 +619,7 @@ where
     #[track_caller]
     #[inline(always)]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<3, T, A>; 3] {
-        #[cfg(assertions)]
-        assert!(quat.to_vector().is_normalized());
+        debug_assert!(quat.to_vector().is_normalized());
 
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
@@ -647,7 +645,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the quaternion is not normalized.
     #[inline]
@@ -665,15 +663,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `axis` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        #[cfg(assertions)]
-        assert!(axis.is_normalized());
+        debug_assert!(axis.is_normalized());
 
         let (sin, cos) = angle.sin_cos();
         let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -755,7 +752,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
     #[inline]
@@ -777,17 +774,15 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        #[cfg(assertions)]
-        assert!(dir.is_normalized());
-        #[cfg(assertions)]
-        assert!(up.is_normalized());
+        debug_assert!(dir.is_normalized());
+        debug_assert!(up.is_normalized());
 
         let forward = dir;
         let right = up.cross(forward).normalize();
@@ -807,17 +802,15 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        #[cfg(assertions)]
-        assert!(dir.is_normalized());
-        #[cfg(assertions)]
-        assert!(up.is_normalized());
+        debug_assert!(dir.is_normalized());
+        debug_assert!(up.is_normalized());
 
         let forward = dir;
         let right = forward.cross(up).normalize();
@@ -837,7 +830,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     #[inline]
@@ -854,7 +847,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     #[inline]
@@ -871,7 +864,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant of `self` is zero.
     #[inline]
@@ -880,8 +873,7 @@ where
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
         let determinant = self.determinant();
 
-        #[cfg(assertions)]
-        assert!(determinant != T::ZERO);
+        debug_assert!(determinant != T::ZERO);
 
         let scale = Vector::<2, T, A>::new(
             self.x_axis.length() * determinant.signum(),
@@ -903,7 +895,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any column of `self` is not normalized.
     #[inline]
@@ -915,8 +907,7 @@ where
         // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics gems IV.
         // Academic Press Professional, Inc., USA, 222–229.
 
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             self.x_axis.is_normalized()
                 && self.y_axis.is_normalized()
                 && self.z_axis.is_normalized()
@@ -972,7 +963,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant of `self` is zero.
     #[inline]
@@ -981,8 +972,7 @@ where
     pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
         let determinant = self.determinant();
 
-        #[cfg(assertions)]
-        assert!(determinant != T::ZERO);
+        debug_assert!(determinant != T::ZERO);
 
         let scale = Vector::<3, T, A>::new(
             self.x_axis.length() * determinant.signum(),
@@ -1075,8 +1065,7 @@ where
     #[inline(always)]
     #[track_caller]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<4, T, A>; 3] {
-        #[cfg(assertions)]
-        assert!(quat.to_vector().is_normalized());
+        debug_assert!(quat.to_vector().is_normalized());
 
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
@@ -1106,7 +1095,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the quaternion is not normalized.
     ///
@@ -1130,7 +1119,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `axis` is not normalized.
     ///
@@ -1140,8 +1129,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        #[cfg(assertions)]
-        assert!(axis.is_normalized());
+        debug_assert!(axis.is_normalized());
 
         let (sin, cos) = angle.sin_cos();
         let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -1182,7 +1170,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
     ///
@@ -1209,7 +1197,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
     ///
@@ -1239,7 +1227,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `rotation` is not normalized.
     ///
@@ -1272,7 +1260,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     ///
@@ -1282,10 +1270,8 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        #[cfg(assertions)]
-        assert!(dir.is_normalized());
-        #[cfg(assertions)]
-        assert!(up.is_normalized());
+        debug_assert!(dir.is_normalized());
+        debug_assert!(up.is_normalized());
 
         let forward = dir;
         let right = up.cross(forward).normalize();
@@ -1309,7 +1295,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `dir` or `up` are not normalized.
     ///
@@ -1319,10 +1305,8 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        #[cfg(assertions)]
-        assert!(dir.is_normalized());
-        #[cfg(assertions)]
-        assert!(up.is_normalized());
+        debug_assert!(dir.is_normalized());
+        debug_assert!(up.is_normalized());
 
         let forward = dir;
         let right = forward.cross(up).normalize();
@@ -1346,7 +1330,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     ///
@@ -1369,7 +1353,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `up` is not normalized.
     ///
@@ -1392,7 +1376,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
@@ -1402,8 +1386,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_lh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
 
         let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
@@ -1428,7 +1411,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
@@ -1438,8 +1421,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_rh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
 
         let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
@@ -1463,7 +1445,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
@@ -1479,8 +1461,7 @@ where
         near_plane: T,
         far_plane: T,
     ) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
 
         let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
@@ -1516,7 +1497,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
@@ -1525,8 +1506,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_infinite_lh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO);
 
         let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
@@ -1551,7 +1531,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
@@ -1560,8 +1540,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_infinite_rh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO);
 
         let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
@@ -1585,7 +1564,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
@@ -1598,8 +1577,7 @@ where
         aspect_ratio: T,
         near_plane: T,
     ) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO);
 
         let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
@@ -1623,7 +1601,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`.
     ///
@@ -1636,8 +1614,7 @@ where
         aspect_ratio: T,
         near_plane: T,
     ) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO);
 
         let (sin, cos) = (vertical_fov * T::as_from(0.5)).sin_cos();
         let height_recip = cos / sin;
@@ -1658,7 +1635,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
@@ -1668,8 +1645,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn frustum_lh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1695,7 +1671,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
@@ -1705,8 +1681,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn frustum_rh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1734,7 +1709,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `near_plane` is less than or equal to `0`, or if `far_plane`
     /// is less than or equal to `near_plane`.
@@ -1752,8 +1727,7 @@ where
         near_plane: T,
         far_plane: T,
     ) -> Self {
-        #[cfg(assertions)]
-        assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1782,7 +1756,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `far` is less than or equal to `near`.
     ///
@@ -1791,8 +1765,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_lh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        #[cfg(assertions)]
-        assert!(far > near);
+        debug_assert!(far > near);
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1821,7 +1794,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `far` is less than or equal to `near`.
     ///
@@ -1830,8 +1803,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_rh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        #[cfg(assertions)]
-        assert!(far > near);
+        debug_assert!(far > near);
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1859,7 +1831,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `far` is less than or equal to `near`.
     ///
@@ -1869,8 +1841,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_rh_gl(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        #[cfg(assertions)]
-        assert!(far > near);
+        debug_assert!(far > near);
 
         let scale_x = T::as_from(2.0) / (right - left);
         let scale_y = T::as_from(2.0) / (top - bottom);
@@ -1967,7 +1938,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any column of the upper 3x3 matrix is not normalized.
     #[inline]
@@ -1984,7 +1955,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if the determinant of `self` is zero.
     #[inline]
@@ -1995,8 +1966,7 @@ where
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
         let determinant = self.determinant();
 
-        #[cfg(assertions)]
-        assert!(determinant != T::ZERO);
+        debug_assert!(determinant != T::ZERO);
 
         let scale = Vector::<3, T, A>::new(
             self.x_axis.length() * determinant.signum(),
@@ -2042,7 +2012,7 @@ mod tests {
 
     use crate::{
         EulerRot, Matrix, Quaternion, Vector,
-        utils::{assert_assertions_panic, assert_float_eq, for_parameters},
+        utils::{assert_debug_panic, assert_float_eq, for_parameters},
     };
 
     #[test]
@@ -2132,7 +2102,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(matrix.inverse());
+                assert_debug_panic!(matrix.inverse());
             }
 
             let matrix = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
@@ -2145,7 +2115,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(matrix.inverse());
+                assert_debug_panic!(matrix.inverse());
             }
 
             let matrix = Matrix::<4, T, A>::from_column_array(&[
@@ -2160,7 +2130,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(matrix.inverse());
+                assert_debug_panic!(matrix.inverse());
             }
         });
     }
@@ -2178,14 +2148,14 @@ mod tests {
             if let Some(inverse) = matrix.try_inverse() {
                 assert_float_eq!(matrix.inverse(), inverse);
             } else {
-                assert_assertions_panic!(matrix.inverse());
+                assert_debug_panic!(matrix.inverse());
             }
 
             let matrix = Matrix::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
             if let Some(inverse) = matrix.try_inverse() {
                 assert_float_eq!(matrix.inverse(), inverse);
             } else {
-                assert_assertions_panic!(matrix.inverse());
+                assert_debug_panic!(matrix.inverse());
             }
 
             let matrix = Matrix::<4, T, A>::from_column_array(&[
@@ -2194,7 +2164,7 @@ mod tests {
             if let Some(inverse) = matrix.try_inverse() {
                 assert_float_eq!(matrix.inverse(), inverse);
             } else {
-                assert_assertions_panic!(matrix.inverse());
+                assert_debug_panic!(matrix.inverse());
             }
         });
     }
@@ -2512,7 +2482,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(matrix.to_scale_angle());
+                assert_debug_panic!(matrix.to_scale_angle());
             }
         });
     }
@@ -2682,8 +2652,8 @@ mod tests {
             );
 
             if !invalid.to_vector().is_normalized() {
-                assert_assertions_panic!(Matrix::<3, T, A>::from_quat(invalid));
-                assert_assertions_panic!(Matrix::<4, T, A>::from_quat(invalid));
+                assert_debug_panic!(Matrix::<3, T, A>::from_quat(invalid));
+                assert_debug_panic!(Matrix::<4, T, A>::from_quat(invalid));
             }
         });
     }
@@ -2830,11 +2800,11 @@ mod tests {
             );
 
             if !invalid_rotation.to_vector().is_normalized() {
-                assert_assertions_panic!(Matrix::<3, T, A>::from_scale_rotation(
+                assert_debug_panic!(Matrix::<3, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
                 ));
-                assert_assertions_panic!(Matrix::<4, T, A>::from_scale_rotation(
+                assert_debug_panic!(Matrix::<4, T, A>::from_scale_rotation(
                     scale,
                     invalid_rotation
                 ));
@@ -2873,11 +2843,11 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Matrix::<3, T, A>::look_to_lh(
+                assert_debug_panic!(Matrix::<3, T, A>::look_to_lh(
                     Vector::<3, T, A>::new(x, y, z),
                     up
                 ));
-                assert_assertions_panic!(Matrix::<3, T, A>::look_to_lh(
+                assert_debug_panic!(Matrix::<3, T, A>::look_to_lh(
                     forward,
                     Vector::<3, T, A>::new(x, y, z)
                 ));
@@ -2916,11 +2886,11 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Matrix::<3, T, A>::look_to_rh(
+                assert_debug_panic!(Matrix::<3, T, A>::look_to_rh(
                     Vector::<3, T, A>::new(x, y, z),
                     up
                 ));
-                assert_assertions_panic!(Matrix::<3, T, A>::look_to_rh(
+                assert_debug_panic!(Matrix::<3, T, A>::look_to_rh(
                     forward,
                     Vector::<3, T, A>::new(x, y, z)
                 ));
@@ -2954,7 +2924,7 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Matrix::<3, T, A>::look_at_lh(
+                assert_debug_panic!(Matrix::<3, T, A>::look_at_lh(
                     eye,
                     center,
                     Vector::<3, T, A>::new(x, y, z),
@@ -2989,7 +2959,7 @@ mod tests {
             );
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Matrix::<3, T, A>::look_at_rh(
+                assert_debug_panic!(Matrix::<3, T, A>::look_at_rh(
                     eye,
                     center,
                     Vector::<3, T, A>::new(x, y, z),
@@ -3028,7 +2998,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(matrix.to_scale_angle_translation());
+                assert_debug_panic!(matrix.to_scale_angle_translation());
             }
         });
     }
@@ -3072,7 +3042,7 @@ mod tests {
                 || !matrix.y_axis.is_normalized()
                 || !matrix.z_axis.is_normalized()
             {
-                assert_assertions_panic!(matrix.to_euler(order));
+                assert_debug_panic!(matrix.to_euler(order));
             }
 
             let matrix = Matrix::<4, T, A>::from_column_array(&[
@@ -3082,7 +3052,7 @@ mod tests {
                 || !matrix.y_axis.xyz().is_normalized()
                 || !matrix.z_axis.xyz().is_normalized()
             {
-                assert_assertions_panic!(matrix.to_euler(order));
+                assert_debug_panic!(matrix.to_euler(order));
             }
         });
     }
@@ -3117,7 +3087,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(matrix.to_scale_rotation());
+                assert_debug_panic!(matrix.to_scale_rotation());
             }
         });
     }
@@ -3150,7 +3120,7 @@ mod tests {
             );
 
             if !invalid_rotation.to_vector().is_normalized() {
-                assert_assertions_panic!(Matrix::<4, T, A>::from_rotation_translation(
+                assert_debug_panic!(Matrix::<4, T, A>::from_rotation_translation(
                     invalid_rotation,
                     translation
                 ));
@@ -3188,7 +3158,7 @@ mod tests {
             );
 
             if !invalid_rotation.to_vector().is_normalized() {
-                assert_assertions_panic!(Matrix::<4, T, A>::from_scale_rotation_translation(
+                assert_debug_panic!(Matrix::<4, T, A>::from_scale_rotation_translation(
                     scale,
                     invalid_rotation,
                     translation
@@ -3233,13 +3203,13 @@ mod tests {
                 );
             }
 
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_lh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_lh(
                 vertical_fov,
                 aspect_ratio,
                 -1.0,
                 4.0
             ));
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_lh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_lh(
                 vertical_fov,
                 aspect_ratio,
                 6.0,
@@ -3271,13 +3241,13 @@ mod tests {
                 ) * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_rh(
                 vertical_fov,
                 aspect_ratio,
                 -1.0,
                 4.0
             ));
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_rh(
                 vertical_fov,
                 aspect_ratio,
                 6.0,
@@ -3312,13 +3282,13 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh_gl(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_rh_gl(
                 vertical_fov,
                 aspect_ratio,
                 -1.0,
                 4.0
             ));
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_rh_gl(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_rh_gl(
                 vertical_fov,
                 aspect_ratio,
                 6.0,
@@ -3358,7 +3328,7 @@ mod tests {
                 );
             }
 
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_lh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_infinite_lh(
                 vertical_fov,
                 aspect_ratio,
                 -1.0
@@ -3379,7 +3349,7 @@ mod tests {
                     * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_rh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_infinite_rh(
                 vertical_fov,
                 aspect_ratio,
                 -1.0
@@ -3409,7 +3379,7 @@ mod tests {
                     )
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_lh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_lh(
                 vertical_fov,
                 aspect_ratio,
                 -1.0
@@ -3437,7 +3407,7 @@ mod tests {
                 ) * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_rh(
+            assert_debug_panic!(Matrix::<4, T, A>::perspective_infinite_reverse_rh(
                 vertical_fov,
                 aspect_ratio,
                 -1.0
@@ -3474,7 +3444,7 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::frustum_lh(
+            assert_debug_panic!(Matrix::<4, T, A>::frustum_lh(
                 -half_width,
                 half_width,
                 -half_height,
@@ -3482,7 +3452,7 @@ mod tests {
                 -1.0,
                 4.0
             ));
-            assert_assertions_panic!(Matrix::<4, T, A>::frustum_lh(
+            assert_debug_panic!(Matrix::<4, T, A>::frustum_lh(
                 -half_width,
                 half_width,
                 -half_height,
@@ -3522,7 +3492,7 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh(
+            assert_debug_panic!(Matrix::<4, T, A>::frustum_rh(
                 -half_width,
                 half_width,
                 -half_height,
@@ -3530,7 +3500,7 @@ mod tests {
                 -1.0,
                 4.0
             ));
-            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh(
+            assert_debug_panic!(Matrix::<4, T, A>::frustum_rh(
                 -half_width,
                 half_width,
                 -half_height,
@@ -3561,10 +3531,10 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh_gl(
+            assert_debug_panic!(Matrix::<4, T, A>::frustum_rh_gl(
                 left, right, bottom, top, -1.0, 4.0
             ));
-            assert_assertions_panic!(Matrix::<4, T, A>::frustum_rh_gl(
+            assert_debug_panic!(Matrix::<4, T, A>::frustum_rh_gl(
                 left, right, bottom, top, 6.0, 4.0
             ));
         });
@@ -3594,7 +3564,7 @@ mod tests {
                 );
             }
 
-            assert_assertions_panic!(Matrix::<4, T, A>::orthographic_lh(
+            assert_debug_panic!(Matrix::<4, T, A>::orthographic_lh(
                 left, right, bottom, top, 6.0, 4.0
             ));
         });
@@ -3616,7 +3586,7 @@ mod tests {
                     * Matrix::<4, T, A>::from_scale(Vector::<3, T, A>::new(1.0, 1.0, -1.0))
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::orthographic_rh(
+            assert_debug_panic!(Matrix::<4, T, A>::orthographic_rh(
                 left, right, bottom, top, 6.0, 4.0
             ));
         });
@@ -3640,7 +3610,7 @@ mod tests {
                 r2nd <= Matrix::<4, T, A>::from_column_array(&[1e-4; 16])
             );
 
-            assert_assertions_panic!(Matrix::<4, T, A>::orthographic_rh_gl(
+            assert_debug_panic!(Matrix::<4, T, A>::orthographic_rh_gl(
                 left, right, bottom, top, 6.0, 4.0
             ));
         });
@@ -3687,7 +3657,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(matrix.to_scale_rotation_translation());
+                assert_debug_panic!(matrix.to_scale_rotation_translation());
             }
         });
     }

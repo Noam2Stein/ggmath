@@ -167,7 +167,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any element is NaN.
     ///
@@ -186,8 +186,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn max(self, other: Self) -> Self {
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             !self.is_nan() && !other.is_nan(),
             "NaN: {self:?}.max({other:?})"
         );
@@ -204,7 +203,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any element is NaN.
     ///
@@ -223,8 +222,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn min(self, other: Self) -> Self {
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             !self.is_nan() && !other.is_nan(),
             "NaN: {self:?}.min({other:?})"
         );
@@ -242,7 +240,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any element is NaN, or if any element of `min` is greater than
     /// the corresponding element of `max`.
@@ -263,14 +261,12 @@ where
     #[must_use]
     #[track_caller]
     pub fn clamp(self, min: Self, max: Self) -> Self {
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             !self.is_nan() && !min.is_nan() && !max.is_nan(),
             "NaN: {self:?}.clamp({min:?}, {max:?})"
         );
 
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             (0..N).all(|i| min[i] <= max[i]),
             "min > max: {self:?}.clamp({min:?}, {max:?})"
         );
@@ -287,7 +283,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any element is NaN.
     ///
@@ -304,8 +300,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn max_element(self) -> T {
-        #[cfg(assertions)]
-        assert!(!self.is_nan(), "NaN: {self:?}.max_element()");
+        debug_assert!(!self.is_nan(), "NaN: {self:?}.max_element()");
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_max_element(self))
     }
@@ -319,7 +314,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if any element is NaN.
     ///
@@ -336,8 +331,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn min_element(self) -> T {
-        #[cfg(assertions)]
-        assert!(!self.is_nan(), "NaN: {self:?}.min_element()");
+        debug_assert!(!self.is_nan(), "NaN: {self:?}.min_element()");
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_min_element(self))
     }
@@ -832,7 +826,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` or `other` are zero vectors.
     #[inline]
@@ -842,8 +836,7 @@ where
         let self_length = self.length();
         let other_length = other.length();
 
-        #[cfg(assertions)]
-        assert!(self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7));
+        debug_assert!(self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7));
 
         match N {
             2 => {
@@ -956,7 +949,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `target` is a zero vector.
     #[inline]
@@ -966,8 +959,7 @@ where
         let self_length = self.length();
         let target_length = target.length();
 
-        #[cfg(assertions)]
-        assert!(target_length >= T::as_from(1e-7));
+        debug_assert!(target_length >= T::as_from(1e-7));
 
         if self == Self::ZERO {
             return self;
@@ -1100,7 +1092,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` is a zero vector, or if the result is non finite or
     /// zero.
@@ -1118,13 +1110,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn normalize(self) -> Self {
-        #[cfg(assertions)]
-        assert!(self != Self::ZERO, "cannot normalize a zero vector");
+        debug_assert!(self != Self::ZERO, "cannot normalize a zero vector");
 
         let result = self / self.length();
 
-        #[cfg(assertions)]
-        assert!(
+        debug_assert!(
             result.is_finite() && result != Self::ZERO,
             "non finite result: {self:?}.normalize()"
         );
@@ -1260,7 +1250,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `max` is negative.
     ///
@@ -1280,8 +1270,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn with_max_length(self, max: T) -> Self {
-        #[cfg(assertions)]
-        assert!(max >= T::as_from(0.0), "negative maximum length");
+        debug_assert!(max >= T::as_from(0.0), "negative maximum length");
 
         let length_squared = self.length_squared();
         if length_squared > max * max {
@@ -1295,7 +1284,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `min` is negative.
     ///
@@ -1315,8 +1304,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn with_min_length(self, min: T) -> Self {
-        #[cfg(assertions)]
-        assert!(min >= T::as_from(0.0), "negative minimum length");
+        debug_assert!(min >= T::as_from(0.0), "negative minimum length");
 
         let length_squared = self.length_squared();
         if length_squared < min * min {
@@ -1331,7 +1319,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `min > max`, or if `min` is negative.
     ///
@@ -1354,11 +1342,8 @@ where
     #[must_use]
     #[track_caller]
     pub fn clamp_length(self, min: T, max: T) -> Self {
-        #[cfg(assertions)]
-        assert!(min >= T::as_from(0.0), "negative minimum length");
-
-        #[cfg(assertions)]
-        assert!(min <= max, "minimum length is greater than maximum length");
+        debug_assert!(min >= T::as_from(0.0), "negative minimum length");
+        debug_assert!(min <= max, "minimum length is greater than maximum length");
 
         let length_squared = self.length_squared();
         if length_squared < min * min {
@@ -1408,7 +1393,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `other` is a zero vector.
     #[inline]
@@ -1417,8 +1402,7 @@ where
     pub fn project_onto(self, other: Self) -> Self {
         let other_length_squared_recip = other.length_squared().recip();
 
-        #[cfg(assertions)]
-        assert!(other_length_squared_recip.is_finite());
+        debug_assert!(other_length_squared_recip.is_finite());
 
         other * self.dot(other) * other_length_squared_recip
     }
@@ -1429,15 +1413,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `other` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn project_onto_normalized(self, other: Self) -> Self {
-        #[cfg(assertions)]
-        assert!(other.is_normalized());
+        debug_assert!(other.is_normalized());
 
         other * self.dot(other)
     }
@@ -1450,7 +1433,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `other` is a zero vector.
     #[inline]
@@ -1468,7 +1451,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `other` is not normalized.
     #[inline]
@@ -1484,15 +1467,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `normal` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn reflect(self, normal: Self) -> Self {
-        #[cfg(assertions)]
-        assert!(normal.is_normalized());
+        debug_assert!(normal.is_normalized());
 
         self - normal * (T::as_from(2.0) * self.dot(normal))
     }
@@ -1508,18 +1490,15 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` or `normal` are not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn refract(self, normal: Self, eta: T) -> Self {
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
-
-        #[cfg(assertions)]
-        assert!(normal.is_normalized());
+        debug_assert!(self.is_normalized());
+        debug_assert!(normal.is_normalized());
 
         let self_dot_normal = self.dot(normal);
         let k = T::as_from(1.0) - eta * eta * (T::as_from(1.0) - self_dot_normal * self_dot_normal);
@@ -1597,7 +1576,7 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` is not normalized.
     ///
@@ -1606,8 +1585,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn any_orthonormal_vector(self) -> Self {
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
+        debug_assert!(self.is_normalized());
 
         match N {
             2 => {
@@ -1828,15 +1806,14 @@ where
     ///
     /// # Panics
     ///
-    /// When assertions are enabled (see the crate documentation):
+    /// When debug assertions are enabled:
     ///
     /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn any_orthonormal_pair(self) -> (Self, Self) {
-        #[cfg(assertions)]
-        assert!(self.is_normalized());
+        debug_assert!(self.is_normalized());
 
         // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
         let sign = self.z.signum();
@@ -1857,9 +1834,7 @@ where
 mod tests {
     use crate::{
         FloatExt, Mask, Vec2, Vector,
-        utils::{
-            PrimitiveFloatFns, assert_assertions_panic, assert_float_eq, float_eq, for_parameters,
-        },
+        utils::{PrimitiveFloatFns, assert_debug_panic, assert_float_eq, float_eq, for_parameters},
     };
 
     #[test]
@@ -2042,13 +2017,11 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(
-                    Vector::<2, T, A>::new(x, y).max(Vector::<2, T, A>::new(z, w))
-                );
-                assert_assertions_panic!(
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).max(Vector::<2, T, A>::new(z, w)));
+                assert_debug_panic!(
                     Vector::<3, T, A>::new(x, y, z).max(Vector::<3, T, A>::new(z, w, y))
                 );
-                assert_assertions_panic!(
+                assert_debug_panic!(
                     Vector::<4, T, A>::new(x, y, z, w).max(Vector::<4, T, A>::new(z, w, y, x))
                 );
             }
@@ -2077,13 +2050,11 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(
-                    Vector::<2, T, A>::new(x, y).min(Vector::<2, T, A>::new(z, w))
-                );
-                assert_assertions_panic!(
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).min(Vector::<2, T, A>::new(z, w)));
+                assert_debug_panic!(
                     Vector::<3, T, A>::new(x, y, z).min(Vector::<3, T, A>::new(z, w, y))
                 );
-                assert_assertions_panic!(
+                assert_debug_panic!(
                     Vector::<4, T, A>::new(x, y, z, w).min(Vector::<4, T, A>::new(z, w, y, x))
                 );
             }
@@ -2103,7 +2074,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(
+                assert_debug_panic!(
                     Vector::<2, T, A>::new(x, y)
                         .clamp(Vector::<2, T, A>::new(z, w), Vector::<2, T, A>::new(y, z))
                 );
@@ -2119,7 +2090,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).clamp(
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).clamp(
                     Vector::<3, T, A>::new(z, w, y),
                     Vector::<3, T, A>::new(y, z, x)
                 ));
@@ -2148,7 +2119,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).clamp(
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).clamp(
                     Vector::<4, T, A>::new(z, w, y, z),
                     Vector::<4, T, A>::new(y, z, x, x)
                 ));
@@ -2168,7 +2139,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<2, T, A>::new(x, y).max_element());
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).max_element());
             }
 
             if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) {
@@ -2178,7 +2149,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).max_element());
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).max_element());
             }
 
             if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && !T::is_nan(w) {
@@ -2188,7 +2159,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).max_element());
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).max_element());
             }
         });
     }
@@ -2205,7 +2176,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<2, T, A>::new(x, y).min_element());
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).min_element());
             }
 
             if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) {
@@ -2215,7 +2186,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).min_element());
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).min_element());
             }
 
             if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && !T::is_nan(w) {
@@ -2225,7 +2196,7 @@ mod tests {
                     0.0 = -0.0
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).min_element());
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).min_element());
             }
         });
     }
@@ -3002,8 +2973,8 @@ mod tests {
                     abs <= 1e-2
                 );
             }
-            assert_assertions_panic!(Vector::<2, T, A>::ZERO.slerp(Vector::ONE, t));
-            assert_assertions_panic!(Vector::<2, T, A>::ONE.slerp(Vector::ZERO, t));
+            assert_debug_panic!(Vector::<2, T, A>::ZERO.slerp(Vector::ONE, t));
+            assert_debug_panic!(Vector::<2, T, A>::ONE.slerp(Vector::ZERO, t));
 
             for (vector, other) in [
                 (
@@ -3053,8 +3024,8 @@ mod tests {
                     abs <= 1e-2
                 );
             }
-            assert_assertions_panic!(Vector::<3, T, A>::ZERO.slerp(Vector::ONE, t));
-            assert_assertions_panic!(Vector::<3, T, A>::ONE.slerp(Vector::ZERO, t));
+            assert_debug_panic!(Vector::<3, T, A>::ZERO.slerp(Vector::ONE, t));
+            assert_debug_panic!(Vector::<3, T, A>::ONE.slerp(Vector::ZERO, t));
 
             for (vector, other) in [
                 (
@@ -3104,8 +3075,8 @@ mod tests {
                     abs <= 1e-2
                 );
             }
-            assert_assertions_panic!(Vector::<4, T, A>::ZERO.slerp(Vector::ONE, t));
-            assert_assertions_panic!(Vector::<4, T, A>::ONE.slerp(Vector::ZERO, t));
+            assert_debug_panic!(Vector::<4, T, A>::ZERO.slerp(Vector::ONE, t));
+            assert_debug_panic!(Vector::<4, T, A>::ONE.slerp(Vector::ZERO, t));
         });
     }
 
@@ -3183,9 +3154,7 @@ mod tests {
                         Vector::ZERO
                     );
                 }
-                assert_assertions_panic!(
-                    Vector::<2, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle)
-                );
+                assert_debug_panic!(Vector::<2, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle));
 
                 for (vector, target) in [
                     (
@@ -3257,9 +3226,7 @@ mod tests {
                         Vector::ZERO
                     );
                 }
-                assert_assertions_panic!(
-                    Vector::<3, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle)
-                );
+                assert_debug_panic!(Vector::<3, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle));
 
                 for (vector, target) in [
                     (
@@ -3331,9 +3298,7 @@ mod tests {
                         Vector::ZERO
                     );
                 }
-                assert_assertions_panic!(
-                    Vector::<4, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle)
-                );
+                assert_debug_panic!(Vector::<4, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle));
             }
         });
     }
@@ -3407,7 +3372,7 @@ mod tests {
                     abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-7
                 );
             } else {
-                assert_assertions_panic!(Vector::<2, T, A>::new(x, y).normalize());
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).normalize());
             }
 
             if Vector::<3, T, A>::new(x, y, z).length() != 0.0
@@ -3420,7 +3385,7 @@ mod tests {
                     abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-7
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).normalize());
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).normalize());
             }
 
             if Vector::<4, T, A>::new(x, y, z, w).length() != 0.0
@@ -3433,7 +3398,7 @@ mod tests {
                     abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-7
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).normalize());
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).normalize());
             }
         });
     }
@@ -3450,7 +3415,7 @@ mod tests {
                     abs <= Vector::splat(1e-7)
                 );
             } else {
-                assert_assertions_panic!(Vector::<2, T, A>::new(x, y).normalize());
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).normalize());
             }
 
             if let Some(try_normalize) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
@@ -3460,7 +3425,7 @@ mod tests {
                     abs <= Vector::splat(1e-7)
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).normalize());
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).normalize());
             }
 
             if let Some(try_normalize) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
@@ -3470,7 +3435,7 @@ mod tests {
                     abs <= Vector::splat(1e-7)
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).normalize());
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).normalize());
             }
         });
     }
@@ -3635,9 +3600,9 @@ mod tests {
             }
 
             if a < 0.0 {
-                assert_assertions_panic!(Vector::<2, T, A>::new(x, y).with_max_length(a));
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).with_max_length(a));
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).with_max_length(a));
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).with_max_length(a));
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).with_max_length(a));
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).with_max_length(a));
 
                 return;
             }
@@ -3694,9 +3659,9 @@ mod tests {
             }
 
             if a < 0.0 {
-                assert_assertions_panic!(Vector::<2, T, A>::new(x, y).with_min_length(a));
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).with_min_length(a));
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).with_min_length(a));
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).with_min_length(a));
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).with_min_length(a));
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).with_min_length(a));
 
                 return;
             }
@@ -3754,9 +3719,9 @@ mod tests {
             }
 
             if a < 0.0 || b < a {
-                assert_assertions_panic!(Vector::<2, T, A>::new(x, y).clamp_length(a, b));
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).clamp_length(a, b));
-                assert_assertions_panic!(Vector::<4, T, A>::new(x, y, z, w).clamp_length(a, b));
+                assert_debug_panic!(Vector::<2, T, A>::new(x, y).clamp_length(a, b));
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).clamp_length(a, b));
+                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).clamp_length(a, b));
 
                 return;
             }
@@ -3943,11 +3908,9 @@ mod tests {
                 Vector::<4, T, A>::new(2.0, 2.0, 0.0, 0.0)
             );
 
-            assert_assertions_panic!(Vector::<2, T, A>::new(4.0, 0.0).project_onto(Vector::ZERO));
-            assert_assertions_panic!(
-                Vector::<3, T, A>::new(4.0, 0.0, 0.0).project_onto(Vector::ZERO)
-            );
-            assert_assertions_panic!(
+            assert_debug_panic!(Vector::<2, T, A>::new(4.0, 0.0).project_onto(Vector::ZERO));
+            assert_debug_panic!(Vector::<3, T, A>::new(4.0, 0.0, 0.0).project_onto(Vector::ZERO));
+            assert_debug_panic!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0).project_onto(Vector::ZERO)
             );
         });
@@ -3976,13 +3939,13 @@ mod tests {
                 abs <= Vector::splat(1e-5)
             );
 
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<2, T, A>::new(4.0, 0.0).project_onto_normalized(Vector::ONE)
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<3, T, A>::new(4.0, 0.0, 0.0).project_onto_normalized(Vector::ONE)
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0).project_onto_normalized(Vector::ONE)
             );
         });
@@ -4006,11 +3969,9 @@ mod tests {
                 Vector::<4, T, A>::new(2.0, -2.0, 0.0, 0.0)
             );
 
-            assert_assertions_panic!(Vector::<2, T, A>::new(4.0, 0.0).reject_from(Vector::ZERO));
-            assert_assertions_panic!(
-                Vector::<3, T, A>::new(4.0, 0.0, 1.2).reject_from(Vector::ZERO)
-            );
-            assert_assertions_panic!(
+            assert_debug_panic!(Vector::<2, T, A>::new(4.0, 0.0).reject_from(Vector::ZERO));
+            assert_debug_panic!(Vector::<3, T, A>::new(4.0, 0.0, 1.2).reject_from(Vector::ZERO));
+            assert_debug_panic!(
                 Vector::<4, T, A>::new(4.0, 0.0, 1.2, 5.4).reject_from(Vector::ZERO)
             );
         });
@@ -4038,13 +3999,13 @@ mod tests {
                 abs <= Vector::splat(1e-5)
             );
 
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<2, T, A>::new(4.0, 0.0).reject_from_normalized(Vector::ONE)
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<3, T, A>::new(4.0, 0.0, 0.0).reject_from_normalized(Vector::ONE)
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0).reject_from_normalized(Vector::ONE)
             );
         });
@@ -4070,13 +4031,11 @@ mod tests {
                 abs <= Vector::splat(1e-5)
             );
 
-            assert_assertions_panic!(
-                Vector::<2, T, A>::new(3.0, 2.0).reflect(Vector::<2, T, A>::ONE)
-            );
-            assert_assertions_panic!(
+            assert_debug_panic!(Vector::<2, T, A>::new(3.0, 2.0).reflect(Vector::<2, T, A>::ONE));
+            assert_debug_panic!(
                 Vector::<3, T, A>::new(3.0, 2.0, 4.0).reflect(Vector::<3, T, A>::ONE)
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<4, T, A>::new(3.0, 2.0, 4.0, 5.0).reflect(Vector::<4, T, A>::ONE)
             );
         });
@@ -4127,31 +4086,31 @@ mod tests {
                 Vector::ZERO
             );
 
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<2, T, A>::new(1.0, -T::sqrt(3.0))
                     .refract(Vector::<2, T, A>::Y, T::recip(1.5))
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<2, T, A>::new(1.0, -T::sqrt(3.0))
                     .normalize()
                     .refract(Vector::<2, T, A>::Y * 2.0, T::recip(1.5))
             );
 
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<3, T, A>::new(1.0, -T::sqrt(3.0), 0.0)
                     .refract(Vector::<3, T, A>::Y, T::recip(1.5))
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<3, T, A>::new(1.0, -T::sqrt(3.0), 0.0)
                     .normalize()
                     .refract(Vector::<3, T, A>::Y * 2.0, T::recip(1.5))
             );
 
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<4, T, A>::new(1.0, -T::sqrt(3.0), 0.0, 0.0)
                     .refract(Vector::<4, T, A>::Y, T::recip(1.5))
             );
-            assert_assertions_panic!(
+            assert_debug_panic!(
                 Vector::<4, T, A>::new(1.0, -T::sqrt(3.0), 0.0, 0.0)
                     .normalize()
                     .refract(Vector::<4, T, A>::Y * 2.0, T::recip(1.5))
@@ -4200,7 +4159,7 @@ mod tests {
                 assert_float_eq!(vector.any_orthonormal_vector(), vector.perp());
             }
             if !vector.is_normalized() {
-                assert_assertions_panic!(vector.any_orthonormal_vector());
+                assert_debug_panic!(vector.any_orthonormal_vector());
             }
 
             let vector = Vector::<3, T, A>::new(x, y, z);
@@ -4214,7 +4173,7 @@ mod tests {
                 assert!(vector.any_orthonormal_vector().is_normalized());
             }
             if !vector.is_normalized() {
-                assert_assertions_panic!(vector.any_orthonormal_vector());
+                assert_debug_panic!(vector.any_orthonormal_vector());
             }
 
             let vector = Vector::<4, T, A>::new(x, y, z, w);
@@ -4228,7 +4187,7 @@ mod tests {
                 assert!(vector.any_orthonormal_vector().is_normalized());
             }
             if !vector.is_normalized() {
-                assert_assertions_panic!(vector.any_orthonormal_vector());
+                assert_debug_panic!(vector.any_orthonormal_vector());
             }
         });
     }
@@ -4437,7 +4396,7 @@ mod tests {
             assert!(result.1.is_normalized());
 
             if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_assertions_panic!(Vector::<3, T, A>::new(x, y, z).any_orthonormal_pair());
+                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).any_orthonormal_pair());
             }
         });
     }

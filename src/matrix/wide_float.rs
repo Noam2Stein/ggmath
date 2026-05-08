@@ -223,13 +223,13 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if the determinant is `0` for any lane.
             #[must_use]
             #[track_caller]
             pub fn inverse(&self) -> Self {
-                #[cfg(assertions)]
+                #[cfg(debug_assertions)]
                 {
                     let mut determinant_is_zero = false;
                     let result = self.generic_inverse(
@@ -246,7 +246,7 @@ macro_rules! impl_wide_float {
 
                     result
                 }
-                #[cfg(not(assertions))]
+                #[cfg(not(debug_assertions))]
                 {
                     self.generic_inverse(|_, result| result, |_| Ok(()))
                 }
@@ -491,8 +491,7 @@ macro_rules! impl_wide_float {
             #[track_caller]
             #[inline]
             fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<3, $Wide, A>; 3] {
-                #[cfg(assertions)]
-                assert!(quat.to_vector().is_normalized().all());
+                debug_assert!(quat.to_vector().is_normalized().all());
 
                 let x2 = quat.x + quat.x;
                 let y2 = quat.y + quat.y;
@@ -518,7 +517,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane the quaternion is not normalized.
             #[inline]
@@ -536,15 +535,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `axis` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(axis.is_normalized().all());
+                debug_assert!(axis.is_normalized().all());
 
                 let (sin, cos) = angle.sin_cos();
                 let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -627,7 +625,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `rotation` is not normalized.
             #[inline]
@@ -653,17 +651,15 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn look_to_lh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
-                #[cfg(assertions)]
-                assert!(dir.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(up.is_normalized().all());
+                debug_assert!(dir.is_normalized().all());
+                debug_assert!(up.is_normalized().all());
 
                 let forward = dir;
                 let right = up.cross(forward).normalize();
@@ -684,17 +680,15 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn look_to_rh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
-                #[cfg(assertions)]
-                assert!(dir.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(up.is_normalized().all());
+                debug_assert!(dir.is_normalized().all());
+                debug_assert!(up.is_normalized().all());
 
                 let forward = dir;
                 let right = forward.cross(up).normalize();
@@ -715,7 +709,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             #[inline]
@@ -737,7 +731,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             #[inline]
@@ -759,7 +753,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane any column of `self` is not normalized.
             #[inline]
@@ -771,8 +765,7 @@ macro_rules! impl_wide_float {
                 // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics
                 // gems IV. Academic Press Professional, Inc., USA, 222–229.
 
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self.x_axis.is_normalized().all()
                         && self.y_axis.is_normalized().all()
                         && self.z_axis.is_normalized().all()
@@ -891,8 +884,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[track_caller]
             fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<4, $Wide, A>; 3] {
-                #[cfg(assertions)]
-                assert!(quat.to_vector().is_normalized().all());
+                debug_assert!(quat.to_vector().is_normalized().all());
 
                 let x2 = quat.x + quat.x;
                 let y2 = quat.y + quat.y;
@@ -937,7 +929,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane the quaternion is not normalized.
             ///
@@ -961,7 +953,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `axis` is not normalized.
             ///
@@ -971,8 +963,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(axis.is_normalized().all());
+                debug_assert!(axis.is_normalized().all());
 
                 let (sin, cos) = angle.sin_cos();
                 let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -1028,7 +1019,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `rotation` is not normalized.
             ///
@@ -1058,7 +1049,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `rotation` is not normalized.
             ///
@@ -1093,7 +1084,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `rotation` is not normalized.
             ///
@@ -1132,7 +1123,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             ///
@@ -1146,10 +1137,8 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(dir.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(up.is_normalized().all());
+                debug_assert!(dir.is_normalized().all());
+                debug_assert!(up.is_normalized().all());
 
                 let forward = dir;
                 let right = up.cross(forward).normalize();
@@ -1179,7 +1168,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             ///
@@ -1193,10 +1182,8 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(dir.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(up.is_normalized().all());
+                debug_assert!(dir.is_normalized().all());
+                debug_assert!(up.is_normalized().all());
 
                 let forward = dir;
                 let right = forward.cross(up).normalize();
@@ -1226,7 +1213,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             ///
@@ -1254,7 +1241,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             ///
@@ -1282,7 +1269,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`, or if `far_plane` is less than or equal to `near_plane`.
@@ -1297,8 +1284,9 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!((near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all());
+                debug_assert!(
+                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
+                );
 
                 let (sin, cos) = (vertical_fov * $Wide::splat(0.5)).sin_cos();
                 let height_recip = cos / sin;
@@ -1329,7 +1317,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any plane `near_plane` is less than or equal to
             /// `0`, or if `far_plane` is less than or equal to `near_plane`.
@@ -1344,8 +1332,9 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!((near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all());
+                debug_assert!(
+                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
+                );
 
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
@@ -1380,7 +1369,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`, or if `far_plane` is less than or equal to `near_plane`.
@@ -1396,8 +1385,9 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!((near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all());
+                debug_assert!(
+                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
+                );
 
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
@@ -1435,7 +1425,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`.
@@ -1449,8 +1439,7 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(near_plane.simd_gt($Wide::ZERO).all());
+                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
 
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
@@ -1477,7 +1466,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`.
@@ -1491,8 +1480,7 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(near_plane.simd_gt($Wide::ZERO).all());
+                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
 
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
@@ -1517,7 +1505,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`.
@@ -1531,8 +1519,7 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(near_plane.simd_gt($Wide::ZERO).all());
+                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
 
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
@@ -1557,7 +1544,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`.
@@ -1571,8 +1558,7 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(near_plane.simd_gt($Wide::ZERO).all());
+                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
 
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
@@ -1594,7 +1580,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`, or if `far_plane` is less than or equal to `near_plane`.
@@ -1611,8 +1597,9 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!((near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all());
+                debug_assert!(
+                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
+                );
 
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
@@ -1649,7 +1636,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`, or if `far_plane` is less than or equal to `near_plane`.
@@ -1666,8 +1653,9 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!((near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all());
+                debug_assert!(
+                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
+                );
 
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
@@ -1706,7 +1694,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `near_plane` is less than or equal to
             /// `0`, or if `far_plane` is less than or equal to `near_plane`.
@@ -1724,8 +1712,9 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!((near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all());
+                debug_assert!(
+                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
+                );
 
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
@@ -1765,7 +1754,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `far` is less than or equal to `near`.
             ///
@@ -1781,8 +1770,7 @@ macro_rules! impl_wide_float {
                 near: $Wide,
                 far: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(far.simd_gt(near).all());
+                debug_assert!(far.simd_gt(near).all());
 
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
@@ -1822,7 +1810,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `far` is less than or equal to `near`.
             ///
@@ -1838,8 +1826,7 @@ macro_rules! impl_wide_float {
                 near: $Wide,
                 far: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(far.simd_gt(near).all());
+                debug_assert!(far.simd_gt(near).all());
 
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
@@ -1883,7 +1870,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `far` is less than or equal to `near`.
             ///
@@ -1900,8 +1887,7 @@ macro_rules! impl_wide_float {
                 near: $Wide,
                 far: $Wide,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(far.simd_gt(near).all());
+                debug_assert!(far.simd_gt(near).all());
 
                 let scale_x = $Wide::splat(2.0) / (right - left);
                 let scale_y = $Wide::splat(2.0) / (top - bottom);
@@ -1931,7 +1917,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane any column of the upper 3x3 matrix is not
             /// normalized.

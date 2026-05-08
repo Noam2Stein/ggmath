@@ -28,7 +28,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if the determinant is `0` for any lane.
             #[inline]
@@ -191,7 +191,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane the quaternion is not normalized.
             #[inline]
@@ -208,7 +208,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `axis` is not normalized.
             #[inline]
@@ -231,7 +231,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `rotation` is not normalized.
             #[inline]
@@ -249,7 +249,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `rotation` is not normalized.
             #[inline]
@@ -270,7 +270,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `rotation` is not normalized.
             #[inline]
@@ -295,7 +295,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
@@ -306,10 +306,8 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(dir.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(up.is_normalized().all());
+                debug_assert!(dir.is_normalized().all());
+                debug_assert!(up.is_normalized().all());
 
                 let forward = dir;
                 let right = up.cross(forward).normalize();
@@ -331,7 +329,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
@@ -342,10 +340,8 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                #[cfg(assertions)]
-                assert!(dir.is_normalized().all());
-                #[cfg(assertions)]
-                assert!(up.is_normalized().all());
+                debug_assert!(dir.is_normalized().all());
+                debug_assert!(up.is_normalized().all());
 
                 let forward = dir;
                 let right = forward.cross(up).normalize();
@@ -367,7 +363,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             #[inline]
@@ -389,7 +385,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `up` is not normalized.
             #[inline]
@@ -411,7 +407,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane any column of `self`, excluding the
             /// translation column, is not normalized.

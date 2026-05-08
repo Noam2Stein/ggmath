@@ -18,26 +18,28 @@ macro_rules! assert_panic {
 
 pub(crate) use assert_panic;
 
-/// When assertions are enabled, asserts that the given expression panics. When
-/// assertions are disabled, asserts that the given expression does not panic.
-#[cfg(assertions)]
-macro_rules! assert_assertions_panic {
+/// When debug assertions are enabled, asserts that the given expression panics.
+/// When debug assertions are disabled, asserts that the given expression does
+/// not panic.
+#[cfg(debug_assertions)]
+macro_rules! assert_debug_panic {
     ($expr:expr $(,)?) => {
         crate::utils::assert_panic_helper(|| {
             let _ = $expr;
         })
     };
 }
-/// When assertions are enabled, asserts that the given expression panics. When
-/// assertions are disabled, asserts that the given expression does not panic.
-#[cfg(not(assertions))]
-macro_rules! assert_assertions_panic {
+/// When debug assertions are enabled, asserts that the given expression panics.
+/// When debug assertions are disabled, asserts that the given expression does
+/// not panic.
+#[cfg(not(debug_assertions))]
+macro_rules! assert_debug_panic {
     ($expr:expr $(,)?) => {{
         let _ = $expr;
     }};
 }
 
-pub(crate) use assert_assertions_panic;
+pub(crate) use assert_debug_panic;
 
 macro_rules! assert_panic_eq {
     ($left:expr, $right:expr $(,)?) => {
@@ -174,15 +176,15 @@ mod tests {
     #[test]
     #[expect(clippy::diverging_sub_expression)]
     fn test_assert_assertions_panic() {
-        #[cfg(assertions)]
-        assert_assertions_panic!(panic!());
-        #[cfg(assertions)]
-        assert_panic!(assert_assertions_panic!(()));
+        #[cfg(debug_assertions)]
+        assert_debug_panic!(panic!());
+        #[cfg(debug_assertions)]
+        assert_panic!(assert_debug_panic!(()));
 
-        #[cfg(not(assertions))]
-        assert_assertions_panic!(());
-        #[cfg(not(assertions))]
-        assert_panic!(assert_assertions_panic!(panic!()));
+        #[cfg(not(debug_assertions))]
+        assert_debug_panic!(());
+        #[cfg(not(debug_assertions))]
+        assert_panic!(assert_debug_panic!(panic!()));
     }
 
     #[test]

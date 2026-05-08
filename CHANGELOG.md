@@ -102,6 +102,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Feature flags `assertions` and `no-assertions`. Debug assertions can be
+  enabled and disabled per crate through Cargo.
+
 - Deprecated items.
 
 - Vector `From<(_,)>` implementations.

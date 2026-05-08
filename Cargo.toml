@@ -17,9 +17,6 @@ rust-version = "1.95.0"
 description = "A linear algebra library for games and graphics with generic SIMD types."
 
 [features]
-assertions = []
-no-assertions = []
-
 bytemuck = ["dep:bytemuck"]
 fixed = ["dep:fixed"]
 fixp = ["dep:fixp"]

@@ -63,15 +63,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn max(self, other: Self) -> Self {
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self.is_nan() == $Wide::splat(0.0) && other.is_nan() == $Wide::splat(0.0),
                     "NaN: {self:?}.max({other:?})"
                 );
@@ -88,15 +87,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn min(self, other: Self) -> Self {
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self.is_nan() == $Wide::splat(0.0) && other.is_nan() == $Wide::splat(0.0),
                     "NaN: {self:?}.min({other:?})"
                 );
@@ -115,7 +113,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if any element is NaN, or if any element of `min` is
             /// greater than the corresponding element of `max`.
@@ -123,16 +121,14 @@ macro_rules! impl_wide_float {
             #[must_use]
             #[track_caller]
             pub fn clamp(self, min: Self, max: Self) -> Self {
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self.is_nan() == $Wide::splat(0.0)
                         && min.is_nan() == $Wide::splat(0.0)
                         && max.is_nan() == $Wide::splat(0.0),
                     "NaN: {self:?}.clamp({min:?}, {max:?})"
                 );
 
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     min.simd_gt_mask(max).any() == $Wide::splat(0.0),
                     "min > max: {self:?}.clamp({min:?}, {max:?})"
                 );
@@ -150,15 +146,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn max_element(self) -> $Wide {
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self.is_nan() == $Wide::splat(0.0),
                     "NaN: {self:?}.max_element()"
                 );
@@ -184,15 +179,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn min_element(self) -> $Wide {
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self.is_nan() == $Wide::splat(0.0),
                     "NaN: {self:?}.min_element()"
                 );
@@ -497,7 +491,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane, `self` is a zero vector, or if the
             /// result is non finite or zero.
@@ -505,16 +499,14 @@ macro_rules! impl_wide_float {
             #[must_use]
             #[track_caller]
             pub fn normalize(self) -> Self {
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     self.simd_ne(Self::ZERO).all(),
                     "cannot normalize a zero vector"
                 );
 
                 let result = self / self.length();
 
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(
                     (result.is_finite() & result.simd_ne(Self::ZERO)).all(),
                     "non finite result: {self:?}.normalize()"
                 );
@@ -606,15 +598,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if `max` is negative for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn with_max_length(self, max: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(max.simd_ge($Wide::ZERO).all(), "negative maximum length");
+                debug_assert!(max.simd_ge($Wide::ZERO).all(), "negative maximum length");
 
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_gt(max * max))
@@ -626,15 +617,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if `min` is negative for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn with_min_length(self, min: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(min.simd_ge($Wide::ZERO).all(), "negative minimum length");
+                debug_assert!(min.simd_ge($Wide::ZERO).all(), "negative minimum length");
 
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_lt(min * min))
@@ -646,18 +636,15 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if `min > max`, or if `min` is negative for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(min.simd_ge($Wide::ZERO).all(), "negative minimum length");
-
-                #[cfg(assertions)]
-                assert!(
+                debug_assert!(min.simd_ge($Wide::ZERO).all(), "negative minimum length");
+                debug_assert!(
                     min.simd_le(max).all(),
                     "minimum length is greater than maximum length"
                 );
@@ -696,7 +683,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if `other` is a zero vector for any lane.
             #[inline]
@@ -705,8 +692,7 @@ macro_rules! impl_wide_float {
             pub fn project_onto(self, other: Self) -> Self {
                 let other_length_squared_recip = $Wide::ONE / other.length_squared();
 
-                #[cfg(assertions)]
-                assert!(other_length_squared_recip.is_finite().all());
+                debug_assert!(other_length_squared_recip.is_finite().all());
 
                 other * self.dot(other) * other_length_squared_recip
             }
@@ -717,15 +703,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `other` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn project_onto_normalized(self, other: Self) -> Self {
-                #[cfg(assertions)]
-                assert!(other.is_normalized().all());
+                debug_assert!(other.is_normalized().all());
 
                 other * self.dot(other)
             }
@@ -738,7 +723,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if `other` is a zero vector for any lane.
             #[inline]
@@ -756,7 +741,7 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `other` is not normalized.
             #[inline]
@@ -772,15 +757,14 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `normal` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn reflect(self, normal: Self) -> Self {
-                #[cfg(assertions)]
-                assert!(normal.is_normalized().all());
+                debug_assert!(normal.is_normalized().all());
 
                 self - normal * ($Wide::splat(2.0) * self.dot(normal))
             }
@@ -798,18 +782,15 @@ macro_rules! impl_wide_float {
             ///
             /// # Panics
             ///
-            /// When assertions are enabled (see the crate documentation):
+            /// When debug assertions are enabled:
             ///
             /// Panics if for any lane `self` or `normal` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn refract(self, normal: Self, eta: $Wide) -> Self {
-                #[cfg(assertions)]
-                assert!(self.is_normalized().all());
-
-                #[cfg(assertions)]
-                assert!(normal.is_normalized().all());
+                debug_assert!(self.is_normalized().all());
+                debug_assert!(normal.is_normalized().all());
 
                 let self_dot_normal = self.dot(normal);
                 let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
@@ -1035,7 +1016,7 @@ mod tests {
 
     use crate::{
         Vector,
-        utils::{assert_assertions_panic, assert_float_eq, assert_panic_float_eq, for_parameters},
+        utils::{assert_debug_panic, assert_float_eq, assert_panic_float_eq, for_parameters},
     };
 
     #[test]
@@ -1172,23 +1153,16 @@ mod tests {
                     Vector::<4, Wide, A>::new(x.max(z), y.max(w), a.max(c), b.max(d))
                 );
             } else {
-                assert_assertions_panic!(
+                assert_debug_panic!(
                     Vector::<2, Wide, A>::new(x, y).max(Vector::<2, Wide, A>::new(z, w))
                 );
-                assert_assertions_panic!(Vector::<3, Wide, A>::new(x, y, a).max(Vector::<
-                    3,
-                    Wide,
-                    A,
-                >::new(
-                    z, w, c
-                )));
-                assert_assertions_panic!(Vector::<4, Wide, A>::new(x, y, a, b).max(Vector::<
-                    4,
-                    Wide,
-                    A,
-                >::new(
-                    z, w, c, d
-                )));
+                assert_debug_panic!(
+                    Vector::<3, Wide, A>::new(x, y, a).max(Vector::<3, Wide, A>::new(z, w, c))
+                );
+                assert_debug_panic!(
+                    Vector::<4, Wide, A>::new(x, y, a, b)
+                        .max(Vector::<4, Wide, A>::new(z, w, c, d))
+                );
             }
         });
     }
@@ -1222,23 +1196,16 @@ mod tests {
                     Vector::<4, Wide, A>::new(x.min(z), y.min(w), a.min(c), b.min(d))
                 );
             } else {
-                assert_assertions_panic!(
+                assert_debug_panic!(
                     Vector::<2, Wide, A>::new(x, y).min(Vector::<2, Wide, A>::new(z, w))
                 );
-                assert_assertions_panic!(Vector::<3, Wide, A>::new(x, y, a).min(Vector::<
-                    3,
-                    Wide,
-                    A,
-                >::new(
-                    z, w, c
-                )));
-                assert_assertions_panic!(Vector::<4, Wide, A>::new(x, y, a, b).min(Vector::<
-                    4,
-                    Wide,
-                    A,
-                >::new(
-                    z, w, c, d
-                )));
+                assert_debug_panic!(
+                    Vector::<3, Wide, A>::new(x, y, a).min(Vector::<3, Wide, A>::new(z, w, c))
+                );
+                assert_debug_panic!(
+                    Vector::<4, Wide, A>::new(x, y, a, b)
+                        .min(Vector::<4, Wide, A>::new(z, w, c, d))
+                );
             }
         });
     }
@@ -1263,7 +1230,7 @@ mod tests {
                     Vector::<2, Wide, A>::new(x.max(z).min(a), y.max(w).min(b))
                 );
             } else {
-                assert_assertions_panic!(Vector::<2, Wide, A>::new(x, y).clamp(
+                assert_debug_panic!(Vector::<2, Wide, A>::new(x, y).clamp(
                     Vector::<2, Wide, A>::new(z, w),
                     Vector::<2, Wide, A>::new(a, b)
                 ));
@@ -1282,7 +1249,7 @@ mod tests {
                     Vector::<3, Wide, A>::new(x.max(w).min(c), y.max(a).min(d), z.max(b).min(e))
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, Wide, A>::new(x, y, z).clamp(
+                assert_debug_panic!(Vector::<3, Wide, A>::new(x, y, z).clamp(
                     Vector::<3, Wide, A>::new(w, a, b),
                     Vector::<3, Wide, A>::new(c, d, e)
                 ));
@@ -1306,7 +1273,7 @@ mod tests {
                     )
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, Wide, A>::new(x, y, z, w).clamp(
+                assert_debug_panic!(Vector::<4, Wide, A>::new(x, y, z, w).clamp(
                     Vector::<4, Wide, A>::new(a, b, c, d),
                     Vector::<4, Wide, A>::new(e, f, g, h)
                 ));
@@ -1323,7 +1290,7 @@ mod tests {
             if x.is_nan() | y.is_nan() == Wide::splat(0.0) {
                 assert_float_eq!(Vector::<2, Wide, A>::new(x, y).max_element(), x.max(y));
             } else {
-                assert_assertions_panic!(Vector::<2, Wide, A>::new(x, y).max_element());
+                assert_debug_panic!(Vector::<2, Wide, A>::new(x, y).max_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() == Wide::splat(0.0) {
@@ -1332,7 +1299,7 @@ mod tests {
                     x.max(y).max(z)
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, Wide, A>::new(x, y, z).max_element());
+                assert_debug_panic!(Vector::<3, Wide, A>::new(x, y, z).max_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Wide::splat(0.0) {
@@ -1341,7 +1308,7 @@ mod tests {
                     x.max(y).max(z).max(w)
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, Wide, A>::new(x, y, z, w).max_element());
+                assert_debug_panic!(Vector::<4, Wide, A>::new(x, y, z, w).max_element());
             }
         });
     }
@@ -1355,7 +1322,7 @@ mod tests {
             if x.is_nan() | y.is_nan() == Wide::splat(0.0) {
                 assert_float_eq!(Vector::<2, Wide, A>::new(x, y).min_element(), x.min(y));
             } else {
-                assert_assertions_panic!(Vector::<2, Wide, A>::new(x, y).min_element());
+                assert_debug_panic!(Vector::<2, Wide, A>::new(x, y).min_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() == Wide::splat(0.0) {
@@ -1364,7 +1331,7 @@ mod tests {
                     x.min(y).min(z)
                 );
             } else {
-                assert_assertions_panic!(Vector::<3, Wide, A>::new(x, y, z).min_element());
+                assert_debug_panic!(Vector::<3, Wide, A>::new(x, y, z).min_element());
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Wide::splat(0.0) {
@@ -1373,7 +1340,7 @@ mod tests {
                     x.min(y).min(z).min(w)
                 );
             } else {
-                assert_assertions_panic!(Vector::<4, Wide, A>::new(x, y, z, w).min_element());
+                assert_debug_panic!(Vector::<4, Wide, A>::new(x, y, z, w).min_element());
             }
         });
     }
