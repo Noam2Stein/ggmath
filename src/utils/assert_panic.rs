@@ -61,6 +61,24 @@ macro_rules! assert_panic_float_eq {
 
 pub(crate) use assert_panic_float_eq;
 
+/// Asserts that either `left == right` or `right` panics.
+///
+/// If `left` panics this fails even if `right` panicked too.
+#[cfg(feature = "wide")]
+macro_rules! assert_float_eq_or_panic {
+    ($left:expr, $right:expr $(, $($arg:tt)*)?) => {{
+        extern crate std;
+
+        let _left = $left;
+        if let Ok(right) = std::panic::catch_unwind(|| $right) {
+            crate::utils::assert_float_eq!(_left, right $(, $($arg)*)?);
+        }
+    }};
+}
+
+#[cfg(feature = "wide")]
+pub(crate) use assert_float_eq_or_panic;
+
 #[doc(hidden)]
 #[track_caller]
 pub fn assert_panic_helper(f: impl FnOnce() + UnwindSafe) {
@@ -210,5 +228,16 @@ mod tests {
         assert_panic!(assert_panic_float_eq!(1.0, 2.0));
         assert_panic!(assert_panic_float_eq!(panic!(), 1.0));
         assert_panic!(assert_panic_float_eq!(1.0, panic!()));
+    }
+
+    #[cfg(feature = "wide")]
+    #[test]
+    #[expect(unreachable_code)]
+    #[expect(clippy::diverging_sub_expression)]
+    fn test_assert_float_eq_or_panic() {
+        assert_float_eq_or_panic!(1.0, 1.0);
+        assert_float_eq_or_panic!(1.0, panic!());
+        assert_panic!(assert_float_eq_or_panic!(1.0, 2.0));
+        assert_panic!(assert_float_eq_or_panic!(panic!(), 1.0));
     }
 }

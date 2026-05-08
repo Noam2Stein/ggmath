@@ -60,21 +60,10 @@ macro_rules! impl_wide_float {
             ///
             /// This is not consistent with IEEE semantics in regards to NaN
             /// propagation and handling of `-0.0`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn max(self, other: Self) -> Self {
-                debug_assert!(
-                    self.is_nan() == $Wide::splat(0.0) && other.is_nan() == $Wide::splat(0.0),
-                    "NaN: {self:?}.max({other:?})"
-                );
-
                 Self::from_fn(|i| self[i].fast_max(other[i]))
             }
 
@@ -84,21 +73,10 @@ macro_rules! impl_wide_float {
             ///
             /// This is not consistent with IEEE semantics in regards to NaN
             /// propagation and handling of `-0.0`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn min(self, other: Self) -> Self {
-                debug_assert!(
-                    self.is_nan() == $Wide::splat(0.0) && other.is_nan() == $Wide::splat(0.0),
-                    "NaN: {self:?}.min({other:?})"
-                );
-
                 Self::from_fn(|i| self[i].fast_min(other[i]))
             }
 
@@ -110,29 +88,10 @@ macro_rules! impl_wide_float {
             ///
             /// This is not consistent with IEEE semantics in regards to NaN
             /// propagation and handling of `-0.0`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if any element is NaN, or if any element of `min` is
-            /// greater than the corresponding element of `max`.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn clamp(self, min: Self, max: Self) -> Self {
-                debug_assert!(
-                    self.is_nan() == $Wide::splat(0.0)
-                        && min.is_nan() == $Wide::splat(0.0)
-                        && max.is_nan() == $Wide::splat(0.0),
-                    "NaN: {self:?}.clamp({min:?}, {max:?})"
-                );
-
-                debug_assert!(
-                    min.simd_gt_mask(max).any() == $Wide::splat(0.0),
-                    "min > max: {self:?}.clamp({min:?}, {max:?})"
-                );
-
                 self.max(min).min(max)
             }
 
@@ -143,21 +102,10 @@ macro_rules! impl_wide_float {
             ///
             /// This is not consistent with IEEE semantics in regards to NaN
             /// propagation and handling of `-0.0`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn max_element(self) -> $Wide {
-                debug_assert!(
-                    self.is_nan() == $Wide::splat(0.0),
-                    "NaN: {self:?}.max_element()"
-                );
-
                 match N {
                     2 => self[0].fast_max(self[1]),
                     3 => self[0].fast_max(self[1]).fast_max(self[2]),
@@ -176,21 +124,10 @@ macro_rules! impl_wide_float {
             ///
             /// This is not consistent with IEEE semantics in regards to NaN
             /// propagation and handling of `-0.0`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if any element is NaN.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn min_element(self) -> $Wide {
-                debug_assert!(
-                    self.is_nan() == $Wide::splat(0.0),
-                    "NaN: {self:?}.min_element()"
-                );
-
                 match N {
                     2 => self[0].fast_min(self[1]),
                     3 => self[0].fast_min(self[1]).fast_min(self[2]),
@@ -488,30 +425,11 @@ macro_rules! impl_wide_float {
 
             /// For each lane, returns a vector with the direction of `self` and
             /// length `1`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane, `self` is a zero vector, or if the
-            /// result is non finite or zero.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn normalize(self) -> Self {
-                debug_assert!(
-                    self.simd_ne(Self::ZERO).all(),
-                    "cannot normalize a zero vector"
-                );
-
-                let result = self / self.length();
-
-                debug_assert!(
-                    (result.is_finite() & result.simd_ne(Self::ZERO)).all(),
-                    "non finite result: {self:?}.normalize()"
-                );
-
-                result
+                self / self.length()
             }
 
             /// Returns [`normalize`], or `None` if for any lane `self` is zero
@@ -595,18 +513,10 @@ macro_rules! impl_wide_float {
 
             /// For each lane, returns `self` with a length of no more than
             /// `max`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if `max` is negative for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn with_max_length(self, max: $Wide) -> Self {
-                debug_assert!(max.simd_ge($Wide::ZERO).all(), "negative maximum length");
-
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_gt(max * max))
                     .blend(self / length_squared.sqrt() * max, self)
@@ -614,18 +524,10 @@ macro_rules! impl_wide_float {
 
             /// For any lane, returns `self` with a length of no less than
             /// `min`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if `min` is negative for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn with_min_length(self, min: $Wide) -> Self {
-                debug_assert!(min.simd_ge($Wide::ZERO).all(), "negative minimum length");
-
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_lt(min * min))
                     .blend(self / length_squared.sqrt() * min, self)
@@ -633,22 +535,10 @@ macro_rules! impl_wide_float {
 
             /// For each lane, returns `self` with a length of no less than
             /// `min` and no more than `max`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if `min > max`, or if `min` is negative for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
-                debug_assert!(min.simd_ge($Wide::ZERO).all(), "negative minimum length");
-                debug_assert!(
-                    min.simd_le(max).all(),
-                    "minimum length is greater than maximum length"
-                );
-
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_lt(min * min)).blend(
                     self / length_squared.sqrt() * min,
@@ -680,19 +570,11 @@ macro_rules! impl_wide_float {
             /// Returns the vector projection of `self` onto `other`.
             ///
             /// `other` must not be a zero vector.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if `other` is a zero vector for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn project_onto(self, other: Self) -> Self {
                 let other_length_squared_recip = $Wide::ONE / other.length_squared();
-
-                debug_assert!(other_length_squared_recip.is_finite().all());
 
                 other * self.dot(other) * other_length_squared_recip
             }
@@ -700,18 +582,10 @@ macro_rules! impl_wide_float {
             /// Returns the vector projection of `self` onto `other`.
             ///
             /// `other` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `other` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn project_onto_normalized(self, other: Self) -> Self {
-                debug_assert!(other.is_normalized().all());
-
                 other * self.dot(other)
             }
 
@@ -720,12 +594,6 @@ macro_rules! impl_wide_float {
             /// Equivalent to `self - self.project_onto(other)`.
             ///
             /// `other` must not be a zero vector.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if `other` is a zero vector for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -738,12 +606,6 @@ macro_rules! impl_wide_float {
             /// Equivalent to `self - self.project_onto(other)`.
             ///
             /// `other` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `other` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -754,18 +616,10 @@ macro_rules! impl_wide_float {
             /// Returns the reflection of `self` through `normal`.
             ///
             /// `normal` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `normal` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn reflect(self, normal: Self) -> Self {
-                debug_assert!(normal.is_normalized().all());
-
                 self - normal * ($Wide::splat(2.0) * self.dot(normal))
             }
 
@@ -779,19 +633,10 @@ macro_rules! impl_wide_float {
             /// vector.
             ///
             /// `self` and `normal` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `self` or `normal` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn refract(self, normal: Self, eta: $Wide) -> Self {
-                debug_assert!(self.is_normalized().all());
-                debug_assert!(normal.is_normalized().all());
-
                 let self_dot_normal = self.dot(normal);
                 let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
 
@@ -1016,7 +861,7 @@ mod tests {
 
     use crate::{
         Vector,
-        utils::{assert_debug_panic, assert_float_eq, assert_panic_float_eq, for_parameters},
+        utils::{assert_float_eq, assert_float_eq_or_panic, for_parameters},
     };
 
     #[test]
@@ -1153,16 +998,10 @@ mod tests {
                     Vector::<4, Wide, A>::new(x.max(z), y.max(w), a.max(c), b.max(d))
                 );
             } else {
-                assert_debug_panic!(
-                    Vector::<2, Wide, A>::new(x, y).max(Vector::<2, Wide, A>::new(z, w))
-                );
-                assert_debug_panic!(
-                    Vector::<3, Wide, A>::new(x, y, a).max(Vector::<3, Wide, A>::new(z, w, c))
-                );
-                assert_debug_panic!(
-                    Vector::<4, Wide, A>::new(x, y, a, b)
-                        .max(Vector::<4, Wide, A>::new(z, w, c, d))
-                );
+                let _ = Vector::<2, Wide, A>::new(x, y).max(Vector::<2, Wide, A>::new(z, w));
+                let _ = Vector::<3, Wide, A>::new(x, y, a).max(Vector::<3, Wide, A>::new(z, w, c));
+                let _ = Vector::<4, Wide, A>::new(x, y, a, b)
+                    .max(Vector::<4, Wide, A>::new(z, w, c, d));
             }
         });
     }
@@ -1196,16 +1035,10 @@ mod tests {
                     Vector::<4, Wide, A>::new(x.min(z), y.min(w), a.min(c), b.min(d))
                 );
             } else {
-                assert_debug_panic!(
-                    Vector::<2, Wide, A>::new(x, y).min(Vector::<2, Wide, A>::new(z, w))
-                );
-                assert_debug_panic!(
-                    Vector::<3, Wide, A>::new(x, y, a).min(Vector::<3, Wide, A>::new(z, w, c))
-                );
-                assert_debug_panic!(
-                    Vector::<4, Wide, A>::new(x, y, a, b)
-                        .min(Vector::<4, Wide, A>::new(z, w, c, d))
-                );
+                let _ = Vector::<2, Wide, A>::new(x, y).min(Vector::<2, Wide, A>::new(z, w));
+                let _ = Vector::<3, Wide, A>::new(x, y, a).min(Vector::<3, Wide, A>::new(z, w, c));
+                let _ = Vector::<4, Wide, A>::new(x, y, a, b)
+                    .min(Vector::<4, Wide, A>::new(z, w, c, d));
             }
         });
     }
@@ -1230,10 +1063,10 @@ mod tests {
                     Vector::<2, Wide, A>::new(x.max(z).min(a), y.max(w).min(b))
                 );
             } else {
-                assert_debug_panic!(Vector::<2, Wide, A>::new(x, y).clamp(
+                let _ = Vector::<2, Wide, A>::new(x, y).clamp(
                     Vector::<2, Wide, A>::new(z, w),
-                    Vector::<2, Wide, A>::new(a, b)
-                ));
+                    Vector::<2, Wide, A>::new(a, b),
+                );
             }
 
             if (x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() | a.is_nan() | b.is_nan())
@@ -1249,10 +1082,10 @@ mod tests {
                     Vector::<3, Wide, A>::new(x.max(w).min(c), y.max(a).min(d), z.max(b).min(e))
                 );
             } else {
-                assert_debug_panic!(Vector::<3, Wide, A>::new(x, y, z).clamp(
+                let _ = Vector::<3, Wide, A>::new(x, y, z).clamp(
                     Vector::<3, Wide, A>::new(w, a, b),
-                    Vector::<3, Wide, A>::new(c, d, e)
-                ));
+                    Vector::<3, Wide, A>::new(c, d, e),
+                );
             }
 
             if (x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() | a.is_nan() | b.is_nan())
@@ -1273,10 +1106,10 @@ mod tests {
                     )
                 );
             } else {
-                assert_debug_panic!(Vector::<4, Wide, A>::new(x, y, z, w).clamp(
+                let _ = Vector::<4, Wide, A>::new(x, y, z, w).clamp(
                     Vector::<4, Wide, A>::new(a, b, c, d),
-                    Vector::<4, Wide, A>::new(e, f, g, h)
-                ));
+                    Vector::<4, Wide, A>::new(e, f, g, h),
+                );
             }
         });
     }
@@ -1290,7 +1123,7 @@ mod tests {
             if x.is_nan() | y.is_nan() == Wide::splat(0.0) {
                 assert_float_eq!(Vector::<2, Wide, A>::new(x, y).max_element(), x.max(y));
             } else {
-                assert_debug_panic!(Vector::<2, Wide, A>::new(x, y).max_element());
+                let _ = Vector::<2, Wide, A>::new(x, y).max_element();
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() == Wide::splat(0.0) {
@@ -1299,7 +1132,7 @@ mod tests {
                     x.max(y).max(z)
                 );
             } else {
-                assert_debug_panic!(Vector::<3, Wide, A>::new(x, y, z).max_element());
+                let _ = Vector::<3, Wide, A>::new(x, y, z).max_element();
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Wide::splat(0.0) {
@@ -1308,7 +1141,7 @@ mod tests {
                     x.max(y).max(z).max(w)
                 );
             } else {
-                assert_debug_panic!(Vector::<4, Wide, A>::new(x, y, z, w).max_element());
+                let _ = Vector::<4, Wide, A>::new(x, y, z, w).max_element();
             }
         });
     }
@@ -1322,7 +1155,7 @@ mod tests {
             if x.is_nan() | y.is_nan() == Wide::splat(0.0) {
                 assert_float_eq!(Vector::<2, Wide, A>::new(x, y).min_element(), x.min(y));
             } else {
-                assert_debug_panic!(Vector::<2, Wide, A>::new(x, y).min_element());
+                let _ = Vector::<2, Wide, A>::new(x, y).min_element();
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() == Wide::splat(0.0) {
@@ -1331,7 +1164,7 @@ mod tests {
                     x.min(y).min(z)
                 );
             } else {
-                assert_debug_panic!(Vector::<3, Wide, A>::new(x, y, z).min_element());
+                let _ = Vector::<3, Wide, A>::new(x, y, z).min_element();
             }
 
             if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Wide::splat(0.0) {
@@ -1340,7 +1173,7 @@ mod tests {
                     x.min(y).min(z).min(w)
                 );
             } else {
-                assert_debug_panic!(Vector::<4, Wide, A>::new(x, y, z, w).min_element());
+                let _ = Vector::<4, Wide, A>::new(x, y, z, w).min_element();
             }
         });
     }
@@ -1916,19 +1749,19 @@ mod tests {
             let w = x ^ y;
 
             let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.normalize(),
                 Vector::<2, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize())
             );
 
             let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.normalize(),
                 Vector::<3, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize())
             );
 
             let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.normalize(),
                 Vector::<4, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize())
             );
@@ -2145,19 +1978,19 @@ mod tests {
             let a = y ^ z;
 
             let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.with_max_length(a),
                 Vector::from_lane_fn(|lane| vector.lane(lane).with_max_length(a.to_array()[lane]))
             );
 
             let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.with_max_length(a),
                 Vector::from_lane_fn(|lane| vector.lane(lane).with_max_length(a.to_array()[lane]))
             );
 
             let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.with_max_length(a),
                 Vector::from_lane_fn(|lane| vector.lane(lane).with_max_length(a.to_array()[lane]))
             );
@@ -2172,19 +2005,19 @@ mod tests {
             let a = y ^ z;
 
             let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.with_min_length(a),
                 Vector::from_lane_fn(|lane| vector.lane(lane).with_min_length(a.to_array()[lane]))
             );
 
             let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.with_min_length(a),
                 Vector::from_lane_fn(|lane| vector.lane(lane).with_min_length(a.to_array()[lane]))
             );
 
             let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.with_min_length(a),
                 Vector::from_lane_fn(|lane| vector.lane(lane).with_min_length(a.to_array()[lane]))
             );
@@ -2200,7 +2033,7 @@ mod tests {
             let b = w + a;
 
             let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.clamp_length(a, b),
                 Vector::from_lane_fn(|lane| vector
                     .lane(lane)
@@ -2208,7 +2041,7 @@ mod tests {
             );
 
             let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.clamp_length(a, b),
                 Vector::from_lane_fn(|lane| vector
                     .lane(lane)
@@ -2216,7 +2049,7 @@ mod tests {
             );
 
             let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector.clamp_length(a, b),
                 Vector::from_lane_fn(|lane| vector
                     .lane(lane)
@@ -2275,21 +2108,21 @@ mod tests {
 
             let vector_a = Vector::<2, Wide, A>::new(x, y);
             let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.project_onto(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).project_onto(vector_b.lane(lane)))
             );
 
             let vector_a = Vector::<3, Wide, A>::new(x, y, z);
             let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.project_onto(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).project_onto(vector_b.lane(lane)))
             );
 
             let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
             let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.project_onto(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).project_onto(vector_b.lane(lane)))
             );
@@ -2306,7 +2139,7 @@ mod tests {
 
             let vector_a = Vector::<2, Wide, A>::new(x, y);
             let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.project_onto_normalized(vector_b),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2317,7 +2150,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.project_onto_normalized(vector_b),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2328,7 +2161,7 @@ mod tests {
 
             let vector_a = Vector::<3, Wide, A>::new(x, y, z);
             let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.project_onto_normalized(vector_b),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2339,7 +2172,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.project_onto_normalized(vector_b),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2350,7 +2183,7 @@ mod tests {
 
             let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
             let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.project_onto_normalized(vector_b),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2361,7 +2194,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.project_onto_normalized(vector_b),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2382,21 +2215,21 @@ mod tests {
 
             let vector_a = Vector::<2, Wide, A>::new(x, y);
             let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reject_from(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).reject_from(vector_b.lane(lane)))
             );
 
             let vector_a = Vector::<3, Wide, A>::new(x, y, z);
             let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reject_from(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).reject_from(vector_b.lane(lane)))
             );
 
             let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
             let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reject_from(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).reject_from(vector_b.lane(lane)))
             );
@@ -2413,7 +2246,7 @@ mod tests {
 
             let vector_a = Vector::<2, Wide, A>::new(x, y);
             let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reject_from_normalized(vector_b),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2424,7 +2257,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.reject_from_normalized(vector_b),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2435,7 +2268,7 @@ mod tests {
 
             let vector_a = Vector::<3, Wide, A>::new(x, y, z);
             let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reject_from_normalized(vector_b),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2446,7 +2279,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.reject_from_normalized(vector_b),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2457,7 +2290,7 @@ mod tests {
 
             let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
             let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reject_from_normalized(vector_b),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2468,7 +2301,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.reject_from_normalized(vector_b),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2489,14 +2322,14 @@ mod tests {
 
             let vector_a = Vector::<2, Wide, A>::new(x, y);
             let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reflect(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
                 0.0 = -0.0
             );
 
             if let Some(vector_b) = vector_b.try_normalize() {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.reflect(vector_b),
                     Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
                     0.0 = -0.0
@@ -2505,14 +2338,14 @@ mod tests {
 
             let vector_a = Vector::<3, Wide, A>::new(x, y, z);
             let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reflect(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
                 0.0 = -0.0
             );
 
             if let Some(vector_b) = vector_b.try_normalize() {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.reflect(vector_b),
                     Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
                     0.0 = -0.0
@@ -2521,14 +2354,14 @@ mod tests {
 
             let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
             let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.reflect(vector_b),
                 Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
                 0.0 = -0.0
             );
 
             if let Some(vector_b) = vector_b.try_normalize() {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.reflect(vector_b),
                     Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
                     0.0 = -0.0
@@ -2549,7 +2382,7 @@ mod tests {
 
             let vector_a = Vector::<2, Wide, A>::new(x, y);
             let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.refract(vector_b, eta),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2559,7 +2392,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.refract(vector_b, eta),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2569,7 +2402,7 @@ mod tests {
 
             let vector_a = Vector::<3, Wide, A>::new(x, y, z);
             let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.refract(vector_b, eta),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2579,7 +2412,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.refract(vector_b, eta),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)
@@ -2589,7 +2422,7 @@ mod tests {
 
             let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
             let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 vector_a.refract(vector_b, eta),
                 Vector::from_lane_fn(|lane| vector_a
                     .lane(lane)
@@ -2599,7 +2432,7 @@ mod tests {
             if let Some(vector_a) = vector_a.try_normalize()
                 && let Some(vector_b) = vector_b.try_normalize()
             {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     vector_a.refract(vector_b, eta),
                     Vector::from_lane_fn(|lane| vector_a
                         .lane(lane)

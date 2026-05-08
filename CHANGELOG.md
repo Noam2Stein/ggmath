@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Removed panics from all `wide` functions.
+
 - Fixed `Vector::angle_between` edge case.
 
 - Made vector functions generic over `N`:

@@ -220,36 +220,10 @@ macro_rules! impl_wide_float {
             /// Returns the inverse of `self`.
             ///
             /// If `self` is not invertable the result is unspecified.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if the determinant is `0` for any lane.
             #[must_use]
             #[track_caller]
             pub fn inverse(&self) -> Self {
-                #[cfg(debug_assertions)]
-                {
-                    let mut determinant_is_zero = false;
-                    let result = self.generic_inverse(
-                        |_, result| result,
-                        |determinant| {
-                            determinant_is_zero = determinant.simd_eq($Wide::ZERO).any();
-                            Ok(())
-                        },
-                    );
-
-                    if determinant_is_zero {
-                        panic!("matrix is not invertable");
-                    }
-
-                    result
-                }
-                #[cfg(not(debug_assertions))]
-                {
-                    self.generic_inverse(|_, result| result, |_| Ok(()))
-                }
+                self.generic_inverse(|_, result| result, |_| Ok(()))
             }
 
             /// Returns the inverse of `self` or `None` if `self` is not
@@ -491,8 +465,6 @@ macro_rules! impl_wide_float {
             #[track_caller]
             #[inline]
             fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<3, $Wide, A>; 3] {
-                debug_assert!(quat.to_vector().is_normalized().all());
-
                 let x2 = quat.x + quat.x;
                 let y2 = quat.y + quat.y;
                 let z2 = quat.z + quat.z;
@@ -514,12 +486,6 @@ macro_rules! impl_wide_float {
             }
 
             /// Creates a 3D rotation matrix from a quaternion.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane the quaternion is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -532,18 +498,10 @@ macro_rules! impl_wide_float {
             /// (in radians).
             ///
             /// `axis` must be normalized. Otherwise the result is unspecified.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `axis` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                debug_assert!(axis.is_normalized().all());
-
                 let (sin, cos) = angle.sin_cos();
                 let [xsin, ysin, zsin] = (axis * sin).to_array();
                 let [x, y, z] = axis.to_array();
@@ -622,12 +580,6 @@ macro_rules! impl_wide_float {
 
             /// Creates a matrix containing a non-uniform `scale` and a 3D
             /// `rotation`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `rotation` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -648,19 +600,10 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=forward`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn look_to_lh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
-                debug_assert!(dir.is_normalized().all());
-                debug_assert!(up.is_normalized().all());
-
                 let forward = dir;
                 let right = up.cross(forward).normalize();
                 let up = forward.cross(right);
@@ -677,19 +620,10 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=back`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn look_to_rh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
-                debug_assert!(dir.is_normalized().all());
-                debug_assert!(up.is_normalized().all());
-
                 let forward = dir;
                 let right = forward.cross(up).normalize();
                 let up = right.cross(forward);
@@ -706,12 +640,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=forward`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -728,12 +656,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=back`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -750,12 +672,6 @@ macro_rules! impl_wide_float {
             ///
             /// `self` must not contain any non-rotation transformations.
             /// Otherwise the result is unspecified.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane any column of `self` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -764,12 +680,6 @@ macro_rules! impl_wide_float {
 
                 // Based on Ken Shoemake. 1994. Euler angle conversion. Graphics
                 // gems IV. Academic Press Professional, Inc., USA, 222–229.
-
-                debug_assert!(
-                    self.x_axis.is_normalized().all()
-                        && self.y_axis.is_normalized().all()
-                        && self.z_axis.is_normalized().all()
-                );
 
                 let order = order.properties();
                 let (i, j, k) = order.axes_indices();
@@ -884,8 +794,6 @@ macro_rules! impl_wide_float {
             #[inline]
             #[track_caller]
             fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<4, $Wide, A>; 3] {
-                debug_assert!(quat.to_vector().is_normalized().all());
-
                 let x2 = quat.x + quat.x;
                 let y2 = quat.y + quat.y;
                 let z2 = quat.z + quat.z;
@@ -927,12 +835,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane the quaternion is not normalized.
-            ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
@@ -951,20 +853,12 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `axis` is not normalized.
-            ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                debug_assert!(axis.is_normalized().all());
-
                 let (sin, cos) = angle.sin_cos();
                 let [xsin, ysin, zsin] = (axis * sin).to_array();
                 let [x, y, z] = axis.to_array();
@@ -1017,12 +911,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `rotation` is not normalized.
-            ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
@@ -1046,12 +934,6 @@ macro_rules! impl_wide_float {
             ///
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `rotation` is not normalized.
             ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
@@ -1081,12 +963,6 @@ macro_rules! impl_wide_float {
             ///
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `rotation` is not normalized.
             ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
@@ -1121,12 +997,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
-            ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
@@ -1137,9 +1007,6 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                debug_assert!(dir.is_normalized().all());
-                debug_assert!(up.is_normalized().all());
-
                 let forward = dir;
                 let right = up.cross(forward).normalize();
                 let up = forward.cross(right);
@@ -1166,12 +1033,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
-            ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
@@ -1182,9 +1043,6 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                debug_assert!(dir.is_normalized().all());
-                debug_assert!(up.is_normalized().all());
-
                 let forward = dir;
                 let right = forward.cross(up).normalize();
                 let up = right.cross(forward);
@@ -1211,12 +1069,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
-            ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
@@ -1238,12 +1090,6 @@ macro_rules! impl_wide_float {
             ///
             /// The resulting matrix can be used to transform 3D points and
             /// vectors. See [`transform_point`] and [`transform_vector`].
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
             ///
             /// [`transform_point`]: Self::transform_point
             /// [`transform_vector`]: Self::transform_vector
@@ -1267,13 +1113,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`, or if `far_plane` is less than or equal to `near_plane`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1284,10 +1123,6 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                debug_assert!(
-                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
-                );
-
                 let (sin, cos) = (vertical_fov * $Wide::splat(0.5)).sin_cos();
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
@@ -1315,13 +1150,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any plane `near_plane` is less than or equal to
-            /// `0`, or if `far_plane` is less than or equal to `near_plane`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1332,10 +1160,6 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                debug_assert!(
-                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
-                );
-
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
@@ -1367,13 +1191,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`, or if `far_plane` is less than or equal to `near_plane`.
-            ///
             /// [`gluPerspective`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
             /// [`project_point`]: Self::project_point
             #[inline]
@@ -1385,10 +1202,6 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                debug_assert!(
-                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
-                );
-
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
@@ -1423,13 +1236,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1439,8 +1245,6 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
-
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
@@ -1464,13 +1268,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1480,8 +1277,6 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
-
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
@@ -1503,13 +1298,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1519,8 +1307,6 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
-
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
@@ -1542,13 +1328,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1558,8 +1337,6 @@ macro_rules! impl_wide_float {
                 aspect_ratio: $Wide,
                 near_plane: $Wide,
             ) -> Self {
-                debug_assert!(near_plane.simd_gt($Wide::ZERO).all());
-
                 let (sin, cos) = (vertical_fov * $Wide::HALF).sin_cos();
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
@@ -1578,13 +1355,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`, or if `far_plane` is less than or equal to `near_plane`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1597,10 +1367,6 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                debug_assert!(
-                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
-                );
-
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
                 let depth_recip = $Wide::ONE / (far_plane - near_plane);
@@ -1634,13 +1400,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`, or if `far_plane` is less than or equal to `near_plane`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1653,10 +1412,6 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                debug_assert!(
-                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
-                );
-
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
                 let depth_recip = $Wide::ONE / (far_plane - near_plane);
@@ -1692,13 +1447,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `near_plane` is less than or equal to
-            /// `0`, or if `far_plane` is less than or equal to `near_plane`.
-            ///
             /// [`glFrustum`]: https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glFrustum.xml
             /// [`project_point`]: Self::project_point
             #[inline]
@@ -1712,10 +1460,6 @@ macro_rules! impl_wide_float {
                 near_plane: $Wide,
                 far_plane: $Wide,
             ) -> Self {
-                debug_assert!(
-                    (near_plane.simd_gt($Wide::ZERO) & far_plane.simd_gt(near_plane)).all()
-                );
-
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
                 let depth_recip = $Wide::ONE / (far_plane - near_plane);
@@ -1752,12 +1496,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `far` is less than or equal to `near`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1770,8 +1508,6 @@ macro_rules! impl_wide_float {
                 near: $Wide,
                 far: $Wide,
             ) -> Self {
-                debug_assert!(far.simd_gt(near).all());
-
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
                 let depth_recip = $Wide::ONE / (far - near);
@@ -1808,12 +1544,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `far` is less than or equal to `near`.
-            ///
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
@@ -1826,8 +1556,6 @@ macro_rules! impl_wide_float {
                 near: $Wide,
                 far: $Wide,
             ) -> Self {
-                debug_assert!(far.simd_gt(near).all());
-
                 let width_recip = $Wide::ONE / (right - left);
                 let height_recip = $Wide::ONE / (top - bottom);
                 let neg_depth_recip = $Wide::ONE / (near - far);
@@ -1868,12 +1596,6 @@ macro_rules! impl_wide_float {
             /// The resulting matrix can be used to transform 3D points using
             /// [`project_point`].
             ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `far` is less than or equal to `near`.
-            ///
             /// [`glOrtho`]: https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/glOrtho.xml
             /// [`project_point`]: Self::project_point
             #[inline]
@@ -1887,8 +1609,6 @@ macro_rules! impl_wide_float {
                 near: $Wide,
                 far: $Wide,
             ) -> Self {
-                debug_assert!(far.simd_gt(near).all());
-
                 let scale_x = $Wide::splat(2.0) / (right - left);
                 let scale_y = $Wide::splat(2.0) / (top - bottom);
                 let scale_z = $Wide::splat(2.0) / (near - far);
@@ -1914,13 +1634,6 @@ macro_rules! impl_wide_float {
             ///
             /// The upper 3x3 matrix must not contain any non-rotation
             /// transformations. Otherwise the result is unspecified.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane any column of the upper 3x3 matrix is not
-            /// normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -1969,7 +1682,7 @@ mod tests {
 
     use crate::{
         Matrix, Quaternion, Vector,
-        utils::{assert_float_eq, assert_panic_float_eq, for_parameters},
+        utils::{assert_float_eq, assert_float_eq_or_panic, assert_panic_float_eq, for_parameters},
     };
 
     #[test]
@@ -2024,13 +1737,13 @@ mod tests {
             let [i, j, k, l] = [c + d, c + e, d + f, f + g];
 
             let matrix = Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 matrix.inverse(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
             );
 
             let matrix = Matrix::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 matrix.inverse(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
             );
@@ -2038,7 +1751,7 @@ mod tests {
             let matrix = Matrix::<4, Wide, A>::from_column_array(&[
                 x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
             ]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 matrix.inverse(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
             );
@@ -2387,13 +2100,13 @@ mod tests {
                 ),
                 Quaternion::from_xyzw(x, y, z, w),
             ] {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     Matrix::<3, Wide, A>::from_quat(quat),
                     Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_quat(
                         Quaternion::from_vector(quat.to_vector().lane(lane))
                     ))
                 );
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     Matrix::<4, Wide, A>::from_quat(quat),
                     Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_quat(
                         Quaternion::from_vector(quat.to_vector().lane(lane))
@@ -2417,7 +2130,7 @@ mod tests {
             let expected = Matrix::from_lane_fn(|lane| {
                 Matrix::<3, T, A>::from_axis_angle(axis.lane(lane), angle.to_array()[lane])
             });
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<3, Wide, A>::from_axis_angle(axis, angle),
                 expected,
                 abs <= expected.abs() * Wide::splat(1e-4) * angle.abs()
@@ -2427,7 +2140,7 @@ mod tests {
             let expected = Matrix::from_lane_fn(|lane| {
                 Matrix::<4, T, A>::from_axis_angle(axis.lane(lane), angle.to_array()[lane])
             });
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::from_axis_angle(axis, angle),
                 expected,
                 abs <= expected.abs() * Wide::splat(1e-4) * angle.abs()
@@ -2487,14 +2200,14 @@ mod tests {
                 ),
                 Quaternion::from_xyzw(x, y, z, w),
             ] {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     Matrix::<3, Wide, A>::from_scale_rotation(scale, rotation),
                     Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_scale_rotation(
                         scale.lane(lane),
                         Quaternion::from_vector(rotation.to_vector().lane(lane))
                     ))
                 );
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     Matrix::<4, Wide, A>::from_scale_rotation(scale, rotation),
                     Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_scale_rotation(
                         scale.lane(lane),
@@ -2514,7 +2227,7 @@ mod tests {
             let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<3, Wide, A>::look_to_lh(dir, up),
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_to_lh(
                     dir.lane(lane),
@@ -2522,7 +2235,7 @@ mod tests {
                 )),
                 0.0 = -0.0
             );
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::look_to_lh(eye, dir, up),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_to_lh(
                     eye.lane(lane),
@@ -2543,7 +2256,7 @@ mod tests {
             let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<3, Wide, A>::look_to_rh(dir, up),
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_to_rh(
                     dir.lane(lane),
@@ -2551,7 +2264,7 @@ mod tests {
                 )),
                 0.0 = -0.0
             );
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::look_to_rh(eye, dir, up),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_to_rh(
                     eye.lane(lane),
@@ -2572,7 +2285,7 @@ mod tests {
             let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<3, Wide, A>::look_at_lh(eye, center, up),
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_at_lh(
                     eye.lane(lane),
@@ -2581,7 +2294,7 @@ mod tests {
                 )),
                 0.0 = -0.0
             );
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::look_at_lh(eye, center, up),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_at_lh(
                     eye.lane(lane),
@@ -2602,7 +2315,7 @@ mod tests {
             let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<3, Wide, A>::look_at_rh(eye, center, up),
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_at_rh(
                     eye.lane(lane),
@@ -2611,7 +2324,7 @@ mod tests {
                 )),
                 0.0 = -0.0
             );
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::look_at_rh(eye, center, up),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_at_rh(
                     eye.lane(lane),
@@ -2630,7 +2343,7 @@ mod tests {
             let c = a * 0.3 + b * 0.1 + 1.0;
 
             let matrix = Matrix::<3, Wide, A>::from_euler(order, a, b, c);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 matrix.to_euler(order),
                 (
                     Wide::new(core::array::from_fn(|lane| matrix
@@ -2650,7 +2363,7 @@ mod tests {
             );
 
             let matrix = Matrix::<4, Wide, A>::from_euler(order, a, b, c);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 matrix.to_euler(order),
                 (
                     Wide::new(core::array::from_fn(|lane| matrix
@@ -2684,7 +2397,7 @@ mod tests {
                 ),
                 Quaternion::from_xyzw(x, y, z, w),
             ] {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     Matrix::<4, Wide, A>::from_rotation_translation(rotation, translation),
                     Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_translation(
                         Quaternion::from_vector(rotation.to_vector().lane(lane)),
@@ -2709,7 +2422,7 @@ mod tests {
                 ),
                 Quaternion::from_xyzw(x, y, z, w),
             ] {
-                assert_panic_float_eq!(
+                assert_float_eq_or_panic!(
                     Matrix::<4, Wide, A>::from_scale_rotation_translation(
                         scale,
                         rotation,
@@ -2735,7 +2448,7 @@ mod tests {
                 .blend(Wide::ONE, vertical_fov);
             let aspect_ratio = vertical_fov * 0.01 + 1.5;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::perspective_lh(
                     vertical_fov,
                     aspect_ratio,
@@ -2762,7 +2475,7 @@ mod tests {
                 .blend(Wide::ONE, vertical_fov);
             let aspect_ratio = vertical_fov * 0.01 + 1.5;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::perspective_rh(
                     vertical_fov,
                     aspect_ratio,
@@ -2789,7 +2502,7 @@ mod tests {
                 .blend(Wide::ONE, vertical_fov);
             let aspect_ratio = vertical_fov * 0.01 + 1.5;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::perspective_rh_gl(
                     vertical_fov,
                     aspect_ratio,
@@ -2816,7 +2529,7 @@ mod tests {
                 .blend(Wide::ONE, vertical_fov);
             let aspect_ratio = vertical_fov * 0.01 + 1.5;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::perspective_infinite_lh(
                     vertical_fov,
                     aspect_ratio,
@@ -2841,7 +2554,7 @@ mod tests {
                 .blend(Wide::ONE, vertical_fov);
             let aspect_ratio = vertical_fov * 0.01 + 1.5;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::perspective_infinite_rh(
                     vertical_fov,
                     aspect_ratio,
@@ -2866,7 +2579,7 @@ mod tests {
                 .blend(Wide::ONE, vertical_fov);
             let aspect_ratio = vertical_fov * 0.01 + 1.5;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::perspective_infinite_reverse_lh(
                     vertical_fov,
                     aspect_ratio,
@@ -2891,7 +2604,7 @@ mod tests {
                 .blend(Wide::ONE, vertical_fov);
             let aspect_ratio = vertical_fov * 0.01 + 1.5;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::perspective_infinite_reverse_rh(
                     vertical_fov,
                     aspect_ratio,
@@ -2917,7 +2630,7 @@ mod tests {
             let near_plane = bottom * 0.7 + 0.3;
             let far_plane = top * 0.7 + 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::frustum_lh(left, right, bottom, top, near_plane, far_plane),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::frustum_lh(
                     left.to_array()[lane],
@@ -2940,7 +2653,7 @@ mod tests {
             let near_plane = bottom * 0.7 + 0.3;
             let far_plane = top * 0.7 + 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::frustum_rh(left, right, bottom, top, near_plane, far_plane),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::frustum_rh(
                     left.to_array()[lane],
@@ -2963,7 +2676,7 @@ mod tests {
             let near_plane = bottom * 0.7 + 0.3;
             let far_plane = top * 0.7 + 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::frustum_rh_gl(
                     left, right, bottom, top, near_plane, far_plane
                 ),
@@ -2988,7 +2701,7 @@ mod tests {
             let near = bottom * 0.7 + 0.3;
             let far = top * 0.7 + 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::orthographic_lh(left, right, bottom, top, near, far),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::orthographic_lh(
                     left.to_array()[lane],
@@ -3011,7 +2724,7 @@ mod tests {
             let near = bottom * 0.7 + 0.3;
             let far = top * 0.7 + 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::orthographic_rh(left, right, bottom, top, near, far),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::orthographic_rh(
                     left.to_array()[lane],
@@ -3034,7 +2747,7 @@ mod tests {
             let near = bottom * 0.7 + 0.3;
             let far = top * 0.7 + 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Matrix::<4, Wide, A>::orthographic_rh_gl(left, right, bottom, top, near, far),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::orthographic_rh_gl(
                     left.to_array()[lane],
@@ -3061,7 +2774,7 @@ mod tests {
             ]);
             let point = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(1.2);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 matrix.project_point(point),
                 Vector::from_lane_fn(|lane| matrix.lane(lane).project_point(point.lane(lane)))
             );

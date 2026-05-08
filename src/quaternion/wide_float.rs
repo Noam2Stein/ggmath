@@ -42,18 +42,10 @@ macro_rules! impl_wide_float {
             /// radians).
             ///
             /// `axis` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `axis` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
-                debug_assert!(axis.is_normalized().all());
-
                 let (sin, cos) = (angle * $Wide::HALF).sin_cos();
                 let xyz = axis * sin;
                 Self::from_xyzw(xyz.x, xyz.y, xyz.z, cos)
@@ -87,12 +79,6 @@ macro_rules! impl_wide_float {
             /// `0.001` (for `f32`).
             ///
             /// `from` and `to` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `from` or `to` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -101,9 +87,6 @@ macro_rules! impl_wide_float {
                 to: Vector<3, $Wide, A>,
             ) -> Self {
                 // Ported from `https://github.com/bitshifter/glam-rs`.
-
-                debug_assert!(from.is_normalized().all());
-                debug_assert!(to.is_normalized().all());
 
                 let almost_one = $Wide::splat(const { 1.0 - 2.0 * $T::EPSILON });
 
@@ -182,24 +165,11 @@ macro_rules! impl_wide_float {
             }
 
             /// Creates a quaternion from a 3D rotation matrix.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `matrix.determinant()` is not `1`.
             #[inline]
             #[must_use]
             pub fn from_matrix(matrix: &Matrix<3, $Wide, A>) -> Self {
                 // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
                 // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
-
-                debug_assert!(
-                    (matrix.determinant() - $Wide::ONE)
-                        .abs()
-                        .simd_le($Wide::splat(1e-4))
-                        .all()
-                );
 
                 let [m00, m01, m02] = matrix.x_axis.to_array();
                 let [m10, m11, m12] = matrix.y_axis.to_array();
@@ -263,12 +233,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a left-handed view coordinate system with `+X=right`,
             /// `+Y=up` and `+Z=forward`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -281,12 +245,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a right-handed view coordinate system with `+X=right`,
             /// `+Y=up` and `+Z=back`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -299,12 +257,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a left-handed view coordinate system with `+X=right`,
             /// `+Y=up` and `+Z=forward`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -321,12 +273,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a right-handed view coordinate system with `+X=right`,
             /// `+Y=up` and `+Z=back`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -390,19 +336,11 @@ macro_rules! impl_wide_float {
 
             /// Returns the inverse of the quaternion `self`.
             ///
-            /// `self` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panic if for any lane `self` is not normalized.
+            /// `self` must be normalized, otherwise the result is unspecified.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn inverse(self) -> Self {
-                debug_assert!(self.is_normalized().all());
-
                 self.conjugate()
             }
 
@@ -410,18 +348,10 @@ macro_rules! impl_wide_float {
             /// transforming `self` into `other`.
             ///
             /// `self` and `other` must be normalized.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `self` or `other` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn angle_between(self, other: Self) -> $Wide {
-                debug_assert!((self.is_normalized() & other.is_normalized()).all());
-
                 self.dot(other).abs().acos() * $Wide::splat(2.0)
             }
 
@@ -430,19 +360,10 @@ macro_rules! impl_wide_float {
             ///
             /// When `t` is `0`, the result is `self`.  When `t` is `1`, the
             /// result is `rhs`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `self` or `other` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn lerp(self, other: Self, t: $Wide) -> Self {
-                debug_assert!(self.is_normalized().all());
-                debug_assert!(other.is_normalized().all());
-
                 let other = Self(other.0 ^ (self.dot(other) & $Wide::splat(-0.0)));
 
                 (self * ($Wide::ONE - t) + other * t).normalize()
@@ -453,21 +374,12 @@ macro_rules! impl_wide_float {
             ///
             /// When `t` is `0`, the result is `self`.  When `t` is `1`, the
             /// result is `other`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `self` or `other` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn slerp(self, other: Self, t: $Wide) -> Self {
                 // Ported from https://github.com/bitshifter/glam-rs
                 // See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
-
-                debug_assert!(self.is_normalized().all());
-                debug_assert!(other.is_normalized().all());
 
                 // Note that a rotation can be represented by two quaternions:
                 // `q` and `-q`. The slerp path between `q` and `other` will be
@@ -512,30 +424,11 @@ macro_rules! impl_wide_float {
             }
 
             /// Returns `self` normalized to length `1`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `self` is a zero quaternion, or if the
-            /// result is non finite or zero.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn normalize(self) -> Self {
-                debug_assert!(
-                    self != Self::from_vector(Vector::ZERO),
-                    "cannot normalize a zero quaternion"
-                );
-
-                let result = self / self.length();
-
-                debug_assert!(
-                    (result.is_finite() & result.simd_ne(&Self::from_vector(Vector::ZERO))).all(),
-                    "non finite result: {self:?}.normalize()"
-                );
-
-                result
+                self / self.length()
             }
 
             /// Returns [`normalize`], or `None` if `self` is zero or if the
@@ -599,7 +492,7 @@ mod tests {
 
     use crate::{
         Matrix, Quaternion, Vector,
-        utils::{assert_float_eq, assert_panic_float_eq, for_parameters},
+        utils::{assert_float_eq, assert_float_eq_or_panic, for_parameters},
     };
 
     #[test]
@@ -672,7 +565,7 @@ mod tests {
             let _: [Wide; 3] = [x, y, z];
             let scaled_axis = Vector::<3, Wide, A>::new(x, y, z);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::from_scaled_axis(scaled_axis),
                 Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_scaled_axis(
                     scaled_axis.lane(lane)
@@ -691,7 +584,7 @@ mod tests {
             let from = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::X);
             let to = Vector::<3, Wide, A>::new(w, a, b).normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::from_rotation_arc_colinear(from, to),
                 Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_rotation_arc_colinear(
                     from.lane(lane),
@@ -736,7 +629,7 @@ mod tests {
                 * Matrix::<3, Wide, A>::from_rotation_y(y)
                 * Matrix::<3, Wide, A>::from_rotation_z(z);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::from_matrix(&matrix),
                 Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_matrix(
                     &matrix.lane(lane)
@@ -753,7 +646,7 @@ mod tests {
             let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::look_to_lh(dir, up),
                 Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_to_lh(
                     dir.lane(lane),
@@ -771,7 +664,7 @@ mod tests {
             let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::look_to_rh(dir, up),
                 Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_to_rh(
                     dir.lane(lane),
@@ -790,7 +683,7 @@ mod tests {
             let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::look_at_lh(eye, center, up),
                 Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_at_lh(
                     eye.lane(lane),
@@ -810,7 +703,7 @@ mod tests {
             let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
                 .normalize_or(Vector::<3, Wide, A>::Y);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::look_at_rh(eye, center, up),
                 Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_at_rh(
                     eye.lane(lane),
@@ -895,7 +788,7 @@ mod tests {
             let _: [Wide; 3] = [x, y, z];
             let w = x ^ y;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::from_xyzw(x, y, z, w).is_nan(),
                 x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
             );
@@ -908,7 +801,7 @@ mod tests {
             let _: [Wide; 3] = [x, y, z];
             let w = x ^ y;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Quaternion::<Wide, A>::from_xyzw(x, y, z, w).is_finite(),
                 x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
             );
@@ -923,7 +816,7 @@ mod tests {
             let quat =
                 Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 quat.inverse(),
                 Quaternion::from_lane_fn(|lane| quat.lane(lane).inverse())
             );
@@ -940,7 +833,7 @@ mod tests {
             let other =
                 Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 quat.angle_between(other),
                 Wide::new(std::array::from_fn(|lane| quat
                     .lane(lane)
@@ -961,7 +854,7 @@ mod tests {
                 Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
             let t = w * 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 quat.lerp(other, t),
                 Quaternion::from_lane_fn(|lane| quat
                     .lane(lane)
@@ -981,7 +874,7 @@ mod tests {
                 Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
             let t = Wide::new(std::array::from_fn(|lane| (w.to_array()[lane] * 0.3) % 3.0));
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 quat.slerp(other, t),
                 Quaternion::from_lane_fn(|lane| quat
                     .lane(lane)
@@ -1012,7 +905,7 @@ mod tests {
             let w = x ^ y;
             let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 quat.normalize(),
                 Quaternion::from_lane_fn(|lane| quat.lane(lane).normalize())
             );
@@ -1027,7 +920,7 @@ mod tests {
             let quat =
                 Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 quat.try_normalize().unwrap(),
                 Quaternion::from_lane_fn(|lane| quat.lane(lane).try_normalize().unwrap())
             );

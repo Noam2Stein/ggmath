@@ -25,12 +25,6 @@ macro_rules! impl_wide_float {
             /// Returns the inverse of `self`.
             ///
             /// If `self` is not invertable the result is unspecified.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if the determinant is `0` for any lane.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -188,12 +182,6 @@ macro_rules! impl_wide_float {
 
             /// Creates an affine transform containing a 3D rotation from a
             /// quaternion.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane the quaternion is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -205,12 +193,6 @@ macro_rules! impl_wide_float {
             /// rotation `axis` and `angle` (in radians).
             ///
             /// `axis` must be normalized. Otherwise the result is unspecified.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `axis` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -228,12 +210,6 @@ macro_rules! impl_wide_float {
 
             /// Creates an affine transform containing a non-uniform `scale` and
             /// a 3D `rotation`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `rotation` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -246,12 +222,6 @@ macro_rules! impl_wide_float {
 
             /// Creates an affine transform containing a 3D `rotation` and
             /// `translation`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `rotation` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -267,12 +237,6 @@ macro_rules! impl_wide_float {
 
             /// Creates an affine transform containing a non-uniform `scale`, a
             /// 3D `rotation` and `translation`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `rotation` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -292,12 +256,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=forward`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -306,9 +264,6 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                debug_assert!(dir.is_normalized().all());
-                debug_assert!(up.is_normalized().all());
-
                 let forward = dir;
                 let right = up.cross(forward).normalize();
                 let up = forward.cross(right);
@@ -326,12 +281,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=back`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `dir` or `up` are not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -340,9 +289,6 @@ macro_rules! impl_wide_float {
                 dir: Vector<3, $Wide, A>,
                 up: Vector<3, $Wide, A>,
             ) -> Self {
-                debug_assert!(dir.is_normalized().all());
-                debug_assert!(up.is_normalized().all());
-
                 let forward = dir;
                 let right = forward.cross(up).normalize();
                 let up = right.cross(forward);
@@ -360,12 +306,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=forward`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -382,12 +322,6 @@ macro_rules! impl_wide_float {
             ///
             /// For a view coordinate system with `+X=right`, `+Y=up` and
             /// `+Z=back`.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane `up` is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -404,13 +338,6 @@ macro_rules! impl_wide_float {
             ///
             /// `self` must not contain any non-rotation transformations,
             /// excluding translation. Otherwise the result is unspecified.
-            ///
-            /// # Panics
-            ///
-            /// When debug assertions are enabled:
-            ///
-            /// Panics if for any lane any column of `self`, excluding the
-            /// translation column, is not normalized.
             #[inline]
             #[must_use]
             #[track_caller]
@@ -439,7 +366,7 @@ mod tests {
 
     use crate::{
         Affine, Quaternion, Vector,
-        utils::{assert_float_eq, assert_panic_float_eq, for_parameters},
+        utils::{assert_float_eq, assert_float_eq_or_panic, assert_panic_float_eq, for_parameters},
     };
 
     #[test]
@@ -496,14 +423,14 @@ mod tests {
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
 
             let affine = Affine::<2, Wide, A>::from_column_array(&[x, y, z, w, a, b]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 affine.inverse(),
                 Affine::from_lane_fn(|lane| affine.lane(lane).inverse())
             );
 
             let affine =
                 Affine::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 affine.inverse(),
                 Affine::from_lane_fn(|lane| affine.lane(lane).inverse())
             );
@@ -542,14 +469,14 @@ mod tests {
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
 
             let affine = Affine::<2, Wide, A>::from_column_array(&[x, y, z, w, a, b]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 affine.inverse_or(&Affine::NAN),
                 Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or(&Affine::NAN))
             );
 
             let affine =
                 Affine::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 affine.inverse_or(&Affine::NAN),
                 Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or(&Affine::NAN))
             );
@@ -565,14 +492,14 @@ mod tests {
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
 
             let affine = Affine::<2, Wide, A>::from_column_array(&[x, y, z, w, a, b]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 affine.inverse_or_zero(),
                 Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or_zero())
             );
 
             let affine =
                 Affine::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 affine.inverse_or_zero(),
                 Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or_zero())
             );
@@ -758,7 +685,7 @@ mod tests {
             let w = x ^ y;
             let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::from_quat(quat),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_quat(quat.lane(lane)))
             );
@@ -781,7 +708,7 @@ mod tests {
             ];
             let axis = Vector::<3, Wide, A>::new(x, y, z);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::from_axis_angle(axis, angle),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_axis_angle(
                     axis.lane(lane),
@@ -801,7 +728,7 @@ mod tests {
             let _: [Wide; 2] = [a, b];
             let c = a * 0.3 + b * 0.6 + 0.3;
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::from_euler(order, a, b, c),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_euler(
                     order,
@@ -825,7 +752,7 @@ mod tests {
             let w = x ^ y;
             let rotation = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::from_scale_rotation(scale, rotation),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_scale_rotation(
                     scale.lane(lane),
@@ -843,7 +770,7 @@ mod tests {
             let rotation = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
             let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.8);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::from_rotation_translation(rotation, translation),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_rotation_translation(
                     rotation.lane(lane),
@@ -862,7 +789,7 @@ mod tests {
             let rotation = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
             let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.8);
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::from_scale_rotation_translation(scale, rotation, translation),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_scale_rotation_translation(
                     scale.lane(lane),
@@ -881,7 +808,7 @@ mod tests {
             let eye = dir * Wide::splat(0.3) + dir.yzx().with_z(Wide::splat(0.6));
             let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3))).normalize();
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::look_to_lh(eye, dir, up),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_to_lh(
                     eye.lane(lane),
@@ -900,7 +827,7 @@ mod tests {
             let eye = dir * Wide::splat(0.3) + dir.yzx().with_z(Wide::splat(0.6));
             let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3))).normalize();
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::look_to_rh(eye, dir, up),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_to_rh(
                     eye.lane(lane),
@@ -919,7 +846,7 @@ mod tests {
             let center = eye * Wide::splat(0.3) + eye.yzx().with_z(Wide::splat(0.6));
             let up = (eye * Wide::splat(0.4) + eye.zxy().with_z(Wide::splat(0.3))).normalize();
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::look_at_lh(eye, center, up),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_at_lh(
                     eye.lane(lane),
@@ -938,7 +865,7 @@ mod tests {
             let center = eye * Wide::splat(0.3) + eye.yzx().with_z(Wide::splat(0.6));
             let up = (eye * Wide::splat(0.4) + eye.zxy().with_z(Wide::splat(0.3))).normalize();
 
-            assert_panic_float_eq!(
+            assert_float_eq_or_panic!(
                 Affine::<3, Wide, A>::look_at_rh(eye, center, up),
                 Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_at_rh(
                     eye.lane(lane),
