@@ -92,8 +92,6 @@
 //!
 //! - `fixed`: Implements `Scalar` for fixed-point numbers.
 //!
-//! - `fixp`: Implements `Scalar` for fixed-point numbers.
-//!
 //! - `libm`: Uses `libm` as the backend for float functionality. This makes the
 //!   crate `no_std` even if the `std` feature is not disabled. Without `std` or
 //!   `libm`, the crate compiles but all float functionality that relies on a

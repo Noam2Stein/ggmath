@@ -17,8 +17,6 @@ use fixed::{
     FixedI8, FixedI16, FixedI32, FixedI64, FixedI128, FixedU8, FixedU16, FixedU32, FixedU64,
     FixedU128,
 };
-#[cfg(feature = "fixp")]
-use fixp::FixedPoint;
 use ggmath::{
     Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
     constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
@@ -621,27 +619,6 @@ assert_impl!(
         FixedU32<Frac>: Scalar + Zero + Min + Max,
         FixedU64<Frac>: Scalar + Zero + Min + Max,
         FixedU128<Frac>: Scalar + Zero + Min + Max,
-    }
-);
-
-#[cfg(feature = "fixp")]
-assert_impl!(
-    for<const N: usize, const FRAC_BITS: usize, A: Alignment>
-    where
-        Length<N>: SupportedLength,
-    {
-        FixedPoint<i8, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<i16, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<i32, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<i64, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<i128, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<isize, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<u8, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<u16, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<u32, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<u64, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<u128, FRAC_BITS>: Scalar + Zero + Min + Max,
-        FixedPoint<usize, FRAC_BITS>: Scalar + Zero + Min + Max,
     }
 );
 

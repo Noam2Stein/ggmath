@@ -107,7 +107,6 @@ Crate Support:
 
 - [x] [`bytemuck`](https://crates.io/crates/bytemuck)
 - [ ] [`fixed`](https://crates.io/crates/fixed) (partially done)
-- [ ] [`fixp`](https://crates.io/crates/fixp) (partially done)
 - [x] [`libm`](https://crates.io/crates/libm)
 - [x] [`mint`](https://crates.io/crates/mint)
 - [x] [`serde`](https://crates.io/crates/serde)
@@ -159,8 +158,6 @@ ggmath = { version = "0.16.7", features = ["libm"] }
 - `bytemuck`: Implements `bytemuck` traits for `ggmath` types.
 
 - `fixed`: Implements `Scalar` for fixed-point numbers.
-
-- `fixp`: Implements `Scalar` for fixed-point numbers.
 
 - `libm`: Uses `libm` as the backend for float functionality instead of `std`.
   This makes the crate `no_std`.

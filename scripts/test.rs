@@ -19,7 +19,7 @@ use colored::Colorize;
 use itertools::iproduct;
 use pretty_duration::pretty_duration;
 
-const THIRD_PARTY_CRATES: &str = "bytemuck fixed fixp mint rand serde wide";
+const THIRD_PARTY_CRATES: &str = "bytemuck fixed mint rand serde wide";
 
 fn main() {
     let mut commands = Vec::new();

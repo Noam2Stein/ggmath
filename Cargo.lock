@@ -132,12 +132,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fixp"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43eaa86ca82ccd0bd5bcc360a7901ccbeaaba6a2653f3cd6de644a1158b28fab"
-
-[[package]]
 name = "foldhash"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -165,7 +159,6 @@ dependencies = [
  "bytemuck",
  "colored",
  "fixed",
- "fixp",
  "glam",
  "gungraun",
  "itertools",

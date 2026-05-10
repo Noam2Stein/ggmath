@@ -4,9 +4,6 @@ mod bytemuck;
 #[cfg(feature = "fixed")]
 mod fixed;
 
-#[cfg(feature = "fixp")]
-mod fixp;
-
 #[cfg(feature = "mint")]
 mod mint;
 
