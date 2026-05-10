@@ -296,6 +296,36 @@ macro_rules! impl_wide_float {
             pub fn abs(&self) -> Self {
                 Self::from_column_fn(|i| self.column(i).abs())
             }
+
+            /// Returns `true` if the absolute difference of all elements
+            /// between `self` and `other` is less than or equal to
+            /// `max_abs_diff` for all lanes.
+            ///
+            /// This can be used to compare two matrices that should be equal,
+            /// but may have a slight difference due to operations having
+            /// rounding errors.
+            #[inline]
+            #[must_use]
+            pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: $Wide) -> bool {
+                match N {
+                    2 => {
+                        self.column(0).abs_diff_eq(other.column(0), max_abs_diff)
+                            && self.column(1).abs_diff_eq(other.column(1), max_abs_diff)
+                    }
+                    3 => {
+                        self.column(0).abs_diff_eq(other.column(0), max_abs_diff)
+                            && self.column(1).abs_diff_eq(other.column(1), max_abs_diff)
+                            && self.column(2).abs_diff_eq(other.column(2), max_abs_diff)
+                    }
+                    4 => {
+                        self.column(0).abs_diff_eq(other.column(0), max_abs_diff)
+                            && self.column(1).abs_diff_eq(other.column(1), max_abs_diff)
+                            && self.column(2).abs_diff_eq(other.column(2), max_abs_diff)
+                            && self.column(3).abs_diff_eq(other.column(3), max_abs_diff)
+                    }
+                    _ => unreachable!(),
+                }
+            }
         }
 
         impl<A: Alignment> Matrix<2, $Wide, A> {
@@ -324,6 +354,26 @@ macro_rules! impl_wide_float {
                     Vector::<2, $Wide, A>::new(cos * scale.x, sin * scale.x),
                     Vector::<2, $Wide, A>::new(-sin * scale.y, cos * scale.y),
                 ])
+            }
+
+            /// Returns the `scale` and `angle` of `self`.
+            ///
+            /// `self` must not contain shearing. Otherwise the result is
+            /// unspecified.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
+                let determinant = self.determinant();
+
+                let scale = Vector::<2, $Wide, A>::new(
+                    self.x_axis.length() * determinant.signum(),
+                    self.y_axis.length(),
+                );
+
+                let angle = (-self.y_axis.x).atan2(self.y_axis.y);
+
+                (scale, angle)
             }
         }
 
@@ -667,6 +717,31 @@ macro_rules! impl_wide_float {
                 Self::look_to_rh((center - eye).normalize(), up)
             }
 
+            /// For each lane, returns the `scale`, `angle` and `translation` of
+            /// `self`.
+            ///
+            /// `self` must contain a valid affine transformation without
+            /// shearing. Otherwise the result is unspecified.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn to_scale_angle_translation(
+                &self,
+            ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
+                let determinant = self.determinant();
+
+                let scale = Vector::<2, $Wide, A>::new(
+                    self.x_axis.length() * determinant.signum(),
+                    self.y_axis.length(),
+                );
+
+                let angle = (-self.y_axis.x).atan2(self.y_axis.y);
+
+                let translation = self.z_axis.xy();
+
+                (scale, angle, translation)
+            }
+
             /// Returns the Euler angles forming `self` for the given Euler
             /// rotation order/sequence.
             ///
@@ -721,6 +796,33 @@ macro_rules! impl_wide_float {
                 }
 
                 (ea.x, ea.y, ea.z)
+            }
+
+            /// For each lane, returns the `scale` and `rotation` of `self`.
+            ///
+            /// `self` must not contain shearing. Otherwise the result is
+            /// unspecified.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
+                let determinant = self.determinant();
+
+                let scale = Vector::<3, $Wide, A>::new(
+                    self.x_axis.length() * determinant.signum(),
+                    self.y_axis.length(),
+                    self.z_axis.length(),
+                );
+
+                let scale_recip = scale.recip();
+
+                let rotation = Quaternion::<$Wide, A>::from_matrix(&Self::from_columns(&[
+                    self.x_axis * scale_recip.x,
+                    self.y_axis * scale_recip.y,
+                    self.z_axis * scale_recip.z,
+                ]));
+
+                (scale, rotation)
             }
         }
 
@@ -1641,6 +1743,42 @@ macro_rules! impl_wide_float {
                 self.submatrix().to_euler(order)
             }
 
+            /// For each lane, returns the `scale`, `rotation` and `translation`
+            /// of `self`.
+            ///
+            /// `self` must contain a valid affine transformation. Otherwise the
+            /// result is unspecified.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn to_scale_rotation_translation(
+                &self,
+            ) -> (
+                Vector<3, $Wide, A>,
+                Quaternion<$Wide, A>,
+                Vector<3, $Wide, A>,
+            ) {
+                let determinant = self.determinant();
+
+                let scale = Vector::<3, $Wide, A>::new(
+                    self.x_axis.length() * determinant.signum(),
+                    self.y_axis.length(),
+                    self.z_axis.length(),
+                );
+
+                let scale_recip = scale.recip();
+
+                let rotation = Quaternion::<$Wide, A>::from_matrix(&Matrix::from_columns(&[
+                    self.x_axis.xyz() * scale_recip.x,
+                    self.y_axis.xyz() * scale_recip.y,
+                    self.z_axis.xyz() * scale_recip.z,
+                ]));
+
+                let translation = self.w_axis.xyz();
+
+                (scale, rotation, translation)
+            }
+
             /// Transforms the given 3D vector as a point, applying perspective
             /// projection.
             ///
@@ -1661,12 +1799,6 @@ macro_rules! impl_wide_float {
                 (result / result.w).xyz()
             }
         }
-
-        // MISSING: abs_diff_eq
-        // MISSING: to_scale_angle
-        // MISSING: to_scale_angle_translation
-        // MISSING: to_scale_rotation
-        // MISSING: to_scale_rotation_translation
     };
 }
 impl_wide_float!(f32x4, f32);
@@ -1894,6 +2026,35 @@ mod tests {
     }
 
     #[test]
+    fn test_abs_diff_eq() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x ^ y;
+
+            let matrix = Matrix::<2, Wide, A>::from_columns(&[x, y].map(Vector::splat));
+            let other = Matrix::<2, Wide, A>::from_columns(&[z, w].map(Vector::splat));
+            assert_eq!(
+                matrix.abs_diff_eq(&other, Wide::ONE),
+                (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
+            );
+
+            let matrix = Matrix::<3, Wide, A>::from_columns(&[x, y, z].map(Vector::splat));
+            let other = Matrix::<3, Wide, A>::from_columns(&[z, w, x].map(Vector::splat));
+            assert_eq!(
+                matrix.abs_diff_eq(&other, Wide::ONE),
+                (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
+            );
+
+            let matrix = Matrix::<4, Wide, A>::from_columns(&[x, y, z, w].map(Vector::splat));
+            let other = Matrix::<4, Wide, A>::from_columns(&[z, w, x, y].map(Vector::splat));
+            assert_eq!(
+                matrix.abs_diff_eq(&other, Wide::ONE),
+                (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
+            );
+        });
+    }
+
+    #[test]
     fn test_from_angle() {
         for_parameters!(|Wide: WideFloat, A, angle| {
             let _: Wide = angle;
@@ -1951,6 +2112,31 @@ mod tests {
                     * angle.abs(),
                 0.0 = -0.0
             );
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle() {
+        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
+            let _: [Wide; 3] = [x, y, angle];
+            let scale = Vector::<2, Wide, A>::new(x, y);
+
+            for matrix in [
+                Matrix::<2, Wide, A>::from_scale_angle(scale, angle),
+                Matrix::<2, Wide, A>::from_column_array(&[x, y, angle, -y]),
+            ] {
+                assert_float_eq_or_panic!(
+                    matrix.to_scale_angle(),
+                    (
+                        Vector::from_lane_fn(|lane| matrix.lane(lane).to_scale_angle().0),
+                        Wide::new(core::array::from_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_angle()
+                            .1))
+                    ),
+                    r2nd <= (Vector::ZERO, Wide::splat(1e-3))
+                );
+            }
         });
     }
 
@@ -2337,6 +2523,42 @@ mod tests {
     }
 
     #[test]
+    fn test_to_scale_angle_translation() {
+        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
+            let _: [Wide; 3] = [x, y, angle];
+            let scale = Vector::<2, Wide, A>::new(x, y);
+            let translation = Vector::<2, Wide, A>::new(y, x);
+
+            for matrix in [
+                Matrix::<3, Wide, A>::from_scale_angle_translation(scale, angle, translation),
+                Matrix::<3, Wide, A>::from_submatrix_translation(
+                    &Matrix::<2, Wide, A>::from_column_array(&[x, y, angle, -y]),
+                    translation,
+                ),
+            ] {
+                assert_float_eq_or_panic!(
+                    matrix.to_scale_angle_translation(),
+                    (
+                        Vector::from_lane_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_angle_translation()
+                            .0),
+                        Wide::new(core::array::from_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_angle_translation()
+                            .1)),
+                        Vector::from_lane_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_angle_translation()
+                            .2)
+                    ),
+                    r2nd <= (Vector::ZERO, Wide::splat(1e-3), Vector::ZERO)
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_to_euler() {
         for_parameters!(|Wide: WideFloat, A, order, a, b| {
             let _: [Wide; 2] = [a, b];
@@ -2381,6 +2603,31 @@ mod tests {
                 ),
                 r2nd <= (Wide::splat(1e-5), Wide::splat(1e-5), Wide::splat(1e-5))
             );
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
+            let w = x * 0.3 + 0.5;
+
+            for matrix in [
+                Matrix::<3, Wide, A>::from_scale_rotation(
+                    scale,
+                    Quaternion::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
+                ),
+                Matrix::<3, Wide, A>::from_column_array(&[x, y, scale.x, w, y, z, x, scale.y, w]),
+            ] {
+                assert_float_eq_or_panic!(
+                    matrix.to_scale_rotation(),
+                    (
+                        Vector::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
+                        Quaternion::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
+                    )
+                );
+            }
         });
     }
 
@@ -2758,6 +3005,45 @@ mod tests {
                     far.to_array()[lane]
                 ))
             );
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation_translation() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
+            let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.6);
+            let w = x * 0.3 + 0.5;
+
+            for matrix in [
+                Matrix::<4, Wide, A>::from_scale_rotation_translation(
+                    scale,
+                    Quaternion::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
+                    translation,
+                ),
+                Matrix::<4, Wide, A>::from_submatrix(&Matrix::<3, Wide, A>::from_column_array(&[
+                    x, y, scale.x, w, y, z, x, scale.y, w,
+                ])),
+            ] {
+                assert_float_eq_or_panic!(
+                    matrix.to_scale_rotation_translation(),
+                    (
+                        Vector::from_lane_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .0),
+                        Quaternion::from_lane_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .1),
+                        Vector::from_lane_fn(|lane| matrix
+                            .lane(lane)
+                            .to_scale_rotation_translation()
+                            .2)
+                    )
+                );
+            }
         });
     }
 

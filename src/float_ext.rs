@@ -1,7 +1,11 @@
 use crate::PrimitiveFloat;
 
+#[cfg(feature = "wide")]
+mod wide;
+
 /// Extends floating-point primitives with extra functionality.
-pub trait FloatExt: PrimitiveFloat {
+#[expect(private_bounds)]
+pub trait FloatExt: Sealed {
     /// Computes the linear interpolation between `self` and `other` based on
     /// the value `t`.
     ///
@@ -34,6 +38,8 @@ pub trait FloatExt: PrimitiveFloat {
     fn abs_diff_eq(self, other: Self, max_abs_diff: Self) -> bool;
 }
 
+trait Sealed {}
+
 impl<T: PrimitiveFloat> FloatExt for T {
     #[inline]
     fn lerp(self, other: Self, t: Self) -> Self {
@@ -57,6 +63,8 @@ impl<T: PrimitiveFloat> FloatExt for T {
         (self - other).abs() <= max_abs_diff
     }
 }
+
+impl<T: PrimitiveFloat> Sealed for T {}
 
 #[cfg(test)]
 mod tests {

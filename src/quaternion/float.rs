@@ -833,8 +833,8 @@ mod tests {
 
             let non_normalized = Vector::<3, T, A>::new(x, y, z);
             if !non_normalized.is_normalized() {
-                assert_debug_panic!(Quaternion::from_rotation_arc(non_normalized, to));
-                assert_debug_panic!(Quaternion::from_rotation_arc(from, non_normalized));
+                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc(non_normalized, to));
+                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc(from, non_normalized));
             }
         });
     }

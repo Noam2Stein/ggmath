@@ -1,4 +1,4 @@
-use wide::{CmpEq, CmpGe, CmpGt, CmpLe, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{Alignment, EulerRot, Matrix, Quaternion, Vector};
 
@@ -67,6 +67,47 @@ macro_rules! impl_wide_float {
                         Vector::<4, $Wide, A>::new(xyz.x, xyz.y, xyz.z, cos),
                     ),
                 )
+            }
+
+            /// For each lane, returns the minimal rotation transforming `from`
+            /// to `to`.
+            ///
+            /// The rotation is in the plane spanned by `from` and `to`. Rotates
+            /// up to 180 degrees.
+            ///
+            /// When `from≈to` this is only accurate to about `0.001` (for
+            /// `f32`).
+            ///
+            /// `from` and `to` must be normalized. Otherwise the result is
+            /// unspecified.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn from_rotation_arc(from: Vector<3, $Wide, A>, to: Vector<3, $Wide, A>) -> Self {
+                // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                let almost_one = $Wide::ONE - $Wide::splat(2.0) * $Wide::splat($T::EPSILON);
+
+                let dot = from.dot(to);
+                Self::from_vector(Vector::<4, $Wide, A>::splat(dot.simd_gt(almost_one)).blend(
+                    {
+                        // 0° singularity: from ≈ to.
+                        Vector::W
+                    },
+                    Vector::<4, $Wide, A>::splat(dot.simd_lt(-almost_one)).blend(
+                        {
+                            // 180° singularity: from ≈ -to.
+                            // Half a turn = 𝛕/2 = 180°.
+                            Self::from_axis_angle(from.any_orthonormal_vector(), $Wide::PI).0
+                        },
+                        {
+                            let cross = from.cross(to);
+                            Self::from_xyzw(cross.x, cross.y, cross.z, $Wide::ONE + dot)
+                                .normalize()
+                                .0
+                        },
+                    ),
+                ))
             }
 
             /// Returns the minimal rotation transforming `from` to either `to`
@@ -416,6 +457,27 @@ macro_rules! impl_wide_float {
                 )
             }
 
+            /// For each lane, rotates `self` towards `target` by at most
+            /// `max_angle` (in radians).
+            ///
+            /// When `max_angle` is `0`, the result is `self`. When `max_angle`
+            /// is equal to or greater than `self.angle_between(target)`, the
+            /// result is `target`. When `max_angle` is negative, rotates
+            /// towards the opposite of `target`.
+            ///
+            /// `self` and `target` must be normalized. Otherwise the result is
+            /// unspecified.
+            #[inline]
+            #[must_use]
+            pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
+                let angle = self.angle_between(target);
+                let t = (max_angle / angle).clamp(-$Wide::ONE, $Wide::ONE);
+                Self(
+                    Vector::<4, $Wide, A>::splat(angle.simd_le($Wide::splat(1e-4)))
+                        .blend(target.0, self.slerp(target, t).0),
+                )
+            }
+
             /// Returns the length/magnitude of `self`.
             #[inline]
             #[must_use]
@@ -472,11 +534,20 @@ macro_rules! impl_wide_float {
             pub fn is_normalized(self) -> $Wide {
                 self.0.is_normalized()
             }
-        }
 
-        // MISSING: from_rotation_arc
-        // MISSING: rotate_towards
-        // MISSING: abs_diff_eq
+            /// Returns `true` if the absolute difference of all elements
+            /// between `self` and `other` is less than or equal to
+            /// `max_abs_diff` for all lanes.
+            ///
+            /// This can be used to compare two quaternions that should be
+            /// equal, but may have a slight difference due to operations having
+            /// rounding errors.
+            #[inline]
+            #[must_use]
+            pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
+                self.0.abs_diff_eq(other.0, max_abs_diff)
+            }
+        }
     };
 }
 impl_wide_float!(f32x4, f32);
@@ -491,7 +562,7 @@ mod tests {
     extern crate std;
 
     use crate::{
-        Matrix, Quaternion, Vector,
+        FloatExt, Matrix, Quaternion, Vector,
         utils::{assert_float_eq, assert_float_eq_or_panic, for_parameters},
     };
 
@@ -572,6 +643,24 @@ mod tests {
                 )),
                 r2nd <= Quaternion::from_array([Wide::splat(1e-5) * scaled_axis.length(); 4]),
                 0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_rotation_arc() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let [w, a, b] = [z + 1.3, x + 2.3, y + 3.3];
+            let from = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::X);
+            let to = Vector::<3, Wide, A>::new(w, a, b).normalize_or(Vector::<3, Wide, A>::Y);
+
+            assert_float_eq_or_panic!(
+                Quaternion::<Wide, A>::from_rotation_arc(from, to),
+                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_rotation_arc(
+                    from.lane(lane),
+                    to.lane(lane)
+                ))
             );
         });
     }
@@ -885,6 +974,27 @@ mod tests {
     }
 
     #[test]
+    fn test_rotate_towards() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x * 0.3 + y * 0.1 + z * 0.2 + 0.6;
+            let quat =
+                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
+            let target =
+                Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
+            let max_angle = Wide::new(std::array::from_fn(|lane| (w.to_array()[lane] * 0.3) % 3.0));
+
+            assert_float_eq_or_panic!(
+                quat.rotate_towards(target, max_angle),
+                Quaternion::from_lane_fn(|lane| quat
+                    .lane(lane)
+                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
+                abs <= Quaternion::from_array([Wide::splat(1e-5); 4])
+            );
+        });
+    }
+
+    #[test]
     fn test_length() {
         for_parameters!(|Wide: WideFloat, A, x, y, z| {
             let _: [Wide; 3] = [x, y, z];
@@ -982,6 +1092,26 @@ mod tests {
                         0
                     }
                 )))
+            );
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x ^ y;
+            let a = y ^ z;
+            let b = w + a;
+
+            let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
+            let other = Quaternion::<Wide, A>::from_xyzw(a, b, x, z);
+            assert_eq!(
+                quat.abs_diff_eq(other, Wide::ONE),
+                x.abs_diff_eq(a, Wide::ONE)
+                    && y.abs_diff_eq(b, Wide::ONE)
+                    && z.abs_diff_eq(x, Wide::ONE)
+                    && w.abs_diff_eq(z, Wide::ONE)
             );
         });
     }

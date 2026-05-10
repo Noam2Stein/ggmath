@@ -1,6 +1,8 @@
 use wide::{CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
-use crate::{Alignment, Length, SupportedLength, Vector, utils::transmute_generic};
+use crate::{
+    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector, utils::transmute_generic,
+};
 
 macro_rules! impl_wide_float {
     ($Wide:ident, $powf:ident) => {
@@ -44,6 +46,34 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn finite_mask(self) -> Self {
                 self.map($Wide::is_finite)
+            }
+
+            /// For each lane, returns a vector mask where each element is
+            /// `true` if the corresponding element of `self` has a positive
+            /// sign, including `+0.0`, NaNs with positive sign bit and positive
+            /// infinity.
+            ///
+            /// Equivalent to
+            /// `(self.x.is_sign_positive(), self.y.is_sign_positive(), ...)`
+            /// for each lane.
+            #[inline]
+            #[must_use]
+            pub fn sign_positive_mask(self) -> Self {
+                self.map($Wide::is_sign_positive)
+            }
+
+            /// For each lane, returns a vector mask where each element is
+            /// `true` if the corresponding element of `self` has a negative
+            /// sign, including `-0.0`, NaNs with negative sign bit and negative
+            /// infinity.
+            ///
+            /// Equivalent to
+            /// `(self.x.is_sign_negative(), self.y.is_sign_negative(), ...)`
+            /// for each lane.
+            #[inline]
+            #[must_use]
+            pub fn sign_negative_mask(self) -> Self {
+                self.map($Wide::is_sign_negative)
             }
 
             /// Returns the element-wise reciprocal (inverse) of a vector,
@@ -148,6 +178,15 @@ macro_rules! impl_wide_float {
                 self.map($Wide::abs)
             }
 
+            /// Returns the signum of the elements of `self`.
+            ///
+            /// Equivalent to `(self.x.signum(), self.y.signum(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn signum(self) -> Self {
+                self.map($Wide::signum)
+            }
+
             /// Returns a vector with the element magnitudes of `self` and the
             /// element signs of `sign`.
             ///
@@ -188,6 +227,26 @@ macro_rules! impl_wide_float {
                 self.map($Wide::round)
             }
 
+            /// Returns the integer part of the elements of `self`. This means
+            /// that non-integer numbers are always truncated towards zero.
+            ///
+            /// This always returns the precise result.
+            #[inline]
+            #[must_use]
+            pub fn trunc(self) -> Self {
+                self.map($Wide::trunc)
+            }
+
+            /// Returns the fractional part of `self`. Equivalent to
+            /// `self - self.trunc()`.
+            ///
+            /// This always returns the precise result.
+            #[inline]
+            #[must_use]
+            pub fn fract(self) -> Self {
+                self - self.trunc()
+            }
+
             /// Fused multiply-add. Computes `(self * a) + b`.
             ///
             /// When hardware FMA support is available, this computes the result
@@ -201,6 +260,44 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn mul_add(self, a: Self, b: Self) -> Self {
                 Self::from_fn(|i| self[i].mul_add(a[i], b[i]))
+            }
+
+            /// Calculates Euclidean division for the elements of `self`.
+            ///
+            /// Equivalent to
+            /// `(self.x.div_euclid(rhs.x), self.y.div_euclid(rhs.y), ...)`.
+            ///
+            /// See [`f32::div_euclid`].
+            ///
+            /// # Precision
+            ///
+            /// The result of this operation is guaranteed to be the rounded
+            /// infinite-precision result.
+            ///
+            /// [`f32::div_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.div_euclid
+            #[inline]
+            #[must_use]
+            pub fn div_euclid(self, rhs: Self) -> Self {
+                Self::from_fn(|i| self[i].div_euclid(rhs[i]))
+            }
+
+            /// Calculates Euclidean remainder for the elements of `self`.
+            ///
+            /// Equivalent to
+            /// `(self.x.rem_euclid(rhs.x), self.y.rem_euclid(rhs.y), ...)`.
+            ///
+            /// See [`f32::rem_euclid`].
+            ///
+            /// # Precision
+            ///
+            /// The result of this operation is guaranteed to be the rounded
+            /// infinite-precision result.
+            ///
+            /// [`f32::rem_euclid`]: https://doc.rust-lang.org/std/primitive.f32.html#method.rem_euclid
+            #[inline]
+            #[must_use]
+            pub fn rem_euclid(self, rhs: Self) -> Self {
+                Self::from_fn(|i| self[i].rem_euclid(rhs[i]))
             }
 
             /// Computes `x^n` for the elements of `self`.
@@ -243,6 +340,19 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn exp(self) -> Self {
                 self.map($Wide::exp)
+            }
+
+            /// Computes `2^x` for the elements of `self`.
+            ///
+            /// # Unspecified precision
+            ///
+            /// The precision of this function is non-deterministic. This means
+            /// it varies by platform, version, and can even differ within the
+            /// same execution from one invocation to the next.
+            #[inline]
+            #[must_use]
+            pub fn exp2(self) -> Self {
+                self.map($Wide::exp2)
             }
 
             /// Computes the natural logarithm for the elements of `self`.
@@ -407,6 +517,303 @@ macro_rules! impl_wide_float {
                     delta_length.simd_le(max_delta) | delta_length.simd_le($Wide::splat(1e-4)),
                 )
                 .blend(target, self + delta / delta_length * max_delta)
+            }
+
+            /// For each lane, computes the spherical linear interpolation
+            /// between `self` and `other` based on the value `t`.
+            ///
+            /// When `t` is `0`, the result is `self`.  When `t` is `1`, the
+            /// result is `other`. When `t` is outside of the range `0..=1`, the
+            /// result is spherically linearly extrapolated.
+            ///
+            /// The vectors do not need to be unit vectors but they do need to
+            /// be non-zero.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn slerp(self, other: Self, t: $Wide) -> Self {
+                let self_length = self.length();
+                let other_length = other.length();
+
+                match N {
+                    2 => {
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
+                        };
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        let other = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(other)
+                        };
+
+                        let self_normalized = self_ / self_length;
+                        let angle_cos = self_normalized.dot(other) / other_length;
+                        let angle = angle_cos.acos() * self_normalized.wedge(other).signum();
+
+                        let result_length = self_length.lerp(other_length, t);
+                        let result = self_normalized.rotate(angle * t) * result_length;
+
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    3 => {
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
+                        };
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        let other = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(other)
+                        };
+
+                        // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                        let angle_cos = self_.dot(other) / (self_length * other_length);
+
+                        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                        // calculation breaks down.
+                        let result = Vector::<3, $Wide, A>::splat(
+                            angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)),
+                        )
+                        .blend(
+                            {
+                                let angle = angle_cos.acos();
+                                let angle_sin = angle.sin();
+                                let self_factor = (angle * ($Wide::ONE - t)).sin();
+                                let other_factor = (angle * t).sin();
+
+                                let result_length = self_length.lerp(other_length, t);
+
+                                (self_ * (result_length / self_length) * self_factor
+                                    + other * (result_length / other_length) * other_factor)
+                                    / angle_sin
+                            },
+                            Vector::<3, $Wide, A>::splat(angle_cos.is_sign_negative()).blend(
+                                {
+                                    // Vectors are almost parallel in opposing directions.
+
+                                    let axis = self_.any_orthogonal_vector().normalize();
+                                    let rotation = Quaternion::<$Wide, A>::from_axis_angle(
+                                        axis,
+                                        t * $Wide::PI,
+                                    );
+
+                                    let result_length = self_length.lerp(other_length, t);
+                                    rotation * self_ * (result_length / self_length)
+                                },
+                                {
+                                    // Vectors are almost parallel in the same direction.
+                                    self_.lerp(other, t)
+                                },
+                            ),
+                        );
+
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    4 => {
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
+                        };
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        let other = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(other)
+                        };
+
+                        // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                        let angle_cos = self_.dot(other) / (self_length * other_length);
+
+                        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+                        // calculation breaks down.
+                        let result = Vector::<4, $Wide, A>::splat(
+                            angle_cos.abs().simd_lt($Wide::splat(1.0 - 3e-7)),
+                        )
+                        .blend(
+                            {
+                                let angle = angle_cos.acos();
+                                let angle_sin = angle.sin();
+                                let t1 = (angle * ($Wide::ONE - t)).sin();
+                                let t2 = (angle * t).sin();
+
+                                let result_length = self_length.lerp(other_length, t);
+
+                                (self_ * (result_length / self_length) * t1
+                                    + other * (result_length / other_length) * t2)
+                                    / angle_sin
+                            },
+                            Vector::<4, $Wide, A>::splat(angle_cos.is_sign_negative()).blend(
+                                {
+                                    // Vectors are almost parallel in opposing directions.
+
+                                    let axis = self_.any_orthogonal_vector().normalize();
+                                    let (sin, cos) = (t * $Wide::PI).sin_cos();
+
+                                    let result_dir = self_ * cos + axis * sin;
+                                    let result_length = self_length.lerp(other_length, t);
+                                    result_dir * (result_length / result_dir.length())
+                                },
+                                {
+                                    // Vectors are almost parallel in the same direction.
+                                    self_.lerp(other, t)
+                                },
+                            ),
+                        );
+
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            /// For each lane, rotates `self` towards `target` by at most
+            /// `max_angle` (in radians).
+            ///
+            /// When `max_angle` is `0`, the result is `self`. When `max_angle`
+            /// is equal to or greater than `self.angle_between(target)`, the
+            /// result is `target`. When `max_angle` is negative, this rotates
+            /// towards `-target`.
+            ///
+            /// The vectors do not need to be unit vectors but `target` does
+            /// need to be non-zero.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
+                let self_length = self.length();
+                let target_length = target.length();
+
+                if self == Self::ZERO {
+                    return self;
+                }
+
+                match N {
+                    2 => {
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
+                        };
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        let target = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(target)
+                        };
+
+                        let target_angle = (self_.dot(target) / self_length / target_length)
+                            .max(-$Wide::ONE)
+                            .min($Wide::ONE)
+                            .acos();
+                        let angle_sign = self_.wedge(target).signum();
+                        let angle =
+                            max_angle.clamp(target_angle - $Wide::PI, target_angle) * angle_sign;
+
+                        let result = Vector::<2, $Wide, A>::splat(self.simd_eq(Self::ZERO))
+                            .blend(self_, self_.rotate(angle));
+
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    3 => {
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
+                        };
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        let target = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(target)
+                        };
+
+                        // Ported from `https://github.com/bitshifter/glam-rs`.
+
+                        let target_angle = (self_.dot(target) / (self_length * target_length))
+                            .max(-$Wide::ONE)
+                            .min($Wide::ONE)
+                            .acos();
+                        let angle = max_angle.clamp(target_angle - $Wide::PI, target_angle);
+                        let axis = self_
+                            .cross(target)
+                            .normalize_or(self_.any_orthonormal_vector());
+
+                        let result = Vector::<3, $Wide, A>::splat(self.simd_eq(Self::ZERO)).blend(
+                            self_,
+                            Quaternion::<$Wide, A>::from_axis_angle(axis, angle) * self_,
+                        );
+
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    4 => {
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
+                        };
+                        // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
+                        let target = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(target)
+                        };
+
+                        let target_angle_cos = self_.dot(target) / (self_length * target_length);
+                        let target_angle = target_angle_cos.max(-$Wide::ONE).min($Wide::ONE).acos();
+                        let angle = max_angle.clamp(target_angle - $Wide::PI, target_angle);
+
+                        if angle == $Wide::ZERO {
+                            return self;
+                        }
+
+                        // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+                        // normal calculation breaks down.
+                        let result = Vector::<4, $Wide, A>::splat(
+                            target_angle_cos.abs().simd_le($Wide::splat(1.0 - 3e-7)),
+                        )
+                        .blend(
+                            {
+                                let self_factor = (target_angle - angle).sin();
+                                let target_factor = angle.sin();
+                                let result = self_ * self_factor
+                                    + target * (self_length / target_length) * target_factor;
+
+                                result / result.length() * self_length
+                            },
+                            Vector::<4, $Wide, A>::splat(target_angle_cos.is_sign_negative())
+                                .blend(
+                                    {
+                                        // Vectors are almost parallel in opposing directions.
+
+                                        let axis = self_.any_orthogonal_vector();
+                                        let axis = axis / axis.length();
+                                        let (sin, cos) = angle.sin_cos();
+
+                                        let result_dir = self_ * cos + axis * sin;
+                                        result_dir * (self_length / result_dir.length())
+                                    },
+                                    {
+                                        // Vectors are almost parallel in the same direction.
+                                        target / target_length * self_length
+                                    },
+                                ),
+                        );
+
+                        let result = Vector::<4, $Wide, A>::splat(self.simd_eq(Self::ZERO))
+                            .blend(self_, result);
+
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    _ => unreachable!(),
+                }
             }
 
             /// Returns the length/magnitude of `self`.
@@ -735,9 +1142,127 @@ macro_rules! impl_wide_float {
                     _ => unreachable!(),
                 }
             }
+
+            /// For each lane, returns some unit vector that is orthogonal to
+            /// `self`.
+            ///
+            /// `self` must normalized.
+            ///
+            /// For 2D vectors this is equivalent to [`perp`].
+            ///
+            /// [`perp`]: Self::perp
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn any_orthonormal_vector(self) -> Self {
+                match N {
+                    2 => {
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(self)
+                        };
+
+                        let result = self_.perp();
+
+                        // SAFETY: Because `N = 2`, `Vector<N, $Wide, A> = Vector<2, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<2, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    3 => {
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<3, $Wide, A>>(self)
+                        };
+
+                        // Ported from https://github.com/bitshifter/glam-rs.
+                        let sign = self_.z.signum();
+                        let a = -$Wide::ONE / (sign + self_.z);
+                        let b = self_.x * self_.y * a;
+                        let result =
+                            Vector::<3, $Wide, A>::new(b, sign + self_.y * self_.y * a, -self_.y);
+
+                        // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<3, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    4 => {
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        let self_ = unsafe {
+                            transmute_generic::<Vector<N, $Wide, A>, Vector<4, $Wide, A>>(self)
+                        };
+
+                        let result = self_.any_orthogonal_vector().normalize();
+
+                        // SAFETY: Because `N = 4`, `Vector<N, $Wide, A> = Vector<4, $Wide, A>`.
+                        unsafe {
+                            transmute_generic::<Vector<4, $Wide, A>, Vector<N, $Wide, A>>(result)
+                        }
+                    }
+                    _ => unreachable!(),
+                }
+            }
+
+            /// Returns `true` if the absolute difference of all elements
+            /// between `self` and `other` is less than or equal to
+            /// `max_abs_diff` for all lanes.
+            ///
+            /// This can be used to compare two vectors that should be equal,
+            /// but may have a slight difference due to operations having
+            /// rounding errors.
+            #[inline]
+            #[must_use]
+            pub fn abs_diff_eq(self, other: Self, max_abs_diff: $Wide) -> bool {
+                (self - other)
+                    .abs()
+                    .simd_le_mask(Self::splat(max_abs_diff))
+                    .all()
+                    .all()
+            }
         }
 
         impl<A: Alignment> Vector<2, $Wide, A> {
+            /// For each lane, returns the angle (in radians) that rotates
+            /// `self` to `other` in the range `-π..=+π`.
+            ///
+            /// The vectors do not need to be unit vectors but they do need to
+            /// be non-zero.
+            ///
+            /// Equivalent to `other.angle_from(self)`.
+            ///
+            /// # Unspecified precision
+            ///
+            /// The precision of this function is non-deterministic. This means
+            /// it varies by platform, version, and can even differ within the
+            /// same execution from one invocation to the next.
+            #[inline]
+            #[must_use]
+            pub fn angle_to(self, other: Self) -> $Wide {
+                let outer_product = (self.x * other.y) - (self.y * other.x);
+                self.angle_between(other) * outer_product.signum()
+            }
+
+            /// For each lane, returns the angle (in radians) that rotates
+            /// `other` to `self` in the range `-π..=+π`.
+            ///
+            /// The vectors do not need to be unit vectors but they do need to
+            /// be non-zero.
+            ///
+            /// Equivalent to `other.angle_to(self)`.
+            ///
+            /// # Unspecified precision
+            ///
+            /// The precision of this function is non-deterministic. This means
+            /// it varies by platform, version, and can even differ within the
+            /// same execution from one invocation to the next.
+            #[inline]
+            #[must_use]
+            pub fn angle_from(self, other: Self) -> $Wide {
+                let outer_product = (other.x * self.y) - (other.y * self.x);
+                self.angle_between(other) * outer_product.signum()
+            }
+
             /// For each lane, rotates `self` by `angle` (in radians).
             ///
             /// This rotates `+X` to `+Y`.
@@ -829,23 +1354,31 @@ macro_rules! impl_wide_float {
                     self.z,
                 )
             }
-        }
 
-        // MISSING: sign_positive_mask
-        // MISSING: sign_negative_mask
-        // MISSING: signum
-        // MISSING: trunc
-        // MISSING: fract
-        // MISSING: div_euclid
-        // MISSING: rem_euclid
-        // MISSING: exp2
-        // MISSING: slerp
-        // MISSING: rotate_towards
-        // MISSING: abs_diff_eq
-        // MISSING: angle_to
-        // MISSING: angle_from
-        // MISSING: any_orthonormal_vector
-        // MISSING: any_orthonormal_pair
+            /// For each lane, returns two unit vectors that are orthogonal to
+            /// `self` and to each other.
+            ///
+            /// Together with `self`, they form an orthonormal basis where the
+            /// three vectors are all orthogonal to each other and are
+            /// normalized.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn any_orthonormal_pair(self) -> (Self, Self) {
+                // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+                let sign = self.z.signum();
+                let a = -$Wide::ONE / (sign + self.z);
+                let b = self.x * self.y * a;
+                (
+                    Self::new(
+                        $Wide::ONE + sign * self.x * self.x * a,
+                        sign * b,
+                        -sign * self.x,
+                    ),
+                    Self::new(b, sign + self.y * self.y * a, -self.y),
+                )
+            }
+        }
     };
 }
 impl_wide_float!(f32x4, pow_f32x4);
@@ -860,7 +1393,7 @@ mod tests {
     use wide::{CmpGt, CmpLt};
 
     use crate::{
-        Vector,
+        FloatExt, Vector,
         utils::{assert_float_eq, assert_float_eq_or_panic, for_parameters},
     };
 
@@ -944,6 +1477,68 @@ mod tests {
                     y.is_finite(),
                     z.is_finite(),
                     w.is_finite()
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_sign_positive_mask() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).sign_positive_mask(),
+                Vector::<2, Wide, A>::new(x.is_sign_positive(), y.is_sign_positive())
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).sign_positive_mask(),
+                Vector::<3, Wide, A>::new(
+                    x.is_sign_positive(),
+                    y.is_sign_positive(),
+                    z.is_sign_positive()
+                )
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w).sign_positive_mask(),
+                Vector::<4, Wide, A>::new(
+                    x.is_sign_positive(),
+                    y.is_sign_positive(),
+                    z.is_sign_positive(),
+                    w.is_sign_positive()
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_sign_negative_mask() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).sign_negative_mask(),
+                Vector::<2, Wide, A>::new(x.is_sign_negative(), y.is_sign_negative())
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).sign_negative_mask(),
+                Vector::<3, Wide, A>::new(
+                    x.is_sign_negative(),
+                    y.is_sign_negative(),
+                    z.is_sign_negative()
+                )
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w).sign_negative_mask(),
+                Vector::<4, Wide, A>::new(
+                    x.is_sign_negative(),
+                    y.is_sign_negative(),
+                    z.is_sign_negative(),
+                    w.is_sign_negative()
                 )
             );
         });
@@ -1200,6 +1795,28 @@ mod tests {
     }
 
     #[test]
+    fn test_signum() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).signum(),
+                Vector::<2, Wide, A>::new(x.signum(), y.signum())
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).signum(),
+                Vector::<3, Wide, A>::new(x.signum(), y.signum(), z.signum())
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w).signum(),
+                Vector::<4, Wide, A>::new(x.signum(), y.signum(), z.signum(), w.signum())
+            );
+        });
+    }
+
+    #[test]
     fn test_copysign() {
         for_parameters!(|Wide: WideFloat, A, x, y, z| {
             let _: [Wide; 3] = [x, y, z];
@@ -1290,6 +1907,50 @@ mod tests {
     }
 
     #[test]
+    fn test_trunc() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).trunc(),
+                Vector::<2, Wide, A>::new(x.trunc(), y.trunc())
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).trunc(),
+                Vector::<3, Wide, A>::new(x.trunc(), y.trunc(), z.trunc())
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w).trunc(),
+                Vector::<4, Wide, A>::new(x.trunc(), y.trunc(), z.trunc(), w.trunc())
+            );
+        });
+    }
+
+    #[test]
+    fn test_fract() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).fract(),
+                Vector::<2, Wide, A>::new(x.fract(), y.fract())
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).fract(),
+                Vector::<3, Wide, A>::new(x.fract(), y.fract(), z.fract())
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w).fract(),
+                Vector::<4, Wide, A>::new(x.fract(), y.fract(), z.fract(), w.fract())
+            );
+        });
+    }
+
+    #[test]
     fn test_mul_add() {
         for_parameters!(|Wide: WideFloat, A, x, y, z| {
             let _: [Wide; 3] = [x, y, z];
@@ -1319,6 +1980,62 @@ mod tests {
                     y.mul_add(w, z),
                     z.mul_add(y, w),
                     w.mul_add(x, y)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_div_euclid() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).div_euclid(Vector::<2, Wide, A>::new(z, w)),
+                Vector::<2, Wide, A>::new(x.div_euclid(z), y.div_euclid(w))
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).div_euclid(Vector::<3, Wide, A>::new(z, w, y)),
+                Vector::<3, Wide, A>::new(x.div_euclid(z), y.div_euclid(w), z.div_euclid(y))
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w)
+                    .div_euclid(Vector::<4, Wide, A>::new(z, w, y, x)),
+                Vector::<4, Wide, A>::new(
+                    x.div_euclid(z),
+                    y.div_euclid(w),
+                    z.div_euclid(y),
+                    w.div_euclid(x)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_rem_euclid() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).rem_euclid(Vector::<2, Wide, A>::new(z, w)),
+                Vector::<2, Wide, A>::new(x.rem_euclid(z), y.rem_euclid(w))
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).rem_euclid(Vector::<3, Wide, A>::new(z, w, y)),
+                Vector::<3, Wide, A>::new(x.rem_euclid(z), y.rem_euclid(w), z.rem_euclid(y))
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w)
+                    .rem_euclid(Vector::<4, Wide, A>::new(z, w, y, x)),
+                Vector::<4, Wide, A>::new(
+                    x.rem_euclid(z),
+                    y.rem_euclid(w),
+                    z.rem_euclid(y),
+                    w.rem_euclid(x)
                 )
             );
         });
@@ -1384,6 +2101,28 @@ mod tests {
             assert_float_eq!(
                 Vector::<4, Wide, A>::new(x, y, z, w).exp(),
                 Vector::<4, Wide, A>::new(x.exp(), y.exp(), z.exp(), w.exp())
+            );
+        });
+    }
+
+    #[test]
+    fn test_exp2() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x + y;
+            let w = x ^ y;
+
+            assert_float_eq!(
+                Vector::<2, Wide, A>::new(x, y).exp2(),
+                Vector::<2, Wide, A>::new(x.exp2(), y.exp2())
+            );
+            assert_float_eq!(
+                Vector::<3, Wide, A>::new(x, y, z).exp2(),
+                Vector::<3, Wide, A>::new(x.exp2(), y.exp2(), z.exp2())
+            );
+            assert_float_eq!(
+                Vector::<4, Wide, A>::new(x, y, z, w).exp2(),
+                Vector::<4, Wide, A>::new(x.exp2(), y.exp2(), z.exp2(), w.exp2())
             );
         });
     }
@@ -1692,6 +2431,106 @@ mod tests {
                     .lane(lane)
                     .move_towards(target.lane(lane), max_delta.to_array()[lane])),
                 r2nd <= Vector::splat(Wide::splat(1e-4))
+            );
+        });
+    }
+
+    #[test]
+    fn test_slerp() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x ^ y;
+            let w = y + z;
+            let t = (y ^ z) % 10.0;
+
+            let vector = Vector::<2, Wide, A>::new(x, y).with_max_length(Wide::splat(1e3));
+            let other = Vector::<2, Wide, A>::new(z, w).with_max_length(Wide::splat(1e3));
+            assert_float_eq_or_panic!(
+                vector.slerp(other, t),
+                Vector::<2, Wide, A>::from_lane_fn(|lane| vector
+                    .lane(lane)
+                    .slerp(other.lane(lane), t.to_array()[lane])),
+                abs <= vector.slerp(other, t).abs() * Wide::splat(1e-3) + Wide::splat(1e-3)
+            );
+
+            let vector = Vector::<3, Wide, A>::new(x, y, z).with_max_length(Wide::splat(1e3));
+            let other = Vector::<3, Wide, A>::new(z, w, y).with_max_length(Wide::splat(1e3));
+            assert_float_eq_or_panic!(
+                vector.slerp(other, t),
+                Vector::<3, Wide, A>::from_lane_fn(|lane| vector
+                    .lane(lane)
+                    .slerp(other.lane(lane), t.to_array()[lane])),
+                abs <= vector.slerp(other, t).abs() * Wide::splat(1e-3) + Wide::splat(1e-3)
+            );
+
+            let vector = Vector::<4, Wide, A>::new(x, y, z, w).with_max_length(Wide::splat(1e3));
+            let other = Vector::<4, Wide, A>::new(z, w, y, x).with_max_length(Wide::splat(1e3));
+            assert_float_eq_or_panic!(
+                vector.slerp(other, t),
+                Vector::<4, Wide, A>::from_lane_fn(|lane| vector
+                    .lane(lane)
+                    .slerp(other.lane(lane), t.to_array()[lane])),
+                abs <= vector.slerp(other, t).abs() * Wide::splat(1e-3) + Wide::splat(1e-3)
+            );
+        });
+    }
+
+    #[test]
+    fn test_rotate_towards() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x ^ y;
+            let max_angle = (y ^ z) % 10.0;
+
+            let vector = Vector::<2, Wide, A>::new(x, y);
+            let vector = Vector::<2, Wide, A>::splat(vector.is_finite())
+                .blend(vector.with_max_length(Wide::splat(10.0)), Vector::ZERO);
+            let target = Vector::<2, Wide, A>::new(z, w);
+            let target = Vector::<2, Wide, A>::splat(target.length().is_finite()).blend(
+                target.clamp_length(Wide::splat(0.1), Wide::splat(10.0)),
+                Vector::ONE,
+            );
+            assert_float_eq_or_panic!(
+                vector.rotate_towards(target, max_angle),
+                Vector::<2, Wide, A>::from_lane_fn(|lane| vector
+                    .lane(lane)
+                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
+                abs <= Vector::splat(vector.length().max(target.length()) * 1e-3 + 1e-3),
+                0.0 = -0.0
+            );
+
+            let vector = Vector::<3, Wide, A>::new(x, y, z);
+            let vector = Vector::<3, Wide, A>::splat(vector.is_finite())
+                .blend(vector.with_max_length(Wide::splat(10.0)), Vector::ZERO);
+            let target = Vector::<3, Wide, A>::new(z, w, y);
+            let target = Vector::<3, Wide, A>::splat(target.length().is_finite()).blend(
+                target.clamp_length(Wide::splat(0.1), Wide::splat(10.0)),
+                Vector::ONE,
+            );
+            assert_float_eq_or_panic!(
+                vector.rotate_towards(target, max_angle),
+                Vector::<3, Wide, A>::from_lane_fn(|lane| vector
+                    .lane(lane)
+                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
+                abs <= Vector::splat(vector.length().max(target.length()) * 1e-3 + 1e-3),
+                0.0 = -0.0
+            );
+
+            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
+            let vector = Vector::<4, Wide, A>::splat(vector.is_finite())
+                .blend(vector.with_max_length(Wide::splat(10.0)), Vector::ZERO);
+            let target = Vector::<4, Wide, A>::new(z, w, y, x);
+            let target = Vector::<4, Wide, A>::splat(target.length().is_finite()).blend(
+                target.clamp_length(Wide::splat(0.1), Wide::splat(10.0)),
+                Vector::ONE,
+            );
+            assert_float_eq_or_panic!(
+                vector.rotate_towards(target, max_angle),
+                Vector::<4, Wide, A>::from_lane_fn(|lane| vector
+                    .lane(lane)
+                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
+                abs <= Vector::splat(vector.length().max(target.length()) * 1e-3 + 1e-3),
+                0.0 = -0.0
             );
         });
     }
@@ -2469,6 +3308,125 @@ mod tests {
     }
 
     #[test]
+    fn test_any_orthonormal_vector() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x + y;
+
+            let vector = Vector::<2, Wide, A>::new(x, y);
+            assert_float_eq_or_panic!(
+                vector.any_orthonormal_vector(),
+                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_vector())
+            );
+            assert_float_eq_or_panic!(
+                vector.normalize_or_zero().any_orthonormal_vector(),
+                Vector::from_lane_fn(|lane| vector
+                    .normalize_or_zero()
+                    .lane(lane)
+                    .any_orthonormal_vector())
+            );
+
+            let vector = Vector::<3, Wide, A>::new(x, y, z);
+            assert_float_eq_or_panic!(
+                vector.any_orthonormal_vector(),
+                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_vector())
+            );
+            assert_float_eq_or_panic!(
+                vector.normalize_or_zero().any_orthonormal_vector(),
+                Vector::from_lane_fn(|lane| vector
+                    .normalize_or_zero()
+                    .lane(lane)
+                    .any_orthonormal_vector())
+            );
+
+            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
+            assert_float_eq_or_panic!(
+                vector.any_orthonormal_vector(),
+                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_vector())
+            );
+            assert_float_eq_or_panic!(
+                vector.normalize_or_zero().any_orthonormal_vector(),
+                Vector::from_lane_fn(|lane| vector
+                    .normalize_or_zero()
+                    .lane(lane)
+                    .any_orthonormal_vector())
+            );
+        });
+    }
+
+    #[test]
+    fn test_abs_diff_eq() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x ^ y;
+            let a = y ^ z;
+            let b = w + a;
+
+            let vector = Vector::<2, Wide, A>::new(x, y);
+            let other = Vector::<2, Wide, A>::new(z, w);
+            assert_eq!(
+                vector.abs_diff_eq(other, Wide::ONE),
+                x.abs_diff_eq(z, Wide::ONE) && y.abs_diff_eq(w, Wide::ONE)
+            );
+
+            let vector = Vector::<3, Wide, A>::new(x, y, z);
+            let other = Vector::<3, Wide, A>::new(w, a, b);
+            assert_eq!(
+                vector.abs_diff_eq(other, Wide::ONE),
+                x.abs_diff_eq(w, Wide::ONE)
+                    && y.abs_diff_eq(a, Wide::ONE)
+                    && z.abs_diff_eq(b, Wide::ONE)
+            );
+
+            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
+            let other = Vector::<4, Wide, A>::new(a, b, x, z);
+            assert_eq!(
+                vector.abs_diff_eq(other, Wide::ONE),
+                x.abs_diff_eq(a, Wide::ONE)
+                    && y.abs_diff_eq(b, Wide::ONE)
+                    && z.abs_diff_eq(x, Wide::ONE)
+                    && w.abs_diff_eq(z, Wide::ONE)
+            );
+        });
+    }
+
+    #[test]
+    fn test_angle_to() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x ^ y;
+
+            let vector = Vector::<2, Wide, A>::new(x, y);
+            let other = Vector::<2, Wide, A>::new(z, w);
+            assert_float_eq_or_panic!(
+                vector.angle_to(other),
+                Wide::new(core::array::from_fn(|lane| vector
+                    .lane(lane)
+                    .angle_to(other.lane(lane)))),
+                r2nd <= Wide::splat(1e-5)
+            );
+        });
+    }
+
+    #[test]
+    fn test_angle_from() {
+        for_parameters!(|Wide: WideFloat, A, x, y, z| {
+            let _: [Wide; 3] = [x, y, z];
+            let w = x ^ y;
+
+            let vector = Vector::<2, Wide, A>::new(x, y);
+            let other = Vector::<2, Wide, A>::new(z, w);
+            assert_float_eq_or_panic!(
+                vector.angle_from(other),
+                Wide::new(core::array::from_fn(|lane| vector
+                    .lane(lane)
+                    .angle_from(other.lane(lane)))),
+                r2nd <= Wide::splat(1e-5)
+            );
+        });
+    }
+
+    #[test]
     fn test_rotate() {
         for_parameters!(|Wide: WideFloat, A, x, y, z| {
             let _: [Wide; 3] = [x, y, z];
@@ -2560,6 +3518,38 @@ mod tests {
                 Vector::from_lane_fn(|lane| vector.lane(lane).rotate_z(w.to_array()[lane])),
                 r2nd <= Vector::splat(Wide::splat(1e-5)) * w.abs(),
                 0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_any_orthonormal_pair() {
+        for_parameters!(|Wide: WideFloat, A, x, y| {
+            let _: [Wide; 2] = [x, y];
+            let z = x ^ y;
+
+            let vector = Vector::<3, Wide, A>::new(x, y, z);
+            assert_float_eq_or_panic!(
+                vector.any_orthonormal_pair(),
+                (
+                    Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_pair().0),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_pair().1)
+                )
+            );
+            assert_float_eq_or_panic!(
+                vector.normalize_or_zero().any_orthonormal_pair(),
+                (
+                    Vector::from_lane_fn(|lane| vector
+                        .normalize_or_zero()
+                        .lane(lane)
+                        .any_orthonormal_pair()
+                        .0),
+                    Vector::from_lane_fn(|lane| vector
+                        .normalize_or_zero()
+                        .lane(lane)
+                        .any_orthonormal_pair()
+                        .1)
+                )
             );
         });
     }
