@@ -16,6 +16,8 @@ use crate::{
 };
 
 mod bool;
+#[cfg(feature = "fixed")]
+mod fixed;
 mod float;
 mod integer;
 mod signed;
