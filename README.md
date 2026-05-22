@@ -106,7 +106,7 @@ Feature List:
 Crate Support:
 
 - [x] [`bytemuck`](https://crates.io/crates/bytemuck)
-- [ ] [`fixed`](https://crates.io/crates/fixed) (partially done)
+- [x] [`fixed`](https://crates.io/crates/fixed)
 - [x] [`libm`](https://crates.io/crates/libm)
 - [x] [`mint`](https://crates.io/crates/mint)
 - [x] [`serde`](https://crates.io/crates/serde)

@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Affine function `from_column_fn`.
 
+- `fixed` functionality.
+
 - `wide` functions:
   - `from_lanes`
   - `from_lane_fn`
