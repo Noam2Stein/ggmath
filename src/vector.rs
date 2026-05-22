@@ -17,17 +17,17 @@ use crate::{
 
 mod bool;
 mod float;
+mod integer;
 mod signed;
 mod swizzle;
-mod unsigned;
 #[cfg(feature = "wide")]
 mod wide;
 #[cfg(feature = "wide")]
 mod wide_float;
 #[cfg(feature = "wide")]
-mod wide_signed;
+mod wide_integer;
 #[cfg(feature = "wide")]
-mod wide_unsigned;
+mod wide_signed;
 
 /// An `N`-dimensional vector of type `T`.
 ///

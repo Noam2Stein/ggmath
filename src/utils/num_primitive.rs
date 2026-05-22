@@ -80,9 +80,9 @@ pub(crate) trait PrimitiveFloatFns: Sized {
     fn as_from(value: f64) -> Self;
 }
 
-/// An internal trait that wraps primitive-signed-integer functions used in
-/// generic contexts.
-pub(crate) trait PrimitiveSignedFns: Sized {
+/// An internal trait that wraps primitive-integer functions used in generic
+/// contexts.
+pub(crate) trait PrimitiveIntegerFns: Sized {
     fn checked_add(self, rhs: Self) -> Option<Self>;
 
     fn checked_sub(self, rhs: Self) -> Option<Self>;
@@ -110,36 +110,14 @@ pub(crate) trait PrimitiveSignedFns: Sized {
     fn wrapping_div(self, rhs: Self) -> Self;
 
     fn wrapping_rem(self, rhs: Self) -> Self;
+}
 
+/// An internal trait that wraps primitive-signed-integer functions used in
+/// generic contexts.
+pub(crate) trait PrimitiveSignedFns: Sized {
     fn abs(self) -> Self;
 
     fn signum(self) -> Self;
-}
-
-/// An internal trait that wraps primitive-unsigned-integer functions used in
-/// generic contexts.
-pub(crate) trait PrimitiveUnsignedFns: Sized {
-    fn checked_add(self, rhs: Self) -> Option<Self>;
-
-    fn checked_sub(self, rhs: Self) -> Option<Self>;
-
-    fn checked_mul(self, rhs: Self) -> Option<Self>;
-
-    fn checked_div(self, rhs: Self) -> Option<Self>;
-
-    fn checked_rem(self, rhs: Self) -> Option<Self>;
-
-    fn saturating_add(self, rhs: Self) -> Self;
-
-    fn saturating_sub(self, rhs: Self) -> Self;
-
-    fn saturating_mul(self, rhs: Self) -> Self;
-
-    fn wrapping_add(self, rhs: Self) -> Self;
-
-    fn wrapping_sub(self, rhs: Self) -> Self;
-
-    fn wrapping_mul(self, rhs: Self) -> Self;
 }
 
 macro_rules! impl_float {
@@ -475,9 +453,9 @@ macro_rules! impl_float {
 impl_float!(f32);
 impl_float!(f64);
 
-macro_rules! impl_signed {
+macro_rules! impl_integer {
     ($T:ident) => {
-        impl PrimitiveSignedFns for $T {
+        impl PrimitiveIntegerFns for $T {
             #[inline(always)]
             fn checked_add(self, rhs: Self) -> Option<Self> {
                 self.checked_add(rhs)
@@ -547,7 +525,25 @@ macro_rules! impl_signed {
             fn wrapping_rem(self, rhs: Self) -> Self {
                 self.wrapping_rem(rhs)
             }
+        }
+    };
+}
+impl_integer!(i8);
+impl_integer!(i16);
+impl_integer!(i32);
+impl_integer!(i64);
+impl_integer!(i128);
+impl_integer!(isize);
+impl_integer!(u8);
+impl_integer!(u16);
+impl_integer!(u32);
+impl_integer!(u64);
+impl_integer!(u128);
+impl_integer!(usize);
 
+macro_rules! impl_signed {
+    ($T:ident) => {
+        impl PrimitiveSignedFns for $T {
             #[inline(always)]
             fn abs(self) -> Self {
                 self.abs()
@@ -566,70 +562,3 @@ impl_signed!(i32);
 impl_signed!(i64);
 impl_signed!(i128);
 impl_signed!(isize);
-
-macro_rules! impl_unsigned {
-    ($T:ident) => {
-        impl PrimitiveUnsignedFns for $T {
-            #[inline(always)]
-            fn checked_add(self, rhs: Self) -> Option<Self> {
-                self.checked_add(rhs)
-            }
-
-            #[inline(always)]
-            fn checked_sub(self, rhs: Self) -> Option<Self> {
-                self.checked_sub(rhs)
-            }
-
-            #[inline(always)]
-            fn checked_mul(self, rhs: Self) -> Option<Self> {
-                self.checked_mul(rhs)
-            }
-
-            #[inline(always)]
-            fn checked_div(self, rhs: Self) -> Option<Self> {
-                self.checked_div(rhs)
-            }
-
-            #[inline(always)]
-            fn checked_rem(self, rhs: Self) -> Option<Self> {
-                self.checked_rem(rhs)
-            }
-
-            #[inline(always)]
-            fn saturating_add(self, rhs: Self) -> Self {
-                self.saturating_add(rhs)
-            }
-
-            #[inline(always)]
-            fn saturating_sub(self, rhs: Self) -> Self {
-                self.saturating_sub(rhs)
-            }
-
-            #[inline(always)]
-            fn saturating_mul(self, rhs: Self) -> Self {
-                self.saturating_mul(rhs)
-            }
-
-            #[inline(always)]
-            fn wrapping_add(self, rhs: Self) -> Self {
-                self.wrapping_add(rhs)
-            }
-
-            #[inline(always)]
-            fn wrapping_sub(self, rhs: Self) -> Self {
-                self.wrapping_sub(rhs)
-            }
-
-            #[inline(always)]
-            fn wrapping_mul(self, rhs: Self) -> Self {
-                self.wrapping_mul(rhs)
-            }
-        }
-    };
-}
-impl_unsigned!(u8);
-impl_unsigned!(u16);
-impl_unsigned!(u32);
-impl_unsigned!(u64);
-impl_unsigned!(u128);
-impl_unsigned!(usize);

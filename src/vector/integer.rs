@@ -1,8 +1,162 @@
 use crate::{
-    Alignment, Length, PrimitiveUnsignedBackend, SupportedLength, Vector, utils::specialize,
+    Alignment, Length, PrimitiveInteger, PrimitiveIntegerBackend, SupportedLength, Vector,
+    utils::specialize,
 };
 
-macro_rules! impl_unsigned {
+impl<const N: usize, T, A: Alignment> Vector<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: PrimitiveInteger,
+{
+    /// Computes `self + rhs`, returning `None` if overflow occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_add(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_add(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self - rhs`, returning `None` if overflow occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_sub(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_sub(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self * rhs`, returning `None` if overflow occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_mul(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_mul(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self / rhs`, returning `None` if overflow or division
+    /// by zero occured.
+    #[inline]
+    #[must_use]
+    pub fn checked_div(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_div(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self % rhs`, returning `None` if overflow or division
+    /// by zero occurred.
+    #[inline]
+    #[must_use]
+    pub fn checked_rem(self, rhs: Self) -> Option<Self> {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_checked_rem(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self + rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    #[inline]
+    #[must_use]
+    pub fn saturating_add(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_add(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self - rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    #[inline]
+    #[must_use]
+    pub fn saturating_sub(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_sub(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self * rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    #[inline]
+    #[must_use]
+    pub fn saturating_mul(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_mul(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self / rhs`, saturating at the numeric bounds instead of
+    /// overflowing.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any component of `rhs` is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn saturating_div(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_saturating_div(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self + rhs`, wrapping around at the boundary of the type.
+    #[inline]
+    #[must_use]
+    pub fn wrapping_add(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_add(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self - rhs`, wrapping around at the boundary of the type.
+    #[inline]
+    #[must_use]
+    pub fn wrapping_sub(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_sub(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self * rhs`, wrapping around at the boundary of the type.
+    #[inline]
+    #[must_use]
+    pub fn wrapping_mul(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_mul(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self / rhs`, wrapping around at the boundary of the type.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any component of `rhs` is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn wrapping_div(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_div(
+            self, rhs
+        ))
+    }
+
+    /// Computes `self % rhs`, wrapping around at the boundary of the type.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any component of `rhs` is `0`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn wrapping_rem(self, rhs: Self) -> Self {
+        specialize!(<T as PrimitiveIntegerBackend<N, A>>::vector_wrapping_rem(
+            self, rhs
+        ))
+    }
+}
+
+macro_rules! impl_integer {
     ($T:ident) => {
         impl<const N: usize, A: Alignment> Vector<N, $T, A>
         where
@@ -17,16 +171,16 @@ macro_rules! impl_unsigned {
             /// ```
             /// # use ggmath::Vec4;
             /// #
-            /// let a = Vec4::<u32>::new(1, 5, 3, 0);
-            /// let b = Vec4::<u32>::new(3, 2, 7, 1);
+            /// let a = Vec4::<i32>::new(1, 5, 3, 0);
+            /// let b = Vec4::<i32>::new(3, 2, 7, -1);
             /// let max = a.max(b);
             ///
-            /// assert_eq!(max, Vec4::new(3, 5, 7, 1));
+            /// assert_eq!(max, Vec4::new(3, 5, 7, 0));
             /// ```
             #[inline]
             #[must_use]
             pub fn max(self, other: Self) -> Self {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_max(
+                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_max(
                     self, other
                 ))
             }
@@ -40,16 +194,16 @@ macro_rules! impl_unsigned {
             /// ```
             /// # use ggmath::Vec4;
             /// #
-            /// let a = Vec4::<u32>::new(1, 5, 3, 0);
-            /// let b = Vec4::<u32>::new(3, 2, 7, 1);
+            /// let a = Vec4::<i32>::new(1, 5, 3, 0);
+            /// let b = Vec4::<i32>::new(3, 2, 7, -1);
             /// let min = a.min(b);
             ///
-            /// assert_eq!(min, Vec4::new(1, 2, 3, 0));
+            /// assert_eq!(min, Vec4::new(1, 2, 3, -1));
             /// ```
             #[inline]
             #[must_use]
             pub fn min(self, other: Self) -> Self {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_min(
+                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_min(
                     self, other
                 ))
             }
@@ -70,12 +224,12 @@ macro_rules! impl_unsigned {
             /// ```
             /// # use ggmath::Vec4;
             /// #
-            /// let vector = Vec4::<u32>::new(1, 2, 3, 9);
-            /// let min = Vec4::new(0, 5, 1, 2);
-            /// let max = Vec4::new(3, 6, 2, 3);
+            /// let vector = Vec4::<i32>::new(1, 2, 3, 0);
+            /// let min = Vec4::new(0, 5, 1, -2);
+            /// let max = Vec4::new(3, 6, 2, -1);
             /// let clamp = vector.clamp(min, max);
             ///
-            /// assert_eq!(clamp, Vec4::new(1, 5, 2, 3));
+            /// assert_eq!(clamp, Vec4::new(1, 5, 2, -1));
             /// ```
             #[inline]
             #[must_use]
@@ -95,13 +249,13 @@ macro_rules! impl_unsigned {
             /// ```
             /// # use ggmath::Vec3;
             /// #
-            /// let vector = Vec3::<u32>::new(1, 7, 3);
+            /// let vector = Vec3::<i32>::new(-1, 7, 3);
             /// assert_eq!(vector.max_element(), 7);
             /// ```
             #[inline]
             #[must_use]
             pub fn max_element(self) -> $T {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_max_element(
+                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_max_element(
                     self
                 ))
             }
@@ -115,127 +269,31 @@ macro_rules! impl_unsigned {
             /// ```
             /// # use ggmath::Vec3;
             /// #
-            /// let vector = Vec3::<u32>::new(7, 0, 3);
-            /// assert_eq!(vector.min_element(), 0);
+            /// let vector = Vec3::<i32>::new(7, -1, 3);
+            /// assert_eq!(vector.min_element(), -1);
             /// ```
             #[inline]
             #[must_use]
             pub fn min_element(self) -> $T {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_min_element(
+                specialize!(<$T as PrimitiveIntegerBackend<N, A>>::vector_min_element(
                     self
-                ))
-            }
-
-            /// Computes `self + rhs`, returning `None` if overflow occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_add(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_checked_add(
-                    self, rhs
-                ))
-            }
-
-            /// Computes `self - rhs`, returning `None` if overflow occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_sub(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_checked_sub(
-                    self, rhs
-                ))
-            }
-
-            /// Computes `self * rhs`, returning `None` if overflow occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_mul(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_checked_mul(
-                    self, rhs
-                ))
-            }
-
-            /// Computes `self / rhs`, returning `None` if division by zero occured.
-            #[inline]
-            #[must_use]
-            pub fn checked_div(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_checked_div(
-                    self, rhs
-                ))
-            }
-
-            /// Computes `self % rhs`, returning `None` if division by zero occurred.
-            #[inline]
-            #[must_use]
-            pub fn checked_rem(self, rhs: Self) -> Option<Self> {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_checked_rem(
-                    self, rhs
-                ))
-            }
-
-            /// Computes `self + rhs`, saturating at the numeric bounds instead of
-            /// overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_add(self, rhs: Self) -> Self {
-                specialize!(
-                    <$T as PrimitiveUnsignedBackend<N, A>>::vector_saturating_add(self, rhs)
-                )
-            }
-
-            /// Computes `self - rhs`, saturating at the numeric bounds instead of
-            /// overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_sub(self, rhs: Self) -> Self {
-                specialize!(
-                    <$T as PrimitiveUnsignedBackend<N, A>>::vector_saturating_sub(self, rhs)
-                )
-            }
-
-            /// Computes `self * rhs`, saturating at the numeric bounds instead of
-            /// overflowing.
-            #[inline]
-            #[must_use]
-            pub fn saturating_mul(self, rhs: Self) -> Self {
-                specialize!(
-                    <$T as PrimitiveUnsignedBackend<N, A>>::vector_saturating_mul(self, rhs)
-                )
-            }
-
-            /// Computes `self + rhs`, wrapping around at the boundary of the type.
-            #[inline]
-            #[must_use]
-            pub fn wrapping_add(self, rhs: Self) -> Self {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_wrapping_add(
-                    self, rhs
-                ))
-            }
-
-            /// Computes `self - rhs`, wrapping around at the boundary of the type.
-            #[inline]
-            #[must_use]
-            pub fn wrapping_sub(self, rhs: Self) -> Self {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_wrapping_sub(
-                    self, rhs
-                ))
-            }
-
-            /// Computes `self * rhs`, wrapping around at the boundary of the type.
-            #[inline]
-            #[must_use]
-            pub fn wrapping_mul(self, rhs: Self) -> Self {
-                specialize!(<$T as PrimitiveUnsignedBackend<N, A>>::vector_wrapping_mul(
-                    self, rhs
                 ))
             }
         }
     };
 }
-impl_unsigned!(u8);
-impl_unsigned!(u16);
-impl_unsigned!(u32);
-impl_unsigned!(u64);
-impl_unsigned!(u128);
-impl_unsigned!(usize);
+impl_integer!(i8);
+impl_integer!(i16);
+impl_integer!(i32);
+impl_integer!(i64);
+impl_integer!(i128);
+impl_integer!(isize);
+impl_integer!(u8);
+impl_integer!(u16);
+impl_integer!(u32);
+impl_integer!(u64);
+impl_integer!(u128);
+impl_integer!(usize);
 
 #[cfg(test)]
 mod tests {
@@ -246,7 +304,7 @@ mod tests {
 
     #[test]
     fn test_max() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -266,7 +324,7 @@ mod tests {
 
     #[test]
     fn test_min() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -286,7 +344,7 @@ mod tests {
 
     #[test]
     fn test_clamp() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_panic_eq!(
@@ -313,7 +371,7 @@ mod tests {
 
     #[test]
     fn test_max_element() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(Vector::<2, T, A>::new(x, y).max_element(), x.max(y));
@@ -330,7 +388,7 @@ mod tests {
 
     #[test]
     fn test_min_element() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(Vector::<2, T, A>::new(x, y).min_element(), x.min(y));
@@ -347,7 +405,7 @@ mod tests {
 
     #[test]
     fn test_checked_add() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -376,7 +434,7 @@ mod tests {
 
     #[test]
     fn test_checked_sub() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -405,7 +463,7 @@ mod tests {
 
     #[test]
     fn test_checked_mul() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -434,7 +492,7 @@ mod tests {
 
     #[test]
     fn test_checked_div() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -463,7 +521,7 @@ mod tests {
 
     #[test]
     fn test_checked_rem() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -492,7 +550,7 @@ mod tests {
 
     #[test]
     fn test_saturating_add() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -522,7 +580,7 @@ mod tests {
 
     #[test]
     fn test_saturating_sub() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -552,7 +610,7 @@ mod tests {
 
     #[test]
     fn test_saturating_mul() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -581,8 +639,38 @@ mod tests {
     }
 
     #[test]
+    fn test_saturating_div() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y).saturating_div(Vector::<2, T, A>::new(z, w)),
+                Vector::<2, T, A>::new(x.saturating_div(z), y.saturating_div(w))
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z).saturating_div(Vector::<3, T, A>::new(z, w, y)),
+                Vector::<3, T, A>::new(
+                    x.saturating_div(z),
+                    y.saturating_div(w),
+                    z.saturating_div(y)
+                )
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w)
+                    .saturating_div(Vector::<4, T, A>::new(z, w, y, x)),
+                Vector::<4, T, A>::new(
+                    x.saturating_div(z),
+                    y.saturating_div(w),
+                    z.saturating_div(y),
+                    w.saturating_div(x)
+                )
+            );
+        });
+    }
+
+    #[test]
     fn test_wrapping_add() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -607,7 +695,7 @@ mod tests {
 
     #[test]
     fn test_wrapping_sub() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -632,7 +720,7 @@ mod tests {
 
     #[test]
     fn test_wrapping_mul() {
-        for_parameters!(|T: PrimitiveUnsigned, A, x, y, z| {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
             let w = T::max(x, y);
 
             assert_eq!(
@@ -650,6 +738,56 @@ mod tests {
                     y.wrapping_mul(w),
                     z.wrapping_mul(y),
                     w.wrapping_mul(x)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_wrapping_div() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y).wrapping_div(Vector::<2, T, A>::new(z, w)),
+                Vector::<2, T, A>::new(x.wrapping_div(z), y.wrapping_div(w))
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z).wrapping_div(Vector::<3, T, A>::new(z, w, y)),
+                Vector::<3, T, A>::new(x.wrapping_div(z), y.wrapping_div(w), z.wrapping_div(y))
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).wrapping_div(Vector::<4, T, A>::new(z, w, y, x)),
+                Vector::<4, T, A>::new(
+                    x.wrapping_div(z),
+                    y.wrapping_div(w),
+                    z.wrapping_div(y),
+                    w.wrapping_div(x)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_wrapping_rem() {
+        for_parameters!(|T: PrimitiveInteger, A, x, y, z| {
+            let w = T::max(x, y);
+
+            assert_panic_eq!(
+                Vector::<2, T, A>::new(x, y).wrapping_rem(Vector::<2, T, A>::new(z, w)),
+                Vector::<2, T, A>::new(x.wrapping_rem(z), y.wrapping_rem(w))
+            );
+            assert_panic_eq!(
+                Vector::<3, T, A>::new(x, y, z).wrapping_rem(Vector::<3, T, A>::new(z, w, y)),
+                Vector::<3, T, A>::new(x.wrapping_rem(z), y.wrapping_rem(w), z.wrapping_rem(y))
+            );
+            assert_panic_eq!(
+                Vector::<4, T, A>::new(x, y, z, w).wrapping_rem(Vector::<4, T, A>::new(z, w, y, x)),
+                Vector::<4, T, A>::new(
+                    x.wrapping_rem(z),
+                    y.wrapping_rem(w),
+                    z.wrapping_rem(y),
+                    w.wrapping_rem(x)
                 )
             );
         });

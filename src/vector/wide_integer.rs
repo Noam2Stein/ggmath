@@ -1,4 +1,4 @@
-macro_rules! impl_wide_unsigned {
+macro_rules! impl_wide_integer {
     ($Wide:ident) => {
         // MISSING: all
         // MISSING: any
@@ -29,14 +29,25 @@ macro_rules! impl_wide_unsigned {
         // MISSING: wrapping_mul
     };
 }
-impl_wide_unsigned!(u8x16);
-impl_wide_unsigned!(u8x32);
-impl_wide_unsigned!(u16x8);
-impl_wide_unsigned!(u16x16);
-impl_wide_unsigned!(u16x32);
-impl_wide_unsigned!(u32x4);
-impl_wide_unsigned!(u32x8);
-impl_wide_unsigned!(u32x16);
-impl_wide_unsigned!(u64x2);
-impl_wide_unsigned!(u64x4);
-impl_wide_unsigned!(u64x8);
+impl_wide_integer!(i8x16);
+impl_wide_integer!(i8x32);
+impl_wide_integer!(i16x8);
+impl_wide_integer!(i16x16);
+impl_wide_integer!(i16x32);
+impl_wide_integer!(i32x4);
+impl_wide_integer!(i32x8);
+impl_wide_integer!(i32x16);
+impl_wide_integer!(i64x2);
+impl_wide_integer!(i64x4);
+impl_wide_integer!(i64x8);
+impl_wide_integer!(u8x16);
+impl_wide_integer!(u8x32);
+impl_wide_integer!(u16x8);
+impl_wide_integer!(u16x16);
+impl_wide_integer!(u16x32);
+impl_wide_integer!(u32x4);
+impl_wide_integer!(u32x8);
+impl_wide_integer!(u32x16);
+impl_wide_integer!(u64x2);
+impl_wide_integer!(u64x4);
+impl_wide_integer!(u64x8);

@@ -1,7 +1,7 @@
 use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub};
 
 use crate::{
-    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveSigned, PrimitiveUnsigned, Scalar,
+    Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, Scalar,
     SupportedLength, Unaligned, Vector,
     utils::{Repr2, Repr3, Repr4},
 };
@@ -769,14 +769,14 @@ where
     }
 }
 
-pub(crate) trait PrimitiveSignedBackend<const N: usize, A: Alignment>
+pub(crate) trait PrimitiveIntegerBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
     #[inline]
     fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveSigned,
+        Self: PrimitiveInteger,
     {
         Vector::from_fn(|i| vector[i].max(other[i]))
     }
@@ -784,7 +784,7 @@ where
     #[inline]
     fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveSigned,
+        Self: PrimitiveInteger,
     {
         Vector::from_fn(|i| vector[i].min(other[i]))
     }
@@ -792,7 +792,7 @@ where
     #[inline]
     fn vector_max_element(vector: Vector<N, Self, A>) -> Self
     where
-        Self: PrimitiveSigned,
+        Self: PrimitiveInteger,
     {
         vector.iter().reduce(Self::max).unwrap()
     }
@@ -800,11 +800,192 @@ where
     #[inline]
     fn vector_min_element(vector: Vector<N, Self, A>) -> Self
     where
-        Self: PrimitiveSigned,
+        Self: PrimitiveInteger,
     {
         vector.iter().reduce(Self::min).unwrap()
     }
 
+    #[inline]
+    fn vector_checked_add(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveInteger,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_add(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_sub(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveInteger,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_sub(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_mul(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveInteger,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_mul(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_div(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveInteger,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_div(rhs[i])?;
+        }
+
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_checked_rem(
+        mut vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Option<Vector<N, Self, A>>
+    where
+        Self: PrimitiveInteger,
+    {
+        for i in 0..N {
+            vector[i] = vector[i].checked_rem(rhs[i])?;
+        }
+        Some(vector)
+    }
+
+    #[inline]
+    fn vector_saturating_add(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].saturating_add(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_saturating_sub(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].saturating_sub(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_saturating_mul(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].saturating_mul(rhs[i]))
+    }
+
+    #[inline]
+    #[track_caller]
+    fn vector_saturating_div(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].saturating_div(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_wrapping_add(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_add(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_wrapping_sub(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_sub(rhs[i]))
+    }
+
+    #[inline]
+    fn vector_wrapping_mul(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_mul(rhs[i]))
+    }
+
+    #[inline]
+    #[track_caller]
+    fn vector_wrapping_div(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_div(rhs[i]))
+    }
+
+    #[inline]
+    #[track_caller]
+    fn vector_wrapping_rem(
+        vector: Vector<N, Self, A>,
+        rhs: Vector<N, Self, A>,
+    ) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveInteger,
+    {
+        Vector::from_fn(|i| vector[i].wrapping_rem(rhs[i]))
+    }
+}
+
+pub(crate) trait PrimitiveSignedBackend<const N: usize, A: Alignment>
+where
+    Length<N>: SupportedLength,
+{
     #[inline]
     #[track_caller]
     fn vector_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -820,359 +1001,6 @@ where
         Self: PrimitiveSigned,
     {
         vector.map(Self::signum)
-    }
-
-    #[inline]
-    fn vector_checked_add(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveSigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_add(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_sub(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveSigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_sub(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_mul(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveSigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_mul(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_div(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveSigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_div(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_rem(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveSigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_rem(rhs[i])?;
-        }
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_saturating_add(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].saturating_add(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_saturating_sub(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].saturating_sub(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_saturating_mul(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].saturating_mul(rhs[i]))
-    }
-
-    #[inline]
-    #[track_caller]
-    fn vector_saturating_div(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].saturating_div(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_wrapping_add(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_add(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_wrapping_sub(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_sub(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_wrapping_mul(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_mul(rhs[i]))
-    }
-
-    #[inline]
-    #[track_caller]
-    fn vector_wrapping_div(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_div(rhs[i]))
-    }
-
-    #[inline]
-    #[track_caller]
-    fn vector_wrapping_rem(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_rem(rhs[i]))
-    }
-}
-
-pub(crate) trait PrimitiveUnsignedBackend<const N: usize, A: Alignment>
-where
-    Length<N>: SupportedLength,
-{
-    #[inline]
-    fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].max(other[i]))
-    }
-
-    #[inline]
-    fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].min(other[i]))
-    }
-
-    #[inline]
-    fn vector_max_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveUnsigned,
-    {
-        vector.iter().reduce(Self::max).unwrap()
-    }
-
-    #[inline]
-    fn vector_min_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveUnsigned,
-    {
-        vector.iter().reduce(Self::min).unwrap()
-    }
-
-    #[inline]
-    fn vector_checked_add(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_add(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_sub(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_sub(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_mul(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_mul(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_div(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_div(rhs[i])?;
-        }
-
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_checked_rem(
-        mut vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_rem(rhs[i])?;
-        }
-        Some(vector)
-    }
-
-    #[inline]
-    fn vector_saturating_add(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].saturating_add(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_saturating_sub(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].saturating_sub(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_saturating_mul(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].saturating_mul(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_wrapping_add(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_add(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_wrapping_sub(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_sub(rhs[i]))
-    }
-
-    #[inline]
-    fn vector_wrapping_mul(
-        vector: Vector<N, Self, A>,
-        rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveUnsigned,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_mul(rhs[i]))
     }
 }
 
@@ -1421,16 +1249,16 @@ where
 {
 }
 
+impl<const N: usize, T, A: Alignment> PrimitiveIntegerBackend<N, A> for T
+where
+    Length<N>: SupportedLength,
+    T: PrimitiveInteger + DefaultBackend<N, A>,
+{
+}
+
 impl<const N: usize, T, A: Alignment> PrimitiveSignedBackend<N, A> for T
 where
     Length<N>: SupportedLength,
     T: PrimitiveSigned + DefaultBackend<N, A>,
-{
-}
-
-impl<const N: usize, T, A: Alignment> PrimitiveUnsignedBackend<N, A> for T
-where
-    Length<N>: SupportedLength,
-    T: PrimitiveUnsigned + DefaultBackend<N, A>,
 {
 }
