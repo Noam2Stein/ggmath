@@ -18,15 +18,15 @@
 /// # let z = core::f32::consts::FRAC_PI_8;
 /// #
 /// let intrinsic = Mat3::<f32>::from_euler(EulerRot::Yxz, y, x, z);
-/// let other = Mat3::<f32>::from_rotation_y(y)
-///     * Mat3::<f32>::from_rotation_x(x)
-///     * Mat3::<f32>::from_rotation_z(z);
-/// assert!(intrinsic.abs_diff_eq(&other, 2e-6));
-///
-/// let extrinsic = Mat3::<f32>::from_euler(EulerRot::YxzEx, y, x, z);
 /// let other = Mat3::<f32>::from_rotation_z(z)
 ///     * Mat3::<f32>::from_rotation_x(x)
 ///     * Mat3::<f32>::from_rotation_y(y);
+/// assert!(intrinsic.abs_diff_eq(&other, 2e-6));
+///
+/// let extrinsic = Mat3::<f32>::from_euler(EulerRot::YxzEx, y, x, z);
+/// let other = Mat3::<f32>::from_rotation_y(y)
+///     * Mat3::<f32>::from_rotation_x(x)
+///     * Mat3::<f32>::from_rotation_z(z);
 /// assert!(extrinsic.abs_diff_eq(&other, 2e-6));
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

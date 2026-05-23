@@ -3637,7 +3637,7 @@ mod tests {
 
             assert_float_eq!(
                 x_axis.wedge(y_axis),
-                Matrix::from_columns(&[x_axis, y_axis]).determinant()
+                Matrix::from_rows(&[x_axis, y_axis]).determinant()
             );
         });
     }

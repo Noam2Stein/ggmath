@@ -821,7 +821,7 @@ mod tests {
             };
 
             let quat = Quaternion::<T, A>::from_rotation_arc(from, to);
-            assert_float_eq!(quat * from, to, abs <= Vector::splat(1e-5));
+            assert_float_eq!(from * quat, to, abs <= Vector::splat(1e-5));
 
             let (axis, angle) = quat.to_axis_angle();
             assert_float_eq!(angle, from.angle_between(to), abs <= 1e-4);
@@ -854,8 +854,8 @@ mod tests {
 
             let quat = Quaternion::<T, A>::from_rotation_arc_colinear(from, to);
             assert!(
-                float_eq!(quat * from, to, abs <= Vector::splat(1e-5))
-                    || float_eq!(quat * from, -to, abs <= Vector::splat(1e-5))
+                float_eq!(from * quat, to, abs <= Vector::splat(1e-5))
+                    || float_eq!(from * quat, -to, abs <= Vector::splat(1e-5))
             );
 
             let (axis, angle) = quat.to_axis_angle();
@@ -929,7 +929,7 @@ mod tests {
                 0.0 = -0.0
             );
 
-            let matrix = Matrix::<3, T, A>::from_column_array(&[x, y, z, y, z, x, y, x, z]);
+            let matrix = Matrix::<3, T, A>::from_row_array(&[x, y, z, y, z, x, y, x, z]);
             if matrix.determinant() != 1.0 {
                 assert_debug_panic!(Quaternion::<T, A>::from_matrix(&matrix));
             }

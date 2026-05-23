@@ -885,7 +885,7 @@ where
                     let rotation = Quaternion::<T, A>::from_axis_angle(axis, t * T::PI);
 
                     let result_length = self_length.lerp(other_length, t);
-                    rotation * self_ * (result_length / self_length)
+                    self_ * rotation * (result_length / self_length)
                 } else {
                     // Vectors are almost parallel in the same direction.
                     self_.lerp(other, t)
@@ -1004,7 +1004,7 @@ where
                     .try_normalize()
                     .unwrap_or_else(|| self_.any_orthonormal_vector());
 
-                let result = Quaternion::<T, A>::from_axis_angle(axis, angle) * self_;
+                let result = self_ * Quaternion::<T, A>::from_axis_angle(axis, angle);
 
                 // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
                 unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }

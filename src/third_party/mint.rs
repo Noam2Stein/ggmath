@@ -146,30 +146,7 @@ impl<T, A: Alignment> IntoMint for Matrix<2, T, A>
 where
     T: Scalar,
 {
-    type MintType = mint::ColumnMatrix2<T>;
-}
-
-impl<T, A: Alignment> From<mint::ColumnMatrix2<T>> for Matrix<2, T, A>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: mint::ColumnMatrix2<T>) -> Self {
-        Matrix::<2, T, A>::from_columns(&[value.x.into(), value.y.into()])
-    }
-}
-
-impl<T, A: Alignment> From<Matrix<2, T, A>> for mint::ColumnMatrix2<T>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: Matrix<2, T, A>) -> Self {
-        Self {
-            x: value.x_axis.into(),
-            y: value.y_axis.into(),
-        }
-    }
+    type MintType = mint::RowMatrix2<T>;
 }
 
 impl<T, A: Alignment> From<mint::RowMatrix2<T>> for Matrix<2, T, A>
@@ -178,10 +155,7 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix2<T>) -> Self {
-        Matrix::<2, T, A>::from_columns(&[
-            Vector::<2, T, A>::new(value.x.x, value.y.x),
-            Vector::<2, T, A>::new(value.x.y, value.y.y),
-        ])
+        Matrix::<2, T, A>::from_rows(&[value.x.into(), value.y.into()])
     }
 }
 
@@ -192,14 +166,8 @@ where
     #[inline]
     fn from(value: Matrix<2, T, A>) -> Self {
         Self {
-            x: mint::Vector2 {
-                x: value.x_axis.x,
-                y: value.y_axis.x,
-            },
-            y: mint::Vector2 {
-                x: value.x_axis.y,
-                y: value.y_axis.y,
-            },
+            x: value.x_axis.into(),
+            y: value.y_axis.into(),
         }
     }
 }
@@ -208,31 +176,7 @@ impl<T, A: Alignment> IntoMint for Matrix<3, T, A>
 where
     T: Scalar,
 {
-    type MintType = mint::ColumnMatrix3<T>;
-}
-
-impl<T, A: Alignment> From<mint::ColumnMatrix3<T>> for Matrix<3, T, A>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: mint::ColumnMatrix3<T>) -> Self {
-        Matrix::<3, T, A>::from_columns(&[value.x.into(), value.y.into(), value.z.into()])
-    }
-}
-
-impl<T, A: Alignment> From<Matrix<3, T, A>> for mint::ColumnMatrix3<T>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: Matrix<3, T, A>) -> Self {
-        Self {
-            x: value.x_axis.into(),
-            y: value.y_axis.into(),
-            z: value.z_axis.into(),
-        }
-    }
+    type MintType = mint::RowMatrix3<T>;
 }
 
 impl<T, A: Alignment> From<mint::RowMatrix3<T>> for Matrix<3, T, A>
@@ -241,11 +185,7 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix3<T>) -> Self {
-        Matrix::<3, T, A>::from_columns(&[
-            Vector::<3, T, A>::new(value.x.x, value.y.x, value.z.x),
-            Vector::<3, T, A>::new(value.x.y, value.y.y, value.z.y),
-            Vector::<3, T, A>::new(value.x.z, value.y.z, value.z.z),
-        ])
+        Matrix::<3, T, A>::from_rows(&[value.x.into(), value.y.into(), value.z.into()])
     }
 }
 
@@ -256,21 +196,9 @@ where
     #[inline]
     fn from(value: Matrix<3, T, A>) -> Self {
         Self {
-            x: mint::Vector3 {
-                x: value.x_axis.x,
-                y: value.y_axis.x,
-                z: value.z_axis.x,
-            },
-            y: mint::Vector3 {
-                x: value.x_axis.y,
-                y: value.y_axis.y,
-                z: value.z_axis.y,
-            },
-            z: mint::Vector3 {
-                x: value.x_axis.z,
-                y: value.y_axis.z,
-                z: value.z_axis.z,
-            },
+            x: value.x_axis.into(),
+            y: value.y_axis.into(),
+            z: value.z_axis.into(),
         }
     }
 }
@@ -279,37 +207,7 @@ impl<T, A: Alignment> IntoMint for Matrix<4, T, A>
 where
     T: Scalar,
 {
-    type MintType = mint::ColumnMatrix4<T>;
-}
-
-impl<T, A: Alignment> From<mint::ColumnMatrix4<T>> for Matrix<4, T, A>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: mint::ColumnMatrix4<T>) -> Self {
-        Matrix::<4, T, A>::from_columns(&[
-            value.x.into(),
-            value.y.into(),
-            value.z.into(),
-            value.w.into(),
-        ])
-    }
-}
-
-impl<T, A: Alignment> From<Matrix<4, T, A>> for mint::ColumnMatrix4<T>
-where
-    T: Scalar,
-{
-    #[inline]
-    fn from(value: Matrix<4, T, A>) -> Self {
-        Self {
-            x: value.x_axis.into(),
-            y: value.y_axis.into(),
-            z: value.z_axis.into(),
-            w: value.w_axis.into(),
-        }
-    }
+    type MintType = mint::RowMatrix4<T>;
 }
 
 impl<T, A: Alignment> From<mint::RowMatrix4<T>> for Matrix<4, T, A>
@@ -318,11 +216,11 @@ where
 {
     #[inline]
     fn from(value: mint::RowMatrix4<T>) -> Self {
-        Matrix::<4, T, A>::from_columns(&[
-            Vector::<4, T, A>::new(value.x.x, value.y.x, value.z.x, value.w.x),
-            Vector::<4, T, A>::new(value.x.y, value.y.y, value.z.y, value.w.y),
-            Vector::<4, T, A>::new(value.x.z, value.y.z, value.z.z, value.w.z),
-            Vector::<4, T, A>::new(value.x.w, value.y.w, value.z.w, value.w.w),
+        Matrix::<4, T, A>::from_rows(&[
+            value.x.into(),
+            value.y.into(),
+            value.z.into(),
+            value.w.into(),
         ])
     }
 }
@@ -334,30 +232,10 @@ where
     #[inline]
     fn from(value: Matrix<4, T, A>) -> Self {
         Self {
-            x: mint::Vector4 {
-                x: value.x_axis.x,
-                y: value.y_axis.x,
-                z: value.z_axis.x,
-                w: value.w_axis.x,
-            },
-            y: mint::Vector4 {
-                x: value.x_axis.y,
-                y: value.y_axis.y,
-                z: value.z_axis.y,
-                w: value.w_axis.y,
-            },
-            z: mint::Vector4 {
-                x: value.x_axis.z,
-                y: value.y_axis.z,
-                z: value.z_axis.z,
-                w: value.w_axis.z,
-            },
-            w: mint::Vector4 {
-                x: value.x_axis.w,
-                y: value.y_axis.w,
-                z: value.z_axis.w,
-                w: value.w_axis.w,
-            },
+            x: value.x_axis.into(),
+            y: value.y_axis.into(),
+            z: value.z_axis.into(),
+            w: value.w_axis.into(),
         }
     }
 }
@@ -523,43 +401,36 @@ mod tests {
 
     #[test]
     fn test_matrix() {
-        let matrix = Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
-        assert_eq!(matrix, mint::ColumnMatrix2::from(matrix).into());
+        let matrix = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
         assert_eq!(matrix, mint::RowMatrix2::from(matrix).into());
 
-        let matrix =
-            Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
-        assert_eq!(matrix, mint::ColumnMatrix3::from(matrix).into());
+        let matrix = Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
         assert_eq!(matrix, mint::RowMatrix3::from(matrix).into());
 
-        let matrix = Mat4::from_columns(&[
+        let matrix = Mat4::from_rows(&[
             Vec4::new(1, 2, 3, 4),
             Vec4::new(5, 6, 7, 8),
             Vec4::new(9, 10, 11, 12),
             Vec4::new(13, 14, 15, 16),
         ]);
-        assert_eq!(matrix, mint::ColumnMatrix4::from(matrix).into());
         assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
 
-        let matrix = Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
-        assert_eq!(matrix, mint::ColumnMatrix2::from(matrix).into());
+        let matrix = Mat2U::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
         assert_eq!(matrix, mint::RowMatrix2::from(matrix).into());
 
-        let matrix = Mat3U::from_columns(&[
+        let matrix = Mat3U::from_rows(&[
             Vec3U::new(1, 2, 3),
             Vec3U::new(4, 5, 6),
             Vec3U::new(7, 8, 9),
         ]);
-        assert_eq!(matrix, mint::ColumnMatrix3::from(matrix).into());
         assert_eq!(matrix, mint::RowMatrix3::from(matrix).into());
 
-        let matrix = Mat4U::from_columns(&[
+        let matrix = Mat4U::from_rows(&[
             Vec4U::new(1, 2, 3, 4),
             Vec4U::new(5, 6, 7, 8),
             Vec4U::new(9, 10, 11, 12),
             Vec4U::new(13, 14, 15, 16),
         ]);
-        assert_eq!(matrix, mint::ColumnMatrix4::from(matrix).into());
         assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
     }
 

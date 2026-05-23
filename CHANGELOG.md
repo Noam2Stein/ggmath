@@ -43,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed conventions from column-major to row-major. This includes function
+  renames and trait implementations.
+
 - Removed panics from all `wide` functions.
 
 - Fixed `Vector::angle_between` edge case.

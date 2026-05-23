@@ -644,21 +644,15 @@ assert_impl!(
         Vector<4, T, A>: From<mint::Vector4<T>>,
         Vector<4, T, A>: Into<mint::Vector4<T>>,
 
-        Matrix<2, T, A>: IntoMint<MintType = mint::ColumnMatrix2<T>>,
-        Matrix<2, T, A>: From<mint::ColumnMatrix2<T>>,
-        Matrix<2, T, A>: Into<mint::ColumnMatrix2<T>>,
+        Matrix<2, T, A>: IntoMint<MintType = mint::RowMatrix2<T>>,
         Matrix<2, T, A>: From<mint::RowMatrix2<T>>,
         Matrix<2, T, A>: Into<mint::RowMatrix2<T>>,
 
-        Matrix<3, T, A>: IntoMint<MintType = mint::ColumnMatrix3<T>>,
-        Matrix<3, T, A>: From<mint::ColumnMatrix3<T>>,
-        Matrix<3, T, A>: Into<mint::ColumnMatrix3<T>>,
+        Matrix<3, T, A>: IntoMint<MintType = mint::RowMatrix3<T>>,
         Matrix<3, T, A>: From<mint::RowMatrix3<T>>,
         Matrix<3, T, A>: Into<mint::RowMatrix3<T>>,
 
-        Matrix<4, T, A>: IntoMint<MintType = mint::ColumnMatrix4<T>>,
-        Matrix<4, T, A>: From<mint::ColumnMatrix4<T>>,
-        Matrix<4, T, A>: Into<mint::ColumnMatrix4<T>>,
+        Matrix<4, T, A>: IntoMint<MintType = mint::RowMatrix4<T>>,
         Matrix<4, T, A>: From<mint::RowMatrix4<T>>,
         Matrix<4, T, A>: Into<mint::RowMatrix4<T>>,
 

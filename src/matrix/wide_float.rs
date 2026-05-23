@@ -16,16 +16,9 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn is_nan(&self) -> $Wide {
                 match N {
-                    2 => self.column(0).is_nan() | self.column(1).is_nan(),
-                    3 => {
-                        self.column(0).is_nan() | self.column(1).is_nan() | self.column(2).is_nan()
-                    }
-                    4 => {
-                        self.column(0).is_nan()
-                            | self.column(1).is_nan()
-                            | self.column(2).is_nan()
-                            | self.column(3).is_nan()
-                    }
+                    2 => self[0].is_nan() | self[1].is_nan(),
+                    3 => self[0].is_nan() | self[1].is_nan() | self[2].is_nan(),
+                    4 => self[0].is_nan() | self[1].is_nan() | self[2].is_nan() | self[3].is_nan(),
                     _ => unreachable!(),
                 }
             }
@@ -36,17 +29,13 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn is_finite(&self) -> $Wide {
                 match N {
-                    2 => self.column(0).is_finite() & self.column(1).is_finite(),
-                    3 => {
-                        self.column(0).is_finite()
-                            & self.column(1).is_finite()
-                            & self.column(2).is_finite()
-                    }
+                    2 => self[0].is_finite() & self[1].is_finite(),
+                    3 => self[0].is_finite() & self[1].is_finite() & self[2].is_finite(),
                     4 => {
-                        self.column(0).is_finite()
-                            & self.column(1).is_finite()
-                            & self.column(2).is_finite()
-                            & self.column(3).is_finite()
+                        self[0].is_finite()
+                            & self[1].is_finite()
+                            & self[2].is_finite()
+                            & self[3].is_finite()
                     }
                     _ => unreachable!(),
                 }
@@ -76,7 +65,7 @@ macro_rules! impl_wide_float {
                         }
 
                         let determinant_recip = $Wide::ONE / determinant;
-                        let result = Matrix::<2, $Wide, A>::from_column_array(&[
+                        let result = Matrix::<2, $Wide, A>::from_row_array(&[
                             matrix.y_axis.y * determinant_recip,
                             matrix.x_axis.y * -determinant_recip,
                             matrix.y_axis.x * -determinant_recip,
@@ -105,7 +94,7 @@ macro_rules! impl_wide_float {
 
                         let determinant_recip =
                             Vector::<3, $Wide, A>::splat($Wide::ONE / determinant);
-                        let result = Matrix::<3, $Wide, A>::from_columns(&[
+                        let result = Matrix::<3, $Wide, A>::from_rows(&[
                             y_cross_z * determinant_recip,
                             z_cross_x * determinant_recip,
                             x_cross_y * determinant_recip,
@@ -183,7 +172,7 @@ macro_rules! impl_wide_float {
                             $Wide::ONE,
                         );
 
-                        let inverse = Matrix::<4, $Wide, A>::from_columns(&[
+                        let inverse = Matrix::<4, $Wide, A>::from_rows(&[
                             inv0 * sign_a,
                             inv1 * sign_b,
                             inv2 * sign_a,
@@ -252,10 +241,8 @@ macro_rules! impl_wide_float {
                 self.generic_inverse(
                     |determinant, result| {
                         let fallback_mask = determinant.simd_eq($Wide::ZERO);
-                        Self::from_column_fn(|c| {
-                            Vector::from_fn(|r| {
-                                fallback_mask.blend(fallback.column(c)[r], result.column(c)[r])
-                            })
+                        Self::from_row_fn(|r| {
+                            Vector::from_fn(|c| fallback_mask.blend(fallback[r][c], result[r][c]))
                         })
                     },
                     |_| Ok(()),
@@ -272,9 +259,7 @@ macro_rules! impl_wide_float {
                 self.generic_inverse(
                     |determinant, result| {
                         let non_fallback_mask = determinant.simd_ne($Wide::ZERO);
-                        Self::from_column_fn(|c| {
-                            Vector::from_fn(|r| result.column(c)[r] & non_fallback_mask)
-                        })
+                        Self::from_row_fn(|r| Vector::from_fn(|c| result[r][c] & non_fallback_mask))
                     },
                     |_| Ok(()),
                 )
@@ -285,7 +270,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn recip(&self) -> Self {
-                Self::from_column_fn(|i| self.column(i).recip())
+                Self::from_row_fn(|i| self[i].recip())
             }
 
             /// Returns the absolute values of the elements of `self`.
@@ -294,7 +279,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn abs(&self) -> Self {
-                Self::from_column_fn(|i| self.column(i).abs())
+                Self::from_row_fn(|i| self[i].abs())
             }
 
             /// Returns `true` if the absolute difference of all elements
@@ -309,19 +294,19 @@ macro_rules! impl_wide_float {
             pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: $Wide) -> bool {
                 match N {
                     2 => {
-                        self.column(0).abs_diff_eq(other.column(0), max_abs_diff)
-                            && self.column(1).abs_diff_eq(other.column(1), max_abs_diff)
+                        self[0].abs_diff_eq(other[0], max_abs_diff)
+                            && self[1].abs_diff_eq(other[1], max_abs_diff)
                     }
                     3 => {
-                        self.column(0).abs_diff_eq(other.column(0), max_abs_diff)
-                            && self.column(1).abs_diff_eq(other.column(1), max_abs_diff)
-                            && self.column(2).abs_diff_eq(other.column(2), max_abs_diff)
+                        self[0].abs_diff_eq(other[0], max_abs_diff)
+                            && self[1].abs_diff_eq(other[1], max_abs_diff)
+                            && self[2].abs_diff_eq(other[2], max_abs_diff)
                     }
                     4 => {
-                        self.column(0).abs_diff_eq(other.column(0), max_abs_diff)
-                            && self.column(1).abs_diff_eq(other.column(1), max_abs_diff)
-                            && self.column(2).abs_diff_eq(other.column(2), max_abs_diff)
-                            && self.column(3).abs_diff_eq(other.column(3), max_abs_diff)
+                        self[0].abs_diff_eq(other[0], max_abs_diff)
+                            && self[1].abs_diff_eq(other[1], max_abs_diff)
+                            && self[2].abs_diff_eq(other[2], max_abs_diff)
+                            && self[3].abs_diff_eq(other[3], max_abs_diff)
                     }
                     _ => unreachable!(),
                 }
@@ -336,7 +321,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_angle(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<2, $Wide, A>::new(cos, sin),
                     Vector::<2, $Wide, A>::new(-sin, cos),
                 ])
@@ -350,7 +335,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<2, $Wide, A>::new(cos * scale.x, sin * scale.x),
                     Vector::<2, $Wide, A>::new(-sin * scale.y, cos * scale.y),
                 ])
@@ -392,7 +377,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_angle(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(cos, sin, $Wide::ZERO),
                     Vector::<3, $Wide, A>::new(-sin, cos, $Wide::ZERO),
                     Vector::<3, $Wide, A>::Z,
@@ -413,7 +398,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_scale_angle(scale: Vector<2, $Wide, A>, angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(cos * scale.x, sin * scale.x, $Wide::ZERO),
                     Vector::<3, $Wide, A>::new(-sin * scale.y, cos * scale.y, $Wide::ZERO),
                     Vector::<3, $Wide, A>::Z,
@@ -434,7 +419,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_angle_translation(angle: $Wide, translation: Vector<2, $Wide, A>) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(cos, sin, $Wide::ZERO),
                     Vector::<3, $Wide, A>::new(-sin, cos, $Wide::ZERO),
                     Vector::<3, $Wide, A>::new(translation.x, translation.y, $Wide::ONE),
@@ -460,7 +445,7 @@ macro_rules! impl_wide_float {
                 translation: Vector<2, $Wide, A>,
             ) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(cos * scale.x, sin * scale.x, $Wide::ZERO),
                     Vector::<3, $Wide, A>::new(-sin * scale.y, cos * scale.y, $Wide::ZERO),
                     Vector::<3, $Wide, A>::new(translation.x, translation.y, $Wide::ONE),
@@ -475,7 +460,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_rotation_x(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::X,
                     Vector::<3, $Wide, A>::new($Wide::ZERO, cos, sin),
                     Vector::<3, $Wide, A>::new($Wide::ZERO, -sin, cos),
@@ -490,7 +475,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_rotation_y(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(cos, $Wide::ZERO, -sin),
                     Vector::<3, $Wide, A>::Y,
                     Vector::<3, $Wide, A>::new(sin, $Wide::ZERO, cos),
@@ -505,7 +490,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_rotation_z(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(cos, sin, $Wide::ZERO),
                     Vector::<3, $Wide, A>::new(-sin, cos, $Wide::ZERO),
                     Vector::<3, $Wide, A>::Z,
@@ -541,7 +526,7 @@ macro_rules! impl_wide_float {
             #[track_caller]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
                 let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
-                Self::from_columns(&[x_axis, y_axis, z_axis])
+                Self::from_rows(&[x_axis, y_axis, z_axis])
             }
 
             /// Creates a 3D rotation matrix from a rotation `axis` and `angle`
@@ -561,7 +546,7 @@ macro_rules! impl_wide_float {
                 let xzomc = x * z * omc;
                 let yzomc = y * z * omc;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(x2 * omc + cos, xyomc + zsin, xzomc - ysin),
                     Vector::<3, $Wide, A>::new(xyomc - zsin, y2 * omc + cos, yzomc + xsin),
                     Vector::<3, $Wide, A>::new(xzomc + ysin, yzomc - xsin, z2 * omc + cos),
@@ -604,25 +589,25 @@ macro_rules! impl_wide_float {
                 let mut result = Self::ZERO;
 
                 if order.initial_repeated {
-                    result.column_mut(i)[i] = cj;
-                    result.column_mut(i)[j] = sj * si;
-                    result.column_mut(i)[k] = sj * ci;
-                    result.column_mut(j)[i] = sj * sh;
-                    result.column_mut(j)[j] = -cj * ss + cc;
-                    result.column_mut(j)[k] = -cj * cs - sc;
-                    result.column_mut(k)[i] = -sj * ch;
-                    result.column_mut(k)[j] = cj * sc + cs;
-                    result.column_mut(k)[k] = cj * cc - ss;
+                    result[i][i] = cj;
+                    result[i][j] = sj * si;
+                    result[i][k] = sj * ci;
+                    result[j][i] = sj * sh;
+                    result[j][j] = -cj * ss + cc;
+                    result[j][k] = -cj * cs - sc;
+                    result[k][i] = -sj * ch;
+                    result[k][j] = cj * sc + cs;
+                    result[k][k] = cj * cc - ss;
                 } else {
-                    result.column_mut(i)[i] = cj * ch;
-                    result.column_mut(i)[j] = sj * sc - cs;
-                    result.column_mut(i)[k] = sj * cc + ss;
-                    result.column_mut(j)[i] = cj * sh;
-                    result.column_mut(j)[j] = sj * ss + cc;
-                    result.column_mut(j)[k] = sj * cs - sc;
-                    result.column_mut(k)[i] = -sj;
-                    result.column_mut(k)[j] = cj * si;
-                    result.column_mut(k)[k] = cj * ci;
+                    result[i][i] = cj * ch;
+                    result[i][j] = sj * sc - cs;
+                    result[i][k] = sj * cc + ss;
+                    result[j][i] = cj * sh;
+                    result[j][j] = sj * ss + cc;
+                    result[j][k] = sj * cs - sc;
+                    result[k][i] = -sj;
+                    result[k][j] = cj * si;
+                    result[k][k] = cj * ci;
                 }
 
                 result
@@ -638,7 +623,7 @@ macro_rules! impl_wide_float {
                 rotation: Quaternion<$Wide, A>,
             ) -> Self {
                 let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-                Self::from_columns(&[
+                Self::from_rows(&[
                     rotation_x * scale.x,
                     rotation_y * scale.y,
                     rotation_z * scale.z,
@@ -658,7 +643,7 @@ macro_rules! impl_wide_float {
                 let right = up.cross(forward).normalize();
                 let up = forward.cross(right);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(right.x, up.x, forward.x),
                     Vector::<3, $Wide, A>::new(right.y, up.y, forward.y),
                     Vector::<3, $Wide, A>::new(right.z, up.z, forward.z),
@@ -678,7 +663,7 @@ macro_rules! impl_wide_float {
                 let right = forward.cross(up).normalize();
                 let up = right.cross(forward);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<3, $Wide, A>::new(right.x, up.x, -forward.x),
                     Vector::<3, $Wide, A>::new(right.y, up.y, -forward.y),
                     Vector::<3, $Wide, A>::new(right.z, up.z, -forward.z),
@@ -761,29 +746,25 @@ macro_rules! impl_wide_float {
 
                 let mut ea = Vector::<3, $Wide, A>::ZERO;
                 if order.initial_repeated {
-                    let sy = (self.column(i)[j] * self.column(i)[j]
-                        + self.column(i)[k] * self.column(i)[k])
-                        .sqrt();
+                    let sy = (self[i][j] * self[i][j] + self[i][k] * self[i][k]).sqrt();
 
                     let mask = sy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
                     ea.x = mask.blend(
-                        self.column(i)[j].atan2(self.column(i)[k]),
-                        (-self.column(j)[k]).atan2(self.column(j)[j]),
+                        self[i][j].atan2(self[i][k]),
+                        (-self[j][k]).atan2(self[j][j]),
                     );
-                    ea.y = sy.atan2(self.column(i)[i]);
-                    ea.z = mask & self.column(j)[i].atan2(-self.column(k)[i]);
+                    ea.y = sy.atan2(self[i][i]);
+                    ea.z = mask & self[j][i].atan2(-self[k][i]);
                 } else {
-                    let cy = (self.column(i)[i] * self.column(i)[i]
-                        + self.column(j)[i] * self.column(j)[i])
-                        .sqrt();
+                    let cy = (self[i][i] * self[i][i] + self[j][i] * self[j][i]).sqrt();
 
                     let mask = cy.simd_gt($Wide::splat(16.0 * $T::EPSILON));
                     ea.x = mask.blend(
-                        self.column(k)[j].atan2(self.column(k)[k]),
-                        (-self.column(j)[k]).atan2(self.column(j)[j]),
+                        self[k][j].atan2(self[k][k]),
+                        (-self[j][k]).atan2(self[j][j]),
                     );
-                    ea.y = (-self.column(k)[i]).atan2(cy);
-                    ea.z = mask & self.column(j)[i].atan2(self.column(i)[i]);
+                    ea.y = (-self[k][i]).atan2(cy);
+                    ea.z = mask & self[j][i].atan2(self[i][i]);
                 }
 
                 // Reverse rotation angle of original code.
@@ -816,7 +797,7 @@ macro_rules! impl_wide_float {
 
                 let scale_recip = scale.recip();
 
-                let rotation = Quaternion::<$Wide, A>::from_matrix(&Self::from_columns(&[
+                let rotation = Quaternion::<$Wide, A>::from_matrix(&Self::from_rows(&[
                     self.x_axis * scale_recip.x,
                     self.y_axis * scale_recip.y,
                     self.z_axis * scale_recip.z,
@@ -841,7 +822,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_rotation_x(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::X,
                     Vector::<4, $Wide, A>::new($Wide::ZERO, cos, sin, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, -sin, cos, $Wide::ZERO),
@@ -863,7 +844,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_rotation_y(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(cos, $Wide::ZERO, -sin, $Wide::ZERO),
                     Vector::<4, $Wide, A>::Y,
                     Vector::<4, $Wide, A>::new(sin, $Wide::ZERO, cos, $Wide::ZERO),
@@ -885,7 +866,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn from_rotation_z(angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(cos, sin, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new(-sin, cos, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::Z,
@@ -944,7 +925,7 @@ macro_rules! impl_wide_float {
             #[track_caller]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
                 let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
-                Self::from_columns(&[x_axis, y_axis, z_axis, Vector::W])
+                Self::from_rows(&[x_axis, y_axis, z_axis, Vector::W])
             }
 
             /// Creates an affine transformation matrix containing a rotation
@@ -970,7 +951,7 @@ macro_rules! impl_wide_float {
                 let xzomc = x * z * omc;
                 let yzomc = y * z * omc;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(
                         x2 * omc + cos,
                         xyomc + zsin,
@@ -1023,7 +1004,7 @@ macro_rules! impl_wide_float {
                 rotation: Quaternion<$Wide, A>,
             ) -> Self {
                 let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-                Self::from_columns(&[
+                Self::from_rows(&[
                     rotation_x * scale.x,
                     rotation_y * scale.y,
                     rotation_z * scale.z,
@@ -1047,7 +1028,7 @@ macro_rules! impl_wide_float {
                 translation: Vector<3, $Wide, A>,
             ) -> Self {
                 let [x_axis, y_axis, z_axis] = Self::quat_to_axes(rotation);
-                Self::from_columns(&[
+                Self::from_rows(&[
                     x_axis,
                     y_axis,
                     z_axis,
@@ -1077,7 +1058,7 @@ macro_rules! impl_wide_float {
                 translation: Vector<3, $Wide, A>,
             ) -> Self {
                 let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
-                Self::from_columns(&[
+                Self::from_rows(&[
                     rotation_x * scale.x,
                     rotation_y * scale.y,
                     rotation_z * scale.z,
@@ -1113,7 +1094,7 @@ macro_rules! impl_wide_float {
                 let right = up.cross(forward).normalize();
                 let up = forward.cross(right);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(right.x, up.x, forward.x, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new(right.y, up.y, forward.y, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new(right.z, up.z, forward.z, $Wide::ZERO),
@@ -1149,7 +1130,7 @@ macro_rules! impl_wide_float {
                 let right = forward.cross(up).normalize();
                 let up = right.cross(forward);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(right.x, up.x, -forward.x, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new(right.y, up.y, -forward.y, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new(right.z, up.z, -forward.z, $Wide::ZERO),
@@ -1230,7 +1211,7 @@ macro_rules! impl_wide_float {
                 let width_recip = height_recip / aspect_ratio;
                 let depth_scale = far_plane / (far_plane - near_plane);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(width_recip, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, height_recip, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, $Wide::ZERO, depth_scale, $Wide::ONE),
@@ -1267,7 +1248,7 @@ macro_rules! impl_wide_float {
                 let width_recip = height_recip / aspect_ratio;
                 let neg_depth_scale = far_plane / (near_plane - far_plane);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(width_recip, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, height_recip, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new(
@@ -1309,7 +1290,7 @@ macro_rules! impl_wide_float {
                 let width_recip = height_recip / aspect_ratio;
                 let depth_recip = $Wide::ONE / (near_plane - far_plane);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(width_recip, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, height_recip, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new(
@@ -1351,7 +1332,7 @@ macro_rules! impl_wide_float {
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(width_recip, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, height_recip, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, $Wide::ZERO, $Wide::ONE, $Wide::ONE),
@@ -1383,7 +1364,7 @@ macro_rules! impl_wide_float {
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(width_recip, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, height_recip, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, $Wide::ZERO, -$Wide::ONE, -$Wide::ONE),
@@ -1413,7 +1394,7 @@ macro_rules! impl_wide_float {
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(width_recip, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, height_recip, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, $Wide::ZERO, $Wide::ZERO, $Wide::ONE),
@@ -1443,7 +1424,7 @@ macro_rules! impl_wide_float {
                 let height_recip = cos / sin;
                 let width_recip = height_recip / aspect_ratio;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(width_recip, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, height_recip, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, $Wide::ZERO, $Wide::ZERO, -$Wide::ONE),
@@ -1478,7 +1459,7 @@ macro_rules! impl_wide_float {
                 let c = far_plane * depth_recip;
                 let d = -near_plane * c;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(
                         two_near_plane * width_recip,
                         $Wide::ZERO,
@@ -1523,7 +1504,7 @@ macro_rules! impl_wide_float {
                 let c = -far_plane * depth_recip;
                 let d = near_plane * c;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(
                         two_near_plane * width_recip,
                         $Wide::ZERO,
@@ -1571,7 +1552,7 @@ macro_rules! impl_wide_float {
                 let c = -(far_plane + near_plane) * depth_recip;
                 let d = -two_near_plane * far_plane * depth_recip;
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(
                         two_near_plane * width_recip,
                         $Wide::ZERO,
@@ -1614,7 +1595,7 @@ macro_rules! impl_wide_float {
                 let height_recip = $Wide::ONE / (top - bottom);
                 let depth_recip = $Wide::ONE / (far - near);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(
                         width_recip + width_recip,
                         $Wide::ZERO,
@@ -1662,7 +1643,7 @@ macro_rules! impl_wide_float {
                 let height_recip = $Wide::ONE / (top - bottom);
                 let neg_depth_recip = $Wide::ONE / (near - far);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(
                         width_recip + width_recip,
                         $Wide::ZERO,
@@ -1718,7 +1699,7 @@ macro_rules! impl_wide_float {
                 let translation_y = -(top + bottom) / (top - bottom);
                 let translation_z = -(far + near) / (far - near);
 
-                Self::from_columns(&[
+                Self::from_rows(&[
                     Vector::<4, $Wide, A>::new(scale_x, $Wide::ZERO, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, scale_y, $Wide::ZERO, $Wide::ZERO),
                     Vector::<4, $Wide, A>::new($Wide::ZERO, $Wide::ZERO, scale_z, $Wide::ZERO),
@@ -1768,7 +1749,7 @@ macro_rules! impl_wide_float {
 
                 let scale_recip = scale.recip();
 
-                let rotation = Quaternion::<$Wide, A>::from_matrix(&Matrix::from_columns(&[
+                let rotation = Quaternion::<$Wide, A>::from_matrix(&Matrix::from_rows(&[
                     self.x_axis.xyz() * scale_recip.x,
                     self.y_axis.xyz() * scale_recip.y,
                     self.z_axis.xyz() * scale_recip.z,
@@ -1824,15 +1805,15 @@ mod tests {
             let w = x ^ y;
 
             assert_float_eq!(
-                Matrix::<2, Wide, A>::from_columns(&[x, y].map(Vector::splat)).is_nan(),
+                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).is_nan(),
                 x.is_nan() | y.is_nan()
             );
             assert_float_eq!(
-                Matrix::<3, Wide, A>::from_columns(&[x, y, z].map(Vector::splat)).is_nan(),
+                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).is_nan(),
                 x.is_nan() | y.is_nan() | z.is_nan()
             );
             assert_float_eq!(
-                Matrix::<4, Wide, A>::from_columns(&[x, y, z, w].map(Vector::splat)).is_nan(),
+                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).is_nan(),
                 x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
             );
         });
@@ -1845,15 +1826,15 @@ mod tests {
             let w = x ^ y;
 
             assert_float_eq!(
-                Matrix::<2, Wide, A>::from_columns(&[x, y].map(Vector::splat)).is_finite(),
+                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).is_finite(),
                 x.is_finite() & y.is_finite()
             );
             assert_float_eq!(
-                Matrix::<3, Wide, A>::from_columns(&[x, y, z].map(Vector::splat)).is_finite(),
+                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).is_finite(),
                 x.is_finite() & y.is_finite() & z.is_finite()
             );
             assert_float_eq!(
-                Matrix::<4, Wide, A>::from_columns(&[x, y, z, w].map(Vector::splat)).is_finite(),
+                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).is_finite(),
                 x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
             );
         });
@@ -1868,19 +1849,19 @@ mod tests {
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
             let [i, j, k, l] = [c + d, c + e, d + f, f + g];
 
-            let matrix = Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w]);
+            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
             assert_float_eq_or_panic!(
                 matrix.inverse(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
             );
 
-            let matrix = Matrix::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
+            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
             assert_float_eq_or_panic!(
                 matrix.inverse(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
             );
 
-            let matrix = Matrix::<4, Wide, A>::from_column_array(&[
+            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
                 x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
             ]);
             assert_float_eq_or_panic!(
@@ -1899,19 +1880,19 @@ mod tests {
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
             let [i, j, k, l] = [c + d, c + e, d + f, f + g];
 
-            let matrix = Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w]);
+            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
             assert_panic_float_eq!(
                 matrix.try_inverse().unwrap(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
             );
 
-            let matrix = Matrix::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
+            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
             assert_panic_float_eq!(
                 matrix.try_inverse().unwrap(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
             );
 
-            let matrix = Matrix::<4, Wide, A>::from_column_array(&[
+            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
                 x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
             ]);
             assert_panic_float_eq!(
@@ -1930,19 +1911,19 @@ mod tests {
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
             let [i, j, k, l] = [c + d, c + e, d + f, f + g];
 
-            let matrix = Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w]);
+            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
             assert_float_eq!(
                 matrix.inverse_or(&Matrix::NAN),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or(&Matrix::NAN))
             );
 
-            let matrix = Matrix::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
+            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
             assert_float_eq!(
                 matrix.inverse_or(&Matrix::NAN),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or(&Matrix::NAN))
             );
 
-            let matrix = Matrix::<4, Wide, A>::from_column_array(&[
+            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
                 x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
             ]);
             assert_float_eq!(
@@ -1961,19 +1942,19 @@ mod tests {
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
             let [i, j, k, l] = [c + d, c + e, d + f, f + g];
 
-            let matrix = Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w]);
+            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
             assert_float_eq!(
                 matrix.inverse_or_zero(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or_zero())
             );
 
-            let matrix = Matrix::<3, Wide, A>::from_column_array(&[x, y, z, w, a, b, c, d, e]);
+            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
             assert_float_eq!(
                 matrix.inverse_or_zero(),
                 Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or_zero())
             );
 
-            let matrix = Matrix::<4, Wide, A>::from_column_array(&[
+            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
                 x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
             ]);
             assert_float_eq!(
@@ -1990,16 +1971,16 @@ mod tests {
             let w = x ^ y;
 
             assert_float_eq!(
-                Matrix::<2, Wide, A>::from_columns(&[x, y].map(Vector::splat)).recip(),
-                Matrix::from_columns(&[x, y].map(|x| Vector::<2, Wide, A>::splat(x).recip()))
+                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).recip(),
+                Matrix::from_rows(&[x, y].map(|x| Vector::<2, Wide, A>::splat(x).recip()))
             );
             assert_float_eq!(
-                Matrix::<3, Wide, A>::from_columns(&[x, y, z].map(Vector::splat)).recip(),
-                Matrix::from_columns(&[x, y, z].map(|x| Vector::<3, Wide, A>::splat(x).recip()))
+                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).recip(),
+                Matrix::from_rows(&[x, y, z].map(|x| Vector::<3, Wide, A>::splat(x).recip()))
             );
             assert_float_eq!(
-                Matrix::<4, Wide, A>::from_columns(&[x, y, z, w].map(Vector::splat)).recip(),
-                Matrix::from_columns(&[x, y, z, w].map(|x| Vector::<4, Wide, A>::splat(x).recip()))
+                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).recip(),
+                Matrix::from_rows(&[x, y, z, w].map(|x| Vector::<4, Wide, A>::splat(x).recip()))
             );
         });
     }
@@ -2011,16 +1992,16 @@ mod tests {
             let w = x ^ y;
 
             assert_float_eq!(
-                Matrix::<2, Wide, A>::from_columns(&[x, y].map(Vector::splat)).abs(),
-                Matrix::from_columns(&[x, y].map(|x| Vector::<2, Wide, A>::splat(x).abs()))
+                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).abs(),
+                Matrix::from_rows(&[x, y].map(|x| Vector::<2, Wide, A>::splat(x).abs()))
             );
             assert_float_eq!(
-                Matrix::<3, Wide, A>::from_columns(&[x, y, z].map(Vector::splat)).abs(),
-                Matrix::from_columns(&[x, y, z].map(|x| Vector::<3, Wide, A>::splat(x).abs()))
+                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).abs(),
+                Matrix::from_rows(&[x, y, z].map(|x| Vector::<3, Wide, A>::splat(x).abs()))
             );
             assert_float_eq!(
-                Matrix::<4, Wide, A>::from_columns(&[x, y, z, w].map(Vector::splat)).abs(),
-                Matrix::from_columns(&[x, y, z, w].map(|x| Vector::<4, Wide, A>::splat(x).abs()))
+                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).abs(),
+                Matrix::from_rows(&[x, y, z, w].map(|x| Vector::<4, Wide, A>::splat(x).abs()))
             );
         });
     }
@@ -2031,22 +2012,22 @@ mod tests {
             let _: [Wide; 3] = [x, y, z];
             let w = x ^ y;
 
-            let matrix = Matrix::<2, Wide, A>::from_columns(&[x, y].map(Vector::splat));
-            let other = Matrix::<2, Wide, A>::from_columns(&[z, w].map(Vector::splat));
+            let matrix = Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat));
+            let other = Matrix::<2, Wide, A>::from_rows(&[z, w].map(Vector::splat));
             assert_eq!(
                 matrix.abs_diff_eq(&other, Wide::ONE),
                 (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
             );
 
-            let matrix = Matrix::<3, Wide, A>::from_columns(&[x, y, z].map(Vector::splat));
-            let other = Matrix::<3, Wide, A>::from_columns(&[z, w, x].map(Vector::splat));
+            let matrix = Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat));
+            let other = Matrix::<3, Wide, A>::from_rows(&[z, w, x].map(Vector::splat));
             assert_eq!(
                 matrix.abs_diff_eq(&other, Wide::ONE),
                 (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
             );
 
-            let matrix = Matrix::<4, Wide, A>::from_columns(&[x, y, z, w].map(Vector::splat));
-            let other = Matrix::<4, Wide, A>::from_columns(&[z, w, x, y].map(Vector::splat));
+            let matrix = Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat));
+            let other = Matrix::<4, Wide, A>::from_rows(&[z, w, x, y].map(Vector::splat));
             assert_eq!(
                 matrix.abs_diff_eq(&other, Wide::ONE),
                 (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
@@ -2066,15 +2047,13 @@ mod tests {
             assert_float_eq!(
                 Matrix::<2, Wide, A>::from_angle(angle),
                 Matrix::from_lane_fn(|lane| Matrix::<2, T, A>::from_angle(angle.to_array()[lane])),
-                r2nd <= Matrix::<2, Wide, A>::from_column_array(&[Wide::splat(1e-4); 4])
-                    * angle.abs(),
+                r2nd <= Matrix::<2, Wide, A>::from_row_array(&[Wide::splat(1e-4); 4]) * angle.abs(),
                 0.0 = -0.0
             );
             assert_float_eq!(
                 Matrix::<3, Wide, A>::from_angle(angle),
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_angle(angle.to_array()[lane])),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
-                    * angle.abs(),
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
                 0.0 = -0.0
             );
         });
@@ -2098,8 +2077,7 @@ mod tests {
                     scale.lane(lane),
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<2, Wide, A>::from_column_array(&[Wide::splat(1e-4); 4])
-                    * angle.abs(),
+                r2nd <= Matrix::<2, Wide, A>::from_row_array(&[Wide::splat(1e-4); 4]) * angle.abs(),
                 0.0 = -0.0
             );
             assert_float_eq!(
@@ -2108,8 +2086,7 @@ mod tests {
                     scale.lane(lane),
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
-                    * angle.abs(),
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
                 0.0 = -0.0
             );
         });
@@ -2123,7 +2100,7 @@ mod tests {
 
             for matrix in [
                 Matrix::<2, Wide, A>::from_scale_angle(scale, angle),
-                Matrix::<2, Wide, A>::from_column_array(&[x, y, angle, -y]),
+                Matrix::<2, Wide, A>::from_row_array(&[x, y, angle, -y]),
             ] {
                 assert_float_eq_or_panic!(
                     matrix.to_scale_angle(),
@@ -2156,8 +2133,7 @@ mod tests {
                     angle.to_array()[lane],
                     translation.lane(lane)
                 )),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
-                    * angle.abs(),
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
                 0.0 = -0.0
             );
         });
@@ -2183,8 +2159,7 @@ mod tests {
                     angle.to_array()[lane],
                     translation.lane(lane)
                 )),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
-                    * angle.abs(),
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
                 0.0 = -0.0
             );
         });
@@ -2204,15 +2179,14 @@ mod tests {
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_rotation_x(
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
-                    * angle.abs()
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs()
             );
             assert_float_eq!(
                 Matrix::<4, Wide, A>::from_rotation_x(angle),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_x(
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-4); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
                     * angle.abs()
             );
         });
@@ -2232,15 +2206,14 @@ mod tests {
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_rotation_y(
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
-                    * angle.abs()
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs()
             );
             assert_float_eq!(
                 Matrix::<4, Wide, A>::from_rotation_y(angle),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_y(
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-4); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
                     * angle.abs()
             );
         });
@@ -2260,15 +2233,14 @@ mod tests {
                 Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_rotation_z(
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
-                    * angle.abs()
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs()
             );
             assert_float_eq!(
                 Matrix::<4, Wide, A>::from_rotation_z(angle),
                 Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_z(
                     angle.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-4); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
                     * angle.abs()
             );
         });
@@ -2320,7 +2292,7 @@ mod tests {
                 Matrix::<3, Wide, A>::from_axis_angle(axis, angle),
                 expected,
                 abs <= expected.abs() * Wide::splat(1e-4) * angle.abs()
-                    + Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-2); 9])
+                    + Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-2); 9])
             );
 
             let expected = Matrix::from_lane_fn(|lane| {
@@ -2330,7 +2302,7 @@ mod tests {
                 Matrix::<4, Wide, A>::from_axis_angle(axis, angle),
                 expected,
                 abs <= expected.abs() * Wide::splat(1e-4) * angle.abs()
-                    + Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-2); 16])
+                    + Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-2); 16])
             );
         });
     }
@@ -2354,7 +2326,7 @@ mod tests {
                     b.to_array()[lane],
                     c.to_array()[lane]
                 )),
-                r2nd <= Matrix::<3, Wide, A>::from_column_array(&[Wide::splat(1e-4); 9])
+                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9])
                     * a.abs().max(b.abs()).max(c.abs()),
                 0.0 = -0.0
             );
@@ -2366,7 +2338,7 @@ mod tests {
                     b.to_array()[lane],
                     c.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-4); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
                     * a.abs().max(b.abs()).max(c.abs()),
                 0.0 = -0.0
             );
@@ -2532,7 +2504,7 @@ mod tests {
             for matrix in [
                 Matrix::<3, Wide, A>::from_scale_angle_translation(scale, angle, translation),
                 Matrix::<3, Wide, A>::from_submatrix_translation(
-                    &Matrix::<2, Wide, A>::from_column_array(&[x, y, angle, -y]),
+                    &Matrix::<2, Wide, A>::from_row_array(&[x, y, angle, -y]),
                     translation,
                 ),
             ] {
@@ -2618,7 +2590,7 @@ mod tests {
                     scale,
                     Quaternion::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
                 ),
-                Matrix::<3, Wide, A>::from_column_array(&[x, y, scale.x, w, y, z, x, scale.y, w]),
+                Matrix::<3, Wide, A>::from_row_array(&[x, y, scale.x, w, y, z, x, scale.y, w]),
             ] {
                 assert_float_eq_or_panic!(
                     matrix.to_scale_rotation(),
@@ -2708,7 +2680,7 @@ mod tests {
                     near_plane.to_array()[lane],
                     far_plane.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-5); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
                     * vertical_fov.abs()
             );
         });
@@ -2735,7 +2707,7 @@ mod tests {
                     near_plane.to_array()[lane],
                     far_plane.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-5); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
                     * vertical_fov.abs()
             );
         });
@@ -2762,7 +2734,7 @@ mod tests {
                     near_plane.to_array()[lane],
                     far_plane.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-5); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
                     * vertical_fov.abs()
             );
         });
@@ -2787,7 +2759,7 @@ mod tests {
                     aspect_ratio.to_array()[lane],
                     near_plane.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-5); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
                     * vertical_fov.abs()
             );
         });
@@ -2812,7 +2784,7 @@ mod tests {
                     aspect_ratio.to_array()[lane],
                     near_plane.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-5); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
                     * vertical_fov.abs()
             );
         });
@@ -2837,7 +2809,7 @@ mod tests {
                     aspect_ratio.to_array()[lane],
                     near_plane.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-5); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
                     * vertical_fov.abs()
             );
         });
@@ -2862,7 +2834,7 @@ mod tests {
                     aspect_ratio.to_array()[lane],
                     near_plane.to_array()[lane]
                 )),
-                r2nd <= Matrix::<4, Wide, A>::from_column_array(&[Wide::splat(1e-5); 16])
+                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
                     * vertical_fov.abs()
             );
         });
@@ -3022,7 +2994,7 @@ mod tests {
                     Quaternion::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
                     translation,
                 ),
-                Matrix::<4, Wide, A>::from_submatrix(&Matrix::<3, Wide, A>::from_column_array(&[
+                Matrix::<4, Wide, A>::from_submatrix(&Matrix::<3, Wide, A>::from_row_array(&[
                     x, y, scale.x, w, y, z, x, scale.y, w,
                 ])),
             ] {
@@ -3055,7 +3027,7 @@ mod tests {
             let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
             let [i, j, k, l] = [c + d, c + e, d + f, f + g];
-            let matrix = Matrix::<4, Wide, A>::from_column_array(&[
+            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
                 x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
             ]);
             let point = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(1.2);

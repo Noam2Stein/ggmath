@@ -221,18 +221,15 @@ where
     T: Scalar + FloatEq,
 {
     fn eq(&self, other: &Self, zero_eq_neg_zero: bool) -> bool {
-        (0..N).all(|i| self.column(i).eq(&other.column(i), zero_eq_neg_zero))
+        (0..N).all(|i| self[i].eq(&other[i], zero_eq_neg_zero))
     }
 
     fn eq_abs(&self, other: &Self, tol: &Self, zero_eq_neg_zero: bool) -> bool {
-        (0..N).all(|i| {
-            self.column(i)
-                .eq_abs(&other.column(i), &tol.column(i), zero_eq_neg_zero)
-        })
+        (0..N).all(|i| self[i].eq_abs(&other[i], &tol[i], zero_eq_neg_zero))
     }
 
     fn abs_mul(&self, rhs: &Self) -> Self {
-        Self::from_column_fn(|i| self.column(i).abs_mul(&rhs.column(i)))
+        Self::from_row_fn(|i| self[i].abs_mul(&rhs[i]))
     }
 }
 

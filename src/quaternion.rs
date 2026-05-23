@@ -570,24 +570,6 @@ where
     }
 }
 
-impl<T, A: Alignment> Mul<Vector<3, T, A>> for Quaternion<T, A>
-where
-    T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
-{
-    type Output = Vector<3, T, A>;
-
-    /// Quaternion 3D vector multiplication. Returns the rotated vector.
-    #[inline]
-    #[track_caller]
-    fn mul(self, rhs: Vector<3, T, A>) -> Self::Output {
-        let w = self.w;
-        let b = self.0.xyz();
-        let b2 = b.dot(b);
-        let rhs_dot_b = rhs.dot(b);
-        (rhs * (w * w - b2)) + (b * (rhs_dot_b + rhs_dot_b)) + (b.cross(rhs) * (w + w))
-    }
-}
-
 impl<T, A: Alignment> Mul for Quaternion<T, A>
 where
     T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
@@ -596,8 +578,8 @@ where
 
     /// Quaternion multiplication.
     ///
-    /// Returns a quaternion that first applies the right-hand side quaternion,
-    /// then the left-hand side quaternion.
+    /// Returns a quaternion that first applies the left-hand side quaternion,
+    /// then the right-hand side quaternion.
     ///
     /// # Consistency
     ///
@@ -611,11 +593,29 @@ where
         let [x1, y1, z1, w1] = rhs.to_array();
 
         Self::from_xyzw(
-            w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1,
-            w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1,
-            w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1,
+            x0 * w1 + w0 * x1 + z0 * y1 - y0 * z1,
+            y0 * w1 - z0 * x1 + w0 * y1 + x0 * z1,
+            z0 * w1 + y0 * x1 - x0 * y1 + w0 * z1,
             w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1,
         )
+    }
+}
+
+impl<T, A: Alignment> Mul<Quaternion<T, A>> for Vector<3, T, A>
+where
+    T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+{
+    type Output = Self;
+
+    /// 3D vector quaternion multiplication. Returns the rotated vector.
+    #[inline]
+    #[track_caller]
+    fn mul(self, rhs: Quaternion<T, A>) -> Self::Output {
+        let w = rhs.w;
+        let b = rhs.0.xyz();
+        let b2 = b.dot(b);
+        let self_dot_b = self.dot(b);
+        (self * (w * w - b2)) + (b * (self_dot_b + self_dot_b)) + (b.cross(self) * (w + w))
     }
 }
 
@@ -687,8 +687,8 @@ where
 {
     /// Quaternion multiplication.
     ///
-    /// Returns a quaternion that first applies the right-hand side quaternion,
-    /// then the left-hand side quaternion.
+    /// Returns a quaternion that first applies the left-hand side quaternion,
+    /// then the right-hand side quaternion.
     ///
     /// # Consistency
     ///
@@ -698,6 +698,18 @@ where
     #[inline]
     #[track_caller]
     fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl<T, A: Alignment> MulAssign<Quaternion<T, A>> for Vector<3, T, A>
+where
+    T: Scalar + Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+{
+    /// 3D vector quaternion multiplication. Returns the rotated vector.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: Quaternion<T, A>) {
         *self = *self * rhs;
     }
 }
@@ -1093,31 +1105,12 @@ mod tests {
     }
 
     #[test]
-    fn test_mul_vector() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x.max(y);
-
-            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
-
-            let vector = Vector::<3, T, A>::new(x, y, z);
-
-            assert_float_eq!(
-                quat * vector,
-                Matrix::<3, T, A>::from_quat(quat) * vector,
-                abs <= (quat * vector).abs() * vector.length() * 1e-6 + 1e-4
-            );
-        });
-    }
-
-    #[test]
     fn test_mul() {
         for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
             let _: [T; 3] = [x, y, z];
             let w = x.max(y);
 
+            let vector = Vector::<3, T, A>::new(x, y, z);
             let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
                 return;
             };
@@ -1125,13 +1118,30 @@ mod tests {
                 return;
             };
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-
             assert_float_eq!(
-                quat2 * quat * vector,
-                quat2 * (quat * vector),
+                vector * (quat * quat2),
+                vector * quat * quat2,
                 abs <= Vector::splat(vector.abs().max_element()) * 1e-6 + 1e-4,
                 0.0 = -0.0
+            );
+        });
+    }
+
+    #[test]
+    fn test_vector_mul() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            let vector = Vector::<3, T, A>::new(x, y, z);
+            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
+                return;
+            };
+
+            assert_float_eq!(
+                vector * quat,
+                vector * Matrix::<3, T, A>::from_quat(quat),
+                abs <= (vector * quat).abs() * vector.length() * 1e-6 + 1e-4,
             );
         });
     }
@@ -1187,6 +1197,7 @@ mod tests {
             let _: [T; 3] = [x, y, z];
             let w = x.max(y);
 
+            let vector = Vector::<3, T, A>::new(x, y, z);
             let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
                 return;
             };
@@ -1194,17 +1205,37 @@ mod tests {
                 return;
             };
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-
-            let mut result = quat2;
-            result *= quat;
+            let mut result = quat;
+            result *= quat2;
 
             assert_float_eq!(
-                result * vector,
-                quat2 * (quat * vector),
+                vector * result,
+                vector * quat * quat2,
                 abs <= Vector::splat(vector.abs().max_element()) * 1e-6 + 1e-4,
                 0.0 = -0.0
             );
+        });
+    }
+
+    #[test]
+    fn test_vector_mul_assign() {
+        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
+            let _: [T; 3] = [x, y, z];
+            let w = x.max(y);
+
+            let vector = Vector::<3, T, A>::new(x, y, z);
+            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
+                return;
+            };
+            let Some(quat2) = Quaternion::<T, A>::from_xyzw(y, z, x, w).try_normalize() else {
+                return;
+            };
+
+            let mut result = vector;
+            result *= quat;
+            result *= quat2;
+
+            assert_float_eq!(result, vector * quat * quat2);
         });
     }
 

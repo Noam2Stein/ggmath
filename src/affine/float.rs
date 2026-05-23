@@ -15,12 +15,12 @@ where
     /// ```
     /// # use ggmath::{Affine2, Vec2};
     /// #
-    /// let normal = Affine2::from_columns(&[
+    /// let normal = Affine2::from_rows(&[
     ///     Vec2::new(1.0, 0.0),
     ///     Vec2::new(0.0, 1.0),
     ///     Vec2::new(2.0, 2.0),
     /// ]);
-    /// let nan = Affine2::from_columns(&[
+    /// let nan = Affine2::from_rows(&[
     ///     Vec2::new(1.0, 0.0),
     ///     Vec2::new(0.0, f32::NAN),
     ///     Vec2::new(2.0, 2.0),
@@ -42,12 +42,12 @@ where
     /// ```
     /// # use ggmath::{Affine2, Vec2};
     /// #
-    /// let finite = Affine2::from_columns(&[
+    /// let finite = Affine2::from_rows(&[
     ///     Vec2::new(1.0, 0.0),
     ///     Vec2::new(0.0, 1.0),
     ///     Vec2::new(2.0, 2.0),
     /// ]);
-    /// let infinite = Affine2::from_columns(&[
+    /// let infinite = Affine2::from_rows(&[
     ///     Vec2::new(1.0, 0.0),
     ///     Vec2::new(0.0, f32::INFINITY),
     ///     Vec2::new(2.0, 2.0),
@@ -76,7 +76,7 @@ where
     #[track_caller]
     pub fn inverse(&self) -> Self {
         let submatrix = self.submatrix.inverse();
-        let translation = -(submatrix * self.translation);
+        let translation = -self.translation * submatrix;
 
         Self::from_submatrix_translation(submatrix, translation)
     }
@@ -86,7 +86,7 @@ where
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
         let submatrix = self.submatrix.try_inverse()?;
-        let translation = -(submatrix * self.translation);
+        let translation = -self.translation * submatrix;
 
         Some(Self::from_submatrix_translation(submatrix, translation))
     }
@@ -350,7 +350,7 @@ where
         let right = up.cross(forward).normalize();
         let up = forward.cross(right);
 
-        Self::from_columns(&[
+        Self::from_rows(&[
             Vector::<3, T, A>::new(right.x, up.x, forward.x),
             Vector::<3, T, A>::new(right.y, up.y, forward.y),
             Vector::<3, T, A>::new(right.z, up.z, forward.z),
@@ -379,7 +379,7 @@ where
         let right = forward.cross(up).normalize();
         let up = right.cross(forward);
 
-        Self::from_columns(&[
+        Self::from_rows(&[
             Vector::<3, T, A>::new(right.x, up.x, -forward.x),
             Vector::<3, T, A>::new(right.y, up.y, -forward.y),
             Vector::<3, T, A>::new(right.z, up.z, -forward.z),
@@ -473,25 +473,24 @@ mod tests {
             let [x, y, z, w, a, b, c, d] =
                 [x, y, z, w, a, b, c, d].map(|b| if b { T::NAN } else { 1.0 });
 
-            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            let affine = Affine::<2, T, A>::from_row_array(&[x, y, z, w, a, b]);
             assert_eq!(
                 affine.is_nan(),
-                affine.as_columns().iter().any(|column| column.is_nan())
+                affine.as_rows().iter().any(|row| row.is_nan())
             );
 
-            let affine =
-                Affine::<3, T, A>::from_column_array(&[x, y, z, w, x, y, z, w, a, b, c, d]);
+            let affine = Affine::<3, T, A>::from_row_array(&[x, y, z, w, x, y, z, w, a, b, c, d]);
             assert_eq!(
                 affine.is_nan(),
-                affine.as_columns().iter().any(|column| column.is_nan())
+                affine.as_rows().iter().any(|row| row.is_nan())
             );
 
-            let affine = Affine::<4, T, A>::from_column_array(&[
+            let affine = Affine::<4, T, A>::from_row_array(&[
                 x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, a, b, c, d,
             ]);
             assert_eq!(
                 affine.is_nan(),
-                affine.as_columns().iter().any(|column| column.is_nan())
+                affine.as_rows().iter().any(|row| row.is_nan())
             );
         });
     }
@@ -502,25 +501,24 @@ mod tests {
             let [x, y, z, w, a, b, c, d] =
                 [x, y, z, w, a, b, c, d].map(|b| if b { T::INFINITY } else { 1.0 });
 
-            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            let affine = Affine::<2, T, A>::from_row_array(&[x, y, z, w, a, b]);
             assert_eq!(
                 affine.is_finite(),
-                affine.as_columns().iter().all(|column| column.is_finite())
+                affine.as_rows().iter().all(|row| row.is_finite())
             );
 
-            let affine =
-                Affine::<3, T, A>::from_column_array(&[x, y, z, w, x, y, z, w, a, b, c, d]);
+            let affine = Affine::<3, T, A>::from_row_array(&[x, y, z, w, x, y, z, w, a, b, c, d]);
             assert_eq!(
                 affine.is_finite(),
-                affine.as_columns().iter().all(|column| column.is_finite())
+                affine.as_rows().iter().all(|row| row.is_finite())
             );
 
-            let affine = Affine::<4, T, A>::from_column_array(&[
+            let affine = Affine::<4, T, A>::from_row_array(&[
                 x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, a, b, c, d,
             ]);
             assert_eq!(
                 affine.is_finite(),
-                affine.as_columns().iter().all(|column| column.is_finite())
+                affine.as_rows().iter().all(|column| column.is_finite())
             );
         });
     }
@@ -543,7 +541,7 @@ mod tests {
                 return;
             }
 
-            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            let affine = Affine::<2, T, A>::from_row_array(&[x, y, z, w, a, b]);
             if affine.submatrix.determinant() != 0.0 {
                 let tol = (affine
                     .submatrix
@@ -557,17 +555,16 @@ mod tests {
                     * 1e-5;
 
                 assert_float_eq!(
-                    affine * affine.inverse(),
+                    affine.inverse() * affine,
                     Affine::IDENTITY,
-                    abs <= Affine::<2, T, A>::from_column_array(&[tol; 6]),
+                    abs <= Affine::<2, T, A>::from_row_array(&[tol; 6]),
                     0.0 = -0.0
                 );
             } else {
                 assert_debug_panic!(affine.inverse());
             }
 
-            let affine =
-                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            let affine = Affine::<3, T, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
             if affine.submatrix.determinant() != 0.0 {
                 let tol = (affine
                     .submatrix
@@ -581,9 +578,9 @@ mod tests {
                     * 1e-5;
 
                 assert_float_eq!(
-                    affine * affine.inverse(),
+                    affine.inverse() * affine,
                     Affine::IDENTITY,
-                    abs <= Affine::<3, T, A>::from_column_array(&[tol; 12]),
+                    abs <= Affine::<3, T, A>::from_row_array(&[tol; 12]),
                     0.0 = -0.0
                 );
             } else {
@@ -600,15 +597,14 @@ mod tests {
             let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
 
-            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            let affine = Affine::<2, T, A>::from_row_array(&[x, y, z, w, a, b]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse(), inverse);
             } else {
                 assert_debug_panic!(affine.inverse());
             }
 
-            let affine =
-                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            let affine = Affine::<3, T, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse(), inverse);
             } else {
@@ -625,15 +621,14 @@ mod tests {
             let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
 
-            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            let affine = Affine::<2, T, A>::from_row_array(&[x, y, z, w, a, b]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse_or(&Affine::NAN), inverse);
             } else {
                 assert_float_eq!(affine.inverse_or(&Affine::NAN), Affine::NAN);
             }
 
-            let affine =
-                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            let affine = Affine::<3, T, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse_or(&Affine::NAN), inverse);
             } else {
@@ -650,15 +645,14 @@ mod tests {
             let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
             let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
 
-            let affine = Affine::<2, T, A>::from_column_array(&[x, y, z, w, a, b]);
+            let affine = Affine::<2, T, A>::from_row_array(&[x, y, z, w, a, b]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse_or_zero(), inverse);
             } else {
                 assert_float_eq!(affine.inverse_or_zero(), Affine::ZERO);
             }
 
-            let affine =
-                Affine::<3, T, A>::from_column_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
+            let affine = Affine::<3, T, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
             if let Some(inverse) = affine.try_inverse() {
                 assert_float_eq!(affine.inverse_or_zero(), inverse);
             } else {
@@ -671,13 +665,13 @@ mod tests {
     fn test_abs_diff_eq() {
         for_parameters!(|T: PrimitiveFloat| {
             assert!(
-                Affine2::<T>::from_columns(&[
+                Affine2::<T>::from_rows(&[
                     Vec2::new(0.0, 1.0),
                     Vec2::new(2.0, 3.0),
                     Vec2::new(4.0, 5.0)
                 ])
                 .abs_diff_eq(
-                    &Affine2::<T>::from_columns(&[
+                    &Affine2::<T>::from_rows(&[
                         Vec2::new(0.1, 0.9),
                         Vec2::new(1.95, 3.05),
                         Vec2::new(4.1, 4.9)
@@ -686,13 +680,13 @@ mod tests {
                 )
             );
             assert!(
-                !Affine2::<T>::from_columns(&[
+                !Affine2::<T>::from_rows(&[
                     Vec2::new(0.0, 1.0),
                     Vec2::new(2.0, 3.0),
                     Vec2::new(4.0, 5.0)
                 ])
                 .abs_diff_eq(
-                    &Affine2::<T>::from_columns(&[
+                    &Affine2::<T>::from_rows(&[
                         Vec2::new(0.1, 0.9),
                         Vec2::new(1.95, 3.5),
                         Vec2::new(4.1, 4.9)
@@ -701,13 +695,13 @@ mod tests {
                 )
             );
             assert!(
-                !Affine2::<T>::from_columns(&[
+                !Affine2::<T>::from_rows(&[
                     Vec2::new(0.0, 1.0),
                     Vec2::new(2.0, 3.0),
                     Vec2::new(4.0, 5.0)
                 ])
                 .abs_diff_eq(
-                    &Affine2::<T>::from_columns(&[
+                    &Affine2::<T>::from_rows(&[
                         Vec2::new(0.1, 0.9),
                         Vec2::new(1.95, 3.05),
                         Vec2::new(4.6, 4.9)
@@ -747,7 +741,7 @@ mod tests {
             let scale = Vector::<2, T, A>::new(x, y);
             assert_float_eq!(
                 Affine::<2, T, A>::from_scale_angle(scale, z),
-                Affine::<2, T, A>::from_angle(z) * Affine::<2, T, A>::from_scale(scale),
+                Affine::<2, T, A>::from_scale(scale) * Affine::<2, T, A>::from_angle(z),
                 0.0 = -0.0
             );
         });
@@ -771,7 +765,7 @@ mod tests {
             let translation = Vector::<2, T, A>::new(x, y);
             assert_float_eq!(
                 Affine::<2, T, A>::from_angle_translation(z, translation),
-                Affine::<2, T, A>::from_translation(translation) * Affine::<2, T, A>::from_angle(z),
+                Affine::<2, T, A>::from_angle(z) * Affine::<2, T, A>::from_translation(translation),
                 0.0 = -0.0
             );
         });
@@ -796,9 +790,9 @@ mod tests {
             let translation = Vector::<2, T, A>::new(x + 1.0, y + 2.0);
             assert_float_eq!(
                 Affine::<2, T, A>::from_scale_angle_translation(scale, z, translation),
-                Affine::<2, T, A>::from_translation(translation)
+                Affine::<2, T, A>::from_scale(scale)
                     * Affine::<2, T, A>::from_angle(z)
-                    * Affine::<2, T, A>::from_scale(scale),
+                    * Affine::<2, T, A>::from_translation(translation),
                 0.0 = -0.0
             );
         });
@@ -943,7 +937,7 @@ mod tests {
                 let rotation = Quaternion::from_vector(normalized);
                 assert_float_eq!(
                     Affine::<3, T, A>::from_scale_rotation(scale, rotation),
-                    Affine::<3, T, A>::from_quat(rotation) * Affine::<3, T, A>::from_scale(scale),
+                    Affine::<3, T, A>::from_scale(scale) * Affine::<3, T, A>::from_quat(rotation),
                     0.0 = -0.0
                 );
             }
@@ -979,8 +973,8 @@ mod tests {
                 let rotation = Quaternion::from_vector(normalized);
                 assert_float_eq!(
                     Affine::<3, T, A>::from_rotation_translation(rotation, translation),
-                    Affine::<3, T, A>::from_translation(translation)
-                        * Affine::<3, T, A>::from_quat(rotation),
+                    Affine::<3, T, A>::from_quat(rotation)
+                        * Affine::<3, T, A>::from_translation(translation),
                     0.0 = -0.0
                 );
             }
@@ -1021,9 +1015,9 @@ mod tests {
                         rotation,
                         translation
                     ),
-                    Affine::<3, T, A>::from_translation(translation)
+                    Affine::<3, T, A>::from_scale(scale)
                         * Affine::<3, T, A>::from_quat(rotation)
-                        * Affine::<3, T, A>::from_scale(scale),
+                        * Affine::<3, T, A>::from_translation(translation),
                     0.0 = -0.0
                 );
             }
@@ -1130,13 +1124,13 @@ mod tests {
     #[test]
     fn test_to_euler() {
         for_parameters!(|T: PrimitiveFloat, A, order, x, y, z| {
-            let affine = Affine::<3, T, A>::from_translation(Vector::<3, T, A>::new(x, y, z))
-                * Affine::<3, T, A>::from_euler(order, x, y, z);
+            let affine = Affine::<3, T, A>::from_euler(order, x, y, z)
+                * Affine::<3, T, A>::from_translation(Vector::<3, T, A>::new(x, y, z));
 
             assert_panic_float_eq!(affine.to_euler(order), affine.to_matrix().to_euler(order));
 
             let scale = Vector::<3, T, A>::new(x, y, z);
-            let invalid_affine = affine * Affine::from_scale(scale);
+            let invalid_affine = Affine::from_scale(scale) * affine;
             assert_panic_float_eq!(
                 invalid_affine.to_euler(order),
                 invalid_affine.to_matrix().to_euler(order)
