@@ -601,7 +601,7 @@ macro_rules! impl_wide_float {
                                     );
 
                                     let result_length = self_length.lerp(other_length, t);
-                                    rotation * self_ * (result_length / self_length)
+                                    self_ * rotation * (result_length / self_length)
                                 },
                                 {
                                     // Vectors are almost parallel in the same direction.
@@ -745,7 +745,7 @@ macro_rules! impl_wide_float {
 
                         let result = Vector::<3, $Wide, A>::splat(self.simd_eq(Self::ZERO)).blend(
                             self_,
-                            Quaternion::<$Wide, A>::from_axis_angle(axis, angle) * self_,
+                            self_ * Quaternion::<$Wide, A>::from_axis_angle(axis, angle),
                         );
 
                         // SAFETY: Because `N = 3`, `Vector<N, $Wide, A> = Vector<3, $Wide, A>`.

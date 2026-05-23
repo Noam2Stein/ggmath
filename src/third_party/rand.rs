@@ -25,7 +25,7 @@ where
 {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Matrix<N, T, A> {
-        Matrix::from_columns(&rng.random::<[Vector<N, T, A>; N]>())
+        Matrix::from_rows(&rng.random::<[Vector<N, T, A>; N]>())
     }
 }
 
@@ -99,15 +99,15 @@ mod tests {
 
             assert_eq!(
                 rng().random::<Matrix<2, f32, A>>(),
-                Matrix::from_columns(&rng().random())
+                Matrix::from_rows(&rng().random())
             );
             assert_eq!(
                 rng().random::<Matrix<3, f32, A>>(),
-                Matrix::from_columns(&rng().random())
+                Matrix::from_rows(&rng().random())
             );
             assert_eq!(
                 rng().random::<Matrix<4, f32, A>>(),
-                Matrix::from_columns(&rng().random())
+                Matrix::from_rows(&rng().random())
             );
         });
     }
@@ -131,15 +131,15 @@ mod tests {
 
             assert_eq!(
                 rng().random::<Affine<2, f32, A>>(),
-                Affine::<2, f32, A>::from_columns(&rng().random())
+                Affine::<2, f32, A>::from_rows(&rng().random())
             );
             assert_eq!(
                 rng().random::<Affine<3, f32, A>>(),
-                Affine::<3, f32, A>::from_columns(&rng().random())
+                Affine::<3, f32, A>::from_rows(&rng().random())
             );
             assert_eq!(
                 rng().random::<Affine<4, f32, A>>(),
-                Affine::<4, f32, A>::from_columns(&rng().random())
+                Affine::<4, f32, A>::from_rows(&rng().random())
             );
         });
     }

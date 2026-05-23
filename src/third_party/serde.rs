@@ -57,7 +57,7 @@ where
     where
         S: serde::Serializer,
     {
-        self.as_columns().serialize(serializer)
+        self.as_rows().serialize(serializer)
     }
 }
 
@@ -70,7 +70,7 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        Ok(Self::from_columns(&match N {
+        Ok(Self::from_rows(&match N {
             // SAFETY: Because `N == 2`, `[Vector<N, T, A>; N]` and
             // `[Vector<N, T, A>; 2]` are the same type.
             2 => unsafe {
@@ -135,7 +135,7 @@ where
             // are the same type.
             2 => unsafe {
                 transmute_ref::<Affine<N, T, A>, Affine<2, T, A>>(self)
-                    .as_columns()
+                    .as_rows()
                     .serialize(serializer)
             },
 
@@ -143,7 +143,7 @@ where
             // are the same type.
             3 => unsafe {
                 transmute_ref::<Affine<N, T, A>, Affine<3, T, A>>(self)
-                    .as_columns()
+                    .as_rows()
                     .serialize(serializer)
             },
 
@@ -151,7 +151,7 @@ where
             // are the same type.
             4 => unsafe {
                 transmute_ref::<Affine<N, T, A>, Affine<4, T, A>>(self)
-                    .as_columns()
+                    .as_rows()
                     .serialize(serializer)
             },
 
@@ -173,25 +173,25 @@ where
             // SAFETY: Because `N == 2`, `Affine<2, T, A>` and `Affine<N, T, A>`
             // are the same type.
             2 => unsafe {
-                transmute_generic::<Affine<2, T, A>, Affine<N, T, A>>(
-                    Affine::<2, T, A>::from_columns(&Deserialize::deserialize(deserializer)?),
-                )
+                transmute_generic::<Affine<2, T, A>, Affine<N, T, A>>(Affine::<2, T, A>::from_rows(
+                    &Deserialize::deserialize(deserializer)?,
+                ))
             },
 
             // SAFETY: Because `N == 3`, `Affine<3, T, A>` and `Affine<N, T, A>`
             // are the same type.
             3 => unsafe {
-                transmute_generic::<Affine<3, T, A>, Affine<N, T, A>>(
-                    Affine::<3, T, A>::from_columns(&Deserialize::deserialize(deserializer)?),
-                )
+                transmute_generic::<Affine<3, T, A>, Affine<N, T, A>>(Affine::<3, T, A>::from_rows(
+                    &Deserialize::deserialize(deserializer)?,
+                ))
             },
 
             // SAFETY: Because `N == 4`, `Affine<4, T, A>` and `Affine<N, T, A>`
             // are the same type.
             4 => unsafe {
-                transmute_generic::<Affine<4, T, A>, Affine<N, T, A>>(
-                    Affine::<4, T, A>::from_columns(&Deserialize::deserialize(deserializer)?),
-                )
+                transmute_generic::<Affine<4, T, A>, Affine<N, T, A>>(Affine::<4, T, A>::from_rows(
+                    &Deserialize::deserialize(deserializer)?,
+                ))
             },
 
             _ => unreachable!(),
@@ -311,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_matrix() -> Result<(), Box<dyn Error>> {
-        let matrix = Mat2::<i32>::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
+        let matrix = Mat2::<i32>::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
         assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
         assert_eq!(matrix.unalign(), from_str(&to_string(&matrix)?)?);
         assert!(from_str::<Mat3<i32>>(&to_string(&matrix)?).is_err());
@@ -319,11 +319,8 @@ mod tests {
         assert!(from_str::<Mat3U<i32>>(&to_string(&matrix)?).is_err());
         assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let matrix = Mat3::<i32>::from_columns(&[
-            Vec3::new(1, 2, 3),
-            Vec3::new(4, 5, 6),
-            Vec3::new(7, 8, 9),
-        ]);
+        let matrix =
+            Mat3::<i32>::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
         assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
         assert_eq!(matrix.unalign(), from_str(&to_string(&matrix)?)?);
         assert!(from_str::<Mat2<i32>>(&to_string(&matrix)?).is_err());
@@ -331,7 +328,7 @@ mod tests {
         assert!(from_str::<Mat2U<i32>>(&to_string(&matrix)?).is_err());
         assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let matrix = Mat4::<i32>::from_columns(&[
+        let matrix = Mat4::<i32>::from_rows(&[
             Vec4::new(1, 2, 3, 4),
             Vec4::new(5, 6, 7, 8),
             Vec4::new(9, 10, 11, 12),
@@ -344,7 +341,7 @@ mod tests {
         assert!(from_str::<Mat2U<i32>>(&to_string(&matrix)?).is_err());
         assert!(from_str::<Mat3U<i32>>(&to_string(&matrix)?).is_err());
 
-        let matrix = Mat2U::<i32>::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
+        let matrix = Mat2U::<i32>::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
         assert_eq!(matrix, from_str(&to_string(&matrix)?)?);
         assert_eq!(matrix.align(), from_str(&to_string(&matrix)?)?);
         assert!(from_str::<Mat3<i32>>(&to_string(&matrix)?).is_err());
@@ -352,7 +349,7 @@ mod tests {
         assert!(from_str::<Mat3U<i32>>(&to_string(&matrix)?).is_err());
         assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let matrix = Mat3U::<i32>::from_columns(&[
+        let matrix = Mat3U::<i32>::from_rows(&[
             Vec3U::new(1, 2, 3),
             Vec3U::new(4, 5, 6),
             Vec3U::new(7, 8, 9),
@@ -364,7 +361,7 @@ mod tests {
         assert!(from_str::<Mat2U<i32>>(&to_string(&matrix)?).is_err());
         assert!(from_str::<Mat4U<i32>>(&to_string(&matrix)?).is_err());
 
-        let matrix = Mat4U::<i32>::from_columns(&[
+        let matrix = Mat4U::<i32>::from_rows(&[
             Vec4U::new(1, 2, 3, 4),
             Vec4U::new(5, 6, 7, 8),
             Vec4U::new(9, 10, 11, 12),
@@ -396,7 +393,7 @@ mod tests {
     #[test]
     fn test_affine() -> Result<(), Box<dyn Error>> {
         let affine = Affine2::<i32>::from_submatrix_translation(
-            Mat2::from_columns(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
+            Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
             Vec2::new(5, 6),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -407,7 +404,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine3::<i32>::from_submatrix_translation(
-            Mat3::from_columns(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
+            Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(97, 8, 9)]),
             Vec3::new(10, 11, 12),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -418,7 +415,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine::<4, i32, Aligned>::from_submatrix_translation(
-            Mat4::from_columns(&[
+            Mat4::from_rows(&[
                 Vec4::new(1, 2, 3, 4),
                 Vec4::new(5, 6, 7, 8),
                 Vec4::new(9, 10, 11, 12),
@@ -434,7 +431,7 @@ mod tests {
         assert!(from_str::<Affine3U<i32>>(&to_string(&affine)?).is_err());
 
         let affine = Affine2U::<i32>::from_submatrix_translation(
-            Mat2U::from_columns(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]),
+            Mat2U::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]),
             Vec2U::new(5, 6),
         );
         assert_eq!(affine, from_str(&to_string(&affine)?)?);
@@ -445,7 +442,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine3U::<i32>::from_submatrix_translation(
-            Mat3U::from_columns(&[
+            Mat3U::from_rows(&[
                 Vec3U::new(1, 2, 3),
                 Vec3U::new(4, 5, 6),
                 Vec3U::new(97, 8, 9),
@@ -460,7 +457,7 @@ mod tests {
         assert!(from_str::<Affine<4, i32, Unaligned>>(&to_string(&affine)?).is_err());
 
         let affine = Affine::<4, i32, Unaligned>::from_submatrix_translation(
-            Mat4U::from_columns(&[
+            Mat4U::from_rows(&[
                 Vec4U::new(1, 2, 3, 4),
                 Vec4U::new(5, 6, 7, 8),
                 Vec4U::new(9, 10, 11, 12),

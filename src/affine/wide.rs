@@ -19,14 +19,14 @@ where
     /// # use wide::i32x4;
     /// #
     /// let lanes = [
-    ///     Affine2::from_column_array(&[1, 2, 3, 4, 5, 6]),
-    ///     Affine2::from_column_array(&[7, 8, 9, 10, 11, 12]),
-    ///     Affine2::from_column_array(&[13, 14, 15, 16, 17, 18]),
-    ///     Affine2::from_column_array(&[19, 20, 21, 22, 23, 24]),
+    ///     Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
+    ///     Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
+    ///     Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
+    ///     Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
     /// ];
     /// assert_eq!(
     ///     Affine2::<i32x4>::from_lanes(&lanes),
-    ///     Affine2::from_column_array(&[
+    ///     Affine2::from_row_array(&[
     ///         i32x4::new([1, 7, 13, 19]),
     ///         i32x4::new([2, 8, 14, 20]),
     ///         i32x4::new([3, 9, 15, 21]),
@@ -39,7 +39,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_lanes(lanes: &[Affine<N, T, A>; LANES]) -> Self {
-        Self::from_column_fn(|i| Vector::from_lane_fn(|lane| lanes[lane].column(i)))
+        Self::from_row_fn(|i| Vector::from_lane_fn(|lane| lanes[lane][i]))
     }
 
     /// Creates an SoA (Structure of Arrays) affine transform by calling
@@ -52,14 +52,14 @@ where
     /// # use wide::i32x4;
     /// #
     /// let lanes = [
-    ///     Affine2::from_column_array(&[1, 2, 3, 4, 5, 6]),
-    ///     Affine2::from_column_array(&[7, 8, 9, 10, 11, 12]),
-    ///     Affine2::from_column_array(&[13, 14, 15, 16, 17, 18]),
-    ///     Affine2::from_column_array(&[19, 20, 21, 22, 23, 24]),
+    ///     Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
+    ///     Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
+    ///     Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
+    ///     Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
     /// ];
     /// assert_eq!(
     ///     Affine2::<i32x4>::from_lane_fn(|lane_index| lanes[lane_index]),
-    ///     Affine2::from_column_array(&[
+    ///     Affine2::from_row_array(&[
     ///         i32x4::new([1, 7, 13, 19]),
     ///         i32x4::new([2, 8, 14, 20]),
     ///         i32x4::new([3, 9, 15, 21]),
@@ -88,7 +88,7 @@ where
     /// # use ggmath::Affine2;
     /// # use wide::i32x4;
     /// #
-    /// let affine = Affine2::from_column_array(&[
+    /// let affine = Affine2::from_row_array(&[
     ///     i32x4::new([1, 7, 13, 19]),
     ///     i32x4::new([2, 8, 14, 20]),
     ///     i32x4::new([3, 9, 15, 21]),
@@ -99,10 +99,10 @@ where
     /// assert_eq!(
     ///     affine.to_lanes(),
     ///     [
-    ///         Affine2::from_column_array(&[1, 2, 3, 4, 5, 6]),
-    ///         Affine2::from_column_array(&[7, 8, 9, 10, 11, 12]),
-    ///         Affine2::from_column_array(&[13, 14, 15, 16, 17, 18]),
-    ///         Affine2::from_column_array(&[19, 20, 21, 22, 23, 24]),
+    ///         Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
+    ///         Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
+    ///         Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
+    ///         Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
     ///     ],
     /// );
     /// ```
@@ -125,7 +125,7 @@ where
     /// # use ggmath::Affine2;
     /// # use wide::i32x4;
     /// #
-    /// let affine = Affine2::from_column_array(&[
+    /// let affine = Affine2::from_row_array(&[
     ///     i32x4::new([1, 7, 13, 19]),
     ///     i32x4::new([2, 8, 14, 20]),
     ///     i32x4::new([3, 9, 15, 21]),
@@ -133,13 +133,13 @@ where
     ///     i32x4::new([5, 11, 17, 23]),
     ///     i32x4::new([6, 12, 18, 24]),
     /// ]);
-    /// assert_eq!(affine.lane(1), Affine2::from_column_array(&[7, 8, 9, 10, 11, 12]));
+    /// assert_eq!(affine.lane(1), Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]));
     /// ```
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn lane(&self, lane: usize) -> Affine<N, T, A> {
-        Affine::from_column_fn(|i| self.column(i).lane(lane))
+        Affine::from_row_fn(|i| self[i].lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) affine transform and sets the lane at
@@ -155,7 +155,7 @@ where
     /// # use ggmath::Affine2;
     /// # use wide::i32x4;
     /// #
-    /// let mut affine = Affine2::from_column_array(&[
+    /// let mut affine = Affine2::from_row_array(&[
     ///     i32x4::new([1, 7, 13, 19]),
     ///     i32x4::new([2, 8, 14, 20]),
     ///     i32x4::new([3, 9, 15, 21]),
@@ -166,7 +166,7 @@ where
     /// affine.set_lane(1, Affine2::ZERO);
     /// assert_eq!(
     ///     affine,
-    ///     Affine2::from_column_array(&[
+    ///     Affine2::from_row_array(&[
     ///         i32x4::new([1, 0, 13, 19]),
     ///         i32x4::new([2, 0, 14, 20]),
     ///         i32x4::new([3, 0, 15, 21]),
@@ -180,7 +180,7 @@ where
     #[track_caller]
     pub fn set_lane(&mut self, lane: usize, value: Affine<N, T, A>) {
         for i in 0..N + 1 {
-            self.column_mut(i).set_lane(lane, value.column(i));
+            self[i].set_lane(lane, value[i]);
         }
     }
 
@@ -221,12 +221,12 @@ mod tests {
     fn test_from_lanes() {
         assert_eq!(
             Affine2::<i32x4>::from_lanes(&[
-                Affine2::from_column_array(&[1, 2, 3, 4, 5, 6]),
-                Affine2::from_column_array(&[7, 8, 9, 10, 11, 12]),
-                Affine2::from_column_array(&[13, 14, 15, 16, 17, 18]),
-                Affine2::from_column_array(&[19, 20, 21, 22, 23, 24]),
+                Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
+                Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
+                Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
+                Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
             ]),
-            Affine2::from_column_array(&[
+            Affine2::from_row_array(&[
                 i32x4::new([1, 7, 13, 19]),
                 i32x4::new([2, 8, 14, 20]),
                 i32x4::new([3, 9, 15, 21]),
@@ -241,12 +241,12 @@ mod tests {
     fn test_from_lane_fn() {
         assert_eq!(
             Affine2::<i32x4>::from_lane_fn(|i| [
-                Affine2::from_column_array(&[1, 2, 3, 4, 5, 6]),
-                Affine2::from_column_array(&[7, 8, 9, 10, 11, 12]),
-                Affine2::from_column_array(&[13, 14, 15, 16, 17, 18]),
-                Affine2::from_column_array(&[19, 20, 21, 22, 23, 24]),
+                Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
+                Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
+                Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
+                Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
             ][i]),
-            Affine2::from_column_array(&[
+            Affine2::from_row_array(&[
                 i32x4::new([1, 7, 13, 19]),
                 i32x4::new([2, 8, 14, 20]),
                 i32x4::new([3, 9, 15, 21]),
@@ -260,7 +260,7 @@ mod tests {
     #[test]
     fn test_to_lanes() {
         assert_eq!(
-            Affine2::from_column_array(&[
+            Affine2::from_row_array(&[
                 i32x4::new([1, 7, 13, 19]),
                 i32x4::new([2, 8, 14, 20]),
                 i32x4::new([3, 9, 15, 21]),
@@ -270,17 +270,17 @@ mod tests {
             ])
             .to_lanes(),
             [
-                Affine2::from_column_array(&[1, 2, 3, 4, 5, 6]),
-                Affine2::from_column_array(&[7, 8, 9, 10, 11, 12]),
-                Affine2::from_column_array(&[13, 14, 15, 16, 17, 18]),
-                Affine2::from_column_array(&[19, 20, 21, 22, 23, 24]),
+                Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
+                Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
+                Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
+                Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
             ]
         );
     }
 
     #[test]
     fn test_lane() {
-        let affine = Affine2::from_column_array(&[
+        let affine = Affine2::from_row_array(&[
             i32x4::new([1, 7, 13, 19]),
             i32x4::new([2, 8, 14, 20]),
             i32x4::new([3, 9, 15, 21]),
@@ -289,28 +289,25 @@ mod tests {
             i32x4::new([6, 12, 18, 24]),
         ]);
 
-        assert_eq!(
-            affine.lane(0),
-            Affine2::from_column_array(&[1, 2, 3, 4, 5, 6])
-        );
+        assert_eq!(affine.lane(0), Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]));
         assert_eq!(
             affine.lane(1),
-            Affine2::from_column_array(&[7, 8, 9, 10, 11, 12])
+            Affine2::from_row_array(&[7, 8, 9, 10, 11, 12])
         );
         assert_eq!(
             affine.lane(2),
-            Affine2::from_column_array(&[13, 14, 15, 16, 17, 18])
+            Affine2::from_row_array(&[13, 14, 15, 16, 17, 18])
         );
         assert_eq!(
             affine.lane(3),
-            Affine2::from_column_array(&[19, 20, 21, 22, 23, 24])
+            Affine2::from_row_array(&[19, 20, 21, 22, 23, 24])
         );
         assert_panic!(affine.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        let mut affine = Affine2::from_column_array(&[
+        let mut affine = Affine2::from_row_array(&[
             i32x4::new([1, 7, 13, 19]),
             i32x4::new([2, 8, 14, 20]),
             i32x4::new([3, 9, 15, 21]),
@@ -319,10 +316,10 @@ mod tests {
             i32x4::new([6, 12, 18, 24]),
         ]);
 
-        affine.set_lane(0, Affine2::from_column_array(&[-1, -2, -3, -4, -5, -6]));
+        affine.set_lane(0, Affine2::from_row_array(&[-1, -2, -3, -4, -5, -6]));
         assert_eq!(
             affine,
-            Affine2::from_column_array(&[
+            Affine2::from_row_array(&[
                 i32x4::new([-1, 7, 13, 19]),
                 i32x4::new([-2, 8, 14, 20]),
                 i32x4::new([-3, 9, 15, 21]),
@@ -331,10 +328,10 @@ mod tests {
                 i32x4::new([-6, 12, 18, 24]),
             ])
         );
-        affine.set_lane(1, Affine2::from_column_array(&[-7, -8, -9, -10, -11, -12]));
+        affine.set_lane(1, Affine2::from_row_array(&[-7, -8, -9, -10, -11, -12]));
         assert_eq!(
             affine,
-            Affine2::from_column_array(&[
+            Affine2::from_row_array(&[
                 i32x4::new([-1, -7, 13, 19]),
                 i32x4::new([-2, -8, 14, 20]),
                 i32x4::new([-3, -9, 15, 21]),
@@ -343,13 +340,10 @@ mod tests {
                 i32x4::new([-6, -12, 18, 24]),
             ])
         );
-        affine.set_lane(
-            2,
-            Affine2::from_column_array(&[-13, -14, -15, -16, -17, -18]),
-        );
+        affine.set_lane(2, Affine2::from_row_array(&[-13, -14, -15, -16, -17, -18]));
         assert_eq!(
             affine,
-            Affine2::from_column_array(&[
+            Affine2::from_row_array(&[
                 i32x4::new([-1, -7, -13, 19]),
                 i32x4::new([-2, -8, -14, 20]),
                 i32x4::new([-3, -9, -15, 21]),
@@ -358,13 +352,10 @@ mod tests {
                 i32x4::new([-6, -12, -18, 24]),
             ])
         );
-        affine.set_lane(
-            3,
-            Affine2::from_column_array(&[-19, -20, -21, -22, -23, -24]),
-        );
+        affine.set_lane(3, Affine2::from_row_array(&[-19, -20, -21, -22, -23, -24]));
         assert_eq!(
             affine,
-            Affine2::from_column_array(&[
+            Affine2::from_row_array(&[
                 i32x4::new([-1, -7, -13, -19]),
                 i32x4::new([-2, -8, -14, -20]),
                 i32x4::new([-3, -9, -15, -21]),
@@ -383,47 +374,55 @@ mod tests {
             let w = x ^ y;
 
             assert_float_eq!(
-                Affine::<2, Wide, A>::from_column_array(&[x, y, z, w, x, z]).simd_eq(
-                    &Affine::<2, Wide, A>::from_column_array(&[z, y, z, w, x, z])
-                ),
+                Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, x, z]).simd_eq(&Affine::<
+                    2,
+                    Wide,
+                    A,
+                >::from_row_array(
+                    &[z, y, z, w, x, z]
+                )),
                 x.simd_eq(z) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w) & x.simd_eq(x)
             );
             assert_float_eq!(
-                Affine::<2, Wide, A>::from_column_array(&[x, y, z, w, x, z]).simd_eq(
-                    &Affine::<2, Wide, A>::from_column_array(&[z, w, x, y, z, x])
-                ),
+                Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, x, z]).simd_eq(&Affine::<
+                    2,
+                    Wide,
+                    A,
+                >::from_row_array(
+                    &[z, w, x, y, z, x]
+                )),
                 x.simd_eq(z) & y.simd_eq(w)
             );
 
             assert_float_eq!(
-                Affine::<3, Wide, A>::from_column_array(&[x, y, z, x, y, w, x, y, z, x, y, z])
-                    .simd_eq(&Affine::<3, Wide, A>::from_column_array(&[
+                Affine::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z, x, y, z])
+                    .simd_eq(&Affine::<3, Wide, A>::from_row_array(&[
                         x, y, w, x, y, w, x, y, z, x, y, z
                     ])),
                 x.simd_eq(x) & y.simd_eq(y) & z.simd_eq(w) & w.simd_eq(w)
             );
             assert_float_eq!(
-                Affine::<3, Wide, A>::from_column_array(&[x, y, z, z, w, y, x, y, z, z, x, y])
-                    .simd_eq(&Affine::<3, Wide, A>::from_column_array(&[
+                Affine::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z, z, x, y])
+                    .simd_eq(&Affine::<3, Wide, A>::from_row_array(&[
                         z, w, y, x, y, z, z, w, y, y, y, w
                     ])),
                 x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y)
             );
 
             assert_float_eq!(
-                Affine::<4, Wide, A>::from_column_array(&[
+                Affine::<4, Wide, A>::from_row_array(&[
                     x, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w
                 ])
-                .simd_eq(&Affine::<4, Wide, A>::from_column_array(&[
+                .simd_eq(&Affine::<4, Wide, A>::from_row_array(&[
                     w, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w
                 ])),
                 x.simd_eq(w) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w)
             );
             assert_float_eq!(
-                Affine::<4, Wide, A>::from_column_array(&[
+                Affine::<4, Wide, A>::from_row_array(&[
                     x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x, z, y, x, w
                 ])
-                .simd_eq(&Affine::<4, Wide, A>::from_column_array(&[
+                .simd_eq(&Affine::<4, Wide, A>::from_row_array(&[
                     z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w, x, y, z, x
                 ])),
                 x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y)
@@ -437,22 +436,22 @@ mod tests {
             let _: [Wide; 3] = [x, y, z];
             let w = x ^ y;
 
-            let affine = Affine::<2, Wide, A>::from_column_array(&[x, y, z, w, x, z]);
+            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, x, z]);
             for other in [
-                Affine::<2, Wide, A>::from_column_array(&[z, y, z, w, x, z]),
-                Affine::<2, Wide, A>::from_column_array(&[z, w, x, y, z, x]),
+                Affine::<2, Wide, A>::from_row_array(&[z, y, z, w, x, z]),
+                Affine::<2, Wide, A>::from_row_array(&[z, w, x, y, z, x]),
             ] {
                 assert_float_eq!(affine.simd_ne(&other), !affine.simd_eq(&other));
             }
 
             for (affine, other) in [
                 (
-                    Affine::<3, Wide, A>::from_column_array(&[x, y, z, x, y, w, x, y, z, x, y, z]),
-                    Affine::<3, Wide, A>::from_column_array(&[x, y, w, x, y, w, x, y, z, x, y, z]),
+                    Affine::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z, x, y, z]),
+                    Affine::<3, Wide, A>::from_row_array(&[x, y, w, x, y, w, x, y, z, x, y, z]),
                 ),
                 (
-                    Affine::<3, Wide, A>::from_column_array(&[x, y, z, z, w, y, x, y, z, z, x, y]),
-                    Affine::<3, Wide, A>::from_column_array(&[z, w, y, x, y, z, z, w, y, y, y, w]),
+                    Affine::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z, z, x, y]),
+                    Affine::<3, Wide, A>::from_row_array(&[z, w, y, x, y, z, z, w, y, y, y, w]),
                 ),
             ] {
                 assert_float_eq!(affine.simd_ne(&other), !affine.simd_eq(&other));
@@ -460,18 +459,18 @@ mod tests {
 
             for (affine, other) in [
                 (
-                    Affine::<4, Wide, A>::from_column_array(&[
+                    Affine::<4, Wide, A>::from_row_array(&[
                         x, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w,
                     ]),
-                    Affine::<4, Wide, A>::from_column_array(&[
+                    Affine::<4, Wide, A>::from_row_array(&[
                         w, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w,
                     ]),
                 ),
                 (
-                    Affine::<4, Wide, A>::from_column_array(&[
+                    Affine::<4, Wide, A>::from_row_array(&[
                         x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x, z, y, x, w,
                     ]),
-                    Affine::<4, Wide, A>::from_column_array(&[
+                    Affine::<4, Wide, A>::from_row_array(&[
                         z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w, x, y, z, x,
                     ]),
                 ),

@@ -79,11 +79,9 @@ defining seperate `Ray2` and `Ray3` types, it is possible to define a single
 `ggmath` is coordinate-system agnostic, and should work for both right-handed
 and left-handed coordinate systems.
 
-Vectors are treated as column matrices, meaning when transforming a vector with
-a matrix, the matrix goes on the left.
-
-Matrices are stored in column-major order, meaning each column is continuous in
-memory.
+`ggmath` uses left-multiplication, meaning to transform a vector by a matrix (or
+quaternion) you write `vector * matrix` and not `matrix * vector`. This means
+matrices are stored in row-major order.
 
 Angles are in radians, but can be converted to and from degrees using
 standard-library functions.

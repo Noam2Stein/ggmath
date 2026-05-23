@@ -19,14 +19,14 @@ where
     /// # use wide::i32x4;
     /// #
     /// let lanes = [
-    ///     Mat2::from_column_array(&[1, 2, 3, 4]),
-    ///     Mat2::from_column_array(&[5, 6, 7, 8]),
-    ///     Mat2::from_column_array(&[9, 10, 11, 12]),
-    ///     Mat2::from_column_array(&[13, 14, 15, 16]),
+    ///     Mat2::from_row_array(&[1, 2, 3, 4]),
+    ///     Mat2::from_row_array(&[5, 6, 7, 8]),
+    ///     Mat2::from_row_array(&[9, 10, 11, 12]),
+    ///     Mat2::from_row_array(&[13, 14, 15, 16]),
     /// ];
     /// assert_eq!(
     ///     Mat2::<i32x4>::from_lanes(&lanes),
-    ///     Mat2::from_column_array(&[
+    ///     Mat2::from_row_array(&[
     ///         i32x4::new([1, 5, 9, 13]),
     ///         i32x4::new([2, 6, 10, 14]),
     ///         i32x4::new([3, 7, 11, 15]),
@@ -37,7 +37,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_lanes(lanes: &[Matrix<N, T, A>; LANES]) -> Self {
-        Self::from_column_fn(|i| Vector::from_lane_fn(|lane| lanes[lane].column(i)))
+        Self::from_row_fn(|i| Vector::from_lane_fn(|lane| lanes[lane][i]))
     }
 
     /// Creates an SoA (Structure of Arrays) matrix by calling function `f` for
@@ -50,14 +50,14 @@ where
     /// # use wide::i32x4;
     /// #
     /// let lanes = [
-    ///     Mat2::from_column_array(&[1, 2, 3, 4]),
-    ///     Mat2::from_column_array(&[5, 6, 7, 8]),
-    ///     Mat2::from_column_array(&[9, 10, 11, 12]),
-    ///     Mat2::from_column_array(&[13, 14, 15, 16]),
+    ///     Mat2::from_row_array(&[1, 2, 3, 4]),
+    ///     Mat2::from_row_array(&[5, 6, 7, 8]),
+    ///     Mat2::from_row_array(&[9, 10, 11, 12]),
+    ///     Mat2::from_row_array(&[13, 14, 15, 16]),
     /// ];
     /// assert_eq!(
     ///     Mat2::<i32x4>::from_lane_fn(|lane_index| lanes[lane_index]),
-    ///     Mat2::from_column_array(&[
+    ///     Mat2::from_row_array(&[
     ///         i32x4::new([1, 5, 9, 13]),
     ///         i32x4::new([2, 6, 10, 14]),
     ///         i32x4::new([3, 7, 11, 15]),
@@ -84,7 +84,7 @@ where
     /// # use ggmath::Mat2;
     /// # use wide::i32x4;
     /// #
-    /// let matrix = Mat2::from_column_array(&[
+    /// let matrix = Mat2::from_row_array(&[
     ///     i32x4::new([1, 5, 9, 13]),
     ///     i32x4::new([2, 6, 10, 14]),
     ///     i32x4::new([3, 7, 11, 15]),
@@ -93,10 +93,10 @@ where
     /// assert_eq!(
     ///     matrix.to_lanes(),
     ///     [
-    ///         Mat2::from_column_array(&[1, 2, 3, 4]),
-    ///         Mat2::from_column_array(&[5, 6, 7, 8]),
-    ///         Mat2::from_column_array(&[9, 10, 11, 12]),
-    ///         Mat2::from_column_array(&[13, 14, 15, 16]),
+    ///         Mat2::from_row_array(&[1, 2, 3, 4]),
+    ///         Mat2::from_row_array(&[5, 6, 7, 8]),
+    ///         Mat2::from_row_array(&[9, 10, 11, 12]),
+    ///         Mat2::from_row_array(&[13, 14, 15, 16]),
     ///     ],
     /// );
     /// ```
@@ -119,19 +119,19 @@ where
     /// # use ggmath::Mat2;
     /// # use wide::i32x4;
     /// #
-    /// let matrix = Mat2::from_column_array(&[
+    /// let matrix = Mat2::from_row_array(&[
     ///     i32x4::new([1, 5, 9, 13]),
     ///     i32x4::new([2, 6, 10, 14]),
     ///     i32x4::new([3, 7, 11, 15]),
     ///     i32x4::new([4, 8, 12, 16]),
     /// ]);
-    /// assert_eq!(matrix.lane(1), Mat2::from_column_array(&[5, 6, 7, 8]));
+    /// assert_eq!(matrix.lane(1), Mat2::from_row_array(&[5, 6, 7, 8]));
     /// ```
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn lane(&self, lane: usize) -> Matrix<N, T, A> {
-        Matrix::from_column_fn(|i| self.column(i).lane(lane))
+        Matrix::from_row_fn(|i| self[i].lane(lane))
     }
 
     /// Takes an SoA (Structure of Arrays) matrix and sets the lane at the given
@@ -148,7 +148,7 @@ where
     /// # use ggmath::Mat2;
     /// # use wide::i32x4;
     /// #
-    /// let mut matrix = Mat2::from_column_array(&[
+    /// let mut matrix = Mat2::from_row_array(&[
     ///     i32x4::new([1, 5, 9, 13]),
     ///     i32x4::new([2, 6, 10, 14]),
     ///     i32x4::new([3, 7, 11, 15]),
@@ -157,7 +157,7 @@ where
     /// matrix.set_lane(1, Mat2::ZERO);
     /// assert_eq!(
     ///     matrix,
-    ///     Mat2::from_column_array(&[
+    ///     Mat2::from_row_array(&[
     ///         i32x4::new([1, 0, 9, 13]),
     ///         i32x4::new([2, 0, 10, 14]),
     ///         i32x4::new([3, 0, 11, 15]),
@@ -169,7 +169,7 @@ where
     #[track_caller]
     pub fn set_lane(&mut self, lane: usize, value: Matrix<N, T, A>) {
         for i in 0..N {
-            self.column_mut(i).set_lane(lane, value.column(i));
+            self[i].set_lane(lane, value[i]);
         }
     }
 
@@ -181,17 +181,13 @@ where
     #[must_use]
     pub fn simd_eq(&self, other: &Self) -> Wide {
         match N {
-            2 => self.column(0).simd_eq(other.column(0)) & self.column(1).simd_eq(other.column(1)),
-            3 => {
-                self.column(0).simd_eq(other.column(0))
-                    & self.column(1).simd_eq(other.column(1))
-                    & self.column(2).simd_eq(other.column(2))
-            }
+            2 => self[0].simd_eq(other[0]) & self[1].simd_eq(other[1]),
+            3 => self[0].simd_eq(other[0]) & self[1].simd_eq(other[1]) & self[2].simd_eq(other[2]),
             4 => {
-                self.column(0).simd_eq(other.column(0))
-                    & self.column(1).simd_eq(other.column(1))
-                    & self.column(2).simd_eq(other.column(2))
-                    & self.column(3).simd_eq(other.column(3))
+                self[0].simd_eq(other[0])
+                    & self[1].simd_eq(other[1])
+                    & self[2].simd_eq(other[2])
+                    & self[3].simd_eq(other[3])
             }
             _ => unreachable!(),
         }
@@ -208,17 +204,13 @@ where
         Wide: CmpNe<Output = Wide>,
     {
         match N {
-            2 => self.column(0).simd_ne(other.column(0)) | self.column(1).simd_ne(other.column(1)),
-            3 => {
-                self.column(0).simd_ne(other.column(0))
-                    | self.column(1).simd_ne(other.column(1))
-                    | self.column(2).simd_ne(other.column(2))
-            }
+            2 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]),
+            3 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]) | self[2].simd_ne(other[2]),
             4 => {
-                self.column(0).simd_ne(other.column(0))
-                    | self.column(1).simd_ne(other.column(1))
-                    | self.column(2).simd_ne(other.column(2))
-                    | self.column(3).simd_ne(other.column(3))
+                self[0].simd_ne(other[0])
+                    | self[1].simd_ne(other[1])
+                    | self[2].simd_ne(other[2])
+                    | self[3].simd_ne(other[3])
             }
             _ => unreachable!(),
         }
@@ -238,12 +230,12 @@ mod tests {
     fn test_from_lanes() {
         assert_eq!(
             Mat2::<i32x4>::from_lanes(&[
-                Mat2::from_column_array(&[1, 2, 3, 4]),
-                Mat2::from_column_array(&[5, 6, 7, 8]),
-                Mat2::from_column_array(&[9, 10, 11, 12]),
-                Mat2::from_column_array(&[13, 14, 15, 16]),
+                Mat2::from_row_array(&[1, 2, 3, 4]),
+                Mat2::from_row_array(&[5, 6, 7, 8]),
+                Mat2::from_row_array(&[9, 10, 11, 12]),
+                Mat2::from_row_array(&[13, 14, 15, 16]),
             ]),
-            Mat2::from_column_array(&[
+            Mat2::from_row_array(&[
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -256,12 +248,12 @@ mod tests {
     fn test_from_lane_fn() {
         assert_eq!(
             Mat2::<i32x4>::from_lane_fn(|i| [
-                Mat2::from_column_array(&[1, 2, 3, 4]),
-                Mat2::from_column_array(&[5, 6, 7, 8]),
-                Mat2::from_column_array(&[9, 10, 11, 12]),
-                Mat2::from_column_array(&[13, 14, 15, 16]),
+                Mat2::from_row_array(&[1, 2, 3, 4]),
+                Mat2::from_row_array(&[5, 6, 7, 8]),
+                Mat2::from_row_array(&[9, 10, 11, 12]),
+                Mat2::from_row_array(&[13, 14, 15, 16]),
             ][i]),
-            Mat2::from_column_array(&[
+            Mat2::from_row_array(&[
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -273,7 +265,7 @@ mod tests {
     #[test]
     fn test_to_lanes() {
         assert_eq!(
-            Mat2::from_column_array(&[
+            Mat2::from_row_array(&[
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -281,73 +273,73 @@ mod tests {
             ])
             .to_lanes(),
             [
-                Mat2::from_column_array(&[1, 2, 3, 4]),
-                Mat2::from_column_array(&[5, 6, 7, 8]),
-                Mat2::from_column_array(&[9, 10, 11, 12]),
-                Mat2::from_column_array(&[13, 14, 15, 16]),
+                Mat2::from_row_array(&[1, 2, 3, 4]),
+                Mat2::from_row_array(&[5, 6, 7, 8]),
+                Mat2::from_row_array(&[9, 10, 11, 12]),
+                Mat2::from_row_array(&[13, 14, 15, 16]),
             ],
         );
     }
 
     #[test]
     fn test_lane() {
-        let matrix = Mat2::from_column_array(&[
+        let matrix = Mat2::from_row_array(&[
             i32x4::new([1, 5, 9, 13]),
             i32x4::new([2, 6, 10, 14]),
             i32x4::new([3, 7, 11, 15]),
             i32x4::new([4, 8, 12, 16]),
         ]);
 
-        assert_eq!(matrix.lane(0), Mat2::from_column_array(&[1, 2, 3, 4]));
-        assert_eq!(matrix.lane(1), Mat2::from_column_array(&[5, 6, 7, 8]));
-        assert_eq!(matrix.lane(2), Mat2::from_column_array(&[9, 10, 11, 12]));
-        assert_eq!(matrix.lane(3), Mat2::from_column_array(&[13, 14, 15, 16]));
+        assert_eq!(matrix.lane(0), Mat2::from_row_array(&[1, 2, 3, 4]));
+        assert_eq!(matrix.lane(1), Mat2::from_row_array(&[5, 6, 7, 8]));
+        assert_eq!(matrix.lane(2), Mat2::from_row_array(&[9, 10, 11, 12]));
+        assert_eq!(matrix.lane(3), Mat2::from_row_array(&[13, 14, 15, 16]));
         assert_panic!(matrix.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        let mut matrix = Mat2::from_column_array(&[
+        let mut matrix = Mat2::from_row_array(&[
             i32x4::new([1, 5, 9, 13]),
             i32x4::new([2, 6, 10, 14]),
             i32x4::new([3, 7, 11, 15]),
             i32x4::new([4, 8, 12, 16]),
         ]);
 
-        matrix.set_lane(0, Mat2::from_column_array(&[-1, -2, -3, -4]));
+        matrix.set_lane(0, Mat2::from_row_array(&[-1, -2, -3, -4]));
         assert_eq!(
             matrix,
-            Mat2::from_column_array(&[
+            Mat2::from_row_array(&[
                 i32x4::new([-1, 5, 9, 13]),
                 i32x4::new([-2, 6, 10, 14]),
                 i32x4::new([-3, 7, 11, 15]),
                 i32x4::new([-4, 8, 12, 16]),
             ])
         );
-        matrix.set_lane(1, Mat2::from_column_array(&[-5, -6, -7, -8]));
+        matrix.set_lane(1, Mat2::from_row_array(&[-5, -6, -7, -8]));
         assert_eq!(
             matrix,
-            Mat2::from_column_array(&[
+            Mat2::from_row_array(&[
                 i32x4::new([-1, -5, 9, 13]),
                 i32x4::new([-2, -6, 10, 14]),
                 i32x4::new([-3, -7, 11, 15]),
                 i32x4::new([-4, -8, 12, 16]),
             ])
         );
-        matrix.set_lane(2, Mat2::from_column_array(&[-9, -10, -11, -12]));
+        matrix.set_lane(2, Mat2::from_row_array(&[-9, -10, -11, -12]));
         assert_eq!(
             matrix,
-            Mat2::from_column_array(&[
+            Mat2::from_row_array(&[
                 i32x4::new([-1, -5, -9, 13]),
                 i32x4::new([-2, -6, -10, 14]),
                 i32x4::new([-3, -7, -11, 15]),
                 i32x4::new([-4, -8, -12, 16]),
             ])
         );
-        matrix.set_lane(3, Mat2::from_column_array(&[-13, -14, -15, -16]));
+        matrix.set_lane(3, Mat2::from_row_array(&[-13, -14, -15, -16]));
         assert_eq!(
             matrix,
-            Mat2::from_column_array(&[
+            Mat2::from_row_array(&[
                 i32x4::new([-1, -5, -9, -13]),
                 i32x4::new([-2, -6, -10, -14]),
                 i32x4::new([-3, -7, -11, -15]),
@@ -364,43 +356,43 @@ mod tests {
             let w = x ^ y;
 
             assert_float_eq!(
-                Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w])
-                    .simd_eq(&Matrix::<2, Wide, A>::from_column_array(&[z, y, z, w])),
+                Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w])
+                    .simd_eq(&Matrix::<2, Wide, A>::from_row_array(&[z, y, z, w])),
                 x.simd_eq(z) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w)
             );
             assert_float_eq!(
-                Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w])
-                    .simd_eq(&Matrix::<2, Wide, A>::from_column_array(&[z, w, x, y])),
+                Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w])
+                    .simd_eq(&Matrix::<2, Wide, A>::from_row_array(&[z, w, x, y])),
                 x.simd_eq(z) & y.simd_eq(w)
             );
 
             assert_float_eq!(
-                Matrix::<3, Wide, A>::from_column_array(&[x, y, z, x, y, w, x, y, z]).simd_eq(
-                    &Matrix::<3, Wide, A>::from_column_array(&[x, y, w, x, y, w, x, y, z])
+                Matrix::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z]).simd_eq(
+                    &Matrix::<3, Wide, A>::from_row_array(&[x, y, w, x, y, w, x, y, z])
                 ),
                 x.simd_eq(x) & y.simd_eq(y) & z.simd_eq(w) & w.simd_eq(w) & z.simd_eq(z)
             );
             assert_float_eq!(
-                Matrix::<3, Wide, A>::from_column_array(&[x, y, z, z, w, y, x, y, z]).simd_eq(
-                    &Matrix::<3, Wide, A>::from_column_array(&[z, w, y, x, y, z, z, w, y])
+                Matrix::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z]).simd_eq(
+                    &Matrix::<3, Wide, A>::from_row_array(&[z, w, y, x, y, z, z, w, y])
                 ),
                 x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y)
             );
 
             assert_float_eq!(
-                Matrix::<4, Wide, A>::from_column_array(&[
+                Matrix::<4, Wide, A>::from_row_array(&[
                     x, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x
                 ])
-                .simd_eq(&Matrix::<4, Wide, A>::from_column_array(&[
+                .simd_eq(&Matrix::<4, Wide, A>::from_row_array(&[
                     w, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x
                 ])),
                 x.simd_eq(w) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w)
             );
             assert_float_eq!(
-                Matrix::<4, Wide, A>::from_column_array(&[
+                Matrix::<4, Wide, A>::from_row_array(&[
                     x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x
                 ])
-                .simd_eq(&Matrix::<4, Wide, A>::from_column_array(&[
+                .simd_eq(&Matrix::<4, Wide, A>::from_row_array(&[
                     z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w
                 ])),
                 x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y) & w.simd_eq(x)
@@ -414,22 +406,22 @@ mod tests {
             let _: [Wide; 3] = [x, y, z];
             let w = x ^ y;
 
-            let matrix = Matrix::<2, Wide, A>::from_column_array(&[x, y, z, w]);
+            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
             for other in [
-                Matrix::<2, Wide, A>::from_column_array(&[z, y, z, w]),
-                Matrix::<2, Wide, A>::from_column_array(&[z, w, x, y]),
+                Matrix::<2, Wide, A>::from_row_array(&[z, y, z, w]),
+                Matrix::<2, Wide, A>::from_row_array(&[z, w, x, y]),
             ] {
                 assert_float_eq!(matrix.simd_ne(&other), !matrix.simd_eq(&other));
             }
 
             for (matrix, other) in [
                 (
-                    Matrix::<3, Wide, A>::from_column_array(&[x, y, z, x, y, w, x, y, z]),
-                    Matrix::<3, Wide, A>::from_column_array(&[x, y, w, x, y, w, x, y, z]),
+                    Matrix::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z]),
+                    Matrix::<3, Wide, A>::from_row_array(&[x, y, w, x, y, w, x, y, z]),
                 ),
                 (
-                    Matrix::<3, Wide, A>::from_column_array(&[x, y, z, z, w, y, x, y, z]),
-                    Matrix::<3, Wide, A>::from_column_array(&[z, w, y, x, y, z, z, w, y]),
+                    Matrix::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z]),
+                    Matrix::<3, Wide, A>::from_row_array(&[z, w, y, x, y, z, z, w, y]),
                 ),
             ] {
                 assert_float_eq!(matrix.simd_ne(&other), !matrix.simd_eq(&other));
@@ -437,18 +429,18 @@ mod tests {
 
             for (matrix, other) in [
                 (
-                    Matrix::<4, Wide, A>::from_column_array(&[
+                    Matrix::<4, Wide, A>::from_row_array(&[
                         x, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x,
                     ]),
-                    Matrix::<4, Wide, A>::from_column_array(&[
+                    Matrix::<4, Wide, A>::from_row_array(&[
                         w, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x,
                     ]),
                 ),
                 (
-                    Matrix::<4, Wide, A>::from_column_array(&[
+                    Matrix::<4, Wide, A>::from_row_array(&[
                         x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x,
                     ]),
-                    Matrix::<4, Wide, A>::from_column_array(&[
+                    Matrix::<4, Wide, A>::from_row_array(&[
                         z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w,
                     ]),
                 ),
