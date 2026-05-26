@@ -27,8 +27,8 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Quat<T>`] for `Quaternion<T, Aligned>`.
-/// - [`QuatU<T>`] for `Quaternion<T, Unaligned>`.
+/// - [`Quat<T>`] for `Quaternion<T, Unaligned>`.
+/// - [`QuatA<T>`] for `Quaternion<T, Aligned>`.
 ///
 /// # Fields
 ///
@@ -51,9 +51,6 @@ mod wide_float;
 /// # Memory layout
 ///
 /// `Quaternion<T, A>` is a transparent wrapper around `Vector<4, T, A>`.
-///
-/// [`Quat<T>`]: crate::Quat
-/// [`QuatU<T>`]: crate::QuatU
 #[repr(transparent)]
 pub struct Quaternion<T, A: Alignment>(Vector<4, T, A>)
 where
@@ -65,9 +62,42 @@ where
 /// floating point "error creep" which can occur when successive quaternion
 /// operations are applied.
 ///
+/// # No SIMD alignment
+///
+/// `Quat<T>` does not have SIMD alignment. See [`QuatA<T>`] for a SIMD variant.
+///
+/// See [`Alignment`] for more details.
+///
+/// # Fields
+///
+/// `x: T`
+///
+/// The first imaginary component of the quaternion.
+///
+/// `y: T`
+///
+/// The second imaginary component of the quaternion.
+///
+/// `z: T`
+///
+/// The third imaginary component of the quaternion.
+///
+/// `w: T`
+///
+/// The real part of the quaternion.
+///
+/// [`Alignment`]: crate::Alignment
+pub type Quat<T> = Quaternion<T, Unaligned>;
+
+/// A quaternion representing an orientation.
+///
+/// This quaternion is intended to be of unit length but may denormalize due to
+/// floating point "error creep" which can occur when successive quaternion
+/// operations are applied.
+///
 /// # SIMD alignment
 ///
-/// `Quat<T>` has SIMD alignment for appropriate scalar types. See [`QuatU<T>`]
+/// `QuatA<T>` has SIMD alignment for appropriate scalar types. See [`Quat<T>`]
 /// for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
@@ -91,40 +121,7 @@ where
 /// The real part of the quaternion.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Quat<T> = Quaternion<T, Aligned>;
-
-/// A quaternion representing an orientation.
-///
-/// This quaternion is intended to be of unit length but may denormalize due to
-/// floating point "error creep" which can occur when successive quaternion
-/// operations are applied.
-///
-/// # No SIMD alignment
-///
-/// `QuatU<T>` does not have SIMD alignment. See [`Quat<T>`] for a SIMD variant.
-///
-/// See [`Alignment`] for more details.
-///
-/// # Fields
-///
-/// `x: T`
-///
-/// The first imaginary component of the quaternion.
-///
-/// `y: T`
-///
-/// The second imaginary component of the quaternion.
-///
-/// `z: T`
-///
-/// The third imaginary component of the quaternion.
-///
-/// `w: T`
-///
-/// The real part of the quaternion.
-///
-/// [`Alignment`]: crate::Alignment
-pub type QuatU<T> = Quaternion<T, Unaligned>;
+pub type QuatA<T> = Quaternion<T, Aligned>;
 
 impl<T, A: Alignment> Quaternion<T, A>
 where
@@ -199,15 +196,15 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
+    /// # use ggmath::{Aligned, Quat, QuatA, Unaligned};
     /// #
-    /// let aligned = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5));
-    ///
-    /// let unaligned = QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5);
+    /// let unaligned = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
     /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Quat::from_xyzw(0.5, 0.5, 0.5, 0.5));
+    /// assert_eq!(aligned, QuatA::from_xyzw(0.5, 0.5, 0.5, 0.5));
+    ///
+    /// let aligned = QuatA::from_xyzw(0.5, 0.5, 0.5, 0.5);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Quat::from_xyzw(0.5, 0.5, 0.5, 0.5));
     /// ```
     ///
     /// [`align`]: Self::align
@@ -225,11 +222,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
+    /// # use ggmath::{Aligned, Quat, QuatA, Unaligned};
     /// #
-    /// let unaligned = QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5);
+    /// let unaligned = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
     /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Quat::from_xyzw(0.5, 0.5, 0.5, 0.5));
+    /// assert_eq!(aligned, QuatA::from_xyzw(0.5, 0.5, 0.5, 0.5));
     /// ```
     #[inline]
     #[must_use]
@@ -244,11 +241,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Aligned, Quat, QuatU, Unaligned};
+    /// # use ggmath::{Aligned, Quat, QuatA, Unaligned};
     /// #
-    /// let aligned = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
+    /// let aligned = QuatA::from_xyzw(0.5, 0.5, 0.5, 0.5);
     /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, QuatU::from_xyzw(0.5, 0.5, 0.5, 0.5));
+    /// assert_eq!(unaligned, Quat::from_xyzw(0.5, 0.5, 0.5, 0.5));
     /// ```
     #[inline]
     #[must_use]

@@ -213,20 +213,20 @@ mod tests {
     use wide::{CmpEq, i32x4};
 
     use crate::{
-        Affine, Affine2,
+        Affine, Affine2A,
         utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
     fn test_from_lanes() {
         assert_eq!(
-            Affine2::<i32x4>::from_lanes(&[
-                Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
-                Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
-                Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
-                Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
+            Affine2A::<i32x4>::from_lanes(&[
+                Affine2A::from_row_array(&[1, 2, 3, 4, 5, 6]),
+                Affine2A::from_row_array(&[7, 8, 9, 10, 11, 12]),
+                Affine2A::from_row_array(&[13, 14, 15, 16, 17, 18]),
+                Affine2A::from_row_array(&[19, 20, 21, 22, 23, 24]),
             ]),
-            Affine2::from_row_array(&[
+            Affine2A::from_row_array(&[
                 i32x4::new([1, 7, 13, 19]),
                 i32x4::new([2, 8, 14, 20]),
                 i32x4::new([3, 9, 15, 21]),
@@ -240,13 +240,13 @@ mod tests {
     #[test]
     fn test_from_lane_fn() {
         assert_eq!(
-            Affine2::<i32x4>::from_lane_fn(|i| [
-                Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
-                Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
-                Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
-                Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
+            Affine2A::<i32x4>::from_lane_fn(|i| [
+                Affine2A::from_row_array(&[1, 2, 3, 4, 5, 6]),
+                Affine2A::from_row_array(&[7, 8, 9, 10, 11, 12]),
+                Affine2A::from_row_array(&[13, 14, 15, 16, 17, 18]),
+                Affine2A::from_row_array(&[19, 20, 21, 22, 23, 24]),
             ][i]),
-            Affine2::from_row_array(&[
+            Affine2A::from_row_array(&[
                 i32x4::new([1, 7, 13, 19]),
                 i32x4::new([2, 8, 14, 20]),
                 i32x4::new([3, 9, 15, 21]),
@@ -260,7 +260,7 @@ mod tests {
     #[test]
     fn test_to_lanes() {
         assert_eq!(
-            Affine2::from_row_array(&[
+            Affine2A::from_row_array(&[
                 i32x4::new([1, 7, 13, 19]),
                 i32x4::new([2, 8, 14, 20]),
                 i32x4::new([3, 9, 15, 21]),
@@ -270,17 +270,17 @@ mod tests {
             ])
             .to_lanes(),
             [
-                Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]),
-                Affine2::from_row_array(&[7, 8, 9, 10, 11, 12]),
-                Affine2::from_row_array(&[13, 14, 15, 16, 17, 18]),
-                Affine2::from_row_array(&[19, 20, 21, 22, 23, 24]),
+                Affine2A::from_row_array(&[1, 2, 3, 4, 5, 6]),
+                Affine2A::from_row_array(&[7, 8, 9, 10, 11, 12]),
+                Affine2A::from_row_array(&[13, 14, 15, 16, 17, 18]),
+                Affine2A::from_row_array(&[19, 20, 21, 22, 23, 24]),
             ]
         );
     }
 
     #[test]
     fn test_lane() {
-        let affine = Affine2::from_row_array(&[
+        let affine = Affine2A::from_row_array(&[
             i32x4::new([1, 7, 13, 19]),
             i32x4::new([2, 8, 14, 20]),
             i32x4::new([3, 9, 15, 21]),
@@ -289,25 +289,28 @@ mod tests {
             i32x4::new([6, 12, 18, 24]),
         ]);
 
-        assert_eq!(affine.lane(0), Affine2::from_row_array(&[1, 2, 3, 4, 5, 6]));
+        assert_eq!(
+            affine.lane(0),
+            Affine2A::from_row_array(&[1, 2, 3, 4, 5, 6])
+        );
         assert_eq!(
             affine.lane(1),
-            Affine2::from_row_array(&[7, 8, 9, 10, 11, 12])
+            Affine2A::from_row_array(&[7, 8, 9, 10, 11, 12])
         );
         assert_eq!(
             affine.lane(2),
-            Affine2::from_row_array(&[13, 14, 15, 16, 17, 18])
+            Affine2A::from_row_array(&[13, 14, 15, 16, 17, 18])
         );
         assert_eq!(
             affine.lane(3),
-            Affine2::from_row_array(&[19, 20, 21, 22, 23, 24])
+            Affine2A::from_row_array(&[19, 20, 21, 22, 23, 24])
         );
         assert_panic!(affine.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        let mut affine = Affine2::from_row_array(&[
+        let mut affine = Affine2A::from_row_array(&[
             i32x4::new([1, 7, 13, 19]),
             i32x4::new([2, 8, 14, 20]),
             i32x4::new([3, 9, 15, 21]),
@@ -316,10 +319,10 @@ mod tests {
             i32x4::new([6, 12, 18, 24]),
         ]);
 
-        affine.set_lane(0, Affine2::from_row_array(&[-1, -2, -3, -4, -5, -6]));
+        affine.set_lane(0, Affine2A::from_row_array(&[-1, -2, -3, -4, -5, -6]));
         assert_eq!(
             affine,
-            Affine2::from_row_array(&[
+            Affine2A::from_row_array(&[
                 i32x4::new([-1, 7, 13, 19]),
                 i32x4::new([-2, 8, 14, 20]),
                 i32x4::new([-3, 9, 15, 21]),
@@ -328,10 +331,10 @@ mod tests {
                 i32x4::new([-6, 12, 18, 24]),
             ])
         );
-        affine.set_lane(1, Affine2::from_row_array(&[-7, -8, -9, -10, -11, -12]));
+        affine.set_lane(1, Affine2A::from_row_array(&[-7, -8, -9, -10, -11, -12]));
         assert_eq!(
             affine,
-            Affine2::from_row_array(&[
+            Affine2A::from_row_array(&[
                 i32x4::new([-1, -7, 13, 19]),
                 i32x4::new([-2, -8, 14, 20]),
                 i32x4::new([-3, -9, 15, 21]),
@@ -340,10 +343,10 @@ mod tests {
                 i32x4::new([-6, -12, 18, 24]),
             ])
         );
-        affine.set_lane(2, Affine2::from_row_array(&[-13, -14, -15, -16, -17, -18]));
+        affine.set_lane(2, Affine2A::from_row_array(&[-13, -14, -15, -16, -17, -18]));
         assert_eq!(
             affine,
-            Affine2::from_row_array(&[
+            Affine2A::from_row_array(&[
                 i32x4::new([-1, -7, -13, 19]),
                 i32x4::new([-2, -8, -14, 20]),
                 i32x4::new([-3, -9, -15, 21]),
@@ -352,10 +355,10 @@ mod tests {
                 i32x4::new([-6, -12, -18, 24]),
             ])
         );
-        affine.set_lane(3, Affine2::from_row_array(&[-19, -20, -21, -22, -23, -24]));
+        affine.set_lane(3, Affine2A::from_row_array(&[-19, -20, -21, -22, -23, -24]));
         assert_eq!(
             affine,
-            Affine2::from_row_array(&[
+            Affine2A::from_row_array(&[
                 i32x4::new([-1, -7, -13, -19]),
                 i32x4::new([-2, -8, -14, -20]),
                 i32x4::new([-3, -9, -15, -21]),

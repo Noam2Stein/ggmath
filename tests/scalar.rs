@@ -1,16 +1,16 @@
 use std::ops::Add;
 
 use ggmath::{
-    Aligned, Backend, DefaultBackend, Length, Mask, Scalar, SupportedLength, Unaligned, Vec3,
+    Aligned, Backend, DefaultBackend, Length, Mask, Scalar, SupportedLength, Unaligned, Vec3A,
     Vector,
 };
 
 #[test]
 fn test_add() {
-    let a = Vec3::new(Foo(1.0), Foo(2.0), Foo(3.0));
-    let b = Vec3::new(Foo(4.0), Foo(5.0), Foo(6.0));
+    let a = Vec3A::new(Foo(1.0), Foo(2.0), Foo(3.0));
+    let b = Vec3A::new(Foo(4.0), Foo(5.0), Foo(6.0));
 
-    assert_eq!(a + b, Vec3::new(Foo(5.0), Foo(7.0), Foo(9.0)));
+    assert_eq!(a + b, Vec3A::new(Foo(5.0), Foo(7.0), Foo(9.0)));
 }
 
 #[repr(transparent)]

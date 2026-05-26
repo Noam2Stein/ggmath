@@ -2,45 +2,52 @@
 
 A linear algebra library for games and graphics with generic SIMD types.
 
-The library provides:
+- Vectors: [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`].
+- Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`].
+- Quaternions: [`Quat<T>`].
+- Affine Transforms: [`Affine2<T>`], [`Affine3<T>`].
+- Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`].
 
-- Vectors: `Vec2<T>`, `Vec3<T>`, `Vec4<T>`.
-- Square Matrices: `Mat2<T>`, `Mat3<T>`, `Mat4<T>`.
-- Quaternions: `Quat<T>`.
-- Affine Transforms: `Affine2<T>`, `Affine3<T>`.
-- Masks: `Mask2<T>`, `Mask3<T>`, `Mask4<T>`.
+SIMD variants:
+
+- Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`].
+- Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`].
+- Quaternions: [`QuatA<T>`].
+- Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`].
+- Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`].
+
+Underlying generic types:
+
+- [`Vector<N, T, A>`]
+- [`Matrix<N, T, A>`]
+- [`Quaternion<T, A>`]
+- [`Affine<N, T, A>`]
+- [`Mask<N, T, A>`]
 
 ## SIMD
 
-Appropriate types have increased memory alignment in order to take advantage of
-SIMD instructions that improve performance. For example, `Vec3<f32>`,
-`Vec4<f32>`, `Mat3<f32>` and `Mat4<f32>` are aligned to 16 bytes on x86 targets
-in order to take advantage of the SSE instruction set.
+SIMD variants use specialization to have appropriate alignment and to use
+explicit SIMD in function implementations.
 
-Although SIMD alignment generally results better performance, it can also result
-in wasted space. For example, due to 16-byte alignment, `Vec3<f32>` has 4 bytes
-of padding, and consequently `Mat3<f32>` has 12 bytes of padding. For scenarios
-where better performance is not worth wasted space, math types have non-SIMD,
-unaligned variants:
+SIMD results in faster computations, but can actually hurt performance if the
+bottleneck is memory bandwidth rather than computation throughput. For maximum
+performance, there are both SIMD and non-SIMD types.
 
-- Vectors: `Vec2U<T>`, `Vec3U<T>`, `Vec4U<T>`.
-- Square Matrices: `Mat2U<T>`, `Mat3U<T>`, `Mat4U<T>`.
-- Quaternions: `QuatU<T>`.
-- Affine Transforms: `Affine2U<T>`, `Affine3U<T>`.
-- Masks: `Mask2U<T>`, `Mask3U<T>`, `Mask4U<T>`.
+| Type              | [`Vec3<f32>`] | [`Vec3A<f32>`] | [`Mat3<f32>`] | [`Mat3A<f32>`] |
+| ----------------- | ------------- | -------------- | ------------- | -------------- |
+| Size (bytes)      | 12            | 16             | 36            | 48             |
+| Alignment (bytes) | 4             | 16             | 4             | 16             |
+| Padding (bytes)   | 0             | 4              | 0             | 12             |
 
-Unaligned types are optimal in memory-critical scenarios, for example when
-storing 3D models. In all other cases, aligned types are optimal and result in
-better performance than unaligned types.
+| Type              | [`Vec4<f32>`] | [`Vec4A<f32>`] | [`Mat4<f32>`] | [`Mat4A<f32>`] |
+| ----------------- | ------------- | -------------- | ------------- | -------------- |
+| Size (bytes)      | 16            | 16             | 64            | 64             |
+| Alignment (bytes) | 4             | 16             | 4             | 16             |
+| Padding (bytes)   | 0             | 0              | 0             | 0              |
 
-Currently SIMD optimizations are only implemented for `f32` vectors on x86
-targets. These vectors are closely benchmarked against [`glam`] and generally
-match its performance.
-
-Integration with [`wide`] enables SoA ([Structure of Arrays]) SIMD, which lets
-you perform operations concurrently on multiple values, for example with
-`Vec3<f32x4>` which represents four values of `Vec3<f32>`. SoA requires modeling
-algorithms in a very specific way, but can be much faster than normal types.
+> This table is true only for target architectures that have SIMD and are
+> supported. Types incompatible with SIMD use fallback implementations.
+> Currently support is limited to [`f32`] types on x86.
 
 ## Generics
 
@@ -54,7 +61,7 @@ functions generic over `T: PrimitiveFloat` will have access to float-vector
 functionality.
 
 Types relative to each other (e.g., `Vec2<T>`, `Vec3<T>`, `Vec4<T>` and
-unaligned variants) are not distinct types, instead they are all type aliases to
+SIMD variants) are not distinct types, instead they are all type aliases to
 these const-generic structs:
 
 - `Vector<N, T, A>`.
@@ -187,8 +194,49 @@ dual licensed as above, without any additional terms or conditions.
 `ggmath` is heavily inspired by [`glam`] and ports most of its code from it, as
 it serves the same purpose as `glam` but with generics.
 
+[`Vec2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec2.html
+[`Vec3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html
+[`Vec4<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec4.html
+[`Mat2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2.html
+[`Mat3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
+[`Mat4<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
+[`Quat<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Quat.html
+[`Affine2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2.html
+[`Affine3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3.html
+[`Mask2<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2.html
+[`Mask3<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3.html
+[`Mask4<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask4.html
+
+[`Vec2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec2A.html
+[`Vec3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3A.html
+[`Vec4A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec4A.html
+[`Mat2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat2A.html
+[`Mat3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3A.html
+[`Mat4A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4A.html
+[`QuatA<T>`]: https://docs.rs/ggmath/latest/ggmath/type.QuatA.html
+[`Affine2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine2A.html
+[`Affine3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Affine3A.html
+[`Mask2A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask2A.html
+[`Mask3A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask3A.html
+[`Mask4A<T>`]: https://docs.rs/ggmath/latest/ggmath/type.Mask4A.html
+
+[`Vector<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Vector.html
+[`Matrix<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Matrix.html
+[`Quaternion<T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Quaternion.html
+[`Affine<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Affine.html
+[`Mask<N, T, A>`]: https://docs.rs/ggmath/latest/ggmath/struct.Mask.html
+
+[`Vec3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3.html
+[`Vec3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec3A.html
+[`Mat3<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3.html
+[`Mat3A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat3A.html
+[`Vec4<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec4.html
+[`Vec4A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Vec4A.html
+[`Mat4<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4.html
+[`Mat4A<f32>`]: https://docs.rs/ggmath/latest/ggmath/type.Mat4A.html
+[`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+
 [`glam`]: https://crates.io/crates/glam
 [`wide`]: https://crates.io/crates/wide
 [`fixed`]: https://crates.io/crates/fixed
 [`num-primitive`]: https://crates.io/crates/num-primitive
-[Structure of Arrays]: https://en.wikipedia.org/wiki/AoS_and_SoA

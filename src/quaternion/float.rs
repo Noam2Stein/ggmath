@@ -725,7 +725,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Matrix, Quat, Quaternion, Vector,
+        Matrix, QuatA, Quaternion, Vector,
         utils::{
             assert_debug_panic, assert_float_eq, assert_panic_float_eq, float_eq, for_parameters,
         },
@@ -1414,12 +1414,12 @@ mod tests {
     fn test_abs_diff_eq() {
         for_parameters!(|T: PrimitiveFloat| {
             assert!(
-                Quat::<T>::from_xyzw(0.0, 1.0, 2.0, 3.0)
-                    .abs_diff_eq(Quat::from_xyzw(0.0, 1.1, 2.05, 2.9), 0.125)
+                QuatA::<T>::from_xyzw(0.0, 1.0, 2.0, 3.0)
+                    .abs_diff_eq(QuatA::from_xyzw(0.0, 1.1, 2.05, 2.9), 0.125)
             );
             assert!(
-                !Quat::<T>::from_xyzw(0.0, 1.0, 2.0, 3.0)
-                    .abs_diff_eq(Quat::from_xyzw(0.0, 1.1, 2.5, 2.9), 0.125)
+                !QuatA::<T>::from_xyzw(0.0, 1.0, 2.0, 3.0)
+                    .abs_diff_eq(QuatA::from_xyzw(0.0, 1.1, 2.5, 2.9), 0.125)
             );
         });
     }

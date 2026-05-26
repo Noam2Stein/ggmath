@@ -198,20 +198,20 @@ mod tests {
     use wide::{CmpEq, i32x4};
 
     use crate::{
-        Quat, Quaternion,
+        QuatA, Quaternion,
         utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
     fn test_from_lanes() {
         assert_eq!(
-            Quat::<i32x4>::from_lanes(&[
-                Quat::from_xyzw(1, 2, 3, 4),
-                Quat::from_xyzw(5, 6, 7, 8),
-                Quat::from_xyzw(9, 10, 11, 12),
-                Quat::from_xyzw(13, 14, 15, 16),
+            QuatA::<i32x4>::from_lanes(&[
+                QuatA::from_xyzw(1, 2, 3, 4),
+                QuatA::from_xyzw(5, 6, 7, 8),
+                QuatA::from_xyzw(9, 10, 11, 12),
+                QuatA::from_xyzw(13, 14, 15, 16),
             ]),
-            Quat::from_xyzw(
+            QuatA::from_xyzw(
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -223,13 +223,13 @@ mod tests {
     #[test]
     fn test_from_lane_fn() {
         assert_eq!(
-            Quat::<i32x4>::from_lane_fn(|i| [
-                Quat::from_xyzw(1, 2, 3, 4),
-                Quat::from_xyzw(5, 6, 7, 8),
-                Quat::from_xyzw(9, 10, 11, 12),
-                Quat::from_xyzw(13, 14, 15, 16),
+            QuatA::<i32x4>::from_lane_fn(|i| [
+                QuatA::from_xyzw(1, 2, 3, 4),
+                QuatA::from_xyzw(5, 6, 7, 8),
+                QuatA::from_xyzw(9, 10, 11, 12),
+                QuatA::from_xyzw(13, 14, 15, 16),
             ][i]),
-            Quat::from_xyzw(
+            QuatA::from_xyzw(
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -241,7 +241,7 @@ mod tests {
     #[test]
     fn test_to_lanes() {
         assert_eq!(
-            Quat::from_xyzw(
+            QuatA::from_xyzw(
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -249,80 +249,80 @@ mod tests {
             )
             .to_lanes(),
             [
-                Quat::from_xyzw(1, 2, 3, 4),
-                Quat::from_xyzw(5, 6, 7, 8),
-                Quat::from_xyzw(9, 10, 11, 12),
-                Quat::from_xyzw(13, 14, 15, 16),
+                QuatA::from_xyzw(1, 2, 3, 4),
+                QuatA::from_xyzw(5, 6, 7, 8),
+                QuatA::from_xyzw(9, 10, 11, 12),
+                QuatA::from_xyzw(13, 14, 15, 16),
             ],
         );
     }
 
     #[test]
     fn test_lane() {
-        let quat = Quat::from_xyzw(
+        let quat = QuatA::from_xyzw(
             i32x4::new([1, 5, 9, 13]),
             i32x4::new([2, 6, 10, 14]),
             i32x4::new([3, 7, 11, 15]),
             i32x4::new([4, 8, 12, 16]),
         );
 
-        assert_eq!(quat.lane(0), Quat::from_xyzw(1, 2, 3, 4));
-        assert_eq!(quat.lane(1), Quat::from_xyzw(5, 6, 7, 8));
-        assert_eq!(quat.lane(2), Quat::from_xyzw(9, 10, 11, 12));
-        assert_eq!(quat.lane(3), Quat::from_xyzw(13, 14, 15, 16));
+        assert_eq!(quat.lane(0), QuatA::from_xyzw(1, 2, 3, 4));
+        assert_eq!(quat.lane(1), QuatA::from_xyzw(5, 6, 7, 8));
+        assert_eq!(quat.lane(2), QuatA::from_xyzw(9, 10, 11, 12));
+        assert_eq!(quat.lane(3), QuatA::from_xyzw(13, 14, 15, 16));
         assert_panic!(quat.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        let mut quat = Quat::from_xyzw(
+        let mut quat = QuatA::from_xyzw(
             i32x4::new([1, 5, 9, 13]),
             i32x4::new([2, 6, 10, 14]),
             i32x4::new([3, 7, 11, 15]),
             i32x4::new([4, 8, 12, 16]),
         );
 
-        quat.set_lane(0, Quat::from_xyzw(-1, -2, -3, -4));
+        quat.set_lane(0, QuatA::from_xyzw(-1, -2, -3, -4));
         assert_eq!(
             quat,
-            Quat::from_xyzw(
+            QuatA::from_xyzw(
                 i32x4::new([-1, 5, 9, 13]),
                 i32x4::new([-2, 6, 10, 14]),
                 i32x4::new([-3, 7, 11, 15]),
                 i32x4::new([-4, 8, 12, 16]),
             )
         );
-        quat.set_lane(1, Quat::from_xyzw(-5, -6, -7, -8));
+        quat.set_lane(1, QuatA::from_xyzw(-5, -6, -7, -8));
         assert_eq!(
             quat,
-            Quat::from_xyzw(
+            QuatA::from_xyzw(
                 i32x4::new([-1, -5, 9, 13]),
                 i32x4::new([-2, -6, 10, 14]),
                 i32x4::new([-3, -7, 11, 15]),
                 i32x4::new([-4, -8, 12, 16]),
             )
         );
-        quat.set_lane(2, Quat::from_xyzw(-9, -10, -11, -12));
+        quat.set_lane(2, QuatA::from_xyzw(-9, -10, -11, -12));
         assert_eq!(
             quat,
-            Quat::from_xyzw(
+            QuatA::from_xyzw(
                 i32x4::new([-1, -5, -9, 13]),
                 i32x4::new([-2, -6, -10, 14]),
                 i32x4::new([-3, -7, -11, 15]),
                 i32x4::new([-4, -8, -12, 16]),
             )
         );
-        quat.set_lane(3, Quat::from_xyzw(-13, -14, -15, -16));
+        quat.set_lane(3, QuatA::from_xyzw(-13, -14, -15, -16));
         assert_eq!(
             quat,
-            Quat::from_xyzw(
+            QuatA::from_xyzw(
                 i32x4::new([-1, -5, -9, -13]),
                 i32x4::new([-2, -6, -10, -14]),
                 i32x4::new([-3, -7, -11, -15]),
                 i32x4::new([-4, -8, -12, -16]),
             )
         );
-        assert_panic!(quat.clone().set_lane(4, Quat::IDENTITY));
+        assert_panic!(quat.clone().set_lane(4, QuatA::IDENTITY));
     }
 
     #[test]

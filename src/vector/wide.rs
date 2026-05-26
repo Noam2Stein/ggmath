@@ -325,20 +325,20 @@ mod tests {
     use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, CmpNe, i32x4};
 
     use crate::{
-        Vec3, Vector,
+        Vec3A, Vector,
         utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
     fn test_from_lanes() {
         assert_eq!(
-            Vec3::<i32x4>::from_lanes(&[
-                Vec3::new(1, 2, 3),
-                Vec3::new(4, 5, 6),
-                Vec3::new(7, 8, 9),
-                Vec3::new(10, 11, 12),
+            Vec3A::<i32x4>::from_lanes(&[
+                Vec3A::new(1, 2, 3),
+                Vec3A::new(4, 5, 6),
+                Vec3A::new(7, 8, 9),
+                Vec3A::new(10, 11, 12),
             ]),
-            Vec3::new(
+            Vec3A::new(
                 i32x4::new([1, 4, 7, 10]),
                 i32x4::new([2, 5, 8, 11]),
                 i32x4::new([3, 6, 9, 12]),
@@ -349,13 +349,13 @@ mod tests {
     #[test]
     fn test_from_lane_fn() {
         assert_eq!(
-            Vec3::<i32x4>::from_lane_fn(|lane| [
-                Vec3::new(1, 2, 3),
-                Vec3::new(4, 5, 6),
-                Vec3::new(7, 8, 9),
-                Vec3::new(10, 11, 12),
+            Vec3A::<i32x4>::from_lane_fn(|lane| [
+                Vec3A::new(1, 2, 3),
+                Vec3A::new(4, 5, 6),
+                Vec3A::new(7, 8, 9),
+                Vec3A::new(10, 11, 12),
             ][lane]),
-            Vec3::new(
+            Vec3A::new(
                 i32x4::new([1, 4, 7, 10]),
                 i32x4::new([2, 5, 8, 11]),
                 i32x4::new([3, 6, 9, 12]),
@@ -366,75 +366,75 @@ mod tests {
     #[test]
     fn test_to_lanes() {
         assert_eq!(
-            Vec3::new(
+            Vec3A::new(
                 i32x4::new([1, 4, 7, 10]),
                 i32x4::new([2, 5, 8, 11]),
                 i32x4::new([3, 6, 9, 12]),
             )
             .to_lanes(),
             [
-                Vec3::new(1, 2, 3),
-                Vec3::new(4, 5, 6),
-                Vec3::new(7, 8, 9),
-                Vec3::new(10, 11, 12),
+                Vec3A::new(1, 2, 3),
+                Vec3A::new(4, 5, 6),
+                Vec3A::new(7, 8, 9),
+                Vec3A::new(10, 11, 12),
             ]
         );
     }
 
     #[test]
     fn test_lane() {
-        let vector = Vec3::new(
+        let vector = Vec3A::new(
             i32x4::new([1, 4, 7, 10]),
             i32x4::new([2, 5, 8, 11]),
             i32x4::new([3, 6, 9, 12]),
         );
 
-        assert_eq!(vector.lane(0), Vec3::new(1, 2, 3));
-        assert_eq!(vector.lane(1), Vec3::new(4, 5, 6));
-        assert_eq!(vector.lane(2), Vec3::new(7, 8, 9));
-        assert_eq!(vector.lane(3), Vec3::new(10, 11, 12));
+        assert_eq!(vector.lane(0), Vec3A::new(1, 2, 3));
+        assert_eq!(vector.lane(1), Vec3A::new(4, 5, 6));
+        assert_eq!(vector.lane(2), Vec3A::new(7, 8, 9));
+        assert_eq!(vector.lane(3), Vec3A::new(10, 11, 12));
         assert_panic!(vector.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        let mut vector = Vec3::new(
+        let mut vector = Vec3A::new(
             i32x4::new([1, 4, 7, 10]),
             i32x4::new([2, 5, 8, 11]),
             i32x4::new([3, 6, 9, 12]),
         );
 
-        vector.set_lane(0, Vec3::new(-1, -2, -3));
+        vector.set_lane(0, Vec3A::new(-1, -2, -3));
         assert_eq!(
             vector,
-            Vec3::new(
+            Vec3A::new(
                 i32x4::new([-1, 4, 7, 10]),
                 i32x4::new([-2, 5, 8, 11]),
                 i32x4::new([-3, 6, 9, 12]),
             )
         );
-        vector.set_lane(1, Vec3::new(-4, -5, -6));
+        vector.set_lane(1, Vec3A::new(-4, -5, -6));
         assert_eq!(
             vector,
-            Vec3::new(
+            Vec3A::new(
                 i32x4::new([-1, -4, 7, 10]),
                 i32x4::new([-2, -5, 8, 11]),
                 i32x4::new([-3, -6, 9, 12]),
             )
         );
-        vector.set_lane(2, Vec3::new(-7, -8, -9));
+        vector.set_lane(2, Vec3A::new(-7, -8, -9));
         assert_eq!(
             vector,
-            Vec3::new(
+            Vec3A::new(
                 i32x4::new([-1, -4, -7, 10]),
                 i32x4::new([-2, -5, -8, 11]),
                 i32x4::new([-3, -6, -9, 12]),
             )
         );
-        vector.set_lane(3, Vec3::new(-10, -11, -12));
+        vector.set_lane(3, Vec3A::new(-10, -11, -12));
         assert_eq!(
             vector,
-            Vec3::new(
+            Vec3A::new(
                 i32x4::new([-1, -4, -7, -10]),
                 i32x4::new([-2, -5, -8, -11]),
                 i32x4::new([-3, -6, -9, -12]),
