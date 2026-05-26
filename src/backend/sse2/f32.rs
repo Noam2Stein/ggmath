@@ -4,7 +4,7 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 use crate::{
-    Aligned, Backend, Mask, Mask3, Mask4, PrimitiveFloatBackend, Vec3, Vec4, Vector,
+    Aligned, Backend, Mask, Mask3A, Mask4A, PrimitiveFloatBackend, Vec3A, Vec4A, Vector,
     utils::safe_arch,
 };
 
@@ -17,47 +17,47 @@ unsafe impl Backend<3, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vector_eq(vector: &Vec3<f32>, other: &Vec3<f32>) -> bool {
+        fn vector_eq(vector: &Vec3A<f32>, other: &Vec3A<f32>) -> bool {
             _mm_movemask_ps(_mm_cmpeq_ps(vector.0, other.0)) as u32 & 0b111 == 0b111
         }
 
         #[inline]
-        fn vector_ne(vector: &Vec3<f32>, other: &Vec3<f32>) -> bool {
+        fn vector_ne(vector: &Vec3A<f32>, other: &Vec3A<f32>) -> bool {
             _mm_movemask_ps(_mm_cmpneq_ps(vector.0, other.0)) as u32 & 0b111 != 0
         }
 
         #[inline]
-        fn vector_neg(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_neg(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(neg(vector.0))
         }
 
         #[inline]
-        fn vector_add(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+        fn vector_add(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_add_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_sub(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+        fn vector_sub(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_sub_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_mul(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+        fn vector_mul(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_mul_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_div(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+        fn vector_div(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_div_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_rem(vector: Vec3<f32>, rhs: Vec3<f32>) -> Vec3<f32> {
+        fn vector_rem(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
             Vector(rem(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_element_sum(vector: Vec3<f32>) -> f32 {
+        fn vector_element_sum(vector: Vec3A<f32>) -> f32 {
             let vector = vector.0;
             // Add `-0.0` to retain the sign of the left operand. Adding `+0.0`
             // would incorrectly reset the sign when `z` is `-0.0`.
@@ -67,7 +67,7 @@ unsafe impl Backend<3, Aligned> for f32 {
         }
 
         #[inline]
-        fn vector_element_product(vector: Vec3<f32>) -> f32 {
+        fn vector_element_product(vector: Vec3A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, _mm_set1_ps(1.0), 0b00_11_00_01));
             let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
@@ -75,38 +75,38 @@ unsafe impl Backend<3, Aligned> for f32 {
         }
 
         #[inline]
-        fn vector_eq_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+        fn vector_eq_mask(vector: Vec3A<f32>, other: Vec3A<f32>) -> Mask3A<f32> {
             Mask(_mm_cmpeq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_ne_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+        fn vector_ne_mask(vector: Vec3A<f32>, other: Vec3A<f32>) -> Mask3A<f32> {
             Mask(_mm_cmpneq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_lt_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+        fn vector_lt_mask(vector: Vec3A<f32>, other: Vec3A<f32>) -> Mask3A<f32> {
             Mask(_mm_cmplt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_gt_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+        fn vector_gt_mask(vector: Vec3A<f32>, other: Vec3A<f32>) -> Mask3A<f32> {
             Mask(_mm_cmpgt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_le_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+        fn vector_le_mask(vector: Vec3A<f32>, other: Vec3A<f32>) -> Mask3A<f32> {
             Mask(_mm_cmple_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_ge_mask(vector: Vec3<f32>, other: Vec3<f32>) -> Mask3<f32> {
+        fn vector_ge_mask(vector: Vec3A<f32>, other: Vec3A<f32>) -> Mask3A<f32> {
             Mask(_mm_cmpge_ps(vector.0, other.0))
         }
     }
 
     #[inline]
-    fn mask_from_array(array: [bool; 3]) -> Mask3<f32> {
+    fn mask_from_array(array: [bool; 3]) -> Mask3A<f32> {
         // SAFETY: The two intrinsics are part of SSE2.
         unsafe {
             Mask(_mm_castsi128_ps(_mm_set_epi32(
@@ -119,13 +119,13 @@ unsafe impl Backend<3, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_splat(value: bool) -> Mask3<f32> {
+    fn mask_splat(value: bool) -> Mask3A<f32> {
         // SAFETY: The two intrinsics are part of SSE2.
         unsafe { Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32)))) }
     }
 
     #[inline]
-    fn mask_from_fn<F>(mut f: F) -> Mask3<f32>
+    fn mask_from_fn<F>(mut f: F) -> Mask3A<f32>
     where
         F: FnMut(usize) -> bool,
     {
@@ -133,26 +133,26 @@ unsafe impl Backend<3, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_to_array(mask: Mask3<f32>) -> [bool; 3] {
+    fn mask_to_array(mask: Mask3A<f32>) -> [bool; 3] {
         // SAFETY: The intrinsic is part of SSE.
         let bits = unsafe { _mm_movemask_ps(mask.0) };
         [bits & 0x1 != 0, bits & 0x2 != 0, bits & 0x4 != 0]
     }
 
     #[inline]
-    fn mask_all(mask: Mask3<f32>) -> bool {
+    fn mask_all(mask: Mask3A<f32>) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) & 0x7 == 0x7 }
     }
 
     #[inline]
-    fn mask_any(mask: Mask3<f32>) -> bool {
+    fn mask_any(mask: Mask3A<f32>) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) & 0x7 != 0 }
     }
 
     #[inline]
-    fn mask_select(mask: Mask3<f32>, if_true: Vec3<f32>, if_false: Vec3<f32>) -> Vec3<f32> {
+    fn mask_select(mask: Mask3A<f32>, if_true: Vec3A<f32>, if_false: Vec3A<f32>) -> Vec3A<f32> {
         // SAFETY: The three intrinsics are part of SSE.
         Vector(unsafe {
             _mm_or_ps(
@@ -163,7 +163,7 @@ unsafe impl Backend<3, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_get(mask: Mask3<f32>, index: usize) -> bool {
+    fn mask_get(mask: Mask3A<f32>, index: usize) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe {
             match index {
@@ -176,7 +176,7 @@ unsafe impl Backend<3, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_set(mask: &mut Mask3<f32>, index: usize, value: bool) {
+    fn mask_set(mask: &mut Mask3A<f32>, index: usize, value: bool) {
         if index < 3 {
             // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
             // `index` is valid because it was just checked to be less then 3,
@@ -196,31 +196,31 @@ unsafe impl Backend<3, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_eq(mask: &Mask3<f32>, other: &Mask3<f32>) -> bool {
+    fn mask_eq(mask: &Mask3A<f32>, other: &Mask3A<f32>) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) & 0x7 == _mm_movemask_ps(other.0) & 0x7 }
     }
 
     #[inline]
-    fn mask_not(mask: Mask3<f32>) -> Mask3<f32> {
+    fn mask_not(mask: Mask3A<f32>) -> Mask3A<f32> {
         // SAFETY: The two intrinsics are part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))) })
     }
 
     #[inline]
-    fn mask_bitand(mask: Mask3<f32>, rhs: Mask3<f32>) -> Mask3<f32> {
+    fn mask_bitand(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
         // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_and_ps(mask.0, rhs.0) })
     }
 
     #[inline]
-    fn mask_bitor(mask: Mask3<f32>, rhs: Mask3<f32>) -> Mask3<f32> {
+    fn mask_bitor(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
         // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_or_ps(mask.0, rhs.0) })
     }
 
     #[inline]
-    fn mask_bitxor(mask: Mask3<f32>, rhs: Mask3<f32>) -> Mask3<f32> {
+    fn mask_bitxor(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
         // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, rhs.0) })
     }
@@ -235,47 +235,47 @@ unsafe impl Backend<4, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vector_eq(vector: &Vec4<f32>, other: &Vec4<f32>) -> bool {
+        fn vector_eq(vector: &Vec4A<f32>, other: &Vec4A<f32>) -> bool {
             _mm_movemask_ps(_mm_cmpeq_ps(vector.0, other.0)) as u32 == 0xf
         }
 
         #[inline]
-        fn vector_ne(vector: &Vec4<f32>, other: &Vec4<f32>) -> bool {
+        fn vector_ne(vector: &Vec4A<f32>, other: &Vec4A<f32>) -> bool {
             _mm_movemask_ps(_mm_cmpneq_ps(vector.0, other.0)) as u32 != 0
         }
 
         #[inline]
-        fn vector_neg(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_neg(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(neg(vector.0))
         }
 
         #[inline]
-        fn vector_add(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+        fn vector_add(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_add_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_sub(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+        fn vector_sub(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_sub_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_mul(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+        fn vector_mul(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_mul_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_div(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+        fn vector_div(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_div_ps(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_rem(vector: Vec4<f32>, rhs: Vec4<f32>) -> Vec4<f32> {
+        fn vector_rem(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
             Vector(rem(vector.0, rhs.0))
         }
 
         #[inline]
-        fn vector_element_sum(vector: Vec4<f32>) -> f32 {
+        fn vector_element_sum(vector: Vec4A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_11_00_01));
             let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
@@ -283,7 +283,7 @@ unsafe impl Backend<4, Aligned> for f32 {
         }
 
         #[inline]
-        fn vector_element_product(vector: Vec4<f32>) -> f32 {
+        fn vector_element_product(vector: Vec4A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_11_00_01));
             let vector = _mm_mul_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
@@ -291,38 +291,38 @@ unsafe impl Backend<4, Aligned> for f32 {
         }
 
         #[inline]
-        fn vector_eq_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+        fn vector_eq_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmpeq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_ne_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+        fn vector_ne_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmpneq_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_lt_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+        fn vector_lt_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmplt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_gt_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+        fn vector_gt_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmpgt_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_le_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+        fn vector_le_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmple_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_ge_mask(vector: Vec4<f32>, other: Vec4<f32>) -> Mask4<f32> {
+        fn vector_ge_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmpge_ps(vector.0, other.0))
         }
     }
 
     #[inline]
-    fn mask_from_array(array: [bool; 4]) -> Mask4<f32> {
+    fn mask_from_array(array: [bool; 4]) -> Mask4A<f32> {
         // SAFETY: The two intrinsics are part of SSE2.
         unsafe {
             Mask(_mm_castsi128_ps(_mm_set_epi32(
@@ -335,13 +335,13 @@ unsafe impl Backend<4, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_splat(value: bool) -> Mask4<f32> {
+    fn mask_splat(value: bool) -> Mask4A<f32> {
         // SAFETY: The two intrinsics are part of SSE2.
         unsafe { Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32)))) }
     }
 
     #[inline]
-    fn mask_from_fn<F>(mut f: F) -> Mask4<f32>
+    fn mask_from_fn<F>(mut f: F) -> Mask4A<f32>
     where
         F: FnMut(usize) -> bool,
     {
@@ -349,7 +349,7 @@ unsafe impl Backend<4, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_to_array(mask: Mask4<f32>) -> [bool; 4] {
+    fn mask_to_array(mask: Mask4A<f32>) -> [bool; 4] {
         // SAFETY: The intrinsic is part of SSE.
         let bits = unsafe { _mm_movemask_ps(mask.0) };
         [
@@ -361,19 +361,19 @@ unsafe impl Backend<4, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_all(mask: Mask4<f32>) -> bool {
+    fn mask_all(mask: Mask4A<f32>) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) == 0xf }
     }
 
     #[inline]
-    fn mask_any(mask: Mask4<f32>) -> bool {
+    fn mask_any(mask: Mask4A<f32>) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) != 0 }
     }
 
     #[inline]
-    fn mask_select(mask: Mask4<f32>, if_true: Vec4<f32>, if_false: Vec4<f32>) -> Vec4<f32> {
+    fn mask_select(mask: Mask4A<f32>, if_true: Vec4A<f32>, if_false: Vec4A<f32>) -> Vec4A<f32> {
         // SAFETY: The three intrinsics are part of SSE.
         Vector(unsafe {
             _mm_or_ps(
@@ -384,7 +384,7 @@ unsafe impl Backend<4, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_get(mask: Mask4<f32>, index: usize) -> bool {
+    fn mask_get(mask: Mask4A<f32>, index: usize) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe {
             match index {
@@ -398,7 +398,7 @@ unsafe impl Backend<4, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_set(mask: &mut Mask4<f32>, index: usize, value: bool) {
+    fn mask_set(mask: &mut Mask4A<f32>, index: usize, value: bool) {
         if index < 4 {
             // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
             // `index` is valid because it was just checked to be less then 4,
@@ -418,31 +418,31 @@ unsafe impl Backend<4, Aligned> for f32 {
     }
 
     #[inline]
-    fn mask_eq(mask: &Mask4<f32>, other: &Mask4<f32>) -> bool {
+    fn mask_eq(mask: &Mask4A<f32>, other: &Mask4A<f32>) -> bool {
         // SAFETY: The intrinsic is part of SSE.
         unsafe { _mm_movemask_ps(mask.0) == _mm_movemask_ps(other.0) }
     }
 
     #[inline]
-    fn mask_not(mask: Mask4<f32>) -> Mask4<f32> {
+    fn mask_not(mask: Mask4A<f32>) -> Mask4A<f32> {
         // SAFETY: The two intrinsics are part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))) })
     }
 
     #[inline]
-    fn mask_bitand(mask: Mask4<f32>, rhs: Mask4<f32>) -> Mask4<f32> {
+    fn mask_bitand(mask: Mask4A<f32>, rhs: Mask4A<f32>) -> Mask4A<f32> {
         // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_and_ps(mask.0, rhs.0) })
     }
 
     #[inline]
-    fn mask_bitor(mask: Mask4<f32>, rhs: Mask4<f32>) -> Mask4<f32> {
+    fn mask_bitor(mask: Mask4A<f32>, rhs: Mask4A<f32>) -> Mask4A<f32> {
         // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_or_ps(mask.0, rhs.0) })
     }
 
     #[inline]
-    fn mask_bitxor(mask: Mask4<f32>, rhs: Mask4<f32>) -> Mask4<f32> {
+    fn mask_bitxor(mask: Mask4A<f32>, rhs: Mask4A<f32>) -> Mask4A<f32> {
         // SAFETY: The intrinsic is part of SSE.
         Mask(unsafe { _mm_xor_ps(mask.0, rhs.0) })
     }
@@ -453,52 +453,52 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vector_nan_mask(vector: Vec3<f32>) -> Mask3<f32> {
+        fn vector_nan_mask(vector: Vec3A<f32>) -> Mask3A<f32> {
             Mask(nan_mask(vector.0))
         }
 
         #[inline]
-        fn vector_finite_mask(vector: Vec3<f32>) -> Mask3<f32> {
+        fn vector_finite_mask(vector: Vec3A<f32>) -> Mask3A<f32> {
             Mask(finite_mask(vector.0))
         }
 
         #[inline]
-        fn vector_sign_positive_mask(vector: Vec3<f32>) -> Mask3<f32> {
+        fn vector_sign_positive_mask(vector: Vec3A<f32>) -> Mask3A<f32> {
             Mask(sign_positive_mask(vector.0))
         }
 
         #[inline]
-        fn vector_sign_negative_mask(vector: Vec3<f32>) -> Mask3<f32> {
+        fn vector_sign_negative_mask(vector: Vec3A<f32>) -> Mask3A<f32> {
             Mask(sign_negative_mask(vector.0))
         }
 
         #[inline]
-        fn vector_max(vector: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
+        fn vector_max(vector: Vec3A<f32>, other: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_max_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_min(vector: Vec3<f32>, other: Vec3<f32>) -> Vec3<f32> {
+        fn vector_min(vector: Vec3A<f32>, other: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_min_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_abs(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_abs(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(abs(vector.0))
         }
 
         #[inline]
-        fn vector_signum(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_signum(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(signum(vector.0))
         }
 
         #[inline]
-        fn vector_copysign(vector: Vec3<f32>, sign: Vec3<f32>) -> Vec3<f32> {
+        fn vector_copysign(vector: Vec3A<f32>, sign: Vec3A<f32>) -> Vec3A<f32> {
             Vector(copysign(vector.0, sign.0))
         }
 
         #[inline]
-        fn vector_max_element(vector: Vec3<f32>) -> f32 {
+        fn vector_max_element(vector: Vec3A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_10_10));
             let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
@@ -506,7 +506,7 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
         }
 
         #[inline]
-        fn vector_min_element(vector: Vec3<f32>) -> f32 {
+        fn vector_min_element(vector: Vec3A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b01_01_10_10));
             let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
@@ -514,27 +514,27 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
         }
 
         #[inline(always)]
-        fn vector_floor(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_floor(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(floor(vector.0))
         }
 
         #[inline(always)]
-        fn vector_ceil(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_ceil(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(ceil(vector.0))
         }
 
         #[inline(always)]
-        fn vector_round(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_round(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(round(vector.0))
         }
 
         #[inline(always)]
-        fn vector_trunc(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_trunc(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(trunc(vector.0))
         }
 
         #[inline(always)]
-        fn vector_sqrt(vector: Vec3<f32>) -> Vec3<f32> {
+        fn vector_sqrt(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_sqrt_ps(vector.0))
         }
     }
@@ -545,52 +545,52 @@ impl PrimitiveFloatBackend<4, Aligned> for f32 {
         #![target_feature(enable = "sse2")]
 
         #[inline]
-        fn vector_nan_mask(vector: Vec4<f32>) -> Mask4<f32> {
+        fn vector_nan_mask(vector: Vec4A<f32>) -> Mask4A<f32> {
             Mask(nan_mask(vector.0))
         }
 
         #[inline]
-        fn vector_finite_mask(vector: Vec4<f32>) -> Mask4<f32> {
+        fn vector_finite_mask(vector: Vec4A<f32>) -> Mask4A<f32> {
             Mask(finite_mask(vector.0))
         }
 
         #[inline]
-        fn vector_sign_positive_mask(vector: Vec4<f32>) -> Mask4<f32> {
+        fn vector_sign_positive_mask(vector: Vec4A<f32>) -> Mask4A<f32> {
             Mask(sign_positive_mask(vector.0))
         }
 
         #[inline]
-        fn vector_sign_negative_mask(vector: Vec4<f32>) -> Mask4<f32> {
+        fn vector_sign_negative_mask(vector: Vec4A<f32>) -> Mask4A<f32> {
             Mask(sign_negative_mask(vector.0))
         }
 
         #[inline]
-        fn vector_max(vector: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
+        fn vector_max(vector: Vec4A<f32>, other: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_max_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_min(vector: Vec4<f32>, other: Vec4<f32>) -> Vec4<f32> {
+        fn vector_min(vector: Vec4A<f32>, other: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_min_ps(vector.0, other.0))
         }
 
         #[inline]
-        fn vector_abs(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_abs(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(abs(vector.0))
         }
 
         #[inline]
-        fn vector_signum(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_signum(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(signum(vector.0))
         }
 
         #[inline]
-        fn vector_copysign(vector: Vec4<f32>, sign: Vec4<f32>) -> Vec4<f32> {
+        fn vector_copysign(vector: Vec4A<f32>, sign: Vec4A<f32>) -> Vec4A<f32> {
             Vector(copysign(vector.0, sign.0))
         }
 
         #[inline]
-        fn vector_max_element(vector: Vec4<f32>) -> f32 {
+        fn vector_max_element(vector: Vec4A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_11_10));
             let vector = _mm_max_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
@@ -598,7 +598,7 @@ impl PrimitiveFloatBackend<4, Aligned> for f32 {
         }
 
         #[inline]
-        fn vector_min_element(vector: Vec4<f32>) -> f32 {
+        fn vector_min_element(vector: Vec4A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_11_10));
             let vector = _mm_min_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_01));
@@ -606,27 +606,27 @@ impl PrimitiveFloatBackend<4, Aligned> for f32 {
         }
 
         #[inline(always)]
-        fn vector_floor(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_floor(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(floor(vector.0))
         }
 
         #[inline(always)]
-        fn vector_ceil(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_ceil(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(ceil(vector.0))
         }
 
         #[inline(always)]
-        fn vector_round(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_round(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(round(vector.0))
         }
 
         #[inline(always)]
-        fn vector_trunc(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_trunc(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(trunc(vector.0))
         }
 
         #[inline(always)]
-        fn vector_sqrt(vector: Vec4<f32>) -> Vec4<f32> {
+        fn vector_sqrt(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_sqrt_ps(vector.0))
         }
     }

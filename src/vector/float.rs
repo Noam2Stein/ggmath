@@ -1833,7 +1833,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        FloatExt, Mask, Vec2, Vector,
+        FloatExt, Mask, Vec2A, Vector,
         utils::{PrimitiveFloatFns, assert_debug_panic, assert_float_eq, float_eq, for_parameters},
     };
 
@@ -4195,12 +4195,12 @@ mod tests {
     #[test]
     fn test_abs_diff_eq() {
         for_parameters!(|T: PrimitiveFloat| {
-            assert!(Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.0, 1.0), 0.125));
-            assert!(Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.1, 0.9), 0.125));
-            assert!(Vec2::<T>::new(5.0, 1.0).abs_diff_eq(Vec2::new(4.9, 1.0), 0.125));
-            assert!(!Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.2, 1.0), 0.125));
-            assert!(!Vec2::<T>::new(0.0, 1.0).abs_diff_eq(Vec2::new(0.1, 0.8), 0.125));
-            assert!(!Vec2::<T>::new(5.0, 1.0).abs_diff_eq(Vec2::new(4.5, 0.0), 0.125));
+            assert!(Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.0, 1.0), 0.125));
+            assert!(Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.1, 0.9), 0.125));
+            assert!(Vec2A::<T>::new(5.0, 1.0).abs_diff_eq(Vec2A::new(4.9, 1.0), 0.125));
+            assert!(!Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.2, 1.0), 0.125));
+            assert!(!Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.1, 0.8), 0.125));
+            assert!(!Vec2A::<T>::new(5.0, 1.0).abs_diff_eq(Vec2A::new(4.5, 0.0), 0.125));
         });
     }
 

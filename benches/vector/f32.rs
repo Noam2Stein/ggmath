@@ -14,32 +14,32 @@ library_benchmark_group!(
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_arithmetic(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
-        v2u += Vec2U::splat(x);
-        v2u -= v2u * Vec2U::splat(y);
-        v2u = -v2u / Vec2U::splat(z);
+        v2u += Vec2::splat(x);
+        v2u -= v2u * Vec2::splat(y);
+        v2u = -v2u / Vec2::splat(z);
         v2u = v2u.recip() + v2u.sqrt();
 
-        v3u += Vec3U::splat(x);
-        v3u -= v3u * Vec3U::splat(y);
-        v3u = -v3u / Vec3U::splat(z);
+        v3u += Vec3::splat(x);
+        v3u -= v3u * Vec3::splat(y);
+        v3u = -v3u / Vec3::splat(z);
         v3u = v3u.recip() + v3u.sqrt();
 
-        v3a += Vec3::splat(x);
-        v3a -= v3a * Vec3::splat(y);
-        v3a = -v3a / Vec3::splat(z);
+        v3a += Vec3A::splat(x);
+        v3a -= v3a * Vec3A::splat(y);
+        v3a = -v3a / Vec3A::splat(z);
         v3a = v3a.recip() + v3a.sqrt();
 
-        v4a += Vec4::splat(x);
-        v4a -= v4a * Vec4::splat(y);
-        v4a = -v4a / Vec4::splat(z);
+        v4a += Vec4A::splat(x);
+        v4a -= v4a * Vec4A::splat(y);
+        v4a = -v4a / Vec4A::splat(z);
         v4a = v4a.recip() + v4a.sqrt();
     }
 
@@ -84,25 +84,25 @@ pub fn glam_arithmetic(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_arithmetic_ext(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
-        v2u = v2u.lerp(v2u.move_towards(Vec2U::new(4.0, 5.0), v2u.y), v2u.x);
+        v2u = v2u.lerp(v2u.move_towards(Vec2::new(4.0, 5.0), v2u.y), v2u.x);
         v2u = v2u.midpoint(v2u.sqrt());
 
-        v3u = v3u.lerp(v3u.move_towards(Vec3U::new(4.0, 5.0, 6.0), v3u.y), v3u.x);
-        v3u = v3u.midpoint(v3u.sqrt()) + v3u.cross(Vec3U::new(4.0, 5.0, 6.0));
+        v3u = v3u.lerp(v3u.move_towards(Vec3::new(4.0, 5.0, 6.0), v3u.y), v3u.x);
+        v3u = v3u.midpoint(v3u.sqrt()) + v3u.cross(Vec3::new(4.0, 5.0, 6.0));
 
-        v3a = v3a.lerp(v3a.move_towards(Vec3::new(4.0, 5.0, 6.0), v3a.y), v3a.x);
-        v3a = v3a.midpoint(v3a.sqrt()) + v3a.cross(Vec3::new(4.0, 5.0, 6.0));
+        v3a = v3a.lerp(v3a.move_towards(Vec3A::new(4.0, 5.0, 6.0), v3a.y), v3a.x);
+        v3a = v3a.midpoint(v3a.sqrt()) + v3a.cross(Vec3A::new(4.0, 5.0, 6.0));
 
         v4a = v4a.lerp(
-            v4a.move_towards(Vec4::new(4.0, 5.0, 6.0, 7.0), v4a.y),
+            v4a.move_towards(Vec4A::new(4.0, 5.0, 6.0, 7.0), v4a.y),
             v4a.x,
         );
         v4a = v4a.midpoint(v4a.sqrt());
@@ -144,37 +144,37 @@ pub fn glam_arithmetic_ext(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_bitops(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
         v2u = v2u / v2u.abs();
-        v2u = v2u.recip().max(v2u + Vec2U::ONE);
-        v2u = v2u.min(v2u + Vec2U::ONE);
-        v2u = v2u.clamp(v2u - Vec2U::ONE, v2u + Vec2U::ONE).signum();
-        v2u = v2u.copysign(v2u + Vec2U::ONE);
+        v2u = v2u.recip().max(v2u + Vec2::ONE);
+        v2u = v2u.min(v2u + Vec2::ONE);
+        v2u = v2u.clamp(v2u - Vec2::ONE, v2u + Vec2::ONE).signum();
+        v2u = v2u.copysign(v2u + Vec2::ONE);
 
         v3u = v3u / v3u.abs();
-        v3u = v3u.recip().max(v3u + Vec3U::ONE);
-        v3u = v3u.min(v3u + Vec3U::ONE);
-        v3u = v3u.clamp(v3u - Vec3U::ONE, v3u + Vec3U::ONE).signum();
-        v3u = v3u.copysign(v3u + Vec3U::ONE);
+        v3u = v3u.recip().max(v3u + Vec3::ONE);
+        v3u = v3u.min(v3u + Vec3::ONE);
+        v3u = v3u.clamp(v3u - Vec3::ONE, v3u + Vec3::ONE).signum();
+        v3u = v3u.copysign(v3u + Vec3::ONE);
 
         v3a = v3a / v3a.abs();
-        v3a = v3a.recip().max(v3a + Vec3::ONE);
-        v3a = v3a.min(v3a + Vec3::ONE);
-        v3a = v3a.clamp(v3a - Vec3::ONE, v3a + Vec3::ONE).signum();
-        v3a = v3a.copysign(v3a + Vec3::ONE);
+        v3a = v3a.recip().max(v3a + Vec3A::ONE);
+        v3a = v3a.min(v3a + Vec3A::ONE);
+        v3a = v3a.clamp(v3a - Vec3A::ONE, v3a + Vec3A::ONE).signum();
+        v3a = v3a.copysign(v3a + Vec3A::ONE);
 
         v4a = v4a / v4a.abs();
-        v4a = v4a.recip().max(v4a + Vec4::ONE);
-        v4a = v4a.min(v4a + Vec4::ONE);
-        v4a = v4a.clamp(v4a - Vec4::ONE, v4a + Vec4::ONE).signum();
-        v4a = v4a.copysign(v4a + Vec4::ONE);
+        v4a = v4a.recip().max(v4a + Vec4A::ONE);
+        v4a = v4a.min(v4a + Vec4A::ONE);
+        v4a = v4a.clamp(v4a - Vec4A::ONE, v4a + Vec4A::ONE).signum();
+        v4a = v4a.copysign(v4a + Vec4A::ONE);
     }
 
     black_box((v2u, v3u, v3a, v4a))
@@ -222,12 +222,12 @@ pub fn glam_bitops(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_swizzle(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
         v2u = v2u.yx() + v3u.zx() + v3a.zx().unalign() + v4a.wy().unalign();
@@ -262,12 +262,12 @@ pub fn glam_swizzle(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
         v2u = v2u.with_x((v2u + 1.0 == v2u - 1.0) as u8 as f32);
@@ -280,9 +280,9 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v2u = v2u.with_y(v2u.min_element());
         v2u = v2u.normalize();
         v2u = v2u.with_x(v2u.dot(v2u + 1.0));
-        v2u = v2u.try_normalize().unwrap_or(Vec2U::ZERO);
+        v2u = v2u.try_normalize().unwrap_or(Vec2::ZERO);
         v2u = v2u.with_y(v2u.length());
-        v2u = v2u.normalize_or(Vec2U::ZERO);
+        v2u = v2u.normalize_or(Vec2::ZERO);
         v2u = v2u.with_y(v2u.is_normalized() as u8 as f32);
         v2u = v2u.with_x(v2u.length_squared() + v2u.distance(v2u * 1.5));
         v2u = v2u.with_y(v2u.distance_squared(v2u * 1.5));
@@ -290,14 +290,14 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v2u.with_max_length(10.0)
             + v2u.with_min_length(5.0)
             + v2u.clamp_length(3.0, 4.0);
-        v2u = v2u.project_onto(Vec2U::ONE)
-            + v2u.project_onto_normalized(Vec2U::<f32>::new(-1.0, 2.0).normalize()) * 1.5;
-        v2u = v2u.reject_from(Vec2U::ONE)
-            + v2u.reject_from_normalized(Vec2U::<f32>::new(-1.0, 2.0).normalize()) * 1.5;
-        v2u = v2u.reflect(Vec2U::<f32>::ONE.normalize())
+        v2u = v2u.project_onto(Vec2::ONE)
+            + v2u.project_onto_normalized(Vec2::<f32>::new(-1.0, 2.0).normalize()) * 1.5;
+        v2u = v2u.reject_from(Vec2::ONE)
+            + v2u.reject_from_normalized(Vec2::<f32>::new(-1.0, 2.0).normalize()) * 1.5;
+        v2u = v2u.reflect(Vec2::<f32>::ONE.normalize())
             + v2u
                 .normalize()
-                .refract(Vec2U::<f32>::new(-1.0, 2.0).normalize(), v2u.x * 1.5)
+                .refract(Vec2::<f32>::new(-1.0, 2.0).normalize(), v2u.x * 1.5)
                 * 1.5;
 
         v3u = v3u.with_x((v3u + 1.0 == v3u - 1.0) as u8 as f32);
@@ -310,9 +310,9 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v3u = v3u.with_y(v3u.min_element());
         v3u = v3u.normalize();
         v3u = v3u.with_x(v3u.dot(v3u + 1.0));
-        v3u = v3u.try_normalize().unwrap_or(Vec3U::ZERO);
+        v3u = v3u.try_normalize().unwrap_or(Vec3::ZERO);
         v3u = v3u.with_y(v3u.length());
-        v3u = v3u.normalize_or(Vec3U::ZERO);
+        v3u = v3u.normalize_or(Vec3::ZERO);
         v3u = v3u.with_y(v3u.is_normalized() as u8 as f32);
         v3u = v3u.with_x(v3u.length_squared() + v3u.distance(v3u * 1.5));
         v3u = v3u.with_y(v3u.distance_squared(v3u * 1.5));
@@ -320,14 +320,14 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v3u.with_max_length(10.0)
             + v3u.with_min_length(5.0)
             + v3u.clamp_length(3.0, 4.0);
-        v3u = v3u.project_onto(Vec3U::ONE)
-            + v3u.project_onto_normalized(Vec3U::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
-        v3u = v3u.reject_from(Vec3U::ONE)
-            + v3u.reject_from_normalized(Vec3U::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
-        v3u = v3u.reflect(Vec3U::<f32>::ONE.normalize())
+        v3u = v3u.project_onto(Vec3::ONE)
+            + v3u.project_onto_normalized(Vec3::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
+        v3u = v3u.reject_from(Vec3::ONE)
+            + v3u.reject_from_normalized(Vec3::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
+        v3u = v3u.reflect(Vec3::<f32>::ONE.normalize())
             + v3u
                 .normalize()
-                .refract(Vec3U::<f32>::new(-1.0, 2.0, -3.0).normalize(), v3u.x * 1.5)
+                .refract(Vec3::<f32>::new(-1.0, 2.0, -3.0).normalize(), v3u.x * 1.5)
                 * 1.5;
         let pair = v3u.any_orthonormal_pair();
         v3u = v3u.any_orthogonal_vector() * 1.2
@@ -345,9 +345,9 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v3a = v3a.with_y(v3a.min_element());
         v3a = v3a.normalize();
         v3a = v3a.with_x(v3a.dot(v3a + 1.0));
-        v3a = v3a.try_normalize().unwrap_or(Vec3::ZERO);
+        v3a = v3a.try_normalize().unwrap_or(Vec3A::ZERO);
         v3a = v3a.with_y(v3a.length());
-        v3a = v3a.normalize_or(Vec3::ZERO);
+        v3a = v3a.normalize_or(Vec3A::ZERO);
         v3a = v3a.with_y(v3a.is_normalized() as u8 as f32);
         v3a = v3a.with_x(v3a.length_squared() + v3a.distance(v3a * 1.5));
         v3a = v3a.with_y(v3a.distance_squared(v3a * 1.5));
@@ -355,14 +355,14 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v3a.with_max_length(10.0)
             + v3a.with_min_length(5.0)
             + v3a.clamp_length(3.0, 4.0);
-        v3a = v3a.project_onto(Vec3::ONE)
-            + v3a.project_onto_normalized(Vec3::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
-        v3a = v3a.reject_from(Vec3::ONE)
-            + v3a.reject_from_normalized(Vec3::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
-        v3a = v3a.reflect(Vec3::<f32>::ONE.normalize())
+        v3a = v3a.project_onto(Vec3A::ONE)
+            + v3a.project_onto_normalized(Vec3A::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
+        v3a = v3a.reject_from(Vec3A::ONE)
+            + v3a.reject_from_normalized(Vec3A::<f32>::new(-1.0, 2.0, -3.0).normalize()) * 1.5;
+        v3a = v3a.reflect(Vec3A::<f32>::ONE.normalize())
             + v3a
                 .normalize()
-                .refract(Vec3::<f32>::new(-1.0, 2.0, -3.0).normalize(), v3a.x * 1.5)
+                .refract(Vec3A::<f32>::new(-1.0, 2.0, -3.0).normalize(), v3a.x * 1.5)
                 * 1.5;
         let pair = v3a.any_orthonormal_pair();
         v3a = v3a.any_orthogonal_vector() * 1.2
@@ -380,9 +380,9 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
         v4a = v4a.with_y(v4a.min_element());
         v4a = v4a.normalize();
         v4a = v4a.with_x(v4a.dot(v4a + 1.0));
-        v4a = v4a.try_normalize().unwrap_or(Vec4::ZERO);
+        v4a = v4a.try_normalize().unwrap_or(Vec4A::ZERO);
         v4a = v4a.with_y(v4a.length());
-        v4a = v4a.normalize_or(Vec4::ZERO);
+        v4a = v4a.normalize_or(Vec4A::ZERO);
         v4a = v4a.with_y(v4a.is_normalized() as u8 as f32);
         v4a = v4a.with_x(v4a.length_squared() + v4a.distance(v4a * 1.5));
         v4a = v4a.with_y(v4a.distance_squared(v4a * 1.5));
@@ -390,13 +390,14 @@ pub fn ggmath_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
             + v4a.with_max_length(10.0)
             + v4a.with_min_length(5.0)
             + v4a.clamp_length(3.0, 4.0);
-        v4a = v4a.project_onto(Vec4::ONE)
-            + v4a.project_onto_normalized(Vec4::<f32>::new(-1.0, 2.0, -3.0, 4.0).normalize()) * 1.5;
-        v4a = v4a.reject_from(Vec4::ONE)
-            + v4a.reject_from_normalized(Vec4::<f32>::new(-1.0, 2.0, -3.0, 4.0).normalize()) * 1.5;
-        v4a = v4a.reflect(Vec4::<f32>::ONE.normalize())
+        v4a = v4a.project_onto(Vec4A::ONE)
+            + v4a.project_onto_normalized(Vec4A::<f32>::new(-1.0, 2.0, -3.0, 4.0).normalize())
+                * 1.5;
+        v4a = v4a.reject_from(Vec4A::ONE)
+            + v4a.reject_from_normalized(Vec4A::<f32>::new(-1.0, 2.0, -3.0, 4.0).normalize()) * 1.5;
+        v4a = v4a.reflect(Vec4A::<f32>::ONE.normalize())
             + v4a.normalize().refract(
-                Vec4::<f32>::new(-1.0, 2.0, -3.0, 4.0).normalize(),
+                Vec4A::<f32>::new(-1.0, 2.0, -3.0, 4.0).normalize(),
                 v4a.x * 1.5,
             ) * 1.5;
     }
@@ -554,12 +555,12 @@ pub fn glam_horizontal(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_round(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
         v2u = v2u.floor() + v2u.ceil() - v2u.round() * v2u.trunc() / v2u.fract();
@@ -594,12 +595,12 @@ pub fn glam_round(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_trigo(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
         v2u = v2u.sin() + v2u.cos() - v2u.tan() * v2u.asin() / v2u.acos() - v2u.atan();
@@ -677,12 +678,12 @@ pub fn glam_trigo(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_exp(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
         v2u = v2u.exp() + v2u.exp2() + v2u.ln() + v2u.log2() + v2u.powf(5.0);
@@ -717,12 +718,12 @@ pub fn glam_exp(x: f32, y: f32, z: f32) -> impl Copy {
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_euclid_div(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2U, Vec3, Vec3U, Vec4};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
-    let mut v2u: Vec2U<f32> = Vec2U::new(x, y);
-    let mut v3u: Vec3U<f32> = Vec3U::new(x, y, z);
-    let mut v3a: Vec3<f32> = Vec3::new(x, y, z);
-    let mut v4a: Vec4<f32> = Vec4::new(x, y, z, x);
+    let mut v2u: Vec2<f32> = Vec2::new(x, y);
+    let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
+    let mut v3a: Vec3A<f32> = Vec3A::new(x, y, z);
+    let mut v4a: Vec4A<f32> = Vec4A::new(x, y, z, x);
 
     for _ in 0..2 {
         v2u = v2u % (v2u + 1.0);

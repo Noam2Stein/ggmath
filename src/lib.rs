@@ -1,41 +1,51 @@
 //! A linear algebra library for games and graphics with generic SIMD types.
 //!
-//! The library provides:
-//!
 //! - Vectors: [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`].
 //! - Square Matrices: [`Mat2<T>`], [`Mat3<T>`], [`Mat4<T>`].
 //! - Quaternions: [`Quat<T>`].
 //! - Affine Transforms: [`Affine2<T>`], [`Affine3<T>`].
 //! - Masks: [`Mask2<T>`], [`Mask3<T>`], [`Mask4<T>`].
 //!
+//! SIMD variants:
+//!
+//! - Vectors: [`Vec2A<T>`], [`Vec3A<T>`], [`Vec4A<T>`].
+//! - Square Matrices: [`Mat2A<T>`], [`Mat3A<T>`], [`Mat4A<T>`].
+//! - Quaternions: [`QuatA<T>`].
+//! - Affine Transforms: [`Affine2A<T>`], [`Affine3A<T>`].
+//! - Masks: [`Mask2A<T>`], [`Mask3A<T>`], [`Mask4A<T>`].
+//!
+//! Underlying generic types:
+//!
+//! - [`Vector<N, T, A>`]
+//! - [`Matrix<N, T, A>`]
+//! - [`Quaternion<T, A>`]
+//! - [`Affine<N, T, A>`]
+//! - [`Mask<N, T, A>`]
+//!
 //! # SIMD
 //!
-//! Appropriate types have increased memory alignment in order to take advantage
-//! of SIMD instructions that improve performance. For example, [`Vec3<f32>`],
-//! [`Vec4<f32>`], [`Mat3<f32>`] and [`Mat4<f32>`] are aligned to 16 bytes on
-//! x86 targets in order to take advantage of the SSE instruction set.
+//! SIMD variants use specialization to have appropriate alignment and to use
+//! explicit SIMD in function implementations.
 //!
-//! Although SIMD alignment generally results better performance, it can also
-//! result in wasted space. For example, due to 16-byte alignment, [`Vec3<f32>`]
-//! has 4 bytes of padding, and consequently [`Mat3<f32>`] has 12 bytes of
-//! padding. For scenarios where better performance is not worth wasted space,
-//! math types have non-SIMD, unaligned variants:
+//! SIMD results in faster computations, but can actually hurt performance if
+//! the bottleneck is memory bandwidth rather than computation throughput. For
+//! maximum performance, there are both SIMD and non-SIMD types.
 //!
-//! - Vectors: [`Vec2U<T>`], [`Vec3U<T>`], [`Vec4U<T>`].
-//! - Square Matrices: [`Mat2U<T>`], [`Mat3U<T>`], [`Mat4U<T>`].
-//! - Quaternions: [`QuatU<T>`].
-//! - Affine Transforms: [`Affine2U<T>`], [`Affine3U<T>`].
-//! - Masks: [`Mask2U<T>`], [`Mask3U<T>`], [`Mask4U<T>`].
+//! | Type              | [`Vec3<f32>`] | [`Vec3A<f32>`] | [`Mat3<f32>`] | [`Mat3A<f32>`] |
+//! | ----------------- | ------------- | -------------- | ------------- | -------------- |
+//! | Size (bytes)      | 12            | 16             | 36            | 48             |
+//! | Alignment (bytes) | 4             | 16             | 4             | 16             |
+//! | Padding (bytes)   | 0             | 4              | 0             | 12             |
 //!
-//! Unaligned types are optimal in memory-critical scenarios, for example when
-//! storing 3D models. In all other cases, aligned types are optimal and result
-//! in better performance than unaligned types.
+//! | Type              | [`Vec4<f32>`] | [`Vec4A<f32>`] | [`Mat4<f32>`] | [`Mat4A<f32>`] |
+//! | ----------------- | ------------- | -------------- | ------------- | -------------- |
+//! | Size (bytes)      | 16            | 16             | 64            | 64             |
+//! | Alignment (bytes) | 4             | 16             | 4             | 16             |
+//! | Padding (bytes)   | 0             | 0              | 0             | 0              |
 //!
-//! Integration with [`wide`] enables SoA ([Structure of Arrays]) SIMD, which
-//! lets you perform operations concurrently on multiple values, for example
-//! with [`Vec3<f32x4>`] which represents four values of [`Vec3<f32>`]. SoA
-//! requires modeling algorithms in a very specific way, but can be much faster
-//! than normal types.
+//! > This table is true only for target architectures that have SIMD and are
+//! > supported. Types incompatible with SIMD use fallback implementations.
+//! > Currently support is limited to [`f32`] types on x86.
 //!
 //! # Generics
 //!
@@ -49,8 +59,8 @@
 //! have access to float-vector functionality.
 //!
 //! Types relative to each other (e.g., [`Vec2<T>`], [`Vec3<T>`], [`Vec4<T>`]
-//! and unaligned variants) are not distinct types, instead they are all type
-//! aliases to these const-generic structs:
+//! and SIMD variants) are not distinct types, instead they are all type aliases
+//! to these const-generic structs:
 //!
 //! - [`Vector<N, T, A>`].
 //! - [`Matrix<N, T, A>`].

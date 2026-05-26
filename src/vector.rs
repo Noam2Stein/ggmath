@@ -36,12 +36,12 @@ mod wide_signed;
 ///
 /// # Type aliases
 ///
-/// - [`Vec2<T>`] for `Vector<2, T, Aligned>`.
-/// - [`Vec3<T>`] for `Vector<3, T, Aligned>`.
-/// - [`Vec4<T>`] for `Vector<4, T, Aligned>`.
-/// - [`Vec2U<T>`] for `Vector<2, T, Unaligned>`.
-/// - [`Vec3U<T>`] for `Vector<3, T, Unaligned>`.
-/// - [`Vec4U<T>`] for `Vector<4, T, Unaligned>`.
+/// - [`Vec2<T>`] for `Vector<2, T, Unaligned>`.
+/// - [`Vec3<T>`] for `Vector<3, T, Unaligned>`.
+/// - [`Vec4<T>`] for `Vector<4, T, Unaligned>`.
+/// - [`Vec2A<T>`] for `Vector<2, T, Aligned>`.
+/// - [`Vec3A<T>`] for `Vector<3, T, Aligned>`.
+/// - [`Vec4A<T>`] for `Vector<4, T, Aligned>`.
 ///
 /// # Fields
 ///
@@ -67,19 +67,12 @@ mod wide_signed;
 /// optional padding.
 ///
 /// `Vector<N, T, Unaligned>` has the alignment of `T` and has no padding.
-/// `Vector<N, T, Aligned>` may have higher alignment than `T`. [`Vec2<T>`] and
-/// [`Vec4<T>`] have no padding. [`Vec3<T>`] may have one padding element.
+/// `Vector<N, T, Aligned>` may have higher alignment than `T`. [`Vec2A<T>`] and
+/// [`Vec4A<T>`] have no padding. [`Vec3A<T>`] may have one padding element.
 ///
 /// Padding is fully initialized and accepts all bit patterns. Unless `T`
 /// accepts all bit patterns, it is not sound to assume padding contains valid
 /// values of `T`.
-///
-/// [`Vec2<T>`]: crate::Vec2
-/// [`Vec3<T>`]: crate::Vec3
-/// [`Vec4<T>`]: crate::Vec4
-/// [`Vec2U<T>`]: crate::Vec2U
-/// [`Vec3U<T>`]: crate::Vec3U
-/// [`Vec4U<T>`]: crate::Vec4U
 #[repr(transparent)]
 pub struct Vector<const N: usize, T, A: Alignment>(
     /// The internal representation of the vector.
@@ -116,10 +109,9 @@ where
 
 /// A 2-dimensional vector.
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Vec2<T>` has SIMD alignment for appropriate scalar types. See [`Vec2U<T>`]
-/// for a non-SIMD variant.
+/// `Vec2<T>` does not have SIMD alignment. See [`Vec2A<T>`] for a SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -134,14 +126,13 @@ where
 /// The second element of the vector.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Vec2<T> = Vector<2, T, Aligned>;
+pub type Vec2<T> = Vector<2, T, Unaligned>;
 
 /// A 3-dimensional vector.
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Vec3<T>` has SIMD alignment for appropriate scalar types. See [`Vec3U<T>`]
-/// for a non-SIMD variant.
+/// `Vec3<T>` does not have SIMD alignment. See [`Vec3A<T>`] for a SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -160,14 +151,13 @@ pub type Vec2<T> = Vector<2, T, Aligned>;
 /// The third element of the vector.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Vec3<T> = Vector<3, T, Aligned>;
+pub type Vec3<T> = Vector<3, T, Unaligned>;
 
 /// A 4-dimensional vector.
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Vec4<T>` has SIMD alignment for appropriate scalar types. See [`Vec4U<T>`]
-/// for a non-SIMD variant.
+/// `Vec4<T>` does not have SIMD alignment. See [`Vec4A<T>`] for a SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -190,13 +180,14 @@ pub type Vec3<T> = Vector<3, T, Aligned>;
 /// The fourth element of the vector.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Vec4<T> = Vector<4, T, Aligned>;
+pub type Vec4<T> = Vector<4, T, Unaligned>;
 
 /// A 2-dimensional vector.
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Vec2U<T>` does not have SIMD alignment. See [`Vec2<T>`] for a SIMD variant.
+/// `Vec2A<T>` has SIMD alignment for appropriate scalar types. See [`Vec2<T>`]
+/// for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -211,13 +202,14 @@ pub type Vec4<T> = Vector<4, T, Aligned>;
 /// The second element of the vector.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Vec2U<T> = Vector<2, T, Unaligned>;
+pub type Vec2A<T> = Vector<2, T, Aligned>;
 
 /// A 3-dimensional vector.
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Vec3U<T>` does not have SIMD alignment. See [`Vec3<T>`] for a SIMD variant.
+/// `Vec3A<T>` has SIMD alignment for appropriate scalar types. See [`Vec3<T>`]
+/// for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -236,13 +228,14 @@ pub type Vec2U<T> = Vector<2, T, Unaligned>;
 /// The third element of the vector.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Vec3U<T> = Vector<3, T, Unaligned>;
+pub type Vec3A<T> = Vector<3, T, Aligned>;
 
 /// A 4-dimensional vector.
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Vec4U<T>` does not have SIMD alignment. See [`Vec4<T>`] for a SIMD variant.
+/// `Vec4A<T>` has SIMD alignment for appropriate scalar types. See [`Vec4<T>`]
+/// for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -265,7 +258,7 @@ pub type Vec3U<T> = Vector<3, T, Unaligned>;
 /// The fourth element of the vector.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Vec4U<T> = Vector<4, T, Unaligned>;
+pub type Vec4A<T> = Vector<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
@@ -512,15 +505,15 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Aligned, Unaligned, Vec3, Vec3U};
+    /// # use ggmath::{Aligned, Unaligned, Vec3, Vec3A};
     /// #
-    /// let aligned = Vec3::new(1, 2, 3);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Vec3U::new(1, 2, 3));
-    ///
-    /// let unaligned = Vec3U::new(1, 2, 3);
+    /// let unaligned = Vec3::new(1, 2, 3);
     /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Vec3::new(1, 2, 3));
+    /// assert_eq!(aligned, Vec3A::new(1, 2, 3));
+    ///
+    /// let aligned = Vec3A::new(1, 2, 3);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Vec3::new(1, 2, 3));
     /// ```
     ///
     /// [`align`]: Self::align
@@ -555,11 +548,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Vec3, Vec3U};
+    /// # use ggmath::{Vec3, Vec3A};
     /// #
-    /// let unaligned = Vec3U::new(1, 2, 3);
+    /// let unaligned = Vec3::new(1, 2, 3);
     /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Vec3::new(1, 2, 3));
+    /// assert_eq!(aligned, Vec3A::new(1, 2, 3));
     /// ```
     #[inline]
     #[must_use]
@@ -574,11 +567,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Vec3, Vec3U};
+    /// # use ggmath::{Vec3, Vec3A};
     /// #
-    /// let aligned = Vec3::new(1, 2, 3);
+    /// let aligned = Vec3A::new(1, 2, 3);
     /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Vec3U::new(1, 2, 3));
+    /// assert_eq!(unaligned, Vec3::new(1, 2, 3));
     /// ```
     #[inline]
     #[must_use]
@@ -2775,7 +2768,7 @@ mod tests {
     use itertools::Itertools;
 
     use crate::{
-        Aligned, Mask, Matrix, Unaligned, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U, Vector,
+        Aligned, Mask, Matrix, Unaligned, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A, Vector,
         utils::{
             Repr2, Repr3, Repr4, assert_float_eq, assert_panic, assert_panic_eq, for_parameters,
         },
@@ -2784,33 +2777,33 @@ mod tests {
     #[test]
     fn test_layout() {
         for_parameters!(|T: PrimitiveNumber| {
-            assert_eq!(size_of::<Vec2<T>>(), size_of::<T>() * 2);
+            assert_eq!(size_of::<Vec2A<T>>(), size_of::<T>() * 2);
             assert!(
-                align_of::<Vec2<T>>() == align_of::<T>()
-                    || align_of::<Vec2<T>>() == size_of::<T>() * 2
+                align_of::<Vec2A<T>>() == align_of::<T>()
+                    || align_of::<Vec2A<T>>() == size_of::<T>() * 2
             );
 
             assert!(
-                size_of::<Vec3<T>>() == size_of::<T>() * 3
-                    && align_of::<Vec3<T>>() == align_of::<T>()
-                    || size_of::<Vec3<T>>() == size_of::<T>() * 4
-                        && align_of::<Vec3<T>>() == size_of::<T>() * 4
+                size_of::<Vec3A<T>>() == size_of::<T>() * 3
+                    && align_of::<Vec3A<T>>() == align_of::<T>()
+                    || size_of::<Vec3A<T>>() == size_of::<T>() * 4
+                        && align_of::<Vec3A<T>>() == size_of::<T>() * 4
             );
+
+            assert_eq!(size_of::<Vec4A<T>>(), size_of::<T>() * 4);
+            assert!(
+                align_of::<Vec4A<T>>() == align_of::<T>()
+                    || align_of::<Vec4A<T>>() == size_of::<T>() * 4
+            );
+
+            assert_eq!(size_of::<Vec2<T>>(), size_of::<T>() * 2);
+            assert_eq!(align_of::<Vec2<T>>(), align_of::<T>());
+
+            assert_eq!(size_of::<Vec3<T>>(), size_of::<T>() * 3);
+            assert_eq!(align_of::<Vec3<T>>(), align_of::<T>());
 
             assert_eq!(size_of::<Vec4<T>>(), size_of::<T>() * 4);
-            assert!(
-                align_of::<Vec4<T>>() == align_of::<T>()
-                    || align_of::<Vec4<T>>() == size_of::<T>() * 4
-            );
-
-            assert_eq!(size_of::<Vec2U<T>>(), size_of::<T>() * 2);
-            assert_eq!(align_of::<Vec2U<T>>(), align_of::<T>());
-
-            assert_eq!(size_of::<Vec3U<T>>(), size_of::<T>() * 3);
-            assert_eq!(align_of::<Vec3U<T>>(), align_of::<T>());
-
-            assert_eq!(size_of::<Vec4U<T>>(), size_of::<T>() * 4);
-            assert_eq!(align_of::<Vec4U<T>>(), align_of::<T>());
+            assert_eq!(align_of::<Vec4<T>>(), align_of::<T>());
         });
     }
 
@@ -3461,30 +3454,27 @@ mod tests {
 
     #[test]
     fn test_from_inner() {
-        assert_eq!(Vec2U::<u32>::from_inner(Repr2(0, 1)), Vec2U::new(0, 1));
+        assert_eq!(Vec2::<u32>::from_inner(Repr2(0, 1)), Vec2::new(0, 1));
+        assert_eq!(Vec3::<u32>::from_inner(Repr3(0, 1, 2)), Vec3::new(0, 1, 2));
         assert_eq!(
-            Vec3U::<u32>::from_inner(Repr3(0, 1, 2)),
-            Vec3U::new(0, 1, 2)
-        );
-        assert_eq!(
-            Vec4U::<u32>::from_inner(Repr4(0, 1, 2, 3)),
-            Vec4U::new(0, 1, 2, 3)
+            Vec4::<u32>::from_inner(Repr4(0, 1, 2, 3)),
+            Vec4::new(0, 1, 2, 3)
         );
     }
 
     #[test]
     fn test_inner() {
-        assert_eq!(Vec2U::<u32>::new(0, 1).inner(), Repr2(0, 1));
-        assert_eq!(Vec3U::<u32>::new(0, 1, 2).inner(), Repr3(0, 1, 2));
-        assert_eq!(Vec4U::<u32>::new(0, 1, 2, 3).inner(), Repr4(0, 1, 2, 3));
+        assert_eq!(Vec2::<u32>::new(0, 1).inner(), Repr2(0, 1));
+        assert_eq!(Vec3::<u32>::new(0, 1, 2).inner(), Repr3(0, 1, 2));
+        assert_eq!(Vec4::<u32>::new(0, 1, 2, 3).inner(), Repr4(0, 1, 2, 3));
     }
 
     #[test]
     fn test_inner_mut() {
-        assert_eq!(Vec2U::<u32>::new(0, 1).inner_mut(), &mut Repr2(0, 1));
-        assert_eq!(Vec3U::<u32>::new(0, 1, 2).inner_mut(), &mut Repr3(0, 1, 2));
+        assert_eq!(Vec2::<u32>::new(0, 1).inner_mut(), &mut Repr2(0, 1));
+        assert_eq!(Vec3::<u32>::new(0, 1, 2).inner_mut(), &mut Repr3(0, 1, 2));
         assert_eq!(
-            Vec4U::<u32>::new(0, 1, 2, 3).inner_mut(),
+            Vec4::<u32>::new(0, 1, 2, 3).inner_mut(),
             &mut Repr4(0, 1, 2, 3)
         );
     }

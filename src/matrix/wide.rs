@@ -222,20 +222,20 @@ mod tests {
     use wide::{CmpEq, i32x4};
 
     use crate::{
-        Mat2, Matrix,
+        Mat2A, Matrix,
         utils::{assert_float_eq, assert_panic, for_parameters},
     };
 
     #[test]
     fn test_from_lanes() {
         assert_eq!(
-            Mat2::<i32x4>::from_lanes(&[
-                Mat2::from_row_array(&[1, 2, 3, 4]),
-                Mat2::from_row_array(&[5, 6, 7, 8]),
-                Mat2::from_row_array(&[9, 10, 11, 12]),
-                Mat2::from_row_array(&[13, 14, 15, 16]),
+            Mat2A::<i32x4>::from_lanes(&[
+                Mat2A::from_row_array(&[1, 2, 3, 4]),
+                Mat2A::from_row_array(&[5, 6, 7, 8]),
+                Mat2A::from_row_array(&[9, 10, 11, 12]),
+                Mat2A::from_row_array(&[13, 14, 15, 16]),
             ]),
-            Mat2::from_row_array(&[
+            Mat2A::from_row_array(&[
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -247,13 +247,13 @@ mod tests {
     #[test]
     fn test_from_lane_fn() {
         assert_eq!(
-            Mat2::<i32x4>::from_lane_fn(|i| [
-                Mat2::from_row_array(&[1, 2, 3, 4]),
-                Mat2::from_row_array(&[5, 6, 7, 8]),
-                Mat2::from_row_array(&[9, 10, 11, 12]),
-                Mat2::from_row_array(&[13, 14, 15, 16]),
+            Mat2A::<i32x4>::from_lane_fn(|i| [
+                Mat2A::from_row_array(&[1, 2, 3, 4]),
+                Mat2A::from_row_array(&[5, 6, 7, 8]),
+                Mat2A::from_row_array(&[9, 10, 11, 12]),
+                Mat2A::from_row_array(&[13, 14, 15, 16]),
             ][i]),
-            Mat2::from_row_array(&[
+            Mat2A::from_row_array(&[
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn test_to_lanes() {
         assert_eq!(
-            Mat2::from_row_array(&[
+            Mat2A::from_row_array(&[
                 i32x4::new([1, 5, 9, 13]),
                 i32x4::new([2, 6, 10, 14]),
                 i32x4::new([3, 7, 11, 15]),
@@ -273,73 +273,73 @@ mod tests {
             ])
             .to_lanes(),
             [
-                Mat2::from_row_array(&[1, 2, 3, 4]),
-                Mat2::from_row_array(&[5, 6, 7, 8]),
-                Mat2::from_row_array(&[9, 10, 11, 12]),
-                Mat2::from_row_array(&[13, 14, 15, 16]),
+                Mat2A::from_row_array(&[1, 2, 3, 4]),
+                Mat2A::from_row_array(&[5, 6, 7, 8]),
+                Mat2A::from_row_array(&[9, 10, 11, 12]),
+                Mat2A::from_row_array(&[13, 14, 15, 16]),
             ],
         );
     }
 
     #[test]
     fn test_lane() {
-        let matrix = Mat2::from_row_array(&[
+        let matrix = Mat2A::from_row_array(&[
             i32x4::new([1, 5, 9, 13]),
             i32x4::new([2, 6, 10, 14]),
             i32x4::new([3, 7, 11, 15]),
             i32x4::new([4, 8, 12, 16]),
         ]);
 
-        assert_eq!(matrix.lane(0), Mat2::from_row_array(&[1, 2, 3, 4]));
-        assert_eq!(matrix.lane(1), Mat2::from_row_array(&[5, 6, 7, 8]));
-        assert_eq!(matrix.lane(2), Mat2::from_row_array(&[9, 10, 11, 12]));
-        assert_eq!(matrix.lane(3), Mat2::from_row_array(&[13, 14, 15, 16]));
+        assert_eq!(matrix.lane(0), Mat2A::from_row_array(&[1, 2, 3, 4]));
+        assert_eq!(matrix.lane(1), Mat2A::from_row_array(&[5, 6, 7, 8]));
+        assert_eq!(matrix.lane(2), Mat2A::from_row_array(&[9, 10, 11, 12]));
+        assert_eq!(matrix.lane(3), Mat2A::from_row_array(&[13, 14, 15, 16]));
         assert_panic!(matrix.lane(4));
     }
 
     #[test]
     fn test_set_lane() {
-        let mut matrix = Mat2::from_row_array(&[
+        let mut matrix = Mat2A::from_row_array(&[
             i32x4::new([1, 5, 9, 13]),
             i32x4::new([2, 6, 10, 14]),
             i32x4::new([3, 7, 11, 15]),
             i32x4::new([4, 8, 12, 16]),
         ]);
 
-        matrix.set_lane(0, Mat2::from_row_array(&[-1, -2, -3, -4]));
+        matrix.set_lane(0, Mat2A::from_row_array(&[-1, -2, -3, -4]));
         assert_eq!(
             matrix,
-            Mat2::from_row_array(&[
+            Mat2A::from_row_array(&[
                 i32x4::new([-1, 5, 9, 13]),
                 i32x4::new([-2, 6, 10, 14]),
                 i32x4::new([-3, 7, 11, 15]),
                 i32x4::new([-4, 8, 12, 16]),
             ])
         );
-        matrix.set_lane(1, Mat2::from_row_array(&[-5, -6, -7, -8]));
+        matrix.set_lane(1, Mat2A::from_row_array(&[-5, -6, -7, -8]));
         assert_eq!(
             matrix,
-            Mat2::from_row_array(&[
+            Mat2A::from_row_array(&[
                 i32x4::new([-1, -5, 9, 13]),
                 i32x4::new([-2, -6, 10, 14]),
                 i32x4::new([-3, -7, 11, 15]),
                 i32x4::new([-4, -8, 12, 16]),
             ])
         );
-        matrix.set_lane(2, Mat2::from_row_array(&[-9, -10, -11, -12]));
+        matrix.set_lane(2, Mat2A::from_row_array(&[-9, -10, -11, -12]));
         assert_eq!(
             matrix,
-            Mat2::from_row_array(&[
+            Mat2A::from_row_array(&[
                 i32x4::new([-1, -5, -9, 13]),
                 i32x4::new([-2, -6, -10, 14]),
                 i32x4::new([-3, -7, -11, 15]),
                 i32x4::new([-4, -8, -12, 16]),
             ])
         );
-        matrix.set_lane(3, Mat2::from_row_array(&[-13, -14, -15, -16]));
+        matrix.set_lane(3, Mat2A::from_row_array(&[-13, -14, -15, -16]));
         assert_eq!(
             matrix,
-            Mat2::from_row_array(&[
+            Mat2A::from_row_array(&[
                 i32x4::new([-1, -5, -9, -13]),
                 i32x4::new([-2, -6, -10, -14]),
                 i32x4::new([-3, -7, -11, -15]),

@@ -30,12 +30,12 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Mat2<T>`] for `Matrix<2, T, Aligned>`.
-/// - [`Mat3<T>`] for `Matrix<3, T, Aligned>`.
-/// - [`Mat4<T>`] for `Matrix<4, T, Aligned>`.
-/// - [`Mat2U<T>`] for `Matrix<2, T, Unaligned>`.
-/// - [`Mat3U<T>`] for `Matrix<3, T, Unaligned>`.
-/// - [`Mat4U<T>`] for `Matrix<4, T, Unaligned>`.
+/// - [`Mat2<T>`] for `Matrix<2, T, Unaligned>`.
+/// - [`Mat3<T>`] for `Matrix<3, T, Unaligned>`.
+/// - [`Mat4<T>`] for `Matrix<4, T, Unaligned>`.
+/// - [`Mat2A<T>`] for `Matrix<2, T, Aligned>`.
+/// - [`Mat3A<T>`] for `Matrix<3, T, Aligned>`.
+/// - [`Mat4A<T>`] for `Matrix<4, T, Aligned>`.
 ///
 /// # Fields
 ///
@@ -74,13 +74,6 @@ mod wide_float;
 /// `[Vector<N, T, A>; N]`.
 ///
 /// [`from_rows`]: Self::from_rows
-/// [`Mat2<T>`]: crate::Mat2
-/// [`Mat3<T>`]: crate::Mat3
-/// [`Mat4<T>`]: crate::Mat4
-/// [`Mat2U<T>`]: crate::Mat2U
-/// [`Mat3U<T>`]: crate::Mat3U
-/// [`Mat4U<T>`]: crate::Mat4U
-/// [`Vec4<T>`]: crate::Vec4
 #[repr(transparent)]
 pub struct Matrix<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
@@ -102,10 +95,9 @@ where
 /// The resulting matrices can be used to transform 2D vectors using vector
 /// multiplication.
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Mat2<T>` has SIMD alignment for appropriate scalar types. See [`Mat2U<T>`]
-/// for a non-SIMD variant.
+/// `Mat2<T>` does not have SIMD alignment. See [`Mat2A<T>`] for a SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -127,13 +119,13 @@ where
 /// [`from_angle`]: Mat2::from_angle
 /// [`from_scale_angle`]: Mat2::from_scale_angle
 /// [`Alignment`]: crate::Alignment
-pub type Mat2<T> = Matrix<2, T, Aligned>;
+pub type Mat2<T> = Matrix<2, T, Unaligned>;
 
 /// A 3x3 row-major matrix.
 ///
 /// `Mat3` can be used for both 3D linear transformations and 2D affine
-/// transformations. For 2D affine transformations, the [`Affine2`] type results
-/// in better performance for some operations (note that benchmarks are
+/// transformations. For 2D affine transformations, the [`Affine2`] type
+/// results in better performance for some operations (note that benchmarks are
 /// currently missing).
 ///
 /// Linear transformations including 3D rotation and scale can be created using
@@ -151,10 +143,9 @@ pub type Mat2<T> = Matrix<2, T, Aligned>;
 /// The resulting matrices can be used to transform 2D vectors using
 /// [`transform_point`] and [`transform_vector`].
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Mat3<T>` has SIMD alignment for appropriate scalar types. See [`Mat3U<T>`]
-/// for a non-SIMD variant.
+/// `Mat3<T>` does not have SIMD alignment. See [`Mat3A<T>`] for a SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -196,7 +187,7 @@ pub type Mat2<T> = Matrix<2, T, Aligned>;
 /// [`transform_point`]: Mat3::transform_point
 /// [`transform_vector`]: Mat3::transform_vector
 /// [`Alignment`]: crate::Alignment
-pub type Mat3<T> = Matrix<3, T, Aligned>;
+pub type Mat3<T> = Matrix<3, T, Unaligned>;
 
 /// A 4x4 row-major matrix.
 ///
@@ -221,10 +212,9 @@ pub type Mat3<T> = Matrix<3, T, Aligned>;
 /// The resulting projections can be used to transform 3D vectors as points
 /// using [`project_point`].
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Mat4<T>` has SIMD alignment for appropriate scalar types. See [`Mat4U<T>`]
-/// for a non-SIMD variant.
+/// `Mat4<T>` does not have SIMD alignment. See [`Mat4A<T>`] for a SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -272,7 +262,7 @@ pub type Mat3<T> = Matrix<3, T, Aligned>;
 /// [`perspective_infinite_rh`]: Mat4::perspective_infinite_rh
 /// [`project_point`]: Mat4::project_point
 /// [`Alignment`]: crate::Alignment
-pub type Mat4<T> = Matrix<4, T, Aligned>;
+pub type Mat4<T> = Matrix<4, T, Unaligned>;
 
 /// A 2x2 row-major matrix.
 ///
@@ -282,36 +272,37 @@ pub type Mat4<T> = Matrix<4, T, Aligned>;
 /// The resulting matrices can be used to transform 2D vectors using vector
 /// multiplication.
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Mat2U<T>` does not have SIMD alignment. See [`Mat2<T>`] for a SIMD variant.
+/// `Mat2A<T>` has SIMD alignment for appropriate scalar types. See [`Mat2<T>`]
+/// for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// # Fields
 ///
-/// `x_axis: Vec2U<T>`
+/// `x_axis: Vec2A<T>`
 ///
 /// The first row of the matrix.
 ///
 /// This represents the result of multiplying `(1, 0)` by the matrix.
 ///
-/// `y_axis: Vec2U<T>`
+/// `y_axis: Vec2A<T>`
 ///
 /// The second row of the matrix.
 ///
 /// This represents the result of multiplying `(0, 1)` by the matrix.
 ///
-/// [`from_diagonal`]: Mat2U::from_diagonal
-/// [`from_angle`]: Mat2U::from_angle
-/// [`from_scale_angle`]: Mat2U::from_scale_angle
+/// [`from_diagonal`]: Mat2::from_diagonal
+/// [`from_angle`]: Mat2::from_angle
+/// [`from_scale_angle`]: Mat2::from_scale_angle
 /// [`Alignment`]: crate::Alignment
-pub type Mat2U<T> = Matrix<2, T, Unaligned>;
+pub type Mat2A<T> = Matrix<2, T, Aligned>;
 
 /// A 3x3 row-major matrix.
 ///
-/// `Mat3U` can be used for both 3D linear transformations and 2D affine
-/// transformations. For 2D affine transformations, the [`Affine2U`] type
+/// `Mat3` can be used for both 3D linear transformations and 2D affine
+/// transformations. For 2D affine transformations, the [`Affine2A`] type
 /// results in better performance for some operations (note that benchmarks are
 /// currently missing).
 ///
@@ -330,56 +321,57 @@ pub type Mat2U<T> = Matrix<2, T, Unaligned>;
 /// The resulting matrices can be used to transform 2D vectors using
 /// [`transform_point`] and [`transform_vector`].
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Mat3U<T>` does not have SIMD alignment. See [`Mat3<T>`] for a SIMD variant.
+/// `Mat3A<T>` has SIMD alignment for appropriate scalar types. See [`Mat3<T>`]
+/// for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// # Fields
 ///
-/// `x_axis: Vec3U<T>`
+/// `x_axis: Vec3A<T>`
 ///
 /// The first row of the matrix.
 ///
 /// This represents the result of multiplying `(1, 0, 0)` by the matrix.
 ///
-/// `y_axis: Vec3U<T>`
+/// `y_axis: Vec3A<T>`
 ///
 /// The second row of the matrix.
 ///
 /// This represents the result of multiplying `(0, 1, 0)` by the matrix.
 ///
-/// `z_axis: Vec3U<T>`
+/// `z_axis: Vec3A<T>`
 ///
 /// The third row of the matrix.
 ///
 /// This represents the result of multiplying `(0, 0, 1)` by the matrix.
 ///
-/// [`Affine2U`]: crate::Affine2U
-/// [`from_diagonal`]: Mat3U::from_diagonal
-/// [`from_rotation_x`]: Mat3U::from_rotation_x
-/// [`from_rotation_y`]: Mat3U::from_rotation_y
-/// [`from_rotation_z`]: Mat3U::from_rotation_z
-/// [`from_quat`]: Mat3U::from_quat
-/// [`from_axis_angle`]: Mat3U::from_axis_angle
-/// [`from_euler`]: Mat3U::from_euler
-/// [`from_scale`]: Mat3U::from_scale
-/// [`from_translation`]: Mat3U::from_translation
-/// [`from_submatrix`]: Mat3U::from_submatrix
-/// [`from_submatrix_translation`]: Mat3U::from_submatrix_translation
-/// [`from_angle`]: Mat3U::from_angle
-/// [`from_scale_angle`]: Mat3U::from_scale_angle
-/// [`from_scale_angle_translation`]: Mat3U::from_scale_angle_translation
-/// [`transform_point`]: Mat3U::transform_point
-/// [`transform_vector`]: Mat3U::transform_vector
+/// [`Affine2A`]: crate::Affine2A
+/// [`from_diagonal`]: Mat3::from_diagonal
+/// [`from_rotation_x`]: Mat3::from_rotation_x
+/// [`from_rotation_y`]: Mat3::from_rotation_y
+/// [`from_rotation_z`]: Mat3::from_rotation_z
+/// [`from_quat`]: Mat3::from_quat
+/// [`from_axis_angle`]: Mat3::from_axis_angle
+/// [`from_euler`]: Mat3::from_euler
+/// [`from_scale`]: Mat3::from_scale
+/// [`from_translation`]: Mat3::from_translation
+/// [`from_submatrix`]: Mat3::from_submatrix
+/// [`from_submatrix_translation`]: Mat3::from_submatrix_translation
+/// [`from_angle`]: Mat3::from_angle
+/// [`from_scale_angle`]: Mat3::from_scale_angle
+/// [`from_scale_angle_translation`]: Mat3::from_scale_angle_translation
+/// [`transform_point`]: Mat3::transform_point
+/// [`transform_vector`]: Mat3::transform_vector
 /// [`Alignment`]: crate::Alignment
-pub type Mat3U<T> = Matrix<3, T, Unaligned>;
+pub type Mat3A<T> = Matrix<3, T, Aligned>;
 
 /// A 4x4 row-major matrix.
 ///
-/// `Mat4U` can be used for both linear transformations and perspective
-/// projections. For affine transformations, the [`Affine3U`] type results in
+/// `Mat4` can be used for both linear transformations and perspective
+/// projections. For affine transformations, the [`Affine3A`] type results in
 /// better performance for some operations (note that benchmarks are currently
 /// missing).
 ///
@@ -399,57 +391,58 @@ pub type Mat3U<T> = Matrix<3, T, Unaligned>;
 /// The resulting projections can be used to transform 3D vectors as points
 /// using [`project_point`].
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Mat4U<T>` does not have SIMD alignment. See [`Mat4<T>`] for a SIMD variant.
+/// `Mat4A<T>` has SIMD alignment for appropriate scalar types. See [`Mat4<T>`]
+/// for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// # Fields
 ///
-/// `x_axis: Vec4U<T>`
+/// `x_axis: Vec4A<T>`
 ///
 /// The first row of the matrix.
 ///
 /// This represents the result of multiplying `(1, 0, 0, 0)` by the matrix.
 ///
-/// `y_axis: Vec4U<T>`
+/// `y_axis: Vec4A<T>`
 ///
 /// The second row of the matrix.
 ///
 /// This represents the result of multiplying `(0, 1, 0, 0)` by the matrix.
 ///
-/// `z_axis: Vec4U<T>`
+/// `z_axis: Vec4A<T>`
 ///
 /// The third row of the matrix.
 ///
 /// This represents the result of multiplying `(0, 0, 1, 0)` by the matrix.
 ///
-/// `w_axis: Vec4U<T>`
+/// `w_axis: Vec4A<T>`
 ///
 /// The fourth row of the matrix.
 ///
 /// This represents the result of multiplying `(0, 0, 0, 1)` by the matrix.
 ///
-/// [`Affine3U`]: crate::Affine3U
-/// [`from_scale`]: Mat4U::from_scale
-/// [`from_translation`]: Mat4U::from_translation
-/// [`from_rotation_x`]: Mat4U::from_rotation_x
-/// [`from_rotation_y`]: Mat4U::from_rotation_y
-/// [`from_rotation_z`]: Mat4U::from_rotation_z
-/// [`from_quat`]: Mat4U::from_quat
-/// [`from_scale_rotation_translation`]: Mat4U::from_scale_rotation_translation
-/// [`transform_point`]: Mat4U::transform_point
-/// [`transform_vector`]: Mat4U::transform_vector
-/// [`orthographic_lh`]: Mat4U::orthographic_lh
-/// [`perspective_lh`]: Mat4U::perspective_lh
-/// [`perspective_infinite_lh`]: Mat4U::perspective_infinite_lh
-/// [`orthographic_rh`]: Mat4U::orthographic_rh
-/// [`perspective_rh`]: Mat4U::perspective_rh
-/// [`perspective_infinite_rh`]: Mat4U::perspective_infinite_rh
-/// [`project_point`]: Mat4U::project_point
+/// [`Affine3A`]: crate::Affine3A
+/// [`from_scale`]: Mat4::from_scale
+/// [`from_translation`]: Mat4::from_translation
+/// [`from_rotation_x`]: Mat4::from_rotation_x
+/// [`from_rotation_y`]: Mat4::from_rotation_y
+/// [`from_rotation_z`]: Mat4::from_rotation_z
+/// [`from_quat`]: Mat4::from_quat
+/// [`from_scale_rotation_translation`]: Mat4::from_scale_rotation_translation
+/// [`transform_point`]: Mat4::transform_point
+/// [`transform_vector`]: Mat4::transform_vector
+/// [`orthographic_lh`]: Mat4::orthographic_lh
+/// [`perspective_lh`]: Mat4::perspective_lh
+/// [`perspective_infinite_lh`]: Mat4::perspective_infinite_lh
+/// [`orthographic_rh`]: Mat4::orthographic_rh
+/// [`perspective_rh`]: Mat4::perspective_rh
+/// [`perspective_infinite_rh`]: Mat4::perspective_infinite_rh
+/// [`project_point`]: Mat4::project_point
 /// [`Alignment`]: crate::Alignment
-pub type Mat4U<T> = Matrix<4, T, Unaligned>;
+pub type Mat4A<T> = Matrix<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
 where
@@ -622,15 +615,15 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Aligned, Mat2, Mat2U, Unaligned, Vec2, Vec2U};
+    /// # use ggmath::{Aligned, Mat2, Mat2A, Unaligned, Vec2, Vec2A};
     /// #
-    /// let aligned = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Mat2U::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]));
-    ///
-    /// let unaligned = Mat2U::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
+    /// let unaligned = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
     /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]));
+    /// assert_eq!(aligned, Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]));
+    ///
+    /// let aligned = Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]));
     /// ```
     ///
     /// [`align`]: Self::align
@@ -673,11 +666,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mat2, Mat2U, Vec2, Vec2U};
+    /// # use ggmath::{Mat2, Mat2A, Vec2, Vec2A};
     /// #
-    /// let unaligned = Mat2U::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
+    /// let unaligned = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
     /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]));
+    /// assert_eq!(aligned, Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]));
     /// ```
     #[inline]
     #[must_use]
@@ -692,11 +685,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mat2, Mat2U, Vec2, Vec2U};
+    /// # use ggmath::{Mat2, Mat2A, Vec2, Vec2A};
     /// #
-    /// let aligned = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
+    /// let aligned = Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]);
     /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Mat2U::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]));
+    /// assert_eq!(unaligned, Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]));
     /// ```
     #[inline]
     #[must_use]
@@ -2656,7 +2649,7 @@ mod tests {
     use std::format;
 
     use crate::{
-        Aligned, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Matrix, Unaligned, Vec2, Vec3, Vec4,
+        Aligned, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Matrix, Unaligned, Vec2A, Vec3A, Vec4A,
         Vector,
         utils::{assert_debug_panic, assert_float_eq, assert_panic, for_parameters},
     };
@@ -2664,30 +2657,30 @@ mod tests {
     #[test]
     fn test_layout() {
         for_parameters!(|T: PrimitiveNumber| {
-            assert_eq!(size_of::<Mat2<T>>(), size_of::<Vec4<T>>());
-            assert_eq!(align_of::<Mat2<T>>(), align_of::<Vec4<T>>());
+            assert_eq!(size_of::<Mat2A<T>>(), size_of::<Vec4A<T>>());
+            assert_eq!(align_of::<Mat2A<T>>(), align_of::<Vec4A<T>>());
 
             assert!(
-                size_of::<Mat3<T>>() == size_of::<Vec3<T>>() * 3
-                    && align_of::<Mat3<T>>() == align_of::<Vec3<T>>()
-                    || size_of::<Mat3<T>>() == size_of::<Vec3<T>>() * 4
-                        && align_of::<Mat3<T>>() == size_of::<Vec3<T>>() * 4
+                size_of::<Mat3A<T>>() == size_of::<Vec3A<T>>() * 3
+                    && align_of::<Mat3A<T>>() == align_of::<Vec3A<T>>()
+                    || size_of::<Mat3A<T>>() == size_of::<Vec3A<T>>() * 4
+                        && align_of::<Mat3A<T>>() == size_of::<Vec3A<T>>() * 4
             );
 
-            assert_eq!(size_of::<Mat4<T>>(), size_of::<Vec4<T>>() * 4);
+            assert_eq!(size_of::<Mat4A<T>>(), size_of::<Vec4A<T>>() * 4);
             assert!(
-                align_of::<Mat4<T>>() == align_of::<Vec4<T>>()
-                    || align_of::<Mat4<T>>() == size_of::<Vec4<T>>() * 4
+                align_of::<Mat4A<T>>() == align_of::<Vec4A<T>>()
+                    || align_of::<Mat4A<T>>() == size_of::<Vec4A<T>>() * 4
             );
 
-            assert_eq!(size_of::<Mat2U<T>>(), size_of::<T>() * 4);
-            assert_eq!(align_of::<Mat2U<T>>(), align_of::<T>());
+            assert_eq!(size_of::<Mat2<T>>(), size_of::<T>() * 4);
+            assert_eq!(align_of::<Mat2<T>>(), align_of::<T>());
 
-            assert_eq!(size_of::<Mat3U<T>>(), size_of::<T>() * 9);
-            assert_eq!(align_of::<Mat3U<T>>(), align_of::<T>());
+            assert_eq!(size_of::<Mat3<T>>(), size_of::<T>() * 9);
+            assert_eq!(align_of::<Mat3<T>>(), align_of::<T>());
 
-            assert_eq!(size_of::<Mat4U<T>>(), size_of::<T>() * 16);
-            assert_eq!(align_of::<Mat4U<T>>(), align_of::<T>());
+            assert_eq!(size_of::<Mat4<T>>(), size_of::<T>() * 16);
+            assert_eq!(align_of::<Mat4<T>>(), align_of::<T>());
         });
     }
 
@@ -3512,62 +3505,66 @@ mod tests {
     #[test]
     fn test_from_scale() {
         assert_eq!(
-            Mat3::from_scale(Vec2::new(2, 3)).transform_point(Vec2::new(4, 5)),
-            Vec2::new(8, 15)
+            Mat3A::from_scale(Vec2A::new(2, 3)).transform_point(Vec2A::new(4, 5)),
+            Vec2A::new(8, 15)
         );
         assert_eq!(
-            Mat3::from_scale(Vec2::new(2, 3)).transform_vector(Vec2::new(4, 5)),
-            Vec2::new(8, 15)
+            Mat3A::from_scale(Vec2A::new(2, 3)).transform_vector(Vec2A::new(4, 5)),
+            Vec2A::new(8, 15)
         );
 
         assert_eq!(
-            Mat4::from_scale(Vec3::new(2, 3, 4)).transform_point(Vec3::new(5, 6, 7)),
-            Vec3::new(10, 18, 28)
+            Mat4A::from_scale(Vec3A::new(2, 3, 4)).transform_point(Vec3A::new(5, 6, 7)),
+            Vec3A::new(10, 18, 28)
         );
         assert_eq!(
-            Mat4::from_scale(Vec3::new(2, 3, 4)).transform_vector(Vec3::new(5, 6, 7)),
-            Vec3::new(10, 18, 28)
+            Mat4A::from_scale(Vec3A::new(2, 3, 4)).transform_vector(Vec3A::new(5, 6, 7)),
+            Vec3A::new(10, 18, 28)
         );
     }
 
     #[test]
     fn test_from_translation() {
         assert_eq!(
-            Mat3::from_translation(Vec2::new(1, 2)).transform_point(Vec2::new(3, 4)),
-            Vec2::new(4, 6)
+            Mat3A::from_translation(Vec2A::new(1, 2)).transform_point(Vec2A::new(3, 4)),
+            Vec2A::new(4, 6)
         );
         assert_eq!(
-            Mat3::from_translation(Vec2::new(1, 2)).transform_vector(Vec2::new(3, 4)),
-            Vec2::new(3, 4)
+            Mat3A::from_translation(Vec2A::new(1, 2)).transform_vector(Vec2A::new(3, 4)),
+            Vec2A::new(3, 4)
         );
 
         assert_eq!(
-            Mat4::from_translation(Vec3::new(1, 2, 3)).transform_point(Vec3::new(4, 5, 6)),
-            Vec3::new(5, 7, 9)
+            Mat4A::from_translation(Vec3A::new(1, 2, 3)).transform_point(Vec3A::new(4, 5, 6)),
+            Vec3A::new(5, 7, 9)
         );
         assert_eq!(
-            Mat4::from_translation(Vec3::new(1, 2, 3)).transform_vector(Vec3::new(4, 5, 6)),
-            Vec3::new(4, 5, 6)
+            Mat4A::from_translation(Vec3A::new(1, 2, 3)).transform_vector(Vec3A::new(4, 5, 6)),
+            Vec3A::new(4, 5, 6)
         );
     }
 
     #[test]
     fn test_from_submatrix() {
         assert_eq!(
-            Mat3::from_submatrix(&Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)])),
-            Mat3::from_rows(&[Vec3::new(1, 2, 0), Vec3::new(3, 4, 0), Vec3::new(0, 0, 1)])
+            Mat3A::from_submatrix(&Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)])),
+            Mat3A::from_rows(&[
+                Vec3A::new(1, 2, 0),
+                Vec3A::new(3, 4, 0),
+                Vec3A::new(0, 0, 1)
+            ])
         );
         assert_eq!(
-            Mat4::from_submatrix(&Mat3::from_rows(&[
-                Vec3::new(1, 2, 3),
-                Vec3::new(4, 5, 6),
-                Vec3::new(7, 8, 9)
+            Mat4A::from_submatrix(&Mat3A::from_rows(&[
+                Vec3A::new(1, 2, 3),
+                Vec3A::new(4, 5, 6),
+                Vec3A::new(7, 8, 9)
             ])),
-            Mat4::from_rows(&[
-                Vec4::new(1, 2, 3, 0),
-                Vec4::new(4, 5, 6, 0),
-                Vec4::new(7, 8, 9, 0),
-                Vec4::new(0, 0, 0, 1)
+            Mat4A::from_rows(&[
+                Vec4A::new(1, 2, 3, 0),
+                Vec4A::new(4, 5, 6, 0),
+                Vec4A::new(7, 8, 9, 0),
+                Vec4A::new(0, 0, 0, 1)
             ])
         );
     }
@@ -3575,22 +3572,30 @@ mod tests {
     #[test]
     fn test_from_submatrix_translation() {
         assert_eq!(
-            Mat3::from_submatrix_translation(
-                &Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]),
-                Vec2::new(5, 6)
+            Mat3A::from_submatrix_translation(
+                &Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]),
+                Vec2A::new(5, 6)
             ),
-            Mat3::from_rows(&[Vec3::new(1, 2, 0), Vec3::new(3, 4, 0), Vec3::new(5, 6, 1)])
+            Mat3A::from_rows(&[
+                Vec3A::new(1, 2, 0),
+                Vec3A::new(3, 4, 0),
+                Vec3A::new(5, 6, 1)
+            ])
         );
         assert_eq!(
-            Mat4::from_submatrix_translation(
-                &Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]),
-                Vec3::new(10, 11, 12)
+            Mat4A::from_submatrix_translation(
+                &Mat3A::from_rows(&[
+                    Vec3A::new(1, 2, 3),
+                    Vec3A::new(4, 5, 6),
+                    Vec3A::new(7, 8, 9)
+                ]),
+                Vec3A::new(10, 11, 12)
             ),
-            Mat4::from_rows(&[
-                Vec4::new(1, 2, 3, 0),
-                Vec4::new(4, 5, 6, 0),
-                Vec4::new(7, 8, 9, 0),
-                Vec4::new(10, 11, 12, 1)
+            Mat4A::from_rows(&[
+                Vec4A::new(1, 2, 3, 0),
+                Vec4A::new(4, 5, 6, 0),
+                Vec4A::new(7, 8, 9, 0),
+                Vec4A::new(10, 11, 12, 1)
             ])
         );
     }
@@ -3598,44 +3603,60 @@ mod tests {
     #[test]
     fn test_submatrix() {
         assert_eq!(
-            Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)])
-                .submatrix(),
-            Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(4, 5)])
-        );
-        assert_eq!(
-            Mat4::from_rows(&[
-                Vec4::new(1, 2, 3, 4),
-                Vec4::new(5, 6, 7, 8),
-                Vec4::new(9, 10, 11, 12),
-                Vec4::new(13, 14, 15, 16)
+            Mat3A::from_rows(&[
+                Vec3A::new(1, 2, 3),
+                Vec3A::new(4, 5, 6),
+                Vec3A::new(7, 8, 9)
             ])
             .submatrix(),
-            Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(5, 6, 7), Vec3::new(9, 10, 11)])
+            Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(4, 5)])
+        );
+        assert_eq!(
+            Mat4A::from_rows(&[
+                Vec4A::new(1, 2, 3, 4),
+                Vec4A::new(5, 6, 7, 8),
+                Vec4A::new(9, 10, 11, 12),
+                Vec4A::new(13, 14, 15, 16)
+            ])
+            .submatrix(),
+            Mat3A::from_rows(&[
+                Vec3A::new(1, 2, 3),
+                Vec3A::new(5, 6, 7),
+                Vec3A::new(9, 10, 11)
+            ])
         );
     }
 
     #[test]
     fn test_translation() {
         assert_eq!(
-            Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)])
-                .translation(),
-            Vec2::new(7, 8)
-        );
-        assert_eq!(
-            Mat4::from_rows(&[
-                Vec4::new(1, 2, 3, 4),
-                Vec4::new(5, 6, 7, 8),
-                Vec4::new(9, 10, 11, 12),
-                Vec4::new(13, 14, 15, 16)
+            Mat3A::from_rows(&[
+                Vec3A::new(1, 2, 3),
+                Vec3A::new(4, 5, 6),
+                Vec3A::new(7, 8, 9)
             ])
             .translation(),
-            Vec3::new(13, 14, 15)
+            Vec2A::new(7, 8)
+        );
+        assert_eq!(
+            Mat4A::from_rows(&[
+                Vec4A::new(1, 2, 3, 4),
+                Vec4A::new(5, 6, 7, 8),
+                Vec4A::new(9, 10, 11, 12),
+                Vec4A::new(13, 14, 15, 16)
+            ])
+            .translation(),
+            Vec3A::new(13, 14, 15)
         );
     }
 
     #[test]
     fn test_remove() {
-        let matrix = Mat3::from_rows(&[Vec3::new(1, 2, 3), Vec3::new(4, 5, 6), Vec3::new(7, 8, 9)]);
+        let matrix = Mat3A::from_rows(&[
+            Vec3A::new(1, 2, 3),
+            Vec3A::new(4, 5, 6),
+            Vec3A::new(7, 8, 9),
+        ]);
 
         assert_panic!(matrix.remove(1, 3));
         assert_panic!(matrix.remove(3, 1));
@@ -3655,15 +3676,15 @@ mod tests {
                     _ => unreachable!(),
                 };
 
-                assert_eq!(matrix.remove(row, column), Mat2::from_rows(&rows));
+                assert_eq!(matrix.remove(row, column), Mat2A::from_rows(&rows));
             }
         }
 
-        let matrix = Mat4::from_rows(&[
-            Vec4::new(1, 2, 3, 4),
-            Vec4::new(5, 6, 7, 8),
-            Vec4::new(9, 10, 11, 12),
-            Vec4::new(13, 14, 15, 16),
+        let matrix = Mat4A::from_rows(&[
+            Vec4A::new(1, 2, 3, 4),
+            Vec4A::new(5, 6, 7, 8),
+            Vec4A::new(9, 10, 11, 12),
+            Vec4A::new(13, 14, 15, 16),
         ]);
 
         assert_panic!(matrix.remove(1, 4));
@@ -3686,7 +3707,7 @@ mod tests {
                     _ => unreachable!(),
                 };
 
-                assert_eq!(matrix.remove(row, column), Mat3::from_rows(&rows));
+                assert_eq!(matrix.remove(row, column), Mat3A::from_rows(&rows));
             }
         }
     }
@@ -3694,66 +3715,82 @@ mod tests {
     #[test]
     fn test_transform_point() {
         assert_eq!(
-            Mat3::from_rows(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 0), Vec3::new(6, 7, 1)])
-                .transform_point(Vec2::new(-1, -2)),
-            Vec2::new(-4, -6)
+            Mat3A::from_rows(&[
+                Vec3A::new(2, 3, 0),
+                Vec3A::new(4, 5, 0),
+                Vec3A::new(6, 7, 1)
+            ])
+            .transform_point(Vec2A::new(-1, -2)),
+            Vec2A::new(-4, -6)
         );
         assert_eq!(
-            Mat4::from_rows(&[
-                Vec4::new(2, 3, 4, 0),
-                Vec4::new(5, 6, 7, 0),
-                Vec4::new(8, 9, 10, 0),
-                Vec4::new(11, 12, 13, 1)
+            Mat4A::from_rows(&[
+                Vec4A::new(2, 3, 4, 0),
+                Vec4A::new(5, 6, 7, 0),
+                Vec4A::new(8, 9, 10, 0),
+                Vec4A::new(11, 12, 13, 1)
             ])
-            .transform_point(Vec3::new(-1, -2, -3)),
-            Vec3::new(-25, -30, -35)
+            .transform_point(Vec3A::new(-1, -2, -3)),
+            Vec3A::new(-25, -30, -35)
         );
 
         assert_debug_panic!(
-            Mat3::from_rows(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
-                .transform_point(Vec2::new(-1, -2))
+            Mat3A::from_rows(&[
+                Vec3A::new(2, 3, 0),
+                Vec3A::new(4, 5, 1),
+                Vec3A::new(6, 7, 1)
+            ])
+            .transform_point(Vec2A::new(-1, -2))
         );
         assert_debug_panic!(
-            Mat4::from_rows(&[
-                Vec4::new(2, 3, 4, 0),
-                Vec4::new(5, 6, 7, 0),
-                Vec4::new(8, 9, 10, 1),
-                Vec4::new(11, 12, 13, 1)
+            Mat4A::from_rows(&[
+                Vec4A::new(2, 3, 4, 0),
+                Vec4A::new(5, 6, 7, 0),
+                Vec4A::new(8, 9, 10, 1),
+                Vec4A::new(11, 12, 13, 1)
             ])
-            .transform_point(Vec3::new(-1, -2, -3))
+            .transform_point(Vec3A::new(-1, -2, -3))
         );
     }
 
     #[test]
     fn test_transform_vector() {
         assert_eq!(
-            Mat3::from_rows(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 0), Vec3::new(6, 7, 1)])
-                .transform_vector(Vec2::new(-1, -2)),
-            Vec2::new(-10, -13)
+            Mat3A::from_rows(&[
+                Vec3A::new(2, 3, 0),
+                Vec3A::new(4, 5, 0),
+                Vec3A::new(6, 7, 1)
+            ])
+            .transform_vector(Vec2A::new(-1, -2)),
+            Vec2A::new(-10, -13)
         );
         assert_eq!(
-            Mat4::from_rows(&[
-                Vec4::new(2, 3, 4, 0),
-                Vec4::new(5, 6, 7, 0),
-                Vec4::new(8, 9, 10, 0),
-                Vec4::new(11, 12, 13, 1)
+            Mat4A::from_rows(&[
+                Vec4A::new(2, 3, 4, 0),
+                Vec4A::new(5, 6, 7, 0),
+                Vec4A::new(8, 9, 10, 0),
+                Vec4A::new(11, 12, 13, 1)
             ])
-            .transform_vector(Vec3::new(-1, -2, -3)),
-            Vec3::new(-36, -42, -48)
+            .transform_vector(Vec3A::new(-1, -2, -3)),
+            Vec3A::new(-36, -42, -48)
         );
 
         assert_debug_panic!(
-            Mat3::from_rows(&[Vec3::new(2, 3, 0), Vec3::new(4, 5, 1), Vec3::new(6, 7, 1)])
-                .transform_vector(Vec2::new(-1, -2))
+            Mat3A::from_rows(&[
+                Vec3A::new(2, 3, 0),
+                Vec3A::new(4, 5, 1),
+                Vec3A::new(6, 7, 1)
+            ])
+            .transform_vector(Vec2A::new(-1, -2))
         );
         assert_debug_panic!(
-            Mat4::from_rows(&[
-                Vec4::new(2, 3, 4, 0),
-                Vec4::new(5, 6, 7, 0),
-                Vec4::new(8, 9, 10, 1),
-                Vec4::new(11, 12, 13, 1)
+            Mat4A::from_rows(&[
+                Vec4A::new(2, 3, 4, 0),
+                Vec4A::new(5, 6, 7, 0),
+                Vec4A::new(8, 9, 10, 1),
+                Vec4A::new(11, 12, 13, 1)
             ])
-            .transform_vector(Vec3::new(-1, -2, -3))
+            .transform_vector(Vec3A::new(-1, -2, -3))
         );
     }
 

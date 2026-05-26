@@ -31,16 +31,12 @@ mod wide_float;
 ///
 /// # Type aliases
 ///
-/// - [`Affine2<T>`] for `Affine<2, T, Aligned>`.
-/// - [`Affine3<T>`] for `Affine<3, T, Aligned>`.
-/// - [`Affine2U<T>`] for `Affine<2, T, Unaligned>`.
-/// - [`Affine3U<T>`] for `Affine<3, T, Unaligned>`.
+/// - [`Affine2<T>`] for `Affine<2, T, Unaligned>`.
+/// - [`Affine3<T>`] for `Affine<3, T, Unaligned>`.
+/// - [`Affine2A<T>`] for `Affine<2, T, Aligned>`.
+/// - [`Affine3A<T>`] for `Affine<3, T, Aligned>`.
 ///
 /// [`glam`]: https://docs.rs/glam
-/// [`Affine2<T>`]: crate::Affine2
-/// [`Affine3<T>`]: crate::Affine3
-/// [`Affine2U<T>`]: crate::Affine2U
-/// [`Affine3U<T>`]: crate::Affine3U
 /// [`Mat2<T>`]: crate::Mat2
 /// [`Mat3<T>`]: crate::Mat3
 /// [`Vec3<T>`]: crate::Vec3
@@ -65,13 +61,13 @@ where
 /// in better performance for some operations.
 ///
 /// Note that currently both [`Mat3`] and `Affine2` are missing benchmarks and
-/// possible optimizations. Still, the performance advantages of `Affine2` over
-/// [`Mat3`] have been proved by [`glam`].
+/// possible optimizations. Still, the performance advantages of [`Affine`] over
+/// [`Matrix`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
-/// `Affine2<T>` has SIMD alignment for appropriate scalar types. See
-/// [`Affine2U<T>`] for a non-SIMD variant.
+/// `Affine2<T>` does not have SIMD alignment. See [`Affine2A<T>`] for a SIMD
+/// variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -79,7 +75,7 @@ where
 /// [`glam`]: https://docs.rs/glam
 /// [`from_rows`]: Affine::from_rows
 /// [`Alignment`]: crate::Alignment
-pub type Affine2<T> = Affine<2, T, Aligned>;
+pub type Affine2<T> = Affine<2, T, Unaligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
 /// shear.
@@ -88,13 +84,13 @@ pub type Affine2<T> = Affine<2, T, Aligned>;
 /// in better performance for some operations.
 ///
 /// Note that currently both [`Mat4`] and `Affine3` are missing benchmarks and
-/// possible optimizations. Still, the performance advantages of `Affine3` over
-/// [`Mat4`] have been proved by [`glam`].
+/// possible optimizations. Still, the performance advantages of [`Affine`] over
+/// [`Matrix`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
-/// `Affine3<T>` has SIMD alignment for appropriate scalar types. See
-/// [`Affine3U<T>`] for a non-SIMD variant.
+/// `Affine3<T>` does not have SIMD alignment. See [`Affine3A<T>`] for a SIMD
+/// variant.
 ///
 /// See [`Alignment`] for more details.
 ///
@@ -102,53 +98,53 @@ pub type Affine2<T> = Affine<2, T, Aligned>;
 /// [`glam`]: https://docs.rs/glam
 /// [`from_rows`]: Affine::from_rows
 /// [`Alignment`]: crate::Alignment
-pub type Affine3<T> = Affine<3, T, Aligned>;
+pub type Affine3<T> = Affine<3, T, Unaligned>;
 
 /// A 2D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
-/// Equivalent to a [`Mat3U`] containing a 2D affine transformation, but results
+/// Equivalent to a [`Mat3A`] containing a 2D affine transformation, but results
 /// in better performance for some operations.
 ///
-/// Note that currently both [`Mat3U`] and `Affine2U` are missing benchmarks and
-/// possible optimizations. Still, the performance advantages of [`Affine`] over
-/// [`Matrix`] have been proved by [`glam`].
+/// Note that currently both [`Mat3A`] and `Affine2A` are missing benchmarks and
+/// possible optimizations. Still, the performance advantages of `Affine2A` over
+/// [`Mat3A`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
-/// `Affine2U<T>` does not have SIMD alignment. See [`Affine2<T>`] for a SIMD
-/// variant.
+/// `Affine2A<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Affine2<T>`] for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
-/// [`Mat3U`]: crate::Mat3U
+/// [`Mat3A`]: crate::Mat3A
 /// [`glam`]: https://docs.rs/glam
 /// [`from_rows`]: Affine::from_rows
 /// [`Alignment`]: crate::Alignment
-pub type Affine2U<T> = Affine<2, T, Unaligned>;
+pub type Affine2A<T> = Affine<2, T, Aligned>;
 
 /// A 3D affine transform which can represent translation, rotation, scaling and
 /// shear.
 ///
-/// Equivalent to a [`Mat4U`] containing a 3D affine transformation, but results
+/// Equivalent to a [`Mat4A`] containing a 3D affine transformation, but results
 /// in better performance for some operations.
 ///
-/// Note that currently both [`Mat4U`] and `Affine3U` are missing benchmarks and
-/// possible optimizations. Still, the performance advantages of [`Affine`] over
-/// [`Matrix`] have been proved by [`glam`].
+/// Note that currently both [`Mat4A`] and `Affine3A` are missing benchmarks and
+/// possible optimizations. Still, the performance advantages of `Affine3A` over
+/// [`Mat4A`] have been proved by [`glam`].
 ///
 /// # SIMD alignment
 ///
-/// `Affine3U<T>` does not have SIMD alignment. See [`Affine3<T>`] for a SIMD
-/// variant.
+/// `Affine3A<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Affine3<T>`] for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
-/// [`Mat4U`]: crate::Mat4U
+/// [`Mat4A`]: crate::Mat4A
 /// [`glam`]: https://docs.rs/glam
 /// [`from_rows`]: Affine::from_rows
 /// [`Alignment`]: crate::Alignment
-pub type Affine3U<T> = Affine<3, T, Unaligned>;
+pub type Affine3A<T> = Affine<3, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
 where
@@ -280,15 +276,15 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Aligned, Affine2, Affine2U, Unaligned};
+    /// # use ggmath::{Aligned, Affine2, Affine2A, Unaligned};
     /// #
-    /// let aligned = Affine2::<f32>::IDENTITY;
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Affine2U::IDENTITY);
-    ///
-    /// let unaligned = Affine2U::<f32>::IDENTITY;
+    /// let unaligned = Affine2::<f32>::IDENTITY;
     /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Affine2::IDENTITY);
+    /// assert_eq!(aligned, Affine2A::IDENTITY);
+    ///
+    /// let aligned = Affine2A::<f32>::IDENTITY;
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Affine2::IDENTITY);
     /// ```
     ///
     /// [`align`]: Self::align
@@ -309,11 +305,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Affine2, Affine2U};
+    /// # use ggmath::{Affine2, Affine2A};
     /// #
-    /// let unaligned = Affine2U::<f32>::IDENTITY;
+    /// let unaligned = Affine2::<f32>::IDENTITY;
     /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Affine2::IDENTITY);
+    /// assert_eq!(aligned, Affine2A::IDENTITY);
     /// ```
     #[inline]
     #[must_use]
@@ -328,11 +324,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Affine2, Affine2U};
+    /// # use ggmath::{Affine2, Affine2A};
     /// #
-    /// let aligned = Affine2::<f32>::IDENTITY;
+    /// let aligned = Affine2A::<f32>::IDENTITY;
     /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Affine2U::IDENTITY);
+    /// assert_eq!(unaligned, Affine2::IDENTITY);
     /// ```
     #[inline]
     #[must_use]

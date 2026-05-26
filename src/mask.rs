@@ -21,12 +21,12 @@ use crate::{
 ///
 /// # Type aliases
 ///
-/// - [`Mask2<T>`] for `Mask<2, T, Aligned>`.
-/// - [`Mask3<T>`] for `Mask<3, T, Aligned>`.
-/// - [`Mask4<T>`] for `Mask<4, T, Aligned>`.
-/// - [`Mask2U<T>`] for `Mask<2, T, Unaligned>`.
-/// - [`Mask3U<T>`] for `Mask<3, T, Unaligned>`.
-/// - [`Mask4U<T>`] for `Mask<4, T, Unaligned>`.
+/// - [`Mask2<T>`] for `Mask<2, T, Unaligned>`.
+/// - [`Mask3<T>`] for `Mask<3, T, Unaligned>`.
+/// - [`Mask4<T>`] for `Mask<4, T, Unaligned>`.
+/// - [`Mask2A<T>`] for `Mask<2, T, Aligned>`.
+/// - [`Mask3A<T>`] for `Mask<3, T, Aligned>`.
+/// - [`Mask4A<T>`] for `Mask<4, T, Aligned>`.
 ///
 /// # Memory layout
 ///
@@ -35,15 +35,6 @@ use crate::{
 ///
 /// `Mask<N, T, A>` does not contain any uninitialized bytes.
 /// `Mask<N, T, A>` accepts the all-zero byte-pattern.
-///
-/// [`Mask2<T>`]: crate::Mask2
-/// [`Mask3<T>`]: crate::Mask3
-/// [`Mask4<T>`]: crate::Mask4
-/// [`Mask2U<T>`]: crate::Mask2U
-/// [`Mask3U<T>`]: crate::Mask3U
-/// [`Mask4U<T>`]: crate::Mask4U
-/// [`Mask2<i32>`]: crate::Mask2
-/// [`Mask2<u32>`]: crate::Mask2
 #[repr(transparent)]
 pub struct Mask<const N: usize, T, A: Alignment>(
     /// The internal representation of the vector mask.
@@ -80,75 +71,75 @@ where
 
 /// A 2-element vector mask.
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Mask2<T>` has SIMD alignment for appropriate scalar types. See
-/// [`Mask2U<T>`] for a non-SIMD variant.
+/// `Mask2<T>` does not have SIMD alignment. See [`Mask2A<T>`] for a SIMD
+/// variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Mask2<T> = Mask<2, T, Aligned>;
+pub type Mask2<T> = Mask<2, T, Unaligned>;
 
 /// A 3-element vector mask.
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Mask3<T>` has SIMD alignment for appropriate scalar types. See
-/// [`Mask3U<T>`] for a non-SIMD variant.
+/// `Mask3<T>` does not have SIMD alignment. See [`Mask3A<T>`] for a SIMD
+/// variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Mask3<T> = Mask<3, T, Aligned>;
+pub type Mask3<T> = Mask<3, T, Unaligned>;
 
 /// A 4-element vector mask.
 ///
-/// # SIMD alignment
+/// # No SIMD alignment
 ///
-/// `Mask4<T>` has SIMD alignment for appropriate scalar types. See
-/// [`Mask4U<T>`] for a non-SIMD variant.
+/// `Mask4<T>` does not have SIMD alignment. See [`Mask4A<T>`] for a SIMD
+/// variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Mask4<T> = Mask<4, T, Aligned>;
+pub type Mask4<T> = Mask<4, T, Unaligned>;
 
 /// A 2-element vector mask.
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Mask2U<T>` does not have SIMD alignment. See [`Mask2<T>`] for a SIMD
-/// variant.
+/// `Mask2A<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Mask2<T>`] for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Mask2U<T> = Mask<2, T, Unaligned>;
+pub type Mask2A<T> = Mask<2, T, Aligned>;
 
 /// A 3-element vector mask.
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Mask3U<T>` does not have SIMD alignment. See [`Mask3<T>`] for a SIMD
-/// variant.
+/// `Mask3A<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Mask3<T>`] for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Mask3U<T> = Mask<3, T, Unaligned>;
+pub type Mask3A<T> = Mask<3, T, Aligned>;
 
 /// A 4-element vector mask.
 ///
-/// # No SIMD alignment
+/// # SIMD alignment
 ///
-/// `Mask4U<T>` does not have SIMD alignment. See [`Mask4<T>`] for a SIMD
-/// variant.
+/// `Mask4A<T>` has SIMD alignment for appropriate scalar types. See
+/// [`Mask4<T>`] for a non-SIMD variant.
 ///
 /// See [`Alignment`] for more details.
 ///
 /// [`Alignment`]: crate::Alignment
-pub type Mask4U<T> = Mask<4, T, Unaligned>;
+pub type Mask4A<T> = Mask<4, T, Aligned>;
 
 impl<const N: usize, T, A: Alignment> Mask<N, T, A>
 where
@@ -243,15 +234,15 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Aligned, Unaligned, Mask3, Mask3U};
+    /// # use ggmath::{Aligned, Unaligned, Mask3, Mask3A};
     /// #
-    /// let aligned = Mask3::<f32>::new(false, true, false);
-    /// let unaligned = aligned.to_alignment::<Unaligned>();
-    /// assert_eq!(unaligned, Mask3U::new(false, true, false));
-    ///
-    /// let unaligned = Mask3U::<f32>::new(false, true, false);
+    /// let unaligned = Mask3::<f32>::new(false, true, false);
     /// let aligned = unaligned.to_alignment::<Aligned>();
-    /// assert_eq!(aligned, Mask3::new(false, true, false));
+    /// assert_eq!(aligned, Mask3A::new(false, true, false));
+    ///
+    /// let aligned = Mask3A::<f32>::new(false, true, false);
+    /// let unaligned = aligned.to_alignment::<Unaligned>();
+    /// assert_eq!(unaligned, Mask3::new(false, true, false));
     /// ```
     ///
     /// [`align`]: Self::align
@@ -283,11 +274,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mask3, Mask3U};
+    /// # use ggmath::{Mask3, Mask3A};
     /// #
-    /// let unaligned = Mask3U::<f32>::new(false, true, false);
+    /// let unaligned = Mask3::<f32>::new(false, true, false);
     /// let aligned = unaligned.align();
-    /// assert_eq!(aligned, Mask3::new(false, true, false));
+    /// assert_eq!(aligned, Mask3A::new(false, true, false));
     /// ```
     #[inline]
     #[must_use]
@@ -302,11 +293,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use ggmath::{Mask3, Mask3U};
+    /// # use ggmath::{Mask3, Mask3A};
     /// #
-    /// let aligned = Mask3::<f32>::new(false, true, false);
+    /// let aligned = Mask3A::<f32>::new(false, true, false);
     /// let unaligned = aligned.unalign();
-    /// assert_eq!(unaligned, Mask3U::new(false, true, false));
+    /// assert_eq!(unaligned, Mask3::new(false, true, false));
     /// ```
     #[inline]
     #[must_use]
@@ -1061,7 +1052,7 @@ mod tests {
     use itertools::Itertools;
 
     use crate::{
-        Aligned, Mask, Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Unaligned, Vec2, Vec3, Vec4,
+        Aligned, Mask, Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A, Unaligned, Vec2A, Vec3A, Vec4A,
         Vector,
         utils::{Repr2, Repr3, Repr4, assert_panic, for_parameters},
     };
@@ -1073,29 +1064,29 @@ mod tests {
             // This may need to be modified for future layout changes.
 
             assert!(
-                size_of::<Mask2<T>>() == 2 && align_of::<Mask2<T>>() == 1
-                    || size_of::<Mask2<T>>() == size_of::<Vec2<T>>()
-                        && align_of::<Mask2<T>>() == align_of::<Vec2<T>>()
+                size_of::<Mask2A<T>>() == 2 && align_of::<Mask2A<T>>() == 1
+                    || size_of::<Mask2A<T>>() == size_of::<Vec2A<T>>()
+                        && align_of::<Mask2A<T>>() == align_of::<Vec2A<T>>()
             );
             assert!(
-                size_of::<Mask3<T>>() == 3 && align_of::<Mask3<T>>() == 1
-                    || size_of::<Mask3<T>>() == size_of::<Vec3<T>>()
-                        && align_of::<Mask3<T>>() == align_of::<Vec3<T>>()
+                size_of::<Mask3A<T>>() == 3 && align_of::<Mask3A<T>>() == 1
+                    || size_of::<Mask3A<T>>() == size_of::<Vec3A<T>>()
+                        && align_of::<Mask3A<T>>() == align_of::<Vec3A<T>>()
             );
             assert!(
-                size_of::<Mask4<T>>() == 4 && align_of::<Mask4<T>>() == 1
-                    || size_of::<Mask4<T>>() == size_of::<Vec4<T>>()
-                        && align_of::<Mask4<T>>() == align_of::<Vec4<T>>()
+                size_of::<Mask4A<T>>() == 4 && align_of::<Mask4A<T>>() == 1
+                    || size_of::<Mask4A<T>>() == size_of::<Vec4A<T>>()
+                        && align_of::<Mask4A<T>>() == align_of::<Vec4A<T>>()
             );
 
-            assert_eq!(size_of::<Mask2U<T>>(), 2);
-            assert_eq!(align_of::<Mask2U<T>>(), 1);
+            assert_eq!(size_of::<Mask2<T>>(), 2);
+            assert_eq!(align_of::<Mask2<T>>(), 1);
 
-            assert_eq!(size_of::<Mask3U<T>>(), 3);
-            assert_eq!(align_of::<Mask3U<T>>(), 1);
+            assert_eq!(size_of::<Mask3<T>>(), 3);
+            assert_eq!(align_of::<Mask3<T>>(), 1);
 
-            assert_eq!(size_of::<Mask4U<T>>(), 4);
-            assert_eq!(align_of::<Mask4U<T>>(), 1);
+            assert_eq!(size_of::<Mask4<T>>(), 4);
+            assert_eq!(align_of::<Mask4<T>>(), 1);
         });
     }
 
@@ -1344,28 +1335,28 @@ mod tests {
     #[test]
     fn test_from_inner() {
         assert_eq!(
-            Mask2U::<u32>::from_inner(Repr2(false, true)),
-            Mask2U::new(false, true)
+            Mask2::<u32>::from_inner(Repr2(false, true)),
+            Mask2::new(false, true)
         );
         assert_eq!(
-            Mask3U::<u32>::from_inner(Repr3(false, true, false)),
-            Mask3U::new(false, true, false)
+            Mask3::<u32>::from_inner(Repr3(false, true, false)),
+            Mask3::new(false, true, false)
         );
         assert_eq!(
-            Mask4U::<u32>::from_inner(Repr4(false, true, false, true)),
-            Mask4U::new(false, true, false, true)
+            Mask4::<u32>::from_inner(Repr4(false, true, false, true)),
+            Mask4::new(false, true, false, true)
         );
     }
 
     #[test]
     fn test_inner() {
-        assert_eq!(Mask2U::<u32>::new(false, true).inner(), Repr2(false, true));
+        assert_eq!(Mask2::<u32>::new(false, true).inner(), Repr2(false, true));
         assert_eq!(
-            Mask3U::<u32>::new(false, true, false).inner(),
+            Mask3::<u32>::new(false, true, false).inner(),
             Repr3(false, true, false)
         );
         assert_eq!(
-            Mask4U::<u32>::new(false, true, false, true).inner(),
+            Mask4::<u32>::new(false, true, false, true).inner(),
             Repr4(false, true, false, true)
         );
     }
@@ -1373,15 +1364,15 @@ mod tests {
     #[test]
     fn test_inner_mut() {
         assert_eq!(
-            Mask2U::<u32>::new(false, true).inner_mut(),
+            Mask2::<u32>::new(false, true).inner_mut(),
             &mut Repr2(false, true)
         );
         assert_eq!(
-            Mask3U::<u32>::new(false, true, false).inner_mut(),
+            Mask3::<u32>::new(false, true, false).inner_mut(),
             &mut Repr3(false, true, false)
         );
         assert_eq!(
-            Mask4U::<u32>::new(false, true, false, true).inner_mut(),
+            Mask4::<u32>::new(false, true, false, true).inner_mut(),
             &mut Repr4(false, true, false, true)
         );
     }

@@ -370,12 +370,23 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Mask2, Mask2U, Mask3, Mask3U, Mask4, Mask4U, Mat2, Mat2U, Mat3, Mat3U, Mat4, Mat4U, Quat,
-        QuatU, Vec2, Vec2U, Vec3, Vec3U, Vec4, Vec4U,
+        Mask2, Mask2A, Mask3, Mask3A, Mask4, Mask4A, Mat2, Mat2A, Mat3, Mat3A, Mat4, Mat4A, Quat,
+        QuatA, Vec2, Vec2A, Vec3, Vec3A, Vec4, Vec4A,
     };
 
     #[test]
     fn test_vector() {
+        let vector = Vec2A::new(1, 2);
+        assert_eq!(vector, mint::Point2::from(vector).into());
+        assert_eq!(vector, mint::Vector2::from(vector).into());
+
+        let vector = Vec3A::new(1, 2, 3);
+        assert_eq!(vector, mint::Point3::from(vector).into());
+        assert_eq!(vector, mint::Vector3::from(vector).into());
+
+        let vector = Vec4A::new(1, 2, 3, 4);
+        assert_eq!(vector, mint::Vector4::from(vector).into());
+
         let vector = Vec2::new(1, 2);
         assert_eq!(vector, mint::Point2::from(vector).into());
         assert_eq!(vector, mint::Vector2::from(vector).into());
@@ -386,21 +397,28 @@ mod tests {
 
         let vector = Vec4::new(1, 2, 3, 4);
         assert_eq!(vector, mint::Vector4::from(vector).into());
-
-        let vector = Vec2U::new(1, 2);
-        assert_eq!(vector, mint::Point2::from(vector).into());
-        assert_eq!(vector, mint::Vector2::from(vector).into());
-
-        let vector = Vec3U::new(1, 2, 3);
-        assert_eq!(vector, mint::Point3::from(vector).into());
-        assert_eq!(vector, mint::Vector3::from(vector).into());
-
-        let vector = Vec4U::new(1, 2, 3, 4);
-        assert_eq!(vector, mint::Vector4::from(vector).into());
     }
 
     #[test]
     fn test_matrix() {
+        let matrix = Mat2A::from_rows(&[Vec2A::new(1, 2), Vec2A::new(3, 4)]);
+        assert_eq!(matrix, mint::RowMatrix2::from(matrix).into());
+
+        let matrix = Mat3A::from_rows(&[
+            Vec3A::new(1, 2, 3),
+            Vec3A::new(4, 5, 6),
+            Vec3A::new(7, 8, 9),
+        ]);
+        assert_eq!(matrix, mint::RowMatrix3::from(matrix).into());
+
+        let matrix = Mat4A::from_rows(&[
+            Vec4A::new(1, 2, 3, 4),
+            Vec4A::new(5, 6, 7, 8),
+            Vec4A::new(9, 10, 11, 12),
+            Vec4A::new(13, 14, 15, 16),
+        ]);
+        assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
+
         let matrix = Mat2::from_rows(&[Vec2::new(1, 2), Vec2::new(3, 4)]);
         assert_eq!(matrix, mint::RowMatrix2::from(matrix).into());
 
@@ -414,37 +432,28 @@ mod tests {
             Vec4::new(13, 14, 15, 16),
         ]);
         assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
-
-        let matrix = Mat2U::from_rows(&[Vec2U::new(1, 2), Vec2U::new(3, 4)]);
-        assert_eq!(matrix, mint::RowMatrix2::from(matrix).into());
-
-        let matrix = Mat3U::from_rows(&[
-            Vec3U::new(1, 2, 3),
-            Vec3U::new(4, 5, 6),
-            Vec3U::new(7, 8, 9),
-        ]);
-        assert_eq!(matrix, mint::RowMatrix3::from(matrix).into());
-
-        let matrix = Mat4U::from_rows(&[
-            Vec4U::new(1, 2, 3, 4),
-            Vec4U::new(5, 6, 7, 8),
-            Vec4U::new(9, 10, 11, 12),
-            Vec4U::new(13, 14, 15, 16),
-        ]);
-        assert_eq!(matrix, mint::RowMatrix4::from(matrix).into());
     }
 
     #[test]
     fn test_quaternion() {
-        let quat = Quat::from_xyzw(1, 2, 3, 4);
+        let quat = QuatA::from_xyzw(1, 2, 3, 4);
         assert_eq!(quat, mint::Quaternion::from(quat).into());
 
-        let quat = QuatU::from_xyzw(1, 2, 3, 4);
+        let quat = Quat::from_xyzw(1, 2, 3, 4);
         assert_eq!(quat, mint::Quaternion::from(quat).into());
     }
 
     #[test]
     fn test_mask() {
+        let mask = Mask2A::<i32>::new(false, true);
+        assert_eq!(mask, mint::Vector2::<bool>::from(mask).into());
+
+        let mask = Mask3A::<i32>::new(false, true, false);
+        assert_eq!(mask, mint::Vector3::<bool>::from(mask).into());
+
+        let mask = Mask4A::<i32>::new(false, true, false, true);
+        assert_eq!(mask, mint::Vector4::<bool>::from(mask).into());
+
         let mask = Mask2::<i32>::new(false, true);
         assert_eq!(mask, mint::Vector2::<bool>::from(mask).into());
 
@@ -452,15 +461,6 @@ mod tests {
         assert_eq!(mask, mint::Vector3::<bool>::from(mask).into());
 
         let mask = Mask4::<i32>::new(false, true, false, true);
-        assert_eq!(mask, mint::Vector4::<bool>::from(mask).into());
-
-        let mask = Mask2U::<i32>::new(false, true);
-        assert_eq!(mask, mint::Vector2::<bool>::from(mask).into());
-
-        let mask = Mask3U::<i32>::new(false, true, false);
-        assert_eq!(mask, mint::Vector3::<bool>::from(mask).into());
-
-        let mask = Mask4U::<i32>::new(false, true, false, true);
         assert_eq!(mask, mint::Vector4::<bool>::from(mask).into());
     }
 }
