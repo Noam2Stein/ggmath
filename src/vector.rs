@@ -75,22 +75,8 @@ mod wide_signed;
 /// values of `T`.
 #[repr(transparent)]
 pub struct Vector<const N: usize, T, A: Alignment>(
-    /// The internal representation of the vector.
-    ///
-    /// This field's insane type corresponds to [`<T as Backend<N, A>>::Vector`]
-    /// which cannot be used directly because of type system limitations. In
-    /// generic contexts this field will not work, in which case you should use
-    /// [`from_inner`], [`inner`] and [`inner_mut`].
-    ///
-    /// This field should only be accessed from the crate defining `T`, else its
-    /// type may change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>::Vector`]: Backend
-    /// [`from_inner`]: Self::from_inner
-    /// [`inner`]: Self::inner
-    /// [`inner_mut`]: Self::inner_mut
     #[expect(clippy::type_complexity)]
-    pub  <A as Alignment>::Select<
+    pub(crate)  <A as Alignment>::Select<
         <Length<N> as SupportedLength>::Select<
             <T as Backend<2, Aligned>>::Vector,
             <T as Backend<3, Aligned>>::Vector,
@@ -936,8 +922,6 @@ where
 
     /// Creates a vector from its internal representation.
     ///
-    /// Equivalent to `Vector(inner)` but works in generic contexts.
-    ///
     /// The input type is specified by [`<T as Backend<N, A>>`]. This should
     /// only be called from the crate defining `T`, else the input type may
     /// change silently as it is considered an implementation detail.
@@ -971,8 +955,6 @@ where
 
     /// Returns the internal representation of `self`.
     ///
-    /// Equivalent to `self.0` but works in generic contexts.
-    ///
     /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
     /// only be called from the crate defining `T`, else the resulting type may
     /// change silently as it is considered an implementation detail.
@@ -990,8 +972,6 @@ where
     }
 
     /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// Equivalent to `&mut self.0` but works in generic contexts.
     ///
     /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
     /// only be called from the crate defining `T`, else the resulting type may
