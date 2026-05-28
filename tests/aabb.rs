@@ -15,12 +15,12 @@ where
     extents: Vector<N, T, A>,
 }
 
-type Aabb2<T> = Aabb<2, T, Aligned>;
-type Aabb3<T> = Aabb<3, T, Aligned>;
-type Aabb4<T> = Aabb<4, T, Aligned>;
-type Aabb2U<T> = Aabb<2, T, Unaligned>;
-type Aabb3U<T> = Aabb<3, T, Unaligned>;
-type Aabb4U<T> = Aabb<4, T, Unaligned>;
+type Aabb2<T> = Aabb<2, T, Unaligned>;
+type Aabb3<T> = Aabb<3, T, Unaligned>;
+type Aabb4<T> = Aabb<4, T, Unaligned>;
+type Aabb2A<T> = Aabb<2, T, Aligned>;
+type Aabb3A<T> = Aabb<3, T, Aligned>;
+type Aabb4A<T> = Aabb<4, T, Aligned>;
 
 assert_impl!(
     for<const N: usize, T, A: Alignment>
