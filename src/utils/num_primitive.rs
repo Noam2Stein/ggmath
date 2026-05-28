@@ -1,9 +1,13 @@
 #[cfg(feature = "libm")]
 use libm::Libm;
 
+use crate::PrimitiveUnsigned;
+
 /// An internal trait that wraps primitive-float functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveFloatFns: Sized {
+    type U: PrimitiveUnsigned;
+
     const EPSILON: Self;
     const PI: Self;
     #[cfg(test)]
@@ -121,8 +125,10 @@ pub(crate) trait PrimitiveSignedFns: Sized {
 }
 
 macro_rules! impl_float {
-    ($T:ident) => {
+    ($T:ident, $UnsignedT:ident) => {
         impl PrimitiveFloatFns for $T {
+            type U = $UnsignedT;
+
             const EPSILON: Self = Self::EPSILON;
             const PI: Self = core::$T::consts::PI;
             #[cfg(test)]
@@ -450,8 +456,8 @@ macro_rules! impl_float {
         }
     };
 }
-impl_float!(f32);
-impl_float!(f64);
+impl_float!(f32, u32);
+impl_float!(f64, u64);
 
 macro_rules! impl_integer {
     ($T:ident) => {

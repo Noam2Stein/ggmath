@@ -1,11 +1,14 @@
-use wide::{CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+use wide::{
+    CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16,
+    u64x2, u64x4, u64x8,
+};
 
 use crate::{
     Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector, utils::transmute_generic,
 };
 
 macro_rules! impl_wide_float {
-    ($Wide:ident, $powf:ident) => {
+    ($Wide:ident, $UnsignedWide:ident, $powf:ident) => {
         impl<const N: usize, A: Alignment> Vector<N, $Wide, A>
         where
             Length<N>: SupportedLength,
@@ -1220,6 +1223,32 @@ macro_rules! impl_wide_float {
                     .all()
                     .all()
             }
+
+            /// Raw transmutation to unsigned integer vector.
+            ///
+            /// Note that this function is distinct from `as_to`, which attempts
+            /// to preserve the *numeric* value, and not the bitwise value.
+            #[inline]
+            #[must_use]
+            pub const fn to_bits(self) -> Vector<N, $UnsignedWide, A> {
+                // SAFETY: Both types accept all bit-patterns.
+                unsafe {
+                    transmute_generic::<Vector<N, $Wide, A>, Vector<N, $UnsignedWide, A>>(self)
+                }
+            }
+
+            /// Raw transmutation from unsigned integer vector.
+            ///
+            /// Note that this function is distinct from `as_to`, which attempts
+            /// to preserve the *numeric* value, and not the bitwise value.
+            #[inline]
+            #[must_use]
+            pub const fn from_bits(value: Vector<N, $UnsignedWide, A>) -> Self {
+                // SAFETY: Both types accept all bit-patterns.
+                unsafe {
+                    transmute_generic::<Vector<N, $UnsignedWide, A>, Vector<N, $Wide, A>>(value)
+                }
+            }
         }
 
         impl<A: Alignment> Vector<2, $Wide, A> {
@@ -1381,19 +1410,19 @@ macro_rules! impl_wide_float {
         }
     };
 }
-impl_wide_float!(f32x4, pow_f32x4);
-impl_wide_float!(f32x8, pow_f32x8);
-impl_wide_float!(f32x16, pow_f32x16);
-impl_wide_float!(f64x2, pow_f64x2);
-impl_wide_float!(f64x4, pow_f64x4);
-impl_wide_float!(f64x8, pow_f64x8);
+impl_wide_float!(f32x4, u32x4, pow_f32x4);
+impl_wide_float!(f32x8, u32x8, pow_f32x8);
+impl_wide_float!(f32x16, u32x16, pow_f32x16);
+impl_wide_float!(f64x2, u64x2, pow_f64x2);
+impl_wide_float!(f64x4, u64x4, pow_f64x4);
+impl_wide_float!(f64x8, u64x8, pow_f64x8);
 
 #[cfg(test)]
 mod tests {
     use wide::{CmpGt, CmpLt};
 
     use crate::{
-        FloatExt, Vector,
+        FloatExt, Vec3A, Vector,
         utils::{assert_float_eq, assert_float_eq_or_panic, for_parameters},
     };
 
@@ -3387,6 +3416,25 @@ mod tests {
                     && z.abs_diff_eq(x, Wide::ONE)
                     && w.abs_diff_eq(z, Wide::ONE)
             );
+        });
+    }
+
+    #[test]
+    fn test_to_bits() {
+        for_parameters!(|Wide: WideFloat| {
+            let vector = Vec3A::new(Wide::splat(3.1), -Wide::ZERO, Wide::splat(T::NAN));
+            assert_eq!(
+                vector.to_bits(),
+                Vec3A::from_lane_fn(|lane| vector.lane(lane).to_bits())
+            );
+        });
+    }
+
+    #[test]
+    fn test_from_bits() {
+        for_parameters!(|Wide: WideFloat| {
+            let vector = Vec3A::new(Wide::splat(3.1), -Wide::ZERO, Wide::splat(T::NAN));
+            assert_eq!(Vec3A::<Wide>::from_bits(vector.to_bits()), vector);
         });
     }
 
