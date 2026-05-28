@@ -1,7 +1,7 @@
 #[cfg(feature = "libm")]
 use libm::Libm;
 
-use crate::PrimitiveUnsigned;
+use crate::{PrimitiveSigned, PrimitiveUnsigned};
 
 /// An internal trait that wraps primitive-float functions used in generic
 /// contexts.
@@ -87,6 +87,9 @@ pub(crate) trait PrimitiveFloatFns: Sized {
 /// An internal trait that wraps primitive-integer functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveIntegerFns: Sized {
+    type I: PrimitiveSigned;
+    type U: PrimitiveUnsigned;
+
     fn checked_add(self, rhs: Self) -> Option<Self>;
 
     fn checked_sub(self, rhs: Self) -> Option<Self>;
@@ -460,8 +463,11 @@ impl_float!(f32, u32);
 impl_float!(f64, u64);
 
 macro_rules! impl_integer {
-    ($T:ident) => {
+    ($T:ident, $SignedT:ident, $UnsignedT:ident) => {
         impl PrimitiveIntegerFns for $T {
+            type I = $SignedT;
+            type U = $UnsignedT;
+
             #[inline(always)]
             fn checked_add(self, rhs: Self) -> Option<Self> {
                 self.checked_add(rhs)
@@ -534,18 +540,18 @@ macro_rules! impl_integer {
         }
     };
 }
-impl_integer!(i8);
-impl_integer!(i16);
-impl_integer!(i32);
-impl_integer!(i64);
-impl_integer!(i128);
-impl_integer!(isize);
-impl_integer!(u8);
-impl_integer!(u16);
-impl_integer!(u32);
-impl_integer!(u64);
-impl_integer!(u128);
-impl_integer!(usize);
+impl_integer!(i8, i8, u8);
+impl_integer!(i16, i16, u16);
+impl_integer!(i32, i32, u32);
+impl_integer!(i64, i64, u64);
+impl_integer!(i128, i128, u128);
+impl_integer!(isize, isize, usize);
+impl_integer!(u8, i8, u8);
+impl_integer!(u16, i16, u16);
+impl_integer!(u32, i32, u32);
+impl_integer!(u64, i64, u64);
+impl_integer!(u128, i128, u128);
+impl_integer!(usize, isize, usize);
 
 macro_rules! impl_signed {
     ($T:ident) => {

@@ -1,5 +1,6 @@
 macro_rules! impl_wide_signed {
     ($Wide:ident) => {
+        // MISSING: cast_unsigned
         // MISSING: abs
         // MISSING: signum
     };
