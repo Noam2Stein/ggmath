@@ -10,8 +10,10 @@ where
     /// Returns the bit patterns of `self` reinterpreted as signed integers of
     /// the same size.
     ///
-    /// This produces the same result as `as_to`, but ensures that the bit-width
-    /// remains the same.
+    /// This produces the same result as [`as`] conversions, but ensures that
+    /// the bit-width remains the same.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
     #[expect(private_interfaces)]

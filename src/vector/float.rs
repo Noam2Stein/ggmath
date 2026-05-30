@@ -1639,8 +1639,10 @@ where
 
     /// Raw transmutation to unsigned integer vector.
     ///
-    /// Note that this function is distinct from `as_to`, which attempts to
-    /// preserve the *numeric* value, and not the bitwise value.
+    /// Note that this function is distinct from [`as`] conversions, which
+    /// attempt to preserve the *numeric* value, and not the bitwise value.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
     #[expect(private_interfaces)]
@@ -1656,8 +1658,10 @@ where
 
     /// Raw transmutation from unsigned integer vector.
     ///
-    /// Note that this function is distinct from `as_to`, which attempts to
-    /// preserve the *numeric* value, and not the bitwise value.
+    /// Note that this function is distinct from [`as`] conversions, which
+    /// attempt to preserve the *numeric* value, and not the bitwise value.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
     #[expect(private_interfaces)]
