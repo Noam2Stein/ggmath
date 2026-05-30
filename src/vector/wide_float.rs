@@ -3440,7 +3440,10 @@ mod tests {
     fn test_from_bits() {
         for_parameters!(|Wide: WideFloat| {
             let vector = Vec3A::new(Wide::splat(3.1), -Wide::ZERO, Wide::splat(T::NAN));
-            assert_eq!(Vec3A::<Wide>::from_bits(vector.to_bits()), vector);
+            assert_eq!(
+                Vec3A::<Wide>::from_bits(vector.to_bits()).to_bits(),
+                vector.to_bits()
+            );
         });
     }
 

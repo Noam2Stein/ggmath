@@ -4254,7 +4254,10 @@ mod tests {
     fn test_from_bits() {
         for_parameters!(|T: PrimitiveFloat| {
             let vector = Vec3A::<T>::new(3.1, -0.0, T::NAN);
-            assert_eq!(Vec3A::<T>::from_bits(vector.to_bits()), vector);
+            assert_eq!(
+                Vec3A::<T>::from_bits(vector.to_bits()).to_bits(),
+                vector.to_bits()
+            );
         });
     }
 
