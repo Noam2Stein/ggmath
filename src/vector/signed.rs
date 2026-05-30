@@ -1,6 +1,33 @@
 use crate::{
-    Alignment, Length, PrimitiveSignedBackend, SupportedLength, Vector, utils::specialize,
+    Alignment, Length, PrimitiveSigned, PrimitiveSignedBackend, SupportedLength, Vector,
+    utils::{specialize, transmute_generic},
 };
+
+impl<const N: usize, T, A: Alignment> Vector<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: PrimitiveSigned,
+{
+    /// Returns the bit patterns of `self` reinterpreted as unsigned integers of
+    /// the same size.
+    ///
+    /// This produces the same result as [`as`] conversions, but ensures that
+    /// the bit-width remains the same.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+    #[inline]
+    #[must_use]
+    #[expect(private_interfaces)]
+    pub const fn cast_unsigned(self) -> Vector<N, T::U, A> {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::U, A>>() } {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T::U, A>>(self) }
+        } else {
+            // SAFETY: Both types accept all bit-patterns.
+            Vector::from_array(unsafe { transmute_generic::<[T; N], [T::U; N]>(self.to_array()) })
+        }
+    }
+}
 
 macro_rules! impl_signed {
     ($T:ident) => {
@@ -71,9 +98,17 @@ impl_signed!(isize);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Vector,
+        Vec3A, Vector,
         utils::{assert_panic_eq, for_parameters},
     };
+
+    #[test]
+    fn test_cast_unsigned() {
+        for_parameters!(|T: PrimitiveSigned| {
+            let vector = Vec3A::<T>::new(1, -1, T::MAX);
+            assert_eq!(vector.cast_unsigned(), vector.map(T::cast_unsigned));
+        });
+    }
 
     #[test]
     fn test_abs() {

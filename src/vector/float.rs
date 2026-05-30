@@ -1636,6 +1636,44 @@ where
             .le_mask(Self::splat(max_abs_diff))
             .all()
     }
+
+    /// Raw transmutation to unsigned integer vector.
+    ///
+    /// Note that this function is distinct from [`as`] conversions, which
+    /// attempt to preserve the *numeric* value, and not the bitwise value.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+    #[inline]
+    #[must_use]
+    #[expect(private_interfaces)]
+    pub const fn to_bits(self) -> Vector<N, T::U, A> {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::U, A>>() } {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T::U, A>>(self) }
+        } else {
+            // SAFETY: Both types accept all bit-patterns.
+            Vector::from_array(unsafe { transmute_generic::<[T; N], [T::U; N]>(self.to_array()) })
+        }
+    }
+
+    /// Raw transmutation from unsigned integer vector.
+    ///
+    /// Note that this function is distinct from [`as`] conversions, which
+    /// attempt to preserve the *numeric* value, and not the bitwise value.
+    ///
+    /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
+    #[inline]
+    #[must_use]
+    #[expect(private_interfaces)]
+    pub const fn from_bits(value: Vector<N, T::U, A>) -> Self {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::U, A>>() } {
+            // SAFETY: Both types accept all bit-patterns.
+            unsafe { transmute_generic::<Vector<N, T::U, A>, Vector<N, T, A>>(value) }
+        } else {
+            // SAFETY: Both types accept all bit-patterns.
+            Vector::from_array(unsafe { transmute_generic::<[T::U; N], [T; N]>(value.to_array()) })
+        }
+    }
 }
 
 impl<T, A: Alignment> Vector<2, T, A>
@@ -1833,7 +1871,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        FloatExt, Mask, Vec2A, Vector,
+        FloatExt, Mask, Vec2A, Vec3A, Vector,
         utils::{PrimitiveFloatFns, assert_debug_panic, assert_float_eq, float_eq, for_parameters},
     };
 
@@ -4201,6 +4239,25 @@ mod tests {
             assert!(!Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.2, 1.0), 0.125));
             assert!(!Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.1, 0.8), 0.125));
             assert!(!Vec2A::<T>::new(5.0, 1.0).abs_diff_eq(Vec2A::new(4.5, 0.0), 0.125));
+        });
+    }
+
+    #[test]
+    fn test_to_bits() {
+        for_parameters!(|T: PrimitiveFloat| {
+            let vector = Vec3A::new(3.1, -0.0, T::NAN);
+            assert_eq!(vector.to_bits(), vector.map(T::to_bits));
+        });
+    }
+
+    #[test]
+    fn test_from_bits() {
+        for_parameters!(|T: PrimitiveFloat| {
+            let vector = Vec3A::<T>::new(3.1, -0.0, T::NAN);
+            assert_eq!(
+                Vec3A::<T>::from_bits(vector.to_bits()).to_bits(),
+                vector.to_bits()
+            );
         });
     }
 

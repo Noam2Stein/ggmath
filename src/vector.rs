@@ -20,6 +20,7 @@ mod float;
 mod integer;
 mod signed;
 mod swizzle;
+mod unsigned;
 #[cfg(feature = "wide")]
 mod wide;
 #[cfg(feature = "wide")]
@@ -28,6 +29,8 @@ mod wide_float;
 mod wide_integer;
 #[cfg(feature = "wide")]
 mod wide_signed;
+#[cfg(feature = "wide")]
+mod wide_unsigned;
 
 /// An `N`-dimensional vector of type `T`.
 ///
