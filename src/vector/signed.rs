@@ -99,12 +99,12 @@ impl_signed!(isize);
 mod tests {
     use crate::{
         Vec3A, Vector,
-        utils::{assert_panic_eq, for_parameters},
+        utils::{assert_panic_test_eq, for_types, random_iter},
     };
 
     #[test]
     fn test_cast_unsigned() {
-        for_parameters!(|T: PrimitiveSigned| {
+        for_types!(|T: PrimitiveSigned| {
             let vector = Vec3A::<T>::new(1, -1, T::MAX);
             assert_eq!(vector.cast_unsigned(), vector.map(T::cast_unsigned));
         });
@@ -112,41 +112,19 @@ mod tests {
 
     #[test]
     fn test_abs() {
-        for_parameters!(|T: PrimitiveSigned, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_eq!(
-                Vector::<2, T, A>::new(x, y).abs(),
-                Vector::<2, T, A>::new(x.abs(), y.abs())
-            );
-            assert_panic_eq!(
-                Vector::<3, T, A>::new(x, y, z).abs(),
-                Vector::<3, T, A>::new(x.abs(), y.abs(), z.abs())
-            );
-            assert_panic_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).abs(),
-                Vector::<4, T, A>::new(x.abs(), y.abs(), z.abs(), w.abs())
-            );
+        for_types!(|N, T: PrimitiveSigned, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_panic_test_eq!(vector.abs(), vector.map(T::abs));
+            }
         });
     }
 
     #[test]
     fn test_signum() {
-        for_parameters!(|T: PrimitiveSigned, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).signum(),
-                Vector::<2, T, A>::new(x.signum(), y.signum())
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).signum(),
-                Vector::<3, T, A>::new(x.signum(), y.signum(), z.signum())
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).signum(),
-                Vector::<4, T, A>::new(x.signum(), y.signum(), z.signum(), w.signum())
-            );
+        for_types!(|N, T: PrimitiveSigned, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_panic_test_eq!(vector.signum(), vector.map(T::signum));
+            }
         });
     }
 }

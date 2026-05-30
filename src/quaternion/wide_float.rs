@@ -561,558 +561,485 @@ impl_wide_float!(f64x8, f64);
 mod tests {
     extern crate std;
 
+    use wide::CmpGt;
+
     use crate::{
-        FloatExt, Matrix, Quaternion, Vector,
-        utils::{assert_float_eq, assert_float_eq_or_panic, for_parameters},
+        EulerRot, Mat3, Quat, Vec3,
+        utils::{
+            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
+        },
     };
 
     #[test]
     fn test_from_rotation_x() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-
-            assert_float_eq!(
-                Quaternion::<Wide, A>::from_rotation_x(angle),
-                Quaternion::from_lane_fn(|i| Quaternion::<T, A>::from_rotation_x(
-                    angle.to_array()[i]
-                )),
-                r2nd <= Quaternion::from_array([Wide::splat(1e-5) * angle.abs(); 4])
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Quat::<Wide>::from_rotation_x(angle),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_x(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_y() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-
-            assert_float_eq!(
-                Quaternion::<Wide, A>::from_rotation_y(angle),
-                Quaternion::from_lane_fn(|i| Quaternion::<T, A>::from_rotation_y(
-                    angle.to_array()[i]
-                )),
-                r2nd <= Quaternion::from_array([Wide::splat(1e-5) * angle.abs(); 4])
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Quat::<Wide>::from_rotation_y(angle),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_y(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_z() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-
-            assert_float_eq!(
-                Quaternion::<Wide, A>::from_rotation_z(angle),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_rotation_z(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Quaternion::from_array([Wide::splat(1e-5) * angle.abs(); 4])
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Quat::<Wide>::from_rotation_z(angle),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_z(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_axis_angle() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let axis = Vector::<3, Wide, A>::new(x, y, x * 0.12 + y * 0.21 - 0.3)
-                .normalize_or(Vector::<3, Wide, A>::X);
+        for_types!(|Wide: WideFloat| {
+            for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
+                .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
+            {
+                if !axis.length().is_finite().all()
+                    || !angle.is_finite().all()
+                    || angle.abs().simd_gt(1e3).any()
+                {
+                    continue;
+                }
 
-            assert_float_eq!(
-                Quaternion::<Wide, A>::from_axis_angle(axis, angle),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_axis_angle(
-                    axis.lane(lane),
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Quaternion::from_array([Wide::splat(1e-5) * angle.abs(); 4]),
-                0.0 = -0.0
-            );
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::from_axis_angle(axis, angle),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_axis_angle(
+                        axis.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= axis.length() * angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_scaled_axis() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scaled_axis = Vector::<3, Wide, A>::new(x, y, z);
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::from_scaled_axis(scaled_axis),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_scaled_axis(
-                    scaled_axis.lane(lane)
-                )),
-                r2nd <= Quaternion::from_array([Wide::splat(1e-5) * scaled_axis.length(); 4]),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for scaled_axis in random_iter::<Vec3<Wide>>() {
+                assert_test_eq!(
+                    Quat::<Wide>::from_scaled_axis(scaled_axis),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_scaled_axis(scaled_axis.lane(lane))),
+                    abs <= scaled_axis.length() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_arc() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [z + 1.3, x + 2.3, y + 3.3];
-            let from = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::X);
-            let to = Vector::<3, Wide, A>::new(w, a, b).normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::from_rotation_arc(from, to),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_rotation_arc(
-                    from.lane(lane),
-                    to.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [start, end] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|start_end| [start_end, start_end.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::from_rotation_arc(start, end),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_arc(
+                        start.lane(lane),
+                        end.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_arc_colinear() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [z + 1.3, x + 2.3, y + 3.3];
-            let from = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::X);
-            let to = Vector::<3, Wide, A>::new(w, a, b).normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::from_rotation_arc_colinear(from, to),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_rotation_arc_colinear(
-                    from.lane(lane),
-                    to.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [start, end] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|start_end| [start_end, start_end.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::from_rotation_arc_colinear(start, end),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_rotation_arc_colinear(
+                        start.lane(lane),
+                        end.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_euler() {
-        for_parameters!(|Wide: WideFloat, A, order, a, b| {
-            let _: [Wide; 2] = [a, b];
-            let c = a * 0.3 + b * 0.1 + 0.6;
-            let [a, b, c] = [
-                a.is_finite().blend(a, Wide::ONE),
-                b.is_finite().blend(b, Wide::ONE),
-                c.is_finite().blend(c, Wide::ONE),
-            ];
-
-            assert_float_eq!(
-                Quaternion::<Wide, A>::from_euler(order, a, b, c),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_euler(
-                    order,
-                    a.to_array()[lane],
-                    b.to_array()[lane],
-                    c.to_array()[lane]
-                )),
-                abs <= Quaternion::from_array(
-                    [Wide::splat(1e-5) * a.abs().max(b.abs()).max(c.abs()); 4]
-                ),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[Wide; 3]>() {
+                    assert_test_eq!(
+                        Quat::<Wide>::from_euler(order, a, b, c),
+                        Quat::from_lane_fn(|lane| Quat::<T>::from_euler(
+                            order,
+                            a.to_array()[lane],
+                            b.to_array()[lane],
+                            c.to_array()[lane]
+                        )),
+                        abs <= a.abs().max(b.abs()).max(c.abs()) * 1e-5,
+                        0.0 = -0.0
+                    );
+                }
+            }
         });
     }
 
     #[test]
     fn test_from_matrix() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let matrix = Matrix::<3, Wide, A>::from_rotation_x(x)
-                * Matrix::<3, Wide, A>::from_rotation_y(y)
-                * Matrix::<3, Wide, A>::from_rotation_z(z);
+        for_types!(|Wide: WideFloat| {
+            for [x, y, z] in random_iter::<[Wide; 3]>() {
+                let matrix = Mat3::<Wide>::from_rotation_x(x)
+                    * Mat3::<Wide>::from_rotation_y(y)
+                    * Mat3::<Wide>::from_rotation_z(z);
 
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::from_matrix(&matrix),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::from_matrix(
-                    &matrix.lane(lane)
-                ))
-            );
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::from_matrix(&matrix),
+                    Quat::from_lane_fn(|lane| Quat::<T>::from_matrix(&matrix.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_to_lh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let dir = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::look_to_lh(dir, up),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_to_lh(
-                    dir.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [dir, up] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|dir_up| [dir_up, dir_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::look_to_lh(dir, up),
+                    Quat::from_lane_fn(|lane| Quat::<T>::look_to_lh(dir.lane(lane), up.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_to_rh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let dir = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::look_to_rh(dir, up),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_to_rh(
-                    dir.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [dir, up] in random_iter::<[Vec3<Wide>; 2]>()
+                .flat_map(|dir_up| [dir_up, dir_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::look_to_rh(dir, up),
+                    Quat::from_lane_fn(|lane| Quat::<T>::look_to_rh(dir.lane(lane), up.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_at_lh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let center = Vector::<3, Wide, A>::new(x, y, z);
-            let eye = Vector::<3, Wide, A>::new(y + 0.3, z * 0.7 + 1.5, x * 1.1);
-            let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::look_at_lh(eye, center, up),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_at_lh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|eye_center_up| [eye_center_up, eye_center_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::look_at_lh(eye, center, up),
+                    Quat::from_lane_fn(|lane| Quat::<T>::look_at_lh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_at_rh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let center = Vector::<3, Wide, A>::new(x, y, z);
-            let eye = Vector::<3, Wide, A>::new(y + 0.3, z * 0.7 + 1.5, x * 1.1);
-            let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::look_at_rh(eye, center, up),
-                Quaternion::from_lane_fn(|lane| Quaternion::<T, A>::look_at_rh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|eye_center_up| [eye_center_up, eye_center_up.map(|v| v.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Quat::<Wide>::look_at_rh(eye, center, up),
+                    Quat::from_lane_fn(|lane| Quat::<T>::look_at_rh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_axis_angle() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq!(
-                quat.to_axis_angle(),
-                (
-                    Vector::from_lane_fn(|lane| quat.lane(lane).to_axis_angle().0),
-                    Wide::new(std::array::from_fn(|lane| quat
-                        .lane(lane)
-                        .to_axis_angle()
-                        .1))
-                ),
-                r2nd <= (Vector::splat(Wide::splat(1e-5)), Wide::splat(1e-5))
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                assert_test_eq!(
+                    quat.to_axis_angle(),
+                    (
+                        Vec3::from_lane_fn(|lane| quat.lane(lane).to_axis_angle().0),
+                        Wide::new(std::array::from_fn(|lane| quat
+                            .lane(lane)
+                            .to_axis_angle()
+                            .1))
+                    ),
+                    abs <= (Wide::splat(1e-5), Wide::splat(1e-5))
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_scaled_axis() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq!(
-                quat.to_scaled_axis(),
-                Vector::from_lane_fn(|lane| quat.lane(lane).to_scaled_axis()),
-                r2nd <= Vector::splat(Wide::splat(1e-5))
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                assert_test_eq!(
+                    quat.to_scaled_axis(),
+                    Vec3::from_lane_fn(|lane| quat.lane(lane).to_scaled_axis()),
+                    abs <= Wide::splat(1e-5)
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_euler() {
-        for_parameters!(|Wide: WideFloat, A, order, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x * 0.1 + y * 0.3 + 0.8;
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq!(
-                quat.to_euler(order),
-                (
-                    Wide::new(std::array::from_fn(|lane| quat
-                        .lane(lane)
-                        .to_euler(order)
-                        .0)),
-                    Wide::new(std::array::from_fn(|lane| quat
-                        .lane(lane)
-                        .to_euler(order)
-                        .1)),
-                    Wide::new(std::array::from_fn(|lane| quat
-                        .lane(lane)
-                        .to_euler(order)
-                        .2))
-                ),
-                r2nd <= (Wide::splat(1e-5), Wide::splat(1e-5), Wide::splat(1e-5))
-            );
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                    assert_test_eq_or_panic!(
+                        quat.to_euler(order),
+                        (
+                            Wide::new(std::array::from_fn(|lane| quat
+                                .lane(lane)
+                                .to_euler(order)
+                                .0)),
+                            Wide::new(std::array::from_fn(|lane| quat
+                                .lane(lane)
+                                .to_euler(order)
+                                .1)),
+                            Wide::new(std::array::from_fn(|lane| quat
+                                .lane(lane)
+                                .to_euler(order)
+                                .2))
+                        ),
+                        abs <= (Wide::splat(1e-5), Wide::splat(1e-5), Wide::splat(1e-5))
+                    );
+                }
+            }
         });
     }
 
     #[test]
     fn test_is_nan() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).is_nan(),
-                x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>() {
+                assert_test_eq_or_panic!(quat.is_nan(), quat.to_vector().is_nan());
+            }
         });
     }
 
     #[test]
     fn test_is_finite() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq_or_panic!(
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).is_finite(),
-                x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>() {
+                assert_test_eq_or_panic!(quat.is_finite(), quat.to_vector().is_finite());
+            }
         });
     }
 
     #[test]
     fn test_inverse() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq_or_panic!(
-                quat.inverse(),
-                Quaternion::from_lane_fn(|lane| quat.lane(lane).inverse())
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                assert_test_eq_or_panic!(
+                    quat.inverse(),
+                    Quat::from_lane_fn(|lane| quat.lane(lane).inverse())
+                );
+            }
         });
     }
 
     #[test]
     fn test_angle_between() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-            let other =
-                Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq_or_panic!(
-                quat.angle_between(other),
-                Wide::new(std::array::from_fn(|lane| quat
-                    .lane(lane)
-                    .angle_between(other.lane(lane)))),
-                r2nd <= Wide::splat(1e-5)
-            );
+        for_types!(|Wide: WideFloat| {
+            for [a, b] in
+                random_iter::<[Quat<Wide>; 2]>().flat_map(|ab| [ab, ab.map(|q| q.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    a.angle_between(b),
+                    Wide::new(std::array::from_fn(|lane| a
+                        .lane(lane)
+                        .angle_between(b.lane(lane)))),
+                    abs <= Wide::splat(1e-5)
+                );
+            }
         });
     }
 
     #[test]
     fn test_lerp() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-            let other =
-                Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
-            let t = w * 0.3;
-
-            assert_float_eq_or_panic!(
-                quat.lerp(other, t),
-                Quaternion::from_lane_fn(|lane| quat
-                    .lane(lane)
-                    .lerp(other.lane(lane), t.to_array()[lane]))
-            );
+        for_types!(|Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Quat<Wide>; 2], Wide)>()
+                .flat_map(|(ab, t)| [(ab, t), (ab.map(|q| q.normalize()), t)])
+            {
+                assert_test_eq_or_panic!(
+                    a.lerp(b, t),
+                    Quat::from_lane_fn(|lane| a.lane(lane).lerp(b.lane(lane), t.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_slerp() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + z * 0.2 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-            let other =
-                Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
-            let t = Wide::new(std::array::from_fn(|lane| (w.to_array()[lane] * 0.3) % 3.0));
+        for_types!(|Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Quat<Wide>; 2], Wide)>()
+                .flat_map(|(ab, t)| [(ab, t), (ab.map(|q| q.normalize()), t)])
+            {
+                let t = (t / 10.0).clamp(Wide::splat(-100.0), Wide::splat(100.0));
 
-            assert_float_eq_or_panic!(
-                quat.slerp(other, t),
-                Quaternion::from_lane_fn(|lane| quat
-                    .lane(lane)
-                    .slerp(other.lane(lane), t.to_array()[lane])),
-                abs <= Quaternion::from_array([Wide::splat(1e-5); 4])
-            );
+                assert_test_eq_or_panic!(
+                    a.slerp(b, t),
+                    Quat::from_lane_fn(|lane| a.lane(lane).slerp(b.lane(lane), t.to_array()[lane])),
+                    abs <= a.length().max(b.length()) * t.abs().max(Wide::ONE) * 1e-3 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_rotate_towards() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + z * 0.2 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-            let target =
-                Quaternion::<Wide, A>::from_xyzw(w, z, y, x).normalize_or(Quaternion::IDENTITY);
-            let max_angle = Wide::new(std::array::from_fn(|lane| (w.to_array()[lane] * 0.3) % 3.0));
-
-            assert_float_eq_or_panic!(
-                quat.rotate_towards(target, max_angle),
-                Quaternion::from_lane_fn(|lane| quat
-                    .lane(lane)
-                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
-                abs <= Quaternion::from_array([Wide::splat(1e-5); 4])
-            );
+        for_types!(|Wide: WideFloat| {
+            for ([quat, target], max_angle) in
+                random_iter::<([Quat<Wide>; 2], Wide)>().flat_map(|(quat_target, max_angle)| {
+                    [
+                        (quat_target, max_angle),
+                        (quat_target.map(|q| q.normalize()), max_angle),
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    quat.rotate_towards(target, max_angle),
+                    Quat::from_lane_fn(|lane| quat
+                        .lane(lane)
+                        .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
+                    abs <= quat.length().max(target.length()) * 1e-3 + 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_length() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-
-            assert_float_eq!(
-                quat.length(),
-                Wide::new(std::array::from_fn(|lane| quat.lane(lane).length()))
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>() {
+                assert_test_eq!(
+                    quat.length(),
+                    Wide::new(std::array::from_fn(|lane| quat.lane(lane).length()))
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-
-            assert_float_eq_or_panic!(
-                quat.normalize(),
-                Quaternion::from_lane_fn(|lane| quat.lane(lane).normalize())
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>() {
+                assert_test_eq_or_panic!(
+                    quat.normalize(),
+                    Quat::from_lane_fn(|lane| quat.lane(lane).normalize())
+                );
+            }
         });
     }
 
     #[test]
     fn test_try_normalize() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq_or_panic!(
-                quat.try_normalize().unwrap(),
-                Quaternion::from_lane_fn(|lane| quat.lane(lane).try_normalize().unwrap())
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>() {
+                assert_panic_test_eq!(
+                    quat.try_normalize().unwrap(),
+                    Quat::from_lane_fn(|lane| quat.lane(lane).try_normalize().unwrap())
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize_or() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq!(
-                quat.normalize_or(Quaternion::from_vector(Vector::NEG_ONE)),
-                Quaternion::from_lane_fn(|lane| quat
-                    .lane(lane)
-                    .normalize_or(Quaternion::from_vector(Vector::NEG_ONE)))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [quat, fallback] in random_iter::<[Quat<Wide>; 2]>() {
+                assert_test_eq_or_panic!(
+                    quat.normalize_or(fallback),
+                    Quat::from_lane_fn(|lane| quat.lane(lane).normalize_or(fallback.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize_and_length() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat =
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY);
-
-            assert_float_eq!(
-                quat.normalize_and_length(),
-                (
-                    Quaternion::from_lane_fn(|lane| quat.lane(lane).normalize_and_length().0),
-                    Wide::new(std::array::from_fn(|lane| quat
-                        .lane(lane)
-                        .normalize_and_length()
-                        .1))
-                )
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>() {
+                assert_test_eq_or_panic!(
+                    quat.normalize_and_length(),
+                    (
+                        Quat::from_lane_fn(|lane| quat.lane(lane).normalize_and_length().0),
+                        Wide::new(std::array::from_fn(|lane| quat
+                            .lane(lane)
+                            .normalize_and_length()
+                            .1))
+                    )
+                );
+            }
         });
     }
 
     #[test]
     fn test_is_normalized() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w)
-                .normalize_or(Quaternion::from_vector(Vector::NEG_ONE));
-
-            assert_float_eq!(
-                quat.is_normalized(),
-                Wide::new(std::array::from_fn(|lane| T::from_bits(
-                    if quat.lane(lane).is_normalized() {
-                        !0
-                    } else {
-                        0
-                    }
-                )))
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>() {
+                assert_test_eq!(
+                    quat.is_normalized(),
+                    Wide::new(std::array::from_fn(|lane| {
+                        if quat.lane(lane).is_normalized() {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    }))
+                );
+            }
         });
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-            let other = Quaternion::<Wide, A>::from_xyzw(a, b, x, z);
-            assert_eq!(
-                quat.abs_diff_eq(other, Wide::ONE),
-                x.abs_diff_eq(a, Wide::ONE)
-                    && y.abs_diff_eq(b, Wide::ONE)
-                    && z.abs_diff_eq(x, Wide::ONE)
-                    && w.abs_diff_eq(z, Wide::ONE)
-            );
+        for_types!(|Wide: WideFloat| {
+            for ([a, b], max_abs_diff) in random_iter::<([Quat<Wide>; 2], Wide)>() {
+                assert_test_eq!(
+                    a.abs_diff_eq(b, max_abs_diff),
+                    (0..LANES).all(|lane| a
+                        .lane(lane)
+                        .abs_diff_eq(b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
         });
     }
 }

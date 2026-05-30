@@ -170,6 +170,37 @@ impl EulerRot {
             Self::XzxEx => properties(Axis::X, Parity::Odd, Repeated::Yes, Frame::Relative),
         }
     }
+
+    #[cfg(test)]
+    pub(crate) fn values() -> impl Iterator<Item = Self> {
+        [
+            Self::Zyx,
+            Self::Zxy,
+            Self::Yxz,
+            Self::Yzx,
+            Self::Xyz,
+            Self::Xzy,
+            Self::Zyz,
+            Self::Zxz,
+            Self::Yxy,
+            Self::Yzy,
+            Self::Xyx,
+            Self::Xzx,
+            Self::ZyxEx,
+            Self::ZxyEx,
+            Self::YxzEx,
+            Self::YzxEx,
+            Self::XyzEx,
+            Self::XzyEx,
+            Self::ZyzEx,
+            Self::ZxzEx,
+            Self::YxyEx,
+            Self::YzyEx,
+            Self::XyxEx,
+            Self::XzxEx,
+        ]
+        .into_iter()
+    }
 }
 
 impl EulerRotProperties {

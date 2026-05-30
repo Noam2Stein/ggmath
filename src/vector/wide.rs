@@ -322,11 +322,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, CmpNe, i32x4};
+    extern crate std;
+
+    use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, CmpNe, f32x4, i32x4};
 
     use crate::{
-        Vec3A, Vector,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,
+        utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -445,265 +447,145 @@ mod tests {
 
     #[test]
     fn test_all() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
-
-            assert_float_eq!(Vector::<2, Wide, A>::new(x, y).all(), x & y);
-            assert_float_eq!(Vector::<3, Wide, A>::new(x, y, z).all(), x & y & z);
-            assert_float_eq!(Vector::<4, Wide, A>::new(x, y, z, w).all(), x & y & z & w);
-        });
+        for [x, y, z, w] in random_iter::<[f32x4; 4]>() {
+            assert_test_eq!(Vec2::new(x, y).all(), x & y);
+            assert_test_eq!(Vec3::new(x, y, z).all(), x & y & z);
+            assert_test_eq!(Vec4::new(x, y, z, w).all(), x & y & z & w);
+        }
     }
 
     #[test]
     fn test_any() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
-
-            assert_float_eq!(Vector::<2, Wide, A>::new(x, y).any(), x | y);
-            assert_float_eq!(Vector::<3, Wide, A>::new(x, y, z).any(), x | y | z);
-            assert_float_eq!(Vector::<4, Wide, A>::new(x, y, z, w).any(), x | y | z | w);
-        });
+        for [x, y, z, w] in random_iter::<[f32x4; 4]>() {
+            assert_test_eq!(Vec2::new(x, y).any(), x | y);
+            assert_test_eq!(Vec3::new(x, y, z).any(), x | y | z);
+            assert_test_eq!(Vec4::new(x, y, z, w).any(), x | y | z | w);
+        }
     }
 
     #[test]
     fn test_blend() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).blend(
-                    Vector::<2, Wide, A>::new(y, z),
-                    Vector::<2, Wide, A>::new(z, w)
-                ),
-                Vector::<2, Wide, A>::new(x.blend(y, z), y.blend(z, w))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).blend(
-                    Vector::<3, Wide, A>::new(y, z, w),
-                    Vector::<3, Wide, A>::new(z, w, x)
-                ),
-                Vector::<3, Wide, A>::new(x.blend(y, z), y.blend(z, w), z.blend(w, x))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).blend(
-                    Vector::<4, Wide, A>::new(y, z, w, x),
-                    Vector::<4, Wide, A>::new(z, w, x, y)
-                ),
-                Vector::<4, Wide, A>::new(
-                    x.blend(y, z),
-                    y.blend(z, w),
-                    z.blend(w, x),
-                    w.blend(x, y)
-                )
-            );
+        for_types!(|N| {
+            for [mask, if_true, if_false] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                assert_test_eq!(
+                    mask.blend(if_true, if_false),
+                    Vector::from_fn(|i| mask[i].blend(if_true[i], if_false[i]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_simd_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_eq(Vector::<2, Wide, A>::new(a, b)),
-                x.simd_eq(a) & y.simd_eq(b)
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_eq(Vector::<3, Wide, A>::new(a, b, c)),
-                x.simd_eq(a) & y.simd_eq(b) & z.simd_eq(c)
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_eq(Vector::<4, Wide, A>::new(a, b, c, d)),
-                x.simd_eq(a) & y.simd_eq(b) & z.simd_eq(c) & w.simd_eq(d)
-            );
+                assert_test_eq!(
+                    a.simd_eq(b),
+                    f32x4::new(std::array::from_fn(
+                        |lane| if a.lane(lane) == b.lane(lane) {
+                            f32::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_simd_ne() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_ne(Vector::<2, Wide, A>::new(a, b)),
-                x.simd_ne(a) | y.simd_ne(b)
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_ne(Vector::<3, Wide, A>::new(a, b, c)),
-                x.simd_ne(a) | y.simd_ne(b) | z.simd_ne(c)
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_ne(Vector::<4, Wide, A>::new(a, b, c, d)),
-                x.simd_ne(a) | y.simd_ne(b) | z.simd_ne(c) | w.simd_ne(d)
-            );
+                assert_test_eq!(
+                    a.simd_ne(b),
+                    f32x4::new(std::array::from_fn(
+                        |lane| if a.lane(lane) != b.lane(lane) {
+                            f32::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_simd_eq_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_eq_mask(Vector::<2, Wide, A>::new(a, b)),
-                Vector::<2, Wide, A>::new(x.simd_eq(a), y.simd_eq(b))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_eq_mask(Vector::<3, Wide, A>::new(a, b, c)),
-                Vector::<3, Wide, A>::new(x.simd_eq(a), y.simd_eq(b), z.simd_eq(c))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_eq_mask(Vector::<4, Wide, A>::new(a, b, c, d)),
-                Vector::<4, Wide, A>::new(x.simd_eq(a), y.simd_eq(b), z.simd_eq(c), w.simd_eq(d))
-            );
+                assert_test_eq!(a.simd_eq_mask(b), Vector::from_fn(|i| a[i].simd_eq(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_simd_ne_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_ne_mask(Vector::<2, Wide, A>::new(a, b)),
-                Vector::<2, Wide, A>::new(x.simd_ne(a), y.simd_ne(b))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_ne_mask(Vector::<3, Wide, A>::new(a, b, c)),
-                Vector::<3, Wide, A>::new(x.simd_ne(a), y.simd_ne(b), z.simd_ne(c))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_ne_mask(Vector::<4, Wide, A>::new(a, b, c, d)),
-                Vector::<4, Wide, A>::new(x.simd_ne(a), y.simd_ne(b), z.simd_ne(c), w.simd_ne(d))
-            );
+                assert_test_eq!(a.simd_ne_mask(b), Vector::from_fn(|i| a[i].simd_ne(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_simd_lt_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_lt_mask(Vector::<2, Wide, A>::new(a, b)),
-                Vector::<2, Wide, A>::new(x.simd_lt(a), y.simd_lt(b))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_lt_mask(Vector::<3, Wide, A>::new(a, b, c)),
-                Vector::<3, Wide, A>::new(x.simd_lt(a), y.simd_lt(b), z.simd_lt(c))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_lt_mask(Vector::<4, Wide, A>::new(a, b, c, d)),
-                Vector::<4, Wide, A>::new(x.simd_lt(a), y.simd_lt(b), z.simd_lt(c), w.simd_lt(d))
-            );
+                assert_test_eq!(a.simd_lt_mask(b), Vector::from_fn(|i| a[i].simd_lt(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_simd_gt_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_gt_mask(Vector::<2, Wide, A>::new(a, b)),
-                Vector::<2, Wide, A>::new(x.simd_gt(a), y.simd_gt(b))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_gt_mask(Vector::<3, Wide, A>::new(a, b, c)),
-                Vector::<3, Wide, A>::new(x.simd_gt(a), y.simd_gt(b), z.simd_gt(c))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_gt_mask(Vector::<4, Wide, A>::new(a, b, c, d)),
-                Vector::<4, Wide, A>::new(x.simd_gt(a), y.simd_gt(b), z.simd_gt(c), w.simd_gt(d))
-            );
+                assert_test_eq!(a.simd_gt_mask(b), Vector::from_fn(|i| a[i].simd_gt(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_simd_le_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_le_mask(Vector::<2, Wide, A>::new(a, b)),
-                Vector::<2, Wide, A>::new(x.simd_le(a), y.simd_le(b))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_le_mask(Vector::<3, Wide, A>::new(a, b, c)),
-                Vector::<3, Wide, A>::new(x.simd_le(a), y.simd_le(b), z.simd_le(c))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_le_mask(Vector::<4, Wide, A>::new(a, b, c, d)),
-                Vector::<4, Wide, A>::new(x.simd_le(a), y.simd_le(b), z.simd_le(c), w.simd_le(d))
-            );
+                assert_test_eq!(a.simd_le_mask(b), Vector::from_fn(|i| a[i].simd_le(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_simd_ge_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b, mask] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let mask = mask.sign_negative_mask();
+                let b = mask.blend(a, b);
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).simd_ge_mask(Vector::<2, Wide, A>::new(a, b)),
-                Vector::<2, Wide, A>::new(x.simd_ge(a), y.simd_ge(b))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).simd_ge_mask(Vector::<3, Wide, A>::new(a, b, c)),
-                Vector::<3, Wide, A>::new(x.simd_ge(a), y.simd_ge(b), z.simd_ge(c))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .simd_ge_mask(Vector::<4, Wide, A>::new(a, b, c, d)),
-                Vector::<4, Wide, A>::new(x.simd_ge(a), y.simd_ge(b), z.simd_ge(c), w.simd_ge(d))
-            );
+                assert_test_eq!(a.simd_ge_mask(b), Vector::from_fn(|i| a[i].simd_ge(b[i])));
+            }
         });
     }
 }

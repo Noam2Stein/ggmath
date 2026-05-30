@@ -403,294 +403,186 @@ impl_wide_float!(f64x8);
 mod tests {
     extern crate std;
 
-    use wide::CmpLt;
+    use wide::CmpGt;
 
     use crate::{
-        Affine, Quaternion, Vector,
-        utils::{assert_float_eq, assert_float_eq_or_panic, assert_panic_float_eq, for_parameters},
+        Affine, Affine2, Affine3, EulerRot, Mat3, Quat, Unaligned, Vec2, Vec3, Vector,
+        utils::{
+            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
+        },
     };
 
     #[test]
     fn test_is_nan() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z, w, a, b, c, d| {
-            let [x, y, z, w, a, b, c, d] =
-                [x, y, z, w, a, b, c, d].map(|b| if b { Wide::splat(T::NAN) } else { Wide::ONE });
-
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, a, b]);
-            assert_eq!(affine.is_nan().any(), affine.lane(0).is_nan());
-
-            let affine =
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, w, x, y, z, w, a, b, c, d]);
-            assert_eq!(affine.is_nan().any(), affine.lane(0).is_nan());
-
-            let affine = Affine::<4, Wide, A>::from_row_array(&[
-                x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, a, b, c, d,
-            ]);
-            assert_eq!(affine.is_nan().any(), affine.lane(0).is_nan());
+        for_types!(|N, Wide: WideFloat| {
+            for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    affine.is_nan(),
+                    affine.submatrix.is_nan() | affine.translation.is_nan()
+                );
+            }
         });
     }
 
     #[test]
     fn test_is_finite() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z, w, a, b, c, d| {
-            let [x, y, z, w, a, b, c, d] = [x, y, z, w, a, b, c, d].map(|b| {
-                if b {
-                    Wide::splat(T::INFINITY)
-                } else {
-                    Wide::ONE
-                }
-            });
-
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, a, b]);
-            assert_eq!(affine.is_finite().any(), affine.lane(0).is_finite());
-
-            let affine =
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, w, x, y, z, w, a, b, c, d]);
-            assert_eq!(affine.is_finite().any(), affine.lane(0).is_finite());
-
-            let affine = Affine::<4, Wide, A>::from_row_array(&[
-                x, y, z, w, x, y, z, w, x, y, z, w, x, y, z, w, a, b, c, d,
-            ]);
-            assert_eq!(affine.is_finite().any(), affine.lane(0).is_finite());
+        for_types!(|N, Wide: WideFloat| {
+            for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    affine.is_finite(),
+                    affine.submatrix.is_finite() & affine.translation.is_finite()
+                );
+            }
         });
     }
 
     #[test]
     fn test_inverse() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, a, b]);
-            assert_float_eq_or_panic!(
-                affine.inverse(),
-                Affine::from_lane_fn(|lane| affine.lane(lane).inverse())
-            );
-
-            let affine =
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            assert_float_eq_or_panic!(
-                affine.inverse(),
-                Affine::from_lane_fn(|lane| affine.lane(lane).inverse())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    affine.inverse(),
+                    Affine::from_lane_fn(|lane| affine.lane(lane).inverse())
+                );
+            }
         });
     }
 
     #[test]
     fn test_try_inverse() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, a, b]);
-            assert_panic_float_eq!(
-                affine.try_inverse().unwrap(),
-                Affine::from_lane_fn(|lane| affine.lane(lane).try_inverse().unwrap())
-            );
-
-            let affine =
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            assert_panic_float_eq!(
-                affine.try_inverse().unwrap(),
-                Affine::from_lane_fn(|lane| affine.lane(lane).try_inverse().unwrap())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
+                assert_panic_test_eq!(
+                    affine.try_inverse().unwrap(),
+                    Affine::from_lane_fn(|lane| affine.lane(lane).try_inverse().unwrap())
+                );
+            }
         });
     }
 
     #[test]
     fn test_inverse_or() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, a, b]);
-            assert_float_eq_or_panic!(
-                affine.inverse_or(&Affine::NAN),
-                Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or(&Affine::NAN))
-            );
-
-            let affine =
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            assert_float_eq_or_panic!(
-                affine.inverse_or(&Affine::NAN),
-                Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or(&Affine::NAN))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for [affine, fallback] in random_iter::<[Affine<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq_or_panic!(
+                    affine.inverse_or(&fallback),
+                    Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or(&fallback.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_inverse_or_zero() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, a, b]);
-            assert_float_eq_or_panic!(
-                affine.inverse_or_zero(),
-                Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or_zero())
-            );
-
-            let affine =
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            assert_float_eq_or_panic!(
-                affine.inverse_or_zero(),
-                Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or_zero())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    affine.inverse_or_zero(),
+                    Affine::from_lane_fn(|lane| affine.lane(lane).inverse_or_zero())
+                );
+            }
         });
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, a, b]);
-            let other = Affine::<2, Wide, A>::from_row_array(&[y, w, x, z, b, a]);
-            assert_eq!(
-                affine.abs_diff_eq(&other, Wide::ONE),
-                affine.submatrix.abs_diff_eq(&other.submatrix, Wide::ONE)
-                    && affine.translation.abs_diff_eq(other.translation, Wide::ONE)
-            );
-
-            let affine =
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e, f, g, h]);
-            let other = Affine::<3, Wide, A>::from_row_array(&[z, d, x, y, w, a, c, b, e, f, h, g]);
-            assert_eq!(
-                affine.abs_diff_eq(&other, Wide::ONE),
-                affine.submatrix.abs_diff_eq(&other.submatrix, Wide::ONE)
-                    && affine.translation.abs_diff_eq(other.translation, Wide::ONE)
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], max_abs_diff) in random_iter::<([Affine<N, Wide, Unaligned>; 2], Wide)>() {
+                assert_test_eq!(
+                    a.abs_diff_eq(&b, max_abs_diff),
+                    (0..LANES).all(|lane| a
+                        .lane(lane)
+                        .abs_diff_eq(&b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_angle() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_lt(Wide::splat(1e20))
-                .blend(angle, Wide::ONE);
-
-            assert_float_eq!(
-                Affine::<2, Wide, A>::from_angle(angle),
-                Affine::from_lane_fn(|lane| Affine::<2, T, A>::from_angle(angle.to_array()[lane])),
-                r2nd <= Affine::<2, Wide, A>::from_row_array(&[Wide::splat(1e-5) * angle.abs(); 6]),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Affine2::<Wide>::from_angle(angle),
+                    Affine2::from_lane_fn(|lane| Affine2::<T>::from_angle(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_scale_angle() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let [x, y, angle] = [
-                x.abs().simd_lt(Wide::splat(1e20)).blend(x, Wide::ONE),
-                y.abs().simd_lt(Wide::splat(1e20)).blend(y, Wide::ONE),
-                angle
-                    .abs()
-                    .simd_lt(Wide::splat(1e20))
-                    .blend(angle, Wide::ONE),
-            ];
-            let scale = Vector::<2, Wide, A>::new(x, y);
+        for_types!(|Wide: WideFloat| {
+            for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
+                if !scale.length().is_finite().all() {
+                    continue;
+                }
 
-            assert_float_eq!(
-                Affine::<2, Wide, A>::from_scale_angle(scale, angle),
-                Affine::from_lane_fn(|lane| Affine::<2, T, A>::from_scale_angle(
-                    scale.lane(lane),
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Affine::<2, Wide, A>::from_row_array(&[Wide::splat(1e-5) * angle.abs(); 6]),
-                0.0 = -0.0
-            );
+                assert_test_eq!(
+                    Affine2::<Wide>::from_scale_angle(scale, angle),
+                    Affine2::from_lane_fn(|lane| Affine2::<T>::from_scale_angle(
+                        scale.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_angle_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let [x, y, angle] = [
-                x.abs().simd_lt(Wide::splat(1e20)).blend(x, Wide::ONE),
-                y.abs().simd_lt(Wide::splat(1e20)).blend(y, Wide::ONE),
-                angle
-                    .abs()
-                    .simd_lt(Wide::splat(1e20))
-                    .blend(angle, Wide::ONE),
-            ];
-            let translation = Vector::<2, Wide, A>::new(x, y);
-
-            assert_float_eq!(
-                Affine::<2, Wide, A>::from_angle_translation(angle, translation),
-                Affine::from_lane_fn(|lane| Affine::<2, T, A>::from_angle_translation(
-                    angle.to_array()[lane],
-                    translation.lane(lane)
-                )),
-                r2nd <= Affine::<2, Wide, A>::from_row_array(&[Wide::splat(1e-5) * angle.abs(); 6]),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for (angle, translation) in random_iter::<(Wide, Vec2<Wide>)>() {
+                assert_test_eq!(
+                    Affine2::<Wide>::from_angle_translation(angle, translation),
+                    Affine2::from_lane_fn(|lane| Affine2::<T>::from_angle_translation(
+                        angle.to_array()[lane],
+                        translation.lane(lane)
+                    )),
+                    abs <= (angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_scale_angle_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let [x, y, angle] = [
-                x.abs().simd_lt(Wide::splat(1e20)).blend(x, Wide::ONE),
-                y.abs().simd_lt(Wide::splat(1e20)).blend(y, Wide::ONE),
-                angle
-                    .abs()
-                    .simd_lt(Wide::splat(1e20))
-                    .blend(angle, Wide::ONE),
-            ];
-            let scale = Vector::<2, Wide, A>::new(x, y);
-            let translation = Vector::<2, Wide, A>::new(x, y) * Wide::splat(0.7);
+        for_types!(|Wide: WideFloat| {
+            for (scale, angle, translation) in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>() {
+                if !scale.length().is_finite().all() {
+                    continue;
+                }
 
-            assert_float_eq!(
-                Affine::<2, Wide, A>::from_scale_angle_translation(scale, angle, translation),
-                Affine::from_lane_fn(|lane| Affine::<2, T, A>::from_scale_angle_translation(
-                    scale.lane(lane),
-                    angle.to_array()[lane],
-                    translation.lane(lane)
-                )),
-                r2nd <= Affine::<2, Wide, A>::from_row_array(&[Wide::splat(1e-5) * angle.abs(); 6]),
-                0.0 = -0.0
-            );
+                assert_test_eq!(
+                    Affine2::<Wide>::from_scale_angle_translation(scale, angle, translation),
+                    Affine2::from_lane_fn(|lane| Affine2::<T>::from_scale_angle_translation(
+                        scale.lane(lane),
+                        angle.to_array()[lane],
+                        translation.lane(lane)
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_scale_angle_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let scale = Vector::<2, Wide, A>::new(x, y);
-            let translation = Vector::<2, Wide, A>::new(y, x);
-
-            for affine in [
-                Affine::<2, Wide, A>::from_scale_angle_translation(scale, angle, translation),
-                Affine::<2, Wide, A>::from_row_array(&[
-                    x,
-                    y,
-                    angle,
-                    -y,
-                    translation.x,
-                    translation.y,
-                ]),
-            ] {
-                assert_float_eq_or_panic!(
+        for_types!(|Wide: WideFloat| {
+            for affine in random_iter::<Affine2<Wide>>().chain(
+                random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>().map(
+                    |(scale, angle, translation)| {
+                        Affine2::<Wide>::from_scale_angle_translation(scale, angle, translation)
+                    },
+                ),
+            ) {
+                assert_test_eq_or_panic!(
                     affine.to_scale_angle_translation(),
                     (
                         Vector::from_lane_fn(|lane| affine
@@ -706,7 +598,7 @@ mod tests {
                             .to_scale_angle_translation()
                             .2)
                     ),
-                    r2nd <= (Vector::ZERO, Wide::splat(1e-3), Vector::ZERO)
+                    abs <= (Vector::ZERO, Wide::splat(1e-3), Vector::ZERO)
                 );
             }
         });
@@ -714,340 +606,308 @@ mod tests {
 
     #[test]
     fn test_from_rotation_x() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_lt(Wide::splat(1e20))
-                .blend(angle, Wide::ONE);
-
-            assert_float_eq!(
-                Affine::<3, Wide, A>::from_rotation_x(angle),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_rotation_x(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Affine::<3, Wide, A>::from_row_array(
-                    &[Wide::splat(1e-5) * angle.abs(); 12]
-                ),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Affine3::<Wide>::from_rotation_x(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_x(
+                        angle.to_array()[lane]
+                    )),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_y() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_lt(Wide::splat(1e20))
-                .blend(angle, Wide::ONE);
-
-            assert_float_eq!(
-                Affine::<3, Wide, A>::from_rotation_y(angle),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_rotation_y(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Affine::<3, Wide, A>::from_row_array(
-                    &[Wide::splat(1e-5) * angle.abs(); 12]
-                ),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Affine3::<Wide>::from_rotation_y(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_y(
+                        angle.to_array()[lane]
+                    )),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_z() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_lt(Wide::splat(1e20))
-                .blend(angle, Wide::ONE);
-
-            assert_float_eq!(
-                Affine::<3, Wide, A>::from_rotation_z(angle),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_rotation_z(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Affine::<3, Wide, A>::from_row_array(
-                    &[Wide::splat(1e-5) * angle.abs(); 12]
-                ),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Affine3::<Wide>::from_rotation_z(angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_z(
+                        angle.to_array()[lane]
+                    )),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_quat() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::from_quat(quat),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_quat(quat.lane(lane)))
-            );
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::from_quat(quat),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_quat(quat.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_axis_angle() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let angle = x ^ y;
-            let [x, y, z, angle] = [
-                x.abs().simd_lt(Wide::splat(1e20)).blend(x, Wide::ONE),
-                y.abs().simd_lt(Wide::splat(1e20)).blend(y, Wide::ONE),
-                z.abs().simd_lt(Wide::splat(1e20)).blend(z, Wide::ONE),
-                angle
-                    .abs()
-                    .simd_lt(Wide::splat(1e20))
-                    .blend(angle, Wide::ONE),
-            ];
-            let axis = Vector::<3, Wide, A>::new(x, y, z);
+        for_types!(|Wide: WideFloat| {
+            for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
+                .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
+            {
+                if !axis.length().is_finite().all()
+                    || !angle.is_finite().all()
+                    || angle.abs().simd_gt(1e3).any()
+                {
+                    continue;
+                }
 
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::from_axis_angle(axis, angle),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_axis_angle(
-                    axis.lane(lane),
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Affine::<3, Wide, A>::from_row_array(
-                    &[Wide::splat(1e-5) * angle.abs(); 12]
-                ),
-                0.0 = -0.0
-            );
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::from_axis_angle(axis, angle),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_axis_angle(
+                        axis.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= Affine3::from_submatrix(
+                        Mat3::<Wide>::from_axis_angle(axis, angle).abs()
+                            * axis.length().max(Wide::ONE)
+                            * angle.abs().max(Wide::ONE)
+                            * Wide::splat(1e-4)
+                            + Mat3::from_row_array(&[Wide::splat(1e-3); 9])
+                    ),
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_euler() {
-        for_parameters!(|Wide: WideFloat, A, order, a, b| {
-            let _: [Wide; 2] = [a, b];
-            let c = a * 0.3 + b * 0.6 + 0.3;
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::from_euler(order, a, b, c),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_euler(
-                    order,
-                    a.to_array()[lane],
-                    b.to_array()[lane],
-                    c.to_array()[lane]
-                )),
-                r2nd <= Affine::<3, Wide, A>::from_row_array(
-                    &[Wide::splat(1e-5) * a.abs().max(b.abs()).max(c.abs()); 12]
-                ),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[Wide; 3]>() {
+                    assert_test_eq!(
+                        Affine3::<Wide>::from_euler(order, a, b, c),
+                        Affine3::from_lane_fn(|lane| Affine3::<T>::from_euler(
+                            order,
+                            a.to_array()[lane],
+                            b.to_array()[lane],
+                            c.to_array()[lane]
+                        )),
+                        abs <= a.abs().max(b.abs()).max(c.abs()) * 1e-4,
+                        0.0 = -0.0
+                    );
+                }
+            }
         });
     }
 
     #[test]
     fn test_from_scale_rotation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-            let w = x ^ y;
-            let rotation = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::from_scale_rotation(scale, rotation),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_scale_rotation(
-                    scale.lane(lane),
-                    rotation.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
+                .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::from_scale_rotation(scale, rotation),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_scale_rotation(
+                        scale.lane(lane),
+                        rotation.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let rotation = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-            let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.8);
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::from_rotation_translation(rotation, translation),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_rotation_translation(
-                    rotation.lane(lane),
-                    translation.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for (rotation, translation) in
+                random_iter::<(Quat<Wide>, Vec3<Wide>)>().flat_map(|(rotation, translation)| {
+                    [(rotation, translation), (rotation.normalize(), translation)]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::from_rotation_translation(rotation, translation),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_rotation_translation(
+                        rotation.lane(lane),
+                        translation.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_scale_rotation_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-            let w = x ^ y;
-            let rotation = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-            let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.8);
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::from_scale_rotation_translation(scale, rotation, translation),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::from_scale_rotation_translation(
-                    scale.lane(lane),
-                    rotation.lane(lane),
-                    translation.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().flat_map(
+                    |(scale, rotation, translation)| {
+                        [
+                            (scale, rotation, translation),
+                            (scale, rotation.normalize(), translation),
+                        ]
+                    },
+                )
+            {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::from_scale_rotation_translation(scale, rotation, translation),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::from_scale_rotation_translation(
+                        scale.lane(lane),
+                        rotation.lane(lane),
+                        translation.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_to_lh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let dir = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let eye = dir * Wide::splat(0.3) + dir.yzx().with_z(Wide::splat(0.6));
-            let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3))).normalize();
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::look_to_lh(eye, dir, up),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_to_lh(
-                    eye.lane(lane),
-                    dir.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, dir, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, dir, up]| [[eye, dir, up], [eye, dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::look_to_lh(eye, dir, up),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::look_to_lh(
+                        eye.lane(lane),
+                        dir.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_to_rh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let dir = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let eye = dir * Wide::splat(0.3) + dir.yzx().with_z(Wide::splat(0.6));
-            let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3))).normalize();
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::look_to_rh(eye, dir, up),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_to_rh(
-                    eye.lane(lane),
-                    dir.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, dir, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, dir, up]| [[eye, dir, up], [eye, dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::look_to_rh(eye, dir, up),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::look_to_rh(
+                        eye.lane(lane),
+                        dir.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_at_lh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let eye = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let center = eye * Wide::splat(0.3) + eye.yzx().with_z(Wide::splat(0.6));
-            let up = (eye * Wide::splat(0.4) + eye.zxy().with_z(Wide::splat(0.3))).normalize();
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::look_at_lh(eye, center, up),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_at_lh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::look_at_lh(eye, center, up),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::look_at_lh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_at_rh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let eye = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let center = eye * Wide::splat(0.3) + eye.yzx().with_z(Wide::splat(0.6));
-            let up = (eye * Wide::splat(0.4) + eye.zxy().with_z(Wide::splat(0.3))).normalize();
-
-            assert_float_eq_or_panic!(
-                Affine::<3, Wide, A>::look_at_rh(eye, center, up),
-                Affine::from_lane_fn(|lane| Affine::<3, T, A>::look_at_rh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Affine3::<Wide>::look_at_rh(eye, center, up),
+                    Affine3::from_lane_fn(|lane| Affine3::<T>::look_at_rh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_euler() {
-        for_parameters!(|Wide: WideFloat, A, order, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x * 0.1 + y * 0.3 + 0.8;
-            let w = x * 0.3 + y * 0.1 + 0.6;
-            let affine = Affine::<3, Wide, A>::from_quat(
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
-            );
-
-            assert_float_eq!(
-                affine.to_euler(order),
-                (
-                    Wide::new(std::array::from_fn(|lane| affine
-                        .lane(lane)
-                        .to_euler(order)
-                        .0)),
-                    Wide::new(std::array::from_fn(|lane| affine
-                        .lane(lane)
-                        .to_euler(order)
-                        .1)),
-                    Wide::new(std::array::from_fn(|lane| affine
-                        .lane(lane)
-                        .to_euler(order)
-                        .2))
-                ),
-                r2nd <= (Wide::splat(1e-5), Wide::splat(1e-5), Wide::splat(1e-5))
-            );
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for affine in random_iter::<Affine3<Wide>>().chain(
+                    random_iter::<[Wide; 3]>()
+                        .map(|[a, b, c]| Affine3::<Wide>::from_euler(order, a, b, c)),
+                ) {
+                    assert_test_eq_or_panic!(
+                        affine.to_euler(order),
+                        (
+                            Wide::new(std::array::from_fn(|lane| affine
+                                .lane(lane)
+                                .to_euler(order)
+                                .0)),
+                            Wide::new(std::array::from_fn(|lane| affine
+                                .lane(lane)
+                                .to_euler(order)
+                                .1)),
+                            Wide::new(std::array::from_fn(|lane| affine
+                                .lane(lane)
+                                .to_euler(order)
+                                .2))
+                        ),
+                        abs <= (Wide::splat(1e-4), Wide::splat(1e-4), Wide::splat(1e-4)),
+                        0.0 = -0.0
+                    );
+                }
+            }
         });
     }
 
     #[test]
     fn test_to_scale_rotation_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-            let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.6);
-            let w = x * 0.3 + 0.5;
-
-            for affine in [
-                Affine::<3, Wide, A>::from_scale_rotation_translation(
-                    scale,
-                    Quaternion::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
-                    translation,
+        for_types!(|Wide: WideFloat| {
+            for affine in random_iter::<Affine3<Wide>>().chain(
+                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().map(
+                    |(scale, rotation, translation)| {
+                        Affine3::<Wide>::from_scale_rotation_translation(
+                            scale,
+                            rotation.normalize(),
+                            translation,
+                        )
+                    },
                 ),
-                Affine::<3, Wide, A>::from_row_array(&[
-                    x,
-                    y,
-                    scale.x,
-                    w,
-                    y,
-                    z,
-                    x,
-                    scale.y,
-                    w,
-                    translation.x,
-                    translation.y,
-                    translation.z,
-                ]),
-            ] {
-                assert_float_eq_or_panic!(
+            ) {
+                assert_test_eq_or_panic!(
                     affine.to_scale_rotation_translation(),
                     (
-                        Vector::from_lane_fn(|lane| affine
+                        Vec3::from_lane_fn(|lane| affine
                             .lane(lane)
                             .to_scale_rotation_translation()
                             .0),
-                        Quaternion::from_lane_fn(|lane| affine
+                        Quat::from_lane_fn(|lane| affine
                             .lane(lane)
                             .to_scale_rotation_translation()
                             .1),
-                        Vector::from_lane_fn(|lane| affine
+                        Vec3::from_lane_fn(|lane| affine
                             .lane(lane)
                             .to_scale_rotation_translation()
                             .2)

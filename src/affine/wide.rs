@@ -210,11 +210,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use wide::{CmpEq, i32x4};
+    extern crate std;
+
+    use wide::i32x4;
 
     use crate::{
-        Affine, Affine2A,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        Affine, Affine2A, Unaligned,
+        utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -372,113 +374,42 @@ mod tests {
 
     #[test]
     fn test_simd_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b, mask] in random_iter::<[Affine<N, Wide, Unaligned>; 3]>() {
+                let mask = Affine::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Affine::from_row_fn(|r| mask[r].blend(a[r], b[r]));
 
-            assert_float_eq!(
-                Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, x, z]).simd_eq(&Affine::<
-                    2,
-                    Wide,
-                    A,
-                >::from_row_array(
-                    &[z, y, z, w, x, z]
-                )),
-                x.simd_eq(z) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w) & x.simd_eq(x)
-            );
-            assert_float_eq!(
-                Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, x, z]).simd_eq(&Affine::<
-                    2,
-                    Wide,
-                    A,
-                >::from_row_array(
-                    &[z, w, x, y, z, x]
-                )),
-                x.simd_eq(z) & y.simd_eq(w)
-            );
-
-            assert_float_eq!(
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z, x, y, z])
-                    .simd_eq(&Affine::<3, Wide, A>::from_row_array(&[
-                        x, y, w, x, y, w, x, y, z, x, y, z
-                    ])),
-                x.simd_eq(x) & y.simd_eq(y) & z.simd_eq(w) & w.simd_eq(w)
-            );
-            assert_float_eq!(
-                Affine::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z, z, x, y])
-                    .simd_eq(&Affine::<3, Wide, A>::from_row_array(&[
-                        z, w, y, x, y, z, z, w, y, y, y, w
-                    ])),
-                x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y)
-            );
-
-            assert_float_eq!(
-                Affine::<4, Wide, A>::from_row_array(&[
-                    x, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w
-                ])
-                .simd_eq(&Affine::<4, Wide, A>::from_row_array(&[
-                    w, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w
-                ])),
-                x.simd_eq(w) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w)
-            );
-            assert_float_eq!(
-                Affine::<4, Wide, A>::from_row_array(&[
-                    x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x, z, y, x, w
-                ])
-                .simd_eq(&Affine::<4, Wide, A>::from_row_array(&[
-                    z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w, x, y, z, x
-                ])),
-                x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y)
-            );
+                assert_test_eq!(
+                    a.simd_eq(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) == b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_simd_ne() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b, mask] in random_iter::<[Affine<N, Wide, Unaligned>; 3]>() {
+                let mask = Affine::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Affine::from_row_fn(|r| mask[r].blend(a[r], b[r]));
 
-            let affine = Affine::<2, Wide, A>::from_row_array(&[x, y, z, w, x, z]);
-            for other in [
-                Affine::<2, Wide, A>::from_row_array(&[z, y, z, w, x, z]),
-                Affine::<2, Wide, A>::from_row_array(&[z, w, x, y, z, x]),
-            ] {
-                assert_float_eq!(affine.simd_ne(&other), !affine.simd_eq(&other));
-            }
-
-            for (affine, other) in [
-                (
-                    Affine::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z, x, y, z]),
-                    Affine::<3, Wide, A>::from_row_array(&[x, y, w, x, y, w, x, y, z, x, y, z]),
-                ),
-                (
-                    Affine::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z, z, x, y]),
-                    Affine::<3, Wide, A>::from_row_array(&[z, w, y, x, y, z, z, w, y, y, y, w]),
-                ),
-            ] {
-                assert_float_eq!(affine.simd_ne(&other), !affine.simd_eq(&other));
-            }
-
-            for (affine, other) in [
-                (
-                    Affine::<4, Wide, A>::from_row_array(&[
-                        x, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w,
-                    ]),
-                    Affine::<4, Wide, A>::from_row_array(&[
-                        w, y, z, w, x, y, z, w, z, y, x, w, x, y, z, y, x, y, z, w,
-                    ]),
-                ),
-                (
-                    Affine::<4, Wide, A>::from_row_array(&[
-                        x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x, z, y, x, w,
-                    ]),
-                    Affine::<4, Wide, A>::from_row_array(&[
-                        z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w, x, y, z, x,
-                    ]),
-                ),
-            ] {
-                assert_float_eq!(affine.simd_ne(&other), !affine.simd_eq(&other));
+                assert_test_eq!(
+                    a.simd_ne(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) != b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
             }
         });
     }

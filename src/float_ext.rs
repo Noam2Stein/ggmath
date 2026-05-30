@@ -70,25 +70,25 @@ impl<T: PrimitiveFloat> Sealed for T {}
 mod tests {
     use crate::{
         FloatExt,
-        utils::{assert_float_eq, for_parameters},
+        utils::{assert_test_eq, for_types, random_iter},
     };
 
     #[test]
     fn test_lerp() {
-        for_parameters!(|T: PrimitiveFloat, x, y, z| {
-            if !T::is_finite(x) || !T::is_finite(y) || !T::is_finite(z) {
-                return;
+        for_types!(|T: PrimitiveFloat| {
+            for [x, y] in
+                random_iter::<[T; 2]>().filter(|values| values.iter().all(|x| x.is_finite()))
+            {
+                assert_test_eq!(x.lerp(y, 0.0), x, 0.0 = -0.0);
+                assert_test_eq!(x.lerp(y, 0.5), x * 0.5 + y * 0.5, 0.0 = -0.0);
+                assert_test_eq!(x.lerp(y, 1.0), y, 0.0 = -0.0);
             }
-
-            assert_float_eq!(x.lerp(y, 0.0), x, 0.0 = -0.0);
-            assert_float_eq!(x.lerp(y, 0.5), x * 0.5 + y * 0.5, 0.0 = -0.0);
-            assert_float_eq!(x.lerp(y, 1.0), y, 0.0 = -0.0);
         });
     }
 
     #[test]
     fn test_move_towards() {
-        for_parameters!(|T: PrimitiveFloat| {
+        for_types!(|T: PrimitiveFloat| {
             assert!(T::abs_diff_eq(5.0.move_towards(10.0, 2.0), 7.0, 1e-5));
             assert!(T::abs_diff_eq(10.0.move_towards(5.0, 2.0), 8.0, 1e-5));
             assert!(T::abs_diff_eq((-5.0).move_towards(10.0, 2.0), -3.0, 1e-5));
@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|T: PrimitiveFloat| {
+        for_types!(|T: PrimitiveFloat| {
             assert!(T::abs_diff_eq(0.0, 0.0, 0.125));
             assert!(T::abs_diff_eq(0.0, 0.1, 0.125));
             assert!(T::abs_diff_eq(5.0, 4.9, 0.125));

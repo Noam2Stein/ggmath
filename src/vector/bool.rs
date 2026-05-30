@@ -79,65 +79,51 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Vector, utils::for_parameters};
+    extern crate std;
+
+    use std::convert::identity;
+
+    use crate::{
+        Vector,
+        utils::{for_types, random_iter},
+    };
 
     #[test]
     fn test_all() {
-        for_parameters!(|A, x, y, z, w| {
-            assert_eq!(Vector::<2, bool, A>::new(x, y).all(), x && y);
-            assert_eq!(Vector::<3, bool, A>::new(x, y, z).all(), x && y && z);
-            assert_eq!(
-                Vector::<4, bool, A>::new(x, y, z, w).all(),
-                x && y && z && w
-            );
+        for_types!(|N, A| {
+            for vector in [Vector::splat(false), Vector::splat(true)]
+                .into_iter()
+                .chain(random_iter::<Vector<N, bool, A>>())
+            {
+                assert_eq!(vector.all(), vector.iter().all(identity));
+            }
         });
     }
 
     #[test]
     fn test_any() {
-        for_parameters!(|A, x, y, z, w| {
-            assert_eq!(Vector::<2, bool, A>::new(x, y).any(), x || y);
-            assert_eq!(Vector::<3, bool, A>::new(x, y, z).any(), x || y || z);
-            assert_eq!(
-                Vector::<4, bool, A>::new(x, y, z, w).any(),
-                x || y || z || w
-            );
+        for_types!(|N, A| {
+            for vector in [Vector::splat(false), Vector::splat(true)]
+                .into_iter()
+                .chain(random_iter::<Vector<N, bool, A>>())
+            {
+                assert_eq!(vector.any(), vector.iter().any(identity));
+            }
         });
     }
 
     #[test]
     fn test_select() {
-        for_parameters!(|A, x, y, z, w| {
-            assert_eq!(
-                Vector::<2, bool, A>::new(x, y).select(
-                    Vector::<2, i32, A>::new(1, 2),
-                    Vector::<2, i32, A>::new(3, 4)
-                ),
-                Vector::<2, i32, A>::new(if x { 1 } else { 3 }, if y { 2 } else { 4 })
-            );
-            assert_eq!(
-                Vector::<3, bool, A>::new(x, y, z).select(
-                    Vector::<3, i32, A>::new(1, 2, 3),
-                    Vector::<3, i32, A>::new(4, 5, 6)
-                ),
-                Vector::<3, i32, A>::new(
-                    if x { 1 } else { 4 },
-                    if y { 2 } else { 5 },
-                    if z { 3 } else { 6 }
-                )
-            );
-            assert_eq!(
-                Vector::<4, bool, A>::new(x, y, z, w).select(
-                    Vector::<4, i32, A>::new(1, 2, 3, 4),
-                    Vector::<4, i32, A>::new(5, 6, 7, 8)
-                ),
-                Vector::<4, i32, A>::new(
-                    if x { 1 } else { 5 },
-                    if y { 2 } else { 6 },
-                    if z { 3 } else { 7 },
-                    if w { 4 } else { 8 }
-                )
-            );
+        for_types!(|N, A| {
+            let if_true = Vector::<N, usize, A>::from_fn(identity);
+            let if_false = Vector::<N, usize, A>::from_fn(|i| i + N);
+
+            for vector in random_iter::<Vector<N, bool, A>>() {
+                assert_eq!(
+                    vector.select(if_true, if_false),
+                    Vector::from_fn(|i| if vector[i] { if_true[i] } else { if_false[i] })
+                );
+            }
         });
     }
 }

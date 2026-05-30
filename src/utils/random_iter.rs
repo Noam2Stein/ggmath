@@ -1,20 +1,52 @@
 // Based on `https://github.com/Lokathor/wide/blob/main/tests/utils/random_iter.rs`.
 
-use crate::{Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector};
+extern crate std;
 
-/// Returns an iterator over 100 random values of type `T`.
+use std::iter::repeat_n;
+
+use crate::{
+    Affine, Alignment, FloatExt, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
+};
+
+/// Returns an iterator over random values.
 ///
 /// This is used for fuzz-testing.
-#[expect(private_bounds)]
 pub fn random_iter<T>() -> impl Iterator<Item = T>
 where
     T: Random,
 {
     const SEED: u64 = 0x123456789abcdef0;
-    const ITERATIONS: usize = 100;
+    const CATEGORIES: &[Category] = &[
+        Category::Exponents(-1, 0),
+        Category::Exponents(-1, 1),
+        Category::Exponents(-2, 2),
+        Category::Exponents(-3, 4),
+        Category::Exponents(-5, 4),
+        Category::Exponents(0, 8),
+        Category::Exponents(-8, 0),
+        Category::Exponents(-100, 100),
+        Category::MostlyZeroOne,
+        Category::MostlyNanInfinity,
+    ];
 
     let mut state = SEED;
-    (0..ITERATIONS).map(move |_| T::random(&mut state))
+    CATEGORIES
+        .iter()
+        .copied()
+        .flat_map(|category| repeat_n(category, 1000))
+        .map(move |category| T::random(&mut state, category))
+}
+
+pub trait Random {
+    fn random(state: &mut u64, category: Category) -> Self;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Category {
+    /// An inclusive range of base-10 exponents.
+    Exponents(i32, i32),
+    MostlyZeroOne,
+    MostlyNanInfinity,
 }
 
 /// Generates the next pseudo-random number.
@@ -35,147 +67,44 @@ fn random_bits(state: &mut u64) -> u64 {
     *state
 }
 
-trait Random {
-    fn random(state: &mut u64) -> Self;
-}
-
 macro_rules! float_impl_random {
     ($T:ident, $UnsignedT:ident) => {
         impl Random for $T {
-            fn random(state: &mut u64) -> Self {
-                const MANTISSA_BITS: u32 = $T::MANTISSA_DIGITS - 1;
-                const EXPONENT_BITS: u32 = $UnsignedT::BITS - MANTISSA_BITS - 1;
-
+            fn random(state: &mut u64, category: Category) -> Self {
                 let bits = random_bits(state);
 
-                match bits % 59 {
-                    0 => 0.0,
-                    1 => -0.0,
-                    2 => 1.0,
-                    3 => -1.0,
-                    4..=6 => $T::NAN,
-                    7..=8 => $T::INFINITY,
-                    9..=10 => $T::NEG_INFINITY,
-                    _ => {
-                        let mantissa_bits = (bits as $UnsignedT) % ((1 << $T::MANTISSA_DIGITS) - 1);
+                let (min_exponent, max_exponent) = match category {
+                    Category::Exponents(min_exponent, max_exponent) => match bits % 51 {
+                        0 => return 0.0,
+                        1 => return -0.0,
+                        2 => return 1.0,
+                        3 => return -1.0,
+                        _ => (min_exponent, max_exponent),
+                    },
+                    Category::MostlyZeroOne => match bits % 6 {
+                        0 => return 0.0,
+                        1 => return -0.0,
+                        2 => return 1.0,
+                        3 => return -1.0,
+                        _ => (-1, 0),
+                    },
+                    Category::MostlyNanInfinity => match bits % 6 {
+                        0 => return $T::NAN,
+                        1 => return $T::INFINITY,
+                        2 => return $T::NEG_INFINITY,
+                        _ => (-2, 2),
+                    },
+                };
+                let exponents_len = max_exponent - min_exponent + 1;
 
-                        let exponent = match bits % 97 {
-                            0 => bits as i32 % 103,
-                            1 => -(bits as i32 % 103),
-                            2..=20 => bits as i32 % 11,
-                            _ => bits as i32 % 7,
-                        };
-                        let exponent_bias = (1i32 << (EXPONENT_BITS - 1)) - 1;
-                        let exponent =
-                            (exponent + exponent_bias).clamp(1, (1 << EXPONENT_BITS) - 2);
-                        let exponent_bits = (exponent as $UnsignedT) << MANTISSA_BITS;
+                let exponent = (bits % exponents_len as u64) as i32 + min_exponent;
+                let min = (10.0 as $T).powi(exponent);
+                let max = (10.0 as $T).powi(exponent + 1);
 
-                        let sign_bit = (bits as $UnsignedT) & 1 << ($UnsignedT::BITS - 1);
+                const T_BITS: u32 = 53;
+                let t = (bits >> (u64::BITS - T_BITS)) as $T / (1u64 << T_BITS) as $T;
 
-                        $T::from_bits(mantissa_bits | exponent_bits | sign_bit)
-                    }
-                }
-            }
-        }
-
-        impl<const N: usize, A: Alignment> Random for Vector<N, $T, A>
-        where
-            Length<N>: SupportedLength,
-        {
-            fn random(state: &mut u64) -> Self {
-                const MANTISSA_BITS: u32 = $T::MANTISSA_DIGITS - 1;
-                const EXPONENT_BITS: u32 = $UnsignedT::BITS - MANTISSA_BITS - 1;
-
-                let base = $T::random(state);
-
-                Self::from_fn(|_| {
-                    let bits = random_bits(state);
-
-                    match bits % 157 {
-                        0 => 0.0,
-                        1 => -0.0,
-                        2 => 1.0,
-                        3 => -1.0,
-                        4 => $T::NAN,
-                        5 => $T::INFINITY,
-                        6 => $T::NEG_INFINITY,
-                        _ => {
-                            let mantissa_bits =
-                                (bits as $UnsignedT) % ((1 << $T::MANTISSA_DIGITS) - 1);
-
-                            let exponent = bits as i32 % 7;
-                            let exponent_bias = (1i32 << (EXPONENT_BITS - 1)) - 1;
-                            let exponent =
-                                (exponent + exponent_bias).clamp(1, (1 << EXPONENT_BITS) - 2);
-                            let exponent_bits = (exponent as $UnsignedT) << MANTISSA_BITS;
-
-                            let sign_bit = (bits as $UnsignedT) & 1 << ($UnsignedT::BITS - 1);
-
-                            base * $T::from_bits(mantissa_bits | exponent_bits | sign_bit)
-                        }
-                    }
-                })
-            }
-        }
-
-        impl<const N: usize, A: Alignment> Random for Matrix<N, $T, A>
-        where
-            Length<N>: SupportedLength,
-        {
-            fn random(state: &mut u64) -> Self {
-                const MANTISSA_BITS: u32 = $T::MANTISSA_DIGITS - 1;
-                const EXPONENT_BITS: u32 = $UnsignedT::BITS - MANTISSA_BITS - 1;
-
-                let base = Vector::<N, $T, A>::random(state);
-
-                Self::from_row_fn(|_| {
-                    let bits = random_bits(state);
-
-                    let mantissa_bits = (bits as $UnsignedT) % ((1 << $T::MANTISSA_DIGITS) - 1);
-
-                    let exponent = bits as i32 % 7;
-                    let exponent_bias = (1i32 << (EXPONENT_BITS - 1)) - 1;
-                    let exponent = (exponent + exponent_bias).clamp(1, (1 << EXPONENT_BITS) - 2);
-                    let exponent_bits = (exponent as $UnsignedT) << MANTISSA_BITS;
-
-                    let sign_bit = (bits as $UnsignedT) & 1 << ($UnsignedT::BITS - 1);
-
-                    base * $T::from_bits(mantissa_bits | exponent_bits | sign_bit)
-                })
-            }
-        }
-
-        impl<A: Alignment> Random for Quaternion<$T, A> {
-            fn random(state: &mut u64) -> Self {
-                let result = Self::from_vector(Vector::random(state));
-                result.normalize_or(result)
-            }
-        }
-
-        impl<const N: usize, A: Alignment> Random for Affine<N, $T, A>
-        where
-            Length<N>: SupportedLength,
-        {
-            fn random(state: &mut u64) -> Self {
-                const MANTISSA_BITS: u32 = $T::MANTISSA_DIGITS - 1;
-                const EXPONENT_BITS: u32 = $UnsignedT::BITS - MANTISSA_BITS - 1;
-
-                let base = Vector::<N, $T, A>::random(state);
-
-                Self::from_row_fn(|_| {
-                    let bits = random_bits(state);
-
-                    let mantissa_bits = (bits as $UnsignedT) % ((1 << $T::MANTISSA_DIGITS) - 1);
-
-                    let exponent = bits as i32 % 7;
-                    let exponent_bias = (1i32 << (EXPONENT_BITS - 1)) - 1;
-                    let exponent = (exponent + exponent_bias).clamp(1, (1 << EXPONENT_BITS) - 2);
-                    let exponent_bits = (exponent as $UnsignedT) << MANTISSA_BITS;
-
-                    let sign_bit = (bits as $UnsignedT) & 1 << ($UnsignedT::BITS - 1);
-
-                    base * $T::from_bits(mantissa_bits | exponent_bits | sign_bit)
-                })
+                min.lerp(max, t)
             }
         }
     };
@@ -183,36 +112,81 @@ macro_rules! float_impl_random {
 float_impl_random!(f32, u32);
 float_impl_random!(f64, u64);
 
-macro_rules! integer_impl_random {
+macro_rules! signed_impl_random {
     ($T:ident) => {
         impl Random for $T {
-            fn random(state: &mut u64) -> Self {
-                let bits = random_bits(state) as Self;
-                let exponent = match bits % 11 {
-                    0..=3 => bits.rem_euclid(Self::BITS as Self),
-                    _ => bits.rem_euclid(5),
+            fn random(state: &mut u64, category: Category) -> Self {
+                let bits = random_bits(state);
+
+                let (min_exponent, max_exponent) = match category {
+                    Category::Exponents(min_exponent, max_exponent) => match bits % 51 {
+                        0 => return 0,
+                        1 => return 1,
+                        2 => return -1,
+                        _ => (min_exponent, max_exponent),
+                    },
+                    Category::MostlyZeroOne => match bits % 4 {
+                        0 => return 0,
+                        1 => return 1,
+                        2 => return -1,
+                        _ => (-1, 0),
+                    },
+                    Category::MostlyNanInfinity => (-100, 100),
                 };
 
-                bits.unbounded_shr((Self::BITS as Self - exponent) as u32)
+                let exponent =
+                    (bits % (max_exponent - min_exponent + 1) as u64) as i32 + min_exponent;
+                let exponent = (exponent.max(0) as u32) % (Self::BITS + 1);
+
+                (bits as Self).unbounded_shr(Self::BITS - exponent)
             }
         }
     };
 }
-integer_impl_random!(i8);
-integer_impl_random!(i16);
-integer_impl_random!(i32);
-integer_impl_random!(i64);
-integer_impl_random!(i128);
-integer_impl_random!(isize);
-integer_impl_random!(u8);
-integer_impl_random!(u16);
-integer_impl_random!(u32);
-integer_impl_random!(u64);
-integer_impl_random!(u128);
-integer_impl_random!(usize);
+signed_impl_random!(i8);
+signed_impl_random!(i16);
+signed_impl_random!(i32);
+signed_impl_random!(i64);
+signed_impl_random!(i128);
+signed_impl_random!(isize);
+
+macro_rules! unsigned_impl_random {
+    ($T:ident) => {
+        impl Random for $T {
+            fn random(state: &mut u64, category: Category) -> Self {
+                let bits = random_bits(state);
+                let (min_exponent, max_exponent) = match category {
+                    Category::Exponents(min_exponent, max_exponent) => match bits % 47 {
+                        0 => return 0,
+                        1 => return 1,
+                        _ => (min_exponent, max_exponent),
+                    },
+                    Category::MostlyZeroOne => match bits % 3 {
+                        0 => return 0,
+                        1 => return 1,
+                        _ => (-1, 0),
+                    },
+                    Category::MostlyNanInfinity => (-100, 100),
+                };
+
+                let exponent =
+                    (bits % (max_exponent - min_exponent + 1) as u64) as i32 + min_exponent;
+                let exponent = (exponent.max(0) as u32) % (Self::BITS + 1);
+
+                (bits as Self).unbounded_shr(Self::BITS - exponent)
+            }
+        }
+    };
+}
+unsigned_impl_random!(u8);
+unsigned_impl_random!(u16);
+unsigned_impl_random!(u32);
+unsigned_impl_random!(u64);
+unsigned_impl_random!(u128);
+unsigned_impl_random!(usize);
 
 impl Random for bool {
-    fn random(state: &mut u64) -> Self {
+    fn random(state: &mut u64, _category: Category) -> Self {
         random_bits(state) > u64::MAX / 2
     }
 }
@@ -221,8 +195,72 @@ impl<T, const N: usize> Random for [T; N]
 where
     T: Random,
 {
-    fn random(state: &mut u64) -> Self {
-        std::array::from_fn(|_| T::random(state))
+    fn random(state: &mut u64, category: Category) -> Self {
+        std::array::from_fn(|_| T::random(state, category))
+    }
+}
+
+impl<T0, T1> Random for (T0, T1)
+where
+    T0: Random,
+    T1: Random,
+{
+    fn random(state: &mut u64, category: Category) -> Self {
+        (T0::random(state, category), T1::random(state, category))
+    }
+}
+
+impl<T0, T1, T2> Random for (T0, T1, T2)
+where
+    T0: Random,
+    T1: Random,
+    T2: Random,
+{
+    fn random(state: &mut u64, category: Category) -> Self {
+        (
+            T0::random(state, category),
+            T1::random(state, category),
+            T2::random(state, category),
+        )
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Random for Vector<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Random,
+{
+    fn random(state: &mut u64, category: Category) -> Self {
+        Self::from_array(Random::random(state, category))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Random for Matrix<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Random,
+{
+    fn random(state: &mut u64, category: Category) -> Self {
+        Self::from_rows(&Random::random(state, category))
+    }
+}
+
+impl<T, A: Alignment> Random for Quaternion<T, A>
+where
+    T: Scalar + Random,
+{
+    fn random(state: &mut u64, category: Category) -> Self {
+        Self::from_array(Random::random(state, category))
+    }
+}
+
+impl<const N: usize, T, A: Alignment> Random for Affine<N, T, A>
+where
+    Length<N>: SupportedLength,
+    T: Scalar + Random,
+{
+    fn random(state: &mut u64, category: Category) -> Self {
+        Self::from_row_fn(|_| Random::random(state, category))
     }
 }
 
@@ -231,8 +269,8 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    fn random(state: &mut u64) -> Self {
-        Self::from_array(Random::random(state))
+    fn random(state: &mut u64, category: Category) -> Self {
+        Self::from_array(Random::random(state, category))
     }
 }
 
@@ -244,13 +282,13 @@ mod wide {
         u32x16, u64x2, u64x4, u64x8,
     };
 
-    use crate::utils::random_iter::Random;
+    use crate::utils::random_iter::{Category, Random};
 
     macro_rules! wide_impl_random {
-        ($T:ident, $Simd:ident) => {
-            impl Random for $Simd {
-                fn random(state: &mut u64) -> Self {
-                    Self::new(Random::random(state))
+        ($T:ident, $Wide:ident) => {
+            impl Random for $Wide {
+                fn random(state: &mut u64, category: Category) -> Self {
+                    Self::new(Random::random(state, category))
                 }
             }
         };

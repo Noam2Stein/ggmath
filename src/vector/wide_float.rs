@@ -1425,320 +1425,138 @@ impl_wide_float!(f64x8, u64x8, pow_f64x8);
 
 #[cfg(test)]
 mod tests {
-    use wide::{CmpGt, CmpLt};
+    extern crate std;
+
+    use wide::{CmpGt, f32x4};
 
     use crate::{
-        FloatExt, Vec3A, Vector,
-        utils::{assert_float_eq, assert_float_eq_or_panic, for_parameters},
+        Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,
+        utils::{
+            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
+        },
     };
 
     #[test]
     fn test_is_nan() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).is_nan(),
-                x.is_nan() | y.is_nan()
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).is_nan(),
+        for [x, y, z, w] in random_iter::<[f32x4; 4]>() {
+            assert_test_eq!(Vec2::new(x, y).is_nan(), x.is_nan() | y.is_nan());
+            assert_test_eq!(
+                Vec3::new(x, y, z).is_nan(),
                 x.is_nan() | y.is_nan() | z.is_nan()
             );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).is_nan(),
+            assert_test_eq!(
+                Vec4::new(x, y, z, w).is_nan(),
                 x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
             );
-        });
+        }
     }
 
     #[test]
     fn test_nan_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).nan_mask(),
-                Vector::<2, Wide, A>::new(x.is_nan(), y.is_nan())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).nan_mask(),
-                Vector::<3, Wide, A>::new(x.is_nan(), y.is_nan(), z.is_nan())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).nan_mask(),
-                Vector::<4, Wide, A>::new(x.is_nan(), y.is_nan(), z.is_nan(), w.is_nan())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.nan_mask(), vector.map(f32x4::is_nan));
+            }
         });
     }
 
     #[test]
     fn test_is_finite() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).is_finite(),
-                x.is_finite() & y.is_finite()
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).is_finite(),
+        for [x, y, z, w] in random_iter::<[f32x4; 4]>() {
+            assert_test_eq!(Vec2::new(x, y).is_finite(), x.is_finite() & y.is_finite());
+            assert_test_eq!(
+                Vec3::new(x, y, z).is_finite(),
                 x.is_finite() & y.is_finite() & z.is_finite()
             );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).is_finite(),
+            assert_test_eq!(
+                Vec4::new(x, y, z, w).is_finite(),
                 x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
             );
-        });
+        }
     }
 
     #[test]
     fn test_finite_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).finite_mask(),
-                Vector::<2, Wide, A>::new(x.is_finite(), y.is_finite())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).finite_mask(),
-                Vector::<3, Wide, A>::new(x.is_finite(), y.is_finite(), z.is_finite())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).finite_mask(),
-                Vector::<4, Wide, A>::new(
-                    x.is_finite(),
-                    y.is_finite(),
-                    z.is_finite(),
-                    w.is_finite()
-                )
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.finite_mask(), vector.map(f32x4::is_finite));
+            }
         });
     }
 
     #[test]
     fn test_sign_positive_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).sign_positive_mask(),
-                Vector::<2, Wide, A>::new(x.is_sign_positive(), y.is_sign_positive())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).sign_positive_mask(),
-                Vector::<3, Wide, A>::new(
-                    x.is_sign_positive(),
-                    y.is_sign_positive(),
-                    z.is_sign_positive()
-                )
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).sign_positive_mask(),
-                Vector::<4, Wide, A>::new(
-                    x.is_sign_positive(),
-                    y.is_sign_positive(),
-                    z.is_sign_positive(),
-                    w.is_sign_positive()
-                )
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(
+                    vector.sign_positive_mask(),
+                    vector.map(f32x4::is_sign_positive)
+                );
+            }
         });
     }
 
     #[test]
     fn test_sign_negative_mask() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).sign_negative_mask(),
-                Vector::<2, Wide, A>::new(x.is_sign_negative(), y.is_sign_negative())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).sign_negative_mask(),
-                Vector::<3, Wide, A>::new(
-                    x.is_sign_negative(),
-                    y.is_sign_negative(),
-                    z.is_sign_negative()
-                )
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).sign_negative_mask(),
-                Vector::<4, Wide, A>::new(
-                    x.is_sign_negative(),
-                    y.is_sign_negative(),
-                    z.is_sign_negative(),
-                    w.is_sign_negative()
-                )
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(
+                    vector.sign_negative_mask(),
+                    vector.map(f32x4::is_sign_negative)
+                );
+            }
         });
     }
 
     #[test]
     fn test_recip() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let w = x ^ y;
+        // TODO: Currently the implementation uses `1 / self` instead of
+        // `recip`. This should be fixed.
 
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).recip(),
-                Vector::<2, Wide, A>::new(1.0 / x, 1.0 / y)
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).recip(),
-                Vector::<3, Wide, A>::new(1.0 / x, 1.0 / y, 1.0 / z)
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).recip(),
-                Vector::<4, Wide, A>::new(1.0 / x, 1.0 / y, 1.0 / z, 1.0 / w)
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.recip(), Vector::ONE / vector);
+            }
         });
     }
 
     #[test]
     fn test_max() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
+                let a = a.nan_mask().blend(Vector::ZERO, a);
+                let b = b.nan_mask().blend(Vector::ZERO, b);
 
-            if x.is_nan() == Wide::splat(0.0)
-                && y.is_nan() == Wide::splat(0.0)
-                && z.is_nan() == Wide::splat(0.0)
-                && w.is_nan() == Wide::splat(0.0)
-            {
-                assert_float_eq!(
-                    Vector::<2, Wide, A>::new(x, y).max(Vector::<2, Wide, A>::new(z, w)),
-                    Vector::<2, Wide, A>::new(x.max(z), y.max(w))
-                );
-                assert_float_eq!(
-                    Vector::<3, Wide, A>::new(x, y, a).max(Vector::<3, Wide, A>::new(z, w, c)),
-                    Vector::<3, Wide, A>::new(x.max(z), y.max(w), a.max(c))
-                );
-                assert_float_eq!(
-                    Vector::<4, Wide, A>::new(x, y, a, b)
-                        .max(Vector::<4, Wide, A>::new(z, w, c, d)),
-                    Vector::<4, Wide, A>::new(x.max(z), y.max(w), a.max(c), b.max(d))
-                );
-            } else {
-                let _ = Vector::<2, Wide, A>::new(x, y).max(Vector::<2, Wide, A>::new(z, w));
-                let _ = Vector::<3, Wide, A>::new(x, y, a).max(Vector::<3, Wide, A>::new(z, w, c));
-                let _ = Vector::<4, Wide, A>::new(x, y, a, b)
-                    .max(Vector::<4, Wide, A>::new(z, w, c, d));
+                assert_test_eq!(a.max(b), Vector::from_fn(|i| a[i].max(b[i])), 0.0 = -0.0);
             }
         });
     }
 
     #[test]
     fn test_min() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = w.simd_gt(z).blend(x, y);
-            let b = z.simd_gt(y).blend(y, z);
-            let c = y.simd_gt(x).blend(z, w);
-            let d = w.simd_gt(x).blend(w, x);
+        for_types!(|N| {
+            for [a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
+                let a = a.nan_mask().blend(Vector::ZERO, a);
+                let b = b.nan_mask().blend(Vector::ZERO, b);
 
-            if x.is_nan() == Wide::splat(0.0)
-                && y.is_nan() == Wide::splat(0.0)
-                && z.is_nan() == Wide::splat(0.0)
-                && w.is_nan() == Wide::splat(0.0)
-            {
-                assert_float_eq!(
-                    Vector::<2, Wide, A>::new(x, y).min(Vector::<2, Wide, A>::new(z, w)),
-                    Vector::<2, Wide, A>::new(x.min(z), y.min(w))
-                );
-                assert_float_eq!(
-                    Vector::<3, Wide, A>::new(x, y, a).min(Vector::<3, Wide, A>::new(z, w, c)),
-                    Vector::<3, Wide, A>::new(x.min(z), y.min(w), a.min(c))
-                );
-                assert_float_eq!(
-                    Vector::<4, Wide, A>::new(x, y, a, b)
-                        .min(Vector::<4, Wide, A>::new(z, w, c, d)),
-                    Vector::<4, Wide, A>::new(x.min(z), y.min(w), a.min(c), b.min(d))
-                );
-            } else {
-                let _ = Vector::<2, Wide, A>::new(x, y).min(Vector::<2, Wide, A>::new(z, w));
-                let _ = Vector::<3, Wide, A>::new(x, y, a).min(Vector::<3, Wide, A>::new(z, w, c));
-                let _ = Vector::<4, Wide, A>::new(x, y, a, b)
-                    .min(Vector::<4, Wide, A>::new(z, w, c, d));
+                assert_test_eq!(a.min(b), Vector::from_fn(|i| a[i].min(b[i])), 0.0 = -0.0);
             }
         });
     }
 
     #[test]
     fn test_clamp() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x ^ y, x ^ z, y ^ z];
-            let [c, d, e] = [x + y, x + z, y + z];
-            let [f, g, h] = [c + d, c + e, d + e];
+        for_types!(|N| {
+            for [vector, min, max] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                let vector = vector.nan_mask().blend(Vector::ZERO, vector);
+                let min = min.nan_mask().blend(Vector::ZERO, min);
+                let max = min.nan_mask().blend(Vector::ZERO, max);
+                let max = max.max(min);
 
-            if (x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() | a.is_nan() | b.is_nan())
-                | (z.simd_gt(a) | w.simd_gt(b))
-                == Wide::splat(0.0)
-            {
-                assert_float_eq!(
-                    Vector::<2, Wide, A>::new(x, y).clamp(
-                        Vector::<2, Wide, A>::new(z, w),
-                        Vector::<2, Wide, A>::new(a, b)
-                    ),
-                    Vector::<2, Wide, A>::new(x.max(z).min(a), y.max(w).min(b))
-                );
-            } else {
-                let _ = Vector::<2, Wide, A>::new(x, y).clamp(
-                    Vector::<2, Wide, A>::new(z, w),
-                    Vector::<2, Wide, A>::new(a, b),
-                );
-            }
-
-            if (x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() | a.is_nan() | b.is_nan())
-                | (c.is_nan() | d.is_nan() | e.is_nan() | w.simd_gt(c) | a.simd_gt(d))
-                | b.simd_gt(e)
-                == Wide::splat(0.0)
-            {
-                assert_float_eq!(
-                    Vector::<3, Wide, A>::new(x, y, z).clamp(
-                        Vector::<3, Wide, A>::new(w, a, b),
-                        Vector::<3, Wide, A>::new(c, d, e)
-                    ),
-                    Vector::<3, Wide, A>::new(x.max(w).min(c), y.max(a).min(d), z.max(b).min(e))
-                );
-            } else {
-                let _ = Vector::<3, Wide, A>::new(x, y, z).clamp(
-                    Vector::<3, Wide, A>::new(w, a, b),
-                    Vector::<3, Wide, A>::new(c, d, e),
-                );
-            }
-
-            if (x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() | a.is_nan() | b.is_nan())
-                | (c.is_nan() | d.is_nan() | e.is_nan() | f.is_nan() | g.is_nan() | h.is_nan())
-                | (a.simd_gt(e) | b.simd_gt(f) | c.simd_gt(g) | d.simd_gt(h))
-                == Wide::splat(0.0)
-            {
-                assert_float_eq!(
-                    Vector::<4, Wide, A>::new(x, y, z, w).clamp(
-                        Vector::<4, Wide, A>::new(a, b, c, d),
-                        Vector::<4, Wide, A>::new(e, f, g, h)
-                    ),
-                    Vector::<4, Wide, A>::new(
-                        x.max(a).min(e),
-                        y.max(b).min(f),
-                        z.max(c).min(g),
-                        w.max(d).min(h)
-                    )
-                );
-            } else {
-                let _ = Vector::<4, Wide, A>::new(x, y, z, w).clamp(
-                    Vector::<4, Wide, A>::new(a, b, c, d),
-                    Vector::<4, Wide, A>::new(e, f, g, h),
+                assert_test_eq!(
+                    vector.clamp(min, max),
+                    Vector::from_fn(|i| vector[i].clamp(min[i], max[i])),
+                    0.0 = -0.0
                 );
             }
         });
@@ -1746,1334 +1564,548 @@ mod tests {
 
     #[test]
     fn test_max_element() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for vector in random_iter::<Vec4<f32x4>>() {
+            let vector = vector.nan_mask().blend(Vector::ZERO, vector);
 
-            if x.is_nan() | y.is_nan() == Wide::splat(0.0) {
-                assert_float_eq!(Vector::<2, Wide, A>::new(x, y).max_element(), x.max(y));
-            } else {
-                let _ = Vector::<2, Wide, A>::new(x, y).max_element();
-            }
-
-            if x.is_nan() | y.is_nan() | z.is_nan() == Wide::splat(0.0) {
-                assert_float_eq!(
-                    Vector::<3, Wide, A>::new(x, y, z).max_element(),
-                    x.max(y).max(z)
-                );
-            } else {
-                let _ = Vector::<3, Wide, A>::new(x, y, z).max_element();
-            }
-
-            if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Wide::splat(0.0) {
-                assert_float_eq!(
-                    Vector::<4, Wide, A>::new(x, y, z, w).max_element(),
-                    x.max(y).max(z).max(w)
-                );
-            } else {
-                let _ = Vector::<4, Wide, A>::new(x, y, z, w).max_element();
-            }
-        });
+            assert_test_eq!(vector.xy().max_element(), vector.x.max(vector.y));
+            assert_test_eq!(
+                vector.xyz().max_element(),
+                vector.x.max(vector.y).max(vector.z)
+            );
+            assert_test_eq!(
+                vector.max_element(),
+                vector.x.max(vector.y).max(vector.z).max(vector.w)
+            );
+        }
     }
 
     #[test]
     fn test_min_element() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for vector in random_iter::<Vec4<f32x4>>() {
+            let vector = vector.nan_mask().blend(Vector::ZERO, vector);
 
-            if x.is_nan() | y.is_nan() == Wide::splat(0.0) {
-                assert_float_eq!(Vector::<2, Wide, A>::new(x, y).min_element(), x.min(y));
-            } else {
-                let _ = Vector::<2, Wide, A>::new(x, y).min_element();
-            }
-
-            if x.is_nan() | y.is_nan() | z.is_nan() == Wide::splat(0.0) {
-                assert_float_eq!(
-                    Vector::<3, Wide, A>::new(x, y, z).min_element(),
-                    x.min(y).min(z)
-                );
-            } else {
-                let _ = Vector::<3, Wide, A>::new(x, y, z).min_element();
-            }
-
-            if x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan() == Wide::splat(0.0) {
-                assert_float_eq!(
-                    Vector::<4, Wide, A>::new(x, y, z, w).min_element(),
-                    x.min(y).min(z).min(w)
-                );
-            } else {
-                let _ = Vector::<4, Wide, A>::new(x, y, z, w).min_element();
-            }
-        });
+            assert_test_eq!(vector.xy().min_element(), vector.x.min(vector.y));
+            assert_test_eq!(
+                vector.xyz().min_element(),
+                vector.x.min(vector.y).min(vector.z)
+            );
+            assert_test_eq!(
+                vector.min_element(),
+                vector.x.min(vector.y).min(vector.z).min(vector.w)
+            );
+        }
     }
 
     #[test]
     fn test_abs() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).abs(),
-                Vector::<2, Wide, A>::new(x.abs(), y.abs())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).abs(),
-                Vector::<3, Wide, A>::new(x.abs(), y.abs(), z.abs())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).abs(),
-                Vector::<4, Wide, A>::new(x.abs(), y.abs(), z.abs(), w.abs())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.abs(), vector.map(f32x4::abs));
+            }
         });
     }
 
     #[test]
     fn test_signum() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).signum(),
-                Vector::<2, Wide, A>::new(x.signum(), y.signum())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).signum(),
-                Vector::<3, Wide, A>::new(x.signum(), y.signum(), z.signum())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).signum(),
-                Vector::<4, Wide, A>::new(x.signum(), y.signum(), z.signum(), w.signum())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.signum(), vector.map(f32x4::signum));
+            }
         });
     }
 
     #[test]
     fn test_copysign() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).copysign(Vector::<2, Wide, A>::new(z, w)),
-                Vector::<2, Wide, A>::new(x.copysign(z), y.copysign(w))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).copysign(Vector::<3, Wide, A>::new(z, w, x)),
-                Vector::<3, Wide, A>::new(x.copysign(z), y.copysign(w), z.copysign(x))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .copysign(Vector::<4, Wide, A>::new(z, w, x, y)),
-                Vector::<4, Wide, A>::new(
-                    x.copysign(z),
-                    y.copysign(w),
-                    z.copysign(x),
-                    w.copysign(y)
-                )
-            );
+        for_types!(|N| {
+            for [vector, sign] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
+                assert_test_eq!(
+                    vector.copysign(sign),
+                    Vector::from_fn(|i| vector[i].copysign(sign[i]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_floor() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).floor(),
-                Vector::<2, Wide, A>::new(x.floor(), y.floor())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).floor(),
-                Vector::<3, Wide, A>::new(x.floor(), y.floor(), z.floor())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).floor(),
-                Vector::<4, Wide, A>::new(x.floor(), y.floor(), z.floor(), w.floor())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.floor(), vector.map(f32x4::floor));
+            }
         });
     }
 
     #[test]
     fn test_ceil() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).ceil(),
-                Vector::<2, Wide, A>::new(x.ceil(), y.ceil())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).ceil(),
-                Vector::<3, Wide, A>::new(x.ceil(), y.ceil(), z.ceil())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).ceil(),
-                Vector::<4, Wide, A>::new(x.ceil(), y.ceil(), z.ceil(), w.ceil())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.ceil(), vector.map(f32x4::ceil));
+            }
         });
     }
 
     #[test]
     fn test_round() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).round(),
-                Vector::<2, Wide, A>::new(x.round(), y.round())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).round(),
-                Vector::<3, Wide, A>::new(x.round(), y.round(), z.round())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).round(),
-                Vector::<4, Wide, A>::new(x.round(), y.round(), z.round(), w.round())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.round(), vector.map(f32x4::round));
+            }
         });
     }
 
     #[test]
     fn test_trunc() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).trunc(),
-                Vector::<2, Wide, A>::new(x.trunc(), y.trunc())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).trunc(),
-                Vector::<3, Wide, A>::new(x.trunc(), y.trunc(), z.trunc())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).trunc(),
-                Vector::<4, Wide, A>::new(x.trunc(), y.trunc(), z.trunc(), w.trunc())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.trunc(), vector.map(f32x4::trunc));
+            }
         });
     }
 
     #[test]
     fn test_fract() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).fract(),
-                Vector::<2, Wide, A>::new(x.fract(), y.fract())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).fract(),
-                Vector::<3, Wide, A>::new(x.fract(), y.fract(), z.fract())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).fract(),
-                Vector::<4, Wide, A>::new(x.fract(), y.fract(), z.fract(), w.fract())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.fract(), vector.map(f32x4::fract));
+            }
         });
     }
 
     #[test]
     fn test_mul_add() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).mul_add(
-                    Vector::<2, Wide, A>::new(z, w),
-                    Vector::<2, Wide, A>::new(y, z)
-                ),
-                Vector::<2, Wide, A>::new(x.mul_add(z, y), y.mul_add(w, z))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).mul_add(
-                    Vector::<3, Wide, A>::new(z, w, y),
-                    Vector::<3, Wide, A>::new(y, z, w)
-                ),
-                Vector::<3, Wide, A>::new(x.mul_add(z, y), y.mul_add(w, z), z.mul_add(y, w))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).mul_add(
-                    Vector::<4, Wide, A>::new(z, w, y, x),
-                    Vector::<4, Wide, A>::new(y, z, w, y)
-                ),
-                Vector::<4, Wide, A>::new(
-                    x.mul_add(z, y),
-                    y.mul_add(w, z),
-                    z.mul_add(y, w),
-                    w.mul_add(x, y)
-                )
-            );
+        for_types!(|N| {
+            for [vector, a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 3]>() {
+                assert_test_eq!(
+                    vector.mul_add(a, b),
+                    Vector::from_fn(|i| vector[i].mul_add(a[i], b[i]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_div_euclid() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).div_euclid(Vector::<2, Wide, A>::new(z, w)),
-                Vector::<2, Wide, A>::new(x.div_euclid(z), y.div_euclid(w))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).div_euclid(Vector::<3, Wide, A>::new(z, w, y)),
-                Vector::<3, Wide, A>::new(x.div_euclid(z), y.div_euclid(w), z.div_euclid(y))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .div_euclid(Vector::<4, Wide, A>::new(z, w, y, x)),
-                Vector::<4, Wide, A>::new(
-                    x.div_euclid(z),
-                    y.div_euclid(w),
-                    z.div_euclid(y),
-                    w.div_euclid(x)
-                )
-            );
+        for_types!(|N| {
+            for [a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
+                assert_test_eq!(a.div_euclid(b), Vector::from_fn(|i| a[i].div_euclid(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_rem_euclid() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).rem_euclid(Vector::<2, Wide, A>::new(z, w)),
-                Vector::<2, Wide, A>::new(x.rem_euclid(z), y.rem_euclid(w))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).rem_euclid(Vector::<3, Wide, A>::new(z, w, y)),
-                Vector::<3, Wide, A>::new(x.rem_euclid(z), y.rem_euclid(w), z.rem_euclid(y))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .rem_euclid(Vector::<4, Wide, A>::new(z, w, y, x)),
-                Vector::<4, Wide, A>::new(
-                    x.rem_euclid(z),
-                    y.rem_euclid(w),
-                    z.rem_euclid(y),
-                    w.rem_euclid(x)
-                )
-            );
+        for_types!(|N| {
+            for [a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
+                assert_test_eq!(a.rem_euclid(b), Vector::from_fn(|i| a[i].rem_euclid(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_powf() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let n = w.to_array()[0];
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).powf(Wide::splat(n)),
-                Vector::<2, Wide, A>::new(x.powf(n), y.powf(n))
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).powf(Wide::splat(n)),
-                Vector::<3, Wide, A>::new(x.powf(n), y.powf(n), z.powf(n))
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).powf(Wide::splat(n)),
-                Vector::<4, Wide, A>::new(x.powf(n), y.powf(n), z.powf(n), w.powf(n))
-            );
+        for_types!(|N| {
+            for (vector, n) in random_iter::<(Vector<N, f32x4, Unaligned>, f32)>() {
+                assert_test_eq!(
+                    vector.powf(f32x4::splat(n)),
+                    Vector::from_fn(|i| vector[i].powf(n))
+                );
+            }
         });
     }
 
     #[test]
     fn test_sqrt() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).sqrt(),
-                Vector::<2, Wide, A>::new(x.sqrt(), y.sqrt())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).sqrt(),
-                Vector::<3, Wide, A>::new(x.sqrt(), y.sqrt(), z.sqrt())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).sqrt(),
-                Vector::<4, Wide, A>::new(x.sqrt(), y.sqrt(), z.sqrt(), w.sqrt())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.sqrt(), vector.map(f32x4::sqrt));
+            }
         });
     }
 
     #[test]
     fn test_exp() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).exp(),
-                Vector::<2, Wide, A>::new(x.exp(), y.exp())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).exp(),
-                Vector::<3, Wide, A>::new(x.exp(), y.exp(), z.exp())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).exp(),
-                Vector::<4, Wide, A>::new(x.exp(), y.exp(), z.exp(), w.exp())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.exp(), vector.map(f32x4::exp));
+            }
         });
     }
 
     #[test]
     fn test_exp2() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x + y;
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).exp2(),
-                Vector::<2, Wide, A>::new(x.exp2(), y.exp2())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).exp2(),
-                Vector::<3, Wide, A>::new(x.exp2(), y.exp2(), z.exp2())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).exp2(),
-                Vector::<4, Wide, A>::new(x.exp2(), y.exp2(), z.exp2(), w.exp2())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.exp2(), vector.map(f32x4::exp2));
+            }
         });
     }
 
     #[test]
     fn test_ln() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).ln(),
-                Vector::<2, Wide, A>::new(x.ln(), y.ln())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).ln(),
-                Vector::<3, Wide, A>::new(x.ln(), y.ln(), z.ln())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).ln(),
-                Vector::<4, Wide, A>::new(x.ln(), y.ln(), z.ln(), w.ln())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.ln(), vector.map(f32x4::ln));
+            }
         });
     }
 
     #[test]
     fn test_log2() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).log2(),
-                Vector::<2, Wide, A>::new(x.log2(), y.log2())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).log2(),
-                Vector::<3, Wide, A>::new(x.log2(), y.log2(), z.log2())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).log2(),
-                Vector::<4, Wide, A>::new(x.log2(), y.log2(), z.log2(), w.log2())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.log2(), vector.map(f32x4::log2));
+            }
         });
     }
 
     #[test]
     fn test_sin() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).sin(),
-                Vector::<2, Wide, A>::new(x.sin(), y.sin())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).sin(),
-                Vector::<3, Wide, A>::new(x.sin(), y.sin(), z.sin())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).sin(),
-                Vector::<4, Wide, A>::new(x.sin(), y.sin(), z.sin(), w.sin())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.sin(), vector.map(f32x4::sin));
+            }
         });
     }
 
     #[test]
     fn test_cos() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).cos(),
-                Vector::<2, Wide, A>::new(x.cos(), y.cos())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).cos(),
-                Vector::<3, Wide, A>::new(x.cos(), y.cos(), z.cos())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).cos(),
-                Vector::<4, Wide, A>::new(x.cos(), y.cos(), z.cos(), w.cos())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.cos(), vector.map(f32x4::cos));
+            }
         });
     }
 
     #[test]
     fn test_tan() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).tan(),
-                Vector::<2, Wide, A>::new(x.tan(), y.tan())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).tan(),
-                Vector::<3, Wide, A>::new(x.tan(), y.tan(), z.tan())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).tan(),
-                Vector::<4, Wide, A>::new(x.tan(), y.tan(), z.tan(), w.tan())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.tan(), vector.map(f32x4::tan));
+            }
         });
     }
 
     #[test]
     fn test_asin() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).asin(),
-                Vector::<2, Wide, A>::new(x.asin(), y.asin())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).asin(),
-                Vector::<3, Wide, A>::new(x.asin(), y.asin(), z.asin())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).asin(),
-                Vector::<4, Wide, A>::new(x.asin(), y.asin(), z.asin(), w.asin())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.asin(), vector.map(f32x4::asin));
+            }
         });
     }
 
     #[test]
     fn test_acos() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).acos(),
-                Vector::<2, Wide, A>::new(x.acos(), y.acos())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).acos(),
-                Vector::<3, Wide, A>::new(x.acos(), y.acos(), z.acos())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).acos(),
-                Vector::<4, Wide, A>::new(x.acos(), y.acos(), z.acos(), w.acos())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.acos(), vector.map(f32x4::acos));
+            }
         });
     }
 
     #[test]
     fn test_atan() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).atan(),
-                Vector::<2, Wide, A>::new(x.atan(), y.atan())
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).atan(),
-                Vector::<3, Wide, A>::new(x.atan(), y.atan(), z.atan())
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).atan(),
-                Vector::<4, Wide, A>::new(x.atan(), y.atan(), z.atan(), w.atan())
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(vector.atan(), vector.map(f32x4::atan));
+            }
         });
     }
 
     #[test]
     fn test_sin_cos() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).sin_cos(),
-                (
-                    Vector::<2, Wide, A>::new(x.sin_cos().0, y.sin_cos().0),
-                    Vector::<2, Wide, A>::new(x.sin_cos().1, y.sin_cos().1)
-                )
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).sin_cos(),
-                (
-                    Vector::<3, Wide, A>::new(x.sin_cos().0, y.sin_cos().0, z.sin_cos().0),
-                    Vector::<3, Wide, A>::new(x.sin_cos().1, y.sin_cos().1, z.sin_cos().1)
-                )
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).sin_cos(),
-                (
-                    Vector::<4, Wide, A>::new(
-                        x.sin_cos().0,
-                        y.sin_cos().0,
-                        z.sin_cos().0,
-                        w.sin_cos().0
-                    ),
-                    Vector::<4, Wide, A>::new(
-                        x.sin_cos().1,
-                        y.sin_cos().1,
-                        z.sin_cos().1,
-                        w.sin_cos().1
-                    )
-                )
-            );
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
+                assert_test_eq!(
+                    vector.sin_cos(),
+                    (vector.map(|x| x.sin_cos().0), vector.map(|x| x.sin_cos().1))
+                );
+            }
         });
     }
 
     #[test]
     fn test_lerp() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let t = y ^ z;
-
-            let a = Vector::<2, Wide, A>::new(x, y);
-            let b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq!(
-                a.lerp(b, t),
-                Vector::<2, Wide, A>::from_lane_fn(|lane| a
-                    .lane(lane)
-                    .lerp(b.lane(lane), t.to_array()[lane]))
-            );
-
-            let a = Vector::<3, Wide, A>::new(x, y, z);
-            let b = Vector::<3, Wide, A>::new(z, w, y);
-            assert_float_eq!(
-                a.lerp(b, t),
-                Vector::<3, Wide, A>::from_lane_fn(|lane| a
-                    .lane(lane)
-                    .lerp(b.lane(lane), t.to_array()[lane]))
-            );
-
-            let a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let b = Vector::<4, Wide, A>::new(z, w, y, x);
-            assert_float_eq!(
-                a.lerp(b, t),
-                Vector::<4, Wide, A>::from_lane_fn(|lane| a
-                    .lane(lane)
-                    .lerp(b.lane(lane), t.to_array()[lane]))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>() {
+                assert_test_eq!(
+                    a.lerp(b, t),
+                    Vector::from_lane_fn(|lane| a
+                        .lane(lane)
+                        .lerp(b.lane(lane), t.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_midpoint() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).midpoint(Vector::<2, Wide, A>::new(z, w)),
-                (Vector::<2, Wide, A>::new(x, y) + Vector::<2, Wide, A>::new(z, w)) * Wide::HALF,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).midpoint(Vector::<3, Wide, A>::new(z, w, y)),
-                (Vector::<3, Wide, A>::new(x, y, z) + Vector::<3, Wide, A>::new(z, w, y))
-                    * Wide::HALF,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .midpoint(Vector::<4, Wide, A>::new(z, w, y, x)),
-                (Vector::<4, Wide, A>::new(x, y, z, w) + Vector::<4, Wide, A>::new(z, w, y, x))
-                    * Wide::HALF,
-                0.0 = -0.0
-            );
+        for_types!(|N| {
+            for [a, b] in random_iter::<[Vector<N, f32x4, Unaligned>; 2]>() {
+                assert_test_eq!(a.midpoint(b), Vector::from_fn(|i| a[i].midpoint(b[i])));
+            }
         });
     }
 
     #[test]
     fn test_move_towards() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let max_delta = y ^ z;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            let target = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq!(
-                vector.move_towards(target, max_delta),
-                Vector::<2, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .move_towards(target.lane(lane), max_delta.to_array()[lane]))
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            let target = Vector::<3, Wide, A>::new(z, w, y);
-            assert_float_eq!(
-                vector.move_towards(target, max_delta),
-                Vector::<3, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .move_towards(target.lane(lane), max_delta.to_array()[lane]))
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            let target = Vector::<4, Wide, A>::new(z, w, y, x);
-            assert_float_eq!(
-                vector.move_towards(target, max_delta),
-                Vector::<4, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .move_towards(target.lane(lane), max_delta.to_array()[lane])),
-                r2nd <= Vector::splat(Wide::splat(1e-4))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for ([vector, target], max_delta) in
+                random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>()
+            {
+                assert_test_eq!(
+                    vector.move_towards(target, max_delta),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .move_towards(target.lane(lane), max_delta.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_slerp() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x ^ y;
-            let w = y + z;
-            let t = (y ^ z) % 10.0;
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], t) in random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>() {
+                let t = (t / 10.0).clamp(Wide::splat(-100.0), Wide::splat(100.0));
 
-            let vector = Vector::<2, Wide, A>::new(x, y).with_max_length(Wide::splat(1e3));
-            let other = Vector::<2, Wide, A>::new(z, w).with_max_length(Wide::splat(1e3));
-            assert_float_eq_or_panic!(
-                vector.slerp(other, t),
-                Vector::<2, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .slerp(other.lane(lane), t.to_array()[lane])),
-                abs <= vector.slerp(other, t).abs() * Wide::splat(1e-3) + Wide::splat(1e-3)
-            );
+                if !a.is_finite().all()
+                    || !b.is_finite().all()
+                    || a.length().simd_gt(1e4).any()
+                    || b.length().simd_gt(1e4).any()
+                {
+                    continue;
+                }
 
-            let vector = Vector::<3, Wide, A>::new(x, y, z).with_max_length(Wide::splat(1e3));
-            let other = Vector::<3, Wide, A>::new(z, w, y).with_max_length(Wide::splat(1e3));
-            assert_float_eq_or_panic!(
-                vector.slerp(other, t),
-                Vector::<3, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .slerp(other.lane(lane), t.to_array()[lane])),
-                abs <= vector.slerp(other, t).abs() * Wide::splat(1e-3) + Wide::splat(1e-3)
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w).with_max_length(Wide::splat(1e3));
-            let other = Vector::<4, Wide, A>::new(z, w, y, x).with_max_length(Wide::splat(1e3));
-            assert_float_eq_or_panic!(
-                vector.slerp(other, t),
-                Vector::<4, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .slerp(other.lane(lane), t.to_array()[lane])),
-                abs <= vector.slerp(other, t).abs() * Wide::splat(1e-3) + Wide::splat(1e-3)
-            );
+                assert_test_eq_or_panic!(
+                    a.slerp(b, t),
+                    Vector::from_lane_fn(|lane| a
+                        .lane(lane)
+                        .slerp(b.lane(lane), t.to_array()[lane])),
+                    abs <= a.length().max(b.length()) * t.abs().max(Wide::ONE) * 1e-3 + 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_rotate_towards() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let max_angle = (y ^ z) % 10.0;
+        for_types!(|N, Wide: WideFloat| {
+            for ([vector, target], max_delta) in
+                random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>()
+            {
+                if !vector.is_finite().all()
+                    || !target.is_finite().all()
+                    || vector.length().simd_gt(1e6).any()
+                    || target.length().simd_gt(1e6).any()
+                {
+                    continue;
+                }
 
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            let vector = Vector::<2, Wide, A>::splat(vector.is_finite())
-                .blend(vector.with_max_length(Wide::splat(10.0)), Vector::ZERO);
-            let target = Vector::<2, Wide, A>::new(z, w);
-            let target = Vector::<2, Wide, A>::splat(target.length().is_finite()).blend(
-                target.clamp_length(Wide::splat(0.1), Wide::splat(10.0)),
-                Vector::ONE,
-            );
-            assert_float_eq_or_panic!(
-                vector.rotate_towards(target, max_angle),
-                Vector::<2, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
-                abs <= Vector::splat(vector.length().max(target.length()) * 1e-3 + 1e-3),
-                0.0 = -0.0
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            let vector = Vector::<3, Wide, A>::splat(vector.is_finite())
-                .blend(vector.with_max_length(Wide::splat(10.0)), Vector::ZERO);
-            let target = Vector::<3, Wide, A>::new(z, w, y);
-            let target = Vector::<3, Wide, A>::splat(target.length().is_finite()).blend(
-                target.clamp_length(Wide::splat(0.1), Wide::splat(10.0)),
-                Vector::ONE,
-            );
-            assert_float_eq_or_panic!(
-                vector.rotate_towards(target, max_angle),
-                Vector::<3, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
-                abs <= Vector::splat(vector.length().max(target.length()) * 1e-3 + 1e-3),
-                0.0 = -0.0
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector = Vector::<4, Wide, A>::splat(vector.is_finite())
-                .blend(vector.with_max_length(Wide::splat(10.0)), Vector::ZERO);
-            let target = Vector::<4, Wide, A>::new(z, w, y, x);
-            let target = Vector::<4, Wide, A>::splat(target.length().is_finite()).blend(
-                target.clamp_length(Wide::splat(0.1), Wide::splat(10.0)),
-                Vector::ONE,
-            );
-            assert_float_eq_or_panic!(
-                vector.rotate_towards(target, max_angle),
-                Vector::<4, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .rotate_towards(target.lane(lane), max_angle.to_array()[lane])),
-                abs <= Vector::splat(vector.length().max(target.length()) * 1e-3 + 1e-3),
-                0.0 = -0.0
-            );
+                assert_test_eq_or_panic!(
+                    vector.rotate_towards(target, max_delta),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .rotate_towards(target.lane(lane), max_delta.to_array()[lane])),
+                    abs <= vector.length().max(target.length()) * 1e-3 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_length() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).length(),
-                (x * x + y * y).sqrt()
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).length(),
-                (x * x + y * y + z * z).sqrt(),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w).length(),
-                (x * x + y * y + (z * z + w * w)).sqrt()
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    vector.length(),
+                    Wide::new(std::array::from_fn(|lane| vector.lane(lane).length()))
+                );
+            }
         });
     }
 
     #[test]
     fn test_distance() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Vector::<2, Wide, A>::new(x, y).distance(Vector::<2, Wide, A>::new(z, w)),
-                ((x - z) * (x - z) + (y - w) * (y - w)).sqrt()
-            );
-            assert_float_eq!(
-                Vector::<3, Wide, A>::new(x, y, z).distance(Vector::<3, Wide, A>::new(z, w, y)),
-                ((x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y)).sqrt(),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, Wide, A>::new(x, y, z, w)
-                    .distance(Vector::<4, Wide, A>::new(z, w, y, z)),
-                ((x - z) * (x - z) + (y - w) * (y - w) + ((z - y) * (z - y) + (w - z) * (w - z)))
-                    .sqrt()
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq!(
+                    a.distance(b),
+                    Wide::new(std::array::from_fn(|lane| a
+                        .lane(lane)
+                        .distance(b.lane(lane))))
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq_or_panic!(
-                vector.normalize(),
-                Vector::<2, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize())
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq_or_panic!(
-                vector.normalize(),
-                Vector::<3, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize())
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq_or_panic!(
-                vector.normalize(),
-                Vector::<4, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    vector.normalize(),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).normalize())
+                );
+            }
         });
     }
 
     #[test]
     fn test_try_normalize() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            if let Some(try_normalize) = vector.try_normalize() {
-                assert_float_eq!(
-                    try_normalize,
-                    Vector::<2, Wide, A>::from_lane_fn(|lane| vector
-                        .lane(lane)
-                        .try_normalize()
-                        .unwrap())
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
+                assert_panic_test_eq!(
+                    vector.try_normalize().unwrap(),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).try_normalize().unwrap())
                 );
-            } else {
-                assert!((0..LANES).any(|lane| vector.lane(lane).try_normalize().is_none()));
-            }
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            if let Some(try_normalize) = vector.try_normalize() {
-                assert_float_eq!(
-                    try_normalize,
-                    Vector::<3, Wide, A>::from_lane_fn(|lane| vector
-                        .lane(lane)
-                        .try_normalize()
-                        .unwrap())
-                );
-            } else {
-                assert!((0..LANES).any(|lane| vector.lane(lane).try_normalize().is_none()));
-            }
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            if let Some(try_normalize) = vector.try_normalize() {
-                assert_float_eq!(
-                    try_normalize,
-                    Vector::<4, Wide, A>::from_lane_fn(|lane| vector
-                        .lane(lane)
-                        .try_normalize()
-                        .unwrap())
-                );
-            } else {
-                assert!((0..LANES).any(|lane| vector.lane(lane).try_normalize().is_none()));
             }
         });
     }
 
     #[test]
     fn test_normalize_or() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq!(
-                vector.normalize_or(Vector::NAN),
-                Vector::<2, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .normalize_or(Vector::NAN))
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.normalize_or(Vector::NAN),
-                Vector::<3, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .normalize_or(Vector::NAN))
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq!(
-                vector.normalize_or(Vector::NAN),
-                Vector::<4, Wide, A>::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .normalize_or(Vector::NAN))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for [vector, fallback] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq!(
+                    vector.normalize_or(fallback),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .normalize_or(fallback.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize_or_zero() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq!(
-                vector.normalize_or_zero(),
-                Vector::<2, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize_or_zero())
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.normalize_or_zero(),
-                Vector::<3, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize_or_zero())
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq!(
-                vector.normalize_or_zero(),
-                Vector::<4, Wide, A>::from_lane_fn(|lane| vector.lane(lane).normalize_or_zero())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    vector.normalize_or_zero(),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).normalize_or_zero())
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize_and_length() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq!(
-                vector.normalize_and_length(),
-                (
-                    Vector::<2, Wide, A>::from_lane_fn(|lane| vector
-                        .lane(lane)
-                        .normalize_and_length()
-                        .0),
-                    Wide::new(core::array::from_fn(|lane| vector
-                        .lane(lane)
-                        .normalize_and_length()
-                        .1))
-                )
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.normalize_and_length(),
-                (
-                    Vector::<3, Wide, A>::from_lane_fn(|lane| vector
-                        .lane(lane)
-                        .normalize_and_length()
-                        .0),
-                    Wide::new(core::array::from_fn(|lane| vector
-                        .lane(lane)
-                        .normalize_and_length()
-                        .1))
-                )
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq!(
-                vector.normalize_and_length(),
-                (
-                    Vector::<4, Wide, A>::from_lane_fn(|lane| vector
-                        .lane(lane)
-                        .normalize_and_length()
-                        .0),
-                    Wide::new(core::array::from_fn(|lane| vector
-                        .lane(lane)
-                        .normalize_and_length()
-                        .1))
-                )
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    vector.normalize_and_length(),
+                    (
+                        Vector::from_lane_fn(|lane| vector.lane(lane).normalize_and_length().0),
+                        Wide::new(std::array::from_fn(|lane| vector
+                            .lane(lane)
+                            .normalize_and_length()
+                            .1))
+                    )
+                );
+            }
         });
     }
 
     #[test]
     fn test_is_normalized() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq!(
-                vector.is_normalized(),
-                Wide::new(core::array::from_fn(|lane| {
-                    if vector.lane(lane).is_normalized() {
-                        T::from_bits(!0)
-                    } else {
-                        0.0
-                    }
-                }))
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.is_normalized(),
-                Wide::new(core::array::from_fn(|lane| {
-                    if vector.lane(lane).is_normalized() {
-                        T::from_bits(!0)
-                    } else {
-                        0.0
-                    }
-                }))
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq!(
-                vector.is_normalized(),
-                Wide::new(core::array::from_fn(|lane| {
-                    if vector.lane(lane).is_normalized() {
-                        T::from_bits(!0)
-                    } else {
-                        0.0
-                    }
-                }))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    vector.is_normalized(),
+                    Wide::new(std::array::from_fn(|lane| {
+                        if vector.lane(lane).is_normalized() {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    }))
+                );
+            }
         });
     }
 
     #[test]
     fn test_with_max_length() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq_or_panic!(
-                vector.with_max_length(a),
-                Vector::from_lane_fn(|lane| vector.lane(lane).with_max_length(a.to_array()[lane]))
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq_or_panic!(
-                vector.with_max_length(a),
-                Vector::from_lane_fn(|lane| vector.lane(lane).with_max_length(a.to_array()[lane]))
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq_or_panic!(
-                vector.with_max_length(a),
-                Vector::from_lane_fn(|lane| vector.lane(lane).with_max_length(a.to_array()[lane]))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for (vector, max_length) in random_iter::<(Vector<N, Wide, Unaligned>, Wide)>() {
+                assert_test_eq_or_panic!(
+                    vector.with_max_length(max_length),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .with_max_length(max_length.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_with_min_length() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq_or_panic!(
-                vector.with_min_length(a),
-                Vector::from_lane_fn(|lane| vector.lane(lane).with_min_length(a.to_array()[lane]))
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq_or_panic!(
-                vector.with_min_length(a),
-                Vector::from_lane_fn(|lane| vector.lane(lane).with_min_length(a.to_array()[lane]))
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq_or_panic!(
-                vector.with_min_length(a),
-                Vector::from_lane_fn(|lane| vector.lane(lane).with_min_length(a.to_array()[lane]))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for (vector, min_length) in random_iter::<(Vector<N, Wide, Unaligned>, Wide)>() {
+                assert_test_eq_or_panic!(
+                    vector.with_min_length(min_length),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .with_min_length(min_length.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_clamp_length() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq_or_panic!(
-                vector.clamp_length(a, b),
-                Vector::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .clamp_length(a.to_array()[lane], b.to_array()[lane]))
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq_or_panic!(
-                vector.clamp_length(a, b),
-                Vector::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .clamp_length(a.to_array()[lane], b.to_array()[lane]))
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq_or_panic!(
-                vector.clamp_length(a, b),
-                Vector::from_lane_fn(|lane| vector
-                    .lane(lane)
-                    .clamp_length(a.to_array()[lane], b.to_array()[lane]))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for (vector, [min_length, max_length]) in
+                random_iter::<(Vector<N, Wide, Unaligned>, [Wide; 2])>()
+            {
+                assert_test_eq_or_panic!(
+                    vector.clamp_length(min_length, max_length),
+                    Vector::from_lane_fn(|lane| vector
+                        .lane(lane)
+                        .clamp_length(min_length.to_array()[lane], max_length.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_angle_between() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector_a = Vector::<2, Wide, A>::new(x, y);
-            let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq!(
-                vector_a.angle_between(vector_b),
-                Wide::new(core::array::from_fn(|lane| vector_a
-                    .lane(lane)
-                    .angle_between(vector_b.lane(lane)))),
-                r2nd <= Wide::splat(1e-5)
-            );
-
-            let vector_a = Vector::<3, Wide, A>::new(x, y, z);
-            let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_float_eq!(
-                vector_a.angle_between(vector_b),
-                Wide::new(core::array::from_fn(|lane| vector_a
-                    .lane(lane)
-                    .angle_between(vector_b.lane(lane)))),
-                r2nd <= Wide::splat(1e-5)
-            );
-
-            let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_float_eq!(
-                vector_a.angle_between(vector_b),
-                Wide::new(core::array::from_fn(|lane| vector_a
-                    .lane(lane)
-                    .angle_between(vector_b.lane(lane)))),
-                r2nd <= Wide::splat(1e-5)
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq!(
+                    a.angle_between(b),
+                    Wide::new(std::array::from_fn(|lane| {
+                        a.lane(lane).angle_between(b.lane(lane))
+                    })),
+                    abs <= a.angle_between(b) * 1e-3 + 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_project_onto() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector_a = Vector::<2, Wide, A>::new(x, y);
-            let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector_a.project_onto(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).project_onto(vector_b.lane(lane)))
-            );
-
-            let vector_a = Vector::<3, Wide, A>::new(x, y, z);
-            let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_float_eq_or_panic!(
-                vector_a.project_onto(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).project_onto(vector_b.lane(lane)))
-            );
-
-            let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_float_eq_or_panic!(
-                vector_a.project_onto(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).project_onto(vector_b.lane(lane)))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq_or_panic!(
+                    a.project_onto(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).project_onto(b.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_project_onto_normalized() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector_a = Vector::<2, Wide, A>::new(x, y);
-            let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector_a.project_onto_normalized(vector_b),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .project_onto_normalized(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|[a, b]| [[a, b], [a, b.normalize_or(Vector::ONE).normalize()]])
             {
-                assert_float_eq_or_panic!(
-                    vector_a.project_onto_normalized(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .project_onto_normalized(vector_b.lane(lane))),
-                    0.0 = -0.0
-                );
-            }
-
-            let vector_a = Vector::<3, Wide, A>::new(x, y, z);
-            let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_float_eq_or_panic!(
-                vector_a.project_onto_normalized(vector_b),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .project_onto_normalized(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
-            {
-                assert_float_eq_or_panic!(
-                    vector_a.project_onto_normalized(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .project_onto_normalized(vector_b.lane(lane))),
-                    0.0 = -0.0
-                );
-            }
-
-            let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_float_eq_or_panic!(
-                vector_a.project_onto_normalized(vector_b),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .project_onto_normalized(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
-            {
-                assert_float_eq_or_panic!(
-                    vector_a.project_onto_normalized(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .project_onto_normalized(vector_b.lane(lane))),
-                    0.0 = -0.0
+                assert_test_eq_or_panic!(
+                    a.project_onto_normalized(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).project_onto_normalized(b.lane(lane)))
                 );
             }
         });
@@ -3081,106 +2113,25 @@ mod tests {
 
     #[test]
     fn test_reject_from() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector_a = Vector::<2, Wide, A>::new(x, y);
-            let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector_a.reject_from(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).reject_from(vector_b.lane(lane)))
-            );
-
-            let vector_a = Vector::<3, Wide, A>::new(x, y, z);
-            let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_float_eq_or_panic!(
-                vector_a.reject_from(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).reject_from(vector_b.lane(lane)))
-            );
-
-            let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_float_eq_or_panic!(
-                vector_a.reject_from(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).reject_from(vector_b.lane(lane)))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq_or_panic!(
+                    a.reject_from(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).reject_from(b.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_reject_from_normalized() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector_a = Vector::<2, Wide, A>::new(x, y);
-            let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector_a.reject_from_normalized(vector_b),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .reject_from_normalized(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|[a, b]| [[a, b], [a, b.normalize_or(Vector::ONE).normalize()]])
             {
-                assert_float_eq_or_panic!(
-                    vector_a.reject_from_normalized(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .reject_from_normalized(vector_b.lane(lane))),
-                    0.0 = -0.0
-                );
-            }
-
-            let vector_a = Vector::<3, Wide, A>::new(x, y, z);
-            let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_float_eq_or_panic!(
-                vector_a.reject_from_normalized(vector_b),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .reject_from_normalized(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
-            {
-                assert_float_eq_or_panic!(
-                    vector_a.reject_from_normalized(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .reject_from_normalized(vector_b.lane(lane))),
-                    0.0 = -0.0
-                );
-            }
-
-            let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_float_eq_or_panic!(
-                vector_a.reject_from_normalized(vector_b),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .reject_from_normalized(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
-            {
-                assert_float_eq_or_panic!(
-                    vector_a.reject_from_normalized(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .reject_from_normalized(vector_b.lane(lane))),
-                    0.0 = -0.0
+                assert_test_eq_or_panic!(
+                    a.reject_from_normalized(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).reject_from_normalized(b.lane(lane)))
                 );
             }
         });
@@ -3188,57 +2139,13 @@ mod tests {
 
     #[test]
     fn test_reflect() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector_a = Vector::<2, Wide, A>::new(x, y);
-            let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector_a.reflect(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_b) = vector_b.try_normalize() {
-                assert_float_eq_or_panic!(
-                    vector_a.reflect(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
-                    0.0 = -0.0
-                );
-            }
-
-            let vector_a = Vector::<3, Wide, A>::new(x, y, z);
-            let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_float_eq_or_panic!(
-                vector_a.reflect(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_b) = vector_b.try_normalize() {
-                assert_float_eq_or_panic!(
-                    vector_a.reflect(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
-                    0.0 = -0.0
-                );
-            }
-
-            let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_float_eq_or_panic!(
-                vector_a.reflect(vector_b),
-                Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
-                0.0 = -0.0
-            );
-
-            if let Some(vector_b) = vector_b.try_normalize() {
-                assert_float_eq_or_panic!(
-                    vector_a.reflect(vector_b),
-                    Vector::from_lane_fn(|lane| vector_a.lane(lane).reflect(vector_b.lane(lane))),
-                    0.0 = -0.0
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>()
+                .flat_map(|[a, b]| [[a, b], [a, b.normalize_or(Vector::ONE).normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    a.reflect(b),
+                    Vector::from_lane_fn(|lane| a.lane(lane).reflect(b.lane(lane)))
                 );
             }
         });
@@ -3246,71 +2153,24 @@ mod tests {
 
     #[test]
     fn test_refract() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let eta = (x + 0.1).abs() / (y + 0.2).abs();
-
-            let vector_a = Vector::<2, Wide, A>::new(x, y);
-            let vector_b = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector_a.refract(vector_b, eta),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .refract(vector_b.lane(lane), eta.to_array()[lane]))
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
+        for_types!(|N, Wide: WideFloat| {
+            for (vector, normal, eta) in random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>()
+                .flat_map(|([vector, normal], eta)| {
+                    [
+                        (vector, normal, eta),
+                        (
+                            vector.normalize_or(Vector::ONE).normalize(),
+                            normal.normalize_or(Vector::ONE).normalize(),
+                            eta,
+                        ),
+                    ]
+                })
             {
-                assert_float_eq_or_panic!(
-                    vector_a.refract(vector_b, eta),
-                    Vector::from_lane_fn(|lane| vector_a
+                assert_test_eq_or_panic!(
+                    vector.refract(normal, eta),
+                    Vector::from_lane_fn(|lane| vector
                         .lane(lane)
-                        .refract(vector_b.lane(lane), eta.to_array()[lane]))
-                );
-            }
-
-            let vector_a = Vector::<3, Wide, A>::new(x, y, z);
-            let vector_b = Vector::<3, Wide, A>::new(w, a, b);
-            assert_float_eq_or_panic!(
-                vector_a.refract(vector_b, eta),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .refract(vector_b.lane(lane), eta.to_array()[lane]))
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
-            {
-                assert_float_eq_or_panic!(
-                    vector_a.refract(vector_b, eta),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .refract(vector_b.lane(lane), eta.to_array()[lane]))
-                );
-            }
-
-            let vector_a = Vector::<4, Wide, A>::new(x, y, z, w);
-            let vector_b = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_float_eq_or_panic!(
-                vector_a.refract(vector_b, eta),
-                Vector::from_lane_fn(|lane| vector_a
-                    .lane(lane)
-                    .refract(vector_b.lane(lane), eta.to_array()[lane]))
-            );
-
-            if let Some(vector_a) = vector_a.try_normalize()
-                && let Some(vector_b) = vector_b.try_normalize()
-            {
-                assert_float_eq_or_panic!(
-                    vector_a.refract(vector_b, eta),
-                    Vector::from_lane_fn(|lane| vector_a
-                        .lane(lane)
-                        .refract(vector_b.lane(lane), eta.to_array()[lane]))
+                        .refract(normal.lane(lane), eta.to_array()[lane]))
                 );
             }
         });
@@ -3318,116 +2178,47 @@ mod tests {
 
     #[test]
     fn test_any_orthogonal_vector() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x + y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq!(
-                vector.any_orthogonal_vector(),
-                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.any_orthogonal_vector(),
-                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq!(
-                vector.any_orthogonal_vector(),
-                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    vector.any_orthogonal_vector(),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).any_orthogonal_vector())
+                );
+            }
         });
     }
 
     #[test]
     fn test_any_orthonormal_vector() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x + y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq_or_panic!(
-                vector.any_orthonormal_vector(),
-                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_vector())
-            );
-            assert_float_eq_or_panic!(
-                vector.normalize_or_zero().any_orthonormal_vector(),
-                Vector::from_lane_fn(|lane| vector
-                    .normalize_or_zero()
-                    .lane(lane)
-                    .any_orthonormal_vector())
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq_or_panic!(
-                vector.any_orthonormal_vector(),
-                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_vector())
-            );
-            assert_float_eq_or_panic!(
-                vector.normalize_or_zero().any_orthonormal_vector(),
-                Vector::from_lane_fn(|lane| vector
-                    .normalize_or_zero()
-                    .lane(lane)
-                    .any_orthonormal_vector())
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            assert_float_eq_or_panic!(
-                vector.any_orthonormal_vector(),
-                Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_vector())
-            );
-            assert_float_eq_or_panic!(
-                vector.normalize_or_zero().any_orthonormal_vector(),
-                Vector::from_lane_fn(|lane| vector
-                    .normalize_or_zero()
-                    .lane(lane)
-                    .any_orthonormal_vector())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for vector in random_iter::<Vector<N, Wide, Unaligned>>()
+                .flat_map(|vector| [vector, vector.normalize_or(Vector::ONE).normalize()])
+            {
+                assert_test_eq_or_panic!(
+                    vector.any_orthonormal_vector(),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_vector())
+                );
+            }
         });
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-            let a = y ^ z;
-            let b = w + a;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            let other = Vector::<2, Wide, A>::new(z, w);
-            assert_eq!(
-                vector.abs_diff_eq(other, Wide::ONE),
-                x.abs_diff_eq(z, Wide::ONE) && y.abs_diff_eq(w, Wide::ONE)
-            );
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            let other = Vector::<3, Wide, A>::new(w, a, b);
-            assert_eq!(
-                vector.abs_diff_eq(other, Wide::ONE),
-                x.abs_diff_eq(w, Wide::ONE)
-                    && y.abs_diff_eq(a, Wide::ONE)
-                    && z.abs_diff_eq(b, Wide::ONE)
-            );
-
-            let vector = Vector::<4, Wide, A>::new(x, y, z, w);
-            let other = Vector::<4, Wide, A>::new(a, b, x, z);
-            assert_eq!(
-                vector.abs_diff_eq(other, Wide::ONE),
-                x.abs_diff_eq(a, Wide::ONE)
-                    && y.abs_diff_eq(b, Wide::ONE)
-                    && z.abs_diff_eq(x, Wide::ONE)
-                    && w.abs_diff_eq(z, Wide::ONE)
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], max_abs_diff) in random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>() {
+                assert_test_eq_or_panic!(
+                    a.abs_diff_eq(b, max_abs_diff),
+                    (0..LANES).all(|lane| a
+                        .lane(lane)
+                        .abs_diff_eq(b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_bits() {
-        for_parameters!(|Wide: WideFloat| {
+        for_types!(|Wide: WideFloat| {
             let vector = Vec3A::new(Wide::splat(3.1), -Wide::ZERO, Wide::splat(T::NAN));
             assert_eq!(
                 vector.to_bits(),
@@ -3438,7 +2229,7 @@ mod tests {
 
     #[test]
     fn test_from_bits() {
-        for_parameters!(|Wide: WideFloat| {
+        for_types!(|Wide: WideFloat| {
             let vector = Vec3A::new(Wide::splat(3.1), -Wide::ZERO, Wide::splat(T::NAN));
             assert_eq!(
                 Vec3A::<Wide>::from_bits(vector.to_bits()).to_bits(),
@@ -3449,165 +2240,120 @@ mod tests {
 
     #[test]
     fn test_angle_to() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            let other = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector.angle_to(other),
-                Wide::new(core::array::from_fn(|lane| vector
-                    .lane(lane)
-                    .angle_to(other.lane(lane)))),
-                r2nd <= Wide::splat(1e-5)
-            );
+        for_types!(|Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vec2<Wide>; 2]>() {
+                assert_test_eq_or_panic!(
+                    a.angle_to(b),
+                    Wide::new(core::array::from_fn(|lane| a
+                        .lane(lane)
+                        .angle_to(b.lane(lane)))),
+                    abs <= a.angle_to(b).abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_angle_from() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            let other = Vector::<2, Wide, A>::new(z, w);
-            assert_float_eq_or_panic!(
-                vector.angle_from(other),
-                Wide::new(core::array::from_fn(|lane| vector
-                    .lane(lane)
-                    .angle_from(other.lane(lane)))),
-                r2nd <= Wide::splat(1e-5)
-            );
+        for_types!(|Wide: WideFloat| {
+            for [a, b] in random_iter::<[Vec2<Wide>; 2]>() {
+                assert_test_eq_or_panic!(
+                    a.angle_from(b),
+                    Wide::new(core::array::from_fn(|lane| a
+                        .lane(lane)
+                        .angle_from(b.lane(lane)))),
+                    abs <= a.angle_from(b).abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_rotate() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-
-            // `wide` trigonometric functions do not handle large values well.
-            if !z.abs().simd_lt(1e8).all() {
-                return;
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector.rotate(angle),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).rotate(angle.to_array()[lane])),
+                    abs <= (vector.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
             }
-
-            let vector = Vector::<2, Wide, A>::new(x, y);
-            assert_float_eq!(
-                vector.rotate(z),
-                Vector::from_lane_fn(|lane| vector.lane(lane).rotate(z.to_array()[lane])),
-                r2nd <= Vector::splat(Wide::splat(1e-5)) * z.abs(),
-                0.0 = -0.0
-            );
         });
     }
 
     #[test]
     fn test_from_homogeneous() {
-        for_parameters!(|Wide: WideFloat, A, x| {
-            let _: Wide = x;
-            let [y, z, w] = [x + 1.0, x + 2.0, x + 3.0];
-
-            assert_float_eq!(
-                Vector::<3, Wide, A>::from_homogeneous(Vector::<4, Wide, A>::new(x, y, z, w)),
-                Vector::<3, Wide, A>::new(x, y, z) / w
-            );
+        for_types!(|Wide: WideFloat| {
+            for homogeneous in random_iter::<Vec4<Wide>>() {
+                assert_test_eq!(
+                    Vec3::<Wide>::from_homogeneous(homogeneous),
+                    Vec3::from_lane_fn(|lane| Vec3::<T>::from_homogeneous(homogeneous.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_rotate_x() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            // `wide` trigonometric functions do not handle large values well.
-            if !w.abs().simd_lt(1e8).all() {
-                return;
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector.rotate_x(angle),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).rotate_x(angle.to_array()[lane])),
+                    abs <= (vector.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
             }
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.rotate_x(w),
-                Vector::from_lane_fn(|lane| vector.lane(lane).rotate_x(w.to_array()[lane])),
-                r2nd <= Vector::splat(Wide::splat(1e-5)) * w.abs(),
-                0.0 = -0.0
-            );
         });
     }
 
     #[test]
     fn test_rotate_y() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            // `wide` trigonometric functions do not handle large values well.
-            if !w.abs().simd_lt(1e8).all() {
-                return;
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector.rotate_y(angle),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).rotate_y(angle.to_array()[lane])),
+                    abs <= (vector.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
             }
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.rotate_y(w),
-                Vector::from_lane_fn(|lane| vector.lane(lane).rotate_y(w.to_array()[lane])),
-                r2nd <= Vector::splat(Wide::splat(1e-5)) * w.abs(),
-                0.0 = -0.0
-            );
         });
     }
 
     #[test]
     fn test_rotate_z() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            // `wide` trigonometric functions do not handle large values well.
-            if !w.abs().simd_lt(1e8).all() {
-                return;
+        for_types!(|Wide: WideFloat| {
+            for (vector, angle) in random_iter::<(Vec3<Wide>, Wide)>() {
+                assert_test_eq!(
+                    vector.rotate_z(angle),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).rotate_z(angle.to_array()[lane])),
+                    abs <= (vector.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
             }
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq!(
-                vector.rotate_z(w),
-                Vector::from_lane_fn(|lane| vector.lane(lane).rotate_z(w.to_array()[lane])),
-                r2nd <= Vector::splat(Wide::splat(1e-5)) * w.abs(),
-                0.0 = -0.0
-            );
         });
     }
 
     #[test]
     fn test_any_orthonormal_pair() {
-        for_parameters!(|Wide: WideFloat, A, x, y| {
-            let _: [Wide; 2] = [x, y];
-            let z = x ^ y;
-
-            let vector = Vector::<3, Wide, A>::new(x, y, z);
-            assert_float_eq_or_panic!(
-                vector.any_orthonormal_pair(),
-                (
-                    Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_pair().0),
-                    Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_pair().1)
-                )
-            );
-            assert_float_eq_or_panic!(
-                vector.normalize_or_zero().any_orthonormal_pair(),
-                (
-                    Vector::from_lane_fn(|lane| vector
-                        .normalize_or_zero()
-                        .lane(lane)
-                        .any_orthonormal_pair()
-                        .0),
-                    Vector::from_lane_fn(|lane| vector
-                        .normalize_or_zero()
-                        .lane(lane)
-                        .any_orthonormal_pair()
-                        .1)
-                )
-            );
+        for_types!(|Wide: WideFloat| {
+            for vector in random_iter::<Vec3<Wide>>()
+                .flat_map(|vector| [vector, vector.normalize_or(Vector::ONE).normalize()])
+            {
+                assert_test_eq_or_panic!(
+                    vector.any_orthonormal_pair(),
+                    (
+                        Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_pair().0),
+                        Vector::from_lane_fn(|lane| vector.lane(lane).any_orthonormal_pair().1)
+                    )
+                );
+            }
         });
     }
 }
