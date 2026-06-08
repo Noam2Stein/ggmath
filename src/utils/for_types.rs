@@ -2581,6 +2581,7 @@ macro_rules! for_types {
         for_a::<crate::Aligned>();
         for_a::<crate::Unaligned>();
     };};
+    /*
     (|Wide, A| $expr:expr) => {{
         fn for_a<A: crate::Alignment>() {
             {
@@ -3728,6 +3729,7 @@ macro_rules! for_types {
         for_a::<crate::Aligned>();
         for_a::<crate::Unaligned>();
     };};
+    */
     (|N, T: PrimitiveNumber, A| $expr:expr) => {{
         fn for_nta<const N: usize, T, A: crate::Alignment>(t: &'static str)
         where
@@ -4104,1189 +4106,1190 @@ macro_rules! for_types {
         for_na::<2, crate::Unaligned>();
         for_na::<3, crate::Unaligned>();
         for_na::<4, crate::Unaligned>();
-    };};
-    (|N, Wide, A| $expr:expr) => {{
-        fn for_na<const N: usize, A: crate::Alignment>()
-        where
-            crate::Length<N>: crate::SupportedLength,
-        {
-            {
-                type Wide = wide::f32x4;
-                #[allow(dead_code)]
-                type T = f32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            /*
-            {
-                type Wide = wide::f32x8;
-                #[allow(dead_code)]
-                type T = f32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::f32x16;
-                #[allow(dead_code)]
-                type T = f32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::f64x2;
-                #[allow(dead_code)]
-                type T = f64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::f64x4;
-                #[allow(dead_code)]
-                type T = f64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::f64x8;
-                #[allow(dead_code)]
-                type T = f64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            /*
-            {
-                type Wide = wide::i8x16;
-                #[allow(dead_code)]
-                type T = i8;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i8x32;
-                #[allow(dead_code)]
-                type T = i8;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x8;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x16;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x32;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::i32x4;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            /*
-            {
-                type Wide = wide::i32x8;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i32x16;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x2;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x4;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x8;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u8x16;
-                #[allow(dead_code)]
-                type T = u8;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u8x32;
-                #[allow(dead_code)]
-                type T = u8;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x8;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x16;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x32;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u32x4;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u32x8;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u32x16;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u64x2;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u64x4;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::u64x8;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-        }
+    };}; /*
+         (|N, Wide, A| $expr:expr) => {{
+             fn for_na<const N: usize, A: crate::Alignment>()
+             where
+                 crate::Length<N>: crate::SupportedLength,
+             {
+                 {
+                     type Wide = wide::f32x4;
+                     #[allow(dead_code)]
+                     type T = f32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 /*
+                 {
+                     type Wide = wide::f32x8;
+                     #[allow(dead_code)]
+                     type T = f32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::f32x16;
+                     #[allow(dead_code)]
+                     type T = f32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::f64x2;
+                     #[allow(dead_code)]
+                     type T = f64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::f64x4;
+                     #[allow(dead_code)]
+                     type T = f64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::f64x8;
+                     #[allow(dead_code)]
+                     type T = f64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 /*
+                 {
+                     type Wide = wide::i8x16;
+                     #[allow(dead_code)]
+                     type T = i8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i8x32;
+                     #[allow(dead_code)]
+                     type T = i8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x8;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x16;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x32;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::i32x4;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 /*
+                 {
+                     type Wide = wide::i32x8;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i32x16;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x2;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x4;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x8;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u8x16;
+                     #[allow(dead_code)]
+                     type T = u8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u8x32;
+                     #[allow(dead_code)]
+                     type T = u8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x8;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x16;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x32;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u32x4;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u32x8;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u32x16;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u64x2;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u64x4;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::u64x8;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+             }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
-    };};
-    (|N, Wide: WideFloat, A| $expr:expr) => {{
-        fn for_na<const N: usize, A: crate::Alignment>()
-        where
-            crate::Length<N>: crate::SupportedLength,
-        {
-            {
-                type Wide = wide::f32x4;
-                #[allow(dead_code)]
-                type T = f32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            /*
-            {
-                type Wide = wide::f32x8;
-                #[allow(dead_code)]
-                type T = f32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::f32x16;
-                #[allow(dead_code)]
-                type T = f32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::f64x2;
-                #[allow(dead_code)]
-                type T = f64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::f64x4;
-                #[allow(dead_code)]
-                type T = f64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::f64x8;
-                #[allow(dead_code)]
-                type T = f64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("f64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-        }
+             for_na::<2, crate::Aligned>();
+             for_na::<3, crate::Aligned>();
+             for_na::<4, crate::Aligned>();
+             for_na::<2, crate::Unaligned>();
+             for_na::<3, crate::Unaligned>();
+             for_na::<4, crate::Unaligned>();
+         };};
+         (|N, Wide: WideFloat, A| $expr:expr) => {{
+             fn for_na<const N: usize, A: crate::Alignment>()
+             where
+                 crate::Length<N>: crate::SupportedLength,
+             {
+                 {
+                     type Wide = wide::f32x4;
+                     #[allow(dead_code)]
+                     type T = f32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 /*
+                 {
+                     type Wide = wide::f32x8;
+                     #[allow(dead_code)]
+                     type T = f32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::f32x16;
+                     #[allow(dead_code)]
+                     type T = f32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::f64x2;
+                     #[allow(dead_code)]
+                     type T = f64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::f64x4;
+                     #[allow(dead_code)]
+                     type T = f64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::f64x8;
+                     #[allow(dead_code)]
+                     type T = f64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("f64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+             }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
-    };};
-    (|N, Wide: WideInteger, A| $expr:expr) => {{
-        fn for_na<const N: usize, A: crate::Alignment>()
-        where
-            crate::Length<N>: crate::SupportedLength,
-        {
-            /*
-            {
-                type Wide = wide::i8x16;
-                #[allow(dead_code)]
-                type T = i8;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i8x32;
-                #[allow(dead_code)]
-                type T = i8;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x8;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x16;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x32;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::i32x4;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            /*
-            {
-                type Wide = wide::i32x8;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i32x16;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x2;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x4;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x8;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u8x16;
-                #[allow(dead_code)]
-                type T = u8;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u8x32;
-                #[allow(dead_code)]
-                type T = u8;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x8;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x16;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x32;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u32x4;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u32x8;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u32x16;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u64x2;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u64x4;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::u64x8;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-        }
+             for_na::<2, crate::Aligned>();
+             for_na::<3, crate::Aligned>();
+             for_na::<4, crate::Aligned>();
+             for_na::<2, crate::Unaligned>();
+             for_na::<3, crate::Unaligned>();
+             for_na::<4, crate::Unaligned>();
+         };};
+         (|N, Wide: WideInteger, A| $expr:expr) => {{
+             fn for_na<const N: usize, A: crate::Alignment>()
+             where
+                 crate::Length<N>: crate::SupportedLength,
+             {
+                 /*
+                 {
+                     type Wide = wide::i8x16;
+                     #[allow(dead_code)]
+                     type T = i8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i8x32;
+                     #[allow(dead_code)]
+                     type T = i8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x8;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x16;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x32;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::i32x4;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 /*
+                 {
+                     type Wide = wide::i32x8;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i32x16;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x2;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x4;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x8;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u8x16;
+                     #[allow(dead_code)]
+                     type T = u8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u8x32;
+                     #[allow(dead_code)]
+                     type T = u8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x8;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x16;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x32;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u32x4;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u32x8;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u32x16;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u64x2;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u64x4;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::u64x8;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+             }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
-    };};
-    (|N, Wide: WideSigned, A| $expr:expr) => {{
-        fn for_na<const N: usize, A: crate::Alignment>()
-        where
-            crate::Length<N>: crate::SupportedLength,
-        {
-            /*
-            {
-                type Wide = wide::i8x16;
-                #[allow(dead_code)]
-                type T = i8;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i8x32;
-                #[allow(dead_code)]
-                type T = i8;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x8;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x16;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i16x32;
-                #[allow(dead_code)]
-                type T = i16;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::i32x4;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            /*
-            {
-                type Wide = wide::i32x8;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i32x16;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x2;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::i64x4;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::i64x8;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-        }
+             for_na::<2, crate::Aligned>();
+             for_na::<3, crate::Aligned>();
+             for_na::<4, crate::Aligned>();
+             for_na::<2, crate::Unaligned>();
+             for_na::<3, crate::Unaligned>();
+             for_na::<4, crate::Unaligned>();
+         };};
+         (|N, Wide: WideSigned, A| $expr:expr) => {{
+             fn for_na<const N: usize, A: crate::Alignment>()
+             where
+                 crate::Length<N>: crate::SupportedLength,
+             {
+                 /*
+                 {
+                     type Wide = wide::i8x16;
+                     #[allow(dead_code)]
+                     type T = i8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i8x32;
+                     #[allow(dead_code)]
+                     type T = i8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x8;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x16;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i16x32;
+                     #[allow(dead_code)]
+                     type T = i16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::i32x4;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 /*
+                 {
+                     type Wide = wide::i32x8;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i32x16;
+                     #[allow(dead_code)]
+                     type T = i32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x2;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::i64x4;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::i64x8;
+                     #[allow(dead_code)]
+                     type T = i64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("i64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+             }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
-    };};
-    (|N, Wide: WideUnsigned, A| $expr:expr) => {{
-        fn for_na<const N: usize, A: crate::Alignment>()
-        where
-            crate::Length<N>: crate::SupportedLength,
-        {
-            /*
-            {
-                type Wide = wide::u8x16;
-                #[allow(dead_code)]
-                type T = u8;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u8x32;
-                #[allow(dead_code)]
-                type T = u8;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u8"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x8;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x16;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u16x32;
-                #[allow(dead_code)]
-                type T = u16;
-                #[allow(dead_code)]
-                const LANES: usize = 32;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u16"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::u32x4;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            /*
-            {
-                type Wide = wide::u32x8;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u32x16;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 16;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u64x2;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 2;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type Wide = wide::u64x4;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            */
-            {
-                type Wide = wide::u64x8;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    Some(A::IS_ALIGNED),
-                );
-            };
-        }
+             for_na::<2, crate::Aligned>();
+             for_na::<3, crate::Aligned>();
+             for_na::<4, crate::Aligned>();
+             for_na::<2, crate::Unaligned>();
+             for_na::<3, crate::Unaligned>();
+             for_na::<4, crate::Unaligned>();
+         };};
+         (|N, Wide: WideUnsigned, A| $expr:expr) => {{
+             fn for_na<const N: usize, A: crate::Alignment>()
+             where
+                 crate::Length<N>: crate::SupportedLength,
+             {
+                 /*
+                 {
+                     type Wide = wide::u8x16;
+                     #[allow(dead_code)]
+                     type T = u8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u8x32;
+                     #[allow(dead_code)]
+                     type T = u8;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u8"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x8;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x16;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u16x32;
+                     #[allow(dead_code)]
+                     type T = u16;
+                     #[allow(dead_code)]
+                     const LANES: usize = 32;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u16"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::u32x4;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 /*
+                 {
+                     type Wide = wide::u32x8;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u32x16;
+                     #[allow(dead_code)]
+                     type T = u32;
+                     #[allow(dead_code)]
+                     const LANES: usize = 16;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u32"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u64x2;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 2;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 {
+                     type Wide = wide::u64x4;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 4;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+                 */
+                 {
+                     type Wide = wide::u64x8;
+                     #[allow(dead_code)]
+                     type T = u64;
+                     #[allow(dead_code)]
+                     const LANES: usize = 8;
+                     crate::utils::call_with_panic_message(
+                         || $expr,
+                         Some(N),
+                         Some("u64"),
+                         Some(LANES),
+                         Some(A::IS_ALIGNED),
+                     );
+                 };
+             }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
-    };};
+             for_na::<2, crate::Aligned>();
+             for_na::<3, crate::Aligned>();
+             for_na::<4, crate::Aligned>();
+             for_na::<2, crate::Unaligned>();
+             for_na::<3, crate::Unaligned>();
+             for_na::<4, crate::Unaligned>();
+         };};
+         */
 }
 pub(crate) use for_types;
 
