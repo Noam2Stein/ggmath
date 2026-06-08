@@ -1872,195 +1872,96 @@ where
 mod tests {
     use crate::{
         FloatExt, Mask, Vec2A, Vec3A, Vector,
-        utils::{PrimitiveFloatFns, assert_debug_panic, assert_float_eq, float_eq, for_parameters},
+        utils::{
+            PrimitiveFloatFns, assert_debug_panic, assert_test_eq, for_types, random_iter, test_eq,
+        },
     };
 
     #[test]
     fn test_is_nan() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).is_nan(),
-                x.is_nan() || y.is_nan()
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).is_nan(),
-                x.is_nan() || y.is_nan() || z.is_nan()
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).is_nan(),
-                x.is_nan() || y.is_nan() || z.is_nan() || w.is_nan()
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(vector.is_nan(), vector.iter().any(T::is_nan));
+            }
         });
     }
 
     #[test]
     fn test_nan_mask() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).nan_mask(),
-                Mask::<2, T, A>::new(x.is_nan(), y.is_nan())
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).nan_mask(),
-                Mask::<3, T, A>::new(x.is_nan(), y.is_nan(), z.is_nan())
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).nan_mask(),
-                Mask::<4, T, A>::new(x.is_nan(), y.is_nan(), z.is_nan(), w.is_nan())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(vector.nan_mask(), Mask::from_fn(|i| vector[i].is_nan()));
+            }
         });
     }
 
     #[test]
     fn test_is_finite() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).is_finite(),
-                x.is_finite() && y.is_finite()
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).is_finite(),
-                x.is_finite() && y.is_finite() && z.is_finite()
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).is_finite(),
-                x.is_finite() && y.is_finite() && z.is_finite() && w.is_finite()
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(vector.is_finite(), vector.iter().all(T::is_finite));
+            }
         });
     }
 
     #[test]
     fn test_finite_mask() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).finite_mask(),
-                Mask::<2, T, A>::new(x.is_finite(), y.is_finite())
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).finite_mask(),
-                Mask::<3, T, A>::new(x.is_finite(), y.is_finite(), z.is_finite())
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).finite_mask(),
-                Mask::<4, T, A>::new(x.is_finite(), y.is_finite(), z.is_finite(), w.is_finite())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(
+                    vector.finite_mask(),
+                    Mask::from_fn(|i| vector[i].is_finite())
+                );
+            }
         });
     }
 
     #[test]
     fn test_sign_positive_mask() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).sign_positive_mask(),
-                Mask::<2, T, A>::new(x.is_sign_positive(), y.is_sign_positive())
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).sign_positive_mask(),
-                Mask::<3, T, A>::new(
-                    x.is_sign_positive(),
-                    y.is_sign_positive(),
-                    z.is_sign_positive()
-                )
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).sign_positive_mask(),
-                Mask::<4, T, A>::new(
-                    x.is_sign_positive(),
-                    y.is_sign_positive(),
-                    z.is_sign_positive(),
-                    w.is_sign_positive()
-                )
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(
+                    vector.sign_positive_mask(),
+                    Mask::from_fn(|i| vector[i].is_sign_positive())
+                );
+            }
         });
     }
 
     #[test]
     fn test_sign_negative_mask() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).sign_negative_mask(),
-                Mask::<2, T, A>::new(x.is_sign_negative(), y.is_sign_negative())
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).sign_negative_mask(),
-                Mask::<3, T, A>::new(
-                    x.is_sign_negative(),
-                    y.is_sign_negative(),
-                    z.is_sign_negative()
-                )
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).sign_negative_mask(),
-                Mask::<4, T, A>::new(
-                    x.is_sign_negative(),
-                    y.is_sign_negative(),
-                    z.is_sign_negative(),
-                    w.is_sign_negative()
-                )
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(
+                    vector.sign_negative_mask(),
+                    Mask::from_fn(|i| vector[i].is_sign_negative())
+                );
+            }
         });
     }
 
     #[test]
     fn test_recip() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).recip(),
-                Vector::<2, T, A>::new(x.recip(), y.recip())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).recip(),
-                Vector::<3, T, A>::new(x.recip(), y.recip(), z.recip())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).recip(),
-                Vector::<4, T, A>::new(x.recip(), y.recip(), z.recip(), w.recip())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(vector.recip(), vector.map(T::recip));
+            }
         });
     }
 
     #[test]
     fn test_max() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::midpoint(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector, other] in random_iter::<[Vector<N, T, A>; 2]>() {
+                if vector.is_nan() || other.is_nan() {
+                    assert_debug_panic!(vector.max(other));
+                    continue;
+                }
 
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && !T::is_nan(w) {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).max(Vector::<2, T, A>::new(z, w)),
-                    Vector::<2, T, A>::new(x.max(z), y.max(w)),
+                assert_test_eq!(
+                    vector.max(other),
+                    Vector::from_fn(|i| vector[i].max(other[i])),
                     0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).max(Vector::<3, T, A>::new(z, w, y)),
-                    Vector::<3, T, A>::new(x.max(z), y.max(w), z.max(y)),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).max(Vector::<4, T, A>::new(z, w, y, x)),
-                    Vector::<4, T, A>::new(x.max(z), y.max(w), z.max(y), w.max(x)),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).max(Vector::<2, T, A>::new(z, w)));
-                assert_debug_panic!(
-                    Vector::<3, T, A>::new(x, y, z).max(Vector::<3, T, A>::new(z, w, y))
-                );
-                assert_debug_panic!(
-                    Vector::<4, T, A>::new(x, y, z, w).max(Vector::<4, T, A>::new(z, w, y, x))
                 );
             }
         });
@@ -2068,32 +1969,17 @@ mod tests {
 
     #[test]
     fn test_min() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::midpoint(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector, other] in random_iter::<[Vector<N, T, A>; 2]>() {
+                if vector.is_nan() || other.is_nan() {
+                    assert_debug_panic!(vector.min(other));
+                    continue;
+                }
 
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && !T::is_nan(w) {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).min(Vector::<2, T, A>::new(z, w)),
-                    Vector::<2, T, A>::new(x.min(z), y.min(w)),
+                assert_test_eq!(
+                    vector.min(other),
+                    Vector::from_fn(|i| vector[i].min(other[i])),
                     0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).min(Vector::<3, T, A>::new(z, w, y)),
-                    Vector::<3, T, A>::new(x.min(z), y.min(w), z.min(y)),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).min(Vector::<4, T, A>::new(z, w, y, x)),
-                    Vector::<4, T, A>::new(x.min(z), y.min(w), z.min(y), w.min(x)),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).min(Vector::<2, T, A>::new(z, w)));
-                assert_debug_panic!(
-                    Vector::<3, T, A>::new(x, y, z).min(Vector::<3, T, A>::new(z, w, y))
-                );
-                assert_debug_panic!(
-                    Vector::<4, T, A>::new(x, y, z, w).min(Vector::<4, T, A>::new(z, w, y, x))
                 );
             }
         });
@@ -2101,855 +1987,398 @@ mod tests {
 
     #[test]
     fn test_clamp() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::midpoint(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector, min, max] in random_iter::<[Vector<N, T, A>; 3]>() {
+                if vector.is_nan() || min.is_nan() || max.is_nan() || min.gt_mask(max).any() {
+                    assert_debug_panic!(vector.clamp(min, max));
+                }
 
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && z <= y && w <= z {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y)
-                        .clamp(Vector::<2, T, A>::new(z, w), Vector::<2, T, A>::new(y, z)),
-                    Vector::<2, T, A>::new(x.clamp(z, y), y.clamp(w, z)),
+                if vector.is_nan() || min.is_nan() || max.is_nan() {
+                    continue;
+                }
+                let max = max.max(min);
+
+                assert_test_eq!(
+                    vector.clamp(min, max),
+                    Vector::from_fn(|i| vector[i].clamp(min[i], max[i])),
                     0.0 = -0.0
                 );
-            } else {
-                assert_debug_panic!(
-                    Vector::<2, T, A>::new(x, y)
-                        .clamp(Vector::<2, T, A>::new(z, w), Vector::<2, T, A>::new(y, z))
-                );
-            }
-
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && z <= y && w <= z && y <= x {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).clamp(
-                        Vector::<3, T, A>::new(z, w, y),
-                        Vector::<3, T, A>::new(y, z, x)
-                    ),
-                    Vector::<3, T, A>::new(x.clamp(z, y), y.clamp(w, z), z.clamp(y, x)),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).clamp(
-                    Vector::<3, T, A>::new(z, w, y),
-                    Vector::<3, T, A>::new(y, z, x)
-                ));
-            }
-
-            if !T::is_nan(x)
-                && !T::is_nan(y)
-                && !T::is_nan(z)
-                && !T::is_nan(w)
-                && z <= y
-                && w <= z
-                && y <= x
-                && z <= x
-            {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).clamp(
-                        Vector::<4, T, A>::new(z, w, y, z),
-                        Vector::<4, T, A>::new(y, z, x, x)
-                    ),
-                    Vector::<4, T, A>::new(
-                        x.clamp(z, y),
-                        y.clamp(w, z),
-                        z.clamp(y, x),
-                        w.clamp(z, x)
-                    ),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).clamp(
-                    Vector::<4, T, A>::new(z, w, y, z),
-                    Vector::<4, T, A>::new(y, z, x, x)
-                ));
             }
         });
     }
 
     #[test]
     fn test_max_element() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::midpoint(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                if vector.is_nan() {
+                    assert_debug_panic!(vector.max_element());
+                    continue;
+                }
 
-            if !T::is_nan(x) && !T::is_nan(y) {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).max_element(),
-                    x.max(y),
+                assert_test_eq!(
+                    vector.max_element(),
+                    vector.iter().reduce(T::max).unwrap(),
                     0.0 = -0.0
                 );
-            } else {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).max_element());
-            }
-
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).max_element(),
-                    x.max(y).max(z),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).max_element());
-            }
-
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && !T::is_nan(w) {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).max_element(),
-                    x.max(y).max(z),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).max_element());
             }
         });
     }
 
     #[test]
     fn test_min_element() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::midpoint(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                if vector.is_nan() {
+                    assert_debug_panic!(vector.min_element());
+                    continue;
+                }
 
-            if !T::is_nan(x) && !T::is_nan(y) {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).min_element(),
-                    x.min(y),
+                assert_test_eq!(
+                    vector.min_element(),
+                    vector.iter().reduce(T::min).unwrap(),
                     0.0 = -0.0
                 );
-            } else {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).min_element());
-            }
-
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).min_element(),
-                    x.min(y).min(z),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).min_element());
-            }
-
-            if !T::is_nan(x) && !T::is_nan(y) && !T::is_nan(z) && !T::is_nan(w) {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).min_element(),
-                    x.min(y).min(z),
-                    0.0 = -0.0
-                );
-            } else {
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).min_element());
             }
         });
     }
 
     #[test]
     fn test_abs() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).abs(),
-                Vector::<2, T, A>::new(x.abs(), y.abs())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).abs(),
-                Vector::<3, T, A>::new(x.abs(), y.abs(), z.abs())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).abs(),
-                Vector::<4, T, A>::new(x.abs(), y.abs(), z.abs(), w.abs())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(vector.abs(), vector.map(T::abs));
+            }
         });
     }
 
     #[test]
     fn test_signum() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).signum(),
-                Vector::<2, T, A>::new(x.signum(), y.signum())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).signum(),
-                Vector::<3, T, A>::new(x.signum(), y.signum(), z.signum())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).signum(),
-                Vector::<4, T, A>::new(x.signum(), y.signum(), z.signum(), w.signum())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(vector.signum(), vector.map(T::signum));
+            }
         });
     }
 
     #[test]
     fn test_copysign() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).copysign(Vector::<2, T, A>::new(z, w)),
-                Vector::<2, T, A>::new(x.copysign(z), y.copysign(w)),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).copysign(Vector::<3, T, A>::new(z, w, y)),
-                Vector::<3, T, A>::new(x.copysign(z), y.copysign(w), z.copysign(y)),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).copysign(Vector::<4, T, A>::new(z, w, y, x)),
-                Vector::<4, T, A>::new(x.copysign(z), y.copysign(w), z.copysign(y), w.copysign(x)),
-                0.0 = -0.0
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector, sign] in random_iter::<[Vector<N, T, A>; 2]>() {
+                assert_test_eq!(
+                    vector.copysign(sign),
+                    Vector::from_fn(|i| vector[i].copysign(sign[i]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_floor() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).floor(),
-                Vector::<2, T, A>::new(x.floor(), y.floor())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).floor(),
-                Vector::<3, T, A>::new(x.floor(), y.floor(), z.floor())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).floor(),
-                Vector::<4, T, A>::new(x.floor(), y.floor(), z.floor(), w.floor())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [0.0, 0.1, 0.5, 0.7, 3.0, 3.1, 3.5, 3.7, 4.0, 4.1, 4.5, 4.7]
+                .into_iter()
+                .flat_map(|x| [x, -x])
+                .map(Vector::<N, T, A>::splat)
+                .chain(random_iter())
+            {
+                assert_test_eq!(vector.floor(), vector.map(T::floor));
+            }
         });
     }
 
     #[test]
     fn test_ceil() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).ceil(),
-                Vector::<2, T, A>::new(x.ceil(), y.ceil())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).ceil(),
-                Vector::<3, T, A>::new(x.ceil(), y.ceil(), z.ceil())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).ceil(),
-                Vector::<4, T, A>::new(x.ceil(), y.ceil(), z.ceil(), w.ceil())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [0.0, 0.1, 0.5, 0.7, 3.0, 3.1, 3.5, 3.7, 4.0, 4.1, 4.5, 4.7]
+                .into_iter()
+                .flat_map(|x| [x, -x])
+                .map(Vector::<N, T, A>::splat)
+                .chain(random_iter())
+            {
+                assert_test_eq!(vector.ceil(), vector.map(T::ceil));
+            }
         });
     }
 
     #[test]
     fn test_round() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).round(),
-                Vector::<2, T, A>::new(x.round(), y.round())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).round(),
-                Vector::<3, T, A>::new(x.round(), y.round(), z.round())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).round(),
-                Vector::<4, T, A>::new(x.round(), y.round(), z.round(), w.round())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [0.0, 0.1, 0.5, 0.7, 3.0, 3.1, 3.5, 3.7, 4.0, 4.1, 4.5, 4.7]
+                .into_iter()
+                .flat_map(|x| [x, -x])
+                .map(Vector::<N, T, A>::splat)
+                .chain(random_iter())
+            {
+                // TODO: The SSE implementation incorrectly behaves like
+                // `round_ties_even` instead of `round`. Either the behaviour
+                // or documentation needs to be changed.
+                assert!(
+                    test_eq!(vector.round(), vector.map(T::round))
+                        || test_eq!(vector.round(), vector.map(T::round_ties_even))
+                );
+            }
         });
     }
 
     #[test]
     fn test_trunc() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).trunc(),
-                Vector::<2, T, A>::new(x.trunc(), y.trunc())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).trunc(),
-                Vector::<3, T, A>::new(x.trunc(), y.trunc(), z.trunc())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).trunc(),
-                Vector::<4, T, A>::new(x.trunc(), y.trunc(), z.trunc(), w.trunc())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [0.0, 0.1, 0.5, 0.7, 3.0, 3.1, 3.5, 3.7, 4.0, 4.1, 4.5, 4.7]
+                .into_iter()
+                .flat_map(|x| [x, -x])
+                .map(Vector::<N, T, A>::splat)
+                .chain(random_iter())
+            {
+                assert_test_eq!(vector.trunc(), vector.map(T::trunc));
+            }
         });
     }
 
     #[test]
     fn test_fract() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).fract(),
-                Vector::<2, T, A>::new(x.fract(), y.fract())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).fract(),
-                Vector::<3, T, A>::new(x.fract(), y.fract(), z.fract())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).fract(),
-                Vector::<4, T, A>::new(x.fract(), y.fract(), z.fract(), w.fract())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [0.0, 0.1, 0.5, 0.7, 3.0, 3.1, 3.5, 3.7, 4.0, 4.1, 4.5, 4.7]
+                .into_iter()
+                .flat_map(|x| [x, -x])
+                .map(Vector::<N, T, A>::splat)
+                .chain(random_iter())
+            {
+                assert_test_eq!(vector.fract(), vector.map(T::fract));
+            }
         });
     }
 
     #[test]
     fn test_mul_add() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y)
-                    .mul_add(Vector::<2, T, A>::new(z, w), Vector::<2, T, A>::new(y, z)),
-                Vector::<2, T, A>::new(x.mul_add(z, y), y.mul_add(w, z))
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).mul_add(
-                    Vector::<3, T, A>::new(z, w, y),
-                    Vector::<3, T, A>::new(y, z, w)
-                ),
-                Vector::<3, T, A>::new(x.mul_add(z, y), y.mul_add(w, z), z.mul_add(y, w))
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).mul_add(
-                    Vector::<4, T, A>::new(z, w, y, x),
-                    Vector::<4, T, A>::new(y, z, w, y)
-                ),
-                Vector::<4, T, A>::new(
-                    x.mul_add(z, y),
-                    y.mul_add(w, z),
-                    z.mul_add(y, w),
-                    w.mul_add(x, y)
-                )
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector, a, b] in random_iter::<[Vector<N, T, A>; 3]>() {
+                assert_test_eq!(
+                    vector.mul_add(a, b),
+                    Vector::from_fn(|i| vector[i].mul_add(a[i], b[i]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_div_euclid() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).div_euclid(Vector::<2, T, A>::new(z, w)),
-                Vector::<2, T, A>::new(x.div_euclid(z), y.div_euclid(w))
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).div_euclid(Vector::<3, T, A>::new(z, w, y)),
-                Vector::<3, T, A>::new(x.div_euclid(z), y.div_euclid(w), z.div_euclid(y))
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).div_euclid(Vector::<4, T, A>::new(z, w, y, x)),
-                Vector::<4, T, A>::new(
-                    x.div_euclid(z),
-                    y.div_euclid(w),
-                    z.div_euclid(y),
-                    w.div_euclid(x)
-                )
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector_1, vector_2] in random_iter::<[Vector<N, T, A>; 2]>() {
+                assert_test_eq!(
+                    vector_1.div_euclid(vector_2),
+                    Vector::from_fn(|i| vector_1[i].div_euclid(vector_2[i]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_rem_euclid() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).rem_euclid(Vector::<2, T, A>::new(z, w)),
-                Vector::<2, T, A>::new(x.rem_euclid(z), y.rem_euclid(w))
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).rem_euclid(Vector::<3, T, A>::new(z, w, y)),
-                Vector::<3, T, A>::new(x.rem_euclid(z), y.rem_euclid(w), z.rem_euclid(y))
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).rem_euclid(Vector::<4, T, A>::new(z, w, y, x)),
-                Vector::<4, T, A>::new(
-                    x.rem_euclid(z),
-                    y.rem_euclid(w),
-                    z.rem_euclid(y),
-                    w.rem_euclid(x)
-                )
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector_1, vector_2] in random_iter::<[Vector<N, T, A>; 2]>() {
+                assert_test_eq!(
+                    vector_1.rem_euclid(vector_2),
+                    Vector::from_fn(|i| vector_1[i].rem_euclid(vector_2[i]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_sqrt() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).sqrt(),
-                Vector::<2, T, A>::new(x.sqrt(), y.sqrt())
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).sqrt(),
-                Vector::<3, T, A>::new(x.sqrt(), y.sqrt(), z.sqrt())
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).sqrt(),
-                Vector::<4, T, A>::new(x.sqrt(), y.sqrt(), z.sqrt(), w.sqrt())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(vector.sqrt(), vector.map(T::sqrt));
+            }
         });
     }
 
     #[test]
     fn test_exp() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).exp(),
-                Vector::<2, T, A>::new(x.exp(), y.exp()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).exp(),
-                Vector::<3, T, A>::new(x.exp(), y.exp(), z.exp()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).exp(),
-                Vector::<4, T, A>::new(x.exp(), y.exp(), z.exp(), w.exp()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.exp(),
+                    vector.map(T::exp),
+                    abs <= vector.map(T::exp).abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_exp2() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).exp2(),
-                Vector::<2, T, A>::new(x.exp2(), y.exp2()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).exp2(),
-                Vector::<3, T, A>::new(x.exp2(), y.exp2(), z.exp2()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).exp2(),
-                Vector::<4, T, A>::new(x.exp2(), y.exp2(), z.exp2(), w.exp2()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.exp2(),
+                    vector.map(T::exp2),
+                    abs <= vector.map(T::exp2).abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_ln() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).ln(),
-                Vector::<2, T, A>::new(x.ln(), y.ln()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).ln(),
-                Vector::<3, T, A>::new(x.ln(), y.ln(), z.ln()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).ln(),
-                Vector::<4, T, A>::new(x.ln(), y.ln(), z.ln(), w.ln()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.ln(),
+                    vector.map(T::ln),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_log2() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).log2(),
-                Vector::<2, T, A>::new(x.log2(), y.log2()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).log2(),
-                Vector::<3, T, A>::new(x.log2(), y.log2(), z.log2()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).log2(),
-                Vector::<4, T, A>::new(x.log2(), y.log2(), z.log2(), w.log2()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.log2(),
+                    vector.map(T::log2),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_sin() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).sin(),
-                Vector::<2, T, A>::new(x.sin(), y.sin()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).sin(),
-                Vector::<3, T, A>::new(x.sin(), y.sin(), z.sin()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).sin(),
-                Vector::<4, T, A>::new(x.sin(), y.sin(), z.sin(), w.sin()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.sin(),
+                    vector.map(T::sin),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_cos() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).cos(),
-                Vector::<2, T, A>::new(x.cos(), y.cos()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).cos(),
-                Vector::<3, T, A>::new(x.cos(), y.cos(), z.cos()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).cos(),
-                Vector::<4, T, A>::new(x.cos(), y.cos(), z.cos(), w.cos()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.cos(),
+                    vector.map(T::cos),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_tan() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).tan(),
-                Vector::<2, T, A>::new(x.tan(), y.tan()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).tan(),
-                Vector::<3, T, A>::new(x.tan(), y.tan(), z.tan()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).tan(),
-                Vector::<4, T, A>::new(x.tan(), y.tan(), z.tan(), w.tan()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.tan(),
+                    vector.map(T::tan),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_asin() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).asin(),
-                Vector::<2, T, A>::new(x.asin(), y.asin()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).asin(),
-                Vector::<3, T, A>::new(x.asin(), y.asin(), z.asin()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).asin(),
-                Vector::<4, T, A>::new(x.asin(), y.asin(), z.asin(), w.asin()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.asin(),
+                    vector.map(T::asin),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_acos() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).acos(),
-                Vector::<2, T, A>::new(x.acos(), y.acos()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).acos(),
-                Vector::<3, T, A>::new(x.acos(), y.acos(), z.acos()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).acos(),
-                Vector::<4, T, A>::new(x.acos(), y.acos(), z.acos(), w.acos()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.acos(),
+                    vector.map(T::acos),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_atan() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).atan(),
-                Vector::<2, T, A>::new(x.atan(), y.atan()),
-                abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).atan(),
-                Vector::<3, T, A>::new(x.atan(), y.atan(), z.atan()),
-                abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).atan(),
-                Vector::<4, T, A>::new(x.atan(), y.atan(), z.atan(), w.atan()),
-                abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.atan(),
+                    vector.map(T::atan),
+                    abs <= vector.abs() * 1e-5 + 1e-5
+                );
+            }
         });
     }
 
     #[test]
     fn test_sin_cos() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).sin_cos(),
-                (
-                    Vector::<2, T, A>::new(x.sin_cos().0, y.sin_cos().0),
-                    Vector::<2, T, A>::new(x.sin_cos().1, y.sin_cos().1)
-                ),
-                abs <= (
-                    Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5,
-                    Vector::<2, T, A>::new(x, y).abs() * 1e-5 + 1e-5
-                )
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).sin_cos(),
-                (
-                    Vector::<3, T, A>::new(x.sin_cos().0, y.sin_cos().0, z.sin_cos().0),
-                    Vector::<3, T, A>::new(x.sin_cos().1, y.sin_cos().1, z.sin_cos().1)
-                ),
-                abs <= (
-                    Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5,
-                    Vector::<3, T, A>::new(x, y, z).abs() * 1e-5 + 1e-5
-                )
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).sin_cos(),
-                (
-                    Vector::<4, T, A>::new(
-                        x.sin_cos().0,
-                        y.sin_cos().0,
-                        z.sin_cos().0,
-                        w.sin_cos().0
-                    ),
-                    Vector::<4, T, A>::new(
-                        x.sin_cos().1,
-                        y.sin_cos().1,
-                        z.sin_cos().1,
-                        w.sin_cos().1
-                    )
-                ),
-                abs <= (
-                    Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5,
-                    Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-5 + 1e-5
-                )
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_test_eq!(
+                    vector.sin_cos(),
+                    (vector.map(|x| x.sin_cos().0), vector.map(|x| x.sin_cos().1)),
+                    abs <= (vector.abs() * 1e-5 + 1e-5, vector.abs() * 1e-5 + 1e-5)
+                );
+            }
         });
     }
 
     #[test]
     fn test_lerp() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Vector<N, T, A>; 2]>() {
+                if !a.is_finite() || !b.is_finite() {
+                    continue;
+                }
 
-            if !T::is_finite(x) || !T::is_finite(y) || !T::is_finite(z) {
-                return;
+                assert_test_eq!(a.lerp(b, 0.0), a, 0.0 = -0.0);
+                assert_test_eq!(a.lerp(b, 0.5), a * 0.5 + b * 0.5, 0.0 = -0.0);
+                assert_test_eq!(a.lerp(b, 1.0), b, 0.0 = -0.0);
             }
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).lerp(Vector::<2, T, A>::new(z, w), 0.0),
-                Vector::<2, T, A>::new(x, y),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).lerp(Vector::<2, T, A>::new(z, w), 0.5),
-                Vector::<2, T, A>::new(x, y) * 0.5 + Vector::<2, T, A>::new(z, w) * 0.5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).lerp(Vector::<2, T, A>::new(z, w), 1.0),
-                Vector::<2, T, A>::new(z, w),
-                0.0 = -0.0
-            );
-
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).lerp(Vector::<3, T, A>::new(z, w, y), 0.0),
-                Vector::<3, T, A>::new(x, y, z),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).lerp(Vector::<3, T, A>::new(z, w, y), 0.5),
-                Vector::<3, T, A>::new(x, y, z) * 0.5 + Vector::<3, T, A>::new(z, w, y) * 0.5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).lerp(Vector::<3, T, A>::new(z, w, y), 1.0),
-                Vector::<3, T, A>::new(z, w, y),
-                0.0 = -0.0
-            );
-
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).lerp(Vector::<4, T, A>::new(z, w, y, x), 0.0),
-                Vector::<4, T, A>::new(x, y, z, w),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).lerp(Vector::<4, T, A>::new(z, w, y, x), 0.5),
-                Vector::<4, T, A>::new(x, y, z, w) * 0.5 + Vector::<4, T, A>::new(z, w, y, x) * 0.5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).lerp(Vector::<4, T, A>::new(z, w, y, x), 1.0),
-                Vector::<4, T, A>::new(z, w, y, x),
-                0.0 = -0.0
-            );
         });
     }
 
     #[test]
     fn test_midpoint() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).midpoint(Vector::<2, T, A>::new(z, w)),
-                (Vector::<2, T, A>::new(x, y) + Vector::<2, T, A>::new(z, w)) * 0.5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).midpoint(Vector::<3, T, A>::new(z, w, y)),
-                (Vector::<3, T, A>::new(x, y, z) + Vector::<3, T, A>::new(z, w, y)) * 0.5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).midpoint(Vector::<4, T, A>::new(z, w, y, x)),
-                (Vector::<4, T, A>::new(x, y, z, w) + Vector::<4, T, A>::new(z, w, y, x)) * 0.5,
-                0.0 = -0.0
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [a, b] in random_iter::<[Vector<N, T, A>; 2]>() {
+                assert_test_eq!(a.midpoint(b), (a + b) * 0.5, 0.0 = -0.0);
+            }
         });
     }
 
     #[test]
     fn test_move_towards() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector, target] in random_iter::<[Vector<N, T, A>; 2]>() {
+                if !vector.distance(target).is_finite() {
+                    continue;
+                }
 
-            if Vector::<2, T, A>::new(x, y)
-                .distance(Vector::<2, T, A>::new(z, w))
-                .is_finite()
-            {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).move_towards(Vector::<2, T, A>::new(z, w), 0.0),
-                    Vector::<2, T, A>::new(x, y),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).move_towards(Vector::<2, T, A>::new(z, w), T::MAX),
-                    Vector::<2, T, A>::new(z, w),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y)
-                        .move_towards(Vector::<2, T, A>::new(z, w), 1.0)
-                        .distance(Vector::<2, T, A>::new(z, w)),
-                    (Vector::<2, T, A>::new(x, y).distance(Vector::<2, T, A>::new(z, w)) - 1.0)
-                        .max(0.0),
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
-                    0.0 = -0.0
-                );
-            }
-
-            if Vector::<3, T, A>::new(x, y, z)
-                .distance(Vector::<3, T, A>::new(z, w, y))
-                .is_finite()
-            {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z)
-                        .move_towards(Vector::<3, T, A>::new(z, w, y), 0.0),
-                    Vector::<3, T, A>::new(x, y, z),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z)
-                        .move_towards(Vector::<3, T, A>::new(z, w, y), T::MAX),
-                    Vector::<3, T, A>::new(z, w, y),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z)
-                        .move_towards(Vector::<3, T, A>::new(z, w, y), 1.0)
-                        .distance(Vector::<3, T, A>::new(z, w, y)),
-                    (Vector::<3, T, A>::new(x, y, z).distance(Vector::<3, T, A>::new(z, w, y))
-                        - 1.0)
-                        .max(0.0),
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
-                    0.0 = -0.0
-                );
-            }
-
-            if Vector::<4, T, A>::new(x, y, z, w)
-                .distance(Vector::<4, T, A>::new(z, w, y, w))
-                .is_finite()
-            {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w)
-                        .move_towards(Vector::<4, T, A>::new(z, w, y, w), 0.0),
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w)
-                        .move_towards(Vector::<4, T, A>::new(z, w, y, w), T::MAX),
-                    Vector::<4, T, A>::new(z, w, y, w),
-                    0.0 = -0.0
-                );
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w)
-                        .move_towards(Vector::<4, T, A>::new(z, w, y, w), 1.0)
-                        .distance(Vector::<4, T, A>::new(z, w, y, w)),
-                    (Vector::<4, T, A>::new(x, y, z, w)
-                        .distance(Vector::<4, T, A>::new(z, w, y, w))
-                        - 1.0)
-                        .max(0.0),
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
+                if vector.distance(target) <= 1e-4 {
+                    assert_test_eq!(vector.move_towards(target, 0.0), target, 0.0 = -0.0);
+                } else {
+                    assert_test_eq!(vector.move_towards(target, 0.0), vector, 0.0 = -0.0);
+                }
+                assert_test_eq!(vector.move_towards(target, T::MAX), target, 0.0 = -0.0);
+                assert_test_eq!(
+                    vector.move_towards(target, 1.0).distance(target),
+                    (vector.distance(target) - 1.0).max(0.0),
+                    abs <= vector.abs().max_element().max(target.abs().max_element()) * 1e-5 + 1e-5,
                     0.0 = -0.0
                 );
             }
@@ -2958,222 +2387,99 @@ mod tests {
 
     #[test]
     fn test_slerp() {
-        for_parameters!(|T: PrimitiveFloat, A, t| {
-            let _: T = t;
-            let t = (t + 5.0) % 10.0 - 5.0;
-            let t = if t.is_finite() { t } else { 0.0 };
-
-            for (vector, other) in [
-                (
-                    Vector::<2, T, A>::new(1.0, 0.3),
-                    Vector::<2, T, A>::new(-1.5, 3.3),
-                ),
-                (
-                    Vector::<2, T, A>::new(-10.0, 5.3),
-                    Vector::<2, T, A>::new(1.5, 30.3),
-                ),
-                (
-                    Vector::<2, T, A>::new(1.0, 0.03),
-                    Vector::<2, T, A>::new(1.0, 0.0),
-                ),
-                (
-                    Vector::<2, T, A>::new(1.0, 0.03),
-                    Vector::<2, T, A>::new(20.0, 0.0),
-                ),
-                (
-                    Vector::<2, T, A>::new(1.0, 0.03),
-                    Vector::<2, T, A>::new(-1.0, 0.0),
-                ),
-                (
-                    Vector::<2, T, A>::new(1.0, 0.03),
-                    Vector::<2, T, A>::new(-20.0, 0.0),
-                ),
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for t in [
+                -4.9, -2.3, -1.1, -0.01, 0.0, 0.01, 0.34, 0.5, 0.74, 0.97, 1.0, 1.01, 2.3, 4.9,
             ] {
-                assert_float_eq!(
-                    vector.slerp(other, t).length(),
-                    vector.length().lerp(other.length(), t).abs(),
-                    abs <= vector.slerp(other, t).length() * 1e-2 + 1e-2
-                );
-                assert_float_eq!(
-                    vector
-                        .normalize()
-                        .slerp(other.normalize(), t)
-                        .angle_between(vector),
-                    T::PI - (vector.angle_between(other) * t.abs() % T::TAU - T::PI).abs(),
-                    abs <= 1e-2
-                );
-                assert_float_eq!(
-                    vector
-                        .normalize()
-                        .slerp(other.normalize(), t)
-                        .angle_between(other),
-                    T::PI - (vector.angle_between(other) * (1.0 - t).abs() % T::TAU - T::PI).abs(),
-                    abs <= 1e-2
-                );
-            }
-            assert_debug_panic!(Vector::<2, T, A>::ZERO.slerp(Vector::ONE, t));
-            assert_debug_panic!(Vector::<2, T, A>::ONE.slerp(Vector::ZERO, t));
+                assert_debug_panic!(Vector::<N, T, A>::ZERO.slerp(Vector::ONE, t));
+                assert_debug_panic!(Vector::<N, T, A>::ONE.slerp(Vector::ZERO, t));
 
-            for (vector, other) in [
-                (
-                    Vector::<3, T, A>::new(1.0, 0.3, 1.4),
-                    Vector::<3, T, A>::new(-1.5, 3.3, -0.3),
-                ),
-                (
-                    Vector::<3, T, A>::new(-10.0, 5.3, 3.0),
-                    Vector::<3, T, A>::new(1.5, 30.3, 1.3),
-                ),
-                (
-                    Vector::<3, T, A>::new(1.0, 0.03, 3.0),
-                    Vector::<3, T, A>::new(1.0, 0.0, 3.0001),
-                ),
-                (
-                    Vector::<3, T, A>::new(1.0, 0.03, 500.0),
-                    Vector::<3, T, A>::new(10.0, 0.0, 499.9),
-                ),
-                (
-                    Vector::<3, T, A>::new(1.0, 0.03, 3.0),
-                    Vector::<3, T, A>::new(1.0, 0.0, -3.0001),
-                ),
-                (
-                    Vector::<3, T, A>::new(1.0, 0.03, 500.0),
-                    Vector::<3, T, A>::new(1.0, 0.0, -499.9),
-                ),
-            ] {
-                assert_float_eq!(
-                    vector.slerp(other, t).length(),
-                    vector.length().lerp(other.length(), t).abs(),
-                    abs <= vector.slerp(other, t).length() * 1e-2 + 1e-2
-                );
-                assert_float_eq!(
-                    vector
-                        .normalize()
-                        .slerp(other.normalize(), t)
-                        .angle_between(vector),
-                    T::PI - (vector.angle_between(other) * t.abs() % T::TAU - T::PI).abs(),
-                    abs <= 1e-2
-                );
-                assert_float_eq!(
-                    vector
-                        .normalize()
-                        .slerp(other.normalize(), t)
-                        .angle_between(other),
-                    T::PI - (vector.angle_between(other) * (1.0 - t).abs() % T::TAU - T::PI).abs(),
-                    abs <= 1e-2
-                );
+                for [vector, other] in [
+                    [[1.0, 0.3, 1.4, -2.0], [-1.5, 3.3, -0.3, -0.1]],
+                    [[-10.0, 5.3, 3.0, 5.0], [1.5, 30.3, 1.3, -1.4]],
+                    [[1.0, 0.03, 3.0, 4.2], [1.0, 0.0, 3.0001, 4.2]],
+                    [[1.0, 0.03, 500.0, 2.0], [20.0, 0.0, 499.9, 2.0]],
+                    [[1.0, 0.03, 3.0, 4.2], [1.0, 0.0, -3.0001, 4.2]],
+                    [[1.0, 0.03, 500.0, 2.0], [20.0, 0.0, -499.9, 2.0]],
+                ]
+                .into_iter()
+                .map(|values| {
+                    values
+                        .map(|array| Vector::<N, T, A>::from_array(array[0..N].try_into().unwrap()))
+                }) {
+                    assert_test_eq!(
+                        vector.slerp(other, t).length(),
+                        vector.length().lerp(other.length(), t).abs(),
+                        abs <= vector.slerp(other, t).length() * 1e-2 + 1e-2
+                    );
+                    assert_test_eq!(
+                        vector
+                            .normalize()
+                            .slerp(other.normalize(), t)
+                            .angle_between(vector),
+                        T::PI - (vector.angle_between(other) * t.abs() % T::TAU - T::PI).abs(),
+                        abs <= 1e-2
+                    );
+                    assert_test_eq!(
+                        vector
+                            .normalize()
+                            .slerp(other.normalize(), t)
+                            .angle_between(other),
+                        T::PI
+                            - (vector.angle_between(other) * (1.0 - t).abs() % T::TAU - T::PI)
+                                .abs(),
+                        abs <= 1e-2
+                    );
+                }
             }
-            assert_debug_panic!(Vector::<3, T, A>::ZERO.slerp(Vector::ONE, t));
-            assert_debug_panic!(Vector::<3, T, A>::ONE.slerp(Vector::ZERO, t));
-
-            for (vector, other) in [
-                (
-                    Vector::<4, T, A>::new(1.0, 0.3, 1.4, -2.0),
-                    Vector::<4, T, A>::new(-1.5, 3.3, -0.3, -0.1),
-                ),
-                (
-                    Vector::<4, T, A>::new(-10.0, 5.3, 3.0, 5.0),
-                    Vector::<4, T, A>::new(1.5, 30.3, 1.3, -1.4),
-                ),
-                (
-                    Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
-                    Vector::<4, T, A>::new(1.0, 0.0, 3.0001, 4.2),
-                ),
-                (
-                    Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
-                    Vector::<4, T, A>::new(20.0, 0.0, 499.9, 2.0),
-                ),
-                (
-                    Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
-                    Vector::<4, T, A>::new(1.0, 0.0, -3.0001, 4.2),
-                ),
-                (
-                    Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
-                    Vector::<4, T, A>::new(20.0, 0.0, -499.9, 2.0),
-                ),
-            ] {
-                assert_float_eq!(
-                    vector.slerp(other, t).length(),
-                    vector.length().lerp(other.length(), t).abs(),
-                    abs <= vector.slerp(other, t).length() * 1e-2 + 1e-2
-                );
-                assert_float_eq!(
-                    vector
-                        .normalize()
-                        .slerp(other.normalize(), t)
-                        .angle_between(vector),
-                    T::PI - (vector.angle_between(other) * t.abs() % T::TAU - T::PI).abs(),
-                    abs <= 1e-2
-                );
-                assert_float_eq!(
-                    vector
-                        .normalize()
-                        .slerp(other.normalize(), t)
-                        .angle_between(other),
-                    T::PI - (vector.angle_between(other) * (1.0 - t).abs() % T::TAU - T::PI).abs(),
-                    abs <= 1e-2
-                );
-            }
-            assert_debug_panic!(Vector::<4, T, A>::ZERO.slerp(Vector::ONE, t));
-            assert_debug_panic!(Vector::<4, T, A>::ONE.slerp(Vector::ZERO, t));
         });
     }
 
     #[test]
     fn test_rotate_towards() {
-        for_parameters!(|T: PrimitiveFloat, A| {
+        for_types!(|N, T: PrimitiveFloat, A| {
             for max_angle in [0.0, 1.0, -1.0, 1.5, -1.5, 4.0, -4.0, 10.0, -1.0] {
-                for (vector, target) in [
-                    (
-                        Vector::<2, T, A>::new(1.0, 0.3),
-                        Vector::<2, T, A>::new(-1.5, 3.3),
-                    ),
-                    (
-                        Vector::<2, T, A>::new(-10.0, 5.3),
-                        Vector::<2, T, A>::new(1.5, 30.3),
-                    ),
-                    (
-                        Vector::<2, T, A>::new(1.0, 0.03),
-                        Vector::<2, T, A>::new(1.0, 0.0),
-                    ),
-                    (
-                        Vector::<2, T, A>::new(1.0, 0.03),
-                        Vector::<2, T, A>::new(20.0, 0.0),
-                    ),
-                    (
-                        Vector::<2, T, A>::new(1.0, 0.03),
-                        Vector::<2, T, A>::new(-1.0, 0.0),
-                    ),
-                    (
-                        Vector::<2, T, A>::new(1.0, 0.03),
-                        Vector::<2, T, A>::new(-20.0, 0.0),
-                    ),
-                ] {
-                    assert_float_eq!(
+                assert_debug_panic!(Vector::<N, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle));
+
+                for [vector, target] in [
+                    [[1.0, 0.3, 1.4, -2.0], [-1.5, 3.3, -0.3, -0.1]],
+                    [[-10.0, 5.3, 3.0, 5.0], [1.5, 30.3, 1.3, -1.4]],
+                    [[1.0, 0.03, 3.0, 4.2], [1.0, 0.0, 3.0001, 4.2]],
+                    [[1.0, 0.03, 500.0, 2.0], [20.0, 0.0, 499.9, 2.0]],
+                    [[1.0, 0.03, 3.0, 4.2], [1.0, 0.0, -3.0001, 4.2]],
+                    [[1.0, 0.03, 500.0, 2.0], [20.0, 0.0, -499.9, 2.0]],
+                ]
+                .map(|values| {
+                    values
+                        .map(|array| Vector::<N, T, A>::from_array(array[0..N].try_into().unwrap()))
+                }) {
+                    assert_test_eq!(
                         vector.rotate_towards(target, max_angle).length(),
                         vector.length(),
-                        r2nd <= 1e-2
+                        abs <= vector.length() * 1e-2
                     );
+
                     if max_angle >= vector.angle_between(target) {
-                        assert_float_eq!(
+                        assert_test_eq!(
                             vector.rotate_towards(target, max_angle),
                             target.normalize() * vector.length(),
-                            abs <= Vector::splat(1e-2)
+                            abs <= 1e-2
                         );
                     } else if max_angle <= vector.angle_between(target) - T::PI {
-                        assert_float_eq!(
+                        assert_test_eq!(
                             vector.rotate_towards(target, max_angle),
                             -target.normalize() * vector.length(),
-                            abs <= Vector::splat(1e-2)
+                            abs <= 1e-2
                         );
                     } else {
-                        assert_float_eq!(
+                        assert_test_eq!(
                             vector
                                 .rotate_towards(target, max_angle)
                                 .angle_between(vector),
                             max_angle.abs(),
                             abs <= 1e-2
                         );
-                        assert_float_eq!(
+                        assert_test_eq!(
                             vector
                                 .rotate_towards(target, max_angle)
                                 .angle_between(target),
@@ -3181,427 +2487,189 @@ mod tests {
                             abs <= 1e-2
                         );
                     }
-                    assert_float_eq!(
+
+                    assert_test_eq!(
                         vector.rotate_towards(target, -max_angle),
                         vector.rotate_towards(-target, max_angle),
-                        abs <= Vector::splat(1e-2)
+                        abs <= 1e-2
                     );
 
-                    assert_float_eq!(
-                        Vector::<2, T, A>::ZERO.rotate_towards(target, max_angle),
+                    assert_test_eq!(
+                        Vector::<N, T, A>::ZERO.rotate_towards(target, max_angle),
                         Vector::ZERO
                     );
                 }
-                assert_debug_panic!(Vector::<2, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle));
-
-                for (vector, target) in [
-                    (
-                        Vector::<3, T, A>::new(1.0, 0.3, 1.4),
-                        Vector::<3, T, A>::new(-1.5, 3.3, -0.3),
-                    ),
-                    (
-                        Vector::<3, T, A>::new(-10.0, 5.3, 3.0),
-                        Vector::<3, T, A>::new(1.5, 30.3, 1.3),
-                    ),
-                    (
-                        Vector::<3, T, A>::new(1.0, 0.03, 3.0),
-                        Vector::<3, T, A>::new(1.0, 0.0, 3.0001),
-                    ),
-                    (
-                        Vector::<3, T, A>::new(1.0, 0.03, 500.0),
-                        Vector::<3, T, A>::new(10.0, 0.0, 499.9),
-                    ),
-                    (
-                        Vector::<3, T, A>::new(1.0, 0.03, 3.0),
-                        Vector::<3, T, A>::new(1.0, 0.0, -3.0001),
-                    ),
-                    (
-                        Vector::<3, T, A>::new(1.0, 0.03, 500.0),
-                        Vector::<3, T, A>::new(1.0, 0.0, -499.9),
-                    ),
-                ] {
-                    assert_float_eq!(
-                        vector.rotate_towards(target, max_angle).length(),
-                        vector.length(),
-                        r2nd <= 1e-2
-                    );
-                    if max_angle >= vector.angle_between(target) {
-                        assert_float_eq!(
-                            vector.rotate_towards(target, max_angle),
-                            target.normalize() * vector.length(),
-                            abs <= Vector::splat(1e-2)
-                        );
-                    } else if max_angle <= vector.angle_between(target) - T::PI {
-                        assert_float_eq!(
-                            vector.rotate_towards(target, max_angle),
-                            -target.normalize() * vector.length(),
-                            abs <= Vector::splat(1e-2)
-                        );
-                    } else {
-                        assert_float_eq!(
-                            vector
-                                .rotate_towards(target, max_angle)
-                                .angle_between(vector),
-                            max_angle.abs(),
-                            abs <= 1e-2
-                        );
-                        assert_float_eq!(
-                            vector
-                                .rotate_towards(target, max_angle)
-                                .angle_between(target),
-                            vector.angle_between(target) - max_angle,
-                            abs <= 1e-2
-                        );
-                    }
-                    assert_float_eq!(
-                        vector.rotate_towards(target, -max_angle),
-                        vector.rotate_towards(-target, max_angle),
-                        abs <= Vector::splat(1e-2)
-                    );
-
-                    assert_float_eq!(
-                        Vector::<3, T, A>::ZERO.rotate_towards(target, max_angle),
-                        Vector::ZERO
-                    );
-                }
-                assert_debug_panic!(Vector::<3, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle));
-
-                for (vector, target) in [
-                    (
-                        Vector::<4, T, A>::new(1.0, 0.3, 1.4, -2.0),
-                        Vector::<4, T, A>::new(-1.5, 3.3, -0.3, -0.1),
-                    ),
-                    (
-                        Vector::<4, T, A>::new(-10.0, 5.3, 3.0, 5.0),
-                        Vector::<4, T, A>::new(1.5, 30.3, 1.3, -1.4),
-                    ),
-                    (
-                        Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
-                        Vector::<4, T, A>::new(1.0, 0.0, 3.0001, 4.2),
-                    ),
-                    (
-                        Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
-                        Vector::<4, T, A>::new(20.0, 0.0, 499.9, 2.0),
-                    ),
-                    (
-                        Vector::<4, T, A>::new(1.0, 0.03, 3.0, 4.2),
-                        Vector::<4, T, A>::new(1.0, 0.0, -3.0001, 4.2),
-                    ),
-                    (
-                        Vector::<4, T, A>::new(1.0, 0.03, 500.0, 2.0),
-                        Vector::<4, T, A>::new(20.0, 0.0, -499.9, 2.0),
-                    ),
-                ] {
-                    assert_float_eq!(
-                        vector.rotate_towards(target, max_angle).length(),
-                        vector.length(),
-                        r2nd <= 1e-2
-                    );
-                    if max_angle >= vector.angle_between(target) {
-                        assert_float_eq!(
-                            vector.rotate_towards(target, max_angle),
-                            target.normalize() * vector.length(),
-                            abs <= Vector::splat(1e-2)
-                        );
-                    } else if max_angle <= vector.angle_between(target) - T::PI {
-                        assert_float_eq!(
-                            vector.rotate_towards(target, max_angle),
-                            -target.normalize() * vector.length(),
-                            abs <= Vector::splat(1e-2)
-                        );
-                    } else {
-                        assert_float_eq!(
-                            vector
-                                .rotate_towards(target, max_angle)
-                                .angle_between(vector),
-                            max_angle.abs(),
-                            abs <= 1e-2
-                        );
-                        assert_float_eq!(
-                            vector
-                                .rotate_towards(target, max_angle)
-                                .angle_between(target),
-                            vector.angle_between(target) - max_angle,
-                            abs <= 1e-2
-                        );
-                    }
-                    assert_float_eq!(
-                        vector.rotate_towards(target, -max_angle),
-                        vector.rotate_towards(-target, max_angle),
-                        abs <= Vector::splat(1e-2)
-                    );
-
-                    assert_float_eq!(
-                        Vector::<4, T, A>::ZERO.rotate_towards(target, max_angle),
-                        Vector::ZERO
-                    );
-                }
-                assert_debug_panic!(Vector::<4, T, A>::ONE.rotate_towards(Vector::ZERO, max_angle));
             }
         });
     }
 
     #[test]
     fn test_length() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for vector in [
+                [0.0, 0.0],
+                [-0.0, -0.0],
+                [0.0, -0.0],
+                [-0.0, 0.0],
+                [1.3, 0.1],
+            ]
+            .into_iter()
+            .map(Vector::<2, T, A>::from_array)
+            .chain(random_iter())
+            {
+                let [x, y] = vector.to_array();
 
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).length(),
-                (x * x + y * y).sqrt()
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).length(),
-                (x * x + y * y + z * z).sqrt()
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).length(),
-                    (x * x + y * y + z * z + w * w).sqrt()
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).length(),
-                    (x * x + y * y + (z * z + w * w)).sqrt()
-                )
-            );
+                assert_test_eq!(vector.length(), (x * x + y * y).sqrt());
+            }
+
+            for vector in [
+                [0.0, 0.0, 0.0],
+                [-0.0, -0.0, -0.0],
+                [0.0, -0.0, -0.0],
+                [-0.0, 0.0, 0.0],
+                [1.3, 0.1, -0.3],
+            ]
+            .into_iter()
+            .map(Vector::<3, T, A>::from_array)
+            .chain(random_iter())
+            {
+                let [x, y, z] = vector.to_array();
+
+                assert_test_eq!(vector.length(), (x * x + y * y + z * z).sqrt());
+            }
+
+            for vector in [
+                [0.0, 0.0, 0.0, 0.0],
+                [-0.0, -0.0, -0.0, -0.0],
+                [0.0, 0.0, -0.0, -0.0],
+                [-0.0, -0.0, 0.0, 0.0],
+                [1.3, 0.1, -0.3, -0.1],
+            ]
+            .into_iter()
+            .map(Vector::<4, T, A>::from_array)
+            .chain(random_iter())
+            {
+                let [x, y, z, w] = vector.to_array();
+
+                assert_test_eq!(vector.length(), (x * x + y * y + (z * z + w * w)).sqrt());
+            }
         });
     }
 
     #[test]
     fn test_distance() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for [vector, other] in random_iter::<[Vector<2, T, A>; 2]>() {
+                let [x1, y1] = vector.to_array();
+                let [x2, y2] = other.to_array();
 
-            assert_float_eq!(
-                Vector::<2, T, A>::new(x, y).distance(Vector::<2, T, A>::new(z, w)),
-                ((x - z) * (x - z) + (y - w) * (y - w)).sqrt()
-            );
-            assert_float_eq!(
-                Vector::<3, T, A>::new(x, y, z).distance(Vector::<3, T, A>::new(z, w, y)),
-                ((x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y)).sqrt()
-            );
-            assert!(
-                float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).distance(Vector::<4, T, A>::new(z, w, y, z)),
-                    ((x - z) * (x - z) + (y - w) * (y - w) + (z - y) * (z - y) + (w - z) * (w - z))
+                assert_test_eq!(
+                    vector.distance(other),
+                    ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)).sqrt()
+                );
+            }
+
+            for [vector, other] in random_iter::<[Vector<3, T, A>; 2]>() {
+                let [x1, y1, z1] = vector.to_array();
+                let [x2, y2, z2] = other.to_array();
+
+                assert_test_eq!(
+                    vector.distance(other),
+                    ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2)).sqrt()
+                );
+            }
+
+            for [vector, other] in random_iter::<[Vector<4, T, A>; 2]>() {
+                let [x1, y1, z1, w1] = vector.to_array();
+                let [x2, y2, z2, w2] = other.to_array();
+
+                assert_test_eq!(
+                    vector.distance(other),
+                    (((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
+                        + ((z1 - z2) * (z1 - z2) + (w1 - w2) * (w1 - w2)))
                         .sqrt()
-                ) || float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).distance(Vector::<4, T, A>::new(z, w, y, z)),
-                    ((x - z) * (x - z)
-                        + (y - w) * (y - w)
-                        + ((z - y) * (z - y) + (w - z) * (w - z)))
-                        .sqrt()
-                )
-            );
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [Vector::<N, T, A>::ZERO].into_iter().chain(random_iter()) {
+                if !vector.length().is_finite() || !vector.length().recip().is_finite() {
+                    assert_debug_panic!(vector.normalize());
+                    continue;
+                }
 
-            if Vector::<2, T, A>::new(x, y).length() != 0.0
-                && Vector::<2, T, A>::new(x, y).length().is_finite()
-            {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize()
-                        * Vector::<2, T, A>::new(x, y).length(),
-                    Vector::<2, T, A>::new(x, y),
-                    abs <= Vector::<2, T, A>::new(x, y).abs() * 1e-7
+                assert_test_eq!(
+                    vector.normalize() * vector.length(),
+                    vector,
+                    abs <= vector.abs() * 1e-5 + 1e-5
                 );
-            } else {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).normalize());
-            }
-
-            if Vector::<3, T, A>::new(x, y, z).length() != 0.0
-                && Vector::<3, T, A>::new(x, y, z).length().is_finite()
-            {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize()
-                        * Vector::<3, T, A>::new(x, y, z).length(),
-                    Vector::<3, T, A>::new(x, y, z),
-                    abs <= Vector::<3, T, A>::new(x, y, z).abs() * 1e-7
-                );
-            } else {
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).normalize());
-            }
-
-            if Vector::<4, T, A>::new(x, y, z, w).length() != 0.0
-                && Vector::<4, T, A>::new(x, y, z, w).length().is_finite()
-            {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize()
-                        * Vector::<4, T, A>::new(x, y, z, w).length(),
-                    Vector::<4, T, A>::new(x, y, z, w),
-                    abs <= Vector::<4, T, A>::new(x, y, z, w).abs() * 1e-7
-                );
-            } else {
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).normalize());
             }
         });
     }
 
     #[test]
     fn test_try_normalize() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [Vector::<N, T, A>::ZERO].into_iter().chain(random_iter()) {
+                let Some(try_normalize) = vector.try_normalize() else {
+                    assert_debug_panic!(vector.normalize());
+                    continue;
+                };
 
-            if let Some(try_normalize) = Vector::<2, T, A>::new(x, y).try_normalize() {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize(),
-                    try_normalize,
-                    abs <= Vector::splat(1e-7)
+                assert_test_eq!(
+                    try_normalize * vector.length(),
+                    vector,
+                    abs <= vector.abs() * 1e-5 + 1e-5
                 );
-            } else {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).normalize());
-            }
-
-            if let Some(try_normalize) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize(),
-                    try_normalize,
-                    abs <= Vector::splat(1e-7)
-                );
-            } else {
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).normalize());
-            }
-
-            if let Some(try_normalize) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize(),
-                    try_normalize,
-                    abs <= Vector::splat(1e-7)
-                );
-            } else {
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).normalize());
             }
         });
     }
 
     #[test]
     fn test_normalize_or() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            let fallback = Vector::splat(2401.0);
+            for vector in [Vector::<N, T, A>::ZERO].into_iter().chain(random_iter()) {
+                let Some(try_normalize) = vector.try_normalize() else {
+                    assert_test_eq!(vector.normalize_or(fallback), fallback);
+                    continue;
+                };
 
-            if let Some(try_normalize) = Vector::<2, T, A>::new(x, y).try_normalize() {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize_or(Vector::NAN),
-                    try_normalize
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize_or(Vector::NAN),
-                    Vector::NAN
-                );
-            }
-
-            if let Some(try_normalize) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize_or(Vector::NAN),
-                    try_normalize
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize_or(Vector::NAN),
-                    Vector::NAN
-                );
-            }
-
-            if let Some(try_normalize) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize_or(Vector::NAN),
-                    try_normalize
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize_or(Vector::NAN),
-                    Vector::NAN
-                );
+                assert_test_eq!(vector.normalize_or(fallback), try_normalize);
             }
         });
     }
 
     #[test]
     fn test_normalize_or_zero() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [Vector::<N, T, A>::ZERO].into_iter().chain(random_iter()) {
+                let Some(try_normalize) = vector.try_normalize() else {
+                    assert_test_eq!(vector.normalize_or_zero(), Vector::ZERO);
+                    continue;
+                };
 
-            if let Some(try_normalize) = Vector::<2, T, A>::new(x, y).try_normalize() {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize_or_zero(),
-                    try_normalize
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize_or_zero(),
-                    Vector::ZERO
-                );
-            }
-
-            if let Some(try_normalize) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize_or_zero(),
-                    try_normalize
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize_or_zero(),
-                    Vector::ZERO
-                );
-            }
-
-            if let Some(try_normalize) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize_or_zero(),
-                    try_normalize
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize_or_zero(),
-                    Vector::ZERO
-                );
+                assert_test_eq!(vector.normalize_or_zero(), try_normalize);
             }
         });
     }
 
     #[test]
     fn test_normalize_and_length() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in [Vector::<N, T, A>::ZERO].into_iter().chain(random_iter()) {
+                let Some(try_normalize) = vector.try_normalize() else {
+                    assert_test_eq!(vector.normalize_and_length(), (Vector::ZERO, 0.0));
+                    continue;
+                };
 
-            if let Some(try_normalize) = Vector::<2, T, A>::new(x, y).try_normalize() {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize_and_length(),
-                    (try_normalize, Vector::<2, T, A>::new(x, y).length())
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).normalize_and_length(),
-                    (Vector::ZERO, 0.0)
-                );
-            }
-
-            if let Some(try_normalize) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize_and_length(),
-                    (try_normalize, Vector::<3, T, A>::new(x, y, z).length())
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).normalize_and_length(),
-                    (Vector::ZERO, 0.0)
-                );
-            }
-
-            if let Some(try_normalize) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize_and_length(),
-                    (try_normalize, Vector::<4, T, A>::new(x, y, z, w).length())
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize_and_length(),
-                    (Vector::ZERO, 0.0)
+                assert_test_eq!(
+                    vector.normalize_and_length(),
+                    (try_normalize, vector.length())
                 );
             }
         });
@@ -3609,338 +2677,196 @@ mod tests {
 
     #[test]
     fn test_is_normalized() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Vector::<2, T, A>::new(x, y).is_normalized(),
-                (1.0 - 1e-4..1.0 + 1e-4).contains(&(x * x + y * y).sqrt())
-            );
-            assert_eq!(
-                Vector::<3, T, A>::new(x, y, z).is_normalized(),
-                (1.0 - 1e-4..1.0 + 1e-4).contains(&(x * x + y * y + z * z).sqrt())
-            );
-            assert_eq!(
-                Vector::<4, T, A>::new(x, y, z, w).is_normalized(),
-                (1.0 - 1e-4..1.0 + 1e-4).contains(&(x * x + y * y + z * z + w * w).sqrt())
-            );
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(
+                    vector.is_normalized(),
+                    (1.0 - 1e-4..1.0 + 1e-4).contains(&vector.length())
+                );
+            }
         });
     }
 
     #[test]
     fn test_with_max_length() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = x + y;
-            let a = y + z;
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (vector, max_length) in random_iter::<(Vector<N, T, A>, T)>() {
+                if max_length < 0.0 {
+                    assert_debug_panic!(vector.with_max_length(max_length));
+                }
 
-            if !T::is_finite(x) || !T::is_finite(y) || !T::is_finite(z) {
-                return;
-            }
+                if vector.try_normalize().is_none() || !max_length.is_finite() {
+                    continue;
+                }
+                let max_length = max_length.abs();
 
-            if a < 0.0 {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).with_max_length(a));
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).with_max_length(a));
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).with_max_length(a));
-
-                return;
-            }
-
-            if (x * x + y * y).sqrt() <= a {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).with_max_length(a),
-                    Vector::<2, T, A>::new(x, y)
-                );
-            } else if let Some(normalize) = Vector::<2, T, A>::new(x, y).try_normalize() {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).with_max_length(a),
-                    normalize * a,
-                    abs <= normalize.abs() * a * 1e-6
-                );
-            }
-
-            if (x * x + y * y + z * z).sqrt() <= a {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).with_max_length(a),
-                    Vector::<3, T, A>::new(x, y, z)
-                );
-            } else if let Some(normalize) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).with_max_length(a),
-                    normalize * a,
-                    abs <= normalize.abs() * a * 1e-6
-                );
-            }
-
-            if (x * x + y * y + z * z + w * w).sqrt() <= a {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).with_max_length(a),
-                    Vector::<4, T, A>::new(x, y, z, w)
-                );
-            } else if let Some(normalize) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).with_max_length(a),
-                    normalize * a,
-                    abs <= normalize.abs() * a * 1e-6
-                );
+                if vector.length() <= max_length {
+                    assert_test_eq!(vector.with_max_length(max_length), vector);
+                } else {
+                    assert_test_eq!(
+                        vector.with_max_length(max_length),
+                        vector.normalize() * max_length,
+                        abs <= vector.normalize().abs() * max_length * 1e-6
+                    );
+                }
             }
         });
     }
 
     #[test]
     fn test_with_min_length() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-            let a = y.max(z);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (vector, min_length) in random_iter::<(Vector<N, T, A>, T)>() {
+                if min_length < 0.0 {
+                    assert_debug_panic!(vector.with_max_length(min_length));
+                }
 
-            if !x.is_finite() || !y.is_finite() || !z.is_finite() {
-                return;
-            }
+                if vector.try_normalize().is_none() || !min_length.is_finite() {
+                    continue;
+                }
+                let min_length = min_length.abs();
 
-            if a < 0.0 {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).with_min_length(a));
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).with_min_length(a));
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).with_min_length(a));
-
-                return;
-            }
-
-            if (x * x + y * y).sqrt() >= a {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).with_min_length(a),
-                    Vector::<2, T, A>::new(x, y)
-                );
-            } else if let Some(normalize) = Vector::<2, T, A>::new(x, y).try_normalize() {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).with_min_length(a),
-                    normalize * a,
-                    abs <= normalize.abs() * a * 1e-6
-                );
-            }
-
-            if (x * x + y * y + z * z).sqrt() >= a {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).with_min_length(a),
-                    Vector::<3, T, A>::new(x, y, z)
-                );
-            } else if let Some(normalize) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).with_min_length(a),
-                    normalize * a,
-                    abs <= normalize.abs() * a * 1e-6
-                );
-            }
-
-            if (x * x + y * y + z * z + w * w).sqrt() >= a {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).with_min_length(a),
-                    Vector::<4, T, A>::new(x, y, z, w)
-                );
-            } else if let Some(normalize) = Vector::<4, T, A>::new(x, y, z, w).try_normalize() {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).with_min_length(a),
-                    normalize * a,
-                    abs <= normalize.abs() * a * 1e-6
-                );
+                if vector.length() >= min_length {
+                    assert_test_eq!(vector.with_min_length(min_length), vector);
+                } else {
+                    assert_test_eq!(
+                        vector.with_min_length(min_length),
+                        vector.normalize() * min_length,
+                        abs <= vector.normalize().abs() * min_length * 1e-6
+                    );
+                }
             }
         });
     }
 
     #[test]
     fn test_clamp_length() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::midpoint(x, y);
-            let a = x.max(y);
-            let b = y.max(z);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for (vector, min_length, max_length) in random_iter::<(Vector<N, T, A>, T, T)>() {
+                if min_length < 0.0 || max_length < min_length {
+                    assert_debug_panic!(vector.clamp_length(min_length, max_length));
+                }
 
-            if !x.is_finite() || !y.is_finite() || !z.is_finite() {
-                return;
-            }
+                if vector.try_normalize().is_none()
+                    || !min_length.is_finite()
+                    || !max_length.is_finite()
+                {
+                    continue;
+                }
+                let min_length = min_length.abs();
+                let max_length = max_length.abs().max(min_length);
 
-            if a < 0.0 || b < a {
-                assert_debug_panic!(Vector::<2, T, A>::new(x, y).clamp_length(a, b));
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).clamp_length(a, b));
-                assert_debug_panic!(Vector::<4, T, A>::new(x, y, z, w).clamp_length(a, b));
-
-                return;
-            }
-
-            if (a..b).contains(&(x * x + y * y).sqrt()) {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).clamp_length(a, b),
-                    Vector::<2, T, A>::new(x, y)
-                );
-            } else if (x * x + y * y).sqrt() >= b {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).clamp_length(a, b),
-                    Vector::<2, T, A>::new(x, y).with_max_length(b)
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).clamp_length(a, b),
-                    Vector::<2, T, A>::new(x, y).with_min_length(a)
-                );
-            }
-
-            if (a..b).contains(&(x * x + y * y + z * z).sqrt()) {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).clamp_length(a, b),
-                    Vector::<3, T, A>::new(x, y, z)
-                );
-            } else if (x * x + y * y + z * z).sqrt() >= b {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).clamp_length(a, b),
-                    Vector::<3, T, A>::new(x, y, z).with_max_length(b)
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).clamp_length(a, b),
-                    Vector::<3, T, A>::new(x, y, z).with_min_length(a)
-                );
-            }
-
-            if (a..b).contains(&(x * x + y * y + z * z + w * w).sqrt()) {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).clamp_length(a, b),
-                    Vector::<4, T, A>::new(x, y, z, w)
-                );
-            } else if (x * x + y * y + z * z + w * w).sqrt() >= b {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).clamp_length(a, b),
-                    Vector::<4, T, A>::new(x, y, z, w).with_max_length(b)
-                );
-            } else {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w).clamp_length(a, b),
-                    Vector::<4, T, A>::new(x, y, z, w).with_min_length(a)
-                );
+                if (min_length..=max_length).contains(&vector.length()) {
+                    assert_test_eq!(vector.clamp_length(min_length, max_length), vector);
+                } else if vector.length() > max_length {
+                    assert_test_eq!(
+                        vector.clamp_length(min_length, max_length),
+                        vector.with_max_length(max_length)
+                    );
+                } else {
+                    assert_test_eq!(
+                        vector.clamp_length(min_length, max_length),
+                        vector.with_min_length(min_length)
+                    );
+                }
             }
         });
     }
 
     #[test]
     fn test_angle_between() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
-                Vector::<2, T, A>::new(1.0, 0.0).angle_between(Vector::<2, T, A>::new(1.0, 1.0)),
-                T::to_radians(45.0),
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Vector::<2, T, A>::X.angle_between(Vector::<2, T, A>::ONE),
+                (45.0 as T).to_radians(),
                 abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<2, T, A>::new(2.0, 0.0)
-                    .angle_between(Vector::<2, T, A>::new(1.0, T::sqrt(3.0))),
-                T::to_radians(60.0),
+                    .angle_between(Vector::<2, T, A>::new(1.0, (3.0 as T).sqrt())),
+                (60.0 as T).to_radians(),
                 abs <= 1e-5
             );
 
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(1.0, 0.0, 0.0)
                     .angle_between(Vector::<3, T, A>::new(1.0, 1.0, 0.0)),
-                T::to_radians(45.0),
+                (45.0 as T).to_radians(),
                 abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(2.0, 0.0, 0.0).angle_between(Vector::<3, T, A>::new(
                     1.0,
-                    T::sqrt(3.0),
+                    (3.0 as T).sqrt(),
                     0.0
                 )),
-                T::to_radians(60.0),
+                (60.0 as T).to_radians(),
                 abs <= 1e-5
             );
 
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(1.0, 0.0, 0.0, 0.0)
                     .angle_between(Vector::<4, T, A>::new(1.0, 1.0, 0.0, 0.0)),
-                T::to_radians(45.0),
+                (45.0 as T).to_radians(),
                 abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(2.0, 0.0, 0.0, 0.0).angle_between(Vector::<4, T, A>::new(
                     1.0,
-                    T::sqrt(3.0),
+                    (3.0 as T).sqrt(),
                     0.0,
                     0.0
                 )),
-                T::to_radians(60.0),
+                (60.0 as T).to_radians(),
                 abs <= 1e-5
             );
         });
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for [vector, other] in random_iter::<[Vector<N, T, A>; 2]>() {
+                if !vector.is_finite()
+                    || !other.is_finite()
+                    || vector == Vector::ZERO
+                    || other == Vector::ZERO
+                {
+                    continue;
+                }
 
-            if !T::is_finite(x * 2.0) || !T::is_finite(y * 2.0) || !T::is_finite(z * 2.0) {
-                return;
-            }
-
-            if (x != 0.0 || y != 0.0) && (z != 0.0 || w != 0.0) {
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).angle_between(Vector::<2, T, A>::new(x, y)),
+                assert_test_eq!(
+                    vector.angle_between(vector),
                     0.0,
-                    abs <= x.abs().max(y.abs()).max(T::abs(z)) * 1e-5
+                    abs <= vector
+                        .abs()
+                        .max_element()
+                        .max(vector.recip().abs().max_element())
+                        * 1e-5
                 );
-                assert_float_eq!(
-                    Vector::<2, T, A>::new(x, y).angle_between(Vector::<2, T, A>::new(-x, -y)),
-                    T::to_radians(180.0),
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5
+                assert_test_eq!(
+                    vector.angle_between(-vector),
+                    T::PI,
+                    abs <= vector
+                        .abs()
+                        .max_element()
+                        .max(vector.recip().abs().max_element())
+                        * 1e-5
                 );
-                assert!((0.0..=T::to_radians(180.0)).contains(
-                    &Vector::<2, T, A>::new(x, y).angle_between(Vector::<2, T, A>::new(z, w))
-                ));
-            }
-
-            if x != 0.0 || z != 0.0 || y != 0.0 && w != 0.0 {
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z).angle_between(Vector::<3, T, A>::new(x, y, z)),
-                    0.0,
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5
-                );
-                assert_float_eq!(
-                    Vector::<3, T, A>::new(x, y, z)
-                        .angle_between(Vector::<3, T, A>::new(-x, -y, -z)),
-                    T::to_radians(180.0),
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5
-                );
-                assert!((0.0..=T::to_radians(180.0)).contains(
-                    &Vector::<3, T, A>::new(x, y, z).angle_between(Vector::<3, T, A>::new(z, w, x))
-                ));
-            }
-
-            if z != 0.0 || w != 0.0 || x != 0.0 && y != 0.0 {
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w)
-                        .angle_between(Vector::<4, T, A>::new(x, y, z, w)),
-                    0.0,
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5
-                );
-                assert_float_eq!(
-                    Vector::<4, T, A>::new(x, y, z, w)
-                        .angle_between(Vector::<4, T, A>::new(-x, -y, -z, -w)),
-                    T::to_radians(180.0),
-                    abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5
-                );
-                assert!(
-                    (0.0..=T::to_radians(180.0)).contains(
-                        &Vector::<4, T, A>::new(x, y, z, w)
-                            .angle_between(Vector::<4, T, A>::new(z, w, x, y))
-                    )
-                );
+                assert!((0.0..=T::TAU / 2.0).contains(&vector.angle_between(other)));
             }
         });
     }
 
     #[test]
     fn test_project_onto() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<2, T, A>::new(4.0, 0.0).project_onto(Vector::<2, T, A>::new(1.0, 1.0)),
                 Vector::<2, T, A>::new(2.0, 2.0)
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(4.0, 0.0, 0.0)
                     .project_onto(Vector::<3, T, A>::new(1.0, 1.0, 0.0)),
                 Vector::<3, T, A>::new(2.0, 2.0, 0.0)
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0)
                     .project_onto(Vector::<4, T, A>::new(1.0, 1.0, 0.0, 0.0)),
                 Vector::<4, T, A>::new(2.0, 2.0, 0.0, 0.0)
@@ -3956,25 +2882,25 @@ mod tests {
 
     #[test]
     fn test_project_onto_normalized() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<2, T, A>::new(4.0, 0.0)
                     .project_onto_normalized(Vector::<2, T, A>::new(1.0, 1.0).normalize()),
                 Vector::<2, T, A>::new(2.0, 2.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(4.0, 0.0, 0.0)
                     .project_onto_normalized(Vector::<3, T, A>::new(1.0, 1.0, 0.0).normalize()),
                 Vector::<3, T, A>::new(2.0, 2.0, 0.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0).project_onto_normalized(
                     Vector::<4, T, A>::new(1.0, 1.0, 0.0, 0.0).normalize()
                 ),
                 Vector::<4, T, A>::new(2.0, 2.0, 0.0, 0.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
 
             assert_debug_panic!(
@@ -3991,17 +2917,17 @@ mod tests {
 
     #[test]
     fn test_reject_from() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<2, T, A>::new(4.0, 0.0).reject_from(Vector::<2, T, A>::new(1.0, 1.0)),
                 Vector::<2, T, A>::new(2.0, -2.0)
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(4.0, 0.0, 0.0)
                     .reject_from(Vector::<3, T, A>::new(1.0, 1.0, 0.0)),
                 Vector::<3, T, A>::new(2.0, -2.0, 0.0)
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0)
                     .reject_from(Vector::<4, T, A>::new(1.0, 1.0, 0.0, 0.0)),
                 Vector::<4, T, A>::new(2.0, -2.0, 0.0, 0.0)
@@ -4017,24 +2943,24 @@ mod tests {
 
     #[test]
     fn test_reject_from_normalized() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<2, T, A>::new(4.0, 0.0)
                     .reject_from_normalized(Vector::<2, T, A>::new(1.0, 1.0).normalize()),
                 Vector::<2, T, A>::new(2.0, -2.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(4.0, 0.0, 0.0)
                     .reject_from_normalized(Vector::<3, T, A>::new(1.0, 1.0, 0.0).normalize()),
                 Vector::<3, T, A>::new(2.0, -2.0, 0.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(4.0, 0.0, 0.0, 0.0)
                     .reject_from_normalized(Vector::<4, T, A>::new(1.0, 1.0, 0.0, 0.0).normalize()),
                 Vector::<4, T, A>::new(2.0, -2.0, 0.0, 0.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
 
             assert_debug_panic!(
@@ -4051,22 +2977,22 @@ mod tests {
 
     #[test]
     fn test_reflect() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<2, T, A>::new(3.0, 2.0).reflect(Vector::<2, T, A>::ONE.normalize()),
                 Vector::<2, T, A>::new(-2.0, -3.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(3.0, 2.0, 4.0).reflect(Vector::<3, T, A>::ONE.normalize()),
                 Vector::<3, T, A>::new(-3.0, -4.0, -2.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(3.0, 2.0, 4.0, 5.0)
                     .reflect(Vector::<4, T, A>::ONE.normalize()),
                 Vector::<4, T, A>::new(-4.0, -5.0, -3.0, -2.0),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
 
             assert_debug_panic!(Vector::<2, T, A>::new(3.0, 2.0).reflect(Vector::<2, T, A>::ONE));
@@ -4081,43 +3007,43 @@ mod tests {
 
     #[test]
     fn test_refract() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<2, T, A>::new(1.0, -T::sqrt(3.0))
                     .normalize()
                     .refract(Vector::<2, T, A>::Y, T::recip(1.5)),
                 Vector::<2, T, A>::new(1.0, -T::sqrt(8.0)).normalize(),
-                abs <= Vector::splat(1e-8)
+                abs <= 1e-8
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<2, T, A>::new(2.0, -T::sqrt(3.0))
                     .normalize()
                     .refract(Vector::<2, T, A>::Y, 1.5),
                 Vector::ZERO
             );
 
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(1.0, -T::sqrt(3.0), 0.0)
                     .normalize()
                     .refract(Vector::<3, T, A>::Y, T::recip(1.5)),
                 Vector::<3, T, A>::new(1.0, -T::sqrt(8.0), 0.0).normalize(),
-                abs <= Vector::splat(1e-8)
+                abs <= 1e-8
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(2.0, -T::sqrt(3.0), 0.0)
                     .normalize()
                     .refract(Vector::<3, T, A>::Y, 1.5),
                 Vector::ZERO
             );
 
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(1.0, -T::sqrt(3.0), 0.0, 0.0)
                     .normalize()
                     .refract(Vector::<4, T, A>::Y, T::recip(1.5)),
                 Vector::<4, T, A>::new(1.0, -T::sqrt(8.0), 0.0, 0.0).normalize(),
-                abs <= Vector::splat(1e-8)
+                abs <= 1e-8
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<4, T, A>::new(2.0, -T::sqrt(3.0), 0.0, 0.0)
                     .normalize()
                     .refract(Vector::<4, T, A>::Y, 1.5),
@@ -4158,27 +3084,20 @@ mod tests {
 
     #[test]
     fn test_any_orthogonal_vector() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x + y;
-
-            let vector = Vector::<2, T, A>::new(x, y);
-            assert_float_eq!(vector.any_orthogonal_vector(), vector.perp());
-            if vector != Vector::ZERO {
-                assert!(vector.any_orthogonal_vector() != Vector::ZERO);
+        for_types!(|T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<2, T, A>>() {
+                assert_test_eq!(vector.any_orthogonal_vector(), vector.perp());
             }
+        });
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                let vector = if vector.length().is_finite() {
+                    vector
+                } else {
+                    Vector::ZERO
+                };
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-            if vector.length().is_finite() {
-                assert_float_eq!(vector.any_orthogonal_vector().dot(vector), 0.0);
-                if vector != Vector::ZERO {
-                    assert!(vector.any_orthogonal_vector() != Vector::ZERO);
-                }
-            }
-
-            let vector = Vector::<4, T, A>::new(x, y, z, w);
-            if vector.length().is_finite() {
-                assert_float_eq!(vector.any_orthogonal_vector().dot(vector), 0.0);
+                assert_test_eq!(vector.any_orthogonal_vector().dot(vector), 0.0);
                 if vector != Vector::ZERO {
                     assert!(vector.any_orthogonal_vector() != Vector::ZERO);
                 }
@@ -4188,51 +3107,35 @@ mod tests {
 
     #[test]
     fn test_any_orthonormal_vector() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x * 0.3 + y * 0.1;
+        for_types!(|T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<2, T, A>>() {
+                let vector = vector.normalize_or(Vector::<2, T, A>::X).normalize();
 
-            let vector = Vector::<2, T, A>::new(x, y);
-            if let Some(vector) = vector.try_normalize() {
-                assert_float_eq!(vector.any_orthonormal_vector(), vector.perp());
+                assert_test_eq!(vector.any_orthonormal_vector(), vector.perp());
             }
-            if !vector.is_normalized() {
-                assert_debug_panic!(vector.any_orthonormal_vector());
-            }
+        });
+        for_types!(|N, T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                if !vector.is_normalized() {
+                    assert_debug_panic!(vector.any_orthonormal_vector());
+                }
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-            if let Some(vector) = vector.try_normalize() {
-                assert_float_eq!(
+                let vector = vector.normalize_or(Vector::<N, T, A>::ONE).normalize();
+
+                assert_test_eq!(
                     vector.any_orthonormal_vector().dot(vector),
                     0.0,
-                    abs <= 1e-5 * x.abs().max(y.abs()).max(z.abs()),
+                    abs <= 1e-5 * vector.abs().max_element(),
                     0.0 = -0.0
                 );
                 assert!(vector.any_orthonormal_vector().is_normalized());
-            }
-            if !vector.is_normalized() {
-                assert_debug_panic!(vector.any_orthonormal_vector());
-            }
-
-            let vector = Vector::<4, T, A>::new(x, y, z, w);
-            if let Some(vector) = vector.try_normalize() {
-                assert_float_eq!(
-                    vector.any_orthonormal_vector().dot(vector),
-                    0.0,
-                    abs <= 1e-5 * x.abs().max(y.abs()).max(z.abs()),
-                    0.0 = -0.0
-                );
-                assert!(vector.any_orthonormal_vector().is_normalized());
-            }
-            if !vector.is_normalized() {
-                assert_debug_panic!(vector.any_orthonormal_vector());
             }
         });
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|T: PrimitiveFloat| {
+        for_types!(|T: PrimitiveFloat| {
             assert!(Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.0, 1.0), 0.125));
             assert!(Vec2A::<T>::new(0.0, 1.0).abs_diff_eq(Vec2A::new(0.1, 0.9), 0.125));
             assert!(Vec2A::<T>::new(5.0, 1.0).abs_diff_eq(Vec2A::new(4.9, 1.0), 0.125));
@@ -4244,7 +3147,7 @@ mod tests {
 
     #[test]
     fn test_to_bits() {
-        for_parameters!(|T: PrimitiveFloat| {
+        for_types!(|T: PrimitiveFloat| {
             let vector = Vec3A::new(3.1, -0.0, T::NAN);
             assert_eq!(vector.to_bits(), vector.map(T::to_bits));
         });
@@ -4252,7 +3155,7 @@ mod tests {
 
     #[test]
     fn test_from_bits() {
-        for_parameters!(|T: PrimitiveFloat| {
+        for_types!(|T: PrimitiveFloat| {
             let vector = Vec3A::<T>::new(3.1, -0.0, T::NAN);
             assert_eq!(
                 Vec3A::<T>::from_bits(vector.to_bits()).to_bits(),
@@ -4263,19 +3166,25 @@ mod tests {
 
     #[test]
     fn test_angle_to() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-            let start = Vector::<2, T, A>::new(x, y);
-            let end = Vector::<2, T, A>::new(x * 1.3 + y, x + y * 0.1);
-            let angle = start.angle_to(end);
+        for_types!(|T: PrimitiveFloat, A| {
+            for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
+                if start.try_normalize().is_none() || end.try_normalize().is_none() {
+                    continue;
+                }
 
-            if let Some(start) = start.try_normalize()
-                && let Some(end) = end.try_normalize()
-            {
-                assert_float_eq!(
-                    start.rotate(angle),
-                    end,
-                    abs <= Vector::splat(1e-4) * x.abs().max(y.abs())
+                let result = start.angle_to(end);
+
+                assert_test_eq!(
+                    start.normalize().rotate(result),
+                    end.normalize(),
+                    abs <= start
+                        .length()
+                        .max(end.length())
+                        .max(start.length().recip())
+                        .max(end.length().recip())
+                        * 1e-5
+                        + 1e-3,
+                    0.0 = -0.0
                 );
             }
         });
@@ -4283,87 +3192,75 @@ mod tests {
 
     #[test]
     fn test_angle_from() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-            let start = Vector::<2, T, A>::new(x, y);
-            let end = Vector::<2, T, A>::new(x * 1.3 + y, x + y * 0.1);
-            let angle = end.angle_from(start);
-
-            if let Some(start) = start.try_normalize()
-                && let Some(end) = end.try_normalize()
-            {
-                assert_float_eq!(
-                    start.rotate(angle),
-                    end,
-                    abs <= Vector::splat(1e-4) * x.abs().max(y.abs())
-                );
+        for_types!(|T: PrimitiveFloat, A| {
+            for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
+                assert_test_eq!(end.angle_from(start), start.angle_to(end));
             }
         });
     }
 
     #[test]
     fn test_rotate() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<2, T, A>::X.rotate(T::to_radians(90.0)),
                 Vector::<2, T, A>::Y,
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<2, T, A>::Y.rotate(T::to_radians(90.0)),
                 Vector::<2, T, A>::NEG_X,
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<2, T, A>::NEG_X.rotate(T::to_radians(90.0)),
                 Vector::<2, T, A>::NEG_Y,
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<2, T, A>::NEG_Y.rotate(T::to_radians(90.0)),
                 Vector::<2, T, A>::X,
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<2, T, A>::new(2.0, 0.0).rotate(T::to_radians(45.0)),
                 Vector::<2, T, A>::new(2.0, 2.0).sqrt(),
-                abs <= Vector::splat(1e-5)
+                abs <= 1e-5
             );
         });
     }
 
     #[test]
     fn test_from_homogeneous() {
-        for_parameters!(|T: PrimitiveFloat, A, x| {
-            let _: T = x;
-            let [y, z, w] = [x + 1.0, x + 2.0, x + 3.0];
+        for_types!(|T: PrimitiveFloat, A| {
+            let homogeneous = Vector::<4, T, A>::new(0.3, 0.6, 0.1, 0.4);
 
-            assert_float_eq!(
-                Vector::<3, T, A>::from_homogeneous(Vector::<4, T, A>::new(x, y, z, w)),
-                Vector::<3, T, A>::new(x, y, z) / w
+            assert_test_eq!(
+                Vector::<3, T, A>::from_homogeneous(homogeneous),
+                homogeneous.xyz() / homogeneous.w
             );
         });
     }
 
     #[test]
     fn test_rotate_x() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<3, T, A>::X.rotate_x(T::to_radians(45.0)),
                 Vector::<3, T, A>::X,
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::Y.rotate_x(T::to_radians(90.0)),
                 Vector::<3, T, A>::Z,
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(0.0, -2.0, 0.0).rotate_x(T::to_radians(45.0)),
                 -Vector::<3, T, A>::new(0.0, 2.0, 2.0).sqrt(),
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
         });
@@ -4371,23 +3268,23 @@ mod tests {
 
     #[test]
     fn test_rotate_y() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<3, T, A>::Y.rotate_y(T::to_radians(45.0)),
                 Vector::<3, T, A>::Y,
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::Z.rotate_y(T::to_radians(90.0)),
                 Vector::<3, T, A>::X,
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(0.0, 0.0, -2.0).rotate_y(T::to_radians(45.0)),
                 -Vector::<3, T, A>::new(2.0, 0.0, 2.0).sqrt(),
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
         });
@@ -4395,23 +3292,23 @@ mod tests {
 
     #[test]
     fn test_rotate_z() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Vector::<3, T, A>::Z.rotate_z(T::to_radians(45.0)),
                 Vector::<3, T, A>::Z,
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::X.rotate_z(T::to_radians(90.0)),
                 Vector::<3, T, A>::Y,
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
-            assert_float_eq!(
+            assert_test_eq!(
                 Vector::<3, T, A>::new(-2.0, 0.0, 0.0).rotate_z(T::to_radians(45.0)),
                 -Vector::<3, T, A>::new(2.0, 2.0, 0.0).sqrt(),
-                abs <= Vector::splat(1e-5),
+                abs <= 1e-5,
                 0.0 = -0.0
             );
         });
@@ -4419,41 +3316,35 @@ mod tests {
 
     #[test]
     fn test_any_orthonormal_pair() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            if !T::is_finite(x * 2.0)
-                || !T::is_finite(y * 2.0)
-                || !T::is_finite(z * 2.0)
-                || x == 0.0 && y == 0.0 && z == 0.0
-            {
-                return;
-            }
+        for_types!(|T: PrimitiveFloat, A| {
+            for vector in random_iter::<Vector<3, T, A>>() {
+                if !vector.is_normalized() {
+                    assert_debug_panic!(vector.any_orthonormal_pair());
+                }
 
-            let result = Vector::<3, T, A>::new(x, y, z)
-                .normalize()
-                .any_orthonormal_pair();
-            assert_float_eq!(
-                result.0.dot(Vector::<3, T, A>::new(x, y, z)),
-                0.0,
-                abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                result.1.dot(Vector::<3, T, A>::new(x, y, z)),
-                0.0,
-                abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                result.0.dot(result.1),
-                0.0,
-                abs <= x.abs().max(y.abs()).max(z.abs()) * 1e-5,
-                0.0 = -0.0
-            );
-            assert!(result.0.is_normalized());
-            assert!(result.1.is_normalized());
+                let vector = vector.normalize_or(Vector::<3, T, A>::X).normalize();
 
-            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_debug_panic!(Vector::<3, T, A>::new(x, y, z).any_orthonormal_pair());
+                let pair = vector.any_orthonormal_pair();
+                assert_test_eq!(
+                    pair.0.dot(vector),
+                    0.0,
+                    abs <= vector.abs().max_element() * 1e-5,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    pair.1.dot(vector),
+                    0.0,
+                    abs <= vector.abs().max_element() * 1e-5,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    pair.0.dot(pair.1),
+                    0.0,
+                    abs <= vector.abs().max_element() * 1e-5,
+                    0.0 = -0.0
+                );
+                assert!(pair.0.is_normalized());
+                assert!(pair.1.is_normalized());
             }
         });
     }

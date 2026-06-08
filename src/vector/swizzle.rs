@@ -772,11 +772,11 @@ mod tests {
 
     use repetitive::repetitive;
 
-    use crate::{Vector, utils::for_parameters};
+    use crate::{Vector, utils::for_types};
 
     #[test]
-    fn test_swizzle2() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+    fn test_swizzle_2() {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             repetitive! {
@@ -803,8 +803,8 @@ mod tests {
     }
 
     #[test]
-    fn test_swizzle3() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+    fn test_swizzle_3() {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             repetitive! {
@@ -831,8 +831,8 @@ mod tests {
     }
 
     #[test]
-    fn test_swizzle4() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+    fn test_swizzle_4() {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             repetitive! {
@@ -864,8 +864,8 @@ mod tests {
     }
 
     #[test]
-    fn test_with_swizzle1() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+    fn test_with_swizzle_1() {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a] = std::array::from_fn(T::as_from);
 
             repetitive! {
@@ -904,8 +904,8 @@ mod tests {
     }
 
     #[test]
-    fn test_with_swizzle2() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+    fn test_with_swizzle_2() {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b] = std::array::from_fn(T::as_from);
 
             repetitive! {
@@ -956,8 +956,8 @@ mod tests {
     }
 
     #[test]
-    fn test_with_swizzle3() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+    fn test_with_swizzle_3() {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c] = std::array::from_fn(T::as_from);
 
             repetitive! {
@@ -996,8 +996,8 @@ mod tests {
     }
 
     #[test]
-    fn test_with_swizzle4() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+    fn test_with_swizzle_4() {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w, a, b, c, d] = std::array::from_fn(T::as_from);
 
             repetitive! {

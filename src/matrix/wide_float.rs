@@ -1791,327 +1791,211 @@ impl_wide_float!(f64x8, f64);
 
 #[cfg(test)]
 mod tests {
-    use wide::{CmpEq, CmpLe};
+    use wide::CmpLt;
 
     use crate::{
-        Matrix, Quaternion, Vector,
-        utils::{assert_float_eq, assert_float_eq_or_panic, assert_panic_float_eq, for_parameters},
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
+        utils::{
+            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
+        },
     };
 
     #[test]
     fn test_is_nan() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).is_nan(),
-                x.is_nan() | y.is_nan()
-            );
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).is_nan(),
-                x.is_nan() | y.is_nan() | z.is_nan()
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).is_nan(),
-                x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
-            );
+        for_types!(|Wide: WideFloat| {
+            for [x, y, z, w] in random_iter::<[Wide; 4]>() {
+                assert_test_eq!(
+                    Mat2::from_rows(&[x, y].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan()
+                );
+                assert_test_eq!(
+                    Mat3::from_rows(&[x, y, z].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan() | z.is_nan()
+                );
+                assert_test_eq!(
+                    Mat4::from_rows(&[x, y, z, w].map(Vector::splat)).is_nan(),
+                    x.is_nan() | y.is_nan() | z.is_nan() | w.is_nan()
+                );
+            }
         });
     }
 
     #[test]
     fn test_is_finite() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).is_finite(),
-                x.is_finite() & y.is_finite()
-            );
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).is_finite(),
-                x.is_finite() & y.is_finite() & z.is_finite()
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).is_finite(),
-                x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
-            );
+        for_types!(|Wide: WideFloat| {
+            for [x, y, z, w] in random_iter::<[Wide; 4]>() {
+                assert_test_eq!(
+                    Mat2::from_rows(&[x, y].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite()
+                );
+                assert_test_eq!(
+                    Mat3::from_rows(&[x, y, z].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite() & z.is_finite()
+                );
+                assert_test_eq!(
+                    Mat4::from_rows(&[x, y, z, w].map(Vector::splat)).is_finite(),
+                    x.is_finite() & y.is_finite() & z.is_finite() & w.is_finite()
+                );
+            }
         });
     }
 
     #[test]
     fn test_inverse() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-            let [i, j, k, l] = [c + d, c + e, d + f, f + g];
-
-            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
-            assert_float_eq_or_panic!(
-                matrix.inverse(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
-            );
-
-            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
-            assert_float_eq_or_panic!(
-                matrix.inverse(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
-            );
-
-            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
-                x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
-            ]);
-            assert_float_eq_or_panic!(
-                matrix.inverse(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq_or_panic!(
+                    matrix.inverse(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse())
+                );
+            }
         });
     }
 
     #[test]
     fn test_try_inverse() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-            let [i, j, k, l] = [c + d, c + e, d + f, f + g];
-
-            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
-            assert_panic_float_eq!(
-                matrix.try_inverse().unwrap(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
-            );
-
-            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
-            assert_panic_float_eq!(
-                matrix.try_inverse().unwrap(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
-            );
-
-            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
-                x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
-            ]);
-            assert_panic_float_eq!(
-                matrix.try_inverse().unwrap(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_panic_test_eq!(
+                    matrix.try_inverse().unwrap(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
+                );
+            }
         });
     }
 
     #[test]
     fn test_inverse_or() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-            let [i, j, k, l] = [c + d, c + e, d + f, f + g];
-
-            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
-            assert_float_eq!(
-                matrix.inverse_or(&Matrix::NAN),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or(&Matrix::NAN))
-            );
-
-            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
-            assert_float_eq!(
-                matrix.inverse_or(&Matrix::NAN),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or(&Matrix::NAN))
-            );
-
-            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
-                x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
-            ]);
-            assert_float_eq!(
-                matrix.inverse_or(&Matrix::NAN),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or(&Matrix::NAN))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for [matrix, fallback] in random_iter::<[Matrix<N, Wide, Unaligned>; 2]>() {
+                assert_test_eq!(
+                    matrix.inverse_or(&fallback),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or(&fallback.lane(lane)))
+                );
+            }
         });
     }
 
     #[test]
     fn test_inverse_or_zero() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-            let [i, j, k, l] = [c + d, c + e, d + f, f + g];
-
-            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
-            assert_float_eq!(
-                matrix.inverse_or_zero(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or_zero())
-            );
-
-            let matrix = Matrix::<3, Wide, A>::from_row_array(&[x, y, z, w, a, b, c, d, e]);
-            assert_float_eq!(
-                matrix.inverse_or_zero(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or_zero())
-            );
-
-            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
-                x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
-            ]);
-            assert_float_eq!(
-                matrix.inverse_or_zero(),
-                Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or_zero())
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    matrix.inverse_or_zero(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).inverse_or_zero())
+                );
+            }
         });
     }
 
     #[test]
     fn test_recip() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).recip(),
-                Matrix::from_rows(&[x, y].map(|x| Vector::<2, Wide, A>::splat(x).recip()))
-            );
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).recip(),
-                Matrix::from_rows(&[x, y, z].map(|x| Vector::<3, Wide, A>::splat(x).recip()))
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).recip(),
-                Matrix::from_rows(&[x, y, z, w].map(|x| Vector::<4, Wide, A>::splat(x).recip()))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    matrix.recip(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).recip())
+                );
+            }
         });
     }
 
     #[test]
     fn test_abs() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat)).abs(),
-                Matrix::from_rows(&[x, y].map(|x| Vector::<2, Wide, A>::splat(x).abs()))
-            );
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat)).abs(),
-                Matrix::from_rows(&[x, y, z].map(|x| Vector::<3, Wide, A>::splat(x).abs()))
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat)).abs(),
-                Matrix::from_rows(&[x, y, z, w].map(|x| Vector::<4, Wide, A>::splat(x).abs()))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
+                assert_test_eq!(
+                    matrix.abs(),
+                    Matrix::from_lane_fn(|lane| matrix.lane(lane).abs())
+                );
+            }
         });
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
-
-            let matrix = Matrix::<2, Wide, A>::from_rows(&[x, y].map(Vector::splat));
-            let other = Matrix::<2, Wide, A>::from_rows(&[z, w].map(Vector::splat));
-            assert_eq!(
-                matrix.abs_diff_eq(&other, Wide::ONE),
-                (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
-            );
-
-            let matrix = Matrix::<3, Wide, A>::from_rows(&[x, y, z].map(Vector::splat));
-            let other = Matrix::<3, Wide, A>::from_rows(&[z, w, x].map(Vector::splat));
-            assert_eq!(
-                matrix.abs_diff_eq(&other, Wide::ONE),
-                (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
-            );
-
-            let matrix = Matrix::<4, Wide, A>::from_rows(&[x, y, z, w].map(Vector::splat));
-            let other = Matrix::<4, Wide, A>::from_rows(&[z, w, x, y].map(Vector::splat));
-            assert_eq!(
-                matrix.abs_diff_eq(&other, Wide::ONE),
-                (0..LANES).all(|lane| matrix.lane(lane).abs_diff_eq(&other.lane(lane), 1.0))
-            );
+        for_types!(|N, Wide: WideFloat| {
+            for ([a, b], max_abs_diff) in random_iter::<([Matrix<N, Wide, Unaligned>; 2], Wide)>() {
+                assert_test_eq!(
+                    a.abs_diff_eq(&b, max_abs_diff),
+                    (0..LANES).all(|lane| a
+                        .lane(lane)
+                        .abs_diff_eq(&b.lane(lane), max_abs_diff.to_array()[lane]))
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_angle() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
-
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_angle(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<2, T, A>::from_angle(angle.to_array()[lane])),
-                r2nd <= Matrix::<2, Wide, A>::from_row_array(&[Wide::splat(1e-4); 4]) * angle.abs(),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_angle(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_angle(angle.to_array()[lane])),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat2::<Wide>::from_angle(angle),
+                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_angle(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    Mat3::<Wide>::from_angle(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_angle(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_scale_angle() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let x = x.abs().simd_le(Wide::splat(1e10)).blend(x, Wide::HALF);
-            let y = y.abs().simd_le(Wide::splat(1e10)).blend(y, Wide::HALF);
-            let scale = Vector::<2, Wide, A>::new(x, y);
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
+        for_types!(|Wide: WideFloat| {
+            for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
+                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
 
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_scale_angle(scale, angle),
-                Matrix::from_lane_fn(|lane| Matrix::<2, T, A>::from_scale_angle(
-                    scale.lane(lane),
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<2, Wide, A>::from_row_array(&[Wide::splat(1e-4); 4]) * angle.abs(),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_scale_angle(scale, angle),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_scale_angle(
-                    scale.lane(lane),
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
-                0.0 = -0.0
-            );
+                assert_test_eq!(
+                    Mat2::<Wide>::from_scale_angle(scale, angle),
+                    Mat2::from_lane_fn(|lane| Mat2::<T>::from_scale_angle(
+                        scale.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
+                assert_test_eq!(
+                    Mat3::<Wide>::from_scale_angle(scale, angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_angle(
+                        scale.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0,
+                    INFINITY = NAN
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_scale_angle() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let scale = Vector::<2, Wide, A>::new(x, y);
-
-            for matrix in [
-                Matrix::<2, Wide, A>::from_scale_angle(scale, angle),
-                Matrix::<2, Wide, A>::from_row_array(&[x, y, angle, -y]),
-            ] {
-                assert_float_eq_or_panic!(
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<Mat2<Wide>>().chain(
+                random_iter::<(Vec2<Wide>, Wide)>()
+                    .map(|(scale, angle)| Mat2::<Wide>::from_scale_angle(scale, angle)),
+            ) {
+                assert_test_eq_or_panic!(
                     matrix.to_scale_angle(),
                     (
-                        Vector::from_lane_fn(|lane| matrix.lane(lane).to_scale_angle().0),
-                        Wide::new(core::array::from_fn(|lane| matrix
+                        Vec2::from_lane_fn(|lane| matrix.lane(lane).to_scale_angle().0),
+                        Wide::new(std::array::from_fn(|lane| matrix
                             .lane(lane)
                             .to_scale_angle()
                             .1))
                     ),
-                    r2nd <= (Vector::ZERO, Wide::splat(1e-3))
+                    abs <= (
+                        matrix.to_scale_angle().0.abs() * Wide::splat(1e-4) + Wide::splat(1e-3),
+                        matrix.to_scale_angle().1.abs() * 1e-4 + 1e-3
+                    )
                 );
             }
         });
@@ -2119,156 +2003,112 @@ mod tests {
 
     #[test]
     fn test_from_angle_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
-            let translation = Vector::<2, Wide, A>::new(x, y);
-
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_angle_translation(angle, translation),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_angle_translation(
-                    angle.to_array()[lane],
-                    translation.lane(lane)
-                )),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for (angle, translation) in random_iter::<(Wide, Vec2<Wide>)>() {
+                assert_test_eq!(
+                    Mat3::<Wide>::from_angle_translation(angle, translation),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_angle_translation(
+                        angle.to_array()[lane],
+                        translation.lane(lane)
+                    )),
+                    abs <= angle.abs() * 1e-4,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_scale_angle_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let x = x.abs().simd_le(Wide::splat(1e10)).blend(x, Wide::HALF);
-            let y = y.abs().simd_le(Wide::splat(1e10)).blend(y, Wide::HALF);
-            let scale = Vector::<2, Wide, A>::new(x, y);
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
-            let translation = scale + Wide::splat(0.24);
+        for_types!(|Wide: WideFloat| {
+            for (scale, angle, translation) in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>() {
+                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
 
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_scale_angle_translation(scale, angle, translation),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_scale_angle_translation(
-                    scale.lane(lane),
-                    angle.to_array()[lane],
-                    translation.lane(lane)
-                )),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs(),
-                0.0 = -0.0
-            );
+                assert_test_eq!(
+                    Mat3::<Wide>::from_scale_angle_translation(scale, angle, translation),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_angle_translation(
+                        scale.lane(lane),
+                        angle.to_array()[lane],
+                        translation.lane(lane)
+                    )),
+                    abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_x() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
-
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_rotation_x(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_rotation_x(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs()
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_rotation_x(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_x(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
-                    * angle.abs()
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat3::<Wide>::from_rotation_x(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_x(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    Mat4::<Wide>::from_rotation_x(angle),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_rotation_x(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_y() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
-
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_rotation_y(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_rotation_y(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs()
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_rotation_y(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_y(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
-                    * angle.abs()
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat3::<Wide>::from_rotation_y(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_y(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    Mat4::<Wide>::from_rotation_y(angle),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_rotation_y(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_z() {
-        for_parameters!(|Wide: WideFloat, A, angle| {
-            let _: Wide = angle;
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
-
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_rotation_z(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_rotation_z(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9]) * angle.abs()
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_rotation_z(angle),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_z(
-                    angle.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
-                    * angle.abs()
-            );
+        for_types!(|Wide: WideFloat| {
+            for angle in random_iter::<Wide>() {
+                assert_test_eq!(
+                    Mat3::<Wide>::from_rotation_z(angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_rotation_z(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    Mat4::<Wide>::from_rotation_z(angle),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_rotation_z(angle.to_array()[lane])),
+                    abs <= angle.abs() * 1e-4 + 1e-3,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_quat() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + 0.5;
-
-            for quat in [
-                Quaternion::from_vector(
-                    Vector::<4, Wide, A>::new(x, y, z, w).normalize_or(Vector::W),
-                ),
-                Quaternion::from_xyzw(x, y, z, w),
-            ] {
-                assert_float_eq_or_panic!(
-                    Matrix::<3, Wide, A>::from_quat(quat),
-                    Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_quat(
-                        Quaternion::from_vector(quat.to_vector().lane(lane))
-                    ))
+        for_types!(|Wide: WideFloat| {
+            for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_quat(quat),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_quat(quat.lane(lane)))
                 );
-                assert_float_eq_or_panic!(
-                    Matrix::<4, Wide, A>::from_quat(quat),
-                    Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_quat(
-                        Quaternion::from_vector(quat.to_vector().lane(lane))
-                    ))
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::from_quat(quat),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_quat(quat.lane(lane)))
                 );
             }
         });
@@ -2276,100 +2116,95 @@ mod tests {
 
     #[test]
     fn test_from_axis_angle() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let axis = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let angle = x * 0.3 + y * 0.1 + 0.5;
-            let angle = angle
-                .abs()
-                .simd_le(Wide::splat(1e10))
-                .blend(angle, Wide::ZERO);
+        for_types!(|Wide: WideFloat| {
+            for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
+                .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
+            {
+                let condition =
+                    axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
+                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
+                let angle = condition.blend(angle, Wide::ONE);
 
-            let expected = Matrix::from_lane_fn(|lane| {
-                Matrix::<3, T, A>::from_axis_angle(axis.lane(lane), angle.to_array()[lane])
-            });
-            assert_float_eq_or_panic!(
-                Matrix::<3, Wide, A>::from_axis_angle(axis, angle),
-                expected,
-                abs <= expected.abs() * Wide::splat(1e-4) * angle.abs()
-                    + Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-2); 9])
-            );
-
-            let expected = Matrix::from_lane_fn(|lane| {
-                Matrix::<4, T, A>::from_axis_angle(axis.lane(lane), angle.to_array()[lane])
-            });
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::from_axis_angle(axis, angle),
-                expected,
-                abs <= expected.abs() * Wide::splat(1e-4) * angle.abs()
-                    + Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-2); 16])
-            );
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_axis_angle(axis, angle),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_axis_angle(
+                        axis.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= Mat3::<Wide>::from_axis_angle(axis, angle).abs()
+                        * axis.length().max(Wide::ONE)
+                        * angle.abs().max(Wide::ONE)
+                        * Wide::splat(1e-4)
+                        + Mat3::from_row_array(&[Wide::splat(1e-3); 9]),
+                    0.0 = -0.0
+                );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::from_axis_angle(axis, angle),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_axis_angle(
+                        axis.lane(lane),
+                        angle.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::from_axis_angle(axis, angle).abs()
+                        * axis.length().max(Wide::ONE)
+                        * angle.abs().max(Wide::ONE)
+                        * Wide::splat(1e-4)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16]),
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_euler() {
-        for_parameters!(|Wide: WideFloat, A, order, a, b| {
-            let _: [Wide; 2] = [a, b];
-            let c = a * 0.3 + b * 0.1 + 1.0;
-            let [a, b, c] = [
-                a.abs().simd_le(Wide::splat(1e10)).blend(a, Wide::ONE),
-                b.abs().simd_le(Wide::splat(1e10)).blend(b, Wide::ONE),
-                c.abs().simd_le(Wide::splat(1e10)).blend(c, Wide::ONE),
-            ];
-
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_euler(order, a, b, c),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_euler(
-                    order,
-                    a.to_array()[lane],
-                    b.to_array()[lane],
-                    c.to_array()[lane]
-                )),
-                r2nd <= Matrix::<3, Wide, A>::from_row_array(&[Wide::splat(1e-4); 9])
-                    * a.abs().max(b.abs()).max(c.abs()),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_euler(order, a, b, c),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_euler(
-                    order,
-                    a.to_array()[lane],
-                    b.to_array()[lane],
-                    c.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-4); 16])
-                    * a.abs().max(b.abs()).max(c.abs()),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[Wide; 3]>() {
+                    assert_test_eq!(
+                        Mat3::<Wide>::from_euler(order, a, b, c),
+                        Mat3::from_lane_fn(|lane| Mat3::<T>::from_euler(
+                            order,
+                            a.to_array()[lane],
+                            b.to_array()[lane],
+                            c.to_array()[lane]
+                        )),
+                        abs <= a.abs().max(b.abs()).max(c.abs()) * 1e-4,
+                        0.0 = -0.0
+                    );
+                    assert_test_eq!(
+                        Mat4::<Wide>::from_euler(order, a, b, c),
+                        Mat4::from_lane_fn(|lane| Mat4::<T>::from_euler(
+                            order,
+                            a.to_array()[lane],
+                            b.to_array()[lane],
+                            c.to_array()[lane]
+                        )),
+                        abs <= a.abs().max(b.abs()).max(c.abs()) * 1e-4,
+                        0.0 = -0.0
+                    );
+                }
+            }
         });
     }
 
     #[test]
     fn test_from_scale_rotation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-            let w = x * 0.3 + 0.5;
-
-            for rotation in [
-                Quaternion::from_vector(
-                    Vector::<4, Wide, A>::new(x, y, z, w).normalize_or(Vector::W),
-                ),
-                Quaternion::from_xyzw(x, y, z, w),
-            ] {
-                assert_float_eq_or_panic!(
-                    Matrix::<3, Wide, A>::from_scale_rotation(scale, rotation),
-                    Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::from_scale_rotation(
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation) in random_iter::<(Vec3<Wide>, Quat<Wide>)>()
+                .flat_map(|(scale, quat)| [(scale, quat), (scale, quat.normalize())])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::from_scale_rotation(scale, rotation),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::from_scale_rotation(
                         scale.lane(lane),
-                        Quaternion::from_vector(rotation.to_vector().lane(lane))
+                        rotation.lane(lane)
                     ))
                 );
-                assert_float_eq_or_panic!(
-                    Matrix::<4, Wide, A>::from_scale_rotation(scale, rotation),
-                    Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_scale_rotation(
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::from_scale_rotation(scale, rotation),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_scale_rotation(
                         scale.lane(lane),
-                        Quaternion::from_vector(rotation.to_vector().lane(lane))
+                        rotation.lane(lane)
                     ))
                 );
             }
@@ -2378,153 +2213,126 @@ mod tests {
 
     #[test]
     fn test_look_to_lh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let eye = Vector::<3, Wide, A>::new(x, y, z);
-            let dir = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Matrix::<3, Wide, A>::look_to_lh(dir, up),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_to_lh(
-                    dir.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::look_to_lh(eye, dir, up),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_to_lh(
-                    eye.lane(lane),
-                    dir.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, dir, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, dir, up]| [[eye, dir, up], [eye, dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_to_lh(dir, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_to_lh(dir.lane(lane), up.lane(lane)))
+                );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::look_to_lh(eye, dir, up),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::look_to_lh(
+                        eye.lane(lane),
+                        dir.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_to_rh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let eye = Vector::<3, Wide, A>::new(x, y, z);
-            let dir = Vector::<3, Wide, A>::new(x, y, z).normalize_or(Vector::<3, Wide, A>::Z);
-            let up = (dir * Wide::splat(0.4) + dir.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Matrix::<3, Wide, A>::look_to_rh(dir, up),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_to_rh(
-                    dir.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::look_to_rh(eye, dir, up),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_to_rh(
-                    eye.lane(lane),
-                    dir.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, dir, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, dir, up]| [[eye, dir, up], [eye, dir.normalize(), up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_to_rh(dir, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_to_rh(dir.lane(lane), up.lane(lane)))
+                );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::look_to_rh(eye, dir, up),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::look_to_rh(
+                        eye.lane(lane),
+                        dir.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_at_lh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let eye = Vector::<3, Wide, A>::new(x, y, z);
-            let center = Vector::<3, Wide, A>::new(x, y, z) + Wide::splat(0.8) + Wide::splat(0.3);
-            let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Matrix::<3, Wide, A>::look_at_lh(eye, center, up),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_at_lh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::look_at_lh(eye, center, up),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_at_lh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_at_lh(eye, center, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_at_lh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::look_at_lh(eye, center, up),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::look_at_lh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_look_at_rh() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let eye = Vector::<3, Wide, A>::new(x, y, z);
-            let center = Vector::<3, Wide, A>::new(x, y, z) + Wide::splat(0.8) + Wide::splat(0.3);
-            let up = (center * Wide::splat(0.4) + center.zxy().with_z(Wide::splat(0.3)))
-                .normalize_or(Vector::<3, Wide, A>::Y);
-
-            assert_float_eq_or_panic!(
-                Matrix::<3, Wide, A>::look_at_rh(eye, center, up),
-                Matrix::from_lane_fn(|lane| Matrix::<3, T, A>::look_at_rh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::look_at_rh(eye, center, up),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::look_at_rh(
-                    eye.lane(lane),
-                    center.lane(lane),
-                    up.lane(lane)
-                )),
-                0.0 = -0.0
-            );
+        for_types!(|Wide: WideFloat| {
+            for [eye, center, up] in random_iter::<[Vec3<Wide>; 3]>()
+                .flat_map(|[eye, center, up]| [[eye, center, up], [eye, center, up.normalize()]])
+            {
+                assert_test_eq_or_panic!(
+                    Mat3::<Wide>::look_at_rh(eye, center, up),
+                    Mat3::from_lane_fn(|lane| Mat3::<T>::look_at_rh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::look_at_rh(eye, center, up),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::look_at_rh(
+                        eye.lane(lane),
+                        center.lane(lane),
+                        up.lane(lane)
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_scale_angle_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, angle| {
-            let _: [Wide; 3] = [x, y, angle];
-            let scale = Vector::<2, Wide, A>::new(x, y);
-            let translation = Vector::<2, Wide, A>::new(y, x);
-
-            for matrix in [
-                Matrix::<3, Wide, A>::from_scale_angle_translation(scale, angle, translation),
-                Matrix::<3, Wide, A>::from_submatrix_translation(
-                    &Matrix::<2, Wide, A>::from_row_array(&[x, y, angle, -y]),
-                    translation,
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<Mat3<Wide>>().chain(
+                random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>().map(
+                    |(scale, angle, translation)| {
+                        Mat3::<Wide>::from_scale_angle_translation(scale, angle, translation)
+                    },
                 ),
-            ] {
-                assert_float_eq_or_panic!(
+            ) {
+                assert_test_eq_or_panic!(
                     matrix.to_scale_angle_translation(),
                     (
-                        Vector::from_lane_fn(|lane| matrix
-                            .lane(lane)
-                            .to_scale_angle_translation()
-                            .0),
-                        Wide::new(core::array::from_fn(|lane| matrix
+                        Vec2::from_lane_fn(|lane| matrix.lane(lane).to_scale_angle_translation().0),
+                        Wide::new(std::array::from_fn(|lane| matrix
                             .lane(lane)
                             .to_scale_angle_translation()
                             .1)),
-                        Vector::from_lane_fn(|lane| matrix
-                            .lane(lane)
-                            .to_scale_angle_translation()
-                            .2)
+                        Vec2::from_lane_fn(|lane| matrix.lane(lane).to_scale_angle_translation().2)
                     ),
-                    r2nd <= (Vector::ZERO, Wide::splat(1e-3), Vector::ZERO)
+                    abs <= (
+                        matrix.to_scale_angle_translation().0.abs() * Wide::splat(1e-4)
+                            + Wide::splat(1e-3),
+                        matrix.to_scale_angle_translation().1.abs() * 1e-4 + 1e-3,
+                        Vector::ZERO
+                    )
                 );
             }
         });
@@ -2532,71 +2340,70 @@ mod tests {
 
     #[test]
     fn test_to_euler() {
-        for_parameters!(|Wide: WideFloat, A, order, a, b| {
-            let _: [Wide; 2] = [a, b];
-            let c = a * 0.3 + b * 0.1 + 1.0;
+        for_types!(|Wide: WideFloat| {
+            for order in EulerRot::values() {
+                for matrix in random_iter::<Mat4<Wide>>().chain(
+                    random_iter::<[Wide; 3]>()
+                        .map(|[a, b, c]| Mat4::<Wide>::from_euler(order, a, b, c)),
+                ) {
+                    assert_test_eq_or_panic!(
+                        matrix.to_euler(order),
+                        (
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .0)),
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .1)),
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .2))
+                        ),
+                        abs <= (Wide::splat(1e-4), Wide::splat(1e-4), Wide::splat(1e-4)),
+                        0.0 = -0.0
+                    );
 
-            let matrix = Matrix::<3, Wide, A>::from_euler(order, a, b, c);
-            assert_float_eq_or_panic!(
-                matrix.to_euler(order),
-                (
-                    Wide::new(core::array::from_fn(|lane| matrix
-                        .lane(lane)
-                        .to_euler(order)
-                        .0)),
-                    Wide::new(core::array::from_fn(|lane| matrix
-                        .lane(lane)
-                        .to_euler(order)
-                        .1)),
-                    Wide::new(core::array::from_fn(|lane| matrix
-                        .lane(lane)
-                        .to_euler(order)
-                        .2))
-                ),
-                r2nd <= (Wide::splat(1e-5), Wide::splat(1e-5), Wide::splat(1e-5))
-            );
-
-            let matrix = Matrix::<4, Wide, A>::from_euler(order, a, b, c);
-            assert_float_eq_or_panic!(
-                matrix.to_euler(order),
-                (
-                    Wide::new(core::array::from_fn(|lane| matrix
-                        .lane(lane)
-                        .to_euler(order)
-                        .0)),
-                    Wide::new(core::array::from_fn(|lane| matrix
-                        .lane(lane)
-                        .to_euler(order)
-                        .1)),
-                    Wide::new(core::array::from_fn(|lane| matrix
-                        .lane(lane)
-                        .to_euler(order)
-                        .2))
-                ),
-                r2nd <= (Wide::splat(1e-5), Wide::splat(1e-5), Wide::splat(1e-5))
-            );
+                    let matrix = matrix.submatrix();
+                    assert_test_eq_or_panic!(
+                        matrix.to_euler(order),
+                        (
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .0)),
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .1)),
+                            Wide::new(std::array::from_fn(|lane| matrix
+                                .lane(lane)
+                                .to_euler(order)
+                                .2))
+                        ),
+                        abs <= (Wide::splat(1e-4), Wide::splat(1e-4), Wide::splat(1e-4)),
+                        0.0 = -0.0
+                    );
+                }
+            }
         });
     }
 
     #[test]
     fn test_to_scale_rotation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-            let w = x * 0.3 + 0.5;
-
-            for matrix in [
-                Matrix::<3, Wide, A>::from_scale_rotation(
-                    scale,
-                    Quaternion::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
-                ),
-                Matrix::<3, Wide, A>::from_row_array(&[x, y, scale.x, w, y, z, x, scale.y, w]),
-            ] {
-                assert_float_eq_or_panic!(
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<Mat3<Wide>>().chain(
+                random_iter::<(Vec3<Wide>, Quat<Wide>)>().map(|(scale, rotation)| {
+                    Mat3::<Wide>::from_scale_rotation(scale, rotation.normalize())
+                }),
+            ) {
+                assert_test_eq_or_panic!(
                     matrix.to_scale_rotation(),
                     (
-                        Vector::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
-                        Quaternion::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
+                        Vec3::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
+                        Quat::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
                     )
                 );
             }
@@ -2605,21 +2412,16 @@ mod tests {
 
     #[test]
     fn test_from_rotation_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x * 0.3 + 0.5;
-            let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-
-            for rotation in [
-                Quaternion::from_vector(
-                    Vector::<4, Wide, A>::new(x, y, z, w).normalize_or(Vector::W),
-                ),
-                Quaternion::from_xyzw(x, y, z, w),
-            ] {
-                assert_float_eq_or_panic!(
-                    Matrix::<4, Wide, A>::from_rotation_translation(rotation, translation),
-                    Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::from_rotation_translation(
-                        Quaternion::from_vector(rotation.to_vector().lane(lane)),
+        for_types!(|Wide: WideFloat| {
+            for (rotation, translation) in
+                random_iter::<(Quat<Wide>, Vec3<Wide>)>().flat_map(|(rotation, translation)| {
+                    [(rotation, translation), (rotation.normalize(), translation)]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::from_rotation_translation(rotation, translation),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_rotation_translation(
+                        rotation.lane(lane),
                         translation.lane(lane)
                     ))
                 );
@@ -2629,31 +2431,24 @@ mod tests {
 
     #[test]
     fn test_from_scale_rotation_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scale = Vector::<3, Wide, A>::new(x, y, z);
-            let w = x * 0.3 + 0.5;
-            let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-
-            for rotation in [
-                Quaternion::from_vector(
-                    Vector::<4, Wide, A>::new(x, y, z, w).normalize_or(Vector::W),
-                ),
-                Quaternion::from_xyzw(x, y, z, w),
-            ] {
-                assert_float_eq_or_panic!(
-                    Matrix::<4, Wide, A>::from_scale_rotation_translation(
-                        scale,
-                        rotation,
-                        translation
-                    ),
-                    Matrix::from_lane_fn(
-                        |lane| Matrix::<4, T, A>::from_scale_rotation_translation(
-                            scale.lane(lane),
-                            Quaternion::from_vector(rotation.to_vector().lane(lane)),
-                            translation.lane(lane)
-                        )
-                    )
+        for_types!(|Wide: WideFloat| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().flat_map(
+                    |(scale, rotation, translation)| {
+                        [
+                            (scale, rotation, translation),
+                            (scale, rotation.normalize(), translation),
+                        ]
+                    },
+                )
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::from_scale_rotation_translation(scale, rotation, translation),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::from_scale_rotation_translation(
+                        scale.lane(lane),
+                        rotation.lane(lane),
+                        translation.lane(lane)
+                    ))
                 );
             }
         });
@@ -2661,355 +2456,443 @@ mod tests {
 
     #[test]
     fn test_perspective_lh() {
-        for_parameters!(|Wide: WideFloat, A, vertical_fov, near_plane, far_plane| {
-            let _: [Wide; 3] = [vertical_fov, near_plane, far_plane];
-            let vertical_fov = (vertical_fov.simd_eq(Wide::ZERO) | !vertical_fov.is_finite())
-                .blend(Wide::ONE, vertical_fov);
-            let aspect_ratio = vertical_fov * 0.01 + 1.5;
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::perspective_lh(
-                    vertical_fov,
-                    aspect_ratio,
-                    near_plane,
-                    far_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::perspective_lh(
-                    vertical_fov.to_array()[lane],
-                    aspect_ratio.to_array()[lane],
-                    near_plane.to_array()[lane],
-                    far_plane.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
-                    * vertical_fov.abs()
-            );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::perspective_lh(vertical_fov, aspect_ratio, near_plane, far_plane),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::perspective_lh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::perspective_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
         });
     }
 
     #[test]
     fn test_perspective_rh() {
-        for_parameters!(|Wide: WideFloat, A, vertical_fov, near_plane, far_plane| {
-            let _: [Wide; 3] = [vertical_fov, near_plane, far_plane];
-            let vertical_fov = (vertical_fov.simd_eq(Wide::ZERO) | !vertical_fov.is_finite())
-                .blend(Wide::ONE, vertical_fov);
-            let aspect_ratio = vertical_fov * 0.01 + 1.5;
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::perspective_rh(
-                    vertical_fov,
-                    aspect_ratio,
-                    near_plane,
-                    far_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::perspective_rh(
-                    vertical_fov.to_array()[lane],
-                    aspect_ratio.to_array()[lane],
-                    near_plane.to_array()[lane],
-                    far_plane.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
-                    * vertical_fov.abs()
-            );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::perspective_rh(vertical_fov, aspect_ratio, near_plane, far_plane),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::perspective_rh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::perspective_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
         });
     }
 
     #[test]
     fn test_perspective_rh_gl() {
-        for_parameters!(|Wide: WideFloat, A, vertical_fov, near_plane, far_plane| {
-            let _: [Wide; 3] = [vertical_fov, near_plane, far_plane];
-            let vertical_fov = (vertical_fov.simd_eq(Wide::ZERO) | !vertical_fov.is_finite())
-                .blend(Wide::ONE, vertical_fov);
-            let aspect_ratio = vertical_fov * 0.01 + 1.5;
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::perspective_rh_gl(
-                    vertical_fov,
-                    aspect_ratio,
-                    near_plane,
-                    far_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::perspective_rh_gl(
-                    vertical_fov.to_array()[lane],
-                    aspect_ratio.to_array()[lane],
-                    near_plane.to_array()[lane],
-                    far_plane.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
-                    * vertical_fov.abs()
-            );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::perspective_rh_gl(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    ),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::perspective_rh_gl(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::perspective_rh_gl(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane,
+                        far_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
         });
     }
 
     #[test]
     fn test_perspective_infinite_lh() {
-        for_parameters!(|Wide: WideFloat, A, vertical_fov, near_plane| {
-            let _: [Wide; 2] = [vertical_fov, near_plane];
-            let vertical_fov = (vertical_fov.simd_eq(Wide::ZERO) | !vertical_fov.is_finite())
-                .blend(Wide::ONE, vertical_fov);
-            let aspect_ratio = vertical_fov * 0.01 + 1.5;
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::perspective_infinite_lh(
-                    vertical_fov,
-                    aspect_ratio,
-                    near_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::perspective_infinite_lh(
-                    vertical_fov.to_array()[lane],
-                    aspect_ratio.to_array()[lane],
-                    near_plane.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
-                    * vertical_fov.abs()
-            );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::perspective_infinite_lh(vertical_fov, aspect_ratio, near_plane),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::perspective_infinite_lh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::perspective_infinite_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
         });
     }
 
     #[test]
     fn test_perspective_infinite_rh() {
-        for_parameters!(|Wide: WideFloat, A, vertical_fov, near_plane| {
-            let _: [Wide; 2] = [vertical_fov, near_plane];
-            let vertical_fov = (vertical_fov.simd_eq(Wide::ZERO) | !vertical_fov.is_finite())
-                .blend(Wide::ONE, vertical_fov);
-            let aspect_ratio = vertical_fov * 0.01 + 1.5;
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::perspective_infinite_rh(
-                    vertical_fov,
-                    aspect_ratio,
-                    near_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::perspective_infinite_rh(
-                    vertical_fov.to_array()[lane],
-                    aspect_ratio.to_array()[lane],
-                    near_plane.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
-                    * vertical_fov.abs()
-            );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::perspective_infinite_rh(vertical_fov, aspect_ratio, near_plane),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::perspective_infinite_rh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::perspective_infinite_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
         });
     }
 
     #[test]
     fn test_perspective_infinite_reverse_lh() {
-        for_parameters!(|Wide: WideFloat, A, vertical_fov, near_plane| {
-            let _: [Wide; 2] = [vertical_fov, near_plane];
-            let vertical_fov = (vertical_fov.simd_eq(Wide::ZERO) | !vertical_fov.is_finite())
-                .blend(Wide::ONE, vertical_fov);
-            let aspect_ratio = vertical_fov * 0.01 + 1.5;
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::perspective_infinite_reverse_lh(
-                    vertical_fov,
-                    aspect_ratio,
-                    near_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::perspective_infinite_reverse_lh(
-                    vertical_fov.to_array()[lane],
-                    aspect_ratio.to_array()[lane],
-                    near_plane.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
-                    * vertical_fov.abs()
-            );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::perspective_infinite_reverse_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::perspective_infinite_reverse_lh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::perspective_infinite_reverse_lh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
         });
     }
 
     #[test]
     fn test_perspective_infinite_reverse_rh() {
-        for_parameters!(|Wide: WideFloat, A, vertical_fov, near_plane| {
-            let _: [Wide; 2] = [vertical_fov, near_plane];
-            let vertical_fov = (vertical_fov.simd_eq(Wide::ZERO) | !vertical_fov.is_finite())
-                .blend(Wide::ONE, vertical_fov);
-            let aspect_ratio = vertical_fov * 0.01 + 1.5;
+        for_types!(|Wide: WideFloat| {
+            for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::perspective_infinite_reverse_rh(
-                    vertical_fov,
-                    aspect_ratio,
-                    near_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::perspective_infinite_reverse_rh(
-                    vertical_fov.to_array()[lane],
-                    aspect_ratio.to_array()[lane],
-                    near_plane.to_array()[lane]
-                )),
-                r2nd <= Matrix::<4, Wide, A>::from_row_array(&[Wide::splat(1e-5); 16])
-                    * vertical_fov.abs()
-            );
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::perspective_infinite_reverse_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    ),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::perspective_infinite_reverse_rh(
+                        vertical_fov.to_array()[lane],
+                        aspect_ratio.to_array()[lane],
+                        near_plane.to_array()[lane]
+                    )),
+                    abs <= Mat4::<Wide>::perspective_infinite_reverse_rh(
+                        vertical_fov,
+                        aspect_ratio,
+                        near_plane
+                    )
+                    .abs()
+                        * Wide::splat(1e-3)
+                        + Mat4::from_row_array(&[Wide::splat(1e-3); 16])
+                );
+            }
         });
     }
 
     #[test]
     fn test_frustum_lh() {
-        for_parameters!(|Wide: WideFloat, A, left, right| {
-            let _: [Wide; 2] = [left, right];
-            let bottom = left * 0.7 + 0.3;
-            let top = right * 0.7 + 0.3;
-            let near_plane = bottom * 0.7 + 0.3;
-            let far_plane = top * 0.7 + 0.3;
-
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::frustum_lh(left, right, bottom, top, near_plane, far_plane),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::frustum_lh(
-                    left.to_array()[lane],
-                    right.to_array()[lane],
-                    bottom.to_array()[lane],
-                    top.to_array()[lane],
-                    near_plane.to_array()[lane],
-                    far_plane.to_array()[lane]
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near_plane, far_plane] in random_iter::<[Wide; 6]>()
+                .flat_map(|[left, right, bottom, top, near_plane, far_plane]| {
+                    [
+                        [left, right, bottom, top, near_plane, far_plane],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near_plane.min(far_plane),
+                            near_plane.max(far_plane),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::frustum_lh(left, right, bottom, top, near_plane, far_plane),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::frustum_lh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_frustum_rh() {
-        for_parameters!(|Wide: WideFloat, A, left, right| {
-            let _: [Wide; 2] = [left, right];
-            let bottom = left * 0.7 + 0.3;
-            let top = right * 0.7 + 0.3;
-            let near_plane = bottom * 0.7 + 0.3;
-            let far_plane = top * 0.7 + 0.3;
-
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::frustum_rh(left, right, bottom, top, near_plane, far_plane),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::frustum_rh(
-                    left.to_array()[lane],
-                    right.to_array()[lane],
-                    bottom.to_array()[lane],
-                    top.to_array()[lane],
-                    near_plane.to_array()[lane],
-                    far_plane.to_array()[lane]
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near_plane, far_plane] in random_iter::<[Wide; 6]>()
+                .flat_map(|[left, right, bottom, top, near_plane, far_plane]| {
+                    [
+                        [left, right, bottom, top, near_plane, far_plane],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near_plane.min(far_plane),
+                            near_plane.max(far_plane),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::frustum_rh(left, right, bottom, top, near_plane, far_plane),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::frustum_rh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_frustum_rh_gl() {
-        for_parameters!(|Wide: WideFloat, A, left, right| {
-            let _: [Wide; 2] = [left, right];
-            let bottom = left * 0.7 + 0.3;
-            let top = right * 0.7 + 0.3;
-            let near_plane = bottom * 0.7 + 0.3;
-            let far_plane = top * 0.7 + 0.3;
-
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::frustum_rh_gl(
-                    left, right, bottom, top, near_plane, far_plane
-                ),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::frustum_rh_gl(
-                    left.to_array()[lane],
-                    right.to_array()[lane],
-                    bottom.to_array()[lane],
-                    top.to_array()[lane],
-                    near_plane.to_array()[lane],
-                    far_plane.to_array()[lane]
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near_plane, far_plane] in random_iter::<[Wide; 6]>()
+                .flat_map(|[left, right, bottom, top, near_plane, far_plane]| {
+                    [
+                        [left, right, bottom, top, near_plane, far_plane],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near_plane.min(far_plane),
+                            near_plane.max(far_plane),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::frustum_rh_gl(left, right, bottom, top, near_plane, far_plane),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::frustum_rh_gl(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near_plane.to_array()[lane],
+                        far_plane.to_array()[lane]
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_orthographic_lh() {
-        for_parameters!(|Wide: WideFloat, A, left, right| {
-            let _: [Wide; 2] = [left, right];
-            let bottom = left * 0.7 + 0.3;
-            let top = right * 0.7 + 0.3;
-            let near = bottom * 0.7 + 0.3;
-            let far = top * 0.7 + 0.3;
-
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::orthographic_lh(left, right, bottom, top, near, far),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::orthographic_lh(
-                    left.to_array()[lane],
-                    right.to_array()[lane],
-                    bottom.to_array()[lane],
-                    top.to_array()[lane],
-                    near.to_array()[lane],
-                    far.to_array()[lane]
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near, far] in
+                random_iter::<[Wide; 6]>().flat_map(|[left, right, bottom, top, near, far]| {
+                    [
+                        [left, right, bottom, top, near, far],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near.min(far),
+                            near.max(far),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::orthographic_lh(left, right, bottom, top, near, far),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::orthographic_lh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near.to_array()[lane],
+                        far.to_array()[lane]
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_orthographic_rh() {
-        for_parameters!(|Wide: WideFloat, A, left, right| {
-            let _: [Wide; 2] = [left, right];
-            let bottom = left * 0.7 + 0.3;
-            let top = right * 0.7 + 0.3;
-            let near = bottom * 0.7 + 0.3;
-            let far = top * 0.7 + 0.3;
-
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::orthographic_rh(left, right, bottom, top, near, far),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::orthographic_rh(
-                    left.to_array()[lane],
-                    right.to_array()[lane],
-                    bottom.to_array()[lane],
-                    top.to_array()[lane],
-                    near.to_array()[lane],
-                    far.to_array()[lane]
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near, far] in
+                random_iter::<[Wide; 6]>().flat_map(|[left, right, bottom, top, near, far]| {
+                    [
+                        [left, right, bottom, top, near, far],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near.min(far),
+                            near.max(far),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::orthographic_rh(left, right, bottom, top, near, far),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::orthographic_rh(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near.to_array()[lane],
+                        far.to_array()[lane]
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_orthographic_rh_gl() {
-        for_parameters!(|Wide: WideFloat, A, left, right| {
-            let _: [Wide; 2] = [left, right];
-            let bottom = left * 0.7 + 0.3;
-            let top = right * 0.7 + 0.3;
-            let near = bottom * 0.7 + 0.3;
-            let far = top * 0.7 + 0.3;
-
-            assert_float_eq_or_panic!(
-                Matrix::<4, Wide, A>::orthographic_rh_gl(left, right, bottom, top, near, far),
-                Matrix::from_lane_fn(|lane| Matrix::<4, T, A>::orthographic_rh_gl(
-                    left.to_array()[lane],
-                    right.to_array()[lane],
-                    bottom.to_array()[lane],
-                    top.to_array()[lane],
-                    near.to_array()[lane],
-                    far.to_array()[lane]
-                ))
-            );
+        for_types!(|Wide: WideFloat| {
+            for [left, right, bottom, top, near, far] in
+                random_iter::<[Wide; 6]>().flat_map(|[left, right, bottom, top, near, far]| {
+                    [
+                        [left, right, bottom, top, near, far],
+                        [
+                            left.min(right),
+                            left.max(right),
+                            bottom.min(top),
+                            bottom.max(top),
+                            near.min(far),
+                            near.max(far),
+                        ],
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    Mat4::<Wide>::orthographic_rh_gl(left, right, bottom, top, near, far),
+                    Mat4::from_lane_fn(|lane| Mat4::<T>::orthographic_rh_gl(
+                        left.to_array()[lane],
+                        right.to_array()[lane],
+                        bottom.to_array()[lane],
+                        top.to_array()[lane],
+                        near.to_array()[lane],
+                        far.to_array()[lane]
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_scale_rotation_translation() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let scale = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.7);
-            let translation = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(0.6);
-            let w = x * 0.3 + 0.5;
-
-            for matrix in [
-                Matrix::<4, Wide, A>::from_scale_rotation_translation(
-                    scale,
-                    Quaternion::from_xyzw(x, y, z, w).normalize_or(Quaternion::IDENTITY),
-                    translation,
+        for_types!(|Wide: WideFloat| {
+            for matrix in random_iter::<Mat4<Wide>>().chain(
+                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().map(
+                    |(scale, rotation, translation)| {
+                        Mat4::<Wide>::from_scale_rotation_translation(
+                            scale,
+                            rotation.normalize(),
+                            translation,
+                        )
+                    },
                 ),
-                Matrix::<4, Wide, A>::from_submatrix(&Matrix::<3, Wide, A>::from_row_array(&[
-                    x, y, scale.x, w, y, z, x, scale.y, w,
-                ])),
-            ] {
-                assert_float_eq_or_panic!(
+            ) {
+                assert_test_eq_or_panic!(
                     matrix.to_scale_rotation_translation(),
                     (
-                        Vector::from_lane_fn(|lane| matrix
+                        Vec3::from_lane_fn(|lane| matrix
                             .lane(lane)
                             .to_scale_rotation_translation()
                             .0),
-                        Quaternion::from_lane_fn(|lane| matrix
+                        Quat::from_lane_fn(|lane| matrix
                             .lane(lane)
                             .to_scale_rotation_translation()
                             .1),
-                        Vector::from_lane_fn(|lane| matrix
+                        Vec3::from_lane_fn(|lane| matrix
                             .lane(lane)
                             .to_scale_rotation_translation()
                             .2)
@@ -3021,21 +2904,13 @@ mod tests {
 
     #[test]
     fn test_project_point() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let [w, a, b] = [x + y, x + z, y + z];
-            let [c, d, e] = [x * 1.3, y * 0.7, z * 1.1];
-            let [f, g, h] = [w * 2.1, a * 1.9, b * 1.6];
-            let [i, j, k, l] = [c + d, c + e, d + f, f + g];
-            let matrix = Matrix::<4, Wide, A>::from_row_array(&[
-                x, y, z, w, a, b, c, d, e, f, g, h, i, j, k, l,
-            ]);
-            let point = Vector::<3, Wide, A>::new(x, y, z) * Wide::splat(1.2);
-
-            assert_float_eq_or_panic!(
-                matrix.project_point(point),
-                Vector::from_lane_fn(|lane| matrix.lane(lane).project_point(point.lane(lane)))
-            );
+        for_types!(|Wide: WideFloat| {
+            for (matrix, point) in random_iter::<(Mat4<Wide>, Vec3<Wide>)>() {
+                assert_test_eq!(
+                    matrix.project_point(point),
+                    Vec3::from_lane_fn(|lane| matrix.lane(lane).project_point(point.lane(lane)))
+                );
+            }
         });
     }
 }

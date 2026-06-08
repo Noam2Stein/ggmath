@@ -30,11 +30,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{Vec3A, utils::for_parameters};
+    use crate::{Vec3A, utils::for_types};
 
     #[test]
     fn test_cast_signed() {
-        for_parameters!(|T: PrimitiveUnsigned| {
+        for_types!(|T: PrimitiveUnsigned| {
             let vector = Vec3A::<T>::new(1, T::MAX / 2, T::MAX);
             assert_eq!(vector.cast_signed(), vector.map(T::cast_signed));
         });

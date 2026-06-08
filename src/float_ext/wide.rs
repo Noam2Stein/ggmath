@@ -37,48 +37,44 @@ impl_wide_float!(f64x8);
 
 #[cfg(test)]
 mod tests {
+    use wide::f32x4;
+
     use crate::{
         FloatExt,
-        utils::{assert_float_eq, for_parameters},
+        utils::{assert_test_eq, random_iter},
     };
 
     #[test]
     fn test_lerp() {
-        for_parameters!(|Wide: WideFloat, value, other, t| {
-            let _: [Wide; 3] = [value, other, t];
-
-            assert_float_eq!(
+        for [value, other, t] in random_iter::<[f32x4; 3]>() {
+            assert_test_eq!(
                 value.lerp(other, t),
-                Wide::new(core::array::from_fn(
+                f32x4::new(core::array::from_fn(
                     |i| value.to_array()[i].lerp(other.to_array()[i], t.to_array()[i])
                 ))
             );
-        });
+        }
     }
 
     #[test]
     fn test_move_towards() {
-        for_parameters!(|Wide: WideFloat, value, target, max_delta| {
-            let _: [Wide; 3] = [value, target, max_delta];
-
-            assert_float_eq!(
+        for [value, target, max_delta] in random_iter::<[f32x4; 3]>() {
+            assert_test_eq!(
                 value.move_towards(target, max_delta),
-                Wide::new(core::array::from_fn(|i| value.to_array()[i]
+                f32x4::new(core::array::from_fn(|i| value.to_array()[i]
                     .move_towards(target.to_array()[i], max_delta.to_array()[i])))
             );
-        });
+        }
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|Wide: WideFloat, value, other, max_abs_diff| {
-            let _: [Wide; 3] = [value, other, max_abs_diff];
-
+        for [value, other, max_abs_diff] in random_iter::<[f32x4; 3]>() {
             assert_eq!(
                 value.abs_diff_eq(other, max_abs_diff),
-                (0..LANES).all(|i| value.to_array()[i]
+                (0..4).all(|i| value.to_array()[i]
                     .abs_diff_eq(other.to_array()[i], max_abs_diff.to_array()[i]))
             );
-        });
+        }
     }
 }

@@ -39,11 +39,10 @@ assert-impl-trait = "1.0.0"
 colored = "3.1.1"
 glam = "0.32.1"
 gungraun = "0.18.1"
-itertools = "0.14.0"
 num-primitive = "0.3.7"
 rand = "0.10.1"
 repetitive = "0.3.2"
-serde_json = "1.0.149"
+serde_json = "1.0.150"
 
 [profile.bench]
 lto = "fat"

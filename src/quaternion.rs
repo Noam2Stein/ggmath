@@ -733,12 +733,12 @@ mod tests {
 
     use crate::{
         Aligned, Matrix, Quaternion, Unaligned, Vector,
-        utils::{assert_float_eq, float_eq, for_parameters},
+        utils::{assert_test_eq, for_types, random_iter},
     };
 
     #[test]
     fn test_layout() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             assert_eq!(size_of::<Quaternion<T, A>>(), size_of::<Vector<4, T, A>>());
             assert_eq!(
                 align_of::<Quaternion<T, A>>(),
@@ -749,7 +749,7 @@ mod tests {
 
     #[test]
     fn test_identity() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             assert_eq!(
                 Quaternion::<T, A>::IDENTITY,
                 Quaternion::from_xyzw(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(1))
@@ -759,8 +759,8 @@ mod tests {
 
     #[test]
     fn test_nan() {
-        for_parameters!(|T: PrimitiveFloat, A| {
-            assert_float_eq!(
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
                 Quaternion::<T, A>::NAN,
                 Quaternion::from_xyzw(T::NAN, T::NAN, T::NAN, T::NAN)
             );
@@ -769,8 +769,8 @@ mod tests {
 
     #[test]
     fn test_from_array() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_array([x, y, z, w]),
@@ -781,7 +781,7 @@ mod tests {
 
     #[test]
     fn test_from_vector() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
@@ -793,8 +793,8 @@ mod tests {
 
     #[test]
     fn test_to_alignment() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).to_alignment(),
@@ -809,8 +809,8 @@ mod tests {
 
     #[test]
     fn test_align() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).align(),
@@ -821,8 +821,8 @@ mod tests {
 
     #[test]
     fn test_unalign() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).unalign(),
@@ -833,8 +833,8 @@ mod tests {
 
     #[test]
     fn test_to_array() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).to_array(),
@@ -845,8 +845,8 @@ mod tests {
 
     #[test]
     fn test_as_array_ref() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).as_array_ref(),
@@ -857,8 +857,8 @@ mod tests {
 
     #[test]
     fn test_as_array_mut() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).as_array_mut(),
@@ -869,8 +869,8 @@ mod tests {
 
     #[test]
     fn test_to_vector() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).to_vector(),
@@ -881,8 +881,8 @@ mod tests {
 
     #[test]
     fn test_as_vector_ref() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector_ref(),
@@ -893,8 +893,8 @@ mod tests {
 
     #[test]
     fn test_as_vector_mut() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).as_vector_mut(),
@@ -905,8 +905,8 @@ mod tests {
 
     #[test]
     fn test_xyz() {
-        for_parameters!(|T: PrimitiveNumber, A| {
-            let [x, y, z, w] = std::array::from_fn(T::as_from);
+        for_types!(|T: PrimitiveNumber, A| {
+            let [x, y, z, w] = std::array::from_fn(|i| T::as_from(i + 1));
 
             assert_eq!(
                 Quaternion::<T, A>::from_xyzw(x, y, z, w).xyz(),
@@ -917,62 +917,49 @@ mod tests {
 
     #[test]
     fn test_conjugate() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-            let [z, w] = [x + 1.0, y + 2.0];
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).conjugate(),
-                Quaternion::from_xyzw(-x, -y, -z, w)
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_test_eq!(
+                    quat.conjugate(),
+                    Quaternion::from_xyzw(-quat.x, -quat.y, -quat.z, quat.w)
+                );
+            }
         });
     }
 
     #[test]
     fn test_canonical() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-            let [z, w] = [x + 1.0, y + 2.0];
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>().filter(|quat| quat.is_finite()) {
+                let canonical = quat.canonical();
 
-            if !x.is_finite() || !y.is_finite() {
-                return;
+                assert_test_eq!(canonical, quat, quat = -quat);
+                assert!(canonical.w >= 0.0);
             }
-
-            let quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
-            assert!(float_eq!(quat.canonical(), quat) || float_eq!(quat.canonical(), -quat));
-            assert!(quat.canonical().w >= 0.0);
         });
     }
 
     #[test]
     fn test_dot() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x.max(y);
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).dot(Quaternion::from_xyzw(y, z, w, x)),
-                Vector::<4, T, A>::new(x, y, z, w).dot(Vector::<4, T, A>::new(y, z, w, x))
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_1, quat_2] in random_iter::<[Quaternion<T, A>; 2]>() {
+                assert_test_eq!(quat_1.dot(quat_2), quat_1.0.dot(quat_2.0));
+            }
         });
     }
 
     #[test]
     fn test_length_squared() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
-            let [z, w] = [x + 1.0, y + 2.0];
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).length_squared(),
-                Vector::<4, T, A>::new(x, y, z, w).length_squared()
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_test_eq!(quat.length_squared(), quat.0.length_squared());
+            }
         });
     }
 
     #[test]
     fn test_deref() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(Quaternion::<T, A>::from_xyzw(x, y, z, w).x, x);
@@ -984,7 +971,7 @@ mod tests {
 
     #[test]
     fn test_deref_mut() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             let [mut x, mut y, mut z, mut w] = std::array::from_fn(T::as_from);
 
             assert_eq!(&mut Quaternion::<T, A>::from_xyzw(x, y, z, w).x, &mut x);
@@ -996,7 +983,7 @@ mod tests {
 
     #[test]
     fn test_debug() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
@@ -1008,7 +995,7 @@ mod tests {
 
     #[test]
     fn test_display() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             let [x, y, z, w] = std::array::from_fn(T::as_from);
 
             assert_eq!(
@@ -1020,230 +1007,275 @@ mod tests {
 
     #[test]
     fn test_eq() {
-        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
-            let w = if x > y { x } else { y };
-
-            assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w)
-                    == Quaternion::<T, A>::from_xyzw(z, w, y, x),
-                x == z && y == w && z == y && w == x
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_1, quat_2] in random_iter::<[Quaternion<T, A>; 2]>()
+                .take(10)
+                .chain(random_iter().take(10).map(|quat| [quat; 2]))
+                .chain(random_iter::<[T; 4]>().take(10).map(|[x, y, z, w]| {
+                    [
+                        Quaternion::from_xyzw(x, y, z, w),
+                        Quaternion::from_xyzw(x.max(y), y.max(z), z.max(w), w.max(x)),
+                    ]
+                }))
+            {
+                assert_eq!(
+                    quat_1 == quat_2,
+                    quat_1.x == quat_2.x
+                        && quat_1.y == quat_2.y
+                        && quat_1.z == quat_2.z
+                        && quat_1.w == quat_2.w
+                );
+            }
         });
     }
 
     #[test]
     fn test_ne() {
-        for_parameters!(|T: PrimitiveNumber, A, x, y, z| {
-            let w = if x > y { x } else { y };
-
-            assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w)
-                    != Quaternion::<T, A>::from_xyzw(z, w, y, x),
-                x != z || y != w || z != y || w != x
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_1, quat_2] in random_iter::<[Quaternion<T, A>; 2]>()
+                .take(10)
+                .chain(random_iter().take(10).map(|quat| [quat; 2]))
+                .chain(random_iter::<[T; 4]>().take(10).map(|[x, y, z, w]| {
+                    [
+                        Quaternion::from_xyzw(x, y, z, w),
+                        Quaternion::from_xyzw(x.max(y), y.max(z), z.max(w), w.max(x)),
+                    ]
+                }))
+            {
+                assert_eq!(
+                    quat_1 != quat_2,
+                    quat_1.x != quat_2.x
+                        || quat_1.y != quat_2.y
+                        || quat_1.z != quat_2.z
+                        || quat_1.w != quat_2.w
+                );
+            }
         });
     }
 
     #[test]
     fn test_default() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             assert_eq!(Quaternion::<T, A>::default(), Quaternion::IDENTITY);
         });
     }
 
     #[test]
     fn test_neg() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                -Quaternion::<T, A>::from_xyzw(x, y, z, w),
-                Quaternion::from_xyzw(-x, -y, -z, -w)
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_test_eq!(
+                    -quat,
+                    Quaternion::from_xyzw(-quat.x, -quat.y, -quat.z, -quat.w)
+                );
+            }
         });
     }
 
     #[test]
     fn test_add() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w)
-                    + Quaternion::<T, A>::from_xyzw(z, w, y, x),
-                Quaternion::from_xyzw(x + z, y + w, z + y, w + x)
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_1, quat_2] in random_iter::<[Quaternion<T, A>; 2]>() {
+                assert_test_eq!(
+                    quat_1 + quat_2,
+                    Quaternion::from_xyzw(
+                        quat_1.x + quat_2.x,
+                        quat_1.y + quat_2.y,
+                        quat_1.z + quat_2.z,
+                        quat_1.w + quat_2.w
+                    )
+                );
+            }
         });
     }
 
     #[test]
     fn test_sub() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w)
-                    - Quaternion::<T, A>::from_xyzw(z, w, y, x),
-                Quaternion::from_xyzw(x - z, y - w, z - y, w - x)
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_1, quat_2] in random_iter::<[Quaternion<T, A>; 2]>() {
+                assert_test_eq!(
+                    quat_1 - quat_2,
+                    Quaternion::from_xyzw(
+                        quat_1.x - quat_2.x,
+                        quat_1.y - quat_2.y,
+                        quat_1.z - quat_2.z,
+                        quat_1.w - quat_2.w
+                    )
+                );
+            }
         });
     }
 
     #[test]
     fn test_mul_scalar() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w) * w,
-                Quaternion::from_xyzw(x * w, y * w, z * w, w * w)
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for (quat, scalar) in random_iter::<(Quaternion<T, A>, T)>() {
+                assert_test_eq!(
+                    quat * scalar,
+                    Quaternion::from_xyzw(
+                        quat.x * scalar,
+                        quat.y * scalar,
+                        quat.z * scalar,
+                        quat.w * scalar
+                    )
+                );
+            }
         });
     }
 
     #[test]
     fn test_mul() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x.max(y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, quat_1, quat_2) in [
+                (
+                    Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
+                    Quaternion::<T, A>::from_xyzw(0.8, 0.4, 0.3, 0.1),
+                    Quaternion::<T, A>::from_xyzw(0.3, 0.8, 0.1, 0.4),
+                ),
+                (
+                    Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
+                    Quaternion::<T, A>::IDENTITY,
+                    Quaternion::<T, A>::IDENTITY,
+                ),
+            ]
+            .into_iter()
+            .chain(random_iter())
+            {
+                if !vector.is_finite() {
+                    continue;
+                }
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
-            let Some(quat2) = Quaternion::<T, A>::from_xyzw(y, z, x, w).try_normalize() else {
-                return;
-            };
+                let [quat_1, quat_2] =
+                    [quat_1, quat_2].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
 
-            assert_float_eq!(
-                vector * (quat * quat2),
-                vector * quat * quat2,
-                abs <= Vector::splat(vector.abs().max_element()) * 1e-6 + 1e-4,
-                0.0 = -0.0
-            );
+                assert_test_eq!(
+                    vector * (quat_1 * quat_2),
+                    vector * quat_1 * quat_2,
+                    abs <= vector.abs().max_element() * 1e-6 + 1e-4,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_vector_mul() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x.max(y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, quat) in [
+                (
+                    Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
+                    Quaternion::<T, A>::from_xyzw(0.8, 0.4, 0.3, 0.1),
+                ),
+                (
+                    Vector::<3, T, A>::new(-4.1, 3.3, 10.3),
+                    Quaternion::<T, A>::IDENTITY,
+                ),
+            ]
+            .into_iter()
+            .chain(random_iter())
+            {
+                if !vector.is_finite() {
+                    continue;
+                }
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
+                let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
 
-            assert_float_eq!(
-                vector * quat,
-                vector * Matrix::<3, T, A>::from_quat(quat),
-                abs <= (vector * quat).abs() * vector.length() * 1e-6 + 1e-4,
-            );
+                assert_test_eq!(
+                    vector * quat,
+                    vector * Matrix::<3, T, A>::from_quat(quat),
+                    abs <= vector.abs().max_element() * 1e-6 + 1e-4,
+                    0.0 = -0.0
+                );
+            }
         });
     }
 
     #[test]
     fn test_div_scalar() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let [w, a] = [T::max(x, y), T::min(x, y)];
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w) / a,
-                Quaternion::from_xyzw(x / a, y / a, z / a, w / a)
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for (quat, scalar) in random_iter::<(Quaternion<T, A>, T)>() {
+                assert_test_eq!(
+                    quat / scalar,
+                    Quaternion::from_xyzw(
+                        quat.x / scalar,
+                        quat.y / scalar,
+                        quat.z / scalar,
+                        quat.w / scalar
+                    )
+                );
+            }
         });
     }
 
     #[test]
     fn test_add_assign() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_1, quat_2] in random_iter::<[Quaternion<T, A>; 2]>() {
+                let mut result = quat_1;
+                result += quat_2;
 
-            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
-            quat += Quaternion::<T, A>::from_xyzw(z, w, y, x);
-            assert_float_eq!(quat, Quaternion::from_xyzw(x + z, y + w, z + y, w + x));
+                assert_test_eq!(result, quat_1 + quat_2);
+            }
         });
     }
 
     #[test]
     fn test_sub_assign() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_1, quat_2] in random_iter::<[Quaternion<T, A>; 2]>() {
+                let mut result = quat_1;
+                result -= quat_2;
 
-            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
-            quat -= Quaternion::<T, A>::from_xyzw(z, w, y, x);
-            assert_float_eq!(quat, Quaternion::from_xyzw(x - z, y - w, z - y, w - x));
+                assert_test_eq!(result, quat_1 - quat_2);
+            }
         });
     }
 
     #[test]
     fn test_mul_assign_scalar() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for (quat, scalar) in random_iter::<(Quaternion<T, A>, T)>() {
+                let mut result = quat;
+                result *= scalar;
 
-            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
-            quat *= w;
-            assert_float_eq!(quat, Quaternion::from_xyzw(x * w, y * w, z * w, w * w));
+                assert_test_eq!(result, quat * scalar);
+            }
         });
     }
 
     #[test]
     fn test_mul_assign() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x.max(y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat_a, quat_b] in random_iter::<[Quaternion<T, A>; 2]>() {
+                let mut result = quat_a;
+                result *= quat_b;
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
-            let Some(quat2) = Quaternion::<T, A>::from_xyzw(y, z, x, w).try_normalize() else {
-                return;
-            };
-
-            let mut result = quat;
-            result *= quat2;
-
-            assert_float_eq!(
-                vector * result,
-                vector * quat * quat2,
-                abs <= Vector::splat(vector.abs().max_element()) * 1e-6 + 1e-4,
-                0.0 = -0.0
-            );
+                assert_test_eq!(result, quat_a * quat_b);
+            }
         });
     }
 
     #[test]
     fn test_vector_mul_assign() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x.max(y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for (vector, quat) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
+                let mut result = vector;
+                result *= quat;
 
-            let vector = Vector::<3, T, A>::new(x, y, z);
-            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
-            let Some(quat2) = Quaternion::<T, A>::from_xyzw(y, z, x, w).try_normalize() else {
-                return;
-            };
-
-            let mut result = vector;
-            result *= quat;
-            result *= quat2;
-
-            assert_float_eq!(result, vector * quat * quat2);
+                assert_test_eq!(result, vector * quat);
+            }
         });
     }
 
     #[test]
     fn test_div_assign_scalar() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let [w, a] = [T::max(x, y), T::min(x, y)];
+        for_types!(|T: PrimitiveFloat, A| {
+            for (quat, scalar) in random_iter::<(Quaternion<T, A>, T)>() {
+                let mut result = quat;
+                result /= scalar;
 
-            let mut quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
-            quat /= a;
-            assert_float_eq!(quat, Quaternion::from_xyzw(x / a, y / a, z / a, w / a));
+                assert_test_eq!(result, quat / scalar);
+            }
         });
     }
 }

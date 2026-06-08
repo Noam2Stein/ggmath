@@ -219,11 +219,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use wide::{CmpEq, i32x4};
+    extern crate std;
+
+    use wide::i32x4;
 
     use crate::{
-        Mat2A, Matrix,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        Mat2A, Matrix, Unaligned,
+        utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -351,101 +353,42 @@ mod tests {
 
     #[test]
     fn test_simd_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b, mask] in random_iter::<[Matrix<N, Wide, Unaligned>; 3]>() {
+                let mask = Matrix::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Matrix::from_row_fn(|r| mask[r].blend(a[r], b[r]));
 
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w])
-                    .simd_eq(&Matrix::<2, Wide, A>::from_row_array(&[z, y, z, w])),
-                x.simd_eq(z) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w)
-            );
-            assert_float_eq!(
-                Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w])
-                    .simd_eq(&Matrix::<2, Wide, A>::from_row_array(&[z, w, x, y])),
-                x.simd_eq(z) & y.simd_eq(w)
-            );
-
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z]).simd_eq(
-                    &Matrix::<3, Wide, A>::from_row_array(&[x, y, w, x, y, w, x, y, z])
-                ),
-                x.simd_eq(x) & y.simd_eq(y) & z.simd_eq(w) & w.simd_eq(w) & z.simd_eq(z)
-            );
-            assert_float_eq!(
-                Matrix::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z]).simd_eq(
-                    &Matrix::<3, Wide, A>::from_row_array(&[z, w, y, x, y, z, z, w, y])
-                ),
-                x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y)
-            );
-
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_row_array(&[
-                    x, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x
-                ])
-                .simd_eq(&Matrix::<4, Wide, A>::from_row_array(&[
-                    w, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x
-                ])),
-                x.simd_eq(w) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w)
-            );
-            assert_float_eq!(
-                Matrix::<4, Wide, A>::from_row_array(&[
-                    x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x
-                ])
-                .simd_eq(&Matrix::<4, Wide, A>::from_row_array(&[
-                    z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w
-                ])),
-                x.simd_eq(z) & y.simd_eq(w) & z.simd_eq(y) & w.simd_eq(x)
-            );
+                assert_test_eq!(
+                    a.simd_eq(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) == b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
+            }
         });
     }
 
     #[test]
     fn test_simd_ne() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for_types!(|N, Wide: WideFloat| {
+            for [a, b, mask] in random_iter::<[Matrix<N, Wide, Unaligned>; 3]>() {
+                let mask = Matrix::from_row_fn(|r| mask[r].sign_negative_mask());
+                let b = Matrix::from_row_fn(|r| mask[r].blend(a[r], b[r]));
 
-            let matrix = Matrix::<2, Wide, A>::from_row_array(&[x, y, z, w]);
-            for other in [
-                Matrix::<2, Wide, A>::from_row_array(&[z, y, z, w]),
-                Matrix::<2, Wide, A>::from_row_array(&[z, w, x, y]),
-            ] {
-                assert_float_eq!(matrix.simd_ne(&other), !matrix.simd_eq(&other));
-            }
-
-            for (matrix, other) in [
-                (
-                    Matrix::<3, Wide, A>::from_row_array(&[x, y, z, x, y, w, x, y, z]),
-                    Matrix::<3, Wide, A>::from_row_array(&[x, y, w, x, y, w, x, y, z]),
-                ),
-                (
-                    Matrix::<3, Wide, A>::from_row_array(&[x, y, z, z, w, y, x, y, z]),
-                    Matrix::<3, Wide, A>::from_row_array(&[z, w, y, x, y, z, z, w, y]),
-                ),
-            ] {
-                assert_float_eq!(matrix.simd_ne(&other), !matrix.simd_eq(&other));
-            }
-
-            for (matrix, other) in [
-                (
-                    Matrix::<4, Wide, A>::from_row_array(&[
-                        x, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x,
-                    ]),
-                    Matrix::<4, Wide, A>::from_row_array(&[
-                        w, y, z, w, x, y, z, y, x, y, y, w, x, y, z, x,
-                    ]),
-                ),
-                (
-                    Matrix::<4, Wide, A>::from_row_array(&[
-                        x, y, z, w, z, w, y, x, x, y, z, w, z, w, y, x,
-                    ]),
-                    Matrix::<4, Wide, A>::from_row_array(&[
-                        z, w, y, x, x, y, z, w, z, w, y, x, x, y, z, w,
-                    ]),
-                ),
-            ] {
-                assert_float_eq!(matrix.simd_ne(&other), !matrix.simd_eq(&other));
+                assert_test_eq!(
+                    a.simd_ne(&b),
+                    Wide::new(std::array::from_fn(
+                        |lane| if a.lane(lane) != b.lane(lane) {
+                            T::from_bits(!0)
+                        } else {
+                            0.0
+                        }
+                    ))
+                );
             }
         });
     }

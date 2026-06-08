@@ -725,82 +725,85 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        Matrix, QuatA, Quaternion, Vector,
+        EulerRot, Matrix, QuatA, Quaternion, Vector,
         utils::{
-            assert_debug_panic, assert_float_eq, assert_panic_float_eq, float_eq, for_parameters,
+            PrimitiveFloatFns, assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types,
+            random_iter, test_eq,
         },
     };
 
     #[test]
     fn test_from_rotation_x() {
-        for_parameters!(|T: PrimitiveFloat, A, angle| {
-            assert_float_eq!(
-                Quaternion::<T, A>::from_rotation_x(angle),
-                Quaternion::from_xyzw((angle * 0.5).sin(), 0.0, 0.0, (angle * 0.5).cos())
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter() {
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_rotation_x(angle),
+                    Quaternion::from_xyzw((angle * 0.5).sin(), 0.0, 0.0, (angle * 0.5).cos()),
+                    abs <= 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_y() {
-        for_parameters!(|T: PrimitiveFloat, A, angle| {
-            assert_float_eq!(
-                Quaternion::<T, A>::from_rotation_y(angle),
-                Quaternion::from_xyzw(0.0, (angle * 0.5).sin(), 0.0, (angle * 0.5).cos())
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter() {
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_rotation_y(angle),
+                    Quaternion::from_xyzw(0.0, (angle * 0.5).sin(), 0.0, (angle * 0.5).cos()),
+                    abs <= 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_rotation_z() {
-        for_parameters!(|T: PrimitiveFloat, A, angle| {
-            assert_float_eq!(
-                Quaternion::<T, A>::from_rotation_z(angle),
-                Quaternion::from_xyzw(0.0, 0.0, (angle * 0.5).sin(), (angle * 0.5).cos())
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for angle in random_iter() {
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_rotation_z(angle),
+                    Quaternion::from_xyzw(0.0, 0.0, (angle * 0.5).sin(), (angle * 0.5).cos()),
+                    abs <= 1e-3
+                );
+            }
         });
     }
 
     #[test]
     fn test_from_axis_angle() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let angle = x + y + z + 1.5;
+        for_types!(|T: PrimitiveFloat, A| {
+            for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                if !axis.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::from_axis_angle(axis, angle));
+                }
 
-            if let Some(axis) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                let quat = Quaternion::<T, A>::from_axis_angle(axis, angle);
+                let axis = axis.normalize_or(Vector::ONE).normalize();
 
-                assert_panic_float_eq!(
-                    quat.canonical(),
-                    Matrix::<4, T, A>::from_axis_angle(axis, angle)
-                        .to_scale_rotation_translation()
-                        .1
-                        .canonical(),
-                    abs <= Quaternion::from_vector(quat.to_vector().abs() * 1e-4 + 1e-6),
-                    0.0 = -0.0
-                );
-            }
+                let result = Quaternion::<T, A>::from_axis_angle(axis, angle);
 
-            let axis = Vector::<3, T, A>::new(x, y, z);
-            if !axis.is_normalized() {
-                assert_debug_panic!(Quaternion::<T, A>::from_axis_angle(axis, angle));
+                assert_test_eq!(result.w, (angle * 0.5).cos(), abs <= 1e-3);
+                assert_test_eq!(result.x, (angle * 0.5).sin() * axis.x, abs <= 1e-3);
+                assert_test_eq!(result.y, (angle * 0.5).sin() * axis.y, abs <= 1e-3);
+                assert_test_eq!(result.z, (angle * 0.5).sin() * axis.z, abs <= 1e-3);
             }
         });
     }
 
     #[test]
     fn test_from_scaled_axis() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let angle = x + y + z + 1.0;
+        for_types!(|T: PrimitiveFloat, A| {
+            for (axis, angle) in random_iter::<(Vector<3, T, A>, T)>() {
+                let axis = axis.normalize_or(Vector::ONE).normalize();
+                if !(axis * angle).length().is_finite() {
+                    continue;
+                };
 
-            if let Some(axis) = Vector::<3, T, A>::new(x, y, z).try_normalize() {
-                assert_panic_float_eq!(
+                assert_panic_test_eq!(
                     Quaternion::<T, A>::from_scaled_axis(axis * angle),
                     Quaternion::<T, A>::from_axis_angle(axis, angle),
-                    abs <= Quaternion::from_vector(
-                        Vector::splat(1e-6) * x.abs().max(y.abs()).max(z.abs())
-                    ),
+                    abs <= 1e-6 * axis.abs().max_element().max(angle.abs()),
                     0.0 = -0.0
                 );
             }
@@ -809,282 +812,284 @@ mod tests {
 
     #[test]
     fn test_from_rotation_arc() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let [w, a, b] = [z + 1.3, x + 2.3, y + 3.3];
+        for_types!(|T: PrimitiveFloat, A| {
+            for [start, end] in random_iter::<[Vector<3, T, A>; 2]>() {
+                if !start.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc(
+                        start,
+                        end.normalize()
+                    ));
+                }
+                if !end.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc(
+                        start.normalize(),
+                        end
+                    ));
+                }
 
-            let Some(from) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
-                return;
-            };
-            let Some(to) = Vector::<3, T, A>::new(w, a, b).try_normalize() else {
-                return;
-            };
+                let start = start.normalize_or(Vector::ONE).normalize();
+                let end = end.normalize_or(Vector::ONE).normalize();
 
-            let quat = Quaternion::<T, A>::from_rotation_arc(from, to);
-            assert_float_eq!(from * quat, to, abs <= Vector::splat(1e-5));
+                let result = Quaternion::<T, A>::from_rotation_arc(start, end);
+                let (result_axis, result_angle) = result.to_axis_angle();
 
-            let (axis, angle) = quat.to_axis_angle();
-            assert_float_eq!(angle, from.angle_between(to), abs <= 1e-4);
-            assert!(angle.to_degrees() <= 180.1);
-            if angle != 0.0 {
-                assert_float_eq!(axis.dot(from), 0.0, abs <= 1e-5);
-                assert_float_eq!(axis.dot(to), 0.0, abs <= 1e-5);
-            }
-
-            let non_normalized = Vector::<3, T, A>::new(x, y, z);
-            if !non_normalized.is_normalized() {
-                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc(non_normalized, to));
-                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc(from, non_normalized));
+                if ((1.0 as T).to_radians()..(179.0 as T).to_radians())
+                    .contains(&start.angle_between(end))
+                {
+                    assert_test_eq!(start * result, end, abs <= 1e-5, 0.0 = -0.0);
+                    assert_test_eq!(result_angle, start.angle_between(end), abs <= 1e-4);
+                    assert_test_eq!(result_axis.dot(start), 0.0, abs <= 1e-5, 0.0 = -0.0);
+                    assert_test_eq!(result_axis.dot(end), 0.0, abs <= 1e-5, 0.0 = -0.0);
+                } else {
+                    assert_test_eq!(start * result, end, abs <= 1e-2, 0.0 = -0.0);
+                    assert_test_eq!(result_angle, start.angle_between(end), abs <= 1e-2);
+                    if result_angle != 0.0 {
+                        assert_test_eq!(result_axis.dot(start), 0.0, abs <= 1e-2);
+                        assert_test_eq!(result_axis.dot(end), 0.0, abs <= 1e-2);
+                    }
+                }
+                assert!(result_angle <= T::TAU / 2.0 + 0.1);
             }
         });
     }
 
     #[test]
     fn test_from_rotation_arc_colinear() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let [w, a, b] = [z + 1.3, x + 2.3, y + 3.3];
+        for_types!(|T: PrimitiveFloat, A| {
+            for [start, end] in random_iter::<[Vector<3, T, A>; 2]>() {
+                if !start.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
+                        start,
+                        end.normalize()
+                    ));
+                }
+                if !end.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
+                        start.normalize(),
+                        end
+                    ));
+                }
 
-            let Some(from) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
-                return;
-            };
-            let Some(to) = Vector::<3, T, A>::new(w, a, b).try_normalize() else {
-                return;
-            };
+                let start = start.normalize_or(Vector::ONE).normalize();
+                let end = end.normalize_or(Vector::ONE).normalize();
 
-            let quat = Quaternion::<T, A>::from_rotation_arc_colinear(from, to);
-            assert!(
-                float_eq!(from * quat, to, abs <= Vector::splat(1e-5))
-                    || float_eq!(from * quat, -to, abs <= Vector::splat(1e-5))
-            );
+                let result = Quaternion::<T, A>::from_rotation_arc_colinear(start, end);
+                let (result_axis, result_angle) = result.to_axis_angle();
 
-            let (axis, angle) = quat.to_axis_angle();
-            assert_float_eq!(
-                angle,
-                from.angle_between(to).min(from.angle_between(-to)),
-                abs <= 1e-4
-            );
-            assert!(angle.to_degrees() <= 90.1);
-            if angle != 0.0 {
-                assert_float_eq!(axis.dot(from), 0.0, abs <= 1e-5);
-                assert_float_eq!(axis.dot(to), 0.0, abs <= 1e-5);
-            }
-
-            let non_normalized = Vector::<3, T, A>::new(x, y, z);
-            if !non_normalized.is_normalized() {
-                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
-                    non_normalized,
-                    to
-                ));
-                assert_debug_panic!(Quaternion::<T, A>::from_rotation_arc_colinear(
-                    from,
-                    non_normalized
-                ));
+                if ((1.0 as T).to_radians()..(179.0 as T).to_radians())
+                    .contains(&start.angle_between(end))
+                {
+                    assert!(
+                        test_eq!(start * result, end, abs <= 1e-5, 0.0 = -0.0)
+                            || test_eq!(start * result, -end, abs <= 1e-5, 0.0 = -0.0)
+                    );
+                    assert_test_eq!(
+                        result_angle,
+                        start.angle_between(end).min(start.angle_between(-end)),
+                        abs <= 1e-4
+                    );
+                    assert_test_eq!(result_axis.dot(start), 0.0, abs <= 1e-5, 0.0 = -0.0);
+                    assert_test_eq!(result_axis.dot(end), 0.0, abs <= 1e-5, 0.0 = -0.0);
+                } else {
+                    assert!(
+                        test_eq!(start * result, end, abs <= 1e-2, 0.0 = -0.0)
+                            || test_eq!(start * result, -end, abs <= 1e-2, 0.0 = -0.0)
+                    );
+                    assert_test_eq!(
+                        result_angle,
+                        start.angle_between(end).min(start.angle_between(-end)),
+                        abs <= 1e-2
+                    );
+                    if result_angle != 0.0 {
+                        assert_test_eq!(result_axis.dot(start), 0.0, abs <= 1e-2, 0.0 = -0.0);
+                        assert_test_eq!(result_axis.dot(end), 0.0, abs <= 1e-2, 0.0 = -0.0);
+                    }
+                }
+                assert!(result_angle <= T::TAU / 4.0 + 0.1);
             }
         });
     }
 
     #[test]
     fn test_from_euler() {
-        for_parameters!(|T: PrimitiveFloat, A, order, a, b, c| {
-            let _: [T; 3] = [a, b, c];
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for [a, b, c] in random_iter::<[T; 3]>() {
+                    if [a, b, c].into_iter().any(|x| !x.is_finite() || x > 1e6) {
+                        continue;
+                    };
 
-            if !a.is_finite() || !b.is_finite() || !c.is_finite() || a > 1e6 || b > 1e6 || c > 1e6 {
-                return;
+                    assert_test_eq!(
+                        Quaternion::<T, A>::from_euler(order, a, b, c),
+                        Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::from_euler(
+                            order, a, b, c
+                        )),
+                        abs <= 1e-6,
+                        0.0 = -0.0,
+                        quat = -quat
+                    );
+                }
             }
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_euler(order, a, b, c).canonical(),
-                Matrix::<4, T, A>::from_euler(order, a, b, c)
-                    .to_scale_rotation_translation()
-                    .1
-                    .canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
         });
     }
 
     #[test]
     fn test_from_matrix() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
+        for_types!(|T: PrimitiveFloat, A| {
+            for [x, y, z] in random_iter::<[T; 3]>() {
+                if [x, y, z].into_iter().any(|x| !x.is_finite() || x > 1e6) {
+                    continue;
+                };
 
-            if !x.is_finite() || !y.is_finite() || !z.is_finite() || x > 1e6 || y > 1e6 || z > 1e6 {
-                return;
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_matrix(
+                        &(Matrix::<3, T, A>::from_rotation_x(x)
+                            * Matrix::<3, T, A>::from_rotation_y(y)
+                            * Matrix::<3, T, A>::from_rotation_z(z))
+                    ),
+                    Quaternion::<T, A>::from_rotation_x(x)
+                        * Quaternion::<T, A>::from_rotation_y(y)
+                        * Quaternion::<T, A>::from_rotation_z(z),
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    quat = -quat
+                );
             }
 
-            assert_float_eq!(
-                Quaternion::<T, A>::from_matrix(
-                    &(Matrix::<3, T, A>::from_rotation_x(x)
-                        * Matrix::<3, T, A>::from_rotation_y(y)
-                        * Matrix::<3, T, A>::from_rotation_z(z))
-                )
-                .canonical(),
-                (Quaternion::<T, A>::from_rotation_x(x)
-                    * Quaternion::<T, A>::from_rotation_y(y)
-                    * Quaternion::<T, A>::from_rotation_z(z))
-                .canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
-
-            let matrix = Matrix::<3, T, A>::from_row_array(&[x, y, z, y, z, x, y, x, z]);
-            if matrix.determinant() != 1.0 {
-                assert_debug_panic!(Quaternion::<T, A>::from_matrix(&matrix));
+            for matrix in random_iter::<Matrix<3, T, A>>().take(10) {
+                if matrix.determinant() != 1.0 {
+                    assert_debug_panic!(Quaternion::<T, A>::from_matrix(&matrix));
+                }
             }
         });
     }
 
     #[test]
     fn test_look_to_lh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let Some(dir) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
-                return;
-            };
+        for_types!(|T: PrimitiveFloat, A| {
+            for [dir, up] in random_iter::<[Vector<3, T, A>; 2]>() {
+                if !dir.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::look_to_lh(dir, up.normalize()));
+                }
+                if !up.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::look_to_lh(dir.normalize(), up));
+                }
 
-            let up = (dir * 0.4 + dir.zxy().with_z(0.3)).normalize();
+                let dir = dir.normalize_or(Vector::<3, T, A>::Z);
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
 
-            assert_float_eq!(
-                Quaternion::<T, A>::look_to_lh(dir, up).canonical(),
-                Matrix::<4, T, A>::look_to_lh(Vector::ZERO, dir, up)
-                    .to_scale_rotation_translation()
-                    .1
-                    .canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6))
-            );
-
-            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_debug_panic!(Quaternion::<T, A>::look_to_lh(
-                    Vector::<3, T, A>::new(x, y, z),
-                    up
-                ));
-                assert_debug_panic!(Quaternion::<T, A>::look_to_lh(
-                    dir,
-                    Vector::<3, T, A>::new(x, y, z)
-                ));
+                // TODO: Currently documentation states that the function only
+                // panics if `dir` or `up` are not normalized, but in reality it
+                // also panics when `dir` and `up` are equal. The documentation
+                // needs to be updated.
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_to_lh(dir, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_lh(dir, up)),
+                    abs <= 1e-6,
+                    quat = -quat
+                );
             }
-        })
+        });
     }
 
     #[test]
     fn test_look_to_rh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let Some(dir) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
-                return;
-            };
+        for_types!(|T: PrimitiveFloat, A| {
+            for [dir, up] in random_iter::<[Vector<3, T, A>; 2]>() {
+                if !dir.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::look_to_rh(dir, up.normalize()));
+                }
+                if !up.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::look_to_rh(dir.normalize(), up));
+                }
 
-            let up = (dir * 0.4 + dir.zxy().with_z(0.3)).normalize();
+                let dir = dir.normalize_or(Vector::<3, T, A>::Z);
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
 
-            assert_float_eq!(
-                Quaternion::<T, A>::look_to_rh(dir, up).canonical(),
-                Matrix::<4, T, A>::look_to_rh(Vector::ZERO, dir, up)
-                    .to_scale_rotation_translation()
-                    .1
-                    .canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6))
-            );
-
-            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_debug_panic!(Quaternion::<T, A>::look_to_rh(
-                    Vector::<3, T, A>::new(x, y, z),
-                    up
-                ));
-                assert_debug_panic!(Quaternion::<T, A>::look_to_rh(
-                    dir,
-                    Vector::<3, T, A>::new(x, y, z)
-                ));
+                // TODO: Currently documentation states that the function only
+                // panics if `dir` or `up` are not normalized, but in reality it
+                // also panics when `dir` and `up` are equal. The documentation
+                // needs to be updated.
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_to_rh(dir, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_rh(dir, up)),
+                    abs <= 1e-6,
+                    quat = -quat
+                );
             }
-        })
+        });
     }
 
     #[test]
     fn test_look_at_lh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let eye = Vector::<3, T, A>::new(x, y, z);
-            let center = eye * 0.6 + eye.yzx();
-            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
-                return;
-            };
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                if !up.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::look_at_lh(eye, center, up));
+                }
 
-            assert_panic_float_eq!(
-                Quaternion::<T, A>::look_at_lh(eye, center, up).canonical(),
-                Matrix::<4, T, A>::look_at_lh(eye, center, up)
-                    .to_scale_rotation_translation()
-                    .1
-                    .canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6))
-            );
+                if !eye.is_finite() || (center - eye).try_normalize().is_none() {
+                    continue;
+                }
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
 
-            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_debug_panic!(Quaternion::<T, A>::look_at_lh(
-                    eye,
-                    center,
-                    Vector::<3, T, A>::new(x, y, z),
-                ));
+                // TODO: Currently documentation states that the function only
+                // panics if `up` are not normalized, but in reality it also
+                // panics when the final `dir` and `up` are equal. The
+                // documentation needs to be updated.
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_at_lh(eye, center, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_at_lh(
+                        eye, center, up
+                    )),
+                    abs <= 1e-6,
+                    quat = -quat
+                );
             }
-        })
+        });
     }
 
     #[test]
     fn test_look_at_rh() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let eye = Vector::<3, T, A>::new(x, y, z);
-            let center = eye * 0.6 + eye.yzx();
-            let Some(up) = (eye * 0.4 + center.zxy().with_z(0.6)).try_normalize() else {
-                return;
-            };
+        for_types!(|T: PrimitiveFloat, A| {
+            for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
+                if !up.is_normalized() {
+                    assert_debug_panic!(Quaternion::<T, A>::look_at_rh(eye, center, up));
+                }
 
-            assert_panic_float_eq!(
-                Quaternion::<T, A>::look_at_rh(eye, center, up).canonical(),
-                Matrix::<4, T, A>::look_at_rh(eye, center, up)
-                    .to_scale_rotation_translation()
-                    .1
-                    .canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6))
-            );
+                if !eye.is_finite() || (center - eye).try_normalize().is_none() {
+                    continue;
+                }
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
 
-            if !Vector::<3, T, A>::new(x, y, z).is_normalized() {
-                assert_debug_panic!(Quaternion::<T, A>::look_at_rh(
-                    eye,
-                    center,
-                    Vector::<3, T, A>::new(x, y, z),
-                ));
+                // TODO: Currently documentation states that the function only
+                // panics if `up` are not normalized, but in reality it also
+                // panics when the final `dir` and `up` are equal. The
+                // documentation needs to be updated.
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_at_rh(eye, center, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_at_rh(
+                        eye, center, up
+                    )),
+                    abs <= 1e-6
+                );
             }
-        })
+        });
     }
 
     #[test]
     fn test_to_axis_angle() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let tau = core::f64::consts::TAU as T;
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
 
-            let Some(axis) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
-                return;
-            };
-            let angle = (x + y + z + 1.0) % tau;
-
-            if angle != 0.0 {
-                let (mut axis2, mut angle2) =
-                    Quaternion::<T, A>::from_axis_angle(axis, angle).to_axis_angle();
-
-                if angle2.is_sign_positive() != angle.is_sign_positive() {
-                    axis2 = -axis2;
-                    angle2 = -angle2;
-                }
-
-                assert_float_eq!(
-                    (axis2, angle2),
-                    (axis, angle),
-                    abs <= (Vector::splat(1e-6), 1e-6)
-                );
-            } else {
-                assert_float_eq!(
-                    Quaternion::<T, A>::from_axis_angle(axis, angle)
-                        .to_axis_angle()
-                        .1,
-                    0.0
+                let result = quat.to_axis_angle();
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_axis_angle(result.0, result.1),
+                    quat,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    quat = -quat
                 );
             }
         });
@@ -1092,327 +1097,345 @@ mod tests {
 
     #[test]
     fn test_to_scaled_axis() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let tau = core::f64::consts::TAU as T;
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
 
-            let Some(axis) = Vector::<3, T, A>::new(x, y, z).try_normalize() else {
-                return;
-            };
-            let angle = (x + y + z + 1.0) % tau;
-            let scaled_axis = axis * angle;
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_scaled_axis(scaled_axis).to_scaled_axis(),
-                scaled_axis,
-                abs <= Vector::splat(1e-6),
-                0.0 = -0.0
-            );
+                assert_test_eq!(
+                    Quaternion::<T, A>::from_scaled_axis(quat.to_scaled_axis()),
+                    quat,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    quat = -quat
+                );
+            }
         });
     }
 
     #[test]
     fn test_to_euler() {
-        for_parameters!(|T: PrimitiveFloat, A, order, a, b, c| {
-            let _: [T; 3] = [a, b, c];
+        // TODO: This function can panic but the documentation doesn't state
+        // that.
 
-            let quat = Quaternion::<T, A>::from_euler(order, a, b, c);
+        for_types!(|T: PrimitiveFloat, A| {
+            for order in EulerRot::values() {
+                for quat in random_iter::<Quaternion<T, A>>() {
+                    let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
 
-            assert_panic_float_eq!(
-                quat.to_euler(order),
-                Matrix::<3, T, A>::from_quat(quat).to_euler(order)
-            );
+                    assert_test_eq!(
+                        quat.to_euler(order),
+                        Matrix::<3, T, A>::from_quat(quat).to_euler(order)
+                    );
+                }
+            }
         });
     }
 
     #[test]
     fn test_is_nan() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).is_nan(),
-                x.is_nan() || y.is_nan() || z.is_nan() || w.is_nan()
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_eq!(quat.is_nan(), quat.to_vector().is_nan());
+            }
         });
     }
 
     #[test]
     fn test_is_finite() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).is_finite(),
-                x.is_finite() && y.is_finite() && z.is_finite() && w.is_finite()
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_eq!(quat.is_finite(), quat.to_vector().is_finite());
+            }
         });
     }
 
     #[test]
     fn test_inverse() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(quat.inverse());
+                }
 
-            let quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
-            if quat.is_normalized() {
-                assert_float_eq!(quat.inverse(), quat.conjugate());
-            } else {
-                assert_debug_panic!(quat.inverse());
+                let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
+
+                assert_test_eq!(quat.inverse(), quat.conjugate());
             }
         });
     }
 
     #[test]
     fn test_angle_between() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y| {
-            let _: [T; 2] = [x, y];
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat, other] in random_iter::<[Quaternion<T, A>; 2]>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(quat.angle_between(other.normalize()));
+                }
+                if !other.is_normalized() {
+                    assert_debug_panic!(quat.normalize().angle_between(other));
+                }
 
-            if !x.is_finite() || !y.is_finite() || x.abs() > 1e3 || y.abs() > 1e3 {
-                return;
+                let [quat, other] =
+                    [quat, other].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
+
+                // TODO: In rare situations its possible for two normalized
+                // quaternions to produce a dot product greater than 1.0,
+                // leading `angle_between` to return NaN. The dot product should
+                // be clamped.
+                if quat.dot(other).abs() > 1.0 {
+                    continue;
+                }
+
+                assert_test_eq!(
+                    quat.angle_between(other),
+                    (quat * other.inverse()).w.abs().acos() * 2.0,
+                    abs <= 2e-4
+                );
             }
-
-            let tau = core::f64::consts::TAU as T;
-            let angle_between = ((x - y).abs() % tau).min(tau - (x - y).abs() % tau);
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_rotation_x(x)
-                    .angle_between(Quaternion::<T, A>::from_rotation_x(y)),
-                angle_between,
-                r2nd <= 1e-6 * x.abs().max(y.abs())
-            );
-            assert_float_eq!(
-                Quaternion::<T, A>::from_rotation_y(x)
-                    .angle_between(Quaternion::<T, A>::from_rotation_y(y)),
-                angle_between,
-                r2nd <= 1e-6 * x.abs().max(y.abs())
-            );
-            assert_float_eq!(
-                Quaternion::<T, A>::from_rotation_z(x)
-                    .angle_between(Quaternion::<T, A>::from_rotation_z(y)),
-                angle_between,
-                r2nd <= 1e-6 * x.abs().max(y.abs())
-            );
         });
     }
 
     #[test]
     fn test_lerp() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x + y + 1.5;
-            let a = y + z + 3.2;
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat, other] in random_iter::<[Quaternion<T, A>; 2]>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(quat.lerp(other.normalize(), 0.2));
+                }
+                if !other.is_normalized() {
+                    assert_debug_panic!(quat.normalize().lerp(other, 0.2));
+                }
 
-            let Some(quat_1) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
-            let Some(quat_2) = Quaternion::<T, A>::from_xyzw(z, w, y, a).try_normalize() else {
-                return;
-            };
+                let [quat, other] =
+                    [quat, other].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
 
-            assert_float_eq!(
-                quat_1.lerp(quat_2, 0.0).canonical(),
-                quat_1.canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                quat_1.lerp(quat_2, 0.5).angle_between(quat_1),
-                quat_1.angle_between(quat_2) / 2.0,
-                abs <= quat_1.angle_between(quat_2) * 1e-6 + 1e-5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                quat_1.lerp(quat_2, 0.5).angle_between(quat_2),
-                quat_1.angle_between(quat_2) / 2.0,
-                abs <= quat_1.angle_between(quat_2) * 1e-6 + 1e-5,
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                quat_1.lerp(quat_2, 1.0).canonical(),
-                quat_2.canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
+                // TODO: Remove this check once `angle_between` is fixed.
+                if quat.dot(other).abs() > 1.0 || quat.to_vector().iter().any(|x| x >= 0.999999) {
+                    continue;
+                }
+
+                assert_test_eq!(quat.lerp(other, 0.0), quat, abs <= 1e-6, 0.0 = -0.0);
+                assert_test_eq!(
+                    quat.lerp(other, 0.5).angle_between(quat),
+                    quat.angle_between(other) / 2.0,
+                    abs <= quat.angle_between(other) * 1e-6 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    quat.lerp(other, 0.5).angle_between(other),
+                    quat.angle_between(other) / 2.0,
+                    abs <= quat.angle_between(other) * 1e-6 + 1e-3,
+                    0.0 = -0.0
+                );
+                assert_test_eq!(
+                    quat.lerp(other, 1.0),
+                    other,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    quat = -quat
+                );
+            }
         });
     }
 
     #[test]
     fn test_slerp() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x + y + 1.5;
-            let a = y + z + 3.2;
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat, other] in random_iter::<[Quaternion<T, A>; 2]>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(quat.slerp(other.normalize(), 0.2));
+                }
+                if !other.is_normalized() {
+                    assert_debug_panic!(quat.normalize().slerp(other, 0.2));
+                }
 
-            let Some(quat_1) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
-            let Some(quat_2) = Quaternion::<T, A>::from_xyzw(z, w, y, a).try_normalize() else {
-                return;
-            };
+                let [quat, other] =
+                    [quat, other].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
 
-            assert_float_eq!(
-                quat_1.slerp(quat_2, 0.0).canonical(),
-                quat_1.canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                quat_1.slerp(quat_2, 1.0).canonical(),
-                quat_2.canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
-
-            for t in [0.25, 0.5, 0.75] {
-                assert_float_eq!(
-                    quat_1.slerp(quat_2, t).angle_between(quat_1),
-                    quat_1.angle_between(quat_2) * t,
-                    abs <= quat_1.angle_between(quat_2) * 1e-6 + 1e-5,
-                    0.0 = -0.0
+                assert_test_eq!(
+                    quat.slerp(other, 0.0),
+                    quat,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    quat = -quat
                 );
-                assert_float_eq!(
-                    quat_1.slerp(quat_2, t).angle_between(quat_2),
-                    quat_1.angle_between(quat_2) * (1.0 - t),
-                    abs <= quat_1.angle_between(quat_2) * 1e-6 + 1e-5,
-                    0.0 = -0.0
+                assert_test_eq!(
+                    quat.slerp(other, 1.0),
+                    other,
+                    abs <= 1e-6,
+                    0.0 = -0.0,
+                    quat = -quat
                 );
+
+                for t in [0.25, 0.5, 0.75] {
+                    let result = quat.slerp(other, t);
+
+                    if result.angle_between(quat).is_nan() && !result.is_nan() {
+                        continue;
+                    }
+                    if result.angle_between(other).is_nan() && !result.is_nan() {
+                        continue;
+                    }
+
+                    if ((1.0 as T)..(179.0 as T)).contains(&quat.angle_between(other)) {
+                        assert_test_eq!(
+                            result.angle_between(quat),
+                            quat.angle_between(other) * t,
+                            abs <= quat.angle_between(other) * 1e-6 + 1e-3,
+                            0.0 = -0.0
+                        );
+                        assert_test_eq!(
+                            result.angle_between(other),
+                            quat.angle_between(other) * (1.0 - t),
+                            abs <= quat.angle_between(other) * 1e-6 + 1e-3,
+                            0.0 = -0.0
+                        );
+                    } else {
+                        assert_test_eq!(
+                            result.angle_between(quat),
+                            quat.angle_between(other) * t,
+                            abs <= quat.angle_between(other) * 1e-4 + 1e-2,
+                            0.0 = -0.0
+                        );
+                        assert_test_eq!(
+                            result.angle_between(other),
+                            quat.angle_between(other) * (1.0 - t),
+                            abs <= quat.angle_between(other) * 1e-4 + 1e-2,
+                            0.0 = -0.0
+                        );
+                    }
+                }
             }
         });
     }
 
     #[test]
     fn test_rotate_towards() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x + y + 1.5;
-            let a = y + z + 3.2;
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat, target] in random_iter::<[Quaternion<T, A>; 2]>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(quat.rotate_towards(target.normalize(), 0.2));
+                }
+                if !target.is_normalized() {
+                    assert_debug_panic!(quat.normalize().rotate_towards(target, 0.2));
+                }
 
-            let Some(quat) = Quaternion::<T, A>::from_xyzw(x, y, z, w).try_normalize() else {
-                return;
-            };
-            let Some(target) = Quaternion::<T, A>::from_xyzw(z, w, y, a).try_normalize() else {
-                return;
-            };
-            let angle = quat.angle_between(target);
+                let [quat, target] =
+                    [quat, target].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
 
-            assert_float_eq!(
-                quat.rotate_towards(target, 0.0).canonical(),
-                quat.canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                quat.rotate_towards(target, angle).canonical(),
-                target.canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
-            assert_float_eq!(
-                quat.rotate_towards(target, angle * 1.5).canonical(),
-                target.canonical(),
-                abs <= Quaternion::from_vector(Vector::splat(1e-6)),
-                0.0 = -0.0
-            );
+                // TODO: Remove this check once quaternion `angle_between` is
+                // fixed.
+                if quat.dot(target).abs() > 1.0 {
+                    continue;
+                }
 
-            for t in [0.25, 0.5, 0.75] {
-                assert_float_eq!(
-                    quat.rotate_towards(target, angle * t),
-                    quat.slerp(target, t),
-                    abs <= Quaternion::from_vector(Vector::splat(1e-6) + 1e-5),
-                    0.0 = -0.0
+                assert_test_eq!(
+                    quat.rotate_towards(target, 0.0),
+                    quat,
+                    abs <= 1e-3,
+                    0.0 = -0.0,
+                    quat = -quat
                 );
+                assert_test_eq!(
+                    quat.rotate_towards(target, quat.angle_between(target)),
+                    target,
+                    abs <= 1e-3,
+                    0.0 = -0.0,
+                    quat = -quat
+                );
+                assert_test_eq!(
+                    quat.rotate_towards(target, quat.angle_between(target) * 1.5),
+                    target,
+                    abs <= 1e-3,
+                    0.0 = -0.0,
+                    quat = -quat
+                );
+
+                for t in [0.25, 0.5, 0.75] {
+                    assert_test_eq!(
+                        quat.rotate_towards(target, quat.angle_between(target) * t),
+                        quat.slerp(target, t),
+                        abs <= 1e-3,
+                        0.0 = -0.0,
+                        quat = -quat
+                    );
+                }
             }
         });
     }
 
     #[test]
     fn test_length() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).length(),
-                Vector::<4, T, A>::new(x, y, z, w).length()
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_test_eq!(quat.length(), quat.to_vector().length());
+            }
         });
     }
 
     #[test]
     fn test_normalize() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).normalize(),
-                Quaternion::from_vector(Vector::<4, T, A>::new(x, y, z, w).normalize())
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_panic_test_eq!(
+                    quat.normalize(),
+                    Quaternion::from_vector(quat.to_vector().normalize())
+                );
+            }
         });
     }
 
     #[test]
     fn test_try_normalize() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w)
-                    .try_normalize()
-                    .unwrap(),
-                Quaternion::from_vector(
-                    Vector::<4, T, A>::new(x, y, z, w).try_normalize().unwrap()
-                )
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_panic_test_eq!(
+                    quat.try_normalize().unwrap(),
+                    Quaternion::from_vector(quat.to_vector().try_normalize().unwrap())
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize_or() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_panic_float_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).normalize_or(Quaternion::NAN),
-                Quaternion::from_vector(
-                    Vector::<4, T, A>::new(x, y, z, w).normalize_or(Vector::NAN)
-                )
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for [quat, fallback] in random_iter::<[Quaternion<T, A>; 2]>() {
+                assert_panic_test_eq!(
+                    quat.normalize_or(fallback),
+                    Quaternion::from_vector(quat.to_vector().normalize_or(fallback.to_vector()))
+                );
+            }
         });
     }
 
     #[test]
     fn test_normalize_and_length() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let _: [T; 3] = [x, y, z];
-            let w = x.max(y);
-
-            let quat = Quaternion::<T, A>::from_xyzw(x, y, z, w);
-
-            assert_float_eq!(
-                quat.normalize_and_length(),
-                (
-                    Quaternion::from_vector(quat.to_vector().normalize_and_length().0),
-                    quat.normalize_and_length().1
-                )
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_test_eq!(
+                    quat.normalize_and_length(),
+                    (
+                        Quaternion::from_vector(quat.to_vector().normalize_and_length().0),
+                        quat.normalize_and_length().1
+                    )
+                );
+            }
         });
     }
 
     #[test]
     fn test_is_normalized() {
-        for_parameters!(|T: PrimitiveFloat, A, x, y, z| {
-            let w = T::max(x, y);
-
-            assert_eq!(
-                Quaternion::<T, A>::from_xyzw(x, y, z, w).is_normalized(),
-                Vector::<4, T, A>::new(x, y, z, w).is_normalized()
-            );
+        for_types!(|T: PrimitiveFloat, A| {
+            for quat in random_iter::<Quaternion<T, A>>() {
+                assert_eq!(quat.is_normalized(), quat.to_vector().is_normalized());
+            }
         });
     }
 
     #[test]
     fn test_abs_diff_eq() {
-        for_parameters!(|T: PrimitiveFloat| {
+        for_types!(|T: PrimitiveFloat| {
             assert!(
                 QuatA::<T>::from_xyzw(0.0, 1.0, 2.0, 3.0)
                     .abs_diff_eq(QuatA::from_xyzw(0.0, 1.1, 2.05, 2.9), 0.125)

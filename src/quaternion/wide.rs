@@ -195,11 +195,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use wide::{CmpEq, i32x4};
+    use wide::i32x4;
 
     use crate::{
-        QuatA, Quaternion,
-        utils::{assert_float_eq, assert_panic, for_parameters},
+        Quat, QuatA, Vec4,
+        utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -327,35 +327,24 @@ mod tests {
 
     #[test]
     fn test_simd_eq() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for_types!(|Wide: WideFloat| {
+            for ([a, b], mask) in random_iter::<([Quat<Wide>; 2], Vec4<Wide>)>() {
+                let mask = mask.sign_negative_mask();
+                let b = Quat::from_vector(mask.blend(a.to_vector(), b.to_vector()));
 
-            assert_float_eq!(
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w)
-                    .simd_eq(&Quaternion::<Wide, A>::from_xyzw(z, y, z, w)),
-                x.simd_eq(z) & y.simd_eq(y) & z.simd_eq(z) & w.simd_eq(w)
-            );
-            assert_float_eq!(
-                Quaternion::<Wide, A>::from_xyzw(x, y, z, w)
-                    .simd_eq(&Quaternion::<Wide, A>::from_xyzw(z, w, x, y)),
-                x.simd_eq(z) & y.simd_eq(w)
-            );
+                assert_test_eq!(a.simd_eq(&b), a.to_vector().simd_eq(b.to_vector()));
+            }
         });
     }
 
     #[test]
     fn test_simd_ne() {
-        for_parameters!(|Wide: WideFloat, A, x, y, z| {
-            let _: [Wide; 3] = [x, y, z];
-            let w = x ^ y;
+        for_types!(|Wide: WideFloat| {
+            for ([a, b], mask) in random_iter::<([Quat<Wide>; 2], Vec4<Wide>)>() {
+                let mask = mask.sign_negative_mask();
+                let b = Quat::from_vector(mask.blend(a.to_vector(), b.to_vector()));
 
-            let quat = Quaternion::<Wide, A>::from_xyzw(x, y, z, w);
-            for other in [
-                Quaternion::<Wide, A>::from_xyzw(z, y, z, w),
-                Quaternion::<Wide, A>::from_xyzw(z, w, x, y),
-            ] {
-                assert_float_eq!(quat.simd_ne(&other), !quat.simd_eq(&other));
+                assert_test_eq!(a.simd_ne(&b), a.to_vector().simd_ne(b.to_vector()));
             }
         });
     }

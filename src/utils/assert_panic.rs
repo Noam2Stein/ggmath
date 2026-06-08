@@ -8,6 +8,7 @@ use std::{
 
 use colored::Colorize;
 
+/// Asserts that the given expression panics.
 macro_rules! assert_panic {
     ($expr:expr $(,)?) => {
         crate::utils::assert_panic_helper(|| {
@@ -15,7 +16,6 @@ macro_rules! assert_panic {
         })
     };
 }
-
 pub(crate) use assert_panic;
 
 /// When debug assertions are enabled, asserts that the given expression panics.
@@ -38,46 +38,46 @@ macro_rules! assert_debug_panic {
         let _ = $expr;
     }};
 }
-
 pub(crate) use assert_debug_panic;
 
-macro_rules! assert_panic_eq {
-    ($left:expr, $right:expr $(,)?) => {
-        crate::utils::assert_panic_eq_helper(|| $left, || $right)
-    };
-}
-
-pub(crate) use assert_panic_eq;
-
-macro_rules! assert_panic_float_eq {
-    ($left:expr, $right:expr $(, $($arg:tt)*)?) => {
-        crate::utils::assert_panic_float_eq_helper(
-            || $left,
-            || $right,
-            |left, right| crate::utils::assert_float_eq!(left, right $(, $($arg)*)?),
+/// Asserts that either both expressions panic or that their result is equal
+/// with [`test_eq`] rules.
+///
+/// [`test_eq`]: crate::utils::test_eq
+macro_rules! assert_panic_test_eq {
+    ($actual:expr, $expected:expr $(, $($arg:tt)*)?) => {
+        crate::utils::assert_panic_test_eq_helper(
+            || $actual,
+            || $expected,
+            |left, right| crate::utils::assert_test_eq!(left, right $(, $($arg)*)?),
         )
     };
 }
+pub(crate) use assert_panic_test_eq;
 
-pub(crate) use assert_panic_float_eq;
-
-/// Asserts that either `left == right` or `right` panics.
+/// Asserts that either `actual == expected` or `expected` panics.
 ///
-/// If `left` panics this fails even if `right` panicked too.
+/// Equality follows [`test_eq`] rules.
+///
+/// If `actual` panics this fails even if `expected` panicked too.
+///
+/// [`test_eq`]: crate::utils::test_eq
 #[cfg(feature = "wide")]
-macro_rules! assert_float_eq_or_panic {
-    ($left:expr, $right:expr $(, $($arg:tt)*)?) => {{
+macro_rules! assert_test_eq_or_panic {
+    ($actual:expr, $expected:expr $(, $($arg:tt)*)?) => {{
         extern crate std;
 
-        let _left = $left;
-        if let Ok(right) = std::panic::catch_unwind(|| $right) {
-            crate::utils::assert_float_eq!(_left, right $(, $($arg)*)?);
+        #[allow(unused_variables)]
+        let actual = $actual;
+        if let Ok(expected) = std::panic::catch_unwind(|| $expected) {
+            crate::utils::assert_test_eq!(actual, expected $(, $($arg)*)?);
+        } else {
+            crate::utils::println_panic_expected();
         }
     }};
 }
-
 #[cfg(feature = "wide")]
-pub(crate) use assert_float_eq_or_panic;
+pub(crate) use assert_test_eq_or_panic;
 
 #[doc(hidden)]
 #[track_caller]
@@ -90,45 +90,36 @@ pub fn assert_panic_helper(f: impl FnOnce() + UnwindSafe) {
 
 #[doc(hidden)]
 #[track_caller]
-pub fn assert_panic_eq_helper<T>(
-    left: impl FnOnce() -> T + UnwindSafe,
-    right: impl FnOnce() -> T + UnwindSafe,
+pub fn assert_panic_test_eq_helper<T>(
+    actual: impl FnOnce() -> T + UnwindSafe,
+    expected: impl FnOnce() -> T + UnwindSafe,
+    assert_test_eq: impl FnOnce(T, T) + UnwindSafe,
 ) where
-    T: Debug + PartialEq,
+    T: Debug,
 {
-    match (catch_unwind(left), catch_unwind(right)) {
-        (Ok(left), Ok(right)) => {
-            if left != right {
-                panic!(
-                    concat!(
-                        "assertion `left == right` failed\n",
-                        "  left: {:?}\n",
-                        " right: {:?}",
-                    ),
-                    left, right,
-                );
-            }
+    match (catch_unwind(actual), catch_unwind(expected)) {
+        (Ok(actual), Ok(expected)) => {
+            assert_test_eq(actual, expected);
         }
-        (Ok(left), Err(_)) => {
+        (Ok(actual), Err(_)) => {
             println_panic_expected();
             panic!(
                 concat!(
-                    "assertion `left == right` failed\n",
-                    "  left: {:?}\n",
-                    " right: panic",
+                    "assertion `actual == expected` failed\n",
+                    "  actual: {:?}\n",
+                    "expected: panic",
                 ),
-                left
+                actual
             );
         }
-        (Err(_), Ok(right)) => {
-            println_panic_expected();
+        (Err(_), Ok(expected)) => {
             panic!(
                 concat!(
-                    "assertion `left == right` failed\n",
-                    "  left: panic\n",
-                    " right: {:?}",
+                    "assertion `actual == expected` failed\n",
+                    "  actual: panic\n",
+                    "expected: {:?}",
                 ),
-                right
+                expected
             );
         }
         (Err(_), Err(_)) => println_panic_expected(),
@@ -136,45 +127,7 @@ pub fn assert_panic_eq_helper<T>(
 }
 
 #[doc(hidden)]
-#[track_caller]
-pub fn assert_panic_float_eq_helper<T>(
-    left: impl FnOnce() -> T + UnwindSafe,
-    right: impl FnOnce() -> T + UnwindSafe,
-    assert_float_eq: impl FnOnce(T, T) + UnwindSafe,
-) where
-    T: Debug,
-{
-    match (catch_unwind(left), catch_unwind(right)) {
-        (Ok(left), Ok(right)) => {
-            assert_float_eq(left, right);
-        }
-        (Ok(left), Err(_)) => {
-            println_panic_expected();
-            panic!(
-                concat!(
-                    "assertion `left == right` failed\n",
-                    "  left: {:?}\n",
-                    " right: panic",
-                ),
-                left
-            );
-        }
-        (Err(_), Ok(right)) => {
-            println_panic_expected();
-            panic!(
-                concat!(
-                    "assertion `left == right` failed\n",
-                    "  left: panic\n",
-                    " right: {:?}",
-                ),
-                right
-            );
-        }
-        (Err(_), Err(_)) => println_panic_expected(),
-    }
-}
-
-fn println_panic_expected() {
+pub fn println_panic_expected() {
     println!("{}: panic is expected", "ok".green().bold());
 }
 
@@ -193,7 +146,7 @@ mod tests {
 
     #[test]
     #[expect(clippy::diverging_sub_expression)]
-    fn test_assert_assertions_panic() {
+    fn test_assert_debug_panic() {
         #[cfg(debug_assertions)]
         assert_debug_panic!(panic!());
         #[cfg(debug_assertions)]
@@ -206,38 +159,36 @@ mod tests {
     }
 
     #[test]
-    fn test_assert_panic_eq() {
-        assert_panic_eq!(1, 1);
-        assert_panic_eq!(panic!(), panic!());
-        assert_panic!(assert_panic_eq!(1, 2));
-        assert_panic!(assert_panic_eq!(panic!(), 1));
-        assert_panic!(assert_panic_eq!(1, panic!()));
-    }
-
-    #[test]
     #[expect(unreachable_code)]
-    fn test_assert_panic_float_eq() {
-        assert_panic_float_eq!(1.0, 1.0);
-        assert_panic_float_eq!(
+    fn test_assert_panic_test_eq() {
+        assert_panic_test_eq!(1.0, 1.0);
+        assert_panic_test_eq!(
             {
                 panic!();
                 0.0
             },
             panic!()
         );
-        assert_panic!(assert_panic_float_eq!(1.0, 2.0));
-        assert_panic!(assert_panic_float_eq!(panic!(), 1.0));
-        assert_panic!(assert_panic_float_eq!(1.0, panic!()));
+        assert_panic!(assert_panic_test_eq!(1.0, 2.0));
+        assert_panic!(assert_panic_test_eq!(panic!(), 1.0));
+        assert_panic!(assert_panic_test_eq!(1.0, panic!()));
     }
 
     #[cfg(feature = "wide")]
     #[test]
     #[expect(unreachable_code)]
     #[expect(clippy::diverging_sub_expression)]
-    fn test_assert_float_eq_or_panic() {
-        assert_float_eq_or_panic!(1.0, 1.0);
-        assert_float_eq_or_panic!(1.0, panic!());
-        assert_panic!(assert_float_eq_or_panic!(1.0, 2.0));
-        assert_panic!(assert_float_eq_or_panic!(panic!(), 1.0));
+    fn test_assert_test_eq_or_panic() {
+        assert_test_eq_or_panic!(1.0, 1.0);
+        assert_test_eq_or_panic!(1.0, panic!());
+        assert_panic!(assert_test_eq_or_panic!(1.0, 2.0));
+        assert_panic!(assert_test_eq_or_panic!(panic!(), 1.0));
+        assert_panic!(assert_test_eq_or_panic!(
+            {
+                panic!();
+                1.0
+            },
+            panic!()
+        ));
     }
 }

@@ -70,11 +70,11 @@ where
 mod tests {
     use rand::{RngExt, SeedableRng, rngs::StdRng};
 
-    use crate::{Affine, Mask, Matrix, Quaternion, Vector, utils::for_parameters};
+    use crate::{Affine, Mask, Matrix, Quaternion, Vector, utils::for_types};
 
     #[test]
     fn test_vector() {
-        for_parameters!(|A| {
+        for_types!(|A| {
             let rng = || StdRng::from_seed([0; 32]);
 
             assert_eq!(
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_matrix() {
-        for_parameters!(|A| {
+        for_types!(|A| {
             let rng = || StdRng::from_seed([0; 32]);
 
             assert_eq!(
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn test_quaternion() {
-        for_parameters!(|A| {
+        for_types!(|A| {
             let rng = || StdRng::from_seed([0; 32]);
 
             assert_eq!(
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn test_affine() {
-        for_parameters!(|A| {
+        for_types!(|A| {
             let rng = || StdRng::from_seed([0; 32]);
 
             assert_eq!(
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_mask() {
-        for_parameters!(|T: PrimitiveNumber, A| {
+        for_types!(|T: PrimitiveNumber, A| {
             let rng = || StdRng::from_seed([0; 32]);
 
             assert_eq!(
