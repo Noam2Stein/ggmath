@@ -403,7 +403,7 @@ impl_wide_float!(f64x8);
 mod tests {
     extern crate std;
 
-    use wide::CmpGt;
+    use wide::CmpLt;
 
     use crate::{
         Affine, Affine2, Affine3, EulerRot, Mat3, Quat, Unaligned, Vec2, Vec3, Vector,
@@ -516,9 +516,9 @@ mod tests {
     fn test_from_scale_angle() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
-                if !scale.length().is_finite().all() {
-                    continue;
-                }
+                let condition = scale.length().is_finite();
+                let scale = Vec2::splat(condition).blend(scale, Vec2::ONE);
+                let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq!(
                     Affine2::<Wide>::from_scale_angle(scale, angle),
@@ -554,9 +554,10 @@ mod tests {
     fn test_from_scale_angle_translation() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle, translation) in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>() {
-                if !scale.length().is_finite().all() {
-                    continue;
-                }
+                let condition = scale.length().is_finite();
+                let scale = Vec2::splat(condition).blend(scale, Vec2::ONE);
+                let angle = condition.blend(angle, Wide::ONE);
+                let translation = Vec2::splat(condition).blend(translation, Vec2::ONE);
 
                 assert_test_eq!(
                     Affine2::<Wide>::from_scale_angle_translation(scale, angle, translation),
@@ -670,12 +671,10 @@ mod tests {
             for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
                 .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
             {
-                if !axis.length().is_finite().all()
-                    || !angle.is_finite().all()
-                    || angle.abs().simd_gt(1e3).any()
-                {
-                    continue;
-                }
+                let condition =
+                    axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
+                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
+                let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(
                     Affine3::<Wide>::from_axis_angle(axis, angle),

@@ -1427,7 +1427,7 @@ impl_wide_float!(f64x8, u64x8, pow_f64x8);
 mod tests {
     extern crate std;
 
-    use wide::{CmpGt, f32x4};
+    use wide::{CmpLt, f32x4};
 
     use crate::{
         Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,
@@ -1704,11 +1704,8 @@ mod tests {
     #[test]
     fn test_powf() {
         for_types!(|N| {
-            for (vector, n) in random_iter::<(Vector<N, f32x4, Unaligned>, f32)>() {
-                assert_test_eq!(
-                    vector.powf(f32x4::splat(n)),
-                    Vector::from_fn(|i| vector[i].powf(n))
-                );
+            for (vector, n) in random_iter::<(Vector<N, f32x4, Unaligned>, f32x4)>() {
+                assert_test_eq!(vector.powf(n), Vector::from_fn(|i| vector[i].pow_f32x4(n)));
             }
         });
     }
@@ -1867,22 +1864,24 @@ mod tests {
     fn test_slerp() {
         for_types!(|N, Wide: WideFloat| {
             for ([a, b], t) in random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>() {
-                let t = (t / 10.0).clamp(Wide::splat(-100.0), Wide::splat(100.0));
-
-                if !a.is_finite().all()
-                    || !b.is_finite().all()
-                    || a.length().simd_gt(1e4).any()
-                    || b.length().simd_gt(1e4).any()
-                {
-                    continue;
-                }
+                let condition = a.is_finite()
+                    & b.is_finite()
+                    & a.length().simd_lt(1e4)
+                    & b.length().simd_lt(1e4);
+                let [a, b] = [a, b]
+                    .map(|v| Vector::<N, Wide, Unaligned>::splat(condition).blend(v, Vector::ZERO));
+                let t = condition.blend(
+                    (t / 10.0).clamp(Wide::splat(-100.0), Wide::splat(100.0)),
+                    Wide::ZERO,
+                );
 
                 assert_test_eq_or_panic!(
                     a.slerp(b, t),
                     Vector::from_lane_fn(|lane| a
                         .lane(lane)
                         .slerp(b.lane(lane), t.to_array()[lane])),
-                    abs <= a.length().max(b.length()) * t.abs().max(Wide::ONE) * 1e-3 + 1e-3
+                    abs <= a.length().max(b.length()) * t.abs().max(Wide::ONE) * 1e-3 + 1e-3,
+                    0.0 = -0.0
                 );
             }
         });
@@ -1894,13 +1893,12 @@ mod tests {
             for ([vector, target], max_delta) in
                 random_iter::<([Vector<N, Wide, Unaligned>; 2], Wide)>()
             {
-                if !vector.is_finite().all()
-                    || !target.is_finite().all()
-                    || vector.length().simd_gt(1e6).any()
-                    || target.length().simd_gt(1e6).any()
-                {
-                    continue;
-                }
+                let condition = vector.is_finite()
+                    & target.is_finite()
+                    & vector.length().simd_lt(1e6)
+                    & target.length().simd_lt(1e6);
+                let [vector, target] = [vector, target]
+                    .map(|v| Vector::<N, Wide, Unaligned>::splat(condition).blend(v, Vector::ZERO));
 
                 assert_test_eq_or_panic!(
                     vector.rotate_towards(target, max_delta),

@@ -561,7 +561,7 @@ impl_wide_float!(f64x8, f64);
 mod tests {
     extern crate std;
 
-    use wide::CmpGt;
+    use wide::CmpLt;
 
     use crate::{
         EulerRot, Mat3, Quat, Vec3,
@@ -615,12 +615,10 @@ mod tests {
             for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
                 .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
             {
-                if !axis.length().is_finite().all()
-                    || !angle.is_finite().all()
-                    || angle.abs().simd_gt(1e3).any()
-                {
-                    continue;
-                }
+                let condition =
+                    axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
+                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
+                let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(
                     Quat::<Wide>::from_axis_angle(axis, angle),

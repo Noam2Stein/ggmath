@@ -30,15 +30,19 @@ where
     ];
 
     let mut state = SEED;
-    CATEGORIES
-        .iter()
-        .copied()
+    T::categories(CATEGORIES.iter().copied())
         .flat_map(|category| repeat_n(category, 1000))
         .map(move |category| T::random(&mut state, category))
 }
 
 pub trait Random {
-    fn random(state: &mut u64, category: Category) -> Self;
+    type Category: Copy;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self;
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -70,7 +74,9 @@ fn random_bits(state: &mut u64) -> u64 {
 macro_rules! float_impl_random {
     ($T:ident, $UnsignedT:ident) => {
         impl Random for $T {
-            fn random(state: &mut u64, category: Category) -> Self {
+            type Category = Category;
+
+            fn random(state: &mut u64, category: Self::Category) -> Self {
                 let bits = random_bits(state);
 
                 let (min_exponent, max_exponent) = match category {
@@ -106,6 +112,12 @@ macro_rules! float_impl_random {
 
                 min.lerp(max, t)
             }
+
+            fn categories(
+                categories: impl Iterator<Item = Category>,
+            ) -> impl Iterator<Item = Self::Category> {
+                categories
+            }
         }
     };
 }
@@ -115,7 +127,9 @@ float_impl_random!(f64, u64);
 macro_rules! signed_impl_random {
     ($T:ident) => {
         impl Random for $T {
-            fn random(state: &mut u64, category: Category) -> Self {
+            type Category = Category;
+
+            fn random(state: &mut u64, category: Self::Category) -> Self {
                 let bits = random_bits(state);
 
                 let (min_exponent, max_exponent) = match category {
@@ -140,6 +154,12 @@ macro_rules! signed_impl_random {
 
                 (bits as Self).unbounded_shr(Self::BITS - exponent)
             }
+
+            fn categories(
+                categories: impl Iterator<Item = Category>,
+            ) -> impl Iterator<Item = Self::Category> {
+                categories
+            }
         }
     };
 }
@@ -153,7 +173,9 @@ signed_impl_random!(isize);
 macro_rules! unsigned_impl_random {
     ($T:ident) => {
         impl Random for $T {
-            fn random(state: &mut u64, category: Category) -> Self {
+            type Category = Category;
+
+            fn random(state: &mut u64, category: Self::Category) -> Self {
                 let bits = random_bits(state);
                 let (min_exponent, max_exponent) = match category {
                     Category::Exponents(min_exponent, max_exponent) => match bits % 47 {
@@ -175,6 +197,12 @@ macro_rules! unsigned_impl_random {
 
                 (bits as Self).unbounded_shr(Self::BITS - exponent)
             }
+
+            fn categories(
+                categories: impl Iterator<Item = Category>,
+            ) -> impl Iterator<Item = Self::Category> {
+                categories
+            }
         }
     };
 }
@@ -186,8 +214,16 @@ unsigned_impl_random!(u128);
 unsigned_impl_random!(usize);
 
 impl Random for bool {
-    fn random(state: &mut u64, _category: Category) -> Self {
+    type Category = Category;
+
+    fn random(state: &mut u64, _category: Self::Category) -> Self {
         random_bits(state) > u64::MAX / 2
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        categories
     }
 }
 
@@ -195,33 +231,57 @@ impl<T, const N: usize> Random for [T; N]
 where
     T: Random,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = T::Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         std::array::from_fn(|_| T::random(state, category))
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        T::categories(categories)
     }
 }
 
 impl<T0, T1> Random for (T0, T1)
 where
     T0: Random,
-    T1: Random,
+    T1: Random<Category = T0::Category>,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = T0::Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         (T0::random(state, category), T1::random(state, category))
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        T0::categories(categories)
     }
 }
 
 impl<T0, T1, T2> Random for (T0, T1, T2)
 where
     T0: Random,
-    T1: Random,
-    T2: Random,
+    T1: Random<Category = T0::Category>,
+    T2: Random<Category = T0::Category>,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = T0::Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         (
             T0::random(state, category),
             T1::random(state, category),
             T2::random(state, category),
         )
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        T0::categories(categories)
     }
 }
 
@@ -230,8 +290,16 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Random,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = T::Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         Self::from_array(Random::random(state, category))
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        T::categories(categories)
     }
 }
 
@@ -240,8 +308,16 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Random,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = T::Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         Self::from_rows(&Random::random(state, category))
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        T::categories(categories)
     }
 }
 
@@ -249,8 +325,16 @@ impl<T, A: Alignment> Random for Quaternion<T, A>
 where
     T: Scalar + Random,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = T::Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         Self::from_array(Random::random(state, category))
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        T::categories(categories)
     }
 }
 
@@ -259,8 +343,16 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Random,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = T::Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         Self::from_row_fn(|_| Random::random(state, category))
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        T::categories(categories)
     }
 }
 
@@ -269,13 +361,23 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    fn random(state: &mut u64, category: Category) -> Self {
+    type Category = Category;
+
+    fn random(state: &mut u64, category: Self::Category) -> Self {
         Self::from_array(Random::random(state, category))
+    }
+
+    fn categories(
+        categories: impl Iterator<Item = Category>,
+    ) -> impl Iterator<Item = Self::Category> {
+        categories
     }
 }
 
 #[cfg(feature = "wide")]
 mod wide {
+    extern crate std;
+
     use wide::{
         f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i8x16, i8x32, i16x8, i16x16, i16x32, i32x4,
         i32x8, i32x16, i64x2, i64x4, i64x8, u8x16, u8x32, u16x8, u16x16, u16x32, u32x4, u32x8,
@@ -285,40 +387,60 @@ mod wide {
     use crate::utils::random_iter::{Category, Random};
 
     macro_rules! wide_impl_random {
-        ($T:ident, $Wide:ident) => {
+        ($T:ident, $LANES:literal, $Wide:ident) => {
             impl Random for $Wide {
-                fn random(state: &mut u64, category: Category) -> Self {
-                    Self::new(Random::random(state, category))
+                type Category = [Category; $LANES];
+
+                fn random(state: &mut u64, category: Self::Category) -> Self {
+                    Self::new(std::array::from_fn(|lane| {
+                        $T::random(state, category[lane])
+                    }))
+                }
+
+                fn categories(
+                    categories: impl Iterator<Item = Category>,
+                ) -> impl Iterator<Item = Self::Category> {
+                    let mut categories = categories.peekable();
+
+                    std::iter::from_fn(move || {
+                        if categories.peek().is_some() {
+                            Some(std::array::from_fn(|_| {
+                                categories.next().unwrap_or(Category::MostlyZeroOne)
+                            }))
+                        } else {
+                            None
+                        }
+                    })
                 }
             }
         };
     }
-    wide_impl_random!(f32, f32x4);
-    wide_impl_random!(f32, f32x8);
-    wide_impl_random!(f32, f32x16);
-    wide_impl_random!(f64, f64x2);
-    wide_impl_random!(f64, f64x4);
-    wide_impl_random!(f64, f64x8);
-    wide_impl_random!(i8, i8x16);
-    wide_impl_random!(i8, i8x32);
-    wide_impl_random!(i16, i16x8);
-    wide_impl_random!(i16, i16x16);
-    wide_impl_random!(i16, i16x32);
-    wide_impl_random!(i32, i32x4);
-    wide_impl_random!(i32, i32x8);
-    wide_impl_random!(i32, i32x16);
-    wide_impl_random!(i64, i64x2);
-    wide_impl_random!(i64, i64x4);
-    wide_impl_random!(i64, i64x8);
-    wide_impl_random!(u8, u8x16);
-    wide_impl_random!(u8, u8x32);
-    wide_impl_random!(u16, u16x8);
-    wide_impl_random!(u16, u16x16);
-    wide_impl_random!(u16, u16x32);
-    wide_impl_random!(u32, u32x4);
-    wide_impl_random!(u32, u32x8);
-    wide_impl_random!(u32, u32x16);
-    wide_impl_random!(u64, u64x2);
-    wide_impl_random!(u64, u64x4);
-    wide_impl_random!(u64, u64x8);
+    wide_impl_random!(f32, 4, f32x4);
+    wide_impl_random!(f32, 8, f32x8);
+    wide_impl_random!(f32, 16, f32x16);
+    wide_impl_random!(f64, 2, f64x2);
+    wide_impl_random!(f64, 4, f64x4);
+    wide_impl_random!(f64, 8, f64x8);
+    wide_impl_random!(i8, 16, i8x16);
+    wide_impl_random!(i8, 32, i8x32);
+    wide_impl_random!(i16, 8, i16x8);
+    wide_impl_random!(i16, 16, i16x16);
+    wide_impl_random!(i16, 32, i16x32);
+    wide_impl_random!(i32, 4, i32x4);
+    wide_impl_random!(i32, 8, i32x8);
+    wide_impl_random!(i32, 16, i32x16);
+    wide_impl_random!(i64, 2, i64x2);
+    wide_impl_random!(i64, 4, i64x4);
+    wide_impl_random!(i64, 8, i64x8);
+    wide_impl_random!(u8, 16, u8x16);
+    wide_impl_random!(u8, 32, u8x32);
+    wide_impl_random!(u16, 8, u16x8);
+    wide_impl_random!(u16, 16, u16x16);
+    wide_impl_random!(u16, 32, u16x32);
+    wide_impl_random!(u32, 4, u32x4);
+    wide_impl_random!(u32, 8, u32x8);
+    wide_impl_random!(u32, 16, u32x16);
+    wide_impl_random!(u64, 2, u64x2);
+    wide_impl_random!(u64, 4, u64x4);
+    wide_impl_random!(u64, 8, u64x8);
 }

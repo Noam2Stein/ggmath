@@ -1791,7 +1791,7 @@ impl_wide_float!(f64x8, f64);
 
 #[cfg(test)]
 mod tests {
-    use wide::CmpGt;
+    use wide::CmpLt;
 
     use crate::{
         EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
@@ -1950,9 +1950,7 @@ mod tests {
     fn test_from_scale_angle() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle) in random_iter::<(Vec2<Wide>, Wide)>() {
-                if !scale.length().is_finite().all() {
-                    continue;
-                }
+                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
 
                 assert_test_eq!(
                     Mat2::<Wide>::from_scale_angle(scale, angle),
@@ -2024,9 +2022,7 @@ mod tests {
     fn test_from_scale_angle_translation() {
         for_types!(|Wide: WideFloat| {
             for (scale, angle, translation) in random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>() {
-                if !scale.length().is_finite().all() {
-                    continue;
-                }
+                let scale = Vec2::splat(scale.length().is_finite()).blend(scale, Vec2::ONE);
 
                 assert_test_eq!(
                     Mat3::<Wide>::from_scale_angle_translation(scale, angle, translation),
@@ -2124,12 +2120,10 @@ mod tests {
             for (axis, angle) in random_iter::<(Vec3<Wide>, Wide)>()
                 .flat_map(|(axis, angle)| [(axis, angle), (axis.normalize(), angle)])
             {
-                if !axis.length().is_finite().all()
-                    || !angle.is_finite().all()
-                    || angle.abs().simd_gt(1e3).any()
-                {
-                    continue;
-                }
+                let condition =
+                    axis.length().is_finite() & angle.is_finite() & angle.abs().simd_lt(1e3);
+                let axis = Vec3::splat(condition).blend(axis, Vec3::X);
+                let angle = condition.blend(angle, Wide::ONE);
 
                 assert_test_eq_or_panic!(
                     Mat3::<Wide>::from_axis_angle(axis, angle),
@@ -2464,12 +2458,9 @@ mod tests {
     fn test_perspective_lh() {
         for_types!(|Wide: WideFloat| {
             for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
-                if [vertical_fov, near_plane, far_plane, aspect_ratio]
-                    .iter()
-                    .any(|x| !x.is_finite().all() || x.abs().simd_gt(1e3).any())
-                {
-                    continue;
-                }
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Mat4::<Wide>::perspective_lh(vertical_fov, aspect_ratio, near_plane, far_plane),
@@ -2497,12 +2488,9 @@ mod tests {
     fn test_perspective_rh() {
         for_types!(|Wide: WideFloat| {
             for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
-                if [vertical_fov, near_plane, far_plane, aspect_ratio]
-                    .iter()
-                    .any(|x| !x.is_finite().all() || x.abs().simd_gt(1e3).any())
-                {
-                    continue;
-                }
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Mat4::<Wide>::perspective_rh(vertical_fov, aspect_ratio, near_plane, far_plane),
@@ -2530,12 +2518,9 @@ mod tests {
     fn test_perspective_rh_gl() {
         for_types!(|Wide: WideFloat| {
             for [vertical_fov, near_plane, far_plane, aspect_ratio] in random_iter::<[Wide; 4]>() {
-                if [vertical_fov, near_plane, far_plane, aspect_ratio]
-                    .iter()
-                    .any(|x| !x.is_finite().all() || x.abs().simd_gt(1e3).any())
-                {
-                    continue;
-                }
+                let [vertical_fov, near_plane, far_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, far_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Mat4::<Wide>::perspective_rh_gl(
@@ -2568,12 +2553,9 @@ mod tests {
     fn test_perspective_infinite_lh() {
         for_types!(|Wide: WideFloat| {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
-                if [vertical_fov, near_plane, aspect_ratio]
-                    .iter()
-                    .any(|x| !x.is_finite().all() || x.abs().simd_gt(1e3).any())
-                {
-                    continue;
-                }
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Mat4::<Wide>::perspective_infinite_lh(vertical_fov, aspect_ratio, near_plane),
@@ -2599,12 +2581,9 @@ mod tests {
     fn test_perspective_infinite_rh() {
         for_types!(|Wide: WideFloat| {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
-                if [vertical_fov, near_plane, aspect_ratio]
-                    .iter()
-                    .any(|x| !x.is_finite().all() || x.abs().simd_gt(1e3).any())
-                {
-                    continue;
-                }
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Mat4::<Wide>::perspective_infinite_rh(vertical_fov, aspect_ratio, near_plane),
@@ -2630,12 +2609,9 @@ mod tests {
     fn test_perspective_infinite_reverse_lh() {
         for_types!(|Wide: WideFloat| {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
-                if [vertical_fov, near_plane, aspect_ratio]
-                    .iter()
-                    .any(|x| !x.is_finite().all() || x.abs().simd_gt(1e3).any())
-                {
-                    continue;
-                }
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Mat4::<Wide>::perspective_infinite_reverse_lh(
@@ -2665,12 +2641,9 @@ mod tests {
     fn test_perspective_infinite_reverse_rh() {
         for_types!(|Wide: WideFloat| {
             for [vertical_fov, near_plane, aspect_ratio] in random_iter::<[Wide; 3]>() {
-                if [vertical_fov, near_plane, aspect_ratio]
-                    .iter()
-                    .any(|x| !x.is_finite().all() || x.abs().simd_gt(1e3).any())
-                {
-                    continue;
-                }
+                let [vertical_fov, near_plane, aspect_ratio] =
+                    [vertical_fov, near_plane, aspect_ratio]
+                        .map(|x| (x.is_finite() & x.abs().simd_lt(1e3)).blend(x, Wide::ONE));
 
                 assert_test_eq_or_panic!(
                     Mat4::<Wide>::perspective_infinite_reverse_rh(
