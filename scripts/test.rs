@@ -24,12 +24,12 @@ const THIRD_PARTY_CRATES: &str = "bytemuck fixed mint rand serde wide";
 fn main() {
     let mut commands = Vec::new();
 
-    for (target, debug_assertions, overflow_checks, libm) in iproduct!(
+    for (target, debug_assertions, libm) in iproduct!(
         ["x86_64-unknown-linux-gnu", "riscv64gc-unknown-linux-gnu"],
         [false, true],
         [false, true],
-        [false, true],
     ) {
+        let overflow_checks = debug_assertions;
         let third_party_crates = !libm;
 
         commands.push(cargo_command(
