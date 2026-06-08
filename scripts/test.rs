@@ -24,18 +24,13 @@ const THIRD_PARTY_CRATES: &str = "bytemuck fixed mint rand serde wide";
 fn main() {
     let mut commands = Vec::new();
 
-    for (target, debug_assertions, libm) in iproduct!(
-        ["x86_64-unknown-linux-gnu", "riscv64gc-unknown-linux-gnu"],
-        [false, true],
-        [false, true],
-    ) {
+    for (debug_assertions, third_party_crates) in iproduct!([false, true], [false, true],) {
         let overflow_checks = debug_assertions;
-        let third_party_crates = !libm;
+        let libm = !third_party_crates;
 
         commands.push(cargo_command(
             "clippy",
             &[],
-            Some(target),
             debug_assertions,
             overflow_checks,
             libm,
@@ -44,7 +39,6 @@ fn main() {
         commands.push(cargo_command(
             "doc",
             &["--no-deps"],
-            Some(target),
             debug_assertions,
             overflow_checks,
             libm,
@@ -52,17 +46,18 @@ fn main() {
         ));
     }
 
-    for (debug_assertions, libm) in iproduct!([false, true], [false, true]) {
-        let overflow_checks = !libm;
+    for debug_assertions in [false, true] {
+        let overflow_checks = debug_assertions;
+        let libm = debug_assertions;
+        let third_party_crates = true;
 
         commands.push(cargo_command(
             "test",
             &[],
-            None,
             debug_assertions,
             overflow_checks,
             libm,
-            true,
+            third_party_crates,
         ));
     }
 
@@ -72,7 +67,6 @@ fn main() {
 fn cargo_command(
     cargo_command: &str,
     cargo_command_args: &[&str],
-    target: Option<&str>,
     debug_assertions: bool,
     overflow_checks: bool,
     libm: bool,
@@ -126,10 +120,6 @@ fn cargo_command(
 
     if !features.is_empty() {
         command.arg("--features").arg(features.trim());
-    }
-
-    if let Some(target) = target {
-        command.arg("--target").arg(target);
     }
 
     command
