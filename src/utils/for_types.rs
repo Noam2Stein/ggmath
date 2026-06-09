@@ -23,8 +23,6 @@ use std::{
 /// - `Wide`
 /// - `Wide: WideFloat`
 /// - `Wide: WideInteger`
-/// - `Wide: WideSigned`
-/// - `Wide: WideUnsigned`
 /// - `A`
 ///
 /// Note that this does not cover all types. Some types are excluded to reduce
@@ -179,38 +177,6 @@ macro_rules! for_types {
         #[allow(dead_code)]
         const LANES: usize = 4;
         crate::utils::call_with_panic_message(|| $expr, None, Some("i32"), Some(LANES), None);
-    };
-    {
-        type Wide = wide::u64x8;
-        #[allow(dead_code)]
-        type T = u64;
-        #[allow(dead_code)]
-        const LANES: usize = 8;
-        crate::utils::call_with_panic_message(|| $expr, None, Some("u64"), Some(LANES), None);
-    };};
-    (|Wide: WideSigned| $expr:expr) => {{
-        type Wide = wide::i32x4;
-        #[allow(dead_code)]
-        type T = i32;
-        #[allow(dead_code)]
-        const LANES: usize = 4;
-        crate::utils::call_with_panic_message(|| $expr, None, Some("i32"), Some(LANES), None);
-    };
-    {
-        type Wide = wide::i64x8;
-        #[allow(dead_code)]
-        type T = i64;
-        #[allow(dead_code)]
-        const LANES: usize = 8;
-        crate::utils::call_with_panic_message(|| $expr, None, Some("i64"), Some(LANES), None);
-    };};
-    (|Wide: WideUnsigned| $expr:expr) => {{
-        type Wide = wide::u32x4;
-        #[allow(dead_code)]
-        type T = u32;
-        #[allow(dead_code)]
-        const LANES: usize = 4;
-        crate::utils::call_with_panic_message(|| $expr, None, Some("u32"), Some(LANES), None);
     };
     {
         type Wide = wide::u64x8;
@@ -468,84 +434,6 @@ macro_rules! for_types {
                     || $expr,
                     Some(N),
                     Some("i32"),
-                    Some(LANES),
-                    None,
-                );
-            };
-            {
-                type Wide = wide::u64x8;
-                #[allow(dead_code)]
-                type T = u64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u64"),
-                    Some(LANES),
-                    None,
-                );
-            };
-        }
-
-        for_n::<2>();
-        for_n::<3>();
-        for_n::<4>();
-    };};
-    (|N, Wide: WideSigned| $expr:expr) => {{
-        fn for_n<const N: usize>()
-        where
-            crate::Length<N>: crate::SupportedLength,
-        {
-            {
-                type Wide = wide::i32x4;
-                #[allow(dead_code)]
-                type T = i32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i32"),
-                    Some(LANES),
-                    None,
-                );
-            };
-            {
-                type Wide = wide::i64x8;
-                #[allow(dead_code)]
-                type T = i64;
-                #[allow(dead_code)]
-                const LANES: usize = 8;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    Some(LANES),
-                    None,
-                );
-            };
-        }
-
-        for_n::<2>();
-        for_n::<3>();
-        for_n::<4>();
-    };};
-    (|N, Wide: WideUnsigned| $expr:expr) => {{
-        fn for_n<const N: usize>()
-        where
-            crate::Length<N>: crate::SupportedLength,
-        {
-            {
-                type Wide = wide::u32x4;
-                #[allow(dead_code)]
-                type T = u32;
-                #[allow(dead_code)]
-                const LANES: usize = 4;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("u32"),
                     Some(LANES),
                     None,
                 );
