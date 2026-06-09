@@ -47,10 +47,10 @@ jobs:
         - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
 
         command:
-          rustflags: -C debug-assertions=off -C overflow-checks=off
+        - rustflags: -C debug-assertions=off -C overflow-checks=off
           args: --features "bytemuck fixed mint rand serde wide"
 
-          rustflags: -C debug-assertions=on -C overflow-checks=on
+        - rustflags: -C debug-assertions=on -C overflow-checks=on
           args: --all-features
 
     steps:
