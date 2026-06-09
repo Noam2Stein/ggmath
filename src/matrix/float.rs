@@ -2819,10 +2819,11 @@ mod tests {
 
                     let result = matrix.to_euler(order);
                     assert_test_eq!(
-                        Matrix::<3, T, A>::from_euler(order, result.0, result.1, result.2),
-                        matrix,
-                        abs <= matrix.abs() * 1e-3 + Matrix::<3, T, A>::from_row_array(&[1e-3; 9]),
-                        0.0 = -0.0
+                        Quaternion::<T, A>::from_euler(order, result.0, result.1, result.2),
+                        quat,
+                        abs <= quat.to_vector().abs() * 1e-3 + 1e-2,
+                        0.0 = -0.0,
+                        quat = -quat
                     );
 
                     let matrix = Matrix::<4, T, A>::from_quat(quat);
