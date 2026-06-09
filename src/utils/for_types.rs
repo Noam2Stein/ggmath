@@ -617,15 +617,15 @@ macro_rules! for_types {
             for_ta::<f32, A>("f32");
             for_ta::<f64, A>("f64");
             for_ta::<i32, A>("i32");
-            for_ta::<i64, A>("i64");
-            for_ta::<isize, A>("isize");
             for_ta::<u32, A>("u32");
-            for_ta::<u64, A>("u64");
-            for_ta::<usize, A>("usize");
         }
 
-        for_a::<crate::Aligned>();
         for_a::<crate::Unaligned>();
+        for_a::<crate::Aligned>();
+        for_ta::<i64, crate::Aligned>("i64");
+        for_ta::<isize, crate::Aligned>("isize");
+        for_ta::<u64, crate::Aligned>("u64");
+        for_ta::<usize, crate::Aligned>("usize");
     };};
     (|T: PrimitiveFloat, A| $expr:expr) => {{
         fn for_a<A: crate::Alignment>() {
@@ -667,26 +667,6 @@ macro_rules! for_types {
                 );
             };
             {
-                type T = i64;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("i64"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type T = isize;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("isize"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
                 type T = u32;
                 crate::utils::call_with_panic_message(
                     || $expr,
@@ -696,30 +676,30 @@ macro_rules! for_types {
                     Some(A::IS_ALIGNED),
                 );
             };
-            {
-                type T = u64;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("u64"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type T = usize;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("usize"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
         }
 
-        for_a::<crate::Aligned>();
         for_a::<crate::Unaligned>();
+        for_a::<crate::Aligned>();
+        {
+            type T = i64;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("i64"), None, Some(true));
+        };
+        {
+            type T = isize;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("isize"), None, Some(true));
+        };
+        {
+            type T = u64;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("u64"), None, Some(true));
+        };
+        {
+            type T = usize;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("usize"), None, Some(true));
+        };
     };};
     (|T: PrimitiveSigned, A| $expr:expr) => {{
         fn for_a<A: crate::Alignment>() {
@@ -733,30 +713,20 @@ macro_rules! for_types {
                     Some(A::IS_ALIGNED),
                 );
             };
-            {
-                type T = i64;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("i64"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type T = isize;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("isize"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
         }
 
-        for_a::<crate::Aligned>();
         for_a::<crate::Unaligned>();
+        for_a::<crate::Aligned>();
+        {
+            type T = i64;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("i64"), None, Some(true));
+        };
+        {
+            type T = isize;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("isize"), None, Some(true));
+        };
     };};
     (|T: PrimitiveUnsigned, A| $expr:expr) => {{
         fn for_a<A: crate::Alignment>() {
@@ -770,30 +740,20 @@ macro_rules! for_types {
                     Some(A::IS_ALIGNED),
                 );
             };
-            {
-                type T = u64;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("u64"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type T = usize;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    None,
-                    Some("usize"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
         }
 
         for_a::<crate::Aligned>();
         for_a::<crate::Unaligned>();
+        {
+            type T = u64;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("u64"), None, Some(true));
+        };
+        {
+            type T = usize;
+            type A = crate::Aligned;
+            crate::utils::call_with_panic_message(|| $expr, None, Some("usize"), None, Some(true));
+        };
     };};
     (|N, T: PrimitiveNumber, A| $expr:expr) => {{
         fn for_nta<const N: usize, T, A: crate::Alignment>(t: &'static str)
@@ -820,19 +780,24 @@ macro_rules! for_types {
             for_nta::<N, f32, A>("f32");
             for_nta::<N, f64, A>("f64");
             for_nta::<N, i32, A>("i32");
-            for_nta::<N, i64, A>("i64");
-            for_nta::<N, isize, A>("isize");
             for_nta::<N, u32, A>("u32");
-            for_nta::<N, u64, A>("u64");
-            for_nta::<N, usize, A>("usize");
         }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::SupportedLength,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
+            for_nta::<N, i64, crate::Aligned>("i64");
+            for_nta::<N, isize, crate::Aligned>("isize");
+            for_nta::<N, u64, crate::Aligned>("u64");
+            for_nta::<N, usize, crate::Aligned>("usize");
+        }
+
+        for_n::<2>();
+        for_n::<3>();
+        for_n::<4>();
     };};
     (|N, T: PrimitiveFloat, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
@@ -884,26 +849,6 @@ macro_rules! for_types {
                 );
             };
             {
-                type T = i64;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("i64"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
-                type T = isize;
-                crate::utils::call_with_panic_message(
-                    || $expr,
-                    Some(N),
-                    Some("isize"),
-                    None,
-                    Some(A::IS_ALIGNED),
-                );
-            };
-            {
                 type T = u32;
                 crate::utils::call_with_panic_message(
                     || $expr,
@@ -913,34 +858,63 @@ macro_rules! for_types {
                     Some(A::IS_ALIGNED),
                 );
             };
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::SupportedLength,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
+            {
+                type T = i64;
+                type A = crate::Aligned;
+                crate::utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("i64"),
+                    None,
+                    Some(true),
+                );
+            };
+            {
+                type T = isize;
+                type A = crate::Aligned;
+                crate::utils::call_with_panic_message(
+                    || $expr,
+                    Some(N),
+                    Some("isize"),
+                    None,
+                    Some(true),
+                );
+            };
             {
                 type T = u64;
+                type A = crate::Aligned;
                 crate::utils::call_with_panic_message(
                     || $expr,
                     Some(N),
                     Some("u64"),
                     None,
-                    Some(A::IS_ALIGNED),
+                    Some(true),
                 );
             };
             {
                 type T = usize;
+                type A = crate::Aligned;
                 crate::utils::call_with_panic_message(
                     || $expr,
                     Some(N),
                     Some("usize"),
                     None,
-                    Some(A::IS_ALIGNED),
+                    Some(true),
                 );
             };
         }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
+        for_n::<2>();
+        for_n::<3>();
+        for_n::<4>();
     };};
     (|N, T: PrimitiveSigned, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
@@ -957,34 +931,41 @@ macro_rules! for_types {
                     Some(A::IS_ALIGNED),
                 );
             };
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::SupportedLength,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
             {
                 type T = i64;
+                type A = crate::Aligned;
                 crate::utils::call_with_panic_message(
                     || $expr,
                     Some(N),
                     Some("i64"),
                     None,
-                    Some(A::IS_ALIGNED),
+                    Some(true),
                 );
             };
             {
                 type T = isize;
+                type A = crate::Aligned;
                 crate::utils::call_with_panic_message(
                     || $expr,
                     Some(N),
                     Some("isize"),
                     None,
-                    Some(A::IS_ALIGNED),
+                    Some(true),
                 );
             };
         }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
+        for_n::<2>();
+        for_n::<3>();
+        for_n::<4>();
     };};
     (|N, T: PrimitiveUnsigned, A| $expr:expr) => {{
         fn for_na<const N: usize, A: crate::Alignment>()
@@ -1001,34 +982,41 @@ macro_rules! for_types {
                     Some(A::IS_ALIGNED),
                 );
             };
+        }
+
+        fn for_n<const N: usize>()
+        where
+            crate::Length<N>: crate::SupportedLength,
+        {
+            for_na::<N, crate::Unaligned>();
+            for_na::<N, crate::Aligned>();
             {
                 type T = u64;
+                type A = crate::Aligned;
                 crate::utils::call_with_panic_message(
                     || $expr,
                     Some(N),
                     Some("u64"),
                     None,
-                    Some(A::IS_ALIGNED),
+                    Some(true),
                 );
             };
             {
                 type T = usize;
+                type A = crate::Aligned;
                 crate::utils::call_with_panic_message(
                     || $expr,
                     Some(N),
                     Some("usize"),
                     None,
-                    Some(A::IS_ALIGNED),
+                    Some(true),
                 );
             };
         }
 
-        for_na::<2, crate::Aligned>();
-        for_na::<3, crate::Aligned>();
-        for_na::<4, crate::Aligned>();
-        for_na::<2, crate::Unaligned>();
-        for_na::<3, crate::Unaligned>();
-        for_na::<4, crate::Unaligned>();
+        for_n::<2>();
+        for_n::<3>();
+        for_n::<4>();
     };};
 }
 pub(crate) use for_types;
