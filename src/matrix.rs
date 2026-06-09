@@ -3067,7 +3067,8 @@ mod tests {
                     matrix[0][0] * matrix.remove(0, 0).determinant()
                         - matrix[0][1] * matrix.remove(0, 1).determinant()
                         + matrix[0][2] * matrix.remove(0, 2).determinant(),
-                    abs <= matrix.as_rows().iter().map(|v| v.length()).product::<T>() * 1e-6 + 1e-6,
+                    abs <= (matrix.as_rows().iter().map(|v| v.length()).product::<T>() * 1e-6)
+                        .max(1e-6),
                     0.0 = -0.0
                 );
             }
@@ -3079,7 +3080,8 @@ mod tests {
                         - matrix[0][1] * matrix.remove(0, 1).determinant()
                         + matrix[0][2] * matrix.remove(0, 2).determinant()
                         - matrix[0][3] * matrix.remove(0, 3).determinant(),
-                    abs <= matrix.as_rows().iter().map(|v| v.length()).product::<T>() * 1e-6 + 1e-6,
+                    abs <= (matrix.as_rows().iter().map(|v| v.length()).product::<T>() * 1e-6)
+                        .max(1e-6),
                     0.0 = -0.0,
                     INFINITY = NAN
                 );
