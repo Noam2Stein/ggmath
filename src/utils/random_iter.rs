@@ -16,33 +16,19 @@ where
     T: Random,
 {
     const SEED: u64 = 0x123456789abcdef0;
-    const CATEGORIES: &[Category] = &[
-        Category::Exponents(-1, 0),
-        Category::Exponents(-1, 1),
-        Category::Exponents(-2, 2),
-        Category::Exponents(-3, 4),
-        Category::Exponents(-5, 4),
-        Category::Exponents(0, 8),
-        Category::Exponents(-8, 0),
-        Category::Exponents(-100, 100),
-        Category::MostlyZeroOne,
-        Category::MostlyNanInfinity,
-    ];
 
     let mut state = SEED;
-    T::categories(CATEGORIES.iter().copied())
-        .flat_map(|category| repeat_n(category, 1000))
-        .map(move |category| T::random(&mut state, category))
+    T::Input::values().map(move |category| T::random(&mut state, category))
 }
 
 pub trait Random {
-    type Category: Copy;
+    type Input: Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self;
+    fn random(state: &mut u64, input: Self::Input) -> Self;
+}
 
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category>;
+pub trait Input: Copy {
+    fn values() -> impl Iterator<Item = Self>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,20 +39,36 @@ pub enum Category {
     MostlyNanInfinity,
 }
 
-/// Generates the next pseudo-random number.
-///
-/// Definitely non-cryptographic, just used to generate random test values.
-fn update_state(state: &mut u64) {
-    // Constants for the LCG
-    const A: u64 = 6364136223846793005;
-    const C: u64 = 1442695040888963407;
-
-    // Update the state and calculate the next number (rotate to avoid lack of
-    // randomness in low bits).
-    *state = state.wrapping_mul(A).wrapping_add(C).rotate_left(31);
+impl Input for Category {
+    fn values() -> impl Iterator<Item = Self> {
+        [
+            (Category::Exponents(-1, 0), 1000),
+            (Category::Exponents(-1, 1), 1000),
+            (Category::Exponents(-2, 2), 1000),
+            (Category::Exponents(-3, 4), 1000),
+            (Category::Exponents(-5, 4), 500),
+            (Category::Exponents(0, 8), 100),
+            (Category::Exponents(-8, 0), 100),
+            (Category::Exponents(-100, 100), 100),
+            (Category::MostlyZeroOne, 200),
+            (Category::MostlyNanInfinity, 100),
+        ]
+        .into_iter()
+        .flat_map(|(element, count)| repeat_n(element, count))
+    }
 }
 
 fn random_bits(state: &mut u64) -> u64 {
+    fn update_state(state: &mut u64) {
+        // Constants for the LCG
+        const A: u64 = 6364136223846793005;
+        const C: u64 = 1442695040888963407;
+
+        // Update the state and calculate the next number (rotate to avoid lack of
+        // randomness in low bits).
+        *state = state.wrapping_mul(A).wrapping_add(C).rotate_left(31);
+    }
+
     update_state(state);
     *state
 }
@@ -74,12 +76,12 @@ fn random_bits(state: &mut u64) -> u64 {
 macro_rules! float_impl_random {
     ($T:ident, $UnsignedT:ident) => {
         impl Random for $T {
-            type Category = Category;
+            type Input = Category;
 
-            fn random(state: &mut u64, category: Self::Category) -> Self {
+            fn random(state: &mut u64, input: Self::Input) -> Self {
                 let bits = random_bits(state);
 
-                let (min_exponent, max_exponent) = match category {
+                let (min_exponent, max_exponent) = match input {
                     Category::Exponents(min_exponent, max_exponent) => match bits % 51 {
                         0 => return 0.0,
                         1 => return -0.0,
@@ -112,12 +114,6 @@ macro_rules! float_impl_random {
 
                 min.lerp(max, t)
             }
-
-            fn categories(
-                categories: impl Iterator<Item = Category>,
-            ) -> impl Iterator<Item = Self::Category> {
-                categories
-            }
         }
     };
 }
@@ -127,12 +123,12 @@ float_impl_random!(f64, u64);
 macro_rules! signed_impl_random {
     ($T:ident) => {
         impl Random for $T {
-            type Category = Category;
+            type Input = Category;
 
-            fn random(state: &mut u64, category: Self::Category) -> Self {
+            fn random(state: &mut u64, input: Self::Input) -> Self {
                 let bits = random_bits(state);
 
-                let (min_exponent, max_exponent) = match category {
+                let (min_exponent, max_exponent) = match input {
                     Category::Exponents(min_exponent, max_exponent) => match bits % 51 {
                         0 => return 0,
                         1 => return 1,
@@ -154,12 +150,6 @@ macro_rules! signed_impl_random {
 
                 (bits as Self).unbounded_shr(Self::BITS - exponent)
             }
-
-            fn categories(
-                categories: impl Iterator<Item = Category>,
-            ) -> impl Iterator<Item = Self::Category> {
-                categories
-            }
         }
     };
 }
@@ -173,11 +163,11 @@ signed_impl_random!(isize);
 macro_rules! unsigned_impl_random {
     ($T:ident) => {
         impl Random for $T {
-            type Category = Category;
+            type Input = Category;
 
-            fn random(state: &mut u64, category: Self::Category) -> Self {
+            fn random(state: &mut u64, input: Self::Input) -> Self {
                 let bits = random_bits(state);
-                let (min_exponent, max_exponent) = match category {
+                let (min_exponent, max_exponent) = match input {
                     Category::Exponents(min_exponent, max_exponent) => match bits % 47 {
                         0 => return 0,
                         1 => return 1,
@@ -197,12 +187,6 @@ macro_rules! unsigned_impl_random {
 
                 (bits as Self).unbounded_shr(Self::BITS - exponent)
             }
-
-            fn categories(
-                categories: impl Iterator<Item = Category>,
-            ) -> impl Iterator<Item = Self::Category> {
-                categories
-            }
         }
     };
 }
@@ -214,16 +198,10 @@ unsigned_impl_random!(u128);
 unsigned_impl_random!(usize);
 
 impl Random for bool {
-    type Category = Category;
+    type Input = Category;
 
-    fn random(state: &mut u64, _category: Self::Category) -> Self {
+    fn random(state: &mut u64, _input: Self::Input) -> Self {
         random_bits(state) > u64::MAX / 2
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        categories
     }
 }
 
@@ -231,57 +209,39 @@ impl<T, const N: usize> Random for [T; N]
 where
     T: Random,
 {
-    type Category = T::Category;
+    type Input = T::Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
-        std::array::from_fn(|_| T::random(state, category))
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        T::categories(categories)
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        std::array::from_fn(|_| T::random(state, input))
     }
 }
 
 impl<T0, T1> Random for (T0, T1)
 where
     T0: Random,
-    T1: Random<Category = T0::Category>,
+    T1: Random<Input = T0::Input>,
 {
-    type Category = T0::Category;
+    type Input = T0::Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
-        (T0::random(state, category), T1::random(state, category))
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        T0::categories(categories)
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        (T0::random(state, input), T1::random(state, input))
     }
 }
 
 impl<T0, T1, T2> Random for (T0, T1, T2)
 where
     T0: Random,
-    T1: Random<Category = T0::Category>,
-    T2: Random<Category = T0::Category>,
+    T1: Random<Input = T0::Input>,
+    T2: Random<Input = T0::Input>,
 {
-    type Category = T0::Category;
+    type Input = T0::Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
+    fn random(state: &mut u64, input: Self::Input) -> Self {
         (
-            T0::random(state, category),
-            T1::random(state, category),
-            T2::random(state, category),
+            T0::random(state, input),
+            T1::random(state, input),
+            T2::random(state, input),
         )
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        T0::categories(categories)
     }
 }
 
@@ -290,16 +250,10 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Random,
 {
-    type Category = T::Category;
+    type Input = T::Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
-        Self::from_array(Random::random(state, category))
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        T::categories(categories)
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self::from_array(Random::random(state, input))
     }
 }
 
@@ -308,16 +262,10 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Random,
 {
-    type Category = T::Category;
+    type Input = T::Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
-        Self::from_rows(&Random::random(state, category))
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        T::categories(categories)
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self::from_rows(&Random::random(state, input))
     }
 }
 
@@ -325,16 +273,10 @@ impl<T, A: Alignment> Random for Quaternion<T, A>
 where
     T: Scalar + Random,
 {
-    type Category = T::Category;
+    type Input = T::Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
-        Self::from_array(Random::random(state, category))
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        T::categories(categories)
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self::from_array(Random::random(state, input))
     }
 }
 
@@ -343,16 +285,10 @@ where
     Length<N>: SupportedLength,
     T: Scalar + Random,
 {
-    type Category = T::Category;
+    type Input = T::Input;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
-        Self::from_row_fn(|_| Random::random(state, category))
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        T::categories(categories)
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self::from_row_fn(|_| Random::random(state, input))
     }
 }
 
@@ -361,16 +297,10 @@ where
     Length<N>: SupportedLength,
     T: Scalar,
 {
-    type Category = Category;
+    type Input = Category;
 
-    fn random(state: &mut u64, category: Self::Category) -> Self {
-        Self::from_array(Random::random(state, category))
-    }
-
-    fn categories(
-        categories: impl Iterator<Item = Category>,
-    ) -> impl Iterator<Item = Self::Category> {
-        categories
+    fn random(state: &mut u64, input: Self::Input) -> Self {
+        Self::from_array(Random::random(state, input))
     }
 }
 
@@ -384,33 +314,15 @@ mod wide {
         u32x16, u64x2, u64x4, u64x8,
     };
 
-    use crate::utils::random_iter::{Category, Random};
+    use crate::utils::{Category, Input, Random};
 
     macro_rules! wide_impl_random {
         ($T:ident, $LANES:literal, $Wide:ident) => {
             impl Random for $Wide {
-                type Category = [Category; $LANES];
+                type Input = [Category; $LANES];
 
-                fn random(state: &mut u64, category: Self::Category) -> Self {
-                    Self::new(std::array::from_fn(|lane| {
-                        $T::random(state, category[lane])
-                    }))
-                }
-
-                fn categories(
-                    categories: impl Iterator<Item = Category>,
-                ) -> impl Iterator<Item = Self::Category> {
-                    let mut categories = categories.peekable();
-
-                    std::iter::from_fn(move || {
-                        if categories.peek().is_some() {
-                            Some(std::array::from_fn(|_| {
-                                categories.next().unwrap_or(Category::MostlyZeroOne)
-                            }))
-                        } else {
-                            None
-                        }
-                    })
+                fn random(state: &mut u64, input: Self::Input) -> Self {
+                    Self::new(std::array::from_fn(|lane| $T::random(state, input[lane])))
                 }
             }
         };
@@ -443,4 +355,16 @@ mod wide {
     wide_impl_random!(u64, 2, u64x2);
     wide_impl_random!(u64, 4, u64x4);
     wide_impl_random!(u64, 8, u64x8);
+
+    impl<const N: usize> Input for [Category; N] {
+        fn values() -> impl Iterator<Item = Self> {
+            let mut categories = Category::values().peekable();
+
+            std::iter::from_fn(move || {
+                categories.peek().is_some().then(|| {
+                    std::array::from_fn(|_| categories.next().unwrap_or(Category::MostlyZeroOne))
+                })
+            })
+        }
+    }
 }

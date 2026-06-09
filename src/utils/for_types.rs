@@ -52,7 +52,7 @@ macro_rules! for_types {
     (|T: PrimitiveNumber| $expr:expr) => {{
         fn for_t<T>(t: &'static str)
         where
-            T: crate::utils::Number + crate::utils::Random<Category = crate::utils::Category>,
+            T: crate::utils::Number + crate::utils::Random<Input = crate::utils::Category>,
         {
             crate::utils::call_with_panic_message(|| $expr, None, Some(t), None, None);
         }
@@ -190,7 +190,7 @@ macro_rules! for_types {
         fn for_nt<const N: usize, T>(t: &'static str)
         where
             crate::Length<N>: crate::SupportedLength,
-            T: crate::utils::Number + crate::utils::Random<Category = crate::utils::Category>,
+            T: crate::utils::Number + crate::utils::Random<Input = crate::utils::Category>,
         {
             crate::utils::call_with_panic_message(|| $expr, Some(N), Some(t), None, None);
         }
@@ -490,7 +490,7 @@ macro_rules! for_types {
     (|T: PrimitiveNumber, A| $expr:expr) => {{
         fn for_ta<T, A: crate::Alignment>(t: &'static str)
         where
-            T: crate::utils::Number + crate::utils::Random<Category = crate::utils::Category>,
+            T: crate::utils::Number + crate::utils::Random<Input = crate::utils::Category>,
         {
             crate::utils::call_with_panic_message(
                 || $expr,
@@ -647,10 +647,10 @@ macro_rules! for_types {
         fn for_nta<const N: usize, T, A: crate::Alignment>(t: &'static str)
         where
             crate::Length<N>: crate::SupportedLength,
-            T: crate::utils::Number + crate::utils::Random<Category = crate::utils::Category>,
-            crate::Vector<N, T, A>: crate::utils::Random<Category = crate::utils::Category>,
-            crate::Matrix<N, T, A>: crate::utils::Random<Category = crate::utils::Category>,
-            crate::Affine<N, T, A>: crate::utils::Random<Category = crate::utils::Category>,
+            T: crate::utils::Number + crate::utils::Random<Input = crate::utils::Category>,
+            crate::Vector<N, T, A>: crate::utils::Random<Input = crate::utils::Category>,
+            crate::Matrix<N, T, A>: crate::utils::Random<Input = crate::utils::Category>,
+            crate::Affine<N, T, A>: crate::utils::Random<Input = crate::utils::Category>,
         {
             crate::utils::call_with_panic_message(
                 || $expr,
