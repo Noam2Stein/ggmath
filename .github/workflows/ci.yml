@@ -48,11 +48,11 @@ jobs:
         RUSTFLAGS: -D warnings -C debug-assertions=on -C overflow-checks=on
       run: cargo test --all-features --target ${{ matrix.rust.target }}
 
-    - name: Test with SSE4.1, SSE4.2, SSSE3 and optional dependencies
+    - name: Test with SSE4.1, SSE4.2 and SSSE3
       if: matrix.rust.os == 'ubuntu-latest' && matrix.rust.target == 'x86_64-unknown-linux-gnu'
       env:
         RUSTFLAGS: -D warnings -C target-feature=+sse4.1,+sse4.2,+ssse3 -C debug-assertions=off -C overflow-checks=off
-      run: cargo test --features "bytemuck fixed mint rand serde wide" --target ${{ matrix.rust.target }}
+      run: cargo test --target ${{ matrix.rust.target }}
 
   doc:
     runs-on: ubuntu-latest
