@@ -1,4 +1,4 @@
-name: Cargo Build & Test
+name: Verify
 
 on: [push, pull_request]
 
@@ -29,26 +29,26 @@ jobs:
     - name: Clippy
       run: cargo clippy --all-targets --target ${{ matrix.rust.target }}
 
-    - name: Clippy (with libm)
+    - name: Clippy with Libm
       run: cargo clippy --all-targets --features libm --target ${{ matrix.rust.target }}
 
-    - name: Clippy (with optional dependencies)
+    - name: Clippy with optional dependencies
       run: cargo clippy --all-targets --features "bytemuck fixed mint rand serde wide" --target ${{ matrix.rust.target }}
 
-    - name: Clippy (with optional dependencies, with libm)
+    - name: Clippy with Libm and optional dependencies
       run: cargo clippy --all-targets --all-features --target ${{ matrix.rust.target }}
 
-    - name: Test (with optional dependencies)
+    - name: Test with optional dependencies
       env:
         RUSTFLAGS: -D warnings -C debug-assertions=off -C overflow-checks=off
       run: cargo test --features "bytemuck fixed mint rand serde wide" --target ${{ matrix.rust.target }}
 
-    - name: Test (with debug assertions, with optional dependencies, with libm)
+    - name: Test with debug assertions, Libm and with optional dependencies
       env:
         RUSTFLAGS: -D warnings -C debug-assertions=on -C overflow-checks=on
       run: cargo test --all-features --target ${{ matrix.rust.target }}
 
-    - name: Test with SSE4.1, SSE4.2 and SSSE3 (with optional dependencies)
+    - name: Test with SSE4.1, SSE4.2, SSSE3 and optional dependencies
       if: matrix.rust.os == 'ubuntu-latest' && matrix.rust.target == 'x86_64-unknown-linux-gnu'
       env:
         RUSTFLAGS: -D warnings -C target-feature=+sse4.1,+sse4.2,+ssse3 -C debug-assertions=off -C overflow-checks=off
@@ -65,8 +65,8 @@ jobs:
         toolchain: 1.95.0
     - uses: Swatinem/rust-cache@master
 
-    - name: Verify documentation (without optional dependencies)
+    - name: Doc
       run: cargo doc --no-deps
 
-    - name: Verify documentation (with optional dependencies)
+    - name: Doc with optional dependencies
       run: cargo doc --no-deps --features "bytemuck fixed mint rand serde wide"
