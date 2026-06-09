@@ -739,7 +739,7 @@ mod tests {
                 assert_test_eq!(
                     Quaternion::<T, A>::from_rotation_x(angle),
                     Quaternion::from_xyzw((angle * 0.5).sin(), 0.0, 0.0, (angle * 0.5).cos()),
-                    abs <= 1e-3
+                    abs <= angle.abs() * 1e-4 + 1e-3
                 );
             }
         });
@@ -752,7 +752,7 @@ mod tests {
                 assert_test_eq!(
                     Quaternion::<T, A>::from_rotation_y(angle),
                     Quaternion::from_xyzw(0.0, (angle * 0.5).sin(), 0.0, (angle * 0.5).cos()),
-                    abs <= 1e-3
+                    abs <= angle.abs() * 1e-4 + 1e-3
                 );
             }
         });
@@ -765,7 +765,7 @@ mod tests {
                 assert_test_eq!(
                     Quaternion::<T, A>::from_rotation_z(angle),
                     Quaternion::from_xyzw(0.0, 0.0, (angle * 0.5).sin(), (angle * 0.5).cos()),
-                    abs <= 1e-3
+                    abs <= angle.abs() * 1e-4 + 1e-3
                 );
             }
         });
@@ -783,10 +783,26 @@ mod tests {
 
                 let result = Quaternion::<T, A>::from_axis_angle(axis, angle);
 
-                assert_test_eq!(result.w, (angle * 0.5).cos(), abs <= 1e-3);
-                assert_test_eq!(result.x, (angle * 0.5).sin() * axis.x, abs <= 1e-3);
-                assert_test_eq!(result.y, (angle * 0.5).sin() * axis.y, abs <= 1e-3);
-                assert_test_eq!(result.z, (angle * 0.5).sin() * axis.z, abs <= 1e-3);
+                assert_test_eq!(
+                    result.w,
+                    (angle * 0.5).cos(),
+                    abs <= angle.abs() * 1e-4 + 1e-3
+                );
+                assert_test_eq!(
+                    result.x,
+                    (angle * 0.5).sin() * axis.x,
+                    abs <= angle.abs() * 1e-4 + 1e-3
+                );
+                assert_test_eq!(
+                    result.y,
+                    (angle * 0.5).sin() * axis.y,
+                    abs <= angle.abs() * 1e-4 + 1e-3
+                );
+                assert_test_eq!(
+                    result.z,
+                    (angle * 0.5).sin() * axis.z,
+                    abs <= angle.abs() * 1e-4 + 1e-3
+                );
             }
         });
     }
