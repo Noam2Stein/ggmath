@@ -47,11 +47,9 @@ jobs:
         - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
 
         command:
-        - name: with optional dependencies
           rustflags: -C debug-assertions=off -C overflow-checks=off
           args: --features "bytemuck fixed mint rand serde wide"
 
-        - name: with debug assertions, libm and with optional dependencies
           rustflags: -C debug-assertions=on -C overflow-checks=on
           args: --all-features
 
