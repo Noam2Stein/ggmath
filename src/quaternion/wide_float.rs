@@ -393,7 +393,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             #[track_caller]
             pub fn angle_between(self, other: Self) -> $Wide {
-                self.dot(other).abs().acos() * $Wide::splat(2.0)
+                self.dot(other).abs().min($Wide::ONE).acos() * $Wide::splat(2.0)
             }
 
             /// Computes the linear interpolation between `self` and `other`
