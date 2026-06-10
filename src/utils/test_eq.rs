@@ -1086,7 +1086,7 @@ where
 
 #[cfg(feature = "wide")]
 mod wide {
-    use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+    use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i32x4};
 
     use crate::utils::test_eq::{TestEq, TestEqAbs};
 

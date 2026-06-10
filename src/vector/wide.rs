@@ -1,5 +1,3 @@
-use wide::{CmpGe, CmpLe, CmpNe};
-
 use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::WideTy};
 
 #[expect(private_bounds)]
@@ -226,10 +224,7 @@ where
     /// `(self.lane(0) != other.lane(0), self.lane(1) != other.lane(1), ...)`.
     #[inline]
     #[must_use]
-    pub fn simd_ne(self, other: Self) -> Wide
-    where
-        Wide: CmpNe<Output = Wide>,
-    {
+    pub fn simd_ne(self, other: Self) -> Wide {
         match N {
             2 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]),
             3 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]) | self[2].simd_ne(other[2]),
@@ -260,10 +255,7 @@ where
     /// Equivalent to `(self.x != other.x, self.y != other.y, ...)` for each lane.
     #[inline]
     #[must_use]
-    pub fn simd_ne_mask(self, other: Self) -> Self
-    where
-        Wide: CmpNe<Output = Wide>,
-    {
+    pub fn simd_ne_mask(self, other: Self) -> Self {
         Self::from_fn(|i| self[i].simd_ne(other[i]))
     }
 
@@ -297,10 +289,7 @@ where
     /// lane.
     #[inline]
     #[must_use]
-    pub fn simd_le_mask(self, other: Self) -> Self
-    where
-        Wide: CmpLe<Output = Wide>,
-    {
+    pub fn simd_le_mask(self, other: Self) -> Self {
         Self::from_fn(|i| self[i].simd_le(other[i]))
     }
 
@@ -312,10 +301,7 @@ where
     /// lane.
     #[inline]
     #[must_use]
-    pub fn simd_ge_mask(self, other: Self) -> Self
-    where
-        Wide: CmpGe<Output = Wide>,
-    {
+    pub fn simd_ge_mask(self, other: Self) -> Self {
         Self::from_fn(|i| self[i].simd_ge(other[i]))
     }
 }
@@ -324,7 +310,7 @@ where
 mod tests {
     extern crate std;
 
-    use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, CmpNe, f32x4, i32x4};
+    use wide::{f32x4, i32x4};
 
     use crate::{
         Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,

@@ -1,4 +1,4 @@
-use wide::{CmpEq, CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{Alignment, EulerRot, Matrix, Quaternion, Vector};
 
@@ -553,8 +553,6 @@ impl_wide_float!(f64x8, f64);
 #[cfg(test)]
 mod tests {
     extern crate std;
-
-    use wide::CmpLt;
 
     use crate::{
         EulerRot, Mat3, Quat, Vec3,

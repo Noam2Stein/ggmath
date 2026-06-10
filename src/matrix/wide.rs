@@ -1,5 +1,3 @@
-use wide::CmpNe;
-
 use crate::{Alignment, Length, Matrix, Scalar, SupportedLength, Vector, utils::WideTy};
 
 #[expect(private_bounds)]
@@ -199,10 +197,7 @@ where
     /// `(self.lane(0) != other.lane(0), self.lane(1) != other.lane(1), ...)`.
     #[inline]
     #[must_use]
-    pub fn simd_ne(&self, other: &Self) -> Wide
-    where
-        Wide: CmpNe<Output = Wide>,
-    {
+    pub fn simd_ne(&self, other: &Self) -> Wide {
         match N {
             2 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]),
             3 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]) | self[2].simd_ne(other[2]),

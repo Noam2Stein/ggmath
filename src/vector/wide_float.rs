@@ -1,7 +1,4 @@
-use wide::{
-    CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16,
-    u64x2, u64x4, u64x8,
-};
+use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8};
 
 use crate::{
     Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector, utils::transmute_generic,
@@ -1415,7 +1412,7 @@ impl_wide_float!(f64x8, u64x8, pow_f64x8);
 mod tests {
     extern crate std;
 
-    use wide::{CmpLt, f32x4};
+    use wide::f32x4;
 
     use crate::{
         Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,

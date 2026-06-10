@@ -1,4 +1,4 @@
-use wide::{CmpEq, CmpGt, CmpNe, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
     Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector,
@@ -1778,8 +1778,6 @@ impl_wide_float!(f64x8, f64);
 
 #[cfg(test)]
 mod tests {
-    use wide::CmpLt;
-
     use crate::{
         EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
         utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
