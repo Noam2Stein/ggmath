@@ -92,6 +92,7 @@ jobs:
     - uses: dtolnay/rust-toolchain@master
       with:
         toolchain: 1.95.0
+        components: rustfmt
     - uses: Swatinem/rust-cache@master
 
     - name: Cargo Fmt
