@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `simd_eq`
   - `simd_ne`
 
-- more missing `wide` functions.
+- all remaining `wide` functions.
 
 ### Changed
 

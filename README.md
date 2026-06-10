@@ -115,7 +115,7 @@ Crate Support:
 - [x] [`libm`](https://crates.io/crates/libm)
 - [x] [`mint`](https://crates.io/crates/mint)
 - [x] [`serde`](https://crates.io/crates/serde)
-- [ ] [`wide`](https://crates.io/crates/wide) (partially done)
+- [x] [`wide`](https://crates.io/crates/wide)
 - [x] [`rand`](https://crates.io/crates/rand)
 
 Performance:
@@ -173,7 +173,7 @@ ggmath = { version = "0.16.7", features = ["libm"] }
 
 - `serde`: Implements `Serialize` and `Deserialize` for `ggmath` types.
 
-- `wide`: Implements `Scalar` for SIMD types.
+- `wide`: Implements functionality for `wide` types.
 
 ## License
 
