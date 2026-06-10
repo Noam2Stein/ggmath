@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `simd_eq`
   - `simd_ne`
 
-- more missing `wide` functions.
+- all remaining `wide` functions.
 
 ### Changed
 
@@ -111,6 +111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `NAN` constant for `wide` types was previously incorrect.
 
 ### Removed
+
+- `wide` functions `try_normalize` and `try_inverse`.
 
 - Support for crate `fixp`.
 

@@ -1,4 +1,4 @@
-use wide::{CmpEq, CmpGt, CmpNe, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{
     Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector,
@@ -215,21 +215,8 @@ macro_rules! impl_wide_float {
                 self.generic_inverse(|_, result| result, |_| Ok(()))
             }
 
-            /// Returns the inverse of `self` or `None` if `self` is not
-            /// invertable for any lane.
-            #[must_use]
-            pub fn try_inverse(&self) -> Option<Self> {
-                self.generic_inverse(
-                    |_, result| Some(result),
-                    |determinant| {
-                        if determinant.simd_eq($Wide::ZERO).any() {
-                            Err(None)
-                        } else {
-                            Ok(())
-                        }
-                    },
-                )
-            }
+            // `try_inverse` is exluded on purpose. It would not be useful
+            // because it would only return `Some` if all lanes succeed.
 
             /// Returns the inverse of `self` or `fallback` if `self` is not
             /// invertable.
@@ -1791,13 +1778,9 @@ impl_wide_float!(f64x8, f64);
 
 #[cfg(test)]
 mod tests {
-    use wide::CmpLt;
-
     use crate::{
         EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
-        utils::{
-            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
-        },
+        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]
@@ -1852,17 +1835,7 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_try_inverse() {
-        for_types!(|N, Wide: WideFloat| {
-            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
-                assert_panic_test_eq!(
-                    matrix.try_inverse().unwrap(),
-                    Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
-                );
-            }
-        });
-    }
+    // `try_inverse` is exluded on purpose.
 
     #[test]
     fn test_inverse_or() {

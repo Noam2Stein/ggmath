@@ -1,4 +1,4 @@
-use wide::{CmpEq, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{Affine, Alignment, EulerRot, Length, Matrix, Quaternion, SupportedLength, Vector};
 
@@ -35,16 +35,8 @@ macro_rules! impl_wide_float {
                 Self::from_submatrix_translation(submatrix, translation)
             }
 
-            /// Returns the inverse of `self` or `None` if for any lane `self`
-            /// is not invertable.
-            #[inline]
-            #[must_use]
-            pub fn try_inverse(&self) -> Option<Self> {
-                let submatrix = self.submatrix.try_inverse()?;
-                let translation = -self.translation * submatrix;
-
-                Some(Self::from_submatrix_translation(submatrix, translation))
-            }
+            // `try_inverse` is exluded on purpose. It would not be useful
+            // because it would only return `Some` if all lanes succeed.
 
             /// For each lane, returns the inverse of `self` or `fallback` if
             /// `self` is not invertable.
@@ -403,13 +395,9 @@ impl_wide_float!(f64x8);
 mod tests {
     extern crate std;
 
-    use wide::CmpLt;
-
     use crate::{
         Affine, Affine2, Affine3, EulerRot, Mat3, Quat, Unaligned, Vec2, Vec3, Vector,
-        utils::{
-            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
-        },
+        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]
@@ -448,17 +436,7 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_try_inverse() {
-        for_types!(|N, Wide: WideFloat| {
-            for affine in random_iter::<Affine<N, Wide, Unaligned>>() {
-                assert_panic_test_eq!(
-                    affine.try_inverse().unwrap(),
-                    Affine::from_lane_fn(|lane| affine.lane(lane).try_inverse().unwrap())
-                );
-            }
-        });
-    }
+    // `try_inverse` is exluded on purpose.
 
     #[test]
     fn test_inverse_or() {

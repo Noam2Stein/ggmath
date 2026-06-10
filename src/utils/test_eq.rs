@@ -1086,7 +1086,7 @@ where
 
 #[cfg(feature = "wide")]
 mod wide {
-    use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+    use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, i32x4};
 
     use crate::utils::test_eq::{TestEq, TestEqAbs};
 
@@ -1141,4 +1141,21 @@ mod wide {
     wide_float_impl!(f64x2, f64, 2);
     wide_float_impl!(f64x4, f64, 4);
     wide_float_impl!(f64x8, f64, 8);
+
+    macro_rules! wide_integer_impl {
+        ($T:ident) => {
+            impl TestEq for $T {
+                fn eq(
+                    &self,
+                    expected: &Self,
+                    _zero_eq_neg_zero: bool,
+                    _infinity_eq_nan: bool,
+                    _quat_eq_neg_quat: bool,
+                ) -> bool {
+                    self == expected
+                }
+            }
+        };
+    }
+    wide_integer_impl!(i32x4);
 }

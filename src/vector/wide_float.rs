@@ -1,7 +1,4 @@
-use wide::{
-    CmpGe, CmpGt, CmpLe, CmpLt, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16,
-    u64x2, u64x4, u64x8,
-};
+use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8};
 
 use crate::{
     Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector, utils::transmute_generic,
@@ -842,20 +839,8 @@ macro_rules! impl_wide_float {
                 self / self.length()
             }
 
-            /// Returns [`normalize`], or `None` if for any lane `self` is zero
-            /// or if the result is non finite or zero.
-            ///
-            /// [`normalize`]: Self::normalize
-            #[inline]
-            #[must_use]
-            pub fn try_normalize(self) -> Option<Self> {
-                let length_recip = $Wide::ONE / self.length();
-                if (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO)).all() {
-                    Some(self * length_recip)
-                } else {
-                    None
-                }
-            }
+            // `try_normalize` is exluded on purpose. It would not be useful
+            // because it would only return `Some` if all lanes succeed.
 
             /// Returns [`normalize`] for each lane, or `fallback` if `self` is
             /// zero or if the result is non finite or zero.
@@ -1427,13 +1412,11 @@ impl_wide_float!(f64x8, u64x8, pow_f64x8);
 mod tests {
     extern crate std;
 
-    use wide::{CmpLt, f32x4};
+    use wide::f32x4;
 
     use crate::{
         Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,
-        utils::{
-            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
-        },
+        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]
@@ -1950,17 +1933,7 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_try_normalize() {
-        for_types!(|N, Wide: WideFloat| {
-            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
-                assert_panic_test_eq!(
-                    vector.try_normalize().unwrap(),
-                    Vector::from_lane_fn(|lane| vector.lane(lane).try_normalize().unwrap())
-                );
-            }
-        });
-    }
+    // `try_normalize` is excluded on purpose.
 
     #[test]
     fn test_normalize_or() {

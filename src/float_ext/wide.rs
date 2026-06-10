@@ -1,4 +1,4 @@
-use wide::{CmpLe, f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
+use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8};
 
 use crate::{FloatExt, float_ext::Sealed};
 
