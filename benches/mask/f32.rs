@@ -11,7 +11,7 @@ library_benchmark_group!(
 #[library_benchmark]
 #[bench::arbitrary(4.0, 5.0, 6.0)]
 pub fn ggmath_mask(x: f32, y: f32, z: f32) -> impl Copy {
-    use ggmath::{Vec2, Vec3A, Vec3, Vec4A};
+    use ggmath::{Vec2, Vec3, Vec3A, Vec4A};
 
     let mut v2u: Vec2<f32> = Vec2::new(x, y);
     let mut v3u: Vec3<f32> = Vec3::new(x, y, z);
