@@ -1872,9 +1872,7 @@ where
 mod tests {
     use crate::{
         FloatExt, Mask, Vec2A, Vec3A, Vector,
-        utils::{
-            PrimitiveFloatFns, assert_debug_panic, assert_test_eq, for_types, random_iter, test_eq,
-        },
+        utils::{PrimitiveFloatFns, assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -2110,13 +2108,7 @@ mod tests {
                 .map(Vector::<N, T, A>::splat)
                 .chain(random_iter())
             {
-                // TODO: The SSE implementation incorrectly behaves like
-                // `round_ties_even` instead of `round`. Either the behaviour
-                // or documentation needs to be changed.
-                assert!(
-                    test_eq!(vector.round(), vector.map(T::round))
-                        || test_eq!(vector.round(), vector.map(T::round_ties_even))
-                );
+                assert_test_eq!(vector.round(), vector.map(T::round));
             }
         });
     }

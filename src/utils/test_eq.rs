@@ -381,6 +381,7 @@ pub(crate) use assert_test_eq;
 
 #[doc(hidden)]
 #[expect(private_bounds)]
+#[expect(dead_code)]
 pub fn test_eq_helper<T>(
     actual: &T,
     expected: &T,
