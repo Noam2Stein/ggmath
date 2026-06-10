@@ -469,7 +469,7 @@ where
     pub fn angle_between(self, other: Self) -> T {
         debug_assert!(self.is_normalized() && other.is_normalized());
 
-        self.dot(other).abs().acos() * T::as_from(2.0)
+        self.dot(other).abs().min(T::ONE).acos() * T::as_from(2.0)
     }
 
     /// Computes the linear interpolation between `self` and `other` based on
@@ -1201,14 +1201,6 @@ mod tests {
                 let [quat, other] =
                     [quat, other].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
 
-                // TODO: In rare situations its possible for two normalized
-                // quaternions to produce a dot product greater than 1.0,
-                // leading `angle_between` to return NaN. The dot product should
-                // be clamped.
-                if quat.dot(other).abs() > 1.0 {
-                    continue;
-                }
-
                 assert_test_eq!(
                     quat.angle_between(other),
                     (quat * other.inverse()).w.abs().acos() * 2.0,
@@ -1231,11 +1223,6 @@ mod tests {
 
                 let [quat, other] =
                     [quat, other].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
-
-                // TODO: Remove this check once `angle_between` is fixed.
-                if quat.dot(other).abs() > 1.0 || quat.to_vector().iter().any(|x| x >= 0.999999) {
-                    continue;
-                }
 
                 assert_test_eq!(quat.lerp(other, 0.0), quat, abs <= 1e-6, 0.0 = -0.0);
                 assert_test_eq!(
@@ -1345,12 +1332,6 @@ mod tests {
 
                 let [quat, target] =
                     [quat, target].map(|q| q.normalize_or(Quaternion::IDENTITY).normalize());
-
-                // TODO: Remove this check once quaternion `angle_between` is
-                // fixed.
-                if quat.dot(target).abs() > 1.0 {
-                    continue;
-                }
 
                 assert_test_eq!(
                     quat.rotate_towards(target, 0.0),
