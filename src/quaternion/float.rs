@@ -296,7 +296,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -313,7 +316,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -331,7 +337,11 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
@@ -349,7 +359,11 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
@@ -991,25 +1005,17 @@ mod tests {
     fn test_look_to_lh() {
         for_types!(|T: PrimitiveFloat, A| {
             for [dir, up] in random_iter::<[Vector<3, T, A>; 2]>() {
-                if !dir.is_normalized() {
-                    assert_debug_panic!(Quaternion::<T, A>::look_to_lh(dir, up.normalize()));
-                }
-                if !up.is_normalized() {
-                    assert_debug_panic!(Quaternion::<T, A>::look_to_lh(dir.normalize(), up));
-                }
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_to_lh(dir, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_lh(dir, up))
+                );
 
                 let dir = dir.normalize_or(Vector::<3, T, A>::Z);
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
-                // TODO: Currently documentation states that the function only
-                // panics if `dir` or `up` are not normalized, but in reality it
-                // also panics when `dir` and `up` are equal. The documentation
-                // needs to be updated.
                 assert_panic_test_eq!(
                     Quaternion::<T, A>::look_to_lh(dir, up),
-                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_lh(dir, up)),
-                    abs <= 1e-6,
-                    quat = -quat
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_lh(dir, up))
                 );
             }
         });
@@ -1019,25 +1025,17 @@ mod tests {
     fn test_look_to_rh() {
         for_types!(|T: PrimitiveFloat, A| {
             for [dir, up] in random_iter::<[Vector<3, T, A>; 2]>() {
-                if !dir.is_normalized() {
-                    assert_debug_panic!(Quaternion::<T, A>::look_to_rh(dir, up.normalize()));
-                }
-                if !up.is_normalized() {
-                    assert_debug_panic!(Quaternion::<T, A>::look_to_rh(dir.normalize(), up));
-                }
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_to_rh(dir, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_rh(dir, up))
+                );
 
                 let dir = dir.normalize_or(Vector::<3, T, A>::Z);
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
-                // TODO: Currently documentation states that the function only
-                // panics if `dir` or `up` are not normalized, but in reality it
-                // also panics when `dir` and `up` are equal. The documentation
-                // needs to be updated.
                 assert_panic_test_eq!(
                     Quaternion::<T, A>::look_to_rh(dir, up),
-                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_rh(dir, up)),
-                    abs <= 1e-6,
-                    quat = -quat
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_to_rh(dir, up))
                 );
             }
         });
@@ -1047,26 +1045,20 @@ mod tests {
     fn test_look_at_lh() {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
-                if !up.is_normalized() {
-                    assert_debug_panic!(Quaternion::<T, A>::look_at_lh(eye, center, up));
-                }
-
-                if !eye.is_finite() || (center - eye).try_normalize().is_none() {
-                    continue;
-                }
-                let up = up.normalize_or(Vector::<3, T, A>::Y);
-
-                // TODO: Currently documentation states that the function only
-                // panics if `up` are not normalized, but in reality it also
-                // panics when the final `dir` and `up` are equal. The
-                // documentation needs to be updated.
                 assert_panic_test_eq!(
                     Quaternion::<T, A>::look_at_lh(eye, center, up),
                     Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_at_lh(
                         eye, center, up
-                    )),
-                    abs <= 1e-6,
-                    quat = -quat
+                    ))
+                );
+
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_at_lh(eye, center, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_at_lh(
+                        eye, center, up
+                    ))
                 );
             }
         });
@@ -1076,25 +1068,20 @@ mod tests {
     fn test_look_at_rh() {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
-                if !up.is_normalized() {
-                    assert_debug_panic!(Quaternion::<T, A>::look_at_rh(eye, center, up));
-                }
-
-                if !eye.is_finite() || (center - eye).try_normalize().is_none() {
-                    continue;
-                }
-                let up = up.normalize_or(Vector::<3, T, A>::Y);
-
-                // TODO: Currently documentation states that the function only
-                // panics if `up` are not normalized, but in reality it also
-                // panics when the final `dir` and `up` are equal. The
-                // documentation needs to be updated.
                 assert_panic_test_eq!(
                     Quaternion::<T, A>::look_at_rh(eye, center, up),
                     Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_at_rh(
                         eye, center, up
-                    )),
-                    abs <= 1e-6
+                    ))
+                );
+
+                let up = up.normalize_or(Vector::<3, T, A>::Y);
+
+                assert_panic_test_eq!(
+                    Quaternion::<T, A>::look_at_rh(eye, center, up),
+                    Quaternion::<T, A>::from_matrix(&Matrix::<3, T, A>::look_at_rh(
+                        eye, center, up
+                    ))
                 );
             }
         });
