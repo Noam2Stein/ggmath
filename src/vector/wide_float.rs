@@ -842,20 +842,8 @@ macro_rules! impl_wide_float {
                 self / self.length()
             }
 
-            /// Returns [`normalize`], or `None` if for any lane `self` is zero
-            /// or if the result is non finite or zero.
-            ///
-            /// [`normalize`]: Self::normalize
-            #[inline]
-            #[must_use]
-            pub fn try_normalize(self) -> Option<Self> {
-                let length_recip = $Wide::ONE / self.length();
-                if (length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO)).all() {
-                    Some(self * length_recip)
-                } else {
-                    None
-                }
-            }
+            // `try_normalize` is exluded on purpose. It would not be useful
+            // because it would only return `Some` if all lanes succeed.
 
             /// Returns [`normalize`] for each lane, or `fallback` if `self` is
             /// zero or if the result is non finite or zero.
@@ -1431,9 +1419,7 @@ mod tests {
 
     use crate::{
         Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,
-        utils::{
-            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
-        },
+        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]
@@ -1950,17 +1936,7 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_try_normalize() {
-        for_types!(|N, Wide: WideFloat| {
-            for vector in random_iter::<Vector<N, Wide, Unaligned>>() {
-                assert_panic_test_eq!(
-                    vector.try_normalize().unwrap(),
-                    Vector::from_lane_fn(|lane| vector.lane(lane).try_normalize().unwrap())
-                );
-            }
-        });
-    }
+    // `try_normalize` is excluded on purpose.
 
     #[test]
     fn test_normalize_or() {

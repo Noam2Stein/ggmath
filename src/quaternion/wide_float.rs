@@ -493,15 +493,8 @@ macro_rules! impl_wide_float {
                 self / self.length()
             }
 
-            /// Returns [`normalize`], or `None` if `self` is zero or if the
-            /// result is non finite or zero.
-            ///
-            /// [`normalize`]: Self::normalize
-            #[inline]
-            #[must_use]
-            pub fn try_normalize(self) -> Option<Self> {
-                self.0.try_normalize().map(Self::from_vector)
-            }
+            // `try_normalize` is exluded on purpose. It would not be useful
+            // because it would only return `Some` if all lanes succeed.
 
             /// Returns [`normalize`], or `fallback` if `self` is zero or if the
             /// result is non finite or zero.
@@ -565,9 +558,7 @@ mod tests {
 
     use crate::{
         EulerRot, Mat3, Quat, Vec3,
-        utils::{
-            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
-        },
+        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]
@@ -967,17 +958,7 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_try_normalize() {
-        for_types!(|Wide: WideFloat| {
-            for quat in random_iter::<Quat<Wide>>() {
-                assert_panic_test_eq!(
-                    quat.try_normalize().unwrap(),
-                    Quat::from_lane_fn(|lane| quat.lane(lane).try_normalize().unwrap())
-                );
-            }
-        });
-    }
+    // `try_normalize` is excluded on purpose.
 
     #[test]
     fn test_normalize_or() {

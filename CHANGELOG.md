@@ -112,6 +112,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `wide` functions `try_normalize` and `try_inverse`.
+
 - Support for crate `fixp`.
 
 - Feature flags `assertions` and `no-assertions`. Debug assertions can be

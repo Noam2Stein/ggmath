@@ -215,21 +215,8 @@ macro_rules! impl_wide_float {
                 self.generic_inverse(|_, result| result, |_| Ok(()))
             }
 
-            /// Returns the inverse of `self` or `None` if `self` is not
-            /// invertable for any lane.
-            #[must_use]
-            pub fn try_inverse(&self) -> Option<Self> {
-                self.generic_inverse(
-                    |_, result| Some(result),
-                    |determinant| {
-                        if determinant.simd_eq($Wide::ZERO).any() {
-                            Err(None)
-                        } else {
-                            Ok(())
-                        }
-                    },
-                )
-            }
+            // `try_inverse` is exluded on purpose. It would not be useful
+            // because it would only return `Some` if all lanes succeed.
 
             /// Returns the inverse of `self` or `fallback` if `self` is not
             /// invertable.
@@ -1795,9 +1782,7 @@ mod tests {
 
     use crate::{
         EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
-        utils::{
-            assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic, for_types, random_iter,
-        },
+        utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]
@@ -1852,17 +1837,7 @@ mod tests {
         });
     }
 
-    #[test]
-    fn test_try_inverse() {
-        for_types!(|N, Wide: WideFloat| {
-            for matrix in random_iter::<Matrix<N, Wide, Unaligned>>() {
-                assert_panic_test_eq!(
-                    matrix.try_inverse().unwrap(),
-                    Matrix::from_lane_fn(|lane| matrix.lane(lane).try_inverse().unwrap())
-                );
-            }
-        });
-    }
+    // `try_inverse` is exluded on purpose.
 
     #[test]
     fn test_inverse_or() {
