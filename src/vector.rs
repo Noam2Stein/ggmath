@@ -3907,10 +3907,6 @@ mod tests {
     fn test_rem() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for [a, b] in random_iter::<[Vector<N, T, A>; 2]>() {
-                // TODO: Vector remainder is slightly inconsistent with scalar
-                // remainder, even though documentation promises an exact
-                // result.
-
                 let [a, b] = [a, b].map(|v| {
                     (v.gt_mask(Vector::splat(0.1)) & v.lt_mask(Vector::splat(1e4))
                         | !v.finite_mask())
