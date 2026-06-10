@@ -83,7 +83,7 @@ jobs:
         RUSTFLAGS: -D warnings ${{ matrix.command.rustflags }}
       run: cargo test --target x86_64-unknown-linux-gnu
 
-  doc:
+  fmt_and_doc:
     runs-on: ubuntu-latest
     env:
       RUSTDOCFLAGS: -D warnings
@@ -93,6 +93,9 @@ jobs:
       with:
         toolchain: 1.95.0
     - uses: Swatinem/rust-cache@master
+
+    - name: Cargo Fmt
+      run: cargo fmt --check --all
 
     - name: Doc
       run: cargo doc --no-deps
