@@ -52,11 +52,8 @@ pub fn glam_mat2a(x: f32, y: f32, z: f32) -> impl Copy {
 pub fn ggmath_mat3u(x: f32, y: f32, z: f32) -> impl Copy {
     use ggmath::{Mat3, Vec3};
 
-    let mut m3u: Mat3<f32> = Mat3::from_rows(&[
-        Vec3::new(x, y, z),
-        Vec3::new(y, z, x),
-        Vec3::new(z, x, y),
-    ]);
+    let mut m3u: Mat3<f32> =
+        Mat3::from_rows(&[Vec3::new(x, y, z), Vec3::new(y, z, x), Vec3::new(z, x, y)]);
 
     for _ in 0..2 {
         m3u += Mat3::from_diagonal(Vec3::new(x + 1.0, y, z + 2.0));
