@@ -1062,7 +1062,7 @@ mod tests {
                 assert_panic_test_eq!(
                     affine.to_scale_rotation_translation(),
                     (
-                        affine.submatrix.to_scale_rotation().0,
+                        affine.to_scale_rotation().0,
                         affine.to_scale_rotation().1,
                         affine.translation
                     )

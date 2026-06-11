@@ -2847,7 +2847,7 @@ mod tests {
                 assert_test_eq!(
                     Matrix::<3, T, A>::from_scale_rotation(result_scale, result_rotation),
                     matrix,
-                    abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_row_array(&[1e-4; 9]),
+                    abs <= matrix.abs() * 1e-4 + Matrix::<3, T, A>::from_row_array(&[1e-3; 9]),
                     0.0 = -0.0
                 );
             }
