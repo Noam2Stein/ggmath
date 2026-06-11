@@ -400,6 +400,12 @@ where
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
     /// order/sequence.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1124,12 +1130,13 @@ mod tests {
 
     #[test]
     fn test_to_euler() {
-        // TODO: This function can panic but the documentation doesn't state
-        // that.
-
         for_types!(|T: PrimitiveFloat, A| {
             for order in EulerRot::values() {
                 for quat in random_iter::<Quaternion<T, A>>() {
+                    if !quat.is_normalized() {
+                        assert_debug_panic!(quat.to_euler(order));
+                    }
+
                     let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
 
                     assert_test_eq!(
