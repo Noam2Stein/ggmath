@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Vector::cast_unsigned`
   - `Vector::cast_signed`
   - `Matrix::translation`
+  - `Mat3::to_scale_angle`
+  - `Mat4::to_scale_rotation`
+  - `Affine2::to_scale_angle`
+  - `Affine3::to_scale_rotation`
   - `FloatExt::move_towards`
 
 - Primitive traits:

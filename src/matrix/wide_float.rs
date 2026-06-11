@@ -689,6 +689,18 @@ macro_rules! impl_wide_float {
                 Self::look_to_rh((center - eye).normalize(), up)
             }
 
+            /// For each lane, returns the `scale` and `angle` of `self`.
+            ///
+            /// `self` must contain a valid affine transformation without
+            /// shearing. Otherwise the result is unspecified.
+            ///
+            /// `self` can contain translation which is ignored.
+            #[inline]
+            #[must_use]
+            pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
+                self.submatrix().to_scale_angle()
+            }
+
             /// For each lane, returns the `scale`, `angle` and `translation` of
             /// `self`.
             ///
@@ -700,7 +712,7 @@ macro_rules! impl_wide_float {
             pub fn to_scale_angle_translation(
                 &self,
             ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
-                let (scale, angle) = self.submatrix().to_scale_angle();
+                let (scale, angle) = self.to_scale_angle();
                 (scale, angle, self.translation())
             }
 
@@ -1701,6 +1713,19 @@ macro_rules! impl_wide_float {
                 self.submatrix().to_euler(order)
             }
 
+            /// For each lane, returns the `scale` and `rotation` of `self`.
+            ///
+            /// `self` must contain a valid affine transformation. Otherwise the
+            /// result is unspecified.
+            ///
+            /// `self` can contain translation which is ignored.
+            #[inline]
+            #[must_use]
+            #[track_caller]
+            pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
+                self.submatrix().to_scale_rotation()
+            }
+
             /// For each lane, returns the `scale`, `rotation` and `translation`
             /// of `self`.
             ///
@@ -1716,7 +1741,7 @@ macro_rules! impl_wide_float {
                 Quaternion<$Wide, A>,
                 Vector<3, $Wide, A>,
             ) {
-                let (scale, rotation) = self.submatrix().to_scale_rotation();
+                let (scale, rotation) = self.to_scale_rotation();
                 (scale, rotation, self.translation())
             }
 
@@ -1925,9 +1950,12 @@ mod tests {
     #[test]
     fn test_to_scale_angle() {
         for_types!(|Wide: WideFloat| {
-            for matrix in random_iter::<Mat2<Wide>>().chain(
-                random_iter::<(Vec2<Wide>, Wide)>()
-                    .map(|(scale, angle)| Mat2::<Wide>::from_scale_angle(scale, angle)),
+            for (matrix, translation) in random_iter::<(Mat2<Wide>, Vec2<Wide>)>().chain(
+                random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>().map(
+                    |(scale, angle, translation)| {
+                        (Mat2::<Wide>::from_scale_angle(scale, angle), translation)
+                    },
+                ),
             ) {
                 assert_test_eq_or_panic!(
                     matrix.to_scale_angle(),
@@ -1942,6 +1970,11 @@ mod tests {
                         matrix.to_scale_angle().0.abs() * Wide::splat(1e-4) + Wide::splat(1e-3),
                         matrix.to_scale_angle().1.abs() * 1e-4 + 1e-3
                     )
+                );
+
+                assert_test_eq!(
+                    Mat3::<Wide>::from_submatrix_translation(&matrix, translation).to_scale_angle(),
+                    matrix.to_scale_angle()
                 );
             }
         });
@@ -2340,10 +2373,15 @@ mod tests {
     #[test]
     fn test_to_scale_rotation() {
         for_types!(|Wide: WideFloat| {
-            for matrix in random_iter::<Mat3<Wide>>().chain(
-                random_iter::<(Vec3<Wide>, Quat<Wide>)>().map(|(scale, rotation)| {
-                    Mat3::<Wide>::from_scale_rotation(scale, rotation.normalize())
-                }),
+            for (matrix, translation) in random_iter::<(Mat3<Wide>, Vec3<Wide>)>().chain(
+                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().map(
+                    |(scale, rotation, translation)| {
+                        (
+                            Mat3::<Wide>::from_scale_rotation(scale, rotation.normalize()),
+                            translation,
+                        )
+                    },
+                ),
             ) {
                 assert_test_eq_or_panic!(
                     matrix.to_scale_rotation(),
@@ -2351,6 +2389,12 @@ mod tests {
                         Vec3::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().0),
                         Quat::from_lane_fn(|lane| matrix.lane(lane).to_scale_rotation().1)
                     )
+                );
+
+                assert_test_eq!(
+                    Mat4::<Wide>::from_submatrix_translation(&matrix, translation)
+                        .to_scale_rotation(),
+                    matrix.to_scale_rotation()
                 );
             }
         });
