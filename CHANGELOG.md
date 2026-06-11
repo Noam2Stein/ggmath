@@ -47,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed matrix `to_scale_angle_translation` and
+  `to_scale_rotation_translation` to be consistent with submatrix functions.
+
 - Changed panic conditions for `look_*` functions.
 
 - Changed conventions from column-major to row-major. This includes function
