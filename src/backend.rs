@@ -1002,6 +1002,22 @@ where
     {
         vector.map(Self::signum)
     }
+
+    #[inline]
+    fn vector_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Mask::from_fn(|i| vector[i].is_positive())
+    }
+
+    #[inline]
+    fn vector_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
+    where
+        Self: PrimitiveSigned,
+    {
+        Mask::from_fn(|i| vector[i].is_negative())
+    }
 }
 
 impl DefaultBackend<2, Aligned> for f32 {}

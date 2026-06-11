@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Vector::angle_from`
   - `Vector::to_bits`
   - `Vector::from_bits`
+  - `Vector::is_positive`
+  - `Vector::is_negative`
   - `Vector::cast_unsigned`
   - `Vector::cast_signed`
   - `Matrix::translation`
