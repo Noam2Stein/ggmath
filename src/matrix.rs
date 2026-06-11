@@ -9,7 +9,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
+    Affine, Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
     constants::{Nan, One, Zero},
     utils::{Repr3, Repr4, transmute_generic, transmute_mut, transmute_ref},
 };
@@ -1172,6 +1172,49 @@ where
         ])
     }
 
+    /// Creates an affine transformation matrix from an affine transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_rows(&[
+    ///     Vec2::new(1.0, 2.0),
+    ///     Vec2::new(3.0, 4.0),
+    ///     Vec2::new(5.0, 6.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat3::from_affine(&affine),
+    ///     Mat3::from_rows(&[
+    ///         Vec3::new(1.0, 2.0, 0.0),
+    ///         Vec3::new(3.0, 4.0, 0.0),
+    ///         Vec3::new(5.0, 6.0, 1.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_affine(affine: &Affine<2, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Matrix::from_rows(&[
+            Vector::<3, T, A>::new(
+                affine.submatrix.x_axis.x,
+                affine.submatrix.x_axis.y,
+                T::ZERO,
+            ),
+            Vector::<3, T, A>::new(
+                affine.submatrix.y_axis.x,
+                affine.submatrix.y_axis.y,
+                T::ZERO,
+            ),
+            Vector::<3, T, A>::new(affine.translation.x, affine.translation.y, T::ONE),
+        ])
+    }
+
     /// Returns a 2x2 matrix discarding the third row and column.
     #[inline]
     #[must_use]
@@ -1428,6 +1471,62 @@ where
                 translation.as_array_ref()[0],
                 translation.as_array_ref()[1],
                 translation.as_array_ref()[2],
+                T::ONE,
+            ),
+        ])
+    }
+
+    /// Creates an affine transformation matrix from an affine transform.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
+    /// #
+    /// let affine = Affine2::from_rows(&[
+    ///     Vec2::new(1.0, 2.0),
+    ///     Vec2::new(3.0, 4.0),
+    ///     Vec2::new(5.0, 6.0),
+    /// ]);
+    ///
+    /// assert_eq!(
+    ///     Mat3::from_affine(&affine),
+    ///     Mat3::from_rows(&[
+    ///         Vec3::new(1.0, 2.0, 0.0),
+    ///         Vec3::new(3.0, 4.0, 0.0),
+    ///         Vec3::new(5.0, 6.0, 1.0),
+    ///     ]),
+    /// );
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn from_affine(affine: &Affine<3, T, A>) -> Self
+    where
+        T: Zero + One,
+    {
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(
+                affine.submatrix.x_axis.x,
+                affine.submatrix.x_axis.y,
+                affine.submatrix.x_axis.z,
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                affine.submatrix.y_axis.x,
+                affine.submatrix.y_axis.y,
+                affine.submatrix.y_axis.z,
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                affine.submatrix.z_axis.x,
+                affine.submatrix.z_axis.y,
+                affine.submatrix.z_axis.z,
+                T::ZERO,
+            ),
+            Vector::<4, T, A>::new(
+                affine.translation.x,
+                affine.translation.y,
+                affine.translation.z,
                 T::ONE,
             ),
         ])
@@ -2649,7 +2748,7 @@ mod tests {
     use std::format;
 
     use crate::{
-        Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Unaligned, Vec2A, Vec3A, Vec4A, Vector,
+        Affine, Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Unaligned, Vec2A, Vec3A, Vec4A, Vector,
         utils::{assert_debug_panic, assert_panic, assert_test_eq, for_types, random_iter},
     };
 
@@ -3217,6 +3316,38 @@ mod tests {
                 Vec4A::new(10, 11, 12, 1)
             ])
         );
+    }
+
+    #[test]
+    fn test_from_affine() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_eq!(
+                Matrix::<3, T, A>::from_affine(&Affine::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(1.0, 2.0),
+                    Vector::<2, T, A>::new(3.0, 4.0),
+                    Vector::<2, T, A>::new(5.0, 6.0)
+                ])),
+                Matrix::from_rows(&[
+                    Vector::<3, T, A>::new(1.0, 2.0, 0.0),
+                    Vector::<3, T, A>::new(3.0, 4.0, 0.0),
+                    Vector::<3, T, A>::new(5.0, 6.0, 1.0)
+                ])
+            );
+            assert_eq!(
+                Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(1.0, 2.0, 3.0),
+                    Vector::<3, T, A>::new(4.0, 5.0, 6.0),
+                    Vector::<3, T, A>::new(7.0, 8.0, 9.0),
+                    Vector::<3, T, A>::new(10.0, 11.0, 12.0)
+                ])),
+                Matrix::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(1.0, 2.0, 3.0, 0.0),
+                    Vector::<4, T, A>::new(4.0, 5.0, 6.0, 0.0),
+                    Vector::<4, T, A>::new(7.0, 8.0, 9.0, 0.0),
+                    Vector::<4, T, A>::new(10.0, 11.0, 12.0, 1.0)
+                ])
+            );
+        });
     }
 
     #[test]

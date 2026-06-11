@@ -55,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed `Affine::to_matrix` to `Matrix::from_affine`.
+
 - Changed matrix `to_scale_angle_translation` and
   `to_scale_rotation_translation` to be consistent with submatrix functions.
 

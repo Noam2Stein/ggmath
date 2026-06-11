@@ -806,7 +806,7 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_x(angle).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rotation_x(angle)),
                     Matrix::<4, T, A>::from_rotation_x(angle),
                     0.0 = -0.0
                 );
@@ -819,7 +819,7 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_y(angle).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rotation_y(angle)),
                     Matrix::<4, T, A>::from_rotation_y(angle),
                     0.0 = -0.0
                 );
@@ -832,7 +832,7 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for angle in random_iter::<T>() {
                 assert_test_eq!(
-                    Affine::<3, T, A>::from_rotation_z(angle).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_rotation_z(angle)),
                     Matrix::<4, T, A>::from_rotation_z(angle),
                     0.0 = -0.0
                 );
@@ -870,7 +870,9 @@ mod tests {
             for order in EulerRot::values() {
                 for [a, b, c] in random_iter::<[T; 3]>() {
                     assert_test_eq!(
-                        Affine::<3, T, A>::from_euler(order, a, b, c).to_matrix(),
+                        Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::from_euler(
+                            order, a, b, c
+                        )),
                         Matrix::<4, T, A>::from_euler(order, a, b, c)
                     );
                 }
@@ -934,7 +936,7 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_to_lh(eye, dir, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(eye, dir, up)),
                     Matrix::<4, T, A>::look_to_lh(eye, dir, up)
                 );
 
@@ -942,7 +944,7 @@ mod tests {
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_to_lh(eye, dir, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_lh(eye, dir, up)),
                     Matrix::<4, T, A>::look_to_lh(eye, dir, up)
                 );
             }
@@ -954,7 +956,7 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_to_rh(eye, dir, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(eye, dir, up)),
                     Matrix::<4, T, A>::look_to_rh(eye, dir, up)
                 );
 
@@ -962,7 +964,7 @@ mod tests {
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_to_rh(eye, dir, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_to_rh(eye, dir, up)),
                     Matrix::<4, T, A>::look_to_rh(eye, dir, up)
                 );
             }
@@ -974,14 +976,14 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_at_lh(eye, center, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(eye, center, up)),
                     Matrix::<4, T, A>::look_at_lh(eye, center, up)
                 );
 
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_at_lh(eye, center, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_lh(eye, center, up)),
                     Matrix::<4, T, A>::look_at_lh(eye, center, up)
                 );
             }
@@ -993,14 +995,14 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_at_rh(eye, center, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(eye, center, up)),
                     Matrix::<4, T, A>::look_at_rh(eye, center, up)
                 );
 
                 let up = up.normalize_or(Vector::<3, T, A>::Y);
 
                 assert_panic_test_eq!(
-                    Affine::<3, T, A>::look_at_rh(eye, center, up).to_matrix(),
+                    Matrix::<4, T, A>::from_affine(&Affine::<3, T, A>::look_at_rh(eye, center, up)),
                     Matrix::<4, T, A>::look_at_rh(eye, center, up)
                 );
             }
@@ -1016,7 +1018,7 @@ mod tests {
 
                     assert_panic_test_eq!(
                         affine.to_euler(order),
-                        affine.to_matrix().to_euler(order)
+                        Matrix::<4, T, A>::from_affine(&affine).to_euler(order)
                     );
                 }
             }

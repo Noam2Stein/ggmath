@@ -453,41 +453,6 @@ where
         // vectors in total.
         unsafe { transmute_mut::<Affine<2, T, A>, [Vector<2, T, A>; 3]>(self) }
     }
-
-    /// Converts `self` to an affine transformation matrix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let affine = Affine2::from_rows(&[
-    ///     Vec2::new(1.0, 2.0),
-    ///     Vec2::new(3.0, 4.0),
-    ///     Vec2::new(5.0, 6.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     affine.to_matrix(),
-    ///     Mat3::from_rows(&[
-    ///         Vec3::new(1.0, 2.0, 0.0),
-    ///         Vec3::new(3.0, 4.0, 0.0),
-    ///         Vec3::new(5.0, 6.0, 1.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_matrix(&self) -> Matrix<3, T, A>
-    where
-        T: Zero + One,
-    {
-        Matrix::from_rows(&[
-            Vector::<3, T, A>::new(self.submatrix.x_axis.x, self.submatrix.x_axis.y, T::ZERO),
-            Vector::<3, T, A>::new(self.submatrix.y_axis.x, self.submatrix.y_axis.y, T::ZERO),
-            Vector::<3, T, A>::new(self.translation.x, self.translation.y, T::ONE),
-        ])
-    }
 }
 
 impl<T, A: Alignment> Affine<3, T, A>
@@ -584,62 +549,6 @@ where
         // `Matrix<3, T, A>` (three vectors) then `Vector<3, T, A>`, which is 4
         // vectors in total.
         unsafe { transmute_mut::<Affine<3, T, A>, [Vector<3, T, A>; 4]>(self) }
-    }
-
-    /// Converts `self` to an affine transformation matrix.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use ggmath::{Affine2, Mat3, Vec2, Vec3};
-    /// #
-    /// let affine = Affine2::from_rows(&[
-    ///     Vec2::new(1.0, 2.0),
-    ///     Vec2::new(3.0, 4.0),
-    ///     Vec2::new(5.0, 6.0),
-    /// ]);
-    ///
-    /// assert_eq!(
-    ///     affine.to_matrix(),
-    ///     Mat3::from_rows(&[
-    ///         Vec3::new(1.0, 2.0, 0.0),
-    ///         Vec3::new(3.0, 4.0, 0.0),
-    ///         Vec3::new(5.0, 6.0, 1.0),
-    ///     ]),
-    /// );
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn to_matrix(&self) -> Matrix<4, T, A>
-    where
-        T: Zero + One,
-    {
-        Matrix::from_rows(&[
-            Vector::<4, T, A>::new(
-                self.submatrix.x_axis.x,
-                self.submatrix.x_axis.y,
-                self.submatrix.x_axis.z,
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                self.submatrix.y_axis.x,
-                self.submatrix.y_axis.y,
-                self.submatrix.y_axis.z,
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                self.submatrix.z_axis.x,
-                self.submatrix.z_axis.y,
-                self.submatrix.z_axis.z,
-                T::ZERO,
-            ),
-            Vector::<4, T, A>::new(
-                self.translation.x,
-                self.translation.y,
-                self.translation.z,
-                T::ONE,
-            ),
-        ])
     }
 }
 
@@ -988,7 +897,7 @@ macro_rules! impl_mul_matrix {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Matrix<$N2, T, A>) -> Self::Output {
-                &self.to_matrix() * &rhs
+                &Matrix::<$N2, T, A>::from_affine(&self) * &rhs
             }
         }
 
@@ -1002,7 +911,7 @@ macro_rules! impl_mul_matrix {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Matrix<$N2, T, A>) -> Self::Output {
-                &self.to_matrix() * rhs
+                &Matrix::<$N2, T, A>::from_affine(&self) * rhs
             }
         }
 
@@ -1016,7 +925,7 @@ macro_rules! impl_mul_matrix {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Matrix<$N2, T, A>) -> Self::Output {
-                &self.to_matrix() * &rhs
+                &Matrix::<$N2, T, A>::from_affine(self) * &rhs
             }
         }
 
@@ -1030,7 +939,7 @@ macro_rules! impl_mul_matrix {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Matrix<$N2, T, A>) -> Self::Output {
-                &self.to_matrix() * rhs
+                &Matrix::<$N2, T, A>::from_affine(self) * rhs
             }
         }
     };
@@ -1076,7 +985,7 @@ macro_rules! impl_matrix_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Affine<$N, T, A>) -> Self::Output {
-                &self * &rhs.to_matrix()
+                &self * &Matrix::<$N2, T, A>::from_affine(&rhs)
             }
         }
 
@@ -1090,7 +999,7 @@ macro_rules! impl_matrix_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Affine<$N, T, A>) -> Self::Output {
-                &self * &rhs.to_matrix()
+                &self * &Matrix::<$N2, T, A>::from_affine(rhs)
             }
         }
 
@@ -1104,7 +1013,7 @@ macro_rules! impl_matrix_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Affine<$N, T, A>) -> Self::Output {
-                self * &rhs.to_matrix()
+                self * &Matrix::<$N2, T, A>::from_affine(&rhs)
             }
         }
 
@@ -1118,7 +1027,7 @@ macro_rules! impl_matrix_mul {
             #[inline]
             #[track_caller]
             fn mul(self, rhs: &Affine<$N, T, A>) -> Self::Output {
-                self * &rhs.to_matrix()
+                self * &Matrix::<$N2, T, A>::from_affine(rhs)
             }
         }
     };
@@ -1563,40 +1472,6 @@ mod tests {
     }
 
     #[test]
-    fn test_to_matrix() {
-        for_types!(|T: PrimitiveFloat, A| {
-            assert_eq!(
-                Affine::<2, T, A>::from_rows(&[
-                    Vector::<2, T, A>::new(1.0, 2.0),
-                    Vector::<2, T, A>::new(3.0, 4.0),
-                    Vector::<2, T, A>::new(5.0, 6.0)
-                ])
-                .to_matrix(),
-                Matrix::from_rows(&[
-                    Vector::<3, T, A>::new(1.0, 2.0, 0.0),
-                    Vector::<3, T, A>::new(3.0, 4.0, 0.0),
-                    Vector::<3, T, A>::new(5.0, 6.0, 1.0)
-                ])
-            );
-            assert_eq!(
-                Affine::<3, T, A>::from_rows(&[
-                    Vector::<3, T, A>::new(1.0, 2.0, 3.0),
-                    Vector::<3, T, A>::new(4.0, 5.0, 6.0),
-                    Vector::<3, T, A>::new(7.0, 8.0, 9.0),
-                    Vector::<3, T, A>::new(10.0, 11.0, 12.0)
-                ])
-                .to_matrix(),
-                Matrix::<4, T, A>::from_rows(&[
-                    Vector::<4, T, A>::new(1.0, 2.0, 3.0, 0.0),
-                    Vector::<4, T, A>::new(4.0, 5.0, 6.0, 0.0),
-                    Vector::<4, T, A>::new(7.0, 8.0, 9.0, 0.0),
-                    Vector::<4, T, A>::new(10.0, 11.0, 12.0, 1.0)
-                ])
-            );
-        });
-    }
-
-    #[test]
     fn test_index() {
         for_types!(|N, T: PrimitiveNumber, A| {
             let affine =
@@ -1768,11 +1643,17 @@ mod tests {
     fn test_mul_matrix() {
         for_types!(|T: PrimitiveFloat, A| {
             for (affine, matrix) in random_iter::<(Affine<2, T, A>, Matrix<3, T, A>)>() {
-                assert_test_eq!(affine * matrix, affine.to_matrix() * matrix);
+                assert_test_eq!(
+                    affine * matrix,
+                    Matrix::<3, T, A>::from_affine(&affine) * matrix
+                );
             }
 
             for (affine, matrix) in random_iter::<(Affine<3, T, A>, Matrix<4, T, A>)>() {
-                assert_test_eq!(affine * matrix, affine.to_matrix() * matrix);
+                assert_test_eq!(
+                    affine * matrix,
+                    Matrix::<4, T, A>::from_affine(&affine) * matrix
+                );
             }
         });
     }
@@ -1781,11 +1662,17 @@ mod tests {
     fn test_matrix_mul() {
         for_types!(|T: PrimitiveFloat, A| {
             for (matrix, affine) in random_iter::<(Matrix<3, T, A>, Affine<2, T, A>)>() {
-                assert_test_eq!(matrix * affine, matrix * affine.to_matrix());
+                assert_test_eq!(
+                    matrix * affine,
+                    matrix * Matrix::<3, T, A>::from_affine(&affine)
+                );
             }
 
             for (matrix, affine) in random_iter::<(Matrix<4, T, A>, Affine<3, T, A>)>() {
-                assert_test_eq!(matrix * affine, matrix * affine.to_matrix());
+                assert_test_eq!(
+                    matrix * affine,
+                    matrix * Matrix::<4, T, A>::from_affine(&affine)
+                );
             }
         });
     }
