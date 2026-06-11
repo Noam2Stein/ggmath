@@ -59,10 +59,9 @@ fn main() {
         ));
     }
 
-    for debug_assertions in [false, true] {
+    for (debug_assertions, third_party_crates) in [(false, false), (false, true), (true, true)] {
         let overflow_checks = debug_assertions;
         let libm = debug_assertions;
-        let third_party_crates = true;
 
         commands.push(cargo_command(
             "test",
