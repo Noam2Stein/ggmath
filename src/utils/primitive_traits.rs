@@ -155,6 +155,14 @@ pub(crate) trait PrimitiveSignedUtils: Sized {
 
     #[cfg(not(feature = "num-primitive"))]
     fn signum(self) -> Self;
+
+    #[cfg(not(feature = "num-primitive"))]
+    #[expect(clippy::wrong_self_convention)]
+    fn is_positive(self) -> bool;
+
+    #[cfg(not(feature = "num-primitive"))]
+    #[expect(clippy::wrong_self_convention)]
+    fn is_negative(self) -> bool;
 }
 
 macro_rules! impl_float {
@@ -624,6 +632,18 @@ macro_rules! impl_signed {
             #[inline(always)]
             fn signum(self) -> Self {
                 self.signum()
+            }
+
+            #[cfg(not(feature = "num-primitive"))]
+            #[inline(always)]
+            fn is_positive(self) -> bool {
+                self.is_positive()
+            }
+
+            #[cfg(not(feature = "num-primitive"))]
+            #[inline(always)]
+            fn is_negative(self) -> bool {
+                self.is_negative()
             }
         }
     };

@@ -11,6 +11,30 @@ macro_rules! wide_signed_impl {
         where
             Length<N>: SupportedLength,
         {
+            /// Returns a vector mask where each element is `true` if the
+            /// corresponding element of `self` is positive, and `false` if it
+            /// is zero or negative.
+            ///
+            /// Equivalent to
+            /// `(self.x.is_positive(), self.y.is_positive(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn positive_mask(self) -> Self {
+                self.map($Wide::is_positive)
+            }
+
+            /// Returns a vector mask where each element is `true` if the
+            /// corresponding element of `self` is negative, and `false` if it
+            /// is zero or positive.
+            ///
+            /// Equivalent to
+            /// `(self.x.is_negative(), self.y.is_negative(), ...)`.
+            #[inline]
+            #[must_use]
+            pub fn negative_mask(self) -> Self {
+                self.map($Wide::is_negative)
+            }
+
             /// Returns the bit patterns of `self` reinterpreted as unsigned
             /// integers of the same size.
             ///
@@ -73,6 +97,24 @@ mod tests {
         Unaligned, Vector,
         utils::{for_types, random_iter},
     };
+
+    #[test]
+    fn test_positive_mask() {
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, i32x4, Unaligned>>() {
+                assert_eq!(vector.positive_mask(), vector.map(i32x4::is_positive));
+            }
+        });
+    }
+
+    #[test]
+    fn test_negative_mask() {
+        for_types!(|N| {
+            for vector in random_iter::<Vector<N, i32x4, Unaligned>>() {
+                assert_eq!(vector.negative_mask(), vector.map(i32x4::is_negative));
+            }
+        });
+    }
 
     #[test]
     fn test_cast_unsigned() {

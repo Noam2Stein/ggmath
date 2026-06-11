@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, Length, PrimitiveSigned, PrimitiveSignedBackend, SupportedLength, Vector,
+    Alignment, Length, Mask, PrimitiveSigned, PrimitiveSignedBackend, SupportedLength, Vector,
     utils::{specialize, transmute_generic},
 };
 
@@ -10,6 +10,52 @@ where
     Length<N>: SupportedLength,
     T: PrimitiveSigned,
 {
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// element of `self` is positive, and `false` if it is zero or negative.
+    ///
+    /// Equivalent to `(self.x.is_positive(), self.y.is_positive(), ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask4, Vec4};
+    /// #
+    /// let vector = Vec4::new(1, -2, -3, 4);
+    /// let mask = vector.positive_mask();
+    ///
+    /// assert_eq!(mask, Mask4::new(true, false, false, true));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn positive_mask(self) -> Mask<N, T, A> {
+        specialize!(<T as PrimitiveSignedBackend<N, A>>::vector_positive_mask(
+            self
+        ))
+    }
+
+    /// Returns a vector mask where each element is `true` if the corresponding
+    /// element of `self` is negative, and `false` if it is zero or positive.
+    ///
+    /// Equivalent to `(self.x.is_negative(), self.y.is_negative(), ...)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use ggmath::{Mask4, Vec4};
+    /// #
+    /// let vector = Vec4::new(1, -2, -3, 4);
+    /// let mask = vector.negative_mask();
+    ///
+    /// assert_eq!(mask, Mask4::new(false, true, true, false));
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn negative_mask(self) -> Mask<N, T, A> {
+        specialize!(<T as PrimitiveSignedBackend<N, A>>::vector_negative_mask(
+            self
+        ))
+    }
+
     /// Returns the bit patterns of `self` reinterpreted as unsigned integers of
     /// the same size.
     ///
@@ -101,9 +147,33 @@ impl_signed!(isize);
 #[cfg(test)]
 mod tests {
     use crate::{
-        Vec3A, Vector,
+        Mask, Vec3A, Vector,
         utils::{assert_panic_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_positive_mask() {
+        for_types!(|N, T: PrimitiveSigned, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(
+                    vector.positive_mask(),
+                    Mask::from_fn(|i| vector[i].is_positive())
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_negative_mask() {
+        for_types!(|N, T: PrimitiveSigned, A| {
+            for vector in random_iter::<Vector<N, T, A>>() {
+                assert_eq!(
+                    vector.negative_mask(),
+                    Mask::from_fn(|i| vector[i].is_negative())
+                );
+            }
+        });
+    }
 
     #[test]
     fn test_cast_unsigned() {
