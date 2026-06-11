@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - all remaining `wide` functions.
 
+- Support for crate `num-primitive`.
+
 ### Changed
 
 - Changed matrix `to_scale_angle_translation` and

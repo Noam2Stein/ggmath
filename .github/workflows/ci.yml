@@ -36,7 +36,7 @@ jobs:
       run: cargo clippy --all-targets --features libm --target ${{ matrix.rust.target }}
 
     - name: Clippy with optional dependencies
-      run: cargo clippy --all-targets --features "bytemuck fixed mint rand serde wide" --target ${{ matrix.rust.target }}
+      run: cargo clippy --all-targets --features "bytemuck fixed mint num-primitive rand serde wide" --target ${{ matrix.rust.target }}
 
     - name: Clippy with Libm and optional dependencies
       run: cargo clippy --all-targets --all-features --target ${{ matrix.rust.target }}
@@ -53,7 +53,7 @@ jobs:
 
         command:
         - rustflags: -C debug-assertions=off -C overflow-checks=off
-          args: --features "bytemuck fixed mint rand serde wide"
+          args: --features "bytemuck fixed mint num-primitive rand serde wide"
 
         - rustflags: -C debug-assertions=on -C overflow-checks=on
           args: --all-features
@@ -107,4 +107,4 @@ jobs:
       run: cargo doc --no-deps
 
     - name: Doc with optional dependencies
-      run: cargo doc --no-deps --features "bytemuck fixed mint rand serde wide"
+      run: cargo doc --no-deps --features "bytemuck fixed mint num-primitive rand serde wide"

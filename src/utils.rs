@@ -2,7 +2,7 @@
 mod assert_panic;
 #[cfg(test)]
 mod for_types;
-mod num_primitive;
+mod primitive_traits;
 #[cfg(test)]
 mod random_iter;
 mod repr;
@@ -17,7 +17,7 @@ mod wide_ty;
 pub(crate) use assert_panic::*;
 #[cfg(test)]
 pub(crate) use for_types::*;
-pub(crate) use num_primitive::*;
+pub(crate) use primitive_traits::*;
 #[cfg(test)]
 pub(crate) use random_iter::*;
 pub(crate) use repr::*;

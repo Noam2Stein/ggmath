@@ -22,7 +22,7 @@ use colored::Colorize;
 use itertools::iproduct;
 use pretty_duration::pretty_duration;
 
-const THIRD_PARTY_CRATES: &str = "bytemuck fixed mint rand serde wide";
+const THIRD_PARTY_CRATES: &str = "bytemuck fixed mint num-primitive rand serde wide";
 
 fn main() {
     let mut commands = Vec::new();
@@ -59,10 +59,9 @@ fn main() {
         ));
     }
 
-    for debug_assertions in [false, true] {
+    for (debug_assertions, third_party_crates) in [(false, false), (false, true), (true, true)] {
         let overflow_checks = debug_assertions;
         let libm = debug_assertions;
-        let third_party_crates = true;
 
         commands.push(cargo_command(
             "test",

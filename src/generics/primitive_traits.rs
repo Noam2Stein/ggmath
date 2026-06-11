@@ -8,7 +8,7 @@ use crate::{
     Aligned, PrimitiveFloatBackend, PrimitiveIntegerBackend, PrimitiveSignedBackend, Scalar,
     Unaligned,
     constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
-    utils::{PrimitiveFloatFns, PrimitiveIntegerFns, PrimitiveSignedFns},
+    utils::{PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
 
 /// Trait for all primitive floating-point types.
@@ -58,13 +58,14 @@ pub trait PrimitiveFloat:
     + Nan
     + Infinity
     + NegInfinity
-    + PrimitiveFloatFns<Bits = <Self as PrimitiveFloat>::Bits>
+    + PrimitiveFloatUtils<Bits = <Self as PrimitiveFloat>::Bits>
     + PrimitiveFloatBackend<2, Aligned>
     + PrimitiveFloatBackend<3, Aligned>
     + PrimitiveFloatBackend<4, Aligned>
     + PrimitiveFloatBackend<2, Unaligned>
     + PrimitiveFloatBackend<3, Unaligned>
     + PrimitiveFloatBackend<4, Unaligned>
+    + num_primitive::PrimitiveFloat<Bits = <Self as PrimitiveFloat>::Bits>
 {
     /// The unsigned integer type with equal width.
     type Bits: PrimitiveUnsigned;
@@ -124,13 +125,14 @@ pub trait PrimitiveInteger:
     + One
     + Min
     + Max
-    + PrimitiveIntegerFns
+    + PrimitiveIntegerUtils
     + PrimitiveIntegerBackend<2, Aligned>
     + PrimitiveIntegerBackend<3, Aligned>
     + PrimitiveIntegerBackend<4, Aligned>
     + PrimitiveIntegerBackend<2, Unaligned>
     + PrimitiveIntegerBackend<3, Unaligned>
     + PrimitiveIntegerBackend<4, Unaligned>
+    + num_primitive::PrimitiveInteger
 {
 }
 
@@ -166,13 +168,14 @@ pub trait PrimitiveSigned:
     + PrimitiveInteger
     + Neg<Output = Self>
     + NegOne
-    + PrimitiveSignedFns<Unsigned = <Self as PrimitiveSigned>::Unsigned>
+    + PrimitiveSignedUtils<Unsigned = <Self as PrimitiveSigned>::Unsigned>
     + PrimitiveSignedBackend<2, Aligned>
     + PrimitiveSignedBackend<3, Aligned>
     + PrimitiveSignedBackend<4, Aligned>
     + PrimitiveSignedBackend<2, Unaligned>
     + PrimitiveSignedBackend<3, Unaligned>
     + PrimitiveSignedBackend<4, Unaligned>
+    + num_primitive::PrimitiveSigned<Unsigned = <Self as PrimitiveSigned>::Unsigned>
 {
     /// The unsigned integer type with equal width.
     type Unsigned: PrimitiveUnsigned;
@@ -190,7 +193,11 @@ pub trait PrimitiveSigned:
 /// their names conflict with floating-point functions. When the type system
 /// allows this, all functions will be available.
 #[expect(private_bounds)]
-pub trait PrimitiveUnsigned: Sealed + PrimitiveInteger {
+pub trait PrimitiveUnsigned:
+    Sealed
+    + PrimitiveInteger
+    + num_primitive::PrimitiveUnsigned<Signed = <Self as PrimitiveUnsigned>::Signed>
+{
     /// The signed integer type with equal width.
     type Signed: PrimitiveSigned;
 }
@@ -269,3 +276,71 @@ impl Sealed for u32 {}
 impl Sealed for u64 {}
 impl Sealed for u128 {}
 impl Sealed for usize {}
+
+/// A module that contains dummy traits for when the `num-primitive` feature
+/// flag is disabled.
+///
+/// This will not be necessary once cfg on trait bounds is supported.
+#[cfg(not(feature = "num-primitive"))]
+mod num_primitive {
+    pub trait PrimitiveFloat {
+        type Bits;
+    }
+
+    pub trait PrimitiveInteger {}
+
+    pub trait PrimitiveSigned {
+        type Unsigned;
+    }
+
+    pub trait PrimitiveUnsigned {
+        type Signed;
+    }
+
+    impl PrimitiveFloat for f32 {
+        type Bits = u32;
+    }
+    impl PrimitiveFloat for f64 {
+        type Bits = u64;
+    }
+
+    impl<T> PrimitiveInteger for T {}
+
+    impl PrimitiveSigned for i8 {
+        type Unsigned = u8;
+    }
+    impl PrimitiveSigned for i16 {
+        type Unsigned = u16;
+    }
+    impl PrimitiveSigned for i32 {
+        type Unsigned = u32;
+    }
+    impl PrimitiveSigned for i64 {
+        type Unsigned = u64;
+    }
+    impl PrimitiveSigned for i128 {
+        type Unsigned = u128;
+    }
+    impl PrimitiveSigned for isize {
+        type Unsigned = usize;
+    }
+
+    impl PrimitiveUnsigned for u8 {
+        type Signed = i8;
+    }
+    impl PrimitiveUnsigned for u16 {
+        type Signed = i16;
+    }
+    impl PrimitiveUnsigned for u32 {
+        type Signed = i32;
+    }
+    impl PrimitiveUnsigned for u64 {
+        type Signed = i64;
+    }
+    impl PrimitiveUnsigned for u128 {
+        type Signed = i128;
+    }
+    impl PrimitiveUnsigned for usize {
+        type Signed = isize;
+    }
+}

@@ -1,6 +1,6 @@
 use crate::{
     Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
-    Vector,
+    Vector, utils::PrimitiveFloatUtils,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -195,7 +195,7 @@ where
             self.submatrix.y_axis.length(),
         );
 
-        let angle = (-self.submatrix.y_axis.x).atan2(self.submatrix.y_axis.y);
+        let angle = PrimitiveFloatUtils::atan2(-self.submatrix.y_axis.x, self.submatrix.y_axis.y);
 
         (scale, angle, self.translation)
     }
