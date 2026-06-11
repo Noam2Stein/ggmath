@@ -1,12 +1,12 @@
 #[cfg(feature = "libm")]
 use libm::Libm;
 
-use crate::{PrimitiveSigned, PrimitiveUnsigned};
+use crate::PrimitiveUnsigned;
 
 /// An internal trait that wraps primitive-float functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveFloatFns: Sized {
-    type U: PrimitiveUnsigned;
+    type Bits: PrimitiveUnsigned;
 
     const EPSILON: Self;
     const PI: Self;
@@ -87,9 +87,6 @@ pub(crate) trait PrimitiveFloatFns: Sized {
 /// An internal trait that wraps primitive-integer functions used in generic
 /// contexts.
 pub(crate) trait PrimitiveIntegerFns: Sized {
-    type I: PrimitiveSigned;
-    type U: PrimitiveUnsigned;
-
     fn checked_add(self, rhs: Self) -> Option<Self>;
 
     fn checked_sub(self, rhs: Self) -> Option<Self>;
@@ -122,6 +119,8 @@ pub(crate) trait PrimitiveIntegerFns: Sized {
 /// An internal trait that wraps primitive-signed-integer functions used in
 /// generic contexts.
 pub(crate) trait PrimitiveSignedFns: Sized {
+    type Unsigned: PrimitiveUnsigned;
+
     fn abs(self) -> Self;
 
     fn signum(self) -> Self;
@@ -130,7 +129,7 @@ pub(crate) trait PrimitiveSignedFns: Sized {
 macro_rules! impl_float {
     ($T:ident, $UnsignedT:ident) => {
         impl PrimitiveFloatFns for $T {
-            type U = $UnsignedT;
+            type Bits = $UnsignedT;
 
             const EPSILON: Self = Self::EPSILON;
             const PI: Self = core::$T::consts::PI;
@@ -463,11 +462,8 @@ impl_float!(f32, u32);
 impl_float!(f64, u64);
 
 macro_rules! impl_integer {
-    ($T:ident, $SignedT:ident, $UnsignedT:ident) => {
+    ($T:ident) => {
         impl PrimitiveIntegerFns for $T {
-            type I = $SignedT;
-            type U = $UnsignedT;
-
             #[inline(always)]
             fn checked_add(self, rhs: Self) -> Option<Self> {
                 self.checked_add(rhs)
@@ -540,22 +536,24 @@ macro_rules! impl_integer {
         }
     };
 }
-impl_integer!(i8, i8, u8);
-impl_integer!(i16, i16, u16);
-impl_integer!(i32, i32, u32);
-impl_integer!(i64, i64, u64);
-impl_integer!(i128, i128, u128);
-impl_integer!(isize, isize, usize);
-impl_integer!(u8, i8, u8);
-impl_integer!(u16, i16, u16);
-impl_integer!(u32, i32, u32);
-impl_integer!(u64, i64, u64);
-impl_integer!(u128, i128, u128);
-impl_integer!(usize, isize, usize);
+impl_integer!(i8);
+impl_integer!(i16);
+impl_integer!(i32);
+impl_integer!(i64);
+impl_integer!(i128);
+impl_integer!(isize);
+impl_integer!(u8);
+impl_integer!(u16);
+impl_integer!(u32);
+impl_integer!(u64);
+impl_integer!(u128);
+impl_integer!(usize);
 
 macro_rules! impl_signed {
-    ($T:ident) => {
+    ($T:ident, $UnsignedT:ident) => {
         impl PrimitiveSignedFns for $T {
+            type Unsigned = $UnsignedT;
+
             #[inline(always)]
             fn abs(self) -> Self {
                 self.abs()
@@ -568,9 +566,9 @@ macro_rules! impl_signed {
         }
     };
 }
-impl_signed!(i8);
-impl_signed!(i16);
-impl_signed!(i32);
-impl_signed!(i64);
-impl_signed!(i128);
-impl_signed!(isize);
+impl_signed!(i8, u8);
+impl_signed!(i16, u16);
+impl_signed!(i32, u32);
+impl_signed!(i64, u64);
+impl_signed!(i128, u128);
+impl_signed!(isize, usize);
