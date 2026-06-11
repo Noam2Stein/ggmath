@@ -81,7 +81,7 @@ macro_rules! impl_wide_float {
             #[inline]
             #[must_use]
             pub fn recip(self) -> Self {
-                Self::ONE / self
+                self.map($Wide::recip)
             }
 
             /// Returns the maximum elements between `self` and `other`.
@@ -1493,12 +1493,9 @@ mod tests {
 
     #[test]
     fn test_recip() {
-        // TODO: Currently the implementation uses `1 / self` instead of
-        // `recip`. This should be fixed.
-
         for_types!(|N| {
             for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
-                assert_test_eq!(vector.recip(), Vector::ONE / vector);
+                assert_test_eq!(vector.recip(), vector.map(f32x4::recip));
             }
         });
     }
