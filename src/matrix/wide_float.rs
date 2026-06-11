@@ -700,18 +700,8 @@ macro_rules! impl_wide_float {
             pub fn to_scale_angle_translation(
                 &self,
             ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
-                let determinant = self.determinant();
-
-                let scale = Vector::<2, $Wide, A>::new(
-                    self.x_axis.length() * determinant.signum(),
-                    self.y_axis.length(),
-                );
-
-                let angle = (-self.y_axis.x).atan2(self.y_axis.y);
-
-                let translation = self.z_axis.xy();
-
-                (scale, angle, translation)
+                let (scale, angle) = self.submatrix().to_scale_angle();
+                (scale, angle, self.translation())
             }
 
             /// Returns the Euler angles forming `self` for the given Euler
@@ -1726,25 +1716,8 @@ macro_rules! impl_wide_float {
                 Quaternion<$Wide, A>,
                 Vector<3, $Wide, A>,
             ) {
-                let determinant = self.determinant();
-
-                let scale = Vector::<3, $Wide, A>::new(
-                    self.x_axis.length() * determinant.signum(),
-                    self.y_axis.length(),
-                    self.z_axis.length(),
-                );
-
-                let scale_recip = scale.recip();
-
-                let rotation = Quaternion::<$Wide, A>::from_matrix(&Matrix::from_rows(&[
-                    self.x_axis.xyz() * scale_recip.x,
-                    self.y_axis.xyz() * scale_recip.y,
-                    self.z_axis.xyz() * scale_recip.z,
-                ]));
-
-                let translation = self.w_axis.xyz();
-
-                (scale, rotation, translation)
+                let (scale, rotation) = self.submatrix().to_scale_rotation();
+                (scale, rotation, self.translation())
             }
 
             /// Transforms the given 3D vector as a point, applying perspective

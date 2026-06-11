@@ -896,20 +896,8 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
-        let determinant = self.determinant();
-
-        debug_assert!(determinant != T::ZERO);
-
-        let scale = Vector::<2, T, A>::new(
-            self.x_axis.length() * determinant.signum(),
-            self.y_axis.length(),
-        );
-
-        let angle = (-self.y_axis.x).atan2(self.y_axis.y);
-
-        let translation = self.z_axis.xy();
-
-        (scale, angle, translation)
+        let (scale, angle) = self.submatrix().to_scale_angle();
+        (scale, angle, self.translation())
     }
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
@@ -1915,78 +1903,6 @@ where
         ])
     }
 
-    #[inline(always)]
-    fn quat_from_axes(
-        x_axis: Vector<4, T, A>,
-        y_axis: Vector<4, T, A>,
-        z_axis: Vector<4, T, A>,
-    ) -> Quaternion<T, A> {
-        // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
-        // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
-
-        let [m00, m01, m02, _] = x_axis.to_array();
-        let [m10, m11, m12, _] = y_axis.to_array();
-        let [m20, m21, m22, _] = z_axis.to_array();
-
-        if m22 <= T::ZERO {
-            // x^2 + y^2 >= z^2 + w^2
-            let dif10 = m11 - m00;
-            let omm22 = T::ONE - m22;
-
-            if dif10 <= T::ZERO {
-                // x^2 >= y^2
-                let four_xsq = omm22 - dif10;
-                let inv4x = T::as_from(0.5) / four_xsq.sqrt();
-
-                Quaternion::from_xyzw(
-                    four_xsq * inv4x,
-                    (m01 + m10) * inv4x,
-                    (m02 + m20) * inv4x,
-                    (m12 - m21) * inv4x,
-                )
-            } else {
-                // y^2 >= x^2
-                let four_ysq = omm22 + dif10;
-                let inv4y = T::as_from(0.5) / four_ysq.sqrt();
-
-                Quaternion::from_xyzw(
-                    (m01 + m10) * inv4y,
-                    four_ysq * inv4y,
-                    (m12 + m21) * inv4y,
-                    (m20 - m02) * inv4y,
-                )
-            }
-        } else {
-            // z^2 + w^2 >= x^2 + y^2
-            let sum10 = m11 + m00;
-            let opm22 = T::ONE + m22;
-
-            if sum10 <= T::ZERO {
-                // z^2 >= w^2
-                let four_zsq = opm22 - sum10;
-                let inv4z = T::as_from(0.5) / four_zsq.sqrt();
-
-                Quaternion::from_xyzw(
-                    (m02 + m20) * inv4z,
-                    (m12 + m21) * inv4z,
-                    four_zsq * inv4z,
-                    (m01 - m10) * inv4z,
-                )
-            } else {
-                // w^2 >= z^2
-                let four_wsq = opm22 + sum10;
-                let inv4w = T::as_from(0.5) / four_wsq.sqrt();
-
-                Quaternion::from_xyzw(
-                    (m12 - m21) * inv4w,
-                    (m20 - m02) * inv4w,
-                    (m01 - m10) * inv4w,
-                    four_wsq * inv4w,
-                )
-            }
-        }
-    }
-
     /// Returns the Euler angles forming `self` for the given Euler rotation
     /// order/sequence.
     ///
@@ -2021,27 +1937,8 @@ where
     pub fn to_scale_rotation_translation(
         &self,
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        let determinant = self.determinant();
-
-        debug_assert!(determinant != T::ZERO);
-
-        let scale = Vector::<3, T, A>::new(
-            self.x_axis.length() * determinant.signum(),
-            self.y_axis.length(),
-            self.z_axis.length(),
-        );
-
-        let scale_recip = scale.recip();
-
-        let rotation = Self::quat_from_axes(
-            self.x_axis * scale_recip.x,
-            self.y_axis * scale_recip.y,
-            self.z_axis * scale_recip.z,
-        );
-
-        let translation = self.w_axis.xyz();
-
-        (scale, rotation, translation)
+        let (scale, rotation) = self.submatrix().to_scale_rotation();
+        (scale, rotation, self.translation())
     }
 
     /// Transforms the given 3D vector as a point, applying perspective
@@ -2067,7 +1964,7 @@ where
 mod tests {
     use crate::{
         EulerRot, Matrix, Quaternion, Vector,
-        utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
+        utils::{assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -2824,19 +2721,14 @@ mod tests {
                 let matrix =
                     Matrix::<3, T, A>::from_scale_angle_translation(scale, angle, translation);
 
-                if !matrix.determinant().is_finite() || matrix.determinant() == 0.0 {
-                    continue;
-                }
-
-                assert_test_eq!(
-                    matrix.to_scale_angle_translation().0,
-                    matrix.submatrix().to_scale_angle().0
+                assert_panic_test_eq!(
+                    matrix.to_scale_angle_translation(),
+                    (
+                        matrix.submatrix().to_scale_angle().0,
+                        matrix.submatrix().to_scale_angle().1,
+                        matrix.translation()
+                    )
                 );
-                assert_test_eq!(
-                    matrix.to_scale_angle_translation().1,
-                    matrix.submatrix().to_scale_angle().1
-                );
-                assert_test_eq!(matrix.to_scale_angle_translation().2, matrix.translation());
             }
         });
     }
@@ -3441,11 +3333,6 @@ mod tests {
 
     #[test]
     fn test_to_scale_rotation_translation() {
-        // TODO: The current implementation incorrectly uses the 4x4 determinant
-        // instead of the 3x3 determinant, leading to a bug where for
-        // extreme/non-finite translation values the resulting scale and
-        // rotation are incorrectly non-finite.
-
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<4, T, A>::ZERO.to_scale_rotation_translation());
 
@@ -3459,24 +3346,14 @@ mod tests {
                     rotation,
                     translation,
                 );
-                if scale.iter().any(|x| x > 1e10)
-                    || !matrix.is_finite()
-                    || !(1e-5..1e8).contains(&matrix.submatrix().determinant().abs())
-                {
-                    continue;
-                }
 
-                assert_test_eq!(
-                    matrix.to_scale_rotation_translation().0,
-                    matrix.submatrix().to_scale_rotation().0
-                );
-                assert_test_eq!(
-                    matrix.to_scale_rotation_translation().1,
-                    matrix.submatrix().to_scale_rotation().1
-                );
-                assert_test_eq!(
-                    matrix.to_scale_rotation_translation().2,
-                    matrix.translation()
+                assert_panic_test_eq!(
+                    matrix.to_scale_rotation_translation(),
+                    (
+                        matrix.submatrix().to_scale_rotation().0,
+                        matrix.submatrix().to_scale_rotation().1,
+                        matrix.translation()
+                    )
                 );
             }
         });
