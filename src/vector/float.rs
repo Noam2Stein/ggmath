@@ -4,6 +4,8 @@ use crate::{
     utils::{specialize, transmute_generic},
 };
 
+type Bits<T> = <T as PrimitiveFloat>::Bits;
+
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -1645,14 +1647,15 @@ where
     /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
-    #[expect(private_interfaces)]
-    pub const fn to_bits(self) -> Vector<N, T::U, A> {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::U, A>>() } {
+    pub const fn to_bits(self) -> Vector<N, Bits<T>, A> {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
             // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T::U, A>>(self) }
+            unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, Bits<T>, A>>(self) }
         } else {
             // SAFETY: Both types accept all bit-patterns.
-            Vector::from_array(unsafe { transmute_generic::<[T; N], [T::U; N]>(self.to_array()) })
+            Vector::from_array(unsafe {
+                transmute_generic::<[T; N], [Bits<T>; N]>(self.to_array())
+            })
         }
     }
 
@@ -1664,14 +1667,15 @@ where
     /// [`as`]: https://rust-for-c-programmers.com/ch16/16_2_primitive_casting_with_as.html
     #[inline]
     #[must_use]
-    #[expect(private_interfaces)]
-    pub const fn from_bits(value: Vector<N, T::U, A>) -> Self {
-        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, T::U, A>>() } {
+    pub const fn from_bits(value: Vector<N, Bits<T>, A>) -> Self {
+        if const { size_of::<Vector<N, T, A>>() == size_of::<Vector<N, Bits<T>, A>>() } {
             // SAFETY: Both types accept all bit-patterns.
-            unsafe { transmute_generic::<Vector<N, T::U, A>, Vector<N, T, A>>(value) }
+            unsafe { transmute_generic::<Vector<N, Bits<T>, A>, Vector<N, T, A>>(value) }
         } else {
             // SAFETY: Both types accept all bit-patterns.
-            Vector::from_array(unsafe { transmute_generic::<[T::U; N], [T; N]>(value.to_array()) })
+            Vector::from_array(unsafe {
+                transmute_generic::<[Bits<T>; N], [T; N]>(value.to_array())
+            })
         }
     }
 }

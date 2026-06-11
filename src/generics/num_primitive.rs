@@ -58,7 +58,7 @@ pub trait PrimitiveFloat:
     + Nan
     + Infinity
     + NegInfinity
-    + PrimitiveFloatFns
+    + PrimitiveFloatFns<Bits = <Self as PrimitiveFloat>::Bits>
     + PrimitiveFloatBackend<2, Aligned>
     + PrimitiveFloatBackend<3, Aligned>
     + PrimitiveFloatBackend<4, Aligned>
@@ -66,6 +66,8 @@ pub trait PrimitiveFloat:
     + PrimitiveFloatBackend<3, Unaligned>
     + PrimitiveFloatBackend<4, Unaligned>
 {
+    /// The unsigned integer type with equal width.
+    type Bits: PrimitiveUnsigned;
 }
 
 /// Trait for all primitive integer types.
@@ -164,7 +166,7 @@ pub trait PrimitiveSigned:
     + PrimitiveInteger
     + Neg<Output = Self>
     + NegOne
-    + PrimitiveSignedFns
+    + PrimitiveSignedFns<Unsigned = <Self as PrimitiveSigned>::Unsigned>
     + PrimitiveSignedBackend<2, Aligned>
     + PrimitiveSignedBackend<3, Aligned>
     + PrimitiveSignedBackend<4, Aligned>
@@ -172,6 +174,8 @@ pub trait PrimitiveSigned:
     + PrimitiveSignedBackend<3, Unaligned>
     + PrimitiveSignedBackend<4, Unaligned>
 {
+    /// The unsigned integer type with equal width.
+    type Unsigned: PrimitiveUnsigned;
 }
 
 /// Trait for all primitive unsigned integer types.
@@ -186,10 +190,17 @@ pub trait PrimitiveSigned:
 /// their names conflict with floating-point functions. When the type system
 /// allows this, all functions will be available.
 #[expect(private_bounds)]
-pub trait PrimitiveUnsigned: Sealed + PrimitiveInteger {}
+pub trait PrimitiveUnsigned: Sealed + PrimitiveInteger {
+    /// The signed integer type with equal width.
+    type Signed: PrimitiveSigned;
+}
 
-impl PrimitiveFloat for f32 {}
-impl PrimitiveFloat for f64 {}
+impl PrimitiveFloat for f32 {
+    type Bits = u32;
+}
+impl PrimitiveFloat for f64 {
+    type Bits = u64;
+}
 
 impl PrimitiveInteger for i8 {}
 impl PrimitiveInteger for i16 {}
@@ -204,19 +215,43 @@ impl PrimitiveInteger for u64 {}
 impl PrimitiveInteger for u128 {}
 impl PrimitiveInteger for usize {}
 
-impl PrimitiveSigned for i8 {}
-impl PrimitiveSigned for i16 {}
-impl PrimitiveSigned for i32 {}
-impl PrimitiveSigned for i64 {}
-impl PrimitiveSigned for i128 {}
-impl PrimitiveSigned for isize {}
+impl PrimitiveSigned for i8 {
+    type Unsigned = u8;
+}
+impl PrimitiveSigned for i16 {
+    type Unsigned = u16;
+}
+impl PrimitiveSigned for i32 {
+    type Unsigned = u32;
+}
+impl PrimitiveSigned for i64 {
+    type Unsigned = u64;
+}
+impl PrimitiveSigned for i128 {
+    type Unsigned = u128;
+}
+impl PrimitiveSigned for isize {
+    type Unsigned = usize;
+}
 
-impl PrimitiveUnsigned for u8 {}
-impl PrimitiveUnsigned for u16 {}
-impl PrimitiveUnsigned for u32 {}
-impl PrimitiveUnsigned for u64 {}
-impl PrimitiveUnsigned for u128 {}
-impl PrimitiveUnsigned for usize {}
+impl PrimitiveUnsigned for u8 {
+    type Signed = i8;
+}
+impl PrimitiveUnsigned for u16 {
+    type Signed = i16;
+}
+impl PrimitiveUnsigned for u32 {
+    type Signed = i32;
+}
+impl PrimitiveUnsigned for u64 {
+    type Signed = i64;
+}
+impl PrimitiveUnsigned for u128 {
+    type Signed = i128;
+}
+impl PrimitiveUnsigned for usize {
+    type Signed = isize;
+}
 
 trait Sealed {}
 
