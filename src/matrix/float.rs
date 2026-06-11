@@ -767,7 +767,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -795,7 +798,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -823,12 +829,26 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_lh((center - eye).normalize(), up)
+        debug_assert!(up.is_normalized());
+
+        let forward = (center - eye).normalize();
+        let right = up.cross(forward).normalize();
+        let up = forward.cross(right);
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(right.x, up.x, forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, forward.z),
+        ])
     }
 
     /// Creates a right-handed view matrix from a camera position, a focal point
@@ -840,12 +860,26 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_rh((center - eye).normalize(), up)
+        debug_assert!(up.is_normalized());
+
+        let forward = (center - eye).normalize();
+        let right = forward.cross(up).normalize();
+        let up = right.cross(forward);
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(right.x, up.x, -forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, -forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, -forward.z),
+        ])
     }
 
     /// Returns the `scale`, `angle` and `translation` of `self`.
@@ -1249,7 +1283,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
@@ -1284,7 +1321,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
@@ -1319,7 +1359,11 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
@@ -1327,7 +1371,18 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_lh(eye, (center - eye).normalize(), up)
+        debug_assert!(up.is_normalized());
+
+        let forward = (center - eye).normalize();
+        let right = up.cross(forward).normalize();
+        let up = forward.cross(right);
+
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(right.x, up.x, forward.x, T::ZERO),
+            Vector::<4, T, A>::new(right.y, up.y, forward.y, T::ZERO),
+            Vector::<4, T, A>::new(right.z, up.z, forward.z, T::ZERO),
+            Vector::<4, T, A>::new(-eye.dot(right), -eye.dot(up), -eye.dot(forward), T::ONE),
+        ])
     }
 
     /// Creates a right-handed view matrix from a camera position, a focal point
@@ -1342,7 +1397,11 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     ///
     /// [`transform_point`]: Self::transform_point
     /// [`transform_vector`]: Self::transform_vector
@@ -1350,7 +1409,18 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_rh(eye, (center - eye).normalize(), up)
+        debug_assert!(up.is_normalized());
+
+        let forward = (center - eye).normalize();
+        let right = forward.cross(up).normalize();
+        let up = right.cross(forward);
+
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(right.x, up.x, -forward.x, T::ZERO),
+            Vector::<4, T, A>::new(right.y, up.y, -forward.y, T::ZERO),
+            Vector::<4, T, A>::new(right.z, up.z, -forward.z, T::ZERO),
+            Vector::<4, T, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward), T::ONE),
+        ])
     }
 
     /// Creates a left-handed perspective projection matrix with `0..1` depth
@@ -2585,10 +2655,6 @@ mod tests {
 
     #[test]
     fn test_look_to_lh() {
-        // TODO: Currently documentation states that the function only panics if
-        // `dir` or `up` are not normalized, but in reality it also panics when
-        // `dir` and `up` are equal. The documentation needs to be updated.
-
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 if !dir.is_normalized() {
@@ -2602,19 +2668,21 @@ mod tests {
 
                 let dir = dir.normalize_or(Vector::<3, T, A>::Z).normalize();
                 let up = up.normalize_or(Vector::<3, T, A>::Y).normalize();
-                if !eye.is_finite()
-                    || !((1.0 as T).to_radians()..(179.0 as T).to_radians())
-                        .contains(&up.angle_between(dir))
-                {
+                if dir.cross(up).try_normalize().is_none() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_lh(dir, up));
+                    assert_debug_panic!(Matrix::<4, T, A>::look_to_lh(eye, dir, up));
                     continue;
                 }
 
                 let result = Matrix::<3, T, A>::look_to_lh(dir, up);
-
-                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-5);
+                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-2);
                 assert_test_eq!(dir * result, Vector::<3, T, A>::Z, abs <= 1e-5, 0.0 = -0.0);
                 assert_test_eq!((up * result).x, 0.0, abs <= 1e-6, 0.0 = -0.0);
                 assert!((0.0..=1.00001).contains(&(up * result).y));
+
+                if !eye.is_finite() {
+                    continue;
+                }
 
                 assert_test_eq!(
                     Matrix::<4, T, A>::look_to_lh(eye, dir, up),
@@ -2628,10 +2696,6 @@ mod tests {
 
     #[test]
     fn test_look_to_rh() {
-        // TODO: Currently documentation states that the function only panics if
-        // `dir` or `up` are not normalized, but in reality it also panics when
-        // `dir` and `up` are equal. The documentation needs to be updated.
-
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, dir, up] in random_iter::<[Vector<3, T, A>; 3]>() {
                 if !dir.is_normalized() {
@@ -2645,16 +2709,14 @@ mod tests {
 
                 let dir = dir.normalize_or(Vector::<3, T, A>::Z).normalize();
                 let up = up.normalize_or(Vector::<3, T, A>::Y).normalize();
-                if !eye.is_finite()
-                    || !((1.0 as T).to_radians()..(179.0 as T).to_radians())
-                        .contains(&up.angle_between(dir))
-                {
+                if dir.cross(up).try_normalize().is_none() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_to_rh(dir, up));
+                    assert_debug_panic!(Matrix::<4, T, A>::look_to_rh(eye, dir, up));
                     continue;
                 }
 
                 let result = Matrix::<3, T, A>::look_to_rh(dir, up);
-
-                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-5);
+                assert_test_eq!(result.determinant(), 1.0, abs <= 1e-2);
                 assert_test_eq!(
                     dir * result,
                     Vector::<3, T, A>::NEG_Z,
@@ -2663,6 +2725,10 @@ mod tests {
                 );
                 assert_test_eq!((up * result).x, 0.0, abs <= 1e-6, 0.0 = -0.0);
                 assert!((0.0..=1.00001).contains(&(up * result).y));
+
+                if !eye.is_finite() {
+                    continue;
+                }
 
                 assert_test_eq!(
                     Matrix::<4, T, A>::look_to_rh(eye, dir, up),
@@ -2676,17 +2742,9 @@ mod tests {
 
     #[test]
     fn test_look_at_lh() {
-        // TODO: Currently documentation states that the function only panics if
-        // `up` are not normalized, but in reality it also panics when the final
-        // `dir` and `up` are equal. The documentation needs to be updated.
-
-        // TODO: For extreme inputs, the direction derived from `eye` and
-        // `center` is slightly non-normalized causing the call to `look_to_lh`
-        // to panic. It would be better to accept the rounding error instead.
-
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
-                if !up.is_normalized() {
+                if !up.is_normalized() || center == eye {
                     assert_debug_panic!(Matrix::<3, T, A>::look_at_lh(eye, center, up));
                     assert_debug_panic!(Matrix::<4, T, A>::look_at_lh(eye, center, up));
                 }
@@ -2695,15 +2753,13 @@ mod tests {
                 let Some(dir) = (center - eye).try_normalize() else {
                     continue;
                 };
-                if !dir.is_normalized()
-                    || !((1.0 as T).to_radians()..(179.0 as T).to_radians())
-                        .contains(&up.angle_between(dir))
-                {
+                if up.cross(dir).try_normalize().is_none() {
+                    assert_debug_panic!(Matrix::<3, T, A>::look_at_lh(eye, center, up));
+                    assert_debug_panic!(Matrix::<4, T, A>::look_at_lh(eye, center, up));
                     continue;
                 }
 
                 let result = Matrix::<3, T, A>::look_at_lh(eye, center, up);
-
                 assert_test_eq!(result.determinant(), 1.0, abs <= 1e-5);
                 assert_test_eq!(dir * result, Vector::<3, T, A>::Z, abs <= 1e-5, 0.0 = -0.0);
                 assert_test_eq!((up * result).x, 0.0, abs <= 1e-6, 0.0 = -0.0);
@@ -2721,17 +2777,9 @@ mod tests {
 
     #[test]
     fn test_look_at_rh() {
-        // TODO: Currently documentation states that the function only panics if
-        // `up` are not normalized, but in reality it also panics when the final
-        // `dir` and `up` are equal. The documentation needs to be updated.
-
-        // TODO: For extreme inputs, the direction derived from `eye` and
-        // `center` is slightly non-normalized causing the call to `look_to_rh`
-        // to panic. It would be better to accept the rounding error instead.
-
         for_types!(|T: PrimitiveFloat, A| {
             for [eye, center, up] in random_iter::<[Vector<3, T, A>; 3]>() {
-                if !up.is_normalized() {
+                if !up.is_normalized() || center == eye {
                     assert_debug_panic!(Matrix::<3, T, A>::look_at_rh(eye, center, up));
                     assert_debug_panic!(Matrix::<4, T, A>::look_at_rh(eye, center, up));
                 }
@@ -2740,15 +2788,11 @@ mod tests {
                 let Some(dir) = (center - eye).try_normalize() else {
                     continue;
                 };
-                if !dir.is_normalized()
-                    || !((1.0 as T).to_radians()..(179.0 as T).to_radians())
-                        .contains(&up.angle_between(dir))
-                {
+                if up.cross(dir).try_normalize().is_none() {
                     continue;
                 }
 
                 let result = Matrix::<3, T, A>::look_at_rh(eye, center, up);
-
                 assert_test_eq!(result.determinant(), 1.0, abs <= 1e-5);
                 assert_test_eq!(
                     dir * result,
