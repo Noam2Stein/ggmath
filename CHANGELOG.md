@@ -121,6 +121,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `Quaternion::canonical`.
+
 - `wide` functions `try_normalize` and `try_inverse`.
 
 - Support for crate `fixp`.
