@@ -331,26 +331,6 @@ where
         Self::from_xyzw(-self.x, -self.y, -self.z, self.w)
     }
 
-    /// Returns the canonical version of `self`.
-    ///
-    /// This flips the sign of `self` to make `w` positive. The result still
-    /// represents the same rotation as `self`.
-    ///
-    /// Equivalent to:
-    ///
-    /// ```ignore
-    /// if self.w < 0.0 { -self } else { self }
-    /// ```
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn canonical(self) -> Self
-    where
-        T: PartialOrd + Neg<Output = T> + Zero,
-    {
-        if self.w < T::ZERO { -self } else { self }
-    }
-
     /// Computes the dot product of quaternions `self` and `rhs`.
     ///
     /// Equivalent to `self.angle_between(rhs).cos()`.
@@ -923,18 +903,6 @@ mod tests {
                     quat.conjugate(),
                     Quaternion::from_xyzw(-quat.x, -quat.y, -quat.z, quat.w)
                 );
-            }
-        });
-    }
-
-    #[test]
-    fn test_canonical() {
-        for_types!(|T: PrimitiveFloat, A| {
-            for quat in random_iter::<Quaternion<T, A>>().filter(|quat| quat.is_finite()) {
-                let canonical = quat.canonical();
-
-                assert_test_eq!(canonical, quat, quat = -quat);
-                assert!(canonical.w >= 0.0);
             }
         });
     }
