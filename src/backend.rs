@@ -3,7 +3,7 @@ use core::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, S
 use crate::{
     Aligned, Alignment, Length, Mask, PrimitiveFloat, PrimitiveInteger, PrimitiveSigned, Scalar,
     SupportedLength, Unaligned, Vector,
-    utils::{Repr2, Repr3, Repr4},
+    utils::{PrimitiveFloatUtils, Repr2, Repr3, Repr4},
 };
 
 #[cfg(not(target_feature = "sse2"))]
@@ -644,7 +644,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::floor)
+        vector.map(PrimitiveFloatUtils::floor)
     }
 
     #[inline]
@@ -652,7 +652,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::ceil)
+        vector.map(PrimitiveFloatUtils::ceil)
     }
 
     #[inline]
@@ -660,7 +660,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::round)
+        vector.map(PrimitiveFloatUtils::round)
     }
 
     #[inline]
@@ -668,7 +668,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::trunc)
+        vector.map(PrimitiveFloatUtils::trunc)
     }
 
     #[inline]
@@ -680,7 +680,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        Vector::from_fn(|i| vector[i].mul_add(a[i], b[i]))
+        Vector::from_fn(|i| PrimitiveFloatUtils::mul_add(vector[i], a[i], b[i]))
     }
 
     #[inline]
@@ -688,7 +688,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        Vector::from_fn(|i| vector[i].div_euclid(rhs[i]))
+        Vector::from_fn(|i| PrimitiveFloatUtils::div_euclid(vector[i], rhs[i]))
     }
 
     #[inline]
@@ -696,7 +696,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        Vector::from_fn(|i| vector[i].rem_euclid(rhs[i]))
+        Vector::from_fn(|i| PrimitiveFloatUtils::rem_euclid(vector[i], rhs[i]))
     }
 
     #[inline]
@@ -704,7 +704,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::sqrt)
+        vector.map(PrimitiveFloatUtils::sqrt)
     }
 
     #[inline]
@@ -712,7 +712,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::sin)
+        vector.map(PrimitiveFloatUtils::sin)
     }
 
     #[inline]
@@ -720,7 +720,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::cos)
+        vector.map(PrimitiveFloatUtils::cos)
     }
 
     #[inline]
@@ -728,7 +728,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::tan)
+        vector.map(PrimitiveFloatUtils::tan)
     }
 
     #[inline]
@@ -736,7 +736,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::asin)
+        vector.map(PrimitiveFloatUtils::asin)
     }
 
     #[inline]
@@ -744,7 +744,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::acos)
+        vector.map(PrimitiveFloatUtils::acos)
     }
 
     #[inline]
@@ -752,7 +752,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        vector.map(Self::atan)
+        vector.map(PrimitiveFloatUtils::atan)
     }
 
     #[inline]
@@ -760,7 +760,7 @@ where
     where
         Self: PrimitiveFloat,
     {
-        let array = vector.to_array().map(|x| x.sin_cos());
+        let array = vector.to_array().map(PrimitiveFloatUtils::sin_cos);
 
         (
             Vector::from_fn(|i| array[i].0),

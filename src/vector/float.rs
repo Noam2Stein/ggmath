@@ -1,7 +1,7 @@
 use crate::{
     Alignment, FloatExt, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, Quaternion,
     SupportedLength, Vector,
-    utils::{specialize, transmute_generic},
+    utils::{PrimitiveFloatUtils, specialize, transmute_generic},
 };
 
 type Bits<T> = <T as PrimitiveFloat>::Bits;
@@ -580,7 +580,7 @@ where
     #[inline]
     #[must_use]
     pub fn powf(self, n: T) -> Self {
-        self.map(|x| x.powf(n))
+        self.map(|x| PrimitiveFloatUtils::powf(x, n))
     }
 
     /// Returns the square root of the elements of `self`.
@@ -620,7 +620,7 @@ where
     #[inline]
     #[must_use]
     pub fn exp(self) -> Self {
-        self.map(T::exp)
+        self.map(PrimitiveFloatUtils::exp)
     }
 
     /// Computes `2^x` for the elements of `self`.
@@ -633,7 +633,7 @@ where
     #[inline]
     #[must_use]
     pub fn exp2(self) -> Self {
-        self.map(T::exp2)
+        self.map(PrimitiveFloatUtils::exp2)
     }
 
     /// Computes the natural logarithm for the elements of `self`.
@@ -646,7 +646,7 @@ where
     #[inline]
     #[must_use]
     pub fn ln(self) -> Self {
-        self.map(T::ln)
+        self.map(PrimitiveFloatUtils::ln)
     }
 
     /// Computes the base 2 logarithm for the elements of `self`.
@@ -669,7 +669,7 @@ where
     #[inline]
     #[must_use]
     pub fn log2(self) -> Self {
-        self.map(T::log2)
+        self.map(PrimitiveFloatUtils::log2)
     }
 
     /// Computes the sine of the elements of `self`.
@@ -849,7 +849,8 @@ where
 
                 let self_normalized = self_ / self_length;
                 let angle_cos = self_normalized.dot(other) / other_length;
-                let angle = angle_cos.acos() * self_normalized.wedge(other).signum();
+                let angle =
+                    PrimitiveFloatUtils::acos(angle_cos) * self_normalized.wedge(other).signum();
 
                 let result_length = self_length.lerp(other_length, t);
                 let result = self_normalized.rotate(angle * t) * result_length;
@@ -870,10 +871,10 @@ where
                 // If `angle_cos` is close to `1` or `-1` or is NaN the normal
                 // calculation breaks down.
                 let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
-                    let angle = angle_cos.acos();
-                    let angle_sin = angle.sin();
-                    let self_factor = (angle * (T::ONE - t)).sin();
-                    let other_factor = (angle * t).sin();
+                    let angle = PrimitiveFloatUtils::acos(angle_cos);
+                    let angle_sin = PrimitiveFloatUtils::sin(angle);
+                    let self_factor = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
+                    let other_factor = PrimitiveFloatUtils::sin(angle * t);
 
                     let result_length = self_length.lerp(other_length, t);
 
@@ -909,10 +910,10 @@ where
                 // If `angle_cos` is close to `1` or `-1` or is NaN the normal
                 // calculation breaks down.
                 let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
-                    let angle = angle_cos.acos();
-                    let angle_sin = angle.sin();
-                    let t1 = (angle * (T::ONE - t)).sin();
-                    let t2 = (angle * t).sin();
+                    let angle = PrimitiveFloatUtils::acos(angle_cos);
+                    let angle_sin = PrimitiveFloatUtils::sin(angle);
+                    let t1 = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
+                    let t2 = PrimitiveFloatUtils::sin(angle * t);
 
                     let result_length = self_length.lerp(other_length, t);
 
@@ -923,7 +924,7 @@ where
                     // Vectors are almost parallel in opposing directions.
 
                     let axis = self_.any_orthogonal_vector().normalize();
-                    let (sin, cos) = (t * T::PI).sin_cos();
+                    let (sin, cos) = PrimitiveFloatUtils::sin_cos(t * T::PI);
 
                     let result_dir = self_ * cos + axis * sin;
                     let result_length = self_length.lerp(other_length, t);
@@ -975,10 +976,11 @@ where
                 let target =
                     unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(target) };
 
-                let target_angle = (self_.dot(target) / self_length / target_length)
-                    .max(T::NEG_ONE)
-                    .min(T::ONE)
-                    .acos();
+                let target_angle = PrimitiveFloatUtils::acos(
+                    (self_.dot(target) / self_length / target_length)
+                        .max(T::NEG_ONE)
+                        .min(T::ONE),
+                );
                 let angle_sign = self_.wedge(target).signum();
                 let angle = max_angle.clamp(target_angle - T::PI, target_angle) * angle_sign;
 
@@ -996,10 +998,11 @@ where
 
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
-                let target_angle = (self_.dot(target) / (self_length * target_length))
-                    .max(T::NEG_ONE)
-                    .min(T::ONE)
-                    .acos();
+                let target_angle = PrimitiveFloatUtils::acos(
+                    (self_.dot(target) / (self_length * target_length))
+                        .max(T::NEG_ONE)
+                        .min(T::ONE),
+                );
                 let angle = max_angle.clamp(target_angle - T::PI, target_angle);
                 let axis = self_
                     .cross(target)
@@ -1019,7 +1022,8 @@ where
                     unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(target) };
 
                 let target_angle_cos = self_.dot(target) / (self_length * target_length);
-                let target_angle = target_angle_cos.max(T::NEG_ONE).min(T::ONE).acos();
+                let target_angle =
+                    PrimitiveFloatUtils::acos(target_angle_cos.max(T::NEG_ONE).min(T::ONE));
                 let angle = max_angle.clamp(target_angle - T::PI, target_angle);
 
                 if angle == T::ZERO {
@@ -1029,8 +1033,8 @@ where
                 // If `target_angle_cos` is close to `1` or `-1` or is NaN the
                 // normal calculation breaks down.
                 let result = if target_angle_cos.abs() <= T::as_from(1.0 - 3e-7) {
-                    let self_factor = (target_angle - angle).sin();
-                    let target_factor = angle.sin();
+                    let self_factor = PrimitiveFloatUtils::sin(target_angle - angle);
+                    let target_factor = PrimitiveFloatUtils::sin(angle);
 
                     (self_ * self_factor + target * (self_length / target_length) * target_factor)
                         .normalize()
@@ -1039,7 +1043,7 @@ where
                     // Vectors are almost parallel in opposing directions.
 
                     let axis = self_.any_orthogonal_vector().normalize();
-                    let (sin, cos) = angle.sin_cos();
+                    let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
 
                     let result_dir = self_ * cos + axis * sin;
                     result_dir * (self_length / result_dir.length())
@@ -1069,7 +1073,7 @@ where
     #[inline]
     #[must_use]
     pub fn length(self) -> T {
-        self.dot(self).sqrt()
+        PrimitiveFloatUtils::sqrt(self.dot(self))
     }
 
     /// Computes the Euclidean distance between `self` and `other`.
@@ -1276,7 +1280,7 @@ where
 
         let length_squared = self.length_squared();
         if length_squared > max * max {
-            self / length_squared.sqrt() * max
+            self / PrimitiveFloatUtils::sqrt(length_squared) * max
         } else {
             self
         }
@@ -1310,7 +1314,7 @@ where
 
         let length_squared = self.length_squared();
         if length_squared < min * min {
-            self / length_squared.sqrt() * min
+            self / PrimitiveFloatUtils::sqrt(length_squared) * min
         } else {
             self
         }
@@ -1349,9 +1353,9 @@ where
 
         let length_squared = self.length_squared();
         if length_squared < min * min {
-            self / length_squared.sqrt() * min
+            self / PrimitiveFloatUtils::sqrt(length_squared) * min
         } else if length_squared > max * max {
-            self / length_squared.sqrt() * max
+            self / PrimitiveFloatUtils::sqrt(length_squared) * max
         } else {
             self
         }
@@ -1383,10 +1387,12 @@ where
     #[inline]
     #[must_use]
     pub fn angle_between(self, other: Self) -> T {
-        (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
+        PrimitiveFloatUtils::acos(
+            (self.dot(other)
+                / PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared()))
             .max(T::NEG_ONE)
-            .min(T::ONE)
-            .acos()
+            .min(T::ONE),
+        )
     }
 
     /// Returns the vector projection of `self` onto `other`.
@@ -1505,7 +1511,7 @@ where
         let self_dot_normal = self.dot(normal);
         let k = T::as_from(1.0) - eta * eta * (T::as_from(1.0) - self_dot_normal * self_dot_normal);
         if k >= T::as_from(0.0) {
-            self * eta - normal * (eta * self_dot_normal + k.sqrt())
+            self * eta - normal * (eta * self_dot_normal + PrimitiveFloatUtils::sqrt(k))
         } else {
             Self::ZERO
         }
@@ -1760,7 +1766,7 @@ where
     #[inline]
     #[must_use]
     pub fn rotate(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
+        let (angle_sin, angle_cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::new(
             self.x * angle_cos - self.y * angle_sin,
             self.x * angle_sin + self.y * angle_cos,
@@ -1792,7 +1798,7 @@ where
     #[inline]
     #[must_use]
     pub fn rotate_x(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
+        let (angle_sin, angle_cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::new(
             self.x,
             self.y * angle_cos - self.z * angle_sin,
@@ -1812,7 +1818,7 @@ where
     #[inline]
     #[must_use]
     pub fn rotate_y(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
+        let (angle_sin, angle_cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::new(
             self.x * angle_cos + self.z * angle_sin,
             self.y,
@@ -1832,7 +1838,7 @@ where
     #[inline]
     #[must_use]
     pub fn rotate_z(self, angle: T) -> Self {
-        let (angle_sin, angle_cos) = angle.sin_cos();
+        let (angle_sin, angle_cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::new(
             self.x * angle_cos - self.y * angle_sin,
             self.x * angle_sin + self.y * angle_cos,
@@ -1874,9 +1880,14 @@ where
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "num-primitive")]
+    use num_primitive::PrimitiveFloat;
+
+    #[cfg(not(feature = "num-primitive"))]
+    use crate::utils::PrimitiveFloatUtils;
     use crate::{
         FloatExt, Mask, Vec2A, Vec3A, Vector,
-        utils::{PrimitiveFloatFns, assert_debug_panic, assert_test_eq, for_types, random_iter},
+        utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]

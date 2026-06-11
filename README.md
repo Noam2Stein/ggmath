@@ -169,6 +169,8 @@ ggmath = { version = "0.16.7", features = ["libm"] }
 
 - `mint`: Implements conversions between `ggmath` and `mint` types.
 
+- `num-primitive`: Adds `num-primitive` traits as super-traits of `ggmath` traits.
+
 - `rand`: Implements `rand` traits for `ggmath` types.
 
 - `serde`: Implements `Serialize` and `Deserialize` for `ggmath` types.
