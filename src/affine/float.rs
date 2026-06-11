@@ -1,6 +1,6 @@
 use crate::{
     Affine, Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
-    Vector, utils::PrimitiveFloatUtils,
+    Vector,
 };
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -172,6 +172,23 @@ where
         )
     }
 
+    /// Returns the `scale` and `angle` of `self`.
+    ///
+    /// `self` must be reversible and not contain shearing. Otherwise the result
+    /// is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
+        self.submatrix.to_scale_angle()
+    }
+
     /// Returns the `scale`, `angle` and `translation` of `self`.
     ///
     /// `self` must be reversible and not contain shearing. Otherwise the result
@@ -186,17 +203,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
-        let determinant = self.submatrix.determinant();
-
-        debug_assert!(determinant != T::ZERO);
-
-        let scale = Vector::<2, T, A>::new(
-            self.submatrix.x_axis.length() * determinant.signum(),
-            self.submatrix.y_axis.length(),
-        );
-
-        let angle = PrimitiveFloatUtils::atan2(-self.submatrix.y_axis.x, self.submatrix.y_axis.y);
-
+        let (scale, angle) = self.submatrix.to_scale_angle();
         (scale, angle, self.translation)
     }
 }
@@ -440,6 +447,23 @@ where
         self.submatrix.to_euler(order)
     }
 
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must be reversible and not contain shearing. Otherwise the result
+    /// is unspecified.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
+        self.submatrix.to_scale_rotation()
+    }
+
     /// Returns the `scale`, `rotation` and `translation` of `self`.
     ///
     /// `self` must be reversible and not contain shearing. Otherwise the result
@@ -456,7 +480,8 @@ where
     pub fn to_scale_rotation_translation(
         &self,
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        self.to_matrix().to_scale_rotation_translation()
+        let (scale, rotation) = self.submatrix.to_scale_rotation();
+        (scale, rotation, self.translation)
     }
 }
 
@@ -742,6 +767,20 @@ mod tests {
     }
 
     #[test]
+    fn test_to_scale_angle() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, angle, translation) in
+                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            {
+                let affine =
+                    Affine::<2, T, A>::from_scale_angle_translation(scale, angle, translation);
+
+                assert_panic_test_eq!(affine.to_scale_angle(), affine.submatrix.to_scale_angle());
+            }
+        });
+    }
+
+    #[test]
     fn test_to_scale_angle_translation() {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, angle, translation) in
@@ -985,6 +1024,28 @@ mod tests {
     }
 
     #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|T: PrimitiveFloat, A| {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            {
+                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+
+                let affine = Affine::<3, T, A>::from_scale_rotation_translation(
+                    scale,
+                    rotation,
+                    translation,
+                );
+
+                assert_panic_test_eq!(
+                    affine.to_scale_rotation(),
+                    affine.submatrix.to_scale_rotation()
+                );
+            }
+        });
+    }
+
+    #[test]
     fn test_to_scale_rotation_translation() {
         for_types!(|T: PrimitiveFloat, A| {
             for (scale, rotation, translation) in
@@ -1000,7 +1061,11 @@ mod tests {
 
                 assert_panic_test_eq!(
                     affine.to_scale_rotation_translation(),
-                    affine.to_matrix().to_scale_rotation_translation()
+                    (
+                        affine.submatrix.to_scale_rotation().0,
+                        affine.to_scale_rotation().1,
+                        affine.translation
+                    )
                 );
             }
         });

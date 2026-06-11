@@ -152,6 +152,16 @@ macro_rules! impl_wide_float {
                 )
             }
 
+            /// For each lane, returns the `scale` and `angle` of `self`.
+            ///
+            /// `self` must be reversible and not contain shearing. Otherwise
+            /// the result is unspecified.
+            #[inline]
+            #[must_use]
+            pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
+                self.submatrix.to_scale_angle()
+            }
+
             /// For each lane, returns the `scale`, `angle` and `translation` of
             /// `self`.
             ///
@@ -364,6 +374,16 @@ macro_rules! impl_wide_float {
                 self.submatrix.to_euler(order)
             }
 
+            /// For each lane, returns the `scale` and `rotation` of `self`.
+            ///
+            /// `self` must be reversible and not contain shearing. Otherwise
+            /// the result is unspecified.
+            #[inline]
+            #[must_use]
+            pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
+                self.submatrix.to_scale_rotation()
+            }
+
             /// For each lane, returns the `scale`, `rotation` and `translation`
             /// of `self`.
             ///
@@ -379,7 +399,8 @@ macro_rules! impl_wide_float {
                 Quaternion<$Wide, A>,
                 Vector<3, $Wide, A>,
             ) {
-                self.to_matrix().to_scale_rotation_translation()
+                let (scale, rotation) = self.submatrix.to_scale_rotation();
+                (scale, rotation, self.translation)
             }
         }
     };
@@ -546,6 +567,31 @@ mod tests {
                     )),
                     abs <= (scale.length() * angle.abs() * 1e-4).max(Wide::splat(1e-3)),
                     0.0 = -0.0
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_angle() {
+        for_types!(|Wide: WideFloat| {
+            for affine in random_iter::<Affine2<Wide>>().chain(
+                random_iter::<(Vec2<Wide>, Wide, Vec2<Wide>)>().map(
+                    |(scale, angle, translation)| {
+                        Affine2::<Wide>::from_scale_angle_translation(scale, angle, translation)
+                    },
+                ),
+            ) {
+                assert_test_eq_or_panic!(
+                    affine.to_scale_angle(),
+                    (
+                        Vector::from_lane_fn(|lane| affine.lane(lane).to_scale_angle().0),
+                        Wide::new(core::array::from_fn(|lane| affine
+                            .lane(lane)
+                            .to_scale_angle()
+                            .1)),
+                    ),
+                    abs <= (Vector::ZERO, Wide::splat(1e-3))
                 );
             }
         });
@@ -855,6 +901,31 @@ mod tests {
                         0.0 = -0.0
                     );
                 }
+            }
+        });
+    }
+
+    #[test]
+    fn test_to_scale_rotation() {
+        for_types!(|Wide: WideFloat| {
+            for affine in random_iter::<Affine3<Wide>>().chain(
+                random_iter::<(Vec3<Wide>, Quat<Wide>, Vec3<Wide>)>().map(
+                    |(scale, rotation, translation)| {
+                        Affine3::<Wide>::from_scale_rotation_translation(
+                            scale,
+                            rotation.normalize(),
+                            translation,
+                        )
+                    },
+                ),
+            ) {
+                assert_test_eq_or_panic!(
+                    affine.to_scale_rotation(),
+                    (
+                        Vec3::from_lane_fn(|lane| affine.lane(lane).to_scale_rotation().0),
+                        Quat::from_lane_fn(|lane| affine.lane(lane).to_scale_rotation().1)
+                    )
+                );
             }
         });
     }

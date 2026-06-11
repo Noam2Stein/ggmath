@@ -882,6 +882,25 @@ where
         ])
     }
 
+    /// Returns the `scale` and `angle` of `self`.
+    ///
+    /// `self` must contain a valid affine transformation without shearing.
+    /// Otherwise the result is unspecified.
+    ///
+    /// `self` can contain translation which is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
+        self.submatrix().to_scale_angle()
+    }
+
     /// Returns the `scale`, `angle` and `translation` of `self`.
     ///
     /// `self` must contain a valid affine transformation without shearing.
@@ -896,7 +915,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle_translation(&self) -> (Vector<2, T, A>, T, Vector<2, T, A>) {
-        let (scale, angle) = self.submatrix().to_scale_angle();
+        let (scale, angle) = self.to_scale_angle();
         (scale, angle, self.translation())
     }
 
@@ -1921,6 +1940,25 @@ where
         self.submatrix().to_euler(order)
     }
 
+    /// Returns the `scale` and `rotation` of `self`.
+    ///
+    /// `self` must contain a valid affine transformation. Otherwise the result
+    /// is unspecified.
+    ///
+    /// `self` can contain translation which is ignored.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the determinant of `self` is zero.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
+        self.submatrix().to_scale_rotation()
+    }
+
     /// Returns the `scale`, `rotation` and `translation` of `self`.
     ///
     /// `self` must contain a valid affine transformation. Otherwise the result
@@ -1937,7 +1975,7 @@ where
     pub fn to_scale_rotation_translation(
         &self,
     ) -> (Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>) {
-        let (scale, rotation) = self.submatrix().to_scale_rotation();
+        let (scale, rotation) = self.to_scale_rotation();
         (scale, rotation, self.translation())
     }
 
@@ -2244,9 +2282,19 @@ mod tests {
     fn test_to_scale_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<2, T, A>::ZERO.to_scale_angle());
+            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_angle());
 
-            for (scale, angle) in random_iter::<(Vector<2, T, A>, T)>() {
+            for (scale, angle, translation) in
+                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            {
                 let matrix = Matrix::<2, T, A>::from_scale_angle(scale, angle);
+
+                assert_panic_test_eq!(
+                    Matrix::<3, T, A>::from_submatrix_translation(&matrix, translation)
+                        .to_scale_angle(),
+                    matrix.to_scale_angle()
+                );
+
                 if scale.iter().any(|x| x > 1e10)
                     || !matrix.determinant().is_finite()
                     || matrix.determinant() == 0.0
@@ -2724,8 +2772,8 @@ mod tests {
                 assert_panic_test_eq!(
                     matrix.to_scale_angle_translation(),
                     (
-                        matrix.submatrix().to_scale_angle().0,
-                        matrix.submatrix().to_scale_angle().1,
+                        matrix.to_scale_angle().0,
+                        matrix.to_scale_angle().1,
                         matrix.translation()
                     )
                 );
@@ -2773,11 +2821,21 @@ mod tests {
     fn test_to_scale_rotation() {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
+            assert_debug_panic!(Matrix::<4, T, A>::ZERO.to_scale_rotation());
 
-            for (scale, rotation) in random_iter::<(Vector<3, T, A>, Quaternion<T, A>)>() {
+            for (scale, rotation, translation) in
+                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            {
                 let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
 
                 let matrix = Matrix::<3, T, A>::from_scale_rotation(scale, rotation);
+
+                assert_panic_test_eq!(
+                    Matrix::<4, T, A>::from_submatrix_translation(&matrix, translation)
+                        .to_scale_rotation(),
+                    matrix.to_scale_rotation()
+                );
+
                 if scale.iter().any(|x| x > 1e10)
                     || !matrix.is_finite()
                     || !(1e-5..1e8).contains(&matrix.determinant().abs())
@@ -3350,8 +3408,8 @@ mod tests {
                 assert_panic_test_eq!(
                     matrix.to_scale_rotation_translation(),
                     (
-                        matrix.submatrix().to_scale_rotation().0,
-                        matrix.submatrix().to_scale_rotation().1,
+                        matrix.to_scale_rotation().0,
+                        matrix.to_scale_rotation().1,
                         matrix.translation()
                     )
                 );
