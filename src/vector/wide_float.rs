@@ -1493,12 +1493,12 @@ mod tests {
 
     #[test]
     fn test_recip() {
-        // TODO: Currently the implementation uses `1 / self` instead of
-        // `recip`. This should be fixed.
-
         for_types!(|N| {
             for vector in random_iter::<Vector<N, f32x4, Unaligned>>() {
-                assert_test_eq!(vector.recip(), Vector::ONE / vector);
+                assert_test_eq!(
+                    vector.recip(),
+                    Vector::from_lane_fn(|lane| vector.lane(lane).recip())
+                );
             }
         });
     }
