@@ -11,6 +11,29 @@ where
     Length<N>: SupportedLength,
     T: PrimitiveFloat,
 {
+    /// A vector with all elements set to [`MIN`].
+    ///
+    /// [`MIN`]: f32::MIN
+    pub const MIN: Self = Self::splat(T::MIN);
+
+    /// A vector with all elements set to [`MAX`].
+    ///
+    /// [`MAX`]: f32::MAX
+    pub const MAX: Self = Self::splat(T::MAX);
+
+    /// A vector with all elements set to NaN (Not a Number).
+    pub const NAN: Self = Self::splat(T::NAN);
+
+    /// A vector with all elements set to [`INFINITY`].
+    ///
+    /// [`INFINITY`]: f32::INFINITY
+    pub const INFINITY: Self = Self::splat(T::INFINITY);
+
+    /// A vector with all elements set to [`NEG_INFINITY`].
+    ///
+    /// [`NEG_INFINITY`]: f32::NEG_INFINITY
+    pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
+
     /// Returns `true` if any element is NaN.
     ///
     /// # Examples
@@ -1889,6 +1912,20 @@ mod tests {
         FloatExt, Mask, Vec2A, Vec3A, Vector,
         utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
+            assert_test_eq!(Vector::<N, T, A>::NAN, Vector::splat(T::NAN));
+            assert_eq!(Vector::<N, T, A>::INFINITY, Vector::splat(T::INFINITY));
+            assert_eq!(
+                Vector::<N, T, A>::NEG_INFINITY,
+                Vector::splat(T::NEG_INFINITY)
+            );
+        });
+    }
 
     #[test]
     fn test_is_nan() {

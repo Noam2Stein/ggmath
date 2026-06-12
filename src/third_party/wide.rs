@@ -6,10 +6,7 @@ use wide::{
     u64x4, u64x8,
 };
 
-use crate::{
-    Alignment, DefaultBackend, Scalar,
-    constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
-};
+use crate::{Alignment, DefaultBackend, NegOne, One, Scalar, Zero};
 
 macro_rules! float_impl {
     ($T:ident, $F:ident, $N:literal) => {
@@ -27,26 +24,6 @@ macro_rules! float_impl {
 
         impl NegOne for $T {
             const NEG_ONE: Self = unsafe { transmute::<[$F; $N], $T>([-1.0; $N]) };
-        }
-
-        impl Min for $T {
-            const MIN: Self = unsafe { transmute::<[$F; $N], $T>([$F::MIN; $N]) };
-        }
-
-        impl Max for $T {
-            const MAX: Self = unsafe { transmute::<[$F; $N], $T>([$F::MAX; $N]) };
-        }
-
-        impl Nan for $T {
-            const NAN: Self = unsafe { transmute::<[$F; $N], $T>([$F::NAN; $N]) };
-        }
-
-        impl Infinity for $T {
-            const INFINITY: Self = unsafe { transmute::<[$F; $N], $T>([$F::INFINITY; $N]) };
-        }
-
-        impl NegInfinity for $T {
-            const NEG_INFINITY: Self = unsafe { transmute::<[$F; $N], $T>([$F::NEG_INFINITY; $N]) };
         }
     };
 }
@@ -74,14 +51,6 @@ macro_rules! int_impl {
         impl NegOne for $T {
             const NEG_ONE: Self = Self::new([-1; _]);
         }
-
-        impl Min for $T {
-            const MIN: Self = Self::MIN;
-        }
-
-        impl Max for $T {
-            const MAX: Self = Self::MAX;
-        }
     };
 }
 int_impl!(i8x16);
@@ -108,14 +77,6 @@ macro_rules! uint_impl {
 
         impl One for $T {
             const ONE: Self = Self::ONE;
-        }
-
-        impl Min for $T {
-            const MIN: Self = Self::MIN;
-        }
-
-        impl Max for $T {
-            const MAX: Self = Self::MAX;
         }
     };
 }

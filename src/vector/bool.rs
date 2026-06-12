@@ -4,6 +4,12 @@ impl<const N: usize, A: Alignment> Vector<N, bool, A>
 where
     Length<N>: SupportedLength,
 {
+    /// A vector with all elements set to `false`.
+    pub const FALSE: Self = Self::splat(false);
+
+    /// A vector with all elements set to `true`.
+    pub const TRUE: Self = Self::splat(true);
+
     /// Returns `true` if all elements of `self` are `true`.
     ///
     /// # Examples
@@ -87,6 +93,14 @@ mod tests {
         Vector,
         utils::{for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, A| {
+            assert_eq!(Vector::<N, bool, A>::FALSE, Vector::splat(false));
+            assert_eq!(Vector::<N, bool, A>::TRUE, Vector::splat(true));
+        });
+    }
 
     #[test]
     fn test_all() {

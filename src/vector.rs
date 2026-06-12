@@ -10,8 +10,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Mask, Scalar, SupportedLength, Unaligned,
-    constants::{False, Infinity, Max, Min, Nan, NegInfinity, NegOne, One, True, Zero},
+    Aligned, Alignment, Backend, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned,
+    Zero,
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -274,77 +274,6 @@ where
 {
     /// A vector with all elements set to `-1`.
     pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Min,
-{
-    /// A vector with all elements set to [`T::MIN`].
-    ///
-    /// [`T::MIN`]: Min::MIN
-    pub const MIN: Self = Self::splat(T::MIN);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Max,
-{
-    /// A vector with all elements set to [`T::MAX`].
-    ///
-    /// [`T::MAX`]: Max::MAX
-    pub const MAX: Self = Self::splat(T::MAX);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Nan,
-{
-    /// A vector with all elements set to NaN (Not a Number).
-    pub const NAN: Self = Self::splat(T::NAN);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Infinity,
-{
-    /// A vector with all elements set to [`T::INFINITY`].
-    ///
-    /// [`T::INFINITY`]: Infinity::INFINITY
-    pub const INFINITY: Self = Self::splat(T::INFINITY);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + NegInfinity,
-{
-    /// A vector with all elements set to [`T::NEG_INFINITY`].
-    ///
-    /// [`T::NEG_INFINITY`]: NegInfinity::NEG_INFINITY
-    pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + True,
-{
-    /// A vector with all elements set to `true`.
-    pub const TRUE: Self = Self::splat(T::TRUE);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + False,
-{
-    /// A vector with all elements set to `false`.
-    pub const FALSE: Self = Self::splat(T::FALSE);
 }
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
@@ -2810,70 +2739,6 @@ mod tests {
         });
         for_types!(|N, T: PrimitiveSigned, A| {
             assert_eq!(Vector::<N, T, A>::NEG_ONE, Vector::splat(-1));
-        });
-    }
-
-    #[test]
-    fn test_min() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
-        });
-        for_types!(|N, T: PrimitiveSigned, A| {
-            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
-        });
-        for_types!(|N, T: PrimitiveUnsigned, A| {
-            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
-        });
-    }
-
-    #[test]
-    fn test_max() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
-        });
-        for_types!(|N, T: PrimitiveSigned, A| {
-            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
-        });
-        for_types!(|N, T: PrimitiveUnsigned, A| {
-            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
-        });
-    }
-
-    #[test]
-    fn test_nan() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_test_eq!(Vector::<N, T, A>::NAN, Vector::splat(T::NAN));
-        });
-    }
-
-    #[test]
-    fn test_infinity() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_eq!(Vector::<N, T, A>::INFINITY, Vector::splat(T::INFINITY));
-        });
-    }
-
-    #[test]
-    fn test_neg_infinity() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_eq!(
-                Vector::<N, T, A>::NEG_INFINITY,
-                Vector::splat(T::NEG_INFINITY)
-            );
-        });
-    }
-
-    #[test]
-    fn test_true() {
-        for_types!(|N, A| {
-            assert_eq!(Vector::<N, bool, A>::TRUE, Vector::splat(true));
-        });
-    }
-
-    #[test]
-    fn test_false() {
-        for_types!(|N, A| {
-            assert_eq!(Vector::<N, bool, A>::FALSE, Vector::splat(false));
         });
     }
 

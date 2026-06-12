@@ -10,6 +10,9 @@ where
     Length<N>: SupportedLength,
     T: PrimitiveFloat,
 {
+    /// A matrix with all elements set to NaN (Not a Number).
+    pub const NAN: Self = Self::from_rows(&[Vector::<N, T, A>::NAN; N]);
+
     /// Returns `true` if any element is NaN.
     ///
     /// # Examples
@@ -1018,6 +1021,48 @@ where
 
         (scale, rotation)
     }
+
+    /// Transforms the given 2D vector as a point.
+    ///
+    /// Equivalent to `(point, 1) * self` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the third column
+    /// must be `(0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the third column of `self` is not `(0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
+        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
+
+        self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
+    }
+
+    /// Transforms the given 2D vector without applying translation.
+    ///
+    /// Equivalent to `(vector, 0) * self` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the third column
+    /// must be `(0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the third column of `self` is not `(0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<2, T, A>) -> Vector<2, T, A> {
+        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
+
+        self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
+    }
 }
 
 impl<T, A: Alignment> Matrix<4, T, A>
@@ -1979,6 +2024,52 @@ where
         (scale, rotation, self.translation())
     }
 
+    /// Transforms the given 3D vector as a point.
+    ///
+    /// Equivalent to `(point, 1) * self` but is faster. This does not perform a
+    /// perspective divide.
+    ///
+    /// `self` must contain a valid affine transform, meaning the fourth column
+    /// must be `(0, 0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the fourth column of `self` is not `(0, 0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
+        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
+
+        self.x_axis.xyz() * point.x
+            + self.y_axis.xyz() * point.y
+            + self.z_axis.xyz() * point.z
+            + self.w_axis.xyz()
+    }
+
+    /// Transforms the given 3D vector without applying translation.
+    ///
+    /// Equivalent to `(vector, 0) * self` but is faster.
+    ///
+    /// `self` must contain a valid affine transform, meaning the fourth column
+    /// must be `(0, 0, 0, 1)`.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if the fourth column of `self` is not `(0, 0, 0, 1)`.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn transform_vector(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
+        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
+
+        self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
+    }
+
     /// Transforms the given 3D vector as a point, applying perspective
     /// projection.
     ///
@@ -2001,22 +2092,32 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        EulerRot, Matrix, Quaternion, Vector,
+        EulerRot, Mat3A, Mat4A, Matrix, Quaternion, Vec2A, Vec3A, Vec4A, Vector,
         utils::{assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Matrix::<N, T, A>::NAN,
+                Matrix::from_rows(&[Vector::<N, T, A>::NAN; N])
+            );
+        });
+    }
 
     #[test]
     fn test_is_nan() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<2, T, A>::NAN;
             assert!(!Matrix::<2, T, A>::from_rows(&[one; 2]).is_nan());
             assert!(Matrix::<2, T, A>::from_rows(&[nan, one]).is_nan());
             assert!(Matrix::<2, T, A>::from_rows(&[one, nan]).is_nan());
             assert!(Matrix::<2, T, A>::NAN.is_nan());
 
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<3, T, A>::NAN;
             assert!(!Matrix::<3, T, A>::from_rows(&[one; 3]).is_nan());
             assert!(Matrix::<3, T, A>::from_rows(&[nan, one, one]).is_nan());
             assert!(Matrix::<3, T, A>::from_rows(&[one, nan, one]).is_nan());
@@ -2024,7 +2125,7 @@ mod tests {
             assert!(Matrix::<3, T, A>::NAN.is_nan());
 
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<4, T, A>::NAN;
             assert!(!Matrix::<4, T, A>::from_rows(&[one; 4]).is_nan());
             assert!(Matrix::<4, T, A>::from_rows(&[nan, one, one, one]).is_nan());
             assert!(Matrix::<4, T, A>::from_rows(&[one, nan, one, one]).is_nan());
@@ -2038,14 +2139,14 @@ mod tests {
     fn test_is_finite() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
-            let inf = Vector::INFINITY;
+            let inf = Vector::<2, T, A>::INFINITY;
             assert!(Matrix::<2, T, A>::from_rows(&[one, one]).is_finite());
             assert!(!Matrix::<2, T, A>::from_rows(&[inf, one]).is_finite());
             assert!(!Matrix::<2, T, A>::from_rows(&[one, inf]).is_finite());
             assert!(!Matrix::<2, T, A>::from_rows(&[inf, inf]).is_finite());
 
             let one = Vector::ONE;
-            let inf = Vector::INFINITY;
+            let inf = Vector::<3, T, A>::INFINITY;
             assert!(Matrix::<3, T, A>::from_rows(&[one, one, one]).is_finite());
             assert!(!Matrix::<3, T, A>::from_rows(&[inf, one, one]).is_finite());
             assert!(!Matrix::<3, T, A>::from_rows(&[one, inf, one]).is_finite());
@@ -2053,7 +2154,7 @@ mod tests {
             assert!(!Matrix::<3, T, A>::from_rows(&[inf, inf, inf]).is_finite());
 
             let one = Vector::ONE;
-            let inf = Vector::INFINITY;
+            let inf = Vector::<4, T, A>::INFINITY;
             assert!(Matrix::<4, T, A>::from_rows(&[one, one, one, one]).is_finite());
             assert!(!Matrix::<4, T, A>::from_rows(&[inf, one, one, one]).is_finite());
             assert!(!Matrix::<4, T, A>::from_rows(&[one, inf, one, one]).is_finite());
@@ -2852,6 +2953,88 @@ mod tests {
                 );
             }
         });
+    }
+
+    #[test]
+    fn test_transform_point() {
+        assert_eq!(
+            Mat3A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 0.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_point(Vec2A::new(-1.0, -2.0)),
+            Vec2A::new(-4.0, -6.0)
+        );
+        assert_eq!(
+            Mat4A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 0.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_point(Vec3A::new(-1.0, -2.0, -3.0)),
+            Vec3A::new(-25.0, -30.0, -35.0)
+        );
+
+        assert_debug_panic!(
+            Mat3A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 1.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_point(Vec2A::new(-1.0, -2.0))
+        );
+        assert_debug_panic!(
+            Mat4A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 1.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_point(Vec3A::new(-1.0, -2.0, -3.0))
+        );
+    }
+
+    #[test]
+    fn test_transform_vector() {
+        assert_eq!(
+            Mat3A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 0.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_vector(Vec2A::new(-1.0, -2.0)),
+            Vec2A::new(-10.0, -13.0)
+        );
+        assert_eq!(
+            Mat4A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 0.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0)),
+            Vec3A::new(-36.0, -42.0, -48.0)
+        );
+
+        assert_debug_panic!(
+            Mat3A::from_rows(&[
+                Vec3A::new(2.0, 3.0, 0.0),
+                Vec3A::new(4.0, 5.0, 1.0),
+                Vec3A::new(6.0, 7.0, 1.0)
+            ])
+            .transform_vector(Vec2A::new(-1.0, -2.0))
+        );
+        assert_debug_panic!(
+            Mat4A::from_rows(&[
+                Vec4A::new(2.0, 3.0, 4.0, 0.0),
+                Vec4A::new(5.0, 6.0, 7.0, 0.0),
+                Vec4A::new(8.0, 9.0, 10.0, 1.0),
+                Vec4A::new(11.0, 12.0, 13.0, 1.0)
+            ])
+            .transform_vector(Vec3A::new(-1.0, -2.0, -3.0))
+        );
     }
 
     #[test]

@@ -8,6 +8,12 @@ macro_rules! impl_wide_float {
         where
             Length<N>: SupportedLength,
         {
+            /// An affine transform with all elements set to NaN (Not a Number).
+            pub const NAN: Self = Self::from_submatrix_translation(
+                Matrix::<N, $Wide, A>::NAN,
+                Vector::<N, $Wide, A>::NAN,
+            );
+
             /// Returns `true` if any element is NaN.
             #[inline]
             #[must_use]
@@ -417,9 +423,22 @@ mod tests {
     extern crate std;
 
     use crate::{
-        Affine, Affine2, Affine3, EulerRot, Mat3, Quat, Unaligned, Vec2, Vec3, Vector,
+        Affine, Affine2, Affine3, EulerRot, Mat3, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
         utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, Wide: WideFloat| {
+            assert_test_eq!(
+                Affine::<N, Wide, Unaligned>::NAN,
+                Affine::from_submatrix_translation(
+                    Matrix::<N, Wide, Unaligned>::NAN,
+                    Vector::<N, Wide, Unaligned>::NAN
+                )
+            );
+        });
+    }
 
     #[test]
     fn test_is_nan() {

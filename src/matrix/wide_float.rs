@@ -11,6 +11,9 @@ macro_rules! impl_wide_float {
         where
             Length<N>: SupportedLength,
         {
+            /// A matrix with all elements set to NaN (Not a Number).
+            pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
+
             /// For each lane, returns `true` if any element is NaN.
             #[inline]
             #[must_use]
@@ -793,6 +796,30 @@ macro_rules! impl_wide_float {
                 ]));
 
                 (scale, rotation)
+            }
+
+            /// Transforms the given 2D vector as a point.
+            ///
+            /// Equivalent to `(point, 1) * self` but is faster.
+            ///
+            /// `self` must contain a valid affine transform, meaning the third column
+            /// must be `(0, 0, 1)`.
+            #[inline]
+            #[must_use]
+            pub fn transform_point(&self, point: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
+                self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
+            }
+
+            /// Transforms the given 2D vector without applying translation.
+            ///
+            /// Equivalent to `(vector, 0) * self` but is faster.
+            ///
+            /// `self` must contain a valid affine transform, meaning the third column
+            /// must be `(0, 0, 1)`.
+            #[inline]
+            #[must_use]
+            pub fn transform_vector(&self, vector: Vector<2, $Wide, A>) -> Vector<2, $Wide, A> {
+                self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
             }
         }
 
@@ -1745,6 +1772,36 @@ macro_rules! impl_wide_float {
                 (scale, rotation, self.translation())
             }
 
+            /// Transforms the given 3D vector as a point.
+            ///
+            /// Equivalent to `(point, 1) * self` but is faster. This does not perform a
+            /// perspective divide.
+            ///
+            /// `self` must contain a valid affine transform, meaning the fourth column
+            /// must be `(0, 0, 0, 1)`.
+            #[inline]
+            #[must_use]
+            pub fn transform_point(&self, point: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
+                self.x_axis.xyz() * point.x
+                    + self.y_axis.xyz() * point.y
+                    + self.z_axis.xyz() * point.z
+                    + self.w_axis.xyz()
+            }
+
+            /// Transforms the given 3D vector without applying translation.
+            ///
+            /// Equivalent to `(vector, 0) * self` but is faster.
+            ///
+            /// `self` must contain a valid affine transform, meaning the fourth column
+            /// must be `(0, 0, 0, 1)`.
+            #[inline]
+            #[must_use]
+            pub fn transform_vector(&self, vector: Vector<3, $Wide, A>) -> Vector<3, $Wide, A> {
+                self.x_axis.xyz() * vector.x
+                    + self.y_axis.xyz() * vector.y
+                    + self.z_axis.xyz() * vector.z
+            }
+
             /// Transforms the given 3D vector as a point, applying perspective
             /// projection.
             ///
@@ -1777,9 +1834,19 @@ impl_wide_float!(f64x8, f64);
 #[cfg(test)]
 mod tests {
     use crate::{
-        EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
+        EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vec4, Vector,
         utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, Wide: WideFloat| {
+            assert_test_eq!(
+                Matrix::<N, Wide, Unaligned>::NAN,
+                Matrix::from_rows(&[Vector::<N, Wide, Unaligned>::NAN; N])
+            );
+        });
+    }
 
     #[test]
     fn test_is_nan() {
@@ -2395,6 +2462,92 @@ mod tests {
                     Mat4::<Wide>::from_submatrix_translation(&matrix, translation)
                         .to_scale_rotation(),
                     matrix.to_scale_rotation()
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_transform_point() {
+        for_types!(|Wide: WideFloat| {
+            for (point, matrix) in
+                random_iter::<(Vec2<Wide>, Mat3<Wide>)>().flat_map(|(point, matrix)| {
+                    [
+                        (point, matrix),
+                        (point, {
+                            let mut matrix = matrix;
+                            matrix.set_column(2, Vec3::Z);
+                            matrix
+                        }),
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    matrix.transform_point(point),
+                    Vec2::from_lane_fn(|lane| matrix.lane(lane).transform_point(point.lane(lane)))
+                );
+            }
+
+            for (point, matrix) in
+                random_iter::<(Vec3<Wide>, Mat4<Wide>)>().flat_map(|(point, matrix)| {
+                    [
+                        (point, matrix),
+                        (point, {
+                            let mut matrix = matrix;
+                            matrix.set_column(2, Vec4::Z);
+                            matrix
+                        }),
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    matrix.transform_point(point),
+                    Vec3::from_lane_fn(|lane| matrix.lane(lane).transform_point(point.lane(lane)))
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn test_transform_vector() {
+        for_types!(|Wide: WideFloat| {
+            for (vector, matrix) in
+                random_iter::<(Vec2<Wide>, Mat3<Wide>)>().flat_map(|(point, matrix)| {
+                    [
+                        (point, matrix),
+                        (point, {
+                            let mut matrix = matrix;
+                            matrix.set_column(2, Vec3::Z);
+                            matrix
+                        }),
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    matrix.transform_vector(vector),
+                    Vec2::from_lane_fn(|lane| matrix
+                        .lane(lane)
+                        .transform_vector(vector.lane(lane)))
+                );
+            }
+
+            for (vector, matrix) in
+                random_iter::<(Vec3<Wide>, Mat4<Wide>)>().flat_map(|(point, matrix)| {
+                    [
+                        (point, matrix),
+                        (point, {
+                            let mut matrix = matrix;
+                            matrix.set_column(2, Vec4::Z);
+                            matrix
+                        }),
+                    ]
+                })
+            {
+                assert_test_eq_or_panic!(
+                    matrix.transform_vector(vector),
+                    Vec3::from_lane_fn(|lane| matrix
+                        .lane(lane)
+                        .transform_vector(vector.lane(lane)))
                 );
             }
         });

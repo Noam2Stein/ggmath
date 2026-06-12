@@ -5,6 +5,9 @@ use crate::{Alignment, EulerRot, Matrix, Quaternion, Vector};
 macro_rules! impl_wide_float {
     ($Wide:ident, $T:ident) => {
         impl<A: Alignment> Quaternion<$Wide, A> {
+            /// A quaternion with all elements set to NaN (Not a Number).
+            pub const NAN: Self = Self::from_vector(Vector::<4, $Wide, A>::NAN);
+
             /// Creates a quaternion from an `angle` (in radians) around the x
             /// axis.
             ///
@@ -558,6 +561,16 @@ mod tests {
         EulerRot, Mat3, Quat, Vec3,
         utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|Wide: WideFloat| {
+            assert_test_eq!(
+                Quat::<Wide>::NAN,
+                Quat::from_xyzw(Wide::NAN, Wide::NAN, Wide::NAN, Wide::NAN)
+            );
+        });
+    }
 
     #[test]
     fn test_from_rotation_x() {
