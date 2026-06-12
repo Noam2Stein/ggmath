@@ -9,8 +9,7 @@ use core::{
 };
 
 use crate::{
-    Affine, Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
-    constants::{One, Zero},
+    Affine, Aligned, Alignment, Length, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
     utils::{Repr3, Repr4, transmute_generic, transmute_mut, transmute_ref},
 };
 

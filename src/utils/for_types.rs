@@ -909,10 +909,7 @@ macro_rules! for_types {
 }
 pub(crate) use for_types;
 
-use crate::{
-    Scalar,
-    constants::{One, Zero},
-};
+use crate::{One, Scalar, Zero};
 
 #[doc(hidden)]
 pub trait Number: Scalar + Zero + One + num_primitive::PrimitiveNumber {}

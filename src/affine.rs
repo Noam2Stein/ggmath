@@ -5,8 +5,7 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Length, Matrix, Scalar, SupportedLength, Unaligned, Vector,
-    constants::{One, Zero},
+    Aligned, Alignment, Length, Matrix, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
     utils::{transmute_mut, transmute_ref},
 };
 

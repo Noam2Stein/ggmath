@@ -10,8 +10,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Mask, Scalar, SupportedLength, Unaligned,
-    constants::{NegOne, One, Zero},
+    Aligned, Alignment, Backend, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned,
+    Zero,
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 

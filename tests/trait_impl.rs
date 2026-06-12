@@ -18,8 +18,8 @@ use fixed::{
     FixedU128,
 };
 use ggmath::{
-    Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
-    constants::{NegOne, One, Zero},
+    Affine, Alignment, Length, Mask, Matrix, NegOne, One, Quaternion, Scalar, SupportedLength,
+    Vector, Zero,
 };
 #[cfg(feature = "mint")]
 use mint::IntoMint;

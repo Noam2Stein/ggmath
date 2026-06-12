@@ -3,7 +3,7 @@ use fixed::{
     FixedU128,
 };
 
-use crate::{Alignment, DefaultBackend, Scalar, constants::Zero};
+use crate::{Alignment, DefaultBackend, Scalar, Zero};
 
 macro_rules! impl_fixed {
     ($Fixed:ident) => {

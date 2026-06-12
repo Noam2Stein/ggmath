@@ -1,8 +1,3 @@
-//! A module with traits for scalar constants like `ZERO`, `ONE` and `NAN`.
-//!
-//! Each constant has a trait which when implemented enables that constant for
-//! vectors and other math types where appropriate.
-
 use crate::Scalar;
 
 /// A `ZERO` constant for scalar types.
