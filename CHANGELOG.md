@@ -55,6 +55,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Made `Matrix::transform_point/vector` specific to floats.
+
+- Moved traits `Zero`, `One` and `NegOne` to the crate root and removed their
+  `Scalar` super-trait.
+
 - Renamed `Affine::to_matrix` to `Matrix::from_affine`.
 
 - Changed matrix `to_scale_angle_translation` and
@@ -128,6 +133,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `Quaternion::canonical`.
+
+- Constant traits `Min`, `Max`, `Nan`, `Infinity`, `NegInfinity`, `False` and
+  `True`.
 
 - `wide` functions `try_normalize` and `try_inverse`.
 
