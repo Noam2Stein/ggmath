@@ -8,7 +8,7 @@ use wide::{
 
 use crate::{
     Alignment, DefaultBackend, Scalar,
-    constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
+    constants::{Max, Min, NegOne, One, Zero},
 };
 
 macro_rules! float_impl {
@@ -35,18 +35,6 @@ macro_rules! float_impl {
 
         impl Max for $T {
             const MAX: Self = unsafe { transmute::<[$F; $N], $T>([$F::MAX; $N]) };
-        }
-
-        impl Nan for $T {
-            const NAN: Self = unsafe { transmute::<[$F; $N], $T>([$F::NAN; $N]) };
-        }
-
-        impl Infinity for $T {
-            const INFINITY: Self = unsafe { transmute::<[$F; $N], $T>([$F::INFINITY; $N]) };
-        }
-
-        impl NegInfinity for $T {
-            const NEG_INFINITY: Self = unsafe { transmute::<[$F; $N], $T>([$F::NEG_INFINITY; $N]) };
         }
     };
 }

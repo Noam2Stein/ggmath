@@ -10,6 +10,19 @@ macro_rules! impl_wide_float {
         where
             Length<N>: SupportedLength,
         {
+            /// A vector with all elements set to NaN (Not a Number).
+            pub const NAN: Self = Self::splat($Wide::NAN);
+
+            /// A vector with all elements set to [`INFINITY`].
+            ///
+            /// [`INFINITY`]: f32::INFINITY
+            pub const INFINITY: Self = Self::splat($Wide::INFINITY);
+
+            /// A vector with all elements set to [`NEG_INFINITY`].
+            ///
+            /// [`NEG_INFINITY`]: f32::NEG_INFINITY
+            pub const NEG_INFINITY: Self = Self::splat($Wide::NEG_INFINITY);
+
             /// For each lane, returns `true` if any element is NaN.
             #[inline]
             #[must_use]
@@ -1418,6 +1431,21 @@ mod tests {
         Unaligned, Vec2, Vec3, Vec3A, Vec4, Vector,
         utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, Wide: WideFloat| {
+            assert_test_eq!(Vector::<N, Wide, Unaligned>::NAN, Vector::splat(Wide::NAN));
+            assert_eq!(
+                Vector::<N, Wide, Unaligned>::INFINITY,
+                Vector::splat(Wide::INFINITY)
+            );
+            assert_eq!(
+                Vector::<N, Wide, Unaligned>::NEG_INFINITY,
+                Vector::splat(Wide::NEG_INFINITY)
+            );
+        });
+    }
 
     #[test]
     fn test_is_nan() {

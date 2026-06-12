@@ -6,6 +6,9 @@ impl<T, A: Alignment> Quaternion<T, A>
 where
     T: PrimitiveFloat,
 {
+    /// A quaternion with all elements set to NaN (Not a Number).
+    pub const NAN: Self = Self::from_vector(Vector::<4, T, A>::NAN);
+
     /// Creates a quaternion from an `angle` (in radians) around the x axis.
     ///
     /// This rotates `+Y` to `+Z`.
@@ -758,6 +761,16 @@ mod tests {
             test_eq,
         },
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Quaternion::<T, A>::NAN,
+                Quaternion::from_xyzw(T::NAN, T::NAN, T::NAN, T::NAN)
+            );
+        });
+    }
 
     #[test]
     fn test_from_rotation_x() {

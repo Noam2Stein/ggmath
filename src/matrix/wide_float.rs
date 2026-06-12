@@ -11,6 +11,9 @@ macro_rules! impl_wide_float {
         where
             Length<N>: SupportedLength,
         {
+            /// A matrix with all elements set to NaN (Not a Number).
+            pub const NAN: Self = Self::from_rows(&[Vector::<N, $Wide, A>::NAN; N]);
+
             /// For each lane, returns `true` if any element is NaN.
             #[inline]
             #[must_use]
@@ -1780,6 +1783,16 @@ mod tests {
         EulerRot, Mat2, Mat3, Mat4, Matrix, Quat, Unaligned, Vec2, Vec3, Vector,
         utils::{assert_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, Wide: WideFloat| {
+            assert_test_eq!(
+                Matrix::<N, Wide, Unaligned>::NAN,
+                Matrix::from_rows(&[Vector::<N, Wide, Unaligned>::NAN; N])
+            );
+        });
+    }
 
     #[test]
     fn test_is_nan() {

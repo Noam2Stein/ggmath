@@ -35,24 +35,6 @@ pub trait Max: Scalar {
     const MAX: Self;
 }
 
-/// A `NAN` constant for scalar types.
-pub trait Nan: Scalar {
-    /// Not a Number (NaN).
-    const NAN: Self;
-}
-
-/// An `INFINITY` constant for scalar types.
-pub trait Infinity: Scalar {
-    /// Infinity (∞).
-    const INFINITY: Self;
-}
-
-/// A `NEG_INFINITY` constant for scalar types.
-pub trait NegInfinity: Scalar {
-    /// Negative infinity (−∞).
-    const NEG_INFINITY: Self;
-}
-
 macro_rules! impl_float {
     ($($T:ty),*$(,)?) => {
         $(
@@ -74,18 +56,6 @@ macro_rules! impl_float {
 
             impl Max for $T {
                 const MAX: Self = Self::MAX;
-            }
-
-            impl Nan for $T {
-                const NAN: Self = Self::NAN;
-            }
-
-            impl Infinity for $T {
-                const INFINITY: Self = Self::INFINITY;
-            }
-
-            impl NegInfinity for $T {
-                const NEG_INFINITY: Self = Self::NEG_INFINITY;
             }
         )*
     };

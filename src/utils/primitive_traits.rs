@@ -9,9 +9,20 @@ pub(crate) trait PrimitiveFloatUtils: Sized {
     type Bits: PrimitiveUnsigned;
 
     #[cfg(not(feature = "num-primitive"))]
+    const NAN: Self;
+
+    #[cfg(not(feature = "num-primitive"))]
+    const INFINITY: Self;
+
+    #[cfg(not(feature = "num-primitive"))]
+    const NEG_INFINITY: Self;
+
+    #[cfg(not(feature = "num-primitive"))]
     const EPSILON: Self;
+
     #[cfg(not(feature = "num-primitive"))]
     const PI: Self;
+
     #[cfg(test)]
     #[cfg(not(feature = "num-primitive"))]
     const TAU: Self;
@@ -171,9 +182,20 @@ macro_rules! impl_float {
             type Bits = $UnsignedT;
 
             #[cfg(not(feature = "num-primitive"))]
+            const NAN: Self = Self::NAN;
+
+            #[cfg(not(feature = "num-primitive"))]
+            const INFINITY: Self = Self::INFINITY;
+
+            #[cfg(not(feature = "num-primitive"))]
+            const NEG_INFINITY: Self = Self::NEG_INFINITY;
+
+            #[cfg(not(feature = "num-primitive"))]
             const EPSILON: Self = Self::EPSILON;
+
             #[cfg(not(feature = "num-primitive"))]
             const PI: Self = core::$T::consts::PI;
+
             #[cfg(test)]
             #[cfg(not(feature = "num-primitive"))]
             const TAU: Self = core::$T::consts::TAU;

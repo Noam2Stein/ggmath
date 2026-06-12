@@ -10,7 +10,7 @@ use core::{
 
 use crate::{
     Affine, Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
-    constants::{Nan, One, Zero},
+    constants::{One, Zero},
     utils::{Repr3, Repr4, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -467,15 +467,6 @@ where
     ///
     /// `IDENTITY` diagonal elements are `1` and all other elements are `0`.
     pub const IDENTITY: Self = Self::from_diagonal(Vector::ONE);
-}
-
-impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Nan,
-{
-    /// A matrix with all elements set to NaN (Not a Number).
-    pub const NAN: Self = Self::from_rows(&[Vector::NAN; N]);
 }
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -2827,13 +2818,6 @@ mod tests {
                     )
                 ])
             );
-        });
-    }
-
-    #[test]
-    fn test_nan() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_test_eq!(Matrix::<N, T, A>::NAN, Matrix::from_rows(&[Vector::NAN; N]));
         });
     }
 

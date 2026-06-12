@@ -6,7 +6,7 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Length, Matrix, Scalar, SupportedLength, Unaligned, Vector,
-    constants::{Nan, One, Zero},
+    constants::{One, Zero},
     utils::{transmute_mut, transmute_ref},
 };
 
@@ -167,15 +167,6 @@ where
 {
     /// An affine transform with no transformation.
     pub const IDENTITY: Self = Self::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO);
-}
-
-impl<const N: usize, T, A: Alignment> Affine<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Nan,
-{
-    /// An affine transform with all elements set to NaN (Not a Number).
-    pub const NAN: Self = Self::from_submatrix_translation(Matrix::NAN, Vector::NAN);
 }
 
 impl<const N: usize, T, A: Alignment> Affine<N, T, A>
@@ -1189,16 +1180,6 @@ mod tests {
             assert_eq!(
                 Affine::<N, T, A>::IDENTITY,
                 Affine::from_submatrix_translation(Matrix::IDENTITY, Vector::ZERO)
-            );
-        });
-    }
-
-    #[test]
-    fn test_nan() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_test_eq!(
-                Affine::<N, T, A>::NAN,
-                Affine::from_submatrix_translation(Matrix::NAN, Vector::NAN)
             );
         });
     }

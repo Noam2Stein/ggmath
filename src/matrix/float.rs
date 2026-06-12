@@ -10,6 +10,9 @@ where
     Length<N>: SupportedLength,
     T: PrimitiveFloat,
 {
+    /// A matrix with all elements set to NaN (Not a Number).
+    pub const NAN: Self = Self::from_rows(&[Vector::<N, T, A>::NAN; N]);
+
     /// Returns `true` if any element is NaN.
     ///
     /// # Examples
@@ -2006,17 +2009,27 @@ mod tests {
     };
 
     #[test]
+    fn test_constants() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Matrix::<N, T, A>::NAN,
+                Matrix::from_rows(&[Vector::<N, T, A>::NAN; N])
+            );
+        });
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<2, T, A>::NAN;
             assert!(!Matrix::<2, T, A>::from_rows(&[one; 2]).is_nan());
             assert!(Matrix::<2, T, A>::from_rows(&[nan, one]).is_nan());
             assert!(Matrix::<2, T, A>::from_rows(&[one, nan]).is_nan());
             assert!(Matrix::<2, T, A>::NAN.is_nan());
 
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<3, T, A>::NAN;
             assert!(!Matrix::<3, T, A>::from_rows(&[one; 3]).is_nan());
             assert!(Matrix::<3, T, A>::from_rows(&[nan, one, one]).is_nan());
             assert!(Matrix::<3, T, A>::from_rows(&[one, nan, one]).is_nan());
@@ -2024,7 +2037,7 @@ mod tests {
             assert!(Matrix::<3, T, A>::NAN.is_nan());
 
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<4, T, A>::NAN;
             assert!(!Matrix::<4, T, A>::from_rows(&[one; 4]).is_nan());
             assert!(Matrix::<4, T, A>::from_rows(&[nan, one, one, one]).is_nan());
             assert!(Matrix::<4, T, A>::from_rows(&[one, nan, one, one]).is_nan());
@@ -2038,14 +2051,14 @@ mod tests {
     fn test_is_finite() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
-            let inf = Vector::INFINITY;
+            let inf = Vector::<2, T, A>::INFINITY;
             assert!(Matrix::<2, T, A>::from_rows(&[one, one]).is_finite());
             assert!(!Matrix::<2, T, A>::from_rows(&[inf, one]).is_finite());
             assert!(!Matrix::<2, T, A>::from_rows(&[one, inf]).is_finite());
             assert!(!Matrix::<2, T, A>::from_rows(&[inf, inf]).is_finite());
 
             let one = Vector::ONE;
-            let inf = Vector::INFINITY;
+            let inf = Vector::<3, T, A>::INFINITY;
             assert!(Matrix::<3, T, A>::from_rows(&[one, one, one]).is_finite());
             assert!(!Matrix::<3, T, A>::from_rows(&[inf, one, one]).is_finite());
             assert!(!Matrix::<3, T, A>::from_rows(&[one, inf, one]).is_finite());
@@ -2053,7 +2066,7 @@ mod tests {
             assert!(!Matrix::<3, T, A>::from_rows(&[inf, inf, inf]).is_finite());
 
             let one = Vector::ONE;
-            let inf = Vector::INFINITY;
+            let inf = Vector::<4, T, A>::INFINITY;
             assert!(Matrix::<4, T, A>::from_rows(&[one, one, one, one]).is_finite());
             assert!(!Matrix::<4, T, A>::from_rows(&[inf, one, one, one]).is_finite());
             assert!(!Matrix::<4, T, A>::from_rows(&[one, inf, one, one]).is_finite());

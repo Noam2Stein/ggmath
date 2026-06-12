@@ -8,6 +8,10 @@ where
     Length<N>: SupportedLength,
     T: PrimitiveFloat,
 {
+    /// An affine transform with all elements set to NaN (Not a Number).
+    pub const NAN: Self =
+        Self::from_submatrix_translation(Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN);
+
     /// Returns `true` if any element is NaN.
     ///
     /// # Examples
@@ -493,10 +497,20 @@ mod tests {
     };
 
     #[test]
+    fn test_constants() {
+        for_types!(|N, T: PrimitiveFloat, A| {
+            assert_test_eq!(
+                Affine::<N, T, A>::NAN,
+                Affine::from_submatrix_translation(Matrix::<N, T, A>::NAN, Vector::<N, T, A>::NAN)
+            );
+        });
+    }
+
+    #[test]
     fn test_is_nan() {
         for_types!(|T: PrimitiveFloat, A| {
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<2, T, A>::NAN;
             assert!(!Affine::<2, T, A>::from_rows(&[one; 3]).is_nan());
             assert!(Affine::<2, T, A>::from_rows(&[nan, one, one]).is_nan());
             assert!(Affine::<2, T, A>::from_rows(&[one, nan, one]).is_nan());
@@ -504,7 +518,7 @@ mod tests {
             assert!(Affine::<2, T, A>::NAN.is_nan());
 
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<3, T, A>::NAN;
             assert!(!Affine::<3, T, A>::from_rows(&[one; 4]).is_nan());
             assert!(Affine::<3, T, A>::from_rows(&[nan, one, one, one]).is_nan());
             assert!(Affine::<3, T, A>::from_rows(&[one, nan, one, one]).is_nan());
@@ -513,7 +527,7 @@ mod tests {
             assert!(Affine::<3, T, A>::NAN.is_nan());
 
             let one = Vector::ONE;
-            let nan = Vector::NAN;
+            let nan = Vector::<4, T, A>::NAN;
             assert!(!Affine::<4, T, A>::from_rows(&[one; 5]).is_nan());
             assert!(Affine::<4, T, A>::from_rows(&[nan, one, one, one, one]).is_nan());
             assert!(Affine::<4, T, A>::from_rows(&[one, nan, one, one, one]).is_nan());

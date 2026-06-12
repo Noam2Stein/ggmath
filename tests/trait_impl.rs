@@ -19,7 +19,7 @@ use fixed::{
 };
 use ggmath::{
     Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
-    constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
+    constants::{Max, Min, NegOne, One, Zero},
 };
 #[cfg(feature = "mint")]
 use mint::IntoMint;
@@ -38,8 +38,8 @@ assert_impl!(
         Length<N>: SupportedLength,
         T: Scalar,
     {
-        f32: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
-        f64: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
+        f32: Scalar + Zero + One + NegOne + Min + Max,
+        f64: Scalar + Zero + One + NegOne + Min + Max,
         i8: Scalar + Zero + One + NegOne + Min + Max,
         i16: Scalar + Zero + One + NegOne + Min + Max,
         i32: Scalar + Zero + One + NegOne + Min + Max,
@@ -707,12 +707,12 @@ assert_impl!(
     where
         Length<N>: SupportedLength,
     {
-        f32x4: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
-        f32x8: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
-        f32x16: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
-        f64x2: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
-        f64x4: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
-        f64x8: Scalar + Zero + One + NegOne + Min + Max + Nan + Infinity + NegInfinity,
+        f32x4: Scalar + Zero + One + NegOne + Min + Max,
+        f32x8: Scalar + Zero + One + NegOne + Min + Max,
+        f32x16: Scalar + Zero + One + NegOne + Min + Max,
+        f64x2: Scalar + Zero + One + NegOne + Min + Max,
+        f64x4: Scalar + Zero + One + NegOne + Min + Max,
+        f64x8: Scalar + Zero + One + NegOne + Min + Max,
         i8x16: Scalar + Zero + One + NegOne + Min + Max,
         i8x32: Scalar + Zero + One + NegOne + Min + Max,
         i16x8: Scalar + Zero + One + NegOne + Min + Max,

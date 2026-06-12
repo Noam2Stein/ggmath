@@ -6,7 +6,7 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Scalar, Unaligned, Vector,
-    constants::{Nan, One, Zero},
+    constants::{One, Zero},
     utils::{transmute_mut, transmute_ref},
 };
 
@@ -129,14 +129,6 @@ where
 {
     /// A quaternion with no rotation.
     pub const IDENTITY: Self = Self::from_array([T::ZERO, T::ZERO, T::ZERO, T::ONE]);
-}
-
-impl<T, A: Alignment> Quaternion<T, A>
-where
-    T: Scalar + Nan,
-{
-    /// A quaternion with all elements set to NaN (Not a Number).
-    pub const NAN: Self = Self::from_vector(Vector::NAN);
 }
 
 impl<T, A: Alignment> Quaternion<T, A>
@@ -733,16 +725,6 @@ mod tests {
             assert_eq!(
                 Quaternion::<T, A>::IDENTITY,
                 Quaternion::from_xyzw(T::as_from(0), T::as_from(0), T::as_from(0), T::as_from(1))
-            );
-        });
-    }
-
-    #[test]
-    fn test_nan() {
-        for_types!(|T: PrimitiveFloat, A| {
-            assert_test_eq!(
-                Quaternion::<T, A>::NAN,
-                Quaternion::from_xyzw(T::NAN, T::NAN, T::NAN, T::NAN)
             );
         });
     }
