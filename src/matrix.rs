@@ -1263,54 +1263,6 @@ where
             _ => panic!("index out of bounds"),
         }
     }
-
-    /// Transforms the given 2D vector as a point.
-    ///
-    /// Equivalent to `(point, 1) * self` but is faster.
-    ///
-    /// `self` must contain a valid affine transform, meaning the third column
-    /// must be `(0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the third column of `self` is not `(0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_point(&self, point: Vector<2, T, A>) -> Vector<2, T, A>
-    where
-        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
-    {
-        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
-
-        self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
-    }
-
-    /// Transforms the given 2D vector without applying translation.
-    ///
-    /// Equivalent to `(vector, 0) * self` but is faster.
-    ///
-    /// `self` must contain a valid affine transform, meaning the third column
-    /// must be `(0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the third column of `self` is not `(0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_vector(&self, vector: Vector<2, T, A>) -> Vector<2, T, A>
-    where
-        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
-    {
-        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
-
-        self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
-    }
 }
 
 impl<T, A: Alignment> Matrix<4, T, A>
@@ -1593,58 +1545,6 @@ where
             (3, 3) => Matrix::from_rows(&[self.x_axis.xyz(), self.y_axis.xyz(), self.z_axis.xyz()]),
             _ => panic!("index out of bounds"),
         }
-    }
-
-    /// Transforms the given 3D vector as a point.
-    ///
-    /// Equivalent to `(point, 1) * self` but is faster. This does not perform a
-    /// perspective divide.
-    ///
-    /// `self` must contain a valid affine transform, meaning the fourth column
-    /// must be `(0, 0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the fourth column of `self` is not `(0, 0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A>
-    where
-        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
-    {
-        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
-
-        self.x_axis.xyz() * point.x
-            + self.y_axis.xyz() * point.y
-            + self.z_axis.xyz() * point.z
-            + self.w_axis.xyz()
-    }
-
-    /// Transforms the given 3D vector without applying translation.
-    ///
-    /// Equivalent to `(vector, 0) * self` but is faster.
-    ///
-    /// `self` must contain a valid affine transform, meaning the fourth column
-    /// must be `(0, 0, 0, 1)`.
-    ///
-    /// # Panics
-    ///
-    /// When debug assertions are enabled:
-    ///
-    /// Panics if the fourth column of `self` is not `(0, 0, 0, 1)`.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn transform_vector(&self, vector: Vector<3, T, A>) -> Vector<3, T, A>
-    where
-        T: PartialEq + Add<Output = T> + Mul<Output = T> + Zero + One,
-    {
-        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
-
-        self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
     }
 }
 
@@ -2739,7 +2639,7 @@ mod tests {
 
     use crate::{
         Affine, Aligned, Mask, Mat2A, Mat3A, Mat4A, Matrix, Unaligned, Vec2A, Vec3A, Vec4A, Vector,
-        utils::{assert_debug_panic, assert_panic, assert_test_eq, for_types, random_iter},
+        utils::{assert_panic, assert_test_eq, for_types, random_iter},
     };
 
     #[test]
@@ -3206,42 +3106,45 @@ mod tests {
     #[test]
     fn test_from_scale() {
         assert_eq!(
-            Mat3A::from_scale(Vec2A::new(2, 3)).transform_point(Vec2A::new(4, 5)),
-            Vec2A::new(8, 15)
+            Mat3A::from_scale(Vec2A::new(2.0, 3.0)).transform_point(Vec2A::new(4.0, 5.0)),
+            Vec2A::new(8.0, 15.0)
         );
         assert_eq!(
-            Mat3A::from_scale(Vec2A::new(2, 3)).transform_vector(Vec2A::new(4, 5)),
-            Vec2A::new(8, 15)
+            Mat3A::from_scale(Vec2A::new(2.0, 3.0)).transform_vector(Vec2A::new(4.0, 5.0)),
+            Vec2A::new(8.0, 15.0)
         );
 
         assert_eq!(
-            Mat4A::from_scale(Vec3A::new(2, 3, 4)).transform_point(Vec3A::new(5, 6, 7)),
-            Vec3A::new(10, 18, 28)
+            Mat4A::from_scale(Vec3A::new(2.0, 3.0, 4.0)).transform_point(Vec3A::new(5.0, 6.0, 7.0)),
+            Vec3A::new(10.0, 18.0, 28.0)
         );
         assert_eq!(
-            Mat4A::from_scale(Vec3A::new(2, 3, 4)).transform_vector(Vec3A::new(5, 6, 7)),
-            Vec3A::new(10, 18, 28)
+            Mat4A::from_scale(Vec3A::new(2.0, 3.0, 4.0))
+                .transform_vector(Vec3A::new(5.0, 6.0, 7.0)),
+            Vec3A::new(10.0, 18.0, 28.0)
         );
     }
 
     #[test]
     fn test_from_translation() {
         assert_eq!(
-            Mat3A::from_translation(Vec2A::new(1, 2)).transform_point(Vec2A::new(3, 4)),
-            Vec2A::new(4, 6)
+            Mat3A::from_translation(Vec2A::new(1.0, 2.0)).transform_point(Vec2A::new(3.0, 4.0)),
+            Vec2A::new(4.0, 6.0)
         );
         assert_eq!(
-            Mat3A::from_translation(Vec2A::new(1, 2)).transform_vector(Vec2A::new(3, 4)),
-            Vec2A::new(3, 4)
+            Mat3A::from_translation(Vec2A::new(1.0, 2.0)).transform_vector(Vec2A::new(3.0, 4.0)),
+            Vec2A::new(3.0, 4.0)
         );
 
         assert_eq!(
-            Mat4A::from_translation(Vec3A::new(1, 2, 3)).transform_point(Vec3A::new(4, 5, 6)),
-            Vec3A::new(5, 7, 9)
+            Mat4A::from_translation(Vec3A::new(1.0, 2.0, 3.0))
+                .transform_point(Vec3A::new(4.0, 5.0, 6.0)),
+            Vec3A::new(5.0, 7.0, 9.0)
         );
         assert_eq!(
-            Mat4A::from_translation(Vec3A::new(1, 2, 3)).transform_vector(Vec3A::new(4, 5, 6)),
-            Vec3A::new(4, 5, 6)
+            Mat4A::from_translation(Vec3A::new(1.0, 2.0, 3.0))
+                .transform_vector(Vec3A::new(4.0, 5.0, 6.0)),
+            Vec3A::new(4.0, 5.0, 6.0)
         );
     }
 
@@ -3443,88 +3346,6 @@ mod tests {
                 assert_eq!(matrix.remove(row, column), Mat3A::from_rows(&rows));
             }
         }
-    }
-
-    #[test]
-    fn test_transform_point() {
-        assert_eq!(
-            Mat3A::from_rows(&[
-                Vec3A::new(2, 3, 0),
-                Vec3A::new(4, 5, 0),
-                Vec3A::new(6, 7, 1)
-            ])
-            .transform_point(Vec2A::new(-1, -2)),
-            Vec2A::new(-4, -6)
-        );
-        assert_eq!(
-            Mat4A::from_rows(&[
-                Vec4A::new(2, 3, 4, 0),
-                Vec4A::new(5, 6, 7, 0),
-                Vec4A::new(8, 9, 10, 0),
-                Vec4A::new(11, 12, 13, 1)
-            ])
-            .transform_point(Vec3A::new(-1, -2, -3)),
-            Vec3A::new(-25, -30, -35)
-        );
-
-        assert_debug_panic!(
-            Mat3A::from_rows(&[
-                Vec3A::new(2, 3, 0),
-                Vec3A::new(4, 5, 1),
-                Vec3A::new(6, 7, 1)
-            ])
-            .transform_point(Vec2A::new(-1, -2))
-        );
-        assert_debug_panic!(
-            Mat4A::from_rows(&[
-                Vec4A::new(2, 3, 4, 0),
-                Vec4A::new(5, 6, 7, 0),
-                Vec4A::new(8, 9, 10, 1),
-                Vec4A::new(11, 12, 13, 1)
-            ])
-            .transform_point(Vec3A::new(-1, -2, -3))
-        );
-    }
-
-    #[test]
-    fn test_transform_vector() {
-        assert_eq!(
-            Mat3A::from_rows(&[
-                Vec3A::new(2, 3, 0),
-                Vec3A::new(4, 5, 0),
-                Vec3A::new(6, 7, 1)
-            ])
-            .transform_vector(Vec2A::new(-1, -2)),
-            Vec2A::new(-10, -13)
-        );
-        assert_eq!(
-            Mat4A::from_rows(&[
-                Vec4A::new(2, 3, 4, 0),
-                Vec4A::new(5, 6, 7, 0),
-                Vec4A::new(8, 9, 10, 0),
-                Vec4A::new(11, 12, 13, 1)
-            ])
-            .transform_vector(Vec3A::new(-1, -2, -3)),
-            Vec3A::new(-36, -42, -48)
-        );
-
-        assert_debug_panic!(
-            Mat3A::from_rows(&[
-                Vec3A::new(2, 3, 0),
-                Vec3A::new(4, 5, 1),
-                Vec3A::new(6, 7, 1)
-            ])
-            .transform_vector(Vec2A::new(-1, -2))
-        );
-        assert_debug_panic!(
-            Mat4A::from_rows(&[
-                Vec4A::new(2, 3, 4, 0),
-                Vec4A::new(5, 6, 7, 0),
-                Vec4A::new(8, 9, 10, 1),
-                Vec4A::new(11, 12, 13, 1)
-            ])
-            .transform_vector(Vec3A::new(-1, -2, -3))
-        );
     }
 
     #[test]
