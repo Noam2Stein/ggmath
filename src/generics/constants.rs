@@ -53,18 +53,6 @@ pub trait NegInfinity: Scalar {
     const NEG_INFINITY: Self;
 }
 
-/// A `TRUE` constant for scalar types.
-pub trait True: Scalar {
-    /// `true`.
-    const TRUE: Self;
-}
-
-/// A `FALSE` constant for scalar types.
-pub trait False: Scalar {
-    /// `false`.
-    const FALSE: Self;
-}
-
 macro_rules! impl_float {
     ($($T:ty),*$(,)?) => {
         $(
@@ -153,11 +141,3 @@ macro_rules! impl_uint {
     };
 }
 impl_uint!(u8, u16, u32, u64, u128, usize);
-
-impl True for bool {
-    const TRUE: Self = true;
-}
-
-impl False for bool {
-    const FALSE: Self = false;
-}

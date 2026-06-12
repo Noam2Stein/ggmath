@@ -11,7 +11,7 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Backend, Length, Mask, Scalar, SupportedLength, Unaligned,
-    constants::{False, Infinity, Max, Min, Nan, NegInfinity, NegOne, One, True, Zero},
+    constants::{Infinity, Max, Min, Nan, NegInfinity, NegOne, One, Zero},
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -327,24 +327,6 @@ where
     ///
     /// [`T::NEG_INFINITY`]: NegInfinity::NEG_INFINITY
     pub const NEG_INFINITY: Self = Self::splat(T::NEG_INFINITY);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + True,
-{
-    /// A vector with all elements set to `true`.
-    pub const TRUE: Self = Self::splat(T::TRUE);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + False,
-{
-    /// A vector with all elements set to `false`.
-    pub const FALSE: Self = Self::splat(T::FALSE);
 }
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
@@ -2860,20 +2842,6 @@ mod tests {
                 Vector::<N, T, A>::NEG_INFINITY,
                 Vector::splat(T::NEG_INFINITY)
             );
-        });
-    }
-
-    #[test]
-    fn test_true() {
-        for_types!(|N, A| {
-            assert_eq!(Vector::<N, bool, A>::TRUE, Vector::splat(true));
-        });
-    }
-
-    #[test]
-    fn test_false() {
-        for_types!(|N, A| {
-            assert_eq!(Vector::<N, bool, A>::FALSE, Vector::splat(false));
         });
     }
 
