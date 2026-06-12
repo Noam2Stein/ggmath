@@ -8,7 +8,7 @@ use wide::{
 
 use crate::{
     Alignment, DefaultBackend, Scalar,
-    constants::{Max, Min, NegOne, One, Zero},
+    constants::{NegOne, One, Zero},
 };
 
 macro_rules! float_impl {
@@ -27,14 +27,6 @@ macro_rules! float_impl {
 
         impl NegOne for $T {
             const NEG_ONE: Self = unsafe { transmute::<[$F; $N], $T>([-1.0; $N]) };
-        }
-
-        impl Min for $T {
-            const MIN: Self = unsafe { transmute::<[$F; $N], $T>([$F::MIN; $N]) };
-        }
-
-        impl Max for $T {
-            const MAX: Self = unsafe { transmute::<[$F; $N], $T>([$F::MAX; $N]) };
         }
     };
 }
@@ -62,14 +54,6 @@ macro_rules! int_impl {
         impl NegOne for $T {
             const NEG_ONE: Self = Self::new([-1; _]);
         }
-
-        impl Min for $T {
-            const MIN: Self = Self::MIN;
-        }
-
-        impl Max for $T {
-            const MAX: Self = Self::MAX;
-        }
     };
 }
 int_impl!(i8x16);
@@ -96,14 +80,6 @@ macro_rules! uint_impl {
 
         impl One for $T {
             const ONE: Self = Self::ONE;
-        }
-
-        impl Min for $T {
-            const MIN: Self = Self::MIN;
-        }
-
-        impl Max for $T {
-            const MAX: Self = Self::MAX;
         }
     };
 }

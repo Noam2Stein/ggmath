@@ -3,10 +3,7 @@ use fixed::{
     FixedU128,
 };
 
-use crate::{
-    Alignment, DefaultBackend, Scalar,
-    constants::{Max, Min, Zero},
-};
+use crate::{Alignment, DefaultBackend, Scalar, constants::Zero};
 
 macro_rules! impl_fixed {
     ($Fixed:ident) => {
@@ -16,14 +13,6 @@ macro_rules! impl_fixed {
 
         impl<Frac> Zero for $Fixed<Frac> {
             const ZERO: Self = Self::ZERO;
-        }
-
-        impl<Frac> Min for $Fixed<Frac> {
-            const MIN: Self = Self::MIN;
-        }
-
-        impl<Frac> Max for $Fixed<Frac> {
-            const MAX: Self = Self::MAX;
         }
     };
 }

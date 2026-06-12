@@ -10,6 +10,16 @@ macro_rules! impl_wide_float {
         where
             Length<N>: SupportedLength,
         {
+            /// A vector with all elements set to [`MIN`].
+            ///
+            /// [`MIN`]: f32::MIN
+            pub const MIN: Self = Self::splat($Wide::MIN);
+
+            /// A vector with all elements set to [`MAX`].
+            ///
+            /// [`MAX`]: f32::MAX
+            pub const MAX: Self = Self::splat($Wide::MAX);
+
             /// A vector with all elements set to NaN (Not a Number).
             pub const NAN: Self = Self::splat($Wide::NAN);
 
@@ -1435,6 +1445,8 @@ mod tests {
     #[test]
     fn test_constants() {
         for_types!(|N, Wide: WideFloat| {
+            assert_eq!(Vector::<N, Wide, Unaligned>::MIN, Vector::splat(Wide::MIN));
+            assert_eq!(Vector::<N, Wide, Unaligned>::MAX, Vector::splat(Wide::MAX));
             assert_test_eq!(Vector::<N, Wide, Unaligned>::NAN, Vector::splat(Wide::NAN));
             assert_eq!(
                 Vector::<N, Wide, Unaligned>::INFINITY,

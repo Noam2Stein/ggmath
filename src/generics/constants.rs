@@ -23,18 +23,6 @@ pub trait NegOne: Scalar {
     const NEG_ONE: Self;
 }
 
-/// A `MIN` constant for scalar types.
-pub trait Min: Scalar {
-    /// The smallest value representable by `Self`.
-    const MIN: Self;
-}
-
-/// A `MAX` constant for scalar types.
-pub trait Max: Scalar {
-    /// The largest value representable by `Self`.
-    const MAX: Self;
-}
-
 macro_rules! impl_float {
     ($($T:ty),*$(,)?) => {
         $(
@@ -48,14 +36,6 @@ macro_rules! impl_float {
 
             impl NegOne for $T {
                 const NEG_ONE: Self = -1.0;
-            }
-
-            impl Min for $T {
-                const MIN: Self = Self::MIN;
-            }
-
-            impl Max for $T {
-                const MAX: Self = Self::MAX;
             }
         )*
     };
@@ -76,14 +56,6 @@ macro_rules! impl_int {
             impl NegOne for $T {
                 const NEG_ONE: Self = -1;
             }
-
-            impl Min for $T {
-                const MIN: Self = Self::MIN;
-            }
-
-            impl Max for $T {
-                const MAX: Self = Self::MAX;
-            }
         )*
     };
 }
@@ -98,14 +70,6 @@ macro_rules! impl_uint {
 
             impl One for $T {
                 const ONE: Self = 1;
-            }
-
-            impl Min for $T {
-                const MIN: Self = Self::MIN;
-            }
-
-            impl Max for $T {
-                const MAX: Self = Self::MAX;
             }
         )*
     };

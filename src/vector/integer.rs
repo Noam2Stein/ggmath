@@ -162,6 +162,16 @@ macro_rules! impl_integer {
         where
             Length<N>: SupportedLength,
         {
+            /// A vector with all elements set to [`MIN`].
+            ///
+            /// [`MIN`]: i32::MIN
+            pub const MIN: Self = Self::splat($T::MIN);
+
+            /// A vector with all elements set to [`MAX`].
+            ///
+            /// [`MAX`]: i32::MAX
+            pub const MAX: Self = Self::splat($T::MAX);
+
             /// Returns the maximum elements between `self` and `other`.
             ///
             /// Equivalent to `(self.x.max(other.x), self.y.max(other.y), ...)`.
@@ -301,6 +311,14 @@ mod tests {
         Vector,
         utils::{assert_panic_test_eq, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, T: PrimitiveInteger, A| {
+            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
+        });
+    }
 
     #[test]
     fn test_max() {

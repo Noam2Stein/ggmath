@@ -11,6 +11,16 @@ where
     Length<N>: SupportedLength,
     T: PrimitiveFloat,
 {
+    /// A vector with all elements set to [`MIN`].
+    ///
+    /// [`MIN`]: f32::MIN
+    pub const MIN: Self = Self::splat(T::MIN);
+
+    /// A vector with all elements set to [`MAX`].
+    ///
+    /// [`MAX`]: f32::MAX
+    pub const MAX: Self = Self::splat(T::MAX);
+
     /// A vector with all elements set to NaN (Not a Number).
     pub const NAN: Self = Self::splat(T::NAN);
 
@@ -1906,6 +1916,8 @@ mod tests {
     #[test]
     fn test_constants() {
         for_types!(|N, T: PrimitiveFloat, A| {
+            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
+            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
             assert_test_eq!(Vector::<N, T, A>::NAN, Vector::splat(T::NAN));
             assert_eq!(Vector::<N, T, A>::INFINITY, Vector::splat(T::INFINITY));
             assert_eq!(

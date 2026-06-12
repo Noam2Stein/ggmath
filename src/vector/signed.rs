@@ -92,7 +92,7 @@ macro_rules! impl_signed {
             ///
             /// When debug assertions or overflow checks are enabled:
             ///
-            /// Panics if any component is [`T::MIN`].
+            /// Panics if any component is [`MIN`].
             ///
             /// # Examples
             ///
@@ -103,7 +103,7 @@ macro_rules! impl_signed {
             /// assert_eq!(vector.abs(), Vec3::new(7, 1, 3));
             /// ```
             ///
-            /// [`T::MIN`]: crate::constants::Min::MIN
+            /// [`MIN`]: i32::MIN
             #[inline]
             #[must_use]
             #[track_caller]

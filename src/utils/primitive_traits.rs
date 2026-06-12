@@ -9,6 +9,12 @@ pub(crate) trait PrimitiveFloatUtils: Sized {
     type Bits: PrimitiveUnsigned;
 
     #[cfg(not(feature = "num-primitive"))]
+    const MIN: Self;
+
+    #[cfg(not(feature = "num-primitive"))]
+    const MAX: Self;
+
+    #[cfg(not(feature = "num-primitive"))]
     const NAN: Self;
 
     #[cfg(not(feature = "num-primitive"))]
@@ -180,6 +186,12 @@ macro_rules! impl_float {
     ($T:ident, $UnsignedT:ident) => {
         impl PrimitiveFloatUtils for $T {
             type Bits = $UnsignedT;
+
+            #[cfg(not(feature = "num-primitive"))]
+            const MIN: Self = Self::MIN;
+
+            #[cfg(not(feature = "num-primitive"))]
+            const MAX: Self = Self::MAX;
 
             #[cfg(not(feature = "num-primitive"))]
             const NAN: Self = Self::NAN;

@@ -7,7 +7,7 @@ use core::{
 use crate::{
     Aligned, PrimitiveFloatBackend, PrimitiveIntegerBackend, PrimitiveSignedBackend, Scalar,
     Unaligned,
-    constants::{Max, Min, NegOne, One, Zero},
+    constants::{NegOne, One, Zero},
     utils::{PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
 
@@ -53,8 +53,6 @@ pub trait PrimitiveFloat:
     + Zero
     + One
     + NegOne
-    + Min
-    + Max
     + PrimitiveFloatUtils<Bits = <Self as PrimitiveFloat>::Bits>
     + PrimitiveFloatBackend<2, Aligned>
     + PrimitiveFloatBackend<3, Aligned>
@@ -120,8 +118,6 @@ pub trait PrimitiveInteger:
     + Scalar
     + Zero
     + One
-    + Min
-    + Max
     + PrimitiveIntegerUtils
     + PrimitiveIntegerBackend<2, Aligned>
     + PrimitiveIntegerBackend<3, Aligned>

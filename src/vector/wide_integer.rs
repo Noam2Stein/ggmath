@@ -11,6 +11,16 @@ macro_rules! wide_integer_impl {
         where
             Length<N>: SupportedLength,
         {
+            /// A vector with all elements set to [`MIN`].
+            ///
+            /// [`MIN`]: i32::MIN
+            pub const MIN: Self = Self::splat($Wide::MIN);
+
+            /// A vector with all elements set to [`MAX`].
+            ///
+            /// [`MAX`]: i32::MAX
+            pub const MAX: Self = Self::splat($Wide::MAX);
+
             /// Computes `self + rhs`, saturating at the numeric bounds instead
             /// of overflowing.
             #[inline]
@@ -143,6 +153,14 @@ mod tests {
         Unaligned, Vector,
         utils::{assert_panic_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
+
+    #[test]
+    fn test_constants() {
+        for_types!(|N, Wide: WideInteger| {
+            assert_eq!(Vector::<N, Wide, Unaligned>::MIN, Vector::splat(Wide::MIN));
+            assert_eq!(Vector::<N, Wide, Unaligned>::MAX, Vector::splat(Wide::MAX));
+        });
+    }
 
     #[test]
     fn test_saturating_add() {

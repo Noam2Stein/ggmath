@@ -11,7 +11,7 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Backend, Length, Mask, Scalar, SupportedLength, Unaligned,
-    constants::{Max, Min, NegOne, One, Zero},
+    constants::{NegOne, One, Zero},
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -274,28 +274,6 @@ where
 {
     /// A vector with all elements set to `-1`.
     pub const NEG_ONE: Self = Self::splat(T::NEG_ONE);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Min,
-{
-    /// A vector with all elements set to [`T::MIN`].
-    ///
-    /// [`T::MIN`]: Min::MIN
-    pub const MIN: Self = Self::splat(T::MIN);
-}
-
-impl<const N: usize, T, A: Alignment> Vector<N, T, A>
-where
-    Length<N>: SupportedLength,
-    T: Scalar + Max,
-{
-    /// A vector with all elements set to [`T::MAX`].
-    ///
-    /// [`T::MAX`]: Max::MAX
-    pub const MAX: Self = Self::splat(T::MAX);
 }
 
 impl<const N: usize, T, A: Alignment> Vector<N, T, A>
@@ -2761,32 +2739,6 @@ mod tests {
         });
         for_types!(|N, T: PrimitiveSigned, A| {
             assert_eq!(Vector::<N, T, A>::NEG_ONE, Vector::splat(-1));
-        });
-    }
-
-    #[test]
-    fn test_min() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
-        });
-        for_types!(|N, T: PrimitiveSigned, A| {
-            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
-        });
-        for_types!(|N, T: PrimitiveUnsigned, A| {
-            assert_eq!(Vector::<N, T, A>::MIN, Vector::splat(T::MIN));
-        });
-    }
-
-    #[test]
-    fn test_max() {
-        for_types!(|N, T: PrimitiveFloat, A| {
-            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
-        });
-        for_types!(|N, T: PrimitiveSigned, A| {
-            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
-        });
-        for_types!(|N, T: PrimitiveUnsigned, A| {
-            assert_eq!(Vector::<N, T, A>::MAX, Vector::splat(T::MAX));
         });
     }
 
