@@ -349,7 +349,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -378,7 +381,10 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
@@ -407,12 +413,27 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_lh(eye, (center - eye).normalize(), up)
+        debug_assert!(up.is_normalized());
+
+        let forward = (center - eye).normalize();
+        let right = up.cross(forward).normalize();
+        let up = forward.cross(right);
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(right.x, up.x, forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, forward.z),
+            Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), -eye.dot(forward)),
+        ])
     }
 
     /// Creates a right-handed view transform from a camera position, a focal
@@ -424,12 +445,27 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_rh(eye, (center - eye).normalize(), up)
+        debug_assert!(up.is_normalized());
+
+        let forward = (center - eye).normalize();
+        let right = forward.cross(up).normalize();
+        let up = right.cross(forward);
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(right.x, up.x, -forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, -forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, -forward.z),
+            Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward)),
+        ])
     }
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
