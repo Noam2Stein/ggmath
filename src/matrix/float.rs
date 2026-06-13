@@ -1062,7 +1062,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_point(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
+        debug_assert!(
+            self.column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6))
+        );
 
         self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
     }
@@ -1083,7 +1086,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_vector(&self, vector: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
+        debug_assert!(
+            self.column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6))
+        );
 
         self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
     }
@@ -2065,7 +2071,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
+        debug_assert!(
+            self.column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6))
+        );
 
         self.x_axis.xyz() * point.x
             + self.y_axis.xyz() * point.y
@@ -2089,7 +2098,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_vector(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
+        debug_assert!(
+            self.column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6))
+        );
 
         self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
     }
