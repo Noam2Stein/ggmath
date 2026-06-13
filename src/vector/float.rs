@@ -1,3 +1,5 @@
+use core::cmp::Ordering;
+
 use crate::{
     Alignment, FloatExt, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, Quaternion,
     SupportedLength, Vector,
@@ -1281,7 +1283,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `max` is negative.
+    /// Panics if `max` is negative or `self` cannot be normalized.
     ///
     /// # Examples
     ///
@@ -1299,11 +1301,24 @@ where
     #[must_use]
     #[track_caller]
     pub fn with_max_length(self, max: T) -> Self {
-        debug_assert!(max >= T::as_from(0.0), "negative maximum length");
+        debug_assert!(
+            matches!(
+                max.partial_cmp(&T::ZERO),
+                None | Some(Ordering::Greater | Ordering::Equal)
+            ),
+            "negative maximum length"
+        );
 
         let length_squared = self.length_squared();
         if length_squared > max * max {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * max
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.with_max_length(...)"
+            );
+
+            normalized * max
         } else {
             self
         }
@@ -1311,11 +1326,13 @@ where
 
     /// Returns `self` with a length of no less than `min`.
     ///
+    /// If `min` is negative, this returns `self`.
+    ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `min` is negative.
+    /// Panics if `self` cannot be normalized.
     ///
     /// # Examples
     ///
@@ -1333,11 +1350,16 @@ where
     #[must_use]
     #[track_caller]
     pub fn with_min_length(self, min: T) -> Self {
-        debug_assert!(min >= T::as_from(0.0), "negative minimum length");
-
         let length_squared = self.length_squared();
-        if length_squared < min * min {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * min
+        if length_squared < min * min.abs() {
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.with_min_length(...)"
+            );
+
+            normalized * min
         } else {
             self
         }
@@ -1346,11 +1368,13 @@ where
     /// Returns `self` with a length of no less than `min` and no more than
     /// `max`.
     ///
+    /// If `min` is negative it is ignored.
+    ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `min > max`, or if `min` is negative.
+    /// Panics if `min > max`, `max` is negative or `self` cannot be normalized.
     ///
     /// # Examples
     ///
@@ -1371,14 +1395,40 @@ where
     #[must_use]
     #[track_caller]
     pub fn clamp_length(self, min: T, max: T) -> Self {
-        debug_assert!(min >= T::as_from(0.0), "negative minimum length");
-        debug_assert!(min <= max, "minimum length is greater than maximum length");
+        debug_assert!(
+            matches!(
+                max.partial_cmp(&T::ZERO),
+                None | Some(Ordering::Greater | Ordering::Equal)
+            ),
+            "negative maximum length"
+        );
+        debug_assert!(
+            matches!(
+                min.partial_cmp(&max),
+                None | Some(Ordering::Less | Ordering::Equal)
+            ),
+            "minimum length is greater than maximum length"
+        );
 
         let length_squared = self.length_squared();
-        if length_squared < min * min {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * min
+        if length_squared < min * min.abs() {
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.clamp_length(...)"
+            );
+
+            normalized * min
         } else if length_squared > max * max {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * max
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.clamp_length(...)"
+            );
+
+            normalized * max
         } else {
             self
         }
@@ -1910,7 +1960,10 @@ mod tests {
     use crate::utils::PrimitiveFloatUtils;
     use crate::{
         FloatExt, Mask, Vec2A, Vec3A, Vector,
-        utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
+        utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic,
+            for_types, random_iter,
+        },
     };
 
     #[test]
@@ -2739,19 +2792,15 @@ mod tests {
                     assert_debug_panic!(vector.with_max_length(max_length));
                 }
 
-                if vector.try_normalize().is_none() || !max_length.is_finite() {
-                    continue;
-                }
                 let max_length = max_length.abs();
 
-                if vector.length() <= max_length {
-                    assert_test_eq!(vector.with_max_length(max_length), vector);
-                } else {
-                    assert_test_eq!(
+                if vector.length_squared() > max_length * max_length {
+                    assert_panic_test_eq!(
                         vector.with_max_length(max_length),
-                        vector.normalize() * max_length,
-                        abs <= vector.normalize().abs() * max_length * 1e-6
+                        vector.normalize() * max_length
                     );
+                } else {
+                    assert_test_eq!(vector.with_max_length(max_length), vector);
                 }
             }
         });
@@ -2761,23 +2810,15 @@ mod tests {
     fn test_with_min_length() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for (vector, min_length) in random_iter::<(Vector<N, T, A>, T)>() {
-                if min_length < 0.0 {
-                    assert_debug_panic!(vector.with_max_length(min_length));
-                }
-
-                if vector.try_normalize().is_none() || !min_length.is_finite() {
-                    continue;
-                }
-                let min_length = min_length.abs();
-
-                if vector.length() >= min_length {
-                    assert_test_eq!(vector.with_min_length(min_length), vector);
-                } else {
-                    assert_test_eq!(
+                if vector.length_squared() < min_length * min_length
+                    && min_length.is_sign_positive()
+                {
+                    assert_panic_test_eq!(
                         vector.with_min_length(min_length),
-                        vector.normalize() * min_length,
-                        abs <= vector.normalize().abs() * min_length * 1e-6
+                        vector.normalize() * min_length
                     );
+                } else {
+                    assert_test_eq!(vector.with_min_length(min_length), vector);
                 }
             }
         });
@@ -2787,28 +2828,22 @@ mod tests {
     fn test_clamp_length() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for (vector, min_length, max_length) in random_iter::<(Vector<N, T, A>, T, T)>() {
-                if min_length < 0.0 || max_length < min_length {
+                if max_length < 0.0 || max_length < min_length {
                     assert_debug_panic!(vector.clamp_length(min_length, max_length));
                 }
 
-                if vector.try_normalize().is_none()
-                    || !min_length.is_finite()
-                    || !max_length.is_finite()
-                {
-                    continue;
-                }
                 let min_length = min_length.abs();
                 let max_length = max_length.abs().max(min_length);
 
                 if (min_length..=max_length).contains(&vector.length()) {
                     assert_test_eq!(vector.clamp_length(min_length, max_length), vector);
                 } else if vector.length() > max_length {
-                    assert_test_eq!(
+                    assert_panic_test_eq!(
                         vector.clamp_length(min_length, max_length),
                         vector.with_max_length(max_length)
                     );
                 } else {
-                    assert_test_eq!(
+                    assert_panic_test_eq!(
                         vector.clamp_length(min_length, max_length),
                         vector.with_min_length(min_length)
                     );

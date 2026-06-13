@@ -942,23 +942,27 @@ macro_rules! impl_wide_float {
 
             /// For any lane, returns `self` with a length of no less than
             /// `min`.
+            ///
+            /// If `min` is negative, this returns `self` for that lane.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn with_min_length(self, min: $Wide) -> Self {
                 let length_squared = self.length_squared();
-                Self::splat(length_squared.simd_lt(min * min))
+                Self::splat(length_squared.simd_lt(min * min.abs()))
                     .blend(self / length_squared.sqrt() * min, self)
             }
 
             /// For each lane, returns `self` with a length of no less than
             /// `min` and no more than `max`.
+            ///
+            /// If `min` is negative it is ignored.
             #[inline]
             #[must_use]
             #[track_caller]
             pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
                 let length_squared = self.length_squared();
-                Self::splat(length_squared.simd_lt(min * min)).blend(
+                Self::splat(length_squared.simd_lt(min * min.abs())).blend(
                     self / length_squared.sqrt() * min,
                     Self::splat(length_squared.simd_gt(max * max))
                         .blend(self / length_squared.sqrt() * max, self),
