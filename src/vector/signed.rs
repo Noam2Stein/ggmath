@@ -108,7 +108,14 @@ macro_rules! impl_signed {
             #[must_use]
             #[track_caller]
             pub fn abs(self) -> Self {
-                specialize!(<$T as PrimitiveSignedBackend<N, A>>::vector_abs(self))
+                debug_assert!(
+                    self.ne_mask(Self::MIN).all(),
+                    "cannot negate MIN: {self:?}.abs()"
+                );
+
+                specialize!(<$T as PrimitiveSignedBackend<N, A>>::vector_wrapping_abs(
+                    self
+                ))
             }
 
             /// Returns the signum of the elements of `self`.

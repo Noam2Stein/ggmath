@@ -45,7 +45,6 @@ macro_rules! impl_wide_float {
             }
 
             #[inline(always)]
-            #[track_caller]
             pub(crate) fn generic_inverse<Output, W, C>(
                 &self,
                 wrap_result: W,
@@ -213,7 +212,6 @@ macro_rules! impl_wide_float {
             ///
             /// If `self` is not invertable the result is unspecified.
             #[must_use]
-            #[track_caller]
             pub fn inverse(&self) -> Self {
                 self.generic_inverse(|_, result| result, |_| Ok(()))
             }
@@ -337,7 +335,6 @@ macro_rules! impl_wide_float {
             /// unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_scale_angle(&self) -> (Vector<2, $Wide, A>, $Wide) {
                 let determinant = self.determinant();
 
@@ -487,7 +484,6 @@ macro_rules! impl_wide_float {
                 ])
             }
 
-            #[track_caller]
             #[inline]
             fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<3, $Wide, A>; 3] {
                 let x2 = quat.x + quat.x;
@@ -513,7 +509,6 @@ macro_rules! impl_wide_float {
             /// Creates a 3D rotation matrix from a quaternion.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
                 let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
                 Self::from_rows(&[x_axis, y_axis, z_axis])
@@ -525,7 +520,6 @@ macro_rules! impl_wide_float {
             /// `axis` must be normalized. Otherwise the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
                 let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -607,7 +601,6 @@ macro_rules! impl_wide_float {
             /// `rotation`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_scale_rotation(
                 scale: Vector<3, $Wide, A>,
                 rotation: Quaternion<$Wide, A>,
@@ -627,7 +620,6 @@ macro_rules! impl_wide_float {
             /// `+Z=forward`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_lh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
                 let forward = dir;
                 let right = up.cross(forward).normalize();
@@ -647,7 +639,6 @@ macro_rules! impl_wide_float {
             /// `+Z=back`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_rh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
                 let forward = dir;
                 let right = forward.cross(up).normalize();
@@ -667,7 +658,6 @@ macro_rules! impl_wide_float {
             /// `+Z=forward`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_lh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -683,7 +673,6 @@ macro_rules! impl_wide_float {
             /// `+Z=back`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_rh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -711,7 +700,6 @@ macro_rules! impl_wide_float {
             /// shearing. Otherwise the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_scale_angle_translation(
                 &self,
             ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
@@ -726,7 +714,6 @@ macro_rules! impl_wide_float {
             /// Otherwise the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
                 // Ported from https://github.com/bitshifter/glam-rs.
 
@@ -777,7 +764,6 @@ macro_rules! impl_wide_float {
             /// unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
                 let determinant = self.determinant();
 
@@ -891,7 +877,6 @@ macro_rules! impl_wide_float {
             }
 
             #[inline]
-            #[track_caller]
             fn quat_to_axes(quat: Quaternion<$Wide, A>) -> [Vector<4, $Wide, A>; 3] {
                 let x2 = quat.x + quat.x;
                 let y2 = quat.y + quat.y;
@@ -938,7 +923,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
                 let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
                 Self::from_rows(&[x_axis, y_axis, z_axis, Vector::W])
@@ -956,7 +940,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
                 let (sin, cos) = angle.sin_cos();
                 let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -1014,7 +997,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_scale_rotation(
                 scale: Vector<3, $Wide, A>,
                 rotation: Quaternion<$Wide, A>,
@@ -1038,7 +1020,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_rotation_translation(
                 rotation: Quaternion<$Wide, A>,
                 translation: Vector<3, $Wide, A>,
@@ -1067,7 +1048,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_scale_rotation_translation(
                 scale: Vector<3, $Wide, A>,
                 rotation: Quaternion<$Wide, A>,
@@ -1100,7 +1080,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_lh(
                 eye: Vector<3, $Wide, A>,
                 dir: Vector<3, $Wide, A>,
@@ -1136,7 +1115,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_rh(
                 eye: Vector<3, $Wide, A>,
                 dir: Vector<3, $Wide, A>,
@@ -1172,7 +1150,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_lh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -1194,7 +1171,6 @@ macro_rules! impl_wide_float {
             /// [`transform_vector`]: Self::transform_vector
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_rh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -1215,7 +1191,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn perspective_lh(
                 vertical_fov: $Wide,
                 aspect_ratio: $Wide,
@@ -1252,7 +1227,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn perspective_rh(
                 vertical_fov: $Wide,
                 aspect_ratio: $Wide,
@@ -1294,7 +1268,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn perspective_rh_gl(
                 vertical_fov: $Wide,
                 aspect_ratio: $Wide,
@@ -1338,7 +1311,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn perspective_infinite_lh(
                 vertical_fov: $Wide,
                 aspect_ratio: $Wide,
@@ -1370,7 +1342,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn perspective_infinite_rh(
                 vertical_fov: $Wide,
                 aspect_ratio: $Wide,
@@ -1400,7 +1371,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn perspective_infinite_reverse_lh(
                 vertical_fov: $Wide,
                 aspect_ratio: $Wide,
@@ -1430,7 +1400,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn perspective_infinite_reverse_rh(
                 vertical_fov: $Wide,
                 aspect_ratio: $Wide,
@@ -1457,7 +1426,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn frustum_lh(
                 left: $Wide,
                 right: $Wide,
@@ -1502,7 +1470,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn frustum_rh(
                 left: $Wide,
                 right: $Wide,
@@ -1550,7 +1517,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn frustum_rh_gl(
                 left: $Wide,
                 right: $Wide,
@@ -1598,7 +1564,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn orthographic_lh(
                 left: $Wide,
                 right: $Wide,
@@ -1646,7 +1611,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn orthographic_rh(
                 left: $Wide,
                 right: $Wide,
@@ -1699,7 +1663,6 @@ macro_rules! impl_wide_float {
             /// [`project_point`]: Self::project_point
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn orthographic_rh_gl(
                 left: $Wide,
                 right: $Wide,
@@ -1735,7 +1698,6 @@ macro_rules! impl_wide_float {
             /// transformations. Otherwise the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
                 self.submatrix().to_euler(order)
             }
@@ -1748,7 +1710,6 @@ macro_rules! impl_wide_float {
             /// `self` can contain translation which is ignored.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_scale_rotation(&self) -> (Vector<3, $Wide, A>, Quaternion<$Wide, A>) {
                 self.submatrix().to_scale_rotation()
             }
@@ -1760,7 +1721,6 @@ macro_rules! impl_wide_float {
             /// result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_scale_rotation_translation(
                 &self,
             ) -> (

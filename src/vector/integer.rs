@@ -226,6 +226,8 @@ macro_rules! impl_integer {
             ///
             /// # Panics
             ///
+            /// When debug assertions are enabled:
+            ///
             /// Panics if any element of `min` is greater than the corresponding
             /// element of `max`.
             ///
@@ -245,7 +247,10 @@ macro_rules! impl_integer {
             #[must_use]
             #[track_caller]
             pub fn clamp(self, min: Self, max: Self) -> Self {
-                assert!((0..N).all(|i| min[i] <= max[i]), "min <= max");
+                debug_assert!(
+                    (0..N).all(|i| min[i] <= max[i]),
+                    "min > max: {self:?}.clamp({min:?}, {max:?})"
+                );
 
                 self.max(min).min(max)
             }
@@ -309,7 +314,7 @@ impl_integer!(usize);
 mod tests {
     use crate::{
         Vector,
-        utils::{assert_panic_test_eq, for_types, random_iter},
+        utils::{assert_panic_test_eq, assert_test_eq_or_panic, for_types, random_iter},
     };
 
     #[test]
@@ -348,10 +353,17 @@ mod tests {
     fn test_clamp() {
         for_types!(|N, T: PrimitiveInteger, A| {
             for [vector, min, max] in random_iter::<[Vector<N, T, A>; 3]>() {
-                assert_panic_test_eq!(
-                    vector.clamp(min, max),
-                    Vector::from_fn(|i| vector[i].clamp(min[i], max[i]))
-                );
+                if cfg!(debug_assertions) {
+                    assert_panic_test_eq!(
+                        vector.clamp(min, max),
+                        Vector::from_fn(|i| vector[i].clamp(min[i], max[i]))
+                    );
+                } else {
+                    assert_test_eq_or_panic!(
+                        vector.clamp(min, max),
+                        Vector::from_fn(|i| vector[i].clamp(min[i], max[i]))
+                    );
+                }
             }
         });
     }

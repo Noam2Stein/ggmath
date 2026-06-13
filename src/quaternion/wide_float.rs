@@ -47,7 +47,6 @@ macro_rules! impl_wide_float {
             /// `axis` must be normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
                 let (sin, cos) = (angle * $Wide::HALF).sin_cos();
                 let xyz = axis * sin;
@@ -58,7 +57,6 @@ macro_rules! impl_wide_float {
             /// around `scaled_axis.normalize()`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_scaled_axis(scaled_axis: Vector<3, $Wide, A>) -> Self {
                 let angle = scaled_axis.length();
                 let (sin, cos) = (angle * $Wide::HALF).sin_cos();
@@ -85,7 +83,6 @@ macro_rules! impl_wide_float {
             /// unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_rotation_arc(from: Vector<3, $Wide, A>, to: Vector<3, $Wide, A>) -> Self {
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
@@ -125,7 +122,6 @@ macro_rules! impl_wide_float {
             /// `from` and `to` must be normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_rotation_arc_colinear(
                 from: Vector<3, $Wide, A>,
                 to: Vector<3, $Wide, A>,
@@ -279,7 +275,6 @@ macro_rules! impl_wide_float {
             /// `+Y=up` and `+Z=forward`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_lh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
                 Self::from_matrix(&Matrix::<3, $Wide, A>::look_to_lh(dir, up))
             }
@@ -291,7 +286,6 @@ macro_rules! impl_wide_float {
             /// `+Y=up` and `+Z=back`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_rh(dir: Vector<3, $Wide, A>, up: Vector<3, $Wide, A>) -> Self {
                 Self::from_matrix(&Matrix::<3, $Wide, A>::look_to_rh(dir, up))
             }
@@ -303,7 +297,6 @@ macro_rules! impl_wide_float {
             /// `+Y=up` and `+Z=forward`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_lh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -319,7 +312,6 @@ macro_rules! impl_wide_float {
             /// `+Y=up` and `+Z=back`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_rh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -359,7 +351,6 @@ macro_rules! impl_wide_float {
             /// rotation order/sequence.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_euler(self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
                 Matrix::<3, $Wide, A>::from_quat(self).to_euler(order)
             }
@@ -383,7 +374,6 @@ macro_rules! impl_wide_float {
             /// `self` must be normalized, otherwise the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn inverse(self) -> Self {
                 self.conjugate()
             }
@@ -394,7 +384,6 @@ macro_rules! impl_wide_float {
             /// `self` and `other` must be normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn angle_between(self, other: Self) -> $Wide {
                 self.dot(other).abs().min($Wide::ONE).acos() * $Wide::splat(2.0)
             }
@@ -406,7 +395,6 @@ macro_rules! impl_wide_float {
             /// result is `rhs`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn lerp(self, other: Self, t: $Wide) -> Self {
                 let other = Self(other.0 ^ (self.dot(other) & $Wide::splat(-0.0)));
 
@@ -420,7 +408,6 @@ macro_rules! impl_wide_float {
             /// result is `other`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn slerp(self, other: Self, t: $Wide) -> Self {
                 // Ported from https://github.com/bitshifter/glam-rs
                 // See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
@@ -491,7 +478,6 @@ macro_rules! impl_wide_float {
             /// Returns `self` normalized to length `1`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn normalize(self) -> Self {
                 self / self.length()
             }
@@ -788,7 +774,7 @@ mod tests {
     fn test_to_axis_angle() {
         for_types!(|Wide: WideFloat| {
             for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     quat.to_axis_angle(),
                     (
                         Vec3::from_lane_fn(|lane| quat.lane(lane).to_axis_angle().0),
@@ -807,7 +793,7 @@ mod tests {
     fn test_to_scaled_axis() {
         for_types!(|Wide: WideFloat| {
             for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     quat.to_scaled_axis(),
                     Vec3::from_lane_fn(|lane| quat.lane(lane).to_scaled_axis()),
                     abs <= Wide::splat(1e-5)

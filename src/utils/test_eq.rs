@@ -591,6 +591,18 @@ impl TestEq for bool {
     }
 }
 
+impl TestEq for () {
+    fn eq(
+        &self,
+        (): &Self,
+        _zero_eq_neg_zero: bool,
+        _infinity_eq_nan: bool,
+        _quat_eq_neg_quat: bool,
+    ) -> bool {
+        true
+    }
+}
+
 impl<T0, T1> TestEq for (T0, T1)
 where
     T0: TestEq,

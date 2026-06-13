@@ -1,7 +1,8 @@
 use core::convert::identity;
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength, Vector,
+    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
+    Vector,
     utils::{PrimitiveFloatUtils, transmute_generic, transmute_ref},
 };
 
@@ -259,7 +260,7 @@ where
             });
 
             if determinant_is_zero {
-                panic!("matrix is not invertable");
+                panic!("matrix is not invertable: {self:?}.inverse()");
             }
 
             result
@@ -453,18 +454,24 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
         let determinant = self.determinant();
 
-        debug_assert!(determinant != T::ZERO);
-
         let scale = Vector::<2, T, A>::new(
             self.x_axis.length() * determinant.signum(),
             self.y_axis.length(),
+        );
+
+        debug_assert!(
+            determinant != T::ZERO
+                && (self.x_axis / scale.x)
+                    .dot(self.y_axis / scale.y)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
+            "matrix contains shearing or determinant is zero: {self:?}.to_scale_angle()"
         );
 
         let angle = PrimitiveFloatUtils::atan2(-self.y_axis.x, self.y_axis.y);
@@ -610,11 +617,8 @@ where
         ])
     }
 
-    #[track_caller]
     #[inline(always)]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<3, T, A>; 3] {
-        debug_assert!(quat.to_vector().is_normalized());
-
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
         let z2 = quat.z + quat.z;
@@ -646,6 +650,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            quat.is_normalized(),
+            "quat is not normalized: Matrix::from_quat({quat:?})"
+        );
+
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
         Self::from_rows(&[x_axis, y_axis, z_axis])
     }
@@ -664,7 +673,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        debug_assert!(axis.is_normalized());
+        debug_assert!(
+            axis.is_normalized(),
+            "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -753,6 +765,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
+        );
+
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             rotation_x * scale.x,
@@ -778,11 +795,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_lh({dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = up.cross(forward).normalize();
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({dir:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -809,11 +835,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_rh({dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = forward.cross(up).normalize();
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({dir:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -841,10 +876,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = up.cross(forward).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "center = eye: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -872,10 +922,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = forward.cross(up).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "center = eye: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -896,7 +961,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -913,7 +978,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -932,7 +997,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if any column of `self` is not normalized.
+    /// Panics if `self` is not a rotation matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -943,9 +1008,22 @@ where
         // Academic Press Professional, Inc., USA, 222–229.
 
         debug_assert!(
-            self.x_axis.is_normalized()
-                && self.y_axis.is_normalized()
-                && self.z_axis.is_normalized()
+            self.x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(2e-2))
+                && self
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(2e-2))
+                && self
+                    .x_axis
+                    .dot(self.y_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(2e-2))
+                && self
+                    .x_axis
+                    .cross(self.y_axis)
+                    .abs_diff_eq(self.z_axis, T::as_from(2e-2)),
+            "not a rotation matrix"
         );
 
         let order = order.properties();
@@ -996,14 +1074,12 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
         let determinant = self.determinant();
-
-        debug_assert!(determinant != T::ZERO);
 
         let scale = Vector::<3, T, A>::new(
             self.x_axis.length() * determinant.signum(),
@@ -1013,11 +1089,30 @@ where
 
         let scale_recip = scale.recip();
 
-        let rotation = Quaternion::<T, A>::from_matrix(&Self::from_rows(&[
+        let rotation_matrix = Self::from_rows(&[
             self.x_axis * scale_recip.x,
             self.y_axis * scale_recip.y,
             self.z_axis * scale_recip.z,
-        ]));
+        ]);
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .x_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .y_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "matrix contains shearing or determinant is zero"
+        );
+
+        let rotation = Quaternion::<T, A>::from_matrix(&rotation_matrix);
 
         (scale, rotation)
     }
@@ -1038,7 +1133,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_point(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
+        debug_assert!(
+            self.column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
+            "matrix contains projection (which transform_point does not handle)"
+        );
 
         self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
     }
@@ -1059,7 +1158,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_vector(&self, vector: Vector<2, T, A>) -> Vector<2, T, A> {
-        debug_assert!(self.column(2) == Vector::<3, T, A>::Z);
+        debug_assert!(
+            self.column(2)
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
+            "matrix contains projection (which transform_vector does not handle)"
+        );
 
         self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
     }
@@ -1136,10 +1239,7 @@ where
     }
 
     #[inline(always)]
-    #[track_caller]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<4, T, A>; 3] {
-        debug_assert!(quat.to_vector().is_normalized());
-
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
         let z2 = quat.z + quat.z;
@@ -1178,6 +1278,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            quat.is_normalized(),
+            "quat is not normalized: Matrix::from_quat({quat:?})"
+        );
+
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
         Self::from_rows(&[x_axis, y_axis, z_axis, Vector::W])
     }
@@ -1202,7 +1307,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        debug_assert!(axis.is_normalized());
+        debug_assert!(
+            axis.is_normalized(),
+            "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -1253,6 +1361,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
+        );
+
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             rotation_x * scale.x,
@@ -1283,6 +1396,11 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_rotation_translation({rotation:?}, {translation:?})"
+        );
+
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             x_axis,
@@ -1314,6 +1432,11 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_scale_rotation_translation({scale:?}, {rotation:?}, {translation:?})"
+        );
+
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             rotation_x * scale.x,
@@ -1346,11 +1469,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = up.cross(forward).normalize();
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -1384,11 +1516,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = forward.cross(up).normalize();
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -1423,10 +1564,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = up.cross(forward).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -1461,10 +1617,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = forward.cross(up).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -1495,7 +1666,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_lh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1530,7 +1704,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_rh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1570,7 +1747,10 @@ where
         near_plane: T,
         far_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1615,7 +1795,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_infinite_lh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1649,7 +1829,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_infinite_rh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1686,7 +1866,7 @@ where
         aspect_ratio: T,
         near_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1723,7 +1903,7 @@ where
         aspect_ratio: T,
         near_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1754,7 +1934,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn frustum_lh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1790,7 +1973,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn frustum_rh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1836,7 +2022,10 @@ where
         near_plane: T,
         far_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1874,7 +2063,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_lh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        debug_assert!(far > near);
+        debug_assert!(far > near, "far < near");
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1912,7 +2101,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_rh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        debug_assert!(far > near);
+        debug_assert!(far > near, "far < near");
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1950,7 +2139,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_rh_gl(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        debug_assert!(far > near);
+        debug_assert!(far > near, "far < near");
 
         let scale_x = T::as_from(2.0) / (right - left);
         let scale_y = T::as_from(2.0) / (top - bottom);
@@ -1977,7 +2166,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if any column of the upper 3x3 matrix is not normalized.
+    /// Panics if `self` is not a rotation matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -1996,7 +2185,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2013,7 +2202,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2041,7 +2230,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
+        debug_assert!(
+            self.column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
+            "matrix contains projection (which transform_point does not handle)"
+        );
 
         self.x_axis.xyz() * point.x
             + self.y_axis.xyz() * point.y
@@ -2065,7 +2258,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn transform_vector(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
-        debug_assert!(self.column(3) == Vector::<4, T, A>::W);
+        debug_assert!(
+            self.column(3)
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
+            "matrix contains projection (which transform_vector does not handle)"
+        );
 
         self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z
     }
@@ -2092,7 +2289,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        EulerRot, Mat3A, Mat4A, Matrix, Quaternion, Vec2A, Vec3A, Vec4A, Vector,
+        EulerRot, FloatExt, Mat3A, Mat4A, Matrix, Quaternion, Vec2A, Vec3A, Vec4A, Vector,
         utils::{assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter},
     };
 
@@ -2384,6 +2581,21 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<2, T, A>::ZERO.to_scale_angle());
             assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_angle());
+            assert_debug_panic!(
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(0.3, 0.4),
+                    Vector::<2, T, A>::new(0.4, 0.6)
+                ])
+                .to_scale_angle()
+            );
+            assert_debug_panic!(
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.3, 0.4, 0.0),
+                    Vector::<3, T, A>::new(0.4, 0.6, 0.0),
+                    Vector::<3, T, A>::new(0.0, 0.0, 1.0)
+                ])
+                .to_scale_angle()
+            );
 
             for (scale, angle, translation) in
                 random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
@@ -2398,7 +2610,7 @@ mod tests {
 
                 if scale.iter().any(|x| x > 1e10)
                     || !matrix.determinant().is_finite()
-                    || matrix.determinant() == 0.0
+                    || matrix.determinant().abs() < 1e-8
                 {
                     continue;
                 }
@@ -2862,14 +3074,12 @@ mod tests {
     #[test]
     fn test_to_scale_angle_translation() {
         for_types!(|T: PrimitiveFloat, A| {
-            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_angle_translation());
-
-            for (scale, angle, translation) in
-                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            for matrix in random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+                .map(|(scale, angle, translation)| {
+                    Matrix::<3, T, A>::from_scale_angle_translation(scale, angle, translation)
+                })
+                .chain(random_iter())
             {
-                let matrix =
-                    Matrix::<3, T, A>::from_scale_angle_translation(scale, angle, translation);
-
                 assert_panic_test_eq!(
                     matrix.to_scale_angle_translation(),
                     (
@@ -2886,18 +3096,33 @@ mod tests {
     fn test_to_euler() {
         for_types!(|T: PrimitiveFloat, A| {
             for order in EulerRot::values() {
-                for matrix in random_iter::<Matrix<3, T, A>>().take(20) {
-                    if matrix.as_rows().iter().any(|row| !row.is_normalized()) {
+                for matrix in random_iter::<Matrix<4, T, A>>().take(20) {
+                    let submatrix = matrix.submatrix();
+
+                    let is_rotation = submatrix.determinant().abs_diff_eq(1.0, 1e-4)
+                        && submatrix
+                            .x_axis
+                            .dot(submatrix.y_axis)
+                            .abs_diff_eq(0.0, 1e-4)
+                        && submatrix
+                            .x_axis
+                            .dot(submatrix.z_axis)
+                            .abs_diff_eq(0.0, 1e-4)
+                        && submatrix
+                            .y_axis
+                            .dot(submatrix.z_axis)
+                            .abs_diff_eq(0.0, 1e-4)
+                        && submatrix
+                            .x_axis
+                            .cross(submatrix.y_axis)
+                            .abs_diff_eq(submatrix.z_axis, 1e-4);
+
+                    if !is_rotation {
+                        assert_debug_panic!(submatrix.to_euler(order));
                         assert_debug_panic!(matrix.to_euler(order));
-                        assert_debug_panic!(
-                            Matrix::<4, T, A>::from_submatrix(&matrix).to_euler(order)
-                        );
                     }
                 }
-            }
-        });
-        for_types!(|T: PrimitiveFloat, A| {
-            for order in EulerRot::values() {
+
                 for quat in random_iter::<Quaternion<T, A>>() {
                     let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
                     let matrix = Matrix::<3, T, A>::from_quat(quat);
@@ -2923,6 +3148,23 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
             assert_debug_panic!(Matrix::<4, T, A>::ZERO.to_scale_rotation());
+            assert_debug_panic!(
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.3, 0.4, -0.2),
+                    Vector::<3, T, A>::new(0.4, 0.6, -0.1),
+                    Vector::<3, T, A>::new(1.0, 1.0, 1.0)
+                ])
+                .to_scale_rotation()
+            );
+            assert_debug_panic!(
+                Matrix::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(0.3, 0.4, -0.2, 0.0),
+                    Vector::<4, T, A>::new(0.4, 0.6, -0.1, 0.0),
+                    Vector::<4, T, A>::new(1.0, 1.0, 1.0, 0.0),
+                    Vector::<4, T, A>::new(0.0, 0.0, 0.0, 1.0)
+                ])
+                .to_scale_rotation()
+            );
 
             for (scale, rotation, translation) in
                 random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
@@ -3577,17 +3819,13 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<4, T, A>::ZERO.to_scale_rotation_translation());
 
-            for (scale, rotation, translation) in
-                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            for matrix in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+                .map(|(scale, rotation, translation)| {
+                    let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+                    Matrix::<4, T, A>::from_scale_rotation_translation(scale, rotation, translation)
+                })
+                .chain(random_iter())
             {
-                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-
-                let matrix = Matrix::<4, T, A>::from_scale_rotation_translation(
-                    scale,
-                    rotation,
-                    translation,
-                );
-
                 assert_panic_test_eq!(
                     matrix.to_scale_rotation_translation(),
                     (

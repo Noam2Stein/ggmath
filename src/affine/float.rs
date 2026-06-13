@@ -185,7 +185,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -202,7 +202,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -349,16 +349,28 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = up.cross(forward).normalize();
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -378,16 +390,28 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `dir` or `up` are not normalized.
+    /// Panics if:
+    ///
+    /// - `dir` or `up` are not normalized
+    /// - `dir` and `up` are parallel
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = forward.cross(up).normalize();
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -407,12 +431,42 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_lh(eye, (center - eye).normalize(), up)
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let up = forward.cross(right);
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(right.x, up.x, forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, forward.z),
+            Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), -eye.dot(forward)),
+        ])
     }
 
     /// Creates a right-handed view transform from a camera position, a focal
@@ -424,12 +478,42 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `up` is not normalized.
+    /// Panics if:
+    ///
+    /// - `up` is not normalized
+    /// - `center` is equal to `eye`
+    /// - The resulting forward direction is parallel to `up`
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        Self::look_to_rh(eye, (center - eye).normalize(), up)
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let up = right.cross(forward);
+
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(right.x, up.x, -forward.x),
+            Vector::<3, T, A>::new(right.y, up.y, -forward.y),
+            Vector::<3, T, A>::new(right.z, up.z, -forward.z),
+            Vector::<3, T, A>::new(-eye.dot(right), -eye.dot(up), eye.dot(forward)),
+        ])
     }
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
@@ -442,8 +526,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if any column of `self`, excluding the translation column, is not
-    /// normalized.
+    /// Panics if `self` contains scaling or shearing.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -460,7 +543,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -477,7 +560,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]

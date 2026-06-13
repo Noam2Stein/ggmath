@@ -1,3 +1,5 @@
+use core::cmp::Ordering;
+
 use crate::{
     Alignment, FloatExt, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, Quaternion,
     SupportedLength, Vector,
@@ -213,7 +215,7 @@ where
     pub fn max(self, other: Self) -> Self {
         debug_assert!(
             !self.is_nan() && !other.is_nan(),
-            "NaN: {self:?}.max({other:?})"
+            "cannot compare NaN: {self:?}.max({other:?})"
         );
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_max(self, other))
@@ -249,7 +251,7 @@ where
     pub fn min(self, other: Self) -> Self {
         debug_assert!(
             !self.is_nan() && !other.is_nan(),
-            "NaN: {self:?}.min({other:?})"
+            "cannot compare NaN: {self:?}.min({other:?})"
         );
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_min(self, other))
@@ -287,13 +289,8 @@ where
     #[track_caller]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         debug_assert!(
-            !self.is_nan() && !min.is_nan() && !max.is_nan(),
-            "NaN: {self:?}.clamp({min:?}, {max:?})"
-        );
-
-        debug_assert!(
-            (0..N).all(|i| min[i] <= max[i]),
-            "min > max: {self:?}.clamp({min:?}, {max:?})"
+            min.le_mask(max).all() && !self.is_nan() && !min.is_nan() && !max.is_nan(),
+            "min > max, or either was NaN: {self:?}.clamp({min:?}, {max:?})"
         );
 
         self.max(min).min(max)
@@ -325,7 +322,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn max_element(self) -> T {
-        debug_assert!(!self.is_nan(), "NaN: {self:?}.max_element()");
+        debug_assert!(!self.is_nan(), "cannot compare NaN: {self:?}.max_element()");
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_max_element(self))
     }
@@ -356,7 +353,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn min_element(self) -> T {
-        debug_assert!(!self.is_nan(), "NaN: {self:?}.min_element()");
+        debug_assert!(!self.is_nan(), "cannot compare NaN: {self:?}.min_element()");
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_min_element(self))
     }
@@ -861,7 +858,10 @@ where
         let self_length = self.length();
         let other_length = other.length();
 
-        debug_assert!(self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7));
+        debug_assert!(
+            self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7),
+            "zero vector: {self:?}.slerp({other:?})"
+        );
 
         match N {
             2 => {
@@ -985,7 +985,10 @@ where
         let self_length = self.length();
         let target_length = target.length();
 
-        debug_assert!(target_length >= T::as_from(1e-7));
+        debug_assert!(
+            target_length >= T::as_from(1e-7),
+            "target is zero: {self:?}.rotate_towards({target:?}, {max_angle:?})"
+        );
 
         if self == Self::ZERO {
             return self;
@@ -1139,13 +1142,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn normalize(self) -> Self {
-        debug_assert!(self != Self::ZERO, "cannot normalize a zero vector");
-
         let result = self / self.length();
 
         debug_assert!(
             result.is_finite() && result != Self::ZERO,
-            "non finite result: {self:?}.normalize()"
+            "vector is zero or non-finite: {self:?}.normalize()"
         );
 
         result
@@ -1225,7 +1226,8 @@ where
 
     /// Simultaneously computes [`normalize`] and [`length`].
     ///
-    /// If `self` is a zero vector, the result is `(Self::ZERO, 0.0)`.
+    /// If `self` is a zero vector, the result is length `0` and an unspecified
+    /// vector. Consider manually checking for `length == 0.0`.
     ///
     /// # Examples
     ///
@@ -1245,13 +1247,7 @@ where
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
         let length = self.length();
-        let recip = T::as_from(1.0) / length;
-
-        if recip.is_finite() && recip > T::as_from(0.0) {
-            (self * recip, length)
-        } else {
-            (Self::ZERO, T::as_from(0.0))
-        }
+        (self / length, length)
     }
 
     /// Returns whether the vector has the length `1.0` or not.
@@ -1281,7 +1277,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `max` is negative.
+    /// Panics if `max` is negative or `self` cannot be normalized.
     ///
     /// # Examples
     ///
@@ -1299,11 +1295,24 @@ where
     #[must_use]
     #[track_caller]
     pub fn with_max_length(self, max: T) -> Self {
-        debug_assert!(max >= T::as_from(0.0), "negative maximum length");
+        debug_assert!(
+            matches!(
+                max.partial_cmp(&T::ZERO),
+                None | Some(Ordering::Greater | Ordering::Equal)
+            ),
+            "negative maximum length: {self:?}.with_max_length({max:?})"
+        );
 
         let length_squared = self.length_squared();
         if length_squared > max * max {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * max
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "vector cannot be normalized: {self:?}.with_max_length({max:?})"
+            );
+
+            normalized * max
         } else {
             self
         }
@@ -1311,11 +1320,13 @@ where
 
     /// Returns `self` with a length of no less than `min`.
     ///
+    /// If `min` is negative, this returns `self`.
+    ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `min` is negative.
+    /// Panics if `self` cannot be normalized.
     ///
     /// # Examples
     ///
@@ -1333,11 +1344,16 @@ where
     #[must_use]
     #[track_caller]
     pub fn with_min_length(self, min: T) -> Self {
-        debug_assert!(min >= T::as_from(0.0), "negative minimum length");
-
         let length_squared = self.length_squared();
-        if length_squared < min * min {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * min
+        if length_squared < min * min.abs() {
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "vector cannot be normalized: {self:?}.with_min_length({min:?})"
+            );
+
+            normalized * min
         } else {
             self
         }
@@ -1346,11 +1362,13 @@ where
     /// Returns `self` with a length of no less than `min` and no more than
     /// `max`.
     ///
+    /// If `min` is negative it is ignored.
+    ///
     /// # Panics
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `min > max`, or if `min` is negative.
+    /// Panics if `min > max`, `max` is negative or `self` cannot be normalized.
     ///
     /// # Examples
     ///
@@ -1371,14 +1389,36 @@ where
     #[must_use]
     #[track_caller]
     pub fn clamp_length(self, min: T, max: T) -> Self {
-        debug_assert!(min >= T::as_from(0.0), "negative minimum length");
-        debug_assert!(min <= max, "minimum length is greater than maximum length");
+        debug_assert!(
+            matches!(
+                max.partial_cmp(&T::ZERO),
+                None | Some(Ordering::Greater | Ordering::Equal)
+            ) && matches!(
+                min.partial_cmp(&max),
+                None | Some(Ordering::Less | Ordering::Equal)
+            ),
+            "max_length < min_length or max_length < 0: {self:?}.clamp_length({min:?}, {max:?})"
+        );
 
         let length_squared = self.length_squared();
-        if length_squared < min * min {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * min
+        if length_squared < min * min.abs() {
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
+            );
+
+            normalized * min
         } else if length_squared > max * max {
-            self / PrimitiveFloatUtils::sqrt(length_squared) * max
+            let normalized = self / PrimitiveFloatUtils::sqrt(length_squared);
+
+            debug_assert!(
+                normalized.is_finite() && normalized != Self::ZERO,
+                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
+            );
+
+            normalized * max
         } else {
             self
         }
@@ -1396,6 +1436,12 @@ where
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
     ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1410,11 +1456,18 @@ where
     #[inline]
     #[must_use]
     pub fn angle_between(self, other: Self) -> T {
+        let length_product =
+            PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared());
+
+        debug_assert!(
+            length_product.recip().is_finite(),
+            "vectors cannot be normalized: {self:?}.angle_between({other:?})"
+        );
+
         PrimitiveFloatUtils::acos(
-            (self.dot(other)
-                / PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared()))
-            .max(T::NEG_ONE)
-            .min(T::ONE),
+            (self.dot(other) / length_product)
+                .max(T::NEG_ONE)
+                .min(T::ONE),
         )
     }
 
@@ -1433,7 +1486,10 @@ where
     pub fn project_onto(self, other: Self) -> Self {
         let other_length_squared_recip = other.length_squared().recip();
 
-        debug_assert!(other_length_squared_recip.is_finite());
+        debug_assert!(
+            other_length_squared_recip.is_finite(),
+            "other cannot be normalized: {self:?}.project_onto({other:?})"
+        );
 
         other * self.dot(other) * other_length_squared_recip
     }
@@ -1451,7 +1507,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn project_onto_normalized(self, other: Self) -> Self {
-        debug_assert!(other.is_normalized());
+        debug_assert!(
+            other.is_normalized(),
+            "other is not normalized: {self:?}.project_onto_normalized({other:?})"
+        );
 
         other * self.dot(other)
     }
@@ -1471,7 +1530,14 @@ where
     #[must_use]
     #[track_caller]
     pub fn reject_from(self, other: Self) -> Self {
-        self - self.project_onto(other)
+        let other_length_squared_recip = other.length_squared().recip();
+
+        debug_assert!(
+            other_length_squared_recip.is_finite(),
+            "other cannot be normalized: {self:?}.reject_from({other:?})"
+        );
+
+        self - other * self.dot(other) * other_length_squared_recip
     }
 
     /// Returns the vector rejection of `self` from `other`.
@@ -1489,7 +1555,12 @@ where
     #[must_use]
     #[track_caller]
     pub fn reject_from_normalized(self, other: Self) -> Self {
-        self - self.project_onto_normalized(other)
+        debug_assert!(
+            other.is_normalized(),
+            "other is not normalized: {self:?}.reject_from_normalized({other:?})"
+        );
+
+        self - other * self.dot(other)
     }
 
     /// Returns the reflection of `self` through `normal`.
@@ -1505,7 +1576,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn reflect(self, normal: Self) -> Self {
-        debug_assert!(normal.is_normalized());
+        debug_assert!(
+            normal.is_normalized(),
+            "normal is not normalized: {self:?}.reflect({normal:?})"
+        );
 
         self - normal * (T::as_from(2.0) * self.dot(normal))
     }
@@ -1528,8 +1602,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn refract(self, normal: Self, eta: T) -> Self {
-        debug_assert!(self.is_normalized());
-        debug_assert!(normal.is_normalized());
+        debug_assert!(
+            self.is_normalized() && normal.is_normalized(),
+            "vector or normal are not normalized: {self:?}.refract({normal:?}, {eta:?})"
+        );
 
         let self_dot_normal = self.dot(normal);
         let k = T::as_from(1.0) - eta * eta * (T::as_from(1.0) - self_dot_normal * self_dot_normal);
@@ -1616,7 +1692,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn any_orthonormal_vector(self) -> Self {
-        debug_assert!(self.is_normalized());
+        debug_assert!(
+            self.is_normalized(),
+            "vector is not normalized: {self:?}.any_orthonormal_vector()"
+        );
 
         match N {
             2 => {
@@ -1727,6 +1806,12 @@ where
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
     ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1740,9 +1825,23 @@ where
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn angle_to(self, other: Self) -> T {
-        let outer_product = (self.x * other.y) - (self.y * other.x);
-        self.angle_between(other) * outer_product.signum()
+        let length_product =
+            PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared());
+
+        debug_assert!(
+            length_product.recip().is_finite(),
+            "vectors cannot be normalized: {self:?}.angle_to({other:?})"
+        );
+
+        let angle_between = PrimitiveFloatUtils::acos(
+            (self.dot(other) / length_product)
+                .max(T::NEG_ONE)
+                .min(T::ONE),
+        );
+        let outer_product = self.x * other.y - self.y * other.x;
+        angle_between * outer_product.signum()
     }
 
     /// Returns the angle (in radians) that rotates `other` to `self` in the
@@ -1759,6 +1858,12 @@ where
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
     ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1773,8 +1878,21 @@ where
     #[inline]
     #[must_use]
     pub fn angle_from(self, other: Self) -> T {
-        let outer_product = (other.x * self.y) - (other.y * self.x);
-        self.angle_between(other) * outer_product.signum()
+        let length_product =
+            PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared());
+
+        debug_assert!(
+            length_product.recip().is_finite(),
+            "vectors cannot be normalized: {self:?}.angle_from({other:?})"
+        );
+
+        let angle_between = PrimitiveFloatUtils::acos(
+            (self.dot(other) / length_product)
+                .max(T::NEG_ONE)
+                .min(T::ONE),
+        );
+        let outer_product = other.x * self.y - other.y * self.x;
+        angle_between * outer_product.signum()
     }
 
     /// Rotates `self` by `angle` (in radians).
@@ -1884,7 +2002,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn any_orthonormal_pair(self) -> (Self, Self) {
-        debug_assert!(self.is_normalized());
+        debug_assert!(
+            self.is_normalized(),
+            "vector is not normalized: {self:?}.any_orthonormal_pair()"
+        );
 
         // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
         let sign = self.z.signum();
@@ -1910,7 +2031,10 @@ mod tests {
     use crate::utils::PrimitiveFloatUtils;
     use crate::{
         FloatExt, Mask, Vec2A, Vec3A, Vector,
-        utils::{assert_debug_panic, assert_test_eq, for_types, random_iter},
+        utils::{
+            assert_debug_panic, assert_panic_test_eq, assert_test_eq, assert_test_eq_or_panic,
+            for_types, random_iter,
+        },
     };
 
     #[test]
@@ -2706,14 +2830,9 @@ mod tests {
     fn test_normalize_and_length() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for vector in [Vector::<N, T, A>::ZERO].into_iter().chain(random_iter()) {
-                let Some(try_normalize) = vector.try_normalize() else {
-                    assert_test_eq!(vector.normalize_and_length(), (Vector::ZERO, 0.0));
-                    continue;
-                };
-
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     vector.normalize_and_length(),
-                    (try_normalize, vector.length())
+                    (vector.normalize(), vector.length())
                 );
             }
         });
@@ -2739,19 +2858,15 @@ mod tests {
                     assert_debug_panic!(vector.with_max_length(max_length));
                 }
 
-                if vector.try_normalize().is_none() || !max_length.is_finite() {
-                    continue;
-                }
                 let max_length = max_length.abs();
 
-                if vector.length() <= max_length {
-                    assert_test_eq!(vector.with_max_length(max_length), vector);
-                } else {
-                    assert_test_eq!(
+                if vector.length_squared() > max_length * max_length {
+                    assert_panic_test_eq!(
                         vector.with_max_length(max_length),
-                        vector.normalize() * max_length,
-                        abs <= vector.normalize().abs() * max_length * 1e-6
+                        vector.normalize() * max_length
                     );
+                } else {
+                    assert_test_eq!(vector.with_max_length(max_length), vector);
                 }
             }
         });
@@ -2761,23 +2876,15 @@ mod tests {
     fn test_with_min_length() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for (vector, min_length) in random_iter::<(Vector<N, T, A>, T)>() {
-                if min_length < 0.0 {
-                    assert_debug_panic!(vector.with_max_length(min_length));
-                }
-
-                if vector.try_normalize().is_none() || !min_length.is_finite() {
-                    continue;
-                }
-                let min_length = min_length.abs();
-
-                if vector.length() >= min_length {
-                    assert_test_eq!(vector.with_min_length(min_length), vector);
-                } else {
-                    assert_test_eq!(
+                if vector.length_squared() < min_length * min_length
+                    && min_length.is_sign_positive()
+                {
+                    assert_panic_test_eq!(
                         vector.with_min_length(min_length),
-                        vector.normalize() * min_length,
-                        abs <= vector.normalize().abs() * min_length * 1e-6
+                        vector.normalize() * min_length
                     );
+                } else {
+                    assert_test_eq!(vector.with_min_length(min_length), vector);
                 }
             }
         });
@@ -2787,28 +2894,22 @@ mod tests {
     fn test_clamp_length() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for (vector, min_length, max_length) in random_iter::<(Vector<N, T, A>, T, T)>() {
-                if min_length < 0.0 || max_length < min_length {
+                if max_length < 0.0 || max_length < min_length {
                     assert_debug_panic!(vector.clamp_length(min_length, max_length));
                 }
 
-                if vector.try_normalize().is_none()
-                    || !min_length.is_finite()
-                    || !max_length.is_finite()
-                {
-                    continue;
-                }
                 let min_length = min_length.abs();
                 let max_length = max_length.abs().max(min_length);
 
                 if (min_length..=max_length).contains(&vector.length()) {
                     assert_test_eq!(vector.clamp_length(min_length, max_length), vector);
                 } else if vector.length() > max_length {
-                    assert_test_eq!(
+                    assert_panic_test_eq!(
                         vector.clamp_length(min_length, max_length),
                         vector.with_max_length(max_length)
                     );
                 } else {
-                    assert_test_eq!(
+                    assert_panic_test_eq!(
                         vector.clamp_length(min_length, max_length),
                         vector.with_min_length(min_length)
                     );
@@ -2820,6 +2921,9 @@ mod tests {
     #[test]
     fn test_angle_between() {
         for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Vector::<2, T, A>::ZERO.angle_between(Vector::<2, T, A>::X));
+            assert_debug_panic!(Vector::<2, T, A>::X.angle_between(Vector::<2, T, A>::ZERO));
+
             assert_test_eq!(
                 Vector::<2, T, A>::X.angle_between(Vector::<2, T, A>::ONE),
                 (45.0 as T).to_radians(),
@@ -2867,10 +2971,9 @@ mod tests {
         });
         for_types!(|N, T: PrimitiveFloat, A| {
             for [vector, other] in random_iter::<[Vector<N, T, A>; 2]>() {
-                if !vector.is_finite()
-                    || !other.is_finite()
-                    || vector == Vector::ZERO
-                    || other == Vector::ZERO
+                if [vector, other]
+                    .iter()
+                    .any(|v| !(1e-5..1e10).contains(&v.length()))
                 {
                     continue;
                 }
@@ -3212,12 +3315,20 @@ mod tests {
     fn test_angle_to() {
         for_types!(|T: PrimitiveFloat, A| {
             for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
+                assert_panic_test_eq!(
+                    {
+                        let _ = start.angle_to(end);
+                    },
+                    {
+                        let _ = start.angle_between(end);
+                    }
+                );
+
                 if start.try_normalize().is_none() || end.try_normalize().is_none() {
                     continue;
                 }
 
                 let result = start.angle_to(end);
-
                 assert_test_eq!(
                     start.normalize().rotate(result),
                     end.normalize(),
@@ -3238,7 +3349,7 @@ mod tests {
     fn test_angle_from() {
         for_types!(|T: PrimitiveFloat, A| {
             for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
-                assert_test_eq!(end.angle_from(start), start.angle_to(end));
+                assert_panic_test_eq!(end.angle_from(start), start.angle_to(end));
             }
         });
     }

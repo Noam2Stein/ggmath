@@ -62,7 +62,6 @@ pub(crate) use assert_panic_test_eq;
 /// If `actual` panics this fails even if `expected` panicked too.
 ///
 /// [`test_eq`]: crate::utils::test_eq
-#[cfg(feature = "wide")]
 macro_rules! assert_test_eq_or_panic {
     ($actual:expr, $expected:expr $(, $($arg:tt)*)?) => {{
         extern crate std;
@@ -76,7 +75,6 @@ macro_rules! assert_test_eq_or_panic {
         }
     }};
 }
-#[cfg(feature = "wide")]
 pub(crate) use assert_test_eq_or_panic;
 
 #[doc(hidden)]
@@ -174,7 +172,6 @@ mod tests {
         assert_panic!(assert_panic_test_eq!(1.0, panic!()));
     }
 
-    #[cfg(feature = "wide")]
     #[test]
     #[expect(unreachable_code)]
     #[expect(clippy::diverging_sub_expression)]
