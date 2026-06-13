@@ -442,8 +442,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if any column of `self`, excluding the translation column, is not
-    /// normalized.
+    /// Panics if `self` contains scaling or shearing.
     #[inline]
     #[must_use]
     #[track_caller]

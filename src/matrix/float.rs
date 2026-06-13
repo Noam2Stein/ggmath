@@ -939,7 +939,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if any column of `self` is not normalized.
+    /// Panics if `self` is not a rotation matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -950,9 +950,22 @@ where
         // Academic Press Professional, Inc., USA, 222–229.
 
         debug_assert!(
-            self.x_axis.is_normalized()
-                && self.y_axis.is_normalized()
-                && self.z_axis.is_normalized()
+            self.x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(2e-2))
+                && self
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(2e-2))
+                && self
+                    .x_axis
+                    .dot(self.y_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(2e-2))
+                && self
+                    .x_axis
+                    .cross(self.y_axis)
+                    .abs_diff_eq(self.z_axis, T::as_from(2e-2)),
+            "not a rotation matrix"
         );
 
         let order = order.properties();
@@ -2007,7 +2020,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if any column of the upper 3x3 matrix is not normalized.
+    /// Panics if `self` is not a rotation matrix.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2935,18 +2948,33 @@ mod tests {
     fn test_to_euler() {
         for_types!(|T: PrimitiveFloat, A| {
             for order in EulerRot::values() {
-                for matrix in random_iter::<Matrix<3, T, A>>().take(20) {
-                    if matrix.as_rows().iter().any(|row| !row.is_normalized()) {
+                for matrix in random_iter::<Matrix<4, T, A>>().take(20) {
+                    let submatrix = matrix.submatrix();
+
+                    let is_rotation = submatrix.determinant().abs_diff_eq(1.0, 1e-4)
+                        && submatrix
+                            .x_axis
+                            .dot(submatrix.y_axis)
+                            .abs_diff_eq(0.0, 1e-4)
+                        && submatrix
+                            .x_axis
+                            .dot(submatrix.z_axis)
+                            .abs_diff_eq(0.0, 1e-4)
+                        && submatrix
+                            .y_axis
+                            .dot(submatrix.z_axis)
+                            .abs_diff_eq(0.0, 1e-4)
+                        && submatrix
+                            .x_axis
+                            .cross(submatrix.y_axis)
+                            .abs_diff_eq(submatrix.z_axis, 1e-4);
+
+                    if !is_rotation {
+                        assert_debug_panic!(submatrix.to_euler(order));
                         assert_debug_panic!(matrix.to_euler(order));
-                        assert_debug_panic!(
-                            Matrix::<4, T, A>::from_submatrix(&matrix).to_euler(order)
-                        );
                     }
                 }
-            }
-        });
-        for_types!(|T: PrimitiveFloat, A| {
-            for order in EulerRot::values() {
+
                 for quat in random_iter::<Quaternion<T, A>>() {
                     let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
                     let matrix = Matrix::<3, T, A>::from_quat(quat);
