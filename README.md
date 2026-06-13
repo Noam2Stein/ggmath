@@ -120,25 +120,28 @@ Crate Support:
 
 Performance:
 
-- [x] `f32` vector SSE2 optimizations
-- [ ] `f32` matrix SSE2 optimizations
-- [ ] `f32` quaternion SSE2 optimizations
-- [ ] `f32` affine SSE2 optimizations
-- [ ] `f32` mask SSE2 optimizations
-- [ ] `i32` `u32` SSE2 optimizations
+- [ ] Default vector optimizations
+- [ ] `f32` SSE optimizations
+- [ ] `f64` SSE optimizations
+- [ ] `i32` SSE optimizations
+- [ ] `i64` SSE optimizations
+- [ ] `u32` SSE optimizations
+- [ ] `u64` SSE optimizations
 - [ ] `f32` NEON optimizations
-- [ ] `i32` `u32` NEON optimizations
+- [ ] `f64` NEON optimizations
+- [ ] `i32` NEON optimizations
+- [ ] `i64` NEON optimizations
+- [ ] `u32` NEON optimizations
+- [ ] `u64` NEON optimizations
 - [ ] `f32` WASM optimizations
-- [ ] `i32` `u32` WASM optimizations
-- [ ] Niche `f32` SSE4.2+ optimizations
-- [ ] Niche `i32` `u32` SSE4.2+ optimizations
-- [ ] Niche `f64` AVX+ optimizations
-- [ ] Niche `i8` `u8` `bool` SSE2+ optimizations
-- [ ] Niche `i16` `u16` SSE2+ optimizations
-- [ ] Niche `i8` `u8` `bool` NEON optimizations
-- [ ] Niche `i16` `u16` NEON optimizations
-- [ ] Niche `i8` `u8` `bool` WASM optimizations
-- [ ] Niche `i16` `u16` WASM optimizations
+- [ ] `f64` WASM optimizations
+- [ ] `i32` WASM optimizations
+- [ ] `i64` WASM optimizations
+- [ ] `u32` WASM optimizations
+- [ ] `u64` WASM optimizations
+- [ ] Matrix optimizations
+- [ ] Quaternion optimizations
+- [ ] Affine optimizations
 
 ## Usage
 
