@@ -2084,7 +2084,7 @@ mod tests {
     fn test_angle_between() {
         for_types!(|N, Wide: WideFloat| {
             for [a, b] in random_iter::<[Vector<N, Wide, Unaligned>; 2]>() {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     a.angle_between(b),
                     Wide::new(std::array::from_fn(|lane| {
                         a.lane(lane).angle_between(b.lane(lane))

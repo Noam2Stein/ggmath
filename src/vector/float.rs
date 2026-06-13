@@ -1441,6 +1441,12 @@ where
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
     ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1455,11 +1461,18 @@ where
     #[inline]
     #[must_use]
     pub fn angle_between(self, other: Self) -> T {
+        let length_product =
+            PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared());
+
+        debug_assert!(
+            length_product.recip().is_finite(),
+            "invalid vectors: {self:?}.angle_between({other:?}"
+        );
+
         PrimitiveFloatUtils::acos(
-            (self.dot(other)
-                / PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared()))
-            .max(T::NEG_ONE)
-            .min(T::ONE),
+            (self.dot(other) / length_product)
+                .max(T::NEG_ONE)
+                .min(T::ONE),
         )
     }
 
@@ -1772,6 +1785,12 @@ where
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
     ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1803,6 +1822,12 @@ where
     /// The precision of this function is non-deterministic. This means it
     /// varies by platform, version, and can even differ within the same
     /// execution from one invocation to the next.
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` or `other` are zero vectors.
     ///
     /// # Examples
     ///
@@ -2845,6 +2870,9 @@ mod tests {
     #[test]
     fn test_angle_between() {
         for_types!(|T: PrimitiveFloat, A| {
+            assert_debug_panic!(Vector::<2, T, A>::ZERO.angle_between(Vector::<2, T, A>::X));
+            assert_debug_panic!(Vector::<2, T, A>::X.angle_between(Vector::<2, T, A>::ZERO));
+
             assert_test_eq!(
                 Vector::<2, T, A>::X.angle_between(Vector::<2, T, A>::ONE),
                 (45.0 as T).to_radians(),
@@ -2892,10 +2920,9 @@ mod tests {
         });
         for_types!(|N, T: PrimitiveFloat, A| {
             for [vector, other] in random_iter::<[Vector<N, T, A>; 2]>() {
-                if !vector.is_finite()
-                    || !other.is_finite()
-                    || vector == Vector::ZERO
-                    || other == Vector::ZERO
+                if [vector, other]
+                    .iter()
+                    .any(|v| !(1e-5..1e10).contains(&v.length()))
                 {
                     continue;
                 }
@@ -3237,12 +3264,20 @@ mod tests {
     fn test_angle_to() {
         for_types!(|T: PrimitiveFloat, A| {
             for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
+                assert_panic_test_eq!(
+                    {
+                        let _ = start.angle_to(end);
+                    },
+                    {
+                        let _ = start.angle_between(end);
+                    }
+                );
+
                 if start.try_normalize().is_none() || end.try_normalize().is_none() {
                     continue;
                 }
 
                 let result = start.angle_to(end);
-
                 assert_test_eq!(
                     start.normalize().rotate(result),
                     end.normalize(),
@@ -3263,7 +3298,7 @@ mod tests {
     fn test_angle_from() {
         for_types!(|T: PrimitiveFloat, A| {
             for [start, end] in random_iter::<[Vector<2, T, A>; 2]>() {
-                assert_test_eq!(end.angle_from(start), start.angle_to(end));
+                assert_panic_test_eq!(end.angle_from(start), start.angle_to(end));
             }
         });
     }
