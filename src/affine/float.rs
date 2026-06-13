@@ -185,7 +185,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -202,7 +202,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -460,7 +460,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -477,7 +477,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]

@@ -1,7 +1,8 @@
 use core::convert::identity;
 
 use crate::{
-    Alignment, EulerRot, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength, Vector,
+    Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
+    Vector,
     utils::{PrimitiveFloatUtils, transmute_generic, transmute_ref},
 };
 
@@ -453,18 +454,24 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn to_scale_angle(&self) -> (Vector<2, T, A>, T) {
         let determinant = self.determinant();
 
-        debug_assert!(determinant != T::ZERO);
-
         let scale = Vector::<2, T, A>::new(
             self.x_axis.length() * determinant.signum(),
             self.y_axis.length(),
+        );
+
+        debug_assert!(
+            determinant != T::ZERO
+                && (self.x_axis / scale.x)
+                    .dot(self.y_axis / scale.y)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
+            "matrix contains shearing or determinant is zero"
         );
 
         let angle = PrimitiveFloatUtils::atan2(-self.y_axis.x, self.y_axis.y);
@@ -896,7 +903,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -913,7 +920,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -996,14 +1003,12 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
     pub fn to_scale_rotation(&self) -> (Vector<3, T, A>, Quaternion<T, A>) {
         let determinant = self.determinant();
-
-        debug_assert!(determinant != T::ZERO);
 
         let scale = Vector::<3, T, A>::new(
             self.x_axis.length() * determinant.signum(),
@@ -1013,11 +1018,30 @@ where
 
         let scale_recip = scale.recip();
 
-        let rotation = Quaternion::<T, A>::from_matrix(&Self::from_rows(&[
+        let rotation_matrix = Self::from_rows(&[
             self.x_axis * scale_recip.x,
             self.y_axis * scale_recip.y,
             self.z_axis * scale_recip.z,
-        ]));
+        ]);
+
+        debug_assert!(
+            rotation_matrix
+                .x_axis
+                .dot(rotation_matrix.y_axis)
+                .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .x_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && rotation_matrix
+                    .y_axis
+                    .dot(rotation_matrix.z_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && determinant != T::ZERO,
+            "matrix contains shearing or determinant is zero"
+        );
+
+        let rotation = Quaternion::<T, A>::from_matrix(&rotation_matrix);
 
         (scale, rotation)
     }
@@ -1996,7 +2020,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2013,7 +2037,7 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if the determinant of `self` is zero.
+    /// Panics if `self` contains shearing or the determinant of `self` is zero.
     #[inline]
     #[must_use]
     #[track_caller]
@@ -2092,7 +2116,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::{
-        EulerRot, Mat3A, Mat4A, Matrix, Quaternion, Vec2A, Vec3A, Vec4A, Vector,
+        EulerRot, FloatExt, Mat3A, Mat4A, Matrix, Quaternion, Vec2A, Vec3A, Vec4A, Vector,
         utils::{assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter},
     };
 
@@ -2384,6 +2408,21 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<2, T, A>::ZERO.to_scale_angle());
             assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_angle());
+            assert_debug_panic!(
+                Matrix::<2, T, A>::from_rows(&[
+                    Vector::<2, T, A>::new(0.3, 0.4),
+                    Vector::<2, T, A>::new(0.4, 0.6)
+                ])
+                .to_scale_angle()
+            );
+            assert_debug_panic!(
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.3, 0.4, 0.0),
+                    Vector::<3, T, A>::new(0.4, 0.6, 0.0),
+                    Vector::<3, T, A>::new(0.0, 0.0, 1.0)
+                ])
+                .to_scale_angle()
+            );
 
             for (scale, angle, translation) in
                 random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
@@ -2862,14 +2901,12 @@ mod tests {
     #[test]
     fn test_to_scale_angle_translation() {
         for_types!(|T: PrimitiveFloat, A| {
-            assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_angle_translation());
-
-            for (scale, angle, translation) in
-                random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+            for matrix in random_iter::<(Vector<2, T, A>, T, Vector<2, T, A>)>()
+                .map(|(scale, angle, translation)| {
+                    Matrix::<3, T, A>::from_scale_angle_translation(scale, angle, translation)
+                })
+                .chain(random_iter())
             {
-                let matrix =
-                    Matrix::<3, T, A>::from_scale_angle_translation(scale, angle, translation);
-
                 assert_panic_test_eq!(
                     matrix.to_scale_angle_translation(),
                     (
@@ -2923,6 +2960,23 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<3, T, A>::ZERO.to_scale_rotation());
             assert_debug_panic!(Matrix::<4, T, A>::ZERO.to_scale_rotation());
+            assert_debug_panic!(
+                Matrix::<3, T, A>::from_rows(&[
+                    Vector::<3, T, A>::new(0.3, 0.4, -0.2),
+                    Vector::<3, T, A>::new(0.4, 0.6, -0.1),
+                    Vector::<3, T, A>::new(1.0, 1.0, 1.0)
+                ])
+                .to_scale_rotation()
+            );
+            assert_debug_panic!(
+                Matrix::<4, T, A>::from_rows(&[
+                    Vector::<4, T, A>::new(0.3, 0.4, -0.2, 0.0),
+                    Vector::<4, T, A>::new(0.4, 0.6, -0.1, 0.0),
+                    Vector::<4, T, A>::new(1.0, 1.0, 1.0, 0.0),
+                    Vector::<4, T, A>::new(0.0, 0.0, 0.0, 1.0)
+                ])
+                .to_scale_rotation()
+            );
 
             for (scale, rotation, translation) in
                 random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
@@ -3577,17 +3631,13 @@ mod tests {
         for_types!(|T: PrimitiveFloat, A| {
             assert_debug_panic!(Matrix::<4, T, A>::ZERO.to_scale_rotation_translation());
 
-            for (scale, rotation, translation) in
-                random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+            for matrix in random_iter::<(Vector<3, T, A>, Quaternion<T, A>, Vector<3, T, A>)>()
+                .map(|(scale, rotation, translation)| {
+                    let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
+                    Matrix::<4, T, A>::from_scale_rotation_translation(scale, rotation, translation)
+                })
+                .chain(random_iter())
             {
-                let rotation = rotation.normalize_or(Quaternion::IDENTITY).normalize();
-
-                let matrix = Matrix::<4, T, A>::from_scale_rotation_translation(
-                    scale,
-                    rotation,
-                    translation,
-                );
-
                 assert_panic_test_eq!(
                     matrix.to_scale_rotation_translation(),
                     (
