@@ -55,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Changed the panic conditions of many functions.
+- Changed the panic conditions of many functions and improved panic messages.
 
 - Changed `Vector::normalize_and_length` to not handle the zero-vector case.
 

@@ -260,7 +260,7 @@ where
             });
 
             if determinant_is_zero {
-                panic!("matrix is not invertable");
+                panic!("matrix is not invertable: {self:?}.inverse()");
             }
 
             result
@@ -471,7 +471,7 @@ where
                 && (self.x_axis / scale.x)
                     .dot(self.y_axis / scale.y)
                     .abs_diff_eq(T::ZERO, T::as_from(1e-4)),
-            "matrix contains shearing or determinant is zero"
+            "matrix contains shearing or determinant is zero: {self:?}.to_scale_angle()"
         );
 
         let angle = PrimitiveFloatUtils::atan2(-self.y_axis.x, self.y_axis.y);
@@ -620,8 +620,6 @@ where
     #[track_caller]
     #[inline(always)]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<3, T, A>; 3] {
-        debug_assert!(quat.to_vector().is_normalized());
-
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
         let z2 = quat.z + quat.z;
@@ -653,6 +651,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            quat.is_normalized(),
+            "quat is not normalized: Matrix::from_quat({quat:?})"
+        );
+
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
         Self::from_rows(&[x_axis, y_axis, z_axis])
     }
@@ -671,7 +674,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        debug_assert!(axis.is_normalized());
+        debug_assert!(
+            axis.is_normalized(),
+            "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -760,6 +766,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
+        );
+
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             rotation_x * scale.x,
@@ -785,11 +796,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_lh({dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = up.cross(forward).normalize();
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({dir:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -816,11 +836,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_rh({dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = forward.cross(up).normalize();
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({dir:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -848,10 +877,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = up.cross(forward).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "center = eye: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -879,10 +923,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = forward.cross(up).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "center = eye: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -1077,7 +1136,8 @@ where
     pub fn transform_point(&self, point: Vector<2, T, A>) -> Vector<2, T, A> {
         debug_assert!(
             self.column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6))
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
+            "matrix contains projection (which transform_point does not handle)"
         );
 
         self.x_axis.xy() * point.x + self.y_axis.xy() * point.y + self.z_axis.xy()
@@ -1101,7 +1161,8 @@ where
     pub fn transform_vector(&self, vector: Vector<2, T, A>) -> Vector<2, T, A> {
         debug_assert!(
             self.column(2)
-                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6))
+                .abs_diff_eq(Vector::<3, T, A>::Z, T::as_from(1e-6)),
+            "matrix contains projection (which transform_vector does not handle)"
         );
 
         self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
@@ -1181,8 +1242,6 @@ where
     #[inline(always)]
     #[track_caller]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<4, T, A>; 3] {
-        debug_assert!(quat.to_vector().is_normalized());
-
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
         let z2 = quat.z + quat.z;
@@ -1221,6 +1280,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_quat(quat: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            quat.is_normalized(),
+            "quat is not normalized: Matrix::from_quat({quat:?})"
+        );
+
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(quat);
         Self::from_rows(&[x_axis, y_axis, z_axis, Vector::W])
     }
@@ -1245,7 +1309,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        debug_assert!(axis.is_normalized());
+        debug_assert!(
+            axis.is_normalized(),
+            "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         let [xsin, ysin, zsin] = (axis * sin).to_array();
@@ -1296,6 +1363,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_scale_rotation(scale: Vector<3, T, A>, rotation: Quaternion<T, A>) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_scale_rotation({scale:?}, {rotation:?})"
+        );
+
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             rotation_x * scale.x,
@@ -1326,6 +1398,11 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_rotation_translation({rotation:?}, {translation:?})"
+        );
+
         let [x_axis, y_axis, z_axis] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             x_axis,
@@ -1357,6 +1434,11 @@ where
         rotation: Quaternion<T, A>,
         translation: Vector<3, T, A>,
     ) -> Self {
+        debug_assert!(
+            rotation.is_normalized(),
+            "rotation is not normalized: from_scale_rotation_translation({scale:?}, {rotation:?}, {translation:?})"
+        );
+
         let [rotation_x, rotation_y, rotation_z] = Self::quat_to_axes(rotation);
         Self::from_rows(&[
             rotation_x * scale.x,
@@ -1389,11 +1471,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = up.cross(forward).normalize();
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -1427,11 +1518,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = forward.cross(up).normalize();
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -1466,10 +1566,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = up.cross(forward).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -1504,10 +1619,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = forward.cross(up).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -1538,7 +1668,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_lh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1573,7 +1706,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_rh(vertical_fov: T, aspect_ratio: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1613,7 +1749,10 @@ where
         near_plane: T,
         far_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1658,7 +1797,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_infinite_lh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1692,7 +1831,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn perspective_infinite_rh(vertical_fov: T, aspect_ratio: T, near_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1729,7 +1868,7 @@ where
         aspect_ratio: T,
         near_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1766,7 +1905,7 @@ where
         aspect_ratio: T,
         near_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO);
+        debug_assert!(near_plane > T::ZERO, "near_plane < 0");
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(vertical_fov * T::as_from(0.5));
         let height_recip = cos / sin;
@@ -1797,7 +1936,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn frustum_lh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1833,7 +1975,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn frustum_rh(left: T, right: T, bottom: T, top: T, near_plane: T, far_plane: T) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1879,7 +2024,10 @@ where
         near_plane: T,
         far_plane: T,
     ) -> Self {
-        debug_assert!(near_plane > T::ZERO && far_plane > near_plane);
+        debug_assert!(
+            near_plane > T::ZERO && far_plane > near_plane,
+            "near_plane < 0 or far_plane < near_plane"
+        );
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1917,7 +2065,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_lh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        debug_assert!(far > near);
+        debug_assert!(far > near, "far < near");
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1955,7 +2103,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_rh(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        debug_assert!(far > near);
+        debug_assert!(far > near, "far < near");
 
         let width_recip = (right - left).recip();
         let height_recip = (top - bottom).recip();
@@ -1993,7 +2141,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn orthographic_rh_gl(left: T, right: T, bottom: T, top: T, near: T, far: T) -> Self {
-        debug_assert!(far > near);
+        debug_assert!(far > near, "far < near");
 
         let scale_x = T::as_from(2.0) / (right - left);
         let scale_y = T::as_from(2.0) / (top - bottom);
@@ -2086,7 +2234,8 @@ where
     pub fn transform_point(&self, point: Vector<3, T, A>) -> Vector<3, T, A> {
         debug_assert!(
             self.column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6))
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
+            "matrix contains projection (which transform_point does not handle)"
         );
 
         self.x_axis.xyz() * point.x
@@ -2113,7 +2262,8 @@ where
     pub fn transform_vector(&self, vector: Vector<3, T, A>) -> Vector<3, T, A> {
         debug_assert!(
             self.column(3)
-                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6))
+                .abs_diff_eq(Vector::<4, T, A>::W, T::as_from(1e-6)),
+            "matrix contains projection (which transform_vector does not handle)"
         );
 
         self.x_axis.xyz() * vector.x + self.y_axis.xyz() * vector.y + self.z_axis.xyz() * vector.z

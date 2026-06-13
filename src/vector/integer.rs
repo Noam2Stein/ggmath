@@ -247,7 +247,10 @@ macro_rules! impl_integer {
             #[must_use]
             #[track_caller]
             pub fn clamp(self, min: Self, max: Self) -> Self {
-                debug_assert!((0..N).all(|i| min[i] <= max[i]), "min <= max");
+                debug_assert!(
+                    (0..N).all(|i| min[i] <= max[i]),
+                    "min > max: {self:?}.clamp({min:?}, {max:?})"
+                );
 
                 self.max(min).min(max)
             }

@@ -357,11 +357,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_lh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = up.cross(forward).normalize();
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_lh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -389,11 +398,20 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_to_rh(eye: Vector<3, T, A>, dir: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(dir.is_normalized());
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            dir.is_normalized() && up.is_normalized(),
+            "directions are not normalized: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
 
         let forward = dir;
-        let right = forward.cross(up).normalize();
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "dir and up are parallel: look_to_rh({eye:?}, {dir:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[
@@ -422,10 +440,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_lh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = up.cross(forward).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = up.cross(forward);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_lh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = forward.cross(right);
 
         Self::from_rows(&[
@@ -454,10 +487,25 @@ where
     #[must_use]
     #[track_caller]
     pub fn look_at_rh(eye: Vector<3, T, A>, center: Vector<3, T, A>, up: Vector<3, T, A>) -> Self {
-        debug_assert!(up.is_normalized());
+        debug_assert!(
+            up.is_normalized(),
+            "up is not normalized: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
 
-        let forward = (center - eye).normalize();
-        let right = forward.cross(up).normalize();
+        let forward = center - eye;
+        let forward = forward / forward.length();
+        debug_assert!(
+            forward.is_finite() && forward != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
+        let right = forward.cross(up);
+        let right = right / right.length();
+        debug_assert!(
+            right.is_finite() && right != Vector::ZERO,
+            "(center - eye) and up are parallel: look_at_rh({eye:?}, {center:?}, {up:?})"
+        );
+
         let up = right.cross(forward);
 
         Self::from_rows(&[

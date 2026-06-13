@@ -215,7 +215,7 @@ where
     pub fn max(self, other: Self) -> Self {
         debug_assert!(
             !self.is_nan() && !other.is_nan(),
-            "NaN: {self:?}.max({other:?})"
+            "cannot compare NaN: {self:?}.max({other:?})"
         );
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_max(self, other))
@@ -251,7 +251,7 @@ where
     pub fn min(self, other: Self) -> Self {
         debug_assert!(
             !self.is_nan() && !other.is_nan(),
-            "NaN: {self:?}.min({other:?})"
+            "cannot compare NaN: {self:?}.min({other:?})"
         );
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_min(self, other))
@@ -289,13 +289,8 @@ where
     #[track_caller]
     pub fn clamp(self, min: Self, max: Self) -> Self {
         debug_assert!(
-            !self.is_nan() && !min.is_nan() && !max.is_nan(),
-            "NaN: {self:?}.clamp({min:?}, {max:?})"
-        );
-
-        debug_assert!(
-            (0..N).all(|i| min[i] <= max[i]),
-            "min > max: {self:?}.clamp({min:?}, {max:?})"
+            min.le_mask(max).all() && !self.is_nan() && !min.is_nan() && !max.is_nan(),
+            "min > max, or either was NaN: {self:?}.clamp({min:?}, {max:?})"
         );
 
         self.max(min).min(max)
@@ -327,7 +322,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn max_element(self) -> T {
-        debug_assert!(!self.is_nan(), "NaN: {self:?}.max_element()");
+        debug_assert!(!self.is_nan(), "cannot compare NaN: {self:?}.max_element()");
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_max_element(self))
     }
@@ -358,7 +353,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn min_element(self) -> T {
-        debug_assert!(!self.is_nan(), "NaN: {self:?}.min_element()");
+        debug_assert!(!self.is_nan(), "cannot compare NaN: {self:?}.min_element()");
 
         specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_min_element(self))
     }
@@ -863,7 +858,10 @@ where
         let self_length = self.length();
         let other_length = other.length();
 
-        debug_assert!(self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7));
+        debug_assert!(
+            self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7),
+            "zero vector: {self:?}.slerp({other:?})"
+        );
 
         match N {
             2 => {
@@ -987,7 +985,10 @@ where
         let self_length = self.length();
         let target_length = target.length();
 
-        debug_assert!(target_length >= T::as_from(1e-7));
+        debug_assert!(
+            target_length >= T::as_from(1e-7),
+            "target is zero: {self:?}.rotate_towards({target:?}, {max_angle:?})"
+        );
 
         if self == Self::ZERO {
             return self;
@@ -1141,13 +1142,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn normalize(self) -> Self {
-        debug_assert!(self != Self::ZERO, "cannot normalize a zero vector");
-
         let result = self / self.length();
 
         debug_assert!(
             result.is_finite() && result != Self::ZERO,
-            "non finite result: {self:?}.normalize()"
+            "vector is zero or non-finite: {self:?}.normalize()"
         );
 
         result
@@ -1301,7 +1300,7 @@ where
                 max.partial_cmp(&T::ZERO),
                 None | Some(Ordering::Greater | Ordering::Equal)
             ),
-            "negative maximum length"
+            "negative maximum length: {self:?}.with_max_length({max:?})"
         );
 
         let length_squared = self.length_squared();
@@ -1310,7 +1309,7 @@ where
 
             debug_assert!(
                 normalized.is_finite() && normalized != Self::ZERO,
-                "invalid vector: {self:?}.with_max_length(...)"
+                "vector cannot be normalized: {self:?}.with_max_length({max:?})"
             );
 
             normalized * max
@@ -1351,7 +1350,7 @@ where
 
             debug_assert!(
                 normalized.is_finite() && normalized != Self::ZERO,
-                "invalid vector: {self:?}.with_min_length(...)"
+                "vector cannot be normalized: {self:?}.with_min_length({min:?})"
             );
 
             normalized * min
@@ -1394,15 +1393,11 @@ where
             matches!(
                 max.partial_cmp(&T::ZERO),
                 None | Some(Ordering::Greater | Ordering::Equal)
-            ),
-            "negative maximum length"
-        );
-        debug_assert!(
-            matches!(
+            ) && matches!(
                 min.partial_cmp(&max),
                 None | Some(Ordering::Less | Ordering::Equal)
             ),
-            "minimum length is greater than maximum length"
+            "max_length < min_length or max_length < 0: {self:?}.clamp_length({min:?}, {max:?})"
         );
 
         let length_squared = self.length_squared();
@@ -1411,7 +1406,7 @@ where
 
             debug_assert!(
                 normalized.is_finite() && normalized != Self::ZERO,
-                "invalid vector: {self:?}.clamp_length(...)"
+                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
             );
 
             normalized * min
@@ -1420,7 +1415,7 @@ where
 
             debug_assert!(
                 normalized.is_finite() && normalized != Self::ZERO,
-                "invalid vector: {self:?}.clamp_length(...)"
+                "invalid vector: {self:?}.clamp_length({min:?}, {max:?})"
             );
 
             normalized * max
@@ -1466,7 +1461,7 @@ where
 
         debug_assert!(
             length_product.recip().is_finite(),
-            "invalid vectors: {self:?}.angle_between({other:?}"
+            "vectors cannot be normalized: {self:?}.angle_between({other:?})"
         );
 
         PrimitiveFloatUtils::acos(
@@ -1491,7 +1486,10 @@ where
     pub fn project_onto(self, other: Self) -> Self {
         let other_length_squared_recip = other.length_squared().recip();
 
-        debug_assert!(other_length_squared_recip.is_finite());
+        debug_assert!(
+            other_length_squared_recip.is_finite(),
+            "other cannot be normalized: {self:?}.project_onto({other:?})"
+        );
 
         other * self.dot(other) * other_length_squared_recip
     }
@@ -1509,7 +1507,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn project_onto_normalized(self, other: Self) -> Self {
-        debug_assert!(other.is_normalized());
+        debug_assert!(
+            other.is_normalized(),
+            "other is not normalized: {self:?}.project_onto_normalized({other:?})"
+        );
 
         other * self.dot(other)
     }
@@ -1529,7 +1530,14 @@ where
     #[must_use]
     #[track_caller]
     pub fn reject_from(self, other: Self) -> Self {
-        self - self.project_onto(other)
+        let other_length_squared_recip = other.length_squared().recip();
+
+        debug_assert!(
+            other_length_squared_recip.is_finite(),
+            "other cannot be normalized: {self:?}.reject_from({other:?})"
+        );
+
+        self - other * self.dot(other) * other_length_squared_recip
     }
 
     /// Returns the vector rejection of `self` from `other`.
@@ -1547,7 +1555,12 @@ where
     #[must_use]
     #[track_caller]
     pub fn reject_from_normalized(self, other: Self) -> Self {
-        self - self.project_onto_normalized(other)
+        debug_assert!(
+            other.is_normalized(),
+            "other is not normalized: {self:?}.reject_from_normalized({other:?})"
+        );
+
+        self - other * self.dot(other)
     }
 
     /// Returns the reflection of `self` through `normal`.
@@ -1563,7 +1576,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn reflect(self, normal: Self) -> Self {
-        debug_assert!(normal.is_normalized());
+        debug_assert!(
+            normal.is_normalized(),
+            "normal is not normalized: {self:?}.reflect({normal:?})"
+        );
 
         self - normal * (T::as_from(2.0) * self.dot(normal))
     }
@@ -1586,8 +1602,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn refract(self, normal: Self, eta: T) -> Self {
-        debug_assert!(self.is_normalized());
-        debug_assert!(normal.is_normalized());
+        debug_assert!(
+            self.is_normalized() && normal.is_normalized(),
+            "vector or normal are not normalized: {self:?}.refract({normal:?}, {eta:?})"
+        );
 
         let self_dot_normal = self.dot(normal);
         let k = T::as_from(1.0) - eta * eta * (T::as_from(1.0) - self_dot_normal * self_dot_normal);
@@ -1674,7 +1692,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn any_orthonormal_vector(self) -> Self {
-        debug_assert!(self.is_normalized());
+        debug_assert!(
+            self.is_normalized(),
+            "vector is not normalized: {self:?}.any_orthonormal_vector()"
+        );
 
         match N {
             2 => {
@@ -1804,9 +1825,23 @@ where
     /// ```
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn angle_to(self, other: Self) -> T {
-        let outer_product = (self.x * other.y) - (self.y * other.x);
-        self.angle_between(other) * outer_product.signum()
+        let length_product =
+            PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared());
+
+        debug_assert!(
+            length_product.recip().is_finite(),
+            "vectors cannot be normalized: {self:?}.angle_to({other:?})"
+        );
+
+        let angle_between = PrimitiveFloatUtils::acos(
+            (self.dot(other) / length_product)
+                .max(T::NEG_ONE)
+                .min(T::ONE),
+        );
+        let outer_product = self.x * other.y - self.y * other.x;
+        angle_between * outer_product.signum()
     }
 
     /// Returns the angle (in radians) that rotates `other` to `self` in the
@@ -1843,8 +1878,21 @@ where
     #[inline]
     #[must_use]
     pub fn angle_from(self, other: Self) -> T {
-        let outer_product = (other.x * self.y) - (other.y * self.x);
-        self.angle_between(other) * outer_product.signum()
+        let length_product =
+            PrimitiveFloatUtils::sqrt(self.length_squared() * other.length_squared());
+
+        debug_assert!(
+            length_product.recip().is_finite(),
+            "vectors cannot be normalized: {self:?}.angle_from({other:?})"
+        );
+
+        let angle_between = PrimitiveFloatUtils::acos(
+            (self.dot(other) / length_product)
+                .max(T::NEG_ONE)
+                .min(T::ONE),
+        );
+        let outer_product = other.x * self.y - other.y * self.x;
+        angle_between * outer_product.signum()
     }
 
     /// Rotates `self` by `angle` (in radians).
@@ -1954,7 +2002,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn any_orthonormal_pair(self) -> (Self, Self) {
-        debug_assert!(self.is_normalized());
+        debug_assert!(
+            self.is_normalized(),
+            "vector is not normalized: {self:?}.any_orthonormal_pair()"
+        );
 
         // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
         let sign = self.z.signum();

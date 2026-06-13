@@ -53,7 +53,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn from_axis_angle(axis: Vector<3, T, A>, angle: T) -> Self {
-        debug_assert!(axis.is_normalized());
+        debug_assert!(
+            axis.is_normalized(),
+            "axis is not normalized: from_axis_angle({axis:?}, {angle:?})"
+        );
 
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle * T::as_from(0.5));
         let xyz = axis * sin;
@@ -96,8 +99,10 @@ where
     pub fn from_rotation_arc(from: Vector<3, T, A>, to: Vector<3, T, A>) -> Self {
         // Ported from `https://github.com/bitshifter/glam-rs`.
 
-        debug_assert!(from.is_normalized());
-        debug_assert!(to.is_normalized());
+        debug_assert!(
+            from.is_normalized() && to.is_normalized(),
+            "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
+        );
 
         let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
         let pi = T::as_from(core::f64::consts::PI);
@@ -138,8 +143,10 @@ where
     pub fn from_rotation_arc_colinear(from: Vector<3, T, A>, mut to: Vector<3, T, A>) -> Self {
         // Ported from `https://github.com/bitshifter/glam-rs`.
 
-        debug_assert!(from.is_normalized());
-        debug_assert!(to.is_normalized());
+        debug_assert!(
+            from.is_normalized() && to.is_normalized(),
+            "vectors are not normalized: from_rotation_arc_colinear({from:?}, {to:?})"
+        );
 
         let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
 
@@ -246,7 +253,7 @@ where
                     .x_axis
                     .cross(matrix.y_axis)
                     .abs_diff_eq(matrix.z_axis, T::as_from(1e-4)),
-            "not a rotation matrix"
+            "not a rotation matrix: Quaternion::from_matrix({matrix:?})"
         );
 
         let [m00, m01, m02] = matrix.x_axis.to_array();
@@ -437,8 +444,22 @@ where
     #[inline]
     #[must_use]
     pub fn to_scaled_axis(self) -> Vector<3, T, A> {
-        let (axis, angle) = self.to_axis_angle();
-        axis * angle
+        debug_assert!(
+            self.is_normalized(),
+            "quaternion is not normalized: {self:?}.to_scaled_axis()"
+        );
+
+        let xyz = Vector::<3, T, A>::new(self.x, self.y, self.z);
+        let length = xyz.length();
+
+        if length >= T::as_from(1e-8) {
+            let axis = xyz / length;
+            let angle = PrimitiveFloatUtils::atan2(length, self.w) * T::as_from(2.0);
+
+            axis * angle
+        } else {
+            Vector::ZERO
+        }
     }
 
     /// Returns the Euler angles forming `self` for the given Euler rotation
@@ -453,6 +474,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn to_euler(self, order: EulerRot) -> (T, T, T) {
+        debug_assert!(
+            self.is_normalized(),
+            "quaternion is not normalized: {self:?}.to_euler({order:?})"
+        );
+
         Matrix::<3, T, A>::from_quat(self).to_euler(order)
     }
 
@@ -511,7 +537,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn inverse(self) -> Self {
-        debug_assert!(self.is_normalized());
+        debug_assert!(
+            self.is_normalized(),
+            "quaternion is not normalized: {self:?}.inverse()"
+        );
 
         self.conjugate()
     }
@@ -530,7 +559,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn angle_between(self, other: Self) -> T {
-        debug_assert!(self.is_normalized() && other.is_normalized());
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "quaternions are not normalized: {self:?}.angle_between({other:?})"
+        );
 
         PrimitiveFloatUtils::acos(self.dot(other).abs().min(T::ONE)) * T::as_from(2.0)
     }
@@ -550,8 +582,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn lerp(self, other: Self, t: T) -> Self {
-        debug_assert!(self.is_normalized());
-        debug_assert!(other.is_normalized());
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "quaternions are not normalized: {self:?}.lerp({other:?}, {t:?})"
+        );
 
         let other = if self.dot(other).is_sign_negative() {
             -other
@@ -580,8 +614,10 @@ where
         // Ported from https://github.com/bitshifter/glam-rs
         // See http://number-none.com/product/Understanding%20Slerp,%20Then%20Not%20Using%20It/
 
-        debug_assert!(self.is_normalized());
-        debug_assert!(other.is_normalized());
+        debug_assert!(
+            self.is_normalized() && other.is_normalized(),
+            "quaternions are not normalized: {self:?}.slerp({other:?}, {t:?})"
+        );
 
         // Note that a rotation can be represented by two quaternions: `q` and
         // `-q`. The slerp path between `q` and `other` will be different from
@@ -629,7 +665,10 @@ where
     #[must_use]
     #[track_caller]
     pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
-        debug_assert!(self.is_normalized() && target.is_normalized());
+        debug_assert!(
+            self.is_normalized() && target.is_normalized(),
+            "quaternions are not normalized: {self:?}.rotate_towards({target:?}, {max_angle:?})"
+        );
 
         let angle = self.angle_between(target);
         if angle <= T::as_from(1e-4) {
@@ -679,16 +718,11 @@ where
     #[must_use]
     #[track_caller]
     pub fn normalize(self) -> Self {
-        debug_assert!(
-            self != Self::from_vector(Vector::ZERO),
-            "cannot normalize a zero quaternion"
-        );
-
         let result = self / self.length();
 
         debug_assert!(
             result.is_finite() && result != Self::from_vector(Vector::ZERO),
-            "non finite result: {self:?}.normalize()"
+            "quaternion is zero or non-finite: {self:?}.normalize()"
         );
 
         result

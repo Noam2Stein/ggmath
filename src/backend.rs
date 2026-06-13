@@ -988,11 +988,11 @@ where
 {
     #[inline]
     #[track_caller]
-    fn vector_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
+    fn vector_wrapping_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: PrimitiveSigned,
     {
-        vector.map(Self::abs)
+        vector.map(Self::wrapping_abs)
     }
 
     #[inline]

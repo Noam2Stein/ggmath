@@ -168,7 +168,7 @@ pub(crate) trait PrimitiveSignedUtils: Sized {
     type Unsigned: PrimitiveUnsigned;
 
     #[cfg(not(feature = "num-primitive"))]
-    fn abs(self) -> Self;
+    fn wrapping_abs(self) -> Self;
 
     #[cfg(not(feature = "num-primitive"))]
     fn signum(self) -> Self;
@@ -658,8 +658,8 @@ macro_rules! impl_signed {
 
             #[cfg(not(feature = "num-primitive"))]
             #[inline(always)]
-            fn abs(self) -> Self {
-                self.abs()
+            fn wrapping_abs(self) -> Self {
+                self.wrapping_abs()
             }
 
             #[cfg(not(feature = "num-primitive"))]
