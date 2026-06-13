@@ -115,7 +115,6 @@ macro_rules! impl_wide_float {
             /// propagation and handling of `-0.0`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn max(self, other: Self) -> Self {
                 Self::from_fn(|i| self[i].fast_max(other[i]))
             }
@@ -128,7 +127,6 @@ macro_rules! impl_wide_float {
             /// propagation and handling of `-0.0`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn min(self, other: Self) -> Self {
                 Self::from_fn(|i| self[i].fast_min(other[i]))
             }
@@ -143,7 +141,6 @@ macro_rules! impl_wide_float {
             /// propagation and handling of `-0.0`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn clamp(self, min: Self, max: Self) -> Self {
                 self.max(min).min(max)
             }
@@ -157,7 +154,6 @@ macro_rules! impl_wide_float {
             /// propagation and handling of `-0.0`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn max_element(self) -> $Wide {
                 match N {
                     2 => self[0].fast_max(self[1]),
@@ -179,7 +175,6 @@ macro_rules! impl_wide_float {
             /// propagation and handling of `-0.0`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn min_element(self) -> $Wide {
                 match N {
                     2 => self[0].fast_min(self[1]),
@@ -553,7 +548,6 @@ macro_rules! impl_wide_float {
             /// be non-zero.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn slerp(self, other: Self, t: $Wide) -> Self {
                 let self_length = self.length();
                 let other_length = other.length();
@@ -709,7 +703,6 @@ macro_rules! impl_wide_float {
             /// need to be non-zero.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn rotate_towards(self, target: Self, max_angle: $Wide) -> Self {
                 let self_length = self.length();
                 let target_length = target.length();
@@ -857,7 +850,6 @@ macro_rules! impl_wide_float {
             /// length `1`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn normalize(self) -> Self {
                 self / self.length()
             }
@@ -928,7 +920,6 @@ macro_rules! impl_wide_float {
             /// `max`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn with_max_length(self, max: $Wide) -> Self {
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_gt(max * max))
@@ -941,7 +932,6 @@ macro_rules! impl_wide_float {
             /// If `min` is negative, this returns `self` for that lane.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn with_min_length(self, min: $Wide) -> Self {
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_lt(min * min.abs()))
@@ -954,7 +944,6 @@ macro_rules! impl_wide_float {
             /// If `min` is negative it is ignored.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn clamp_length(self, min: $Wide, max: $Wide) -> Self {
                 let length_squared = self.length_squared();
                 Self::splat(length_squared.simd_lt(min * min.abs())).blend(
@@ -989,7 +978,6 @@ macro_rules! impl_wide_float {
             /// `other` must not be a zero vector.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn project_onto(self, other: Self) -> Self {
                 let other_length_squared_recip = $Wide::ONE / other.length_squared();
 
@@ -1001,7 +989,6 @@ macro_rules! impl_wide_float {
             /// `other` must be normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn project_onto_normalized(self, other: Self) -> Self {
                 other * self.dot(other)
             }
@@ -1013,7 +1000,6 @@ macro_rules! impl_wide_float {
             /// `other` must not be a zero vector.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn reject_from(self, other: Self) -> Self {
                 self - self.project_onto(other)
             }
@@ -1025,7 +1011,6 @@ macro_rules! impl_wide_float {
             /// `other` must be normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn reject_from_normalized(self, other: Self) -> Self {
                 self - self.project_onto_normalized(other)
             }
@@ -1035,7 +1020,6 @@ macro_rules! impl_wide_float {
             /// `normal` must be normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn reflect(self, normal: Self) -> Self {
                 self - normal * ($Wide::splat(2.0) * self.dot(normal))
             }
@@ -1052,7 +1036,6 @@ macro_rules! impl_wide_float {
             /// `self` and `normal` must be normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn refract(self, normal: Self, eta: $Wide) -> Self {
                 let self_dot_normal = self.dot(normal);
                 let k = $Wide::ONE - eta * eta * ($Wide::ONE - self_dot_normal * self_dot_normal);
@@ -1163,7 +1146,6 @@ macro_rules! impl_wide_float {
             /// [`perp`]: Self::perp
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn any_orthonormal_vector(self) -> Self {
                 match N {
                     2 => {
@@ -1405,7 +1387,6 @@ macro_rules! impl_wide_float {
             /// normalized.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn any_orthonormal_pair(self) -> (Self, Self) {
                 // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
                 let sign = self.z.signum();

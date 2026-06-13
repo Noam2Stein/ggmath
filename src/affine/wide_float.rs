@@ -33,7 +33,6 @@ macro_rules! impl_wide_float {
             /// If `self` is not invertable the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn inverse(&self) -> Self {
                 let submatrix = self.submatrix.inverse();
                 let translation = -self.translation * submatrix;
@@ -175,7 +174,6 @@ macro_rules! impl_wide_float {
             /// the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_scale_angle_translation(
                 &self,
             ) -> (Vector<2, $Wide, A>, $Wide, Vector<2, $Wide, A>) {
@@ -219,7 +217,6 @@ macro_rules! impl_wide_float {
             /// quaternion.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_quat(quat: Quaternion<$Wide, A>) -> Self {
                 Self::from_submatrix(Matrix::<3, $Wide, A>::from_quat(quat))
             }
@@ -230,7 +227,6 @@ macro_rules! impl_wide_float {
             /// `axis` must be normalized. Otherwise the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_axis_angle(axis: Vector<3, $Wide, A>, angle: $Wide) -> Self {
                 Self::from_submatrix(Matrix::<3, $Wide, A>::from_axis_angle(axis, angle))
             }
@@ -247,7 +243,6 @@ macro_rules! impl_wide_float {
             /// a 3D `rotation`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_scale_rotation(
                 scale: Vector<3, $Wide, A>,
                 rotation: Quaternion<$Wide, A>,
@@ -259,7 +254,6 @@ macro_rules! impl_wide_float {
             /// `translation`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_rotation_translation(
                 rotation: Quaternion<$Wide, A>,
                 translation: Vector<3, $Wide, A>,
@@ -274,7 +268,6 @@ macro_rules! impl_wide_float {
             /// 3D `rotation` and `translation`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn from_scale_rotation_translation(
                 scale: Vector<3, $Wide, A>,
                 rotation: Quaternion<$Wide, A>,
@@ -293,7 +286,6 @@ macro_rules! impl_wide_float {
             /// `+Z=forward`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_lh(
                 eye: Vector<3, $Wide, A>,
                 dir: Vector<3, $Wide, A>,
@@ -318,7 +310,6 @@ macro_rules! impl_wide_float {
             /// `+Z=back`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_to_rh(
                 eye: Vector<3, $Wide, A>,
                 dir: Vector<3, $Wide, A>,
@@ -343,7 +334,6 @@ macro_rules! impl_wide_float {
             /// `+Z=forward`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_lh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -359,7 +349,6 @@ macro_rules! impl_wide_float {
             /// `+Z=back`.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn look_at_rh(
                 eye: Vector<3, $Wide, A>,
                 center: Vector<3, $Wide, A>,
@@ -375,7 +364,6 @@ macro_rules! impl_wide_float {
             /// excluding translation. Otherwise the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_euler(&self, order: EulerRot) -> ($Wide, $Wide, $Wide) {
                 self.submatrix.to_euler(order)
             }
@@ -397,7 +385,6 @@ macro_rules! impl_wide_float {
             /// the result is unspecified.
             #[inline]
             #[must_use]
-            #[track_caller]
             pub fn to_scale_rotation_translation(
                 &self,
             ) -> (

@@ -67,7 +67,6 @@ where
     /// `scaled_axis.normalize()`.
     #[inline]
     #[must_use]
-    #[track_caller]
     pub fn from_scaled_axis(scaled_axis: Vector<3, T, A>) -> Self {
         let angle = scaled_axis.length();
         if angle == T::ZERO {

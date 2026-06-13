@@ -987,7 +987,6 @@ where
     Length<N>: SupportedLength,
 {
     #[inline]
-    #[track_caller]
     fn vector_wrapping_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: PrimitiveSigned,

@@ -617,7 +617,6 @@ where
         ])
     }
 
-    #[track_caller]
     #[inline(always)]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<3, T, A>; 3] {
         let x2 = quat.x + quat.x;
@@ -1240,7 +1239,6 @@ where
     }
 
     #[inline(always)]
-    #[track_caller]
     fn quat_to_axes(quat: Quaternion<T, A>) -> [Vector<4, T, A>; 3] {
         let x2 = quat.x + quat.x;
         let y2 = quat.y + quat.y;
