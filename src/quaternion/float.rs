@@ -1,5 +1,6 @@
 use crate::{
-    Alignment, EulerRot, Matrix, PrimitiveFloat, Quaternion, Vector, utils::PrimitiveFloatUtils,
+    Alignment, EulerRot, FloatExt, Matrix, PrimitiveFloat, Quaternion, Vector,
+    utils::PrimitiveFloatUtils,
 };
 
 impl<T, A: Alignment> Quaternion<T, A>
@@ -220,14 +221,33 @@ where
     ///
     /// When debug assertions are enabled:
     ///
-    /// Panics if `matrix.determinant()` is not `1`.
+    /// Panics if `matrix` is not a rotation matrix.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn from_matrix(matrix: &Matrix<3, T, A>) -> Self {
         // Ported from https://github.com/bitshifter/glam-rs `Quat::from_rotation_axes`
         // Based on https://github.com/microsoft/DirectXMath `XMQuaternionRotationMatrix`
 
-        debug_assert!((matrix.determinant() - T::ONE).abs() <= T::as_from(1e-4));
+        debug_assert!(
+            matrix
+                .x_axis
+                .length_squared()
+                .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && matrix
+                    .y_axis
+                    .length_squared()
+                    .abs_diff_eq(T::ONE, T::as_from(1e-4))
+                && matrix
+                    .x_axis
+                    .dot(matrix.y_axis)
+                    .abs_diff_eq(T::ZERO, T::as_from(1e-4))
+                && matrix
+                    .x_axis
+                    .cross(matrix.y_axis)
+                    .abs_diff_eq(matrix.z_axis, T::as_from(1e-4)),
+            "not a rotation matrix"
+        );
 
         let [m00, m01, m02] = matrix.x_axis.to_array();
         let [m10, m11, m12] = matrix.y_axis.to_array();
@@ -755,7 +775,7 @@ mod tests {
     #[cfg(not(feature = "num-primitive"))]
     use crate::utils::PrimitiveFloatUtils;
     use crate::{
-        EulerRot, Matrix, QuatA, Quaternion, Vector,
+        EulerRot, FloatExt, Matrix, QuatA, Quaternion, Vector,
         utils::{
             assert_debug_panic, assert_panic_test_eq, assert_test_eq, for_types, random_iter,
             test_eq,
@@ -1020,7 +1040,15 @@ mod tests {
             }
 
             for matrix in random_iter::<Matrix<3, T, A>>().take(10) {
-                if matrix.determinant() != 1.0 {
+                if !matrix.determinant().abs_diff_eq(1.0, 1e-4)
+                    || !matrix.x_axis.dot(matrix.y_axis).abs_diff_eq(0.0, 1e-4)
+                    || !matrix.x_axis.dot(matrix.z_axis).abs_diff_eq(0.0, 1e-4)
+                    || !matrix.y_axis.dot(matrix.z_axis).abs_diff_eq(0.0, 1e-4)
+                    || !matrix
+                        .x_axis
+                        .cross(matrix.y_axis)
+                        .abs_diff_eq(matrix.z_axis, 1e-4)
+                {
                     assert_debug_panic!(Quaternion::<T, A>::from_matrix(&matrix));
                 }
             }
