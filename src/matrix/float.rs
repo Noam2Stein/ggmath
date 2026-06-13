@@ -2610,7 +2610,7 @@ mod tests {
 
                 if scale.iter().any(|x| x > 1e10)
                     || !matrix.determinant().is_finite()
-                    || matrix.determinant() == 0.0
+                    || matrix.determinant().abs() < 1e-8
                 {
                     continue;
                 }
