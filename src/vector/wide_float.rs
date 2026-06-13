@@ -899,8 +899,9 @@ macro_rules! impl_wide_float {
 
             /// Simultaneously computes [`normalize`] and [`length`].
             ///
-            /// If `self` is a zero vector for a given lane, the result is
-            /// `(Self::ZERO, 0)` for that lane.
+            /// If `self` is a zero vector, the result for that lane is length
+            /// `0` and an unspecified vector. Consider manually checking for
+            /// `length == 0.0`.
             ///
             /// [`normalize`]: Self::normalize
             /// [`length`]: Self::length
@@ -908,13 +909,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn normalize_and_length(self) -> (Self, $Wide) {
                 let length = self.length();
-                let length_recip = $Wide::ONE / length;
-
-                let valid_mask = length_recip.is_finite() & length_recip.simd_gt($Wide::ZERO);
-                (
-                    Self::splat(valid_mask).blend(self * length_recip, Self::ZERO),
-                    valid_mask.blend(length, $Wide::ZERO),
-                )
+                (self / length, length)
             }
 
             /// For each lane, returns whether the vector has the length `1` or

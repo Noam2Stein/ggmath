@@ -1227,7 +1227,8 @@ where
 
     /// Simultaneously computes [`normalize`] and [`length`].
     ///
-    /// If `self` is a zero vector, the result is `(Self::ZERO, 0.0)`.
+    /// If `self` is a zero vector, the result is length `0` and an unspecified
+    /// vector. Consider manually checking for `length == 0.0`.
     ///
     /// # Examples
     ///
@@ -1247,13 +1248,7 @@ where
     #[must_use]
     pub fn normalize_and_length(self) -> (Self, T) {
         let length = self.length();
-        let recip = T::as_from(1.0) / length;
-
-        if recip.is_finite() && recip > T::as_from(0.0) {
-            (self * recip, length)
-        } else {
-            (Self::ZERO, T::as_from(0.0))
-        }
+        (self / length, length)
     }
 
     /// Returns whether the vector has the length `1.0` or not.
@@ -2759,14 +2754,9 @@ mod tests {
     fn test_normalize_and_length() {
         for_types!(|N, T: PrimitiveFloat, A| {
             for vector in [Vector::<N, T, A>::ZERO].into_iter().chain(random_iter()) {
-                let Some(try_normalize) = vector.try_normalize() else {
-                    assert_test_eq!(vector.normalize_and_length(), (Vector::ZERO, 0.0));
-                    continue;
-                };
-
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     vector.normalize_and_length(),
-                    (try_normalize, vector.length())
+                    (vector.normalize(), vector.length())
                 );
             }
         });
