@@ -788,7 +788,7 @@ mod tests {
     fn test_to_axis_angle() {
         for_types!(|Wide: WideFloat| {
             for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     quat.to_axis_angle(),
                     (
                         Vec3::from_lane_fn(|lane| quat.lane(lane).to_axis_angle().0),
@@ -807,7 +807,7 @@ mod tests {
     fn test_to_scaled_axis() {
         for_types!(|Wide: WideFloat| {
             for quat in random_iter::<Quat<Wide>>().flat_map(|quat| [quat, quat.normalize()]) {
-                assert_test_eq!(
+                assert_test_eq_or_panic!(
                     quat.to_scaled_axis(),
                     Vec3::from_lane_fn(|lane| quat.lane(lane).to_scaled_axis()),
                     abs <= Wide::splat(1e-5)

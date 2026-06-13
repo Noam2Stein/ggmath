@@ -398,9 +398,21 @@ where
 
     /// Converts the quaternion `self` to a normalized rotation axis and an
     /// angle (in radians).
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
+    #[track_caller]
     pub fn to_axis_angle(self) -> (Vector<3, T, A>, T) {
+        debug_assert!(
+            self.is_normalized(),
+            "quaternion is not normalized: {self:?}.to_axis_angle()"
+        );
+
         let xyz = Vector::<3, T, A>::new(self.x, self.y, self.z);
         let length = xyz.length();
 
@@ -416,6 +428,12 @@ where
 
     /// Converts the quaternion `self` to a rotation axis scaled by an angle (in
     /// radians).
+    ///
+    /// # Panics
+    ///
+    /// When debug assertions are enabled:
+    ///
+    /// Panics if `self` is not normalized.
     #[inline]
     #[must_use]
     pub fn to_scaled_axis(self) -> Vector<3, T, A> {
@@ -1145,6 +1163,10 @@ mod tests {
     fn test_to_axis_angle() {
         for_types!(|T: PrimitiveFloat, A| {
             for quat in random_iter::<Quaternion<T, A>>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(quat.to_axis_angle());
+                }
+
                 let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
 
                 let result = quat.to_axis_angle();
@@ -1163,6 +1185,10 @@ mod tests {
     fn test_to_scaled_axis() {
         for_types!(|T: PrimitiveFloat, A| {
             for quat in random_iter::<Quaternion<T, A>>() {
+                if !quat.is_normalized() {
+                    assert_debug_panic!(quat.to_scaled_axis());
+                }
+
                 let quat = quat.normalize_or(Quaternion::IDENTITY).normalize();
 
                 assert_test_eq!(
