@@ -1,9 +1,17 @@
-use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use ggmath::Vec2;
 use wide::f32x4;
 
 use crate::{MICROBENCH_ARRAY_LEN, bench};
+
+bench!(
+    neg,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec2::<f32>::neg),
+    (unaligned_glam, glam::Vec2::neg),
+    (x4_unaligned, Vec2::<f32x4>::neg),
+);
 
 bench!(
     add,

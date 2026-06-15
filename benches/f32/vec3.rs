@@ -1,9 +1,19 @@
-use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use ggmath::{Vec3, Vec3A};
 use wide::f32x4;
 
 use crate::{MICROBENCH_ARRAY_LEN, bench};
+
+bench!(
+    neg,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec3::<f32>::neg),
+    (unaligned_glam, glam::Vec3::neg),
+    (aligned, Vec3A::<f32>::neg),
+    (aligned_glam, glam::Vec3A::neg),
+    (x4_unaligned, Vec3::<f32x4>::neg),
+);
 
 bench!(
     add,
