@@ -184,3 +184,53 @@ bench!(
     (aligned_glam, glam::Vec3A::refract),
     (x4_unaligned, Vec3::<f32x4>::refract),
 );
+
+bench!(
+    floor,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec3::<f32>::floor),
+    (unaligned_glam, glam::Vec3::floor),
+    (aligned, Vec3A::<f32>::floor),
+    (aligned_glam, glam::Vec3A::floor),
+    (x4_unaligned, Vec3::<f32x4>::floor),
+);
+
+bench!(
+    ceil,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec3::<f32>::ceil),
+    (unaligned_glam, glam::Vec3::ceil),
+    (aligned, Vec3A::<f32>::ceil),
+    (aligned_glam, glam::Vec3A::ceil),
+    (x4_unaligned, Vec3::<f32x4>::ceil),
+);
+
+bench!(
+    round,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec3::<f32>::round),
+    (unaligned_glam, glam::Vec3::round),
+    (aligned, Vec3A::<f32>::round),
+    (aligned_glam, glam::Vec3A::round),
+    (x4_unaligned, Vec3::<f32x4>::round),
+);
+
+bench!(
+    trunc,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec3::<f32>::trunc),
+    (unaligned_glam, glam::Vec3::trunc),
+    (aligned, Vec3A::<f32>::trunc),
+    (aligned_glam, glam::Vec3A::trunc),
+    (x4_unaligned, Vec3::<f32x4>::trunc),
+);
+
+bench!(
+    fract,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec3::<f32>::fract),
+    (unaligned_glam, glam::Vec3::fract),
+    (aligned, Vec3A::<f32>::fract),
+    (aligned_glam, glam::Vec3A::fract),
+    (x4_unaligned, Vec3::<f32x4>::fract),
+);

@@ -85,3 +85,48 @@ bench!(
     (aligned_glam, glam::Vec4::dot),
     (x4_unaligned, Vec4::<f32x4>::dot),
 );
+
+bench!(
+    floor,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec4::<f32>::floor),
+    (aligned, Vec4A::<f32>::floor),
+    (aligned_glam, glam::Vec4::floor),
+    (x4_unaligned, Vec4::<f32x4>::floor),
+);
+
+bench!(
+    ceil,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec4::<f32>::ceil),
+    (aligned, Vec4A::<f32>::ceil),
+    (aligned_glam, glam::Vec4::ceil),
+    (x4_unaligned, Vec4::<f32x4>::ceil),
+);
+
+bench!(
+    round,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec4::<f32>::round),
+    (aligned, Vec4A::<f32>::round),
+    (aligned_glam, glam::Vec4::round),
+    (x4_unaligned, Vec4::<f32x4>::round),
+);
+
+bench!(
+    trunc,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec4::<f32>::trunc),
+    (aligned, Vec4A::<f32>::trunc),
+    (aligned_glam, glam::Vec4::trunc),
+    (x4_unaligned, Vec4::<f32x4>::trunc),
+);
+
+bench!(
+    fract,
+    MICROBENCH_ARRAY_LEN,
+    (unaligned, Vec4::<f32>::fract),
+    (aligned, Vec4A::<f32>::fract),
+    (aligned_glam, glam::Vec4::fract),
+    (x4_unaligned, Vec4::<f32x4>::fract),
+);
