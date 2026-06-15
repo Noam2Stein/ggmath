@@ -2281,6 +2281,7 @@ mod tests {
             for vector in [0.0, 0.1, 0.5, 0.7, 3.0, 3.1, 3.5, 3.7, 4.0, 4.1, 4.5, 4.7]
                 .into_iter()
                 .flat_map(|x| [x, -x])
+                .flat_map(|x: T| [x, x.next_down(), x.next_up()])
                 .map(Vector::<N, T, A>::splat)
                 .chain(random_iter())
             {

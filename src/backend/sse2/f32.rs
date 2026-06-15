@@ -754,16 +754,24 @@ fn ceil(v: __m128) -> __m128 {
 #[inline]
 #[target_feature(enable = "sse2")]
 fn round(vector: __m128) -> __m128 {
-    let signed_half = _mm_or_ps(_mm_set1_ps(0.5), _mm_and_ps(vector, _mm_set1_ps(-0.0)));
-    let result = _mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_add_ps(vector, signed_half)));
+    let vector_abs = abs(vector);
+    let result_abs = _mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_add_ps(vector_abs, _mm_set1_ps(0.5))));
 
-    // Large value, infinity, and NaN need special handling.
-    let in_bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(abs(vector)),
+    // The addition breaks for `0.5.next_down()` which incorrectly rounds to
+    // `1.0`. This resets `result` to `0.0`.
+    let result_abs = _mm_and_ps(
+        result_abs,
+        _mm_cmpneq_ps(vector_abs, _mm_set1_ps(0.5_f32.next_down())),
+    );
+
+    // Large value, infinity and NaN need special handling.
+    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+        _mm_castps_si128(vector_abs),
         _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
     ));
 
-    select(abs(in_bounds_mask), result, vector)
+    // `abs` keeps the original sign.
+    select(abs(bounds_mask), result_abs, vector)
 }
 
 #[inline]
