@@ -3,11 +3,11 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use ggmath::{Vec3, Vec3A};
 use wide::f32x4;
 
-use crate::{MICROBENCH_ARRAY_LEN, bench};
+use crate::{ARRAY_LEN, bench};
 
 bench!(
     neg,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::neg),
     (unaligned_glam, glam::Vec3::neg),
     (aligned, Vec3A::<f32>::neg),
@@ -17,7 +17,7 @@ bench!(
 
 bench!(
     add,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec3::<f32> as Add>::add),
     (unaligned_glam, <glam::Vec3 as Add>::add),
     (aligned, <Vec3A::<f32> as Add>::add),
@@ -27,7 +27,7 @@ bench!(
 
 bench!(
     sub,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec3::<f32> as Sub>::sub),
     (unaligned_glam, <glam::Vec3 as Sub>::sub),
     (aligned, <Vec3A::<f32> as Sub>::sub),
@@ -37,7 +37,7 @@ bench!(
 
 bench!(
     mul,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec3::<f32> as Mul>::mul),
     (unaligned_glam, <glam::Vec3 as Mul>::mul),
     (aligned, <Vec3A::<f32> as Mul>::mul),
@@ -47,7 +47,7 @@ bench!(
 
 bench!(
     div,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec3::<f32> as Div>::div),
     (unaligned_glam, <glam::Vec3 as Div>::div),
     (aligned, <Vec3A::<f32> as Div>::div),
@@ -57,7 +57,7 @@ bench!(
 
 bench!(
     rem,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec3::<f32> as Rem>::rem),
     (unaligned_glam, <glam::Vec3 as Rem>::rem),
     (aligned, <Vec3A::<f32> as Rem>::rem),
@@ -67,7 +67,7 @@ bench!(
 
 bench!(
     length,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::length),
     (unaligned_glam, glam::Vec3::length),
     (aligned, Vec3A::<f32>::length),
@@ -77,7 +77,7 @@ bench!(
 
 bench!(
     normalize,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::normalize),
     (unaligned_glam, glam::Vec3::normalize),
     (aligned, Vec3A::<f32>::normalize),
@@ -87,7 +87,7 @@ bench!(
 
 bench!(
     dot,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::dot),
     (unaligned_glam, glam::Vec3::dot),
     (aligned, Vec3A::<f32>::dot),
@@ -97,7 +97,7 @@ bench!(
 
 bench!(
     cross,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::cross),
     (unaligned_glam, glam::Vec3::cross),
     (aligned, Vec3A::<f32>::cross),
@@ -107,7 +107,7 @@ bench!(
 
 bench!(
     angle_between,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::angle_between),
     (unaligned_glam, glam::Vec3::angle_between),
     (aligned, Vec3A::<f32>::angle_between),
@@ -117,7 +117,7 @@ bench!(
 
 bench!(
     any_orthogonal_vector,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::any_orthogonal_vector),
     (unaligned_glam, glam::Vec3::any_orthogonal_vector),
     (aligned, Vec3A::<f32>::any_orthogonal_vector),
@@ -127,7 +127,7 @@ bench!(
 
 bench!(
     any_orthonormal_vector,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::any_orthonormal_vector),
     (unaligned_glam, glam::Vec3::any_orthonormal_vector),
     (aligned, Vec3A::<f32>::any_orthonormal_vector),
@@ -137,7 +137,7 @@ bench!(
 
 bench!(
     any_orthonormal_pair,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::any_orthonormal_pair),
     (unaligned_glam, glam::Vec3::any_orthonormal_pair),
     (aligned, Vec3A::<f32>::any_orthonormal_pair),
@@ -147,7 +147,7 @@ bench!(
 
 bench!(
     project_onto,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::project_onto),
     (unaligned_glam, glam::Vec3::project_onto),
     (aligned, Vec3A::<f32>::project_onto),
@@ -157,7 +157,7 @@ bench!(
 
 bench!(
     reject_from,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::reject_from),
     (unaligned_glam, glam::Vec3::reject_from),
     (aligned, Vec3A::<f32>::reject_from),
@@ -167,7 +167,7 @@ bench!(
 
 bench!(
     reflect,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::reflect),
     (unaligned_glam, glam::Vec3::reflect),
     (aligned, Vec3A::<f32>::reflect),
@@ -177,7 +177,7 @@ bench!(
 
 bench!(
     refract,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::refract),
     (unaligned_glam, glam::Vec3::refract),
     (aligned, Vec3A::<f32>::refract),
@@ -187,7 +187,7 @@ bench!(
 
 bench!(
     floor,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::floor),
     (unaligned_glam, glam::Vec3::floor),
     (aligned, Vec3A::<f32>::floor),
@@ -197,7 +197,7 @@ bench!(
 
 bench!(
     ceil,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::ceil),
     (unaligned_glam, glam::Vec3::ceil),
     (aligned, Vec3A::<f32>::ceil),
@@ -207,7 +207,7 @@ bench!(
 
 bench!(
     round,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::round),
     (unaligned_glam, glam::Vec3::round),
     (aligned, Vec3A::<f32>::round),
@@ -217,7 +217,7 @@ bench!(
 
 bench!(
     trunc,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::trunc),
     (unaligned_glam, glam::Vec3::trunc),
     (aligned, Vec3A::<f32>::trunc),
@@ -227,7 +227,7 @@ bench!(
 
 bench!(
     fract,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec3::<f32>::fract),
     (unaligned_glam, glam::Vec3::fract),
     (aligned, Vec3A::<f32>::fract),

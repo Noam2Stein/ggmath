@@ -3,11 +3,11 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use ggmath::{Vec4, Vec4A};
 use wide::f32x4;
 
-use crate::{MICROBENCH_ARRAY_LEN, bench};
+use crate::{ARRAY_LEN, bench};
 
 bench!(
     neg,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::neg),
     (aligned, Vec4A::<f32>::neg),
     (aligned_glam, glam::Vec4::neg),
@@ -16,7 +16,7 @@ bench!(
 
 bench!(
     add,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec4::<f32> as Add>::add),
     (aligned, <Vec4A::<f32> as Add>::add),
     (aligned_glam, <glam::Vec4 as Add>::add),
@@ -25,7 +25,7 @@ bench!(
 
 bench!(
     sub,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec4::<f32> as Sub>::sub),
     (aligned, <Vec4A::<f32> as Sub>::sub),
     (aligned_glam, <glam::Vec4 as Sub>::sub),
@@ -34,7 +34,7 @@ bench!(
 
 bench!(
     mul,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec4::<f32> as Mul>::mul),
     (aligned, <Vec4A::<f32> as Mul>::mul),
     (aligned_glam, <glam::Vec4 as Mul>::mul),
@@ -43,7 +43,7 @@ bench!(
 
 bench!(
     div,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec4::<f32> as Div>::div),
     (aligned, <Vec4A::<f32> as Div>::div),
     (aligned_glam, <glam::Vec4 as Div>::div),
@@ -52,7 +52,7 @@ bench!(
 
 bench!(
     rem,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, <Vec4::<f32> as Rem>::rem),
     (aligned, <Vec4A::<f32> as Rem>::rem),
     (aligned_glam, <glam::Vec4 as Rem>::rem),
@@ -61,7 +61,7 @@ bench!(
 
 bench!(
     length,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::length),
     (aligned, Vec4A::<f32>::length),
     (aligned_glam, glam::Vec4::length),
@@ -70,7 +70,7 @@ bench!(
 
 bench!(
     normalize,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::normalize),
     (aligned, Vec4A::<f32>::normalize),
     (aligned_glam, glam::Vec4::normalize),
@@ -79,7 +79,7 @@ bench!(
 
 bench!(
     dot,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::dot),
     (aligned, Vec4A::<f32>::dot),
     (aligned_glam, glam::Vec4::dot),
@@ -88,7 +88,7 @@ bench!(
 
 bench!(
     floor,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::floor),
     (aligned, Vec4A::<f32>::floor),
     (aligned_glam, glam::Vec4::floor),
@@ -97,7 +97,7 @@ bench!(
 
 bench!(
     ceil,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::ceil),
     (aligned, Vec4A::<f32>::ceil),
     (aligned_glam, glam::Vec4::ceil),
@@ -106,7 +106,7 @@ bench!(
 
 bench!(
     round,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::round),
     (aligned, Vec4A::<f32>::round),
     (aligned_glam, glam::Vec4::round),
@@ -115,7 +115,7 @@ bench!(
 
 bench!(
     trunc,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::trunc),
     (aligned, Vec4A::<f32>::trunc),
     (aligned_glam, glam::Vec4::trunc),
@@ -124,7 +124,7 @@ bench!(
 
 bench!(
     fract,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Vec4::<f32>::fract),
     (aligned, Vec4A::<f32>::fract),
     (aligned_glam, glam::Vec4::fract),

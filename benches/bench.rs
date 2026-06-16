@@ -1,8 +1,10 @@
+//! A module containing the [`bench!`] helper macro.
+
 use ggmath::{
     Affine, Alignment, Length, Mask, Matrix, Quaternion, Scalar, SupportedLength, Vector,
 };
 use rand::{RngExt, SeedableRng, rngs::StdRng};
-use wide::{f32x4, f64x4};
+use wide::{f32x4, f32x8, f64x4};
 
 use std::hint::black_box;
 
@@ -19,6 +21,8 @@ use divan::Bencher;
 ///     ...
 /// );
 /// ```
+///
+/// `{function-name}` is the name of the function being compared.
 ///
 /// `{array-length}` controls the number of input and output values used to call
 /// the functions. The inputs are randomly generated based on function
@@ -69,6 +73,18 @@ where
 
     let inputs = Box::from_iter(random_iter::<I>().take(array_len / I::LANES));
     let mut outputs = Box::from_iter(random_iter::<O>().take(array_len / I::LANES));
+
+    for _ in 0..array_len / I::LANES {
+        let inputs = black_box(&inputs);
+        let outputs = black_box(&mut outputs);
+
+        for (input, output) in inputs.iter().copied().zip(outputs.iter_mut()) {
+            *output = f.invoke(input);
+        }
+
+        black_box(inputs);
+        black_box(outputs);
+    }
 
     bencher.bench_local(|| {
         let inputs = black_box(&inputs);
@@ -219,6 +235,31 @@ where
     }
 }
 
+impl<T0, T1, T2, T3> BenchIo for (T0, T1, T2, T3)
+where
+    T0: BenchIo,
+    T1: BenchIo,
+    T2: BenchIo,
+    T3: BenchIo,
+{
+    const LANES: usize = T0::LANES;
+
+    fn random(rng: &mut StdRng) -> Self {
+        const {
+            assert!(T0::LANES == T1::LANES);
+            assert!(T1::LANES == T2::LANES);
+            assert!(T2::LANES == T3::LANES);
+        }
+
+        (
+            T0::random(rng),
+            T1::random(rng),
+            T2::random(rng),
+            T3::random(rng),
+        )
+    }
+}
+
 impl<const N: usize, T, A: Alignment> BenchIo for Vector<N, T, A>
 where
     Length<N>: SupportedLength,
@@ -331,4 +372,5 @@ macro_rules! wide_impl {
     };
 }
 wide_impl!(4, f32x4);
+wide_impl!(4, f32x8);
 wide_impl!(4, f64x4);

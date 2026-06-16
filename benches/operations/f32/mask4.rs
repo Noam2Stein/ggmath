@@ -1,11 +1,11 @@
 use ggmath::{Mask4, Mask4A, Vec4};
 use wide::f32x4;
 
-use crate::{MICROBENCH_ARRAY_LEN, bench};
+use crate::{ARRAY_LEN, bench};
 
 bench!(
     all,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Mask4::<f32>::all),
     (unaligned_glam, glam::BVec4::all),
     (aligned, Mask4A::<f32>::all),
@@ -15,7 +15,7 @@ bench!(
 
 bench!(
     any,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Mask4::<f32>::any),
     (unaligned_glam, glam::BVec4::any),
     (aligned, Mask4A::<f32>::any),
@@ -25,7 +25,7 @@ bench!(
 
 bench!(
     select,
-    MICROBENCH_ARRAY_LEN,
+    ARRAY_LEN,
     (unaligned, Mask4::<f32>::select),
     (aligned, Mask4A::<f32>::select),
     (aligned_glam, glam::Vec4::select),
