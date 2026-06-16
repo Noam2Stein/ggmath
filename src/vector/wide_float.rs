@@ -1,7 +1,8 @@
 use wide::{f32x4, f32x8, f32x16, f64x2, f64x4, f64x8, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8};
 
 use crate::{
-    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector, utils::transmute_generic,
+    Alignment, FloatExt, Length, Quaternion, SupportedLength, Vector,
+    utils::{FloatUtils, transmute_generic},
 };
 
 macro_rules! impl_wide_float {
@@ -565,7 +566,7 @@ macro_rules! impl_wide_float {
 
                         let self_normalized = self_ / self_length;
                         let angle_cos = self_normalized.dot(other) / other_length;
-                        let angle = angle_cos.acos() * self_normalized.wedge(other).signum();
+                        let angle = angle_cos.acos_approx() * self_normalized.wedge(other).signum();
 
                         let result_length = self_length.lerp(other_length, t);
                         let result = self_normalized.rotate(angle * t) * result_length;
@@ -596,7 +597,7 @@ macro_rules! impl_wide_float {
                         )
                         .blend(
                             {
-                                let angle = angle_cos.acos();
+                                let angle = angle_cos.acos_approx();
                                 let angle_sin = angle.sin();
                                 let self_factor = (angle * ($Wide::ONE - t)).sin();
                                 let other_factor = (angle * t).sin();
@@ -653,7 +654,7 @@ macro_rules! impl_wide_float {
                         )
                         .blend(
                             {
-                                let angle = angle_cos.acos();
+                                let angle = angle_cos.acos_approx();
                                 let angle_sin = angle.sin();
                                 let t1 = (angle * ($Wide::ONE - t)).sin();
                                 let t2 = (angle * t).sin();
@@ -722,13 +723,15 @@ macro_rules! impl_wide_float {
                             transmute_generic::<Vector<N, $Wide, A>, Vector<2, $Wide, A>>(target)
                         };
 
-                        let target_angle = (self_.dot(target) / self_length / target_length)
-                            .max(-$Wide::ONE)
-                            .min($Wide::ONE)
-                            .acos();
+                        let target_angle =
+                            (self_.dot(target) / self_length / target_length).acos_approx();
                         let angle_sign = self_.wedge(target).signum();
-                        let angle =
-                            max_angle.clamp(target_angle - $Wide::PI, target_angle) * angle_sign;
+                        let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                            target_angle - $Wide::PI,
+                            max_angle
+                                .simd_gt(target_angle)
+                                .blend(target_angle, max_angle),
+                        ) * angle_sign;
 
                         let result = Vector::<2, $Wide, A>::splat(self.simd_eq(Self::ZERO))
                             .blend(self_, self_.rotate(angle));
@@ -750,11 +753,14 @@ macro_rules! impl_wide_float {
 
                         // Ported from `https://github.com/bitshifter/glam-rs`.
 
-                        let target_angle = (self_.dot(target) / (self_length * target_length))
-                            .max(-$Wide::ONE)
-                            .min($Wide::ONE)
-                            .acos();
-                        let angle = max_angle.clamp(target_angle - $Wide::PI, target_angle);
+                        let target_angle =
+                            (self_.dot(target) / (self_length * target_length)).acos_approx();
+                        let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                            target_angle - $Wide::PI,
+                            max_angle
+                                .simd_gt(target_angle)
+                                .blend(target_angle, max_angle),
+                        );
                         let axis = self_
                             .cross(target)
                             .normalize_or(self_.any_orthonormal_vector());
@@ -780,8 +786,13 @@ macro_rules! impl_wide_float {
                         };
 
                         let target_angle_cos = self_.dot(target) / (self_length * target_length);
-                        let target_angle = target_angle_cos.max(-$Wide::ONE).min($Wide::ONE).acos();
-                        let angle = max_angle.clamp(target_angle - $Wide::PI, target_angle);
+                        let target_angle = target_angle_cos.acos_approx();
+                        let angle = max_angle.simd_lt(target_angle - $Wide::PI).blend(
+                            target_angle - $Wide::PI,
+                            max_angle
+                                .simd_gt(target_angle)
+                                .blend(target_angle, max_angle),
+                        );
 
                         if angle == $Wide::ZERO {
                             return self;
@@ -968,9 +979,7 @@ macro_rules! impl_wide_float {
             #[must_use]
             pub fn angle_between(self, other: Self) -> $Wide {
                 (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt())
-                    .fast_max(-$Wide::ONE)
-                    .fast_min($Wide::ONE)
-                    .acos()
+                    .acos_approx()
             }
 
             /// Returns the vector projection of `self` onto `other`.

@@ -872,8 +872,7 @@ where
 
                 let self_normalized = self_ / self_length;
                 let angle_cos = self_normalized.dot(other) / other_length;
-                let angle =
-                    PrimitiveFloatUtils::acos(angle_cos) * self_normalized.wedge(other).signum();
+                let angle = angle_cos.acos_approx() * self_normalized.wedge(other).signum();
 
                 let result_length = self_length.lerp(other_length, t);
                 let result = self_normalized.rotate(angle * t) * result_length;
@@ -894,7 +893,7 @@ where
                 // If `angle_cos` is close to `1` or `-1` or is NaN the normal
                 // calculation breaks down.
                 let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
-                    let angle = PrimitiveFloatUtils::acos(angle_cos);
+                    let angle = angle_cos.acos_approx();
                     let angle_sin = PrimitiveFloatUtils::sin(angle);
                     let self_factor = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
                     let other_factor = PrimitiveFloatUtils::sin(angle * t);
@@ -933,7 +932,7 @@ where
                 // If `angle_cos` is close to `1` or `-1` or is NaN the normal
                 // calculation breaks down.
                 let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
-                    let angle = PrimitiveFloatUtils::acos(angle_cos);
+                    let angle = angle_cos.acos_approx();
                     let angle_sin = PrimitiveFloatUtils::sin(angle);
                     let t1 = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
                     let t2 = PrimitiveFloatUtils::sin(angle * t);
@@ -1002,13 +1001,15 @@ where
                 let target =
                     unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(target) };
 
-                let target_angle = PrimitiveFloatUtils::acos(
-                    (self_.dot(target) / self_length / target_length)
-                        .max(T::NEG_ONE)
-                        .min(T::ONE),
-                );
+                let target_angle = (self_.dot(target) / self_length / target_length).acos_approx();
                 let angle_sign = self_.wedge(target).signum();
-                let angle = max_angle.clamp(target_angle - T::PI, target_angle) * angle_sign;
+                let angle = if max_angle < target_angle - T::PI {
+                    target_angle - T::PI
+                } else if max_angle > target_angle {
+                    target_angle
+                } else {
+                    max_angle
+                } * angle_sign;
 
                 let result = self_.rotate(angle);
 
@@ -1024,12 +1025,15 @@ where
 
                 // Ported from `https://github.com/bitshifter/glam-rs`.
 
-                let target_angle = PrimitiveFloatUtils::acos(
-                    (self_.dot(target) / (self_length * target_length))
-                        .max(T::NEG_ONE)
-                        .min(T::ONE),
-                );
-                let angle = max_angle.clamp(target_angle - T::PI, target_angle);
+                let target_angle =
+                    (self_.dot(target) / (self_length * target_length)).acos_approx();
+                let angle = if max_angle < target_angle - T::PI {
+                    target_angle - T::PI
+                } else if max_angle > target_angle {
+                    target_angle
+                } else {
+                    max_angle
+                };
                 let axis = self_
                     .cross(target)
                     .try_normalize()
@@ -1048,9 +1052,14 @@ where
                     unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(target) };
 
                 let target_angle_cos = self_.dot(target) / (self_length * target_length);
-                let target_angle =
-                    PrimitiveFloatUtils::acos(target_angle_cos.max(T::NEG_ONE).min(T::ONE));
-                let angle = max_angle.clamp(target_angle - T::PI, target_angle);
+                let target_angle = target_angle_cos.acos_approx();
+                let angle = if max_angle < target_angle - T::PI {
+                    target_angle - T::PI
+                } else if max_angle > target_angle {
+                    target_angle
+                } else {
+                    max_angle
+                };
 
                 if angle == T::ZERO {
                     return self;
@@ -1464,11 +1473,7 @@ where
             "vectors cannot be normalized: {self:?}.angle_between({other:?})"
         );
 
-        PrimitiveFloatUtils::acos(
-            (self.dot(other) / length_product)
-                .max(T::NEG_ONE)
-                .min(T::ONE),
-        )
+        (self.dot(other) / length_product).acos_approx()
     }
 
     /// Returns the vector projection of `self` onto `other`.
@@ -1835,11 +1840,7 @@ where
             "vectors cannot be normalized: {self:?}.angle_to({other:?})"
         );
 
-        let angle_between = PrimitiveFloatUtils::acos(
-            (self.dot(other) / length_product)
-                .max(T::NEG_ONE)
-                .min(T::ONE),
-        );
+        let angle_between = (self.dot(other) / length_product).acos_approx();
         let outer_product = self.x * other.y - self.y * other.x;
         angle_between * outer_product.signum()
     }
@@ -1886,11 +1887,7 @@ where
             "vectors cannot be normalized: {self:?}.angle_from({other:?})"
         );
 
-        let angle_between = PrimitiveFloatUtils::acos(
-            (self.dot(other) / length_product)
-                .max(T::NEG_ONE)
-                .min(T::ONE),
-        );
+        let angle_between = (self.dot(other) / length_product).acos_approx();
         let outer_product = other.x * self.y - other.y * self.x;
         angle_between * outer_product.signum()
     }

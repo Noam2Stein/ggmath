@@ -7,7 +7,7 @@ use core::{
 use crate::{
     Aligned, NegOne, One, PrimitiveFloatBackend, PrimitiveIntegerBackend, PrimitiveSignedBackend,
     Scalar, Unaligned, Zero,
-    utils::{PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
+    utils::{FloatUtils, PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
 
 /// Trait for all primitive floating-point types.
@@ -59,6 +59,7 @@ pub trait PrimitiveFloat:
     + PrimitiveFloatBackend<2, Unaligned>
     + PrimitiveFloatBackend<3, Unaligned>
     + PrimitiveFloatBackend<4, Unaligned>
+    + FloatUtils
     + num_primitive::PrimitiveFloat<Bits = <Self as PrimitiveFloat>::Bits>
 {
     /// The unsigned integer type with equal width.
