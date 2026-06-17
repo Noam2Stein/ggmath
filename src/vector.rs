@@ -445,15 +445,25 @@ where
             // they have compatible layouts between alignments.
             2 | 4 => unsafe { transmute_generic::<Vector<N, T, A>, Vector<N, T, A2>>(self) },
 
-            // SAFETY: Because `N == 3`, `Vector<N, T, A2>` and
-            // `Vector<3, T, A2>` are the same type.
-            3 => unsafe {
-                transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(Vector::<3, T, A2>::new(
-                    self.as_array_ref()[0],
-                    self.as_array_ref()[1],
-                    self.as_array_ref()[2],
-                ))
-            },
+            3 => {
+                if const { size_of::<Vector<N, T, A2>>() > size_of::<Vector<N, T, A>>() } {
+                    // SAFETY: Because `N == 3`, `Vector<N, T, A2>` and
+                    // `Vector<3, T, A2>` are the same type.
+                    unsafe {
+                        transmute_generic::<Vector<3, T, A2>, Vector<N, T, A2>>(
+                            Vector::<3, T, A2>::new(
+                                self.as_array_ref()[0],
+                                self.as_array_ref()[1],
+                                self.as_array_ref()[2],
+                            ),
+                        )
+                    }
+                } else {
+                    // SAFETY: The output type contains `[T; 3]` then `Pod`
+                    // padding. The input type also begins with exactly this.
+                    unsafe { *transmute_ref::<Vector<N, T, A>, Vector<N, T, A2>>(&self) }
+                }
+            }
 
             _ => unreachable!(),
         }
