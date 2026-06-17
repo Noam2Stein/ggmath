@@ -795,7 +795,7 @@ where
     #[inline]
     #[must_use]
     pub fn lerp(self, other: Self, t: T) -> Self {
-        self * (T::as_from(1.0) - t) + other * t
+        self * (T::ONE - t) + other * t
     }
 
     /// Computes the middle point between `self` and `other`.
@@ -1180,8 +1180,8 @@ where
     #[inline]
     #[must_use]
     pub fn try_normalize(self) -> Option<Self> {
-        let recip = T::as_from(1.0) / self.length();
-        if recip.is_finite() && recip > T::as_from(0.0) {
+        let recip = T::ONE / self.length();
+        if recip.is_finite() && recip > T::ZERO {
             Some(self * recip)
         } else {
             None
@@ -1277,7 +1277,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_normalized(self) -> bool {
-        (self.length_squared() - T::as_from(1.0)).abs() <= T::as_from(2e-4)
+        (self.length_squared() - T::ONE).abs() <= T::as_from(2e-4)
     }
 
     /// Returns `self` with a length of no more than `max`.
@@ -1613,8 +1613,8 @@ where
         );
 
         let self_dot_normal = self.dot(normal);
-        let k = T::as_from(1.0) - eta * eta * (T::as_from(1.0) - self_dot_normal * self_dot_normal);
-        if k >= T::as_from(0.0) {
+        let k = T::ONE - eta * eta * (T::ONE - self_dot_normal * self_dot_normal);
+        if k >= T::ZERO {
             self * eta - normal * (eta * self_dot_normal + PrimitiveFloatUtils::sqrt(k))
         } else {
             Self::ZERO
@@ -2006,11 +2006,11 @@ where
 
         // From https://graphics.pixar.com/library/OrthonormalB/paper.pdf
         let sign = self.z.signum();
-        let a = T::as_from(-1.0) / (sign + self.z);
+        let a = T::NEG_ONE / (sign + self.z);
         let b = self.x * self.y * a;
         (
             Self::new(
-                T::as_from(1.0) + sign * self.x * self.x * a,
+                T::ONE + sign * self.x * self.x * a,
                 sign * b,
                 -sign * self.x,
             ),

@@ -193,18 +193,8 @@ where
                 let inv2 = vec0 * fac1 - vec1 * fac3 + vec3 * fac5;
                 let inv3 = vec0 * fac2 - vec1 * fac4 + vec2 * fac5;
 
-                let sign_a = Vector::<4, T, A>::new(
-                    T::as_from(1.0),
-                    T::as_from(-1.0),
-                    T::as_from(1.0),
-                    T::as_from(-1.0),
-                );
-                let sign_b = Vector::<4, T, A>::new(
-                    T::as_from(-1.0),
-                    T::as_from(1.0),
-                    T::as_from(-1.0),
-                    T::as_from(1.0),
-                );
+                let sign_a = Vector::<4, T, A>::new(T::ONE, T::NEG_ONE, T::ONE, T::NEG_ONE);
+                let sign_b = Vector::<4, T, A>::new(T::NEG_ONE, T::ONE, T::NEG_ONE, T::ONE);
 
                 let inverse = Matrix::<4, T, A>::from_rows(&[
                     inv0 * sign_a,
@@ -255,7 +245,7 @@ where
         {
             let mut determinant_is_zero = false;
             let result = self.generic_inverse(identity, |determinant| {
-                determinant_is_zero = determinant == T::as_from(0.0);
+                determinant_is_zero = determinant == T::ZERO;
                 Ok(())
             });
 
@@ -275,7 +265,7 @@ where
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
         self.generic_inverse(Some, |determinant| {
-            if determinant == T::as_from(0.0) {
+            if determinant == T::ZERO {
                 Err(None)
             } else {
                 Ok(())
@@ -287,7 +277,7 @@ where
     #[must_use]
     pub fn inverse_or(&self, fallback: &Self) -> Self {
         self.generic_inverse(identity, |determinant| {
-            if determinant == T::as_from(0.0) {
+            if determinant == T::ZERO {
                 Err(*fallback)
             } else {
                 Ok(())
@@ -300,7 +290,7 @@ where
     #[must_use]
     pub fn inverse_or_zero(&self) -> Self {
         self.generic_inverse(identity, |determinant| {
-            if determinant == T::as_from(0.0) {
+            if determinant == T::ZERO {
                 Err(Self::ZERO)
             } else {
                 Ok(())
@@ -499,8 +489,8 @@ where
     pub fn from_angle(angle: T) -> Self {
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
-            Vector::<3, T, A>::new(cos, sin, T::as_from(0.0)),
-            Vector::<3, T, A>::new(-sin, cos, T::as_from(0.0)),
+            Vector::<3, T, A>::new(cos, sin, T::ZERO),
+            Vector::<3, T, A>::new(-sin, cos, T::ZERO),
             Vector::<3, T, A>::Z,
         ])
     }
@@ -520,8 +510,8 @@ where
     pub fn from_scale_angle(scale: Vector<2, T, A>, angle: T) -> Self {
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
-            Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::as_from(0.0)),
-            Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::as_from(0.0)),
+            Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::ZERO),
+            Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::ZERO),
             Vector::<3, T, A>::Z,
         ])
     }
@@ -566,9 +556,9 @@ where
     ) -> Self {
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
-            Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::as_from(0.0)),
-            Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::as_from(0.0)),
-            Vector::<3, T, A>::new(translation.x, translation.y, T::as_from(1.0)),
+            Vector::<3, T, A>::new(cos * scale.x, sin * scale.x, T::ZERO),
+            Vector::<3, T, A>::new(-sin * scale.y, cos * scale.y, T::ZERO),
+            Vector::<3, T, A>::new(translation.x, translation.y, T::ONE),
         ])
     }
 
@@ -582,8 +572,8 @@ where
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
             Vector::<3, T, A>::X,
-            Vector::<3, T, A>::new(T::as_from(0.0), cos, sin),
-            Vector::<3, T, A>::new(T::as_from(0.0), -sin, cos),
+            Vector::<3, T, A>::new(T::ZERO, cos, sin),
+            Vector::<3, T, A>::new(T::ZERO, -sin, cos),
         ])
     }
 
@@ -596,9 +586,9 @@ where
     pub fn from_rotation_y(angle: T) -> Self {
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
-            Vector::<3, T, A>::new(cos, T::as_from(0.0), -sin),
+            Vector::<3, T, A>::new(cos, T::ZERO, -sin),
             Vector::<3, T, A>::Y,
-            Vector::<3, T, A>::new(sin, T::as_from(0.0), cos),
+            Vector::<3, T, A>::new(sin, T::ZERO, cos),
         ])
     }
 
@@ -611,8 +601,8 @@ where
     pub fn from_rotation_z(angle: T) -> Self {
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
-            Vector::<3, T, A>::new(cos, sin, T::as_from(0.0)),
-            Vector::<3, T, A>::new(-sin, cos, T::as_from(0.0)),
+            Vector::<3, T, A>::new(cos, sin, T::ZERO),
+            Vector::<3, T, A>::new(-sin, cos, T::ZERO),
             Vector::<3, T, A>::Z,
         ])
     }
@@ -1188,8 +1178,8 @@ where
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
             Vector::<4, T, A>::X,
-            Vector::<4, T, A>::new(T::as_from(0.0), cos, sin, T::as_from(0.0)),
-            Vector::<4, T, A>::new(T::as_from(0.0), -sin, cos, T::as_from(0.0)),
+            Vector::<4, T, A>::new(T::ZERO, cos, sin, T::ZERO),
+            Vector::<4, T, A>::new(T::ZERO, -sin, cos, T::ZERO),
             Vector::<4, T, A>::W,
         ])
     }
@@ -1209,9 +1199,9 @@ where
     pub fn from_rotation_y(angle: T) -> Self {
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
-            Vector::<4, T, A>::new(cos, T::as_from(0.0), -sin, T::as_from(0.0)),
+            Vector::<4, T, A>::new(cos, T::ZERO, -sin, T::ZERO),
             Vector::<4, T, A>::Y,
-            Vector::<4, T, A>::new(sin, T::as_from(0.0), cos, T::as_from(0.0)),
+            Vector::<4, T, A>::new(sin, T::ZERO, cos, T::ZERO),
             Vector::<4, T, A>::W,
         ])
     }
@@ -1231,8 +1221,8 @@ where
     pub fn from_rotation_z(angle: T) -> Self {
         let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
         Self::from_rows(&[
-            Vector::<4, T, A>::new(cos, sin, T::as_from(0.0), T::as_from(0.0)),
-            Vector::<4, T, A>::new(-sin, cos, T::as_from(0.0), T::as_from(0.0)),
+            Vector::<4, T, A>::new(cos, sin, T::ZERO, T::ZERO),
+            Vector::<4, T, A>::new(-sin, cos, T::ZERO, T::ZERO),
             Vector::<4, T, A>::Z,
             Vector::<4, T, A>::W,
         ])

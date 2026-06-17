@@ -103,8 +103,7 @@ where
             "vectors are not normalized: from_rotation_arc({from:?}, {to:?})"
         );
 
-        let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
-        let pi = T::as_from(core::f64::consts::PI);
+        let almost_one = T::ONE - T::as_from(2.0) * T::EPSILON;
 
         let dot = from.dot(to);
         if dot > almost_one {
@@ -113,7 +112,7 @@ where
         } else if dot < -almost_one {
             // 180° singularity: from ≈ -to.
             // Half a turn = 𝛕/2 = 180°.
-            Self::from_axis_angle(from.any_orthonormal_vector(), pi)
+            Self::from_axis_angle(from.any_orthonormal_vector(), T::PI)
         } else {
             let cross = from.cross(to);
             Self::from_xyzw(cross.x, cross.y, cross.z, T::ONE + dot).normalize()
@@ -147,7 +146,7 @@ where
             "vectors are not normalized: from_rotation_arc_colinear({from:?}, {to:?})"
         );
 
-        let almost_one = T::as_from(1.0) - T::as_from(2.0) * T::EPSILON;
+        let almost_one = T::ONE - T::as_from(2.0) * T::EPSILON;
 
         let mut dot = from.dot(to);
         if dot.is_sign_negative() {
