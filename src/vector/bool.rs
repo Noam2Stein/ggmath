@@ -1,4 +1,4 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector};
+use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::specialize};
 
 impl<const N: usize, A: Alignment> Vector<N, bool, A>
 where
@@ -26,12 +26,7 @@ where
     #[inline]
     #[must_use]
     pub fn all(self) -> bool {
-        match N {
-            2 => self[0] && self[1],
-            3 => self[0] && self[1] && self[2],
-            4 => self[0] && self[1] && self[2] && self[3],
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, bool, A>::all_backend(self))
     }
 
     /// Returns `true` if any element of `self` is `true`.
@@ -50,12 +45,7 @@ where
     #[inline]
     #[must_use]
     pub fn any(self) -> bool {
-        match N {
-            2 => self[0] || self[1],
-            3 => self[0] || self[1] || self[2],
-            4 => self[0] || self[1] || self[2] || self[3],
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, bool, A>::any_backend(self))
     }
 
     /// Selects between the elements of `if_true` and `if_false` based on the
@@ -79,7 +69,84 @@ where
         if_true: Vector<N, T, A>,
         if_false: Vector<N, T, A>,
     ) -> Vector<N, T, A> {
-        Vector::from_fn(|i| if self[i] { if_true[i] } else { if_false[i] })
+        specialize!(Vector::<N, bool, A>::select_backend(
+            self, if_true, if_false
+        ))
+    }
+}
+
+impl<A: Alignment> Vector<2, bool, A> {
+    #[inline(always)]
+    fn all_backend(self) -> bool {
+        self.x && self.y
+    }
+
+    #[inline(always)]
+    fn any_backend(self) -> bool {
+        self.x || self.y
+    }
+
+    #[inline(always)]
+    fn select_backend<T: Scalar>(
+        self,
+        if_true: Vector<2, T, A>,
+        if_false: Vector<2, T, A>,
+    ) -> Vector<2, T, A> {
+        Vector::<2, T, A>::new(
+            if self.x { if_true.x } else { if_false.x },
+            if self.y { if_true.y } else { if_false.y },
+        )
+    }
+}
+
+impl<A: Alignment> Vector<3, bool, A> {
+    #[inline(always)]
+    fn all_backend(self) -> bool {
+        self.x && self.y && self.z
+    }
+
+    #[inline(always)]
+    fn any_backend(self) -> bool {
+        self.x || self.y || self.z
+    }
+
+    #[inline(always)]
+    fn select_backend<T: Scalar>(
+        self,
+        if_true: Vector<3, T, A>,
+        if_false: Vector<3, T, A>,
+    ) -> Vector<3, T, A> {
+        Vector::<3, T, A>::new(
+            if self.x { if_true.x } else { if_false.x },
+            if self.y { if_true.y } else { if_false.y },
+            if self.z { if_true.z } else { if_false.z },
+        )
+    }
+}
+
+impl<A: Alignment> Vector<4, bool, A> {
+    #[inline(always)]
+    fn all_backend(self) -> bool {
+        self.x && self.y && self.z && self.w
+    }
+
+    #[inline(always)]
+    fn any_backend(self) -> bool {
+        self.x || self.y || self.z || self.w
+    }
+
+    #[inline(always)]
+    fn select_backend<T: Scalar>(
+        self,
+        if_true: Vector<4, T, A>,
+        if_false: Vector<4, T, A>,
+    ) -> Vector<4, T, A> {
+        Vector::<4, T, A>::new(
+            if self.x { if_true.x } else { if_false.x },
+            if self.y { if_true.y } else { if_false.y },
+            if self.z { if_true.z } else { if_false.z },
+            if self.w { if_true.w } else { if_false.w },
+        )
     }
 }
 

@@ -588,7 +588,7 @@ where
     #[inline]
     #[must_use]
     pub fn reverse(self) -> Self {
-        Self::from_fn(|i| self[N - 1 - i])
+        specialize!(Vector::<N, T, A>::reverse_backend(self))
     }
 
     /// Computes the sum of the elements of `self`.
@@ -1029,6 +1029,11 @@ where
     {
         self.x * rhs.y - self.y * rhs.x
     }
+
+    #[inline(always)]
+    fn reverse_backend(self) -> Self {
+        self.yx()
+    }
 }
 
 impl<T, A: Alignment> Vector<3, T, A>
@@ -1134,6 +1139,11 @@ where
     {
         (self.zxy() * rhs - self * rhs.zxy()).zxy()
     }
+
+    #[inline(always)]
+    fn reverse_backend(self) -> Self {
+        self.zyx()
+    }
 }
 
 impl<T, A: Alignment> Vector<4, T, A>
@@ -1191,6 +1201,11 @@ where
     #[must_use]
     pub fn truncate(self) -> Vector<3, T, A> {
         self.xyz()
+    }
+
+    #[inline(always)]
+    fn reverse_backend(self) -> Self {
+        self.wzyx()
     }
 }
 
@@ -1415,7 +1430,7 @@ where
 {
     #[inline]
     fn from(value: (T, Vector<2, T, A>)) -> Self {
-        Self::new(value.0, value.1[0], value.1[1])
+        Self::new(value.0, value.1.x, value.1.y)
     }
 }
 
@@ -1425,7 +1440,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, T)) -> Self {
-        Self::new(value.0[0], value.0[1], value.1)
+        Self::new(value.0.x, value.0.y, value.1)
     }
 }
 
@@ -1445,7 +1460,7 @@ where
 {
     #[inline]
     fn from(value: (T, T, Vector<2, T, A>)) -> Self {
-        Self::new(value.0, value.1, value.2[0], value.2[1])
+        Self::new(value.0, value.1, value.2.x, value.2.y)
     }
 }
 
@@ -1455,7 +1470,7 @@ where
 {
     #[inline]
     fn from(value: (T, Vector<2, T, A>, T)) -> Self {
-        Self::new(value.0, value.1[0], value.1[1], value.2)
+        Self::new(value.0, value.1.x, value.1.y, value.2)
     }
 }
 
@@ -1465,7 +1480,7 @@ where
 {
     #[inline]
     fn from(value: (T, Vector<3, T, A>)) -> Self {
-        Self::new(value.0, value.1[0], value.1[1], value.1[2])
+        Self::new(value.0, value.1.x, value.1.y, value.1.z)
     }
 }
 
@@ -1475,7 +1490,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, T, T)) -> Self {
-        Self::new(value.0[0], value.0[1], value.1, value.2)
+        Self::new(value.0.x, value.0.y, value.1, value.2)
     }
 }
 
@@ -1485,7 +1500,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<2, T, A>, Vector<2, T, A>)) -> Self {
-        Self::new(value.0[0], value.0[1], value.1[0], value.1[1])
+        Self::new(value.0.x, value.0.y, value.1.x, value.1.y)
     }
 }
 
@@ -1495,7 +1510,7 @@ where
 {
     #[inline]
     fn from(value: (Vector<3, T, A>, T)) -> Self {
-        Self::new(value.0[0], value.0[1], value.0[2], value.1)
+        Self::new(value.0.x, value.0.y, value.0.z, value.1)
     }
 }
 

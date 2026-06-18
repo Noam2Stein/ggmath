@@ -600,7 +600,7 @@ where
     #[inline]
     #[must_use]
     pub fn powf(self, n: T) -> Self {
-        self.map(|x| PrimitiveFloatUtils::powf(x, n))
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_powf(self, n))
     }
 
     /// Returns the square root of the elements of `self`.
@@ -640,7 +640,7 @@ where
     #[inline]
     #[must_use]
     pub fn exp(self) -> Self {
-        self.map(PrimitiveFloatUtils::exp)
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_exp(self))
     }
 
     /// Computes `2^x` for the elements of `self`.
@@ -653,7 +653,7 @@ where
     #[inline]
     #[must_use]
     pub fn exp2(self) -> Self {
-        self.map(PrimitiveFloatUtils::exp2)
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_exp2(self))
     }
 
     /// Computes the natural logarithm for the elements of `self`.
@@ -666,7 +666,7 @@ where
     #[inline]
     #[must_use]
     pub fn ln(self) -> Self {
-        self.map(PrimitiveFloatUtils::ln)
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_ln(self))
     }
 
     /// Computes the base 2 logarithm for the elements of `self`.
@@ -689,7 +689,7 @@ where
     #[inline]
     #[must_use]
     pub fn log2(self) -> Self {
-        self.map(PrimitiveFloatUtils::log2)
+        specialize!(<T as PrimitiveFloatBackend<N, A>>::vector_log2(self))
     }
 
     /// Computes the sine of the elements of `self`.
@@ -855,112 +855,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn slerp(self, other: Self, t: T) -> Self {
-        let self_length = self.length();
-        let other_length = other.length();
-
-        debug_assert!(
-            self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7),
-            "zero vector: {self:?}.slerp({other:?})"
-        );
-
-        match N {
-            2 => {
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                let other = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(other) };
-
-                let self_normalized = self_ / self_length;
-                let angle_cos = self_normalized.dot(other) / other_length;
-                let angle = angle_cos.acos_approx() * self_normalized.wedge(other).signum();
-
-                let result_length = self_length.lerp(other_length, t);
-                let result = self_normalized.rotate(angle * t) * result_length;
-
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
-            }
-            3 => {
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                let other = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(other) };
-
-                // Ported from `https://github.com/bitshifter/glam-rs`.
-
-                let angle_cos = self_.dot(other) / (self_length * other_length);
-
-                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
-                // calculation breaks down.
-                let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
-                    let angle = angle_cos.acos_approx();
-                    let angle_sin = PrimitiveFloatUtils::sin(angle);
-                    let self_factor = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
-                    let other_factor = PrimitiveFloatUtils::sin(angle * t);
-
-                    let result_length = self_length.lerp(other_length, t);
-
-                    (self_ * (result_length / self_length) * self_factor
-                        + other * (result_length / other_length) * other_factor)
-                        / angle_sin
-                } else if angle_cos.is_sign_negative() {
-                    // Vectors are almost parallel in opposing directions.
-
-                    let axis = self_.any_orthogonal_vector().normalize();
-                    let rotation = Quaternion::<T, A>::from_axis_angle(axis, t * T::PI);
-
-                    let result_length = self_length.lerp(other_length, t);
-                    self_ * rotation * (result_length / self_length)
-                } else {
-                    // Vectors are almost parallel in the same direction.
-                    self_.lerp(other, t)
-                };
-
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
-            }
-            4 => {
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                let other = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(other) };
-
-                // Ported from `https://github.com/bitshifter/glam-rs`.
-
-                let angle_cos = self_.dot(other) / (self_length * other_length);
-
-                // If `angle_cos` is close to `1` or `-1` or is NaN the normal
-                // calculation breaks down.
-                let result = if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
-                    let angle = angle_cos.acos_approx();
-                    let angle_sin = PrimitiveFloatUtils::sin(angle);
-                    let t1 = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
-                    let t2 = PrimitiveFloatUtils::sin(angle * t);
-
-                    let result_length = self_length.lerp(other_length, t);
-
-                    (self_ * (result_length / self_length) * t1
-                        + other * (result_length / other_length) * t2)
-                        / angle_sin
-                } else if angle_cos.is_sign_negative() {
-                    // Vectors are almost parallel in opposing directions.
-
-                    let axis = self_.any_orthogonal_vector().normalize();
-                    let (sin, cos) = PrimitiveFloatUtils::sin_cos(t * T::PI);
-
-                    let result_dir = self_ * cos + axis * sin;
-                    let result_length = self_length.lerp(other_length, t);
-                    result_dir * (result_length / result_dir.length())
-                } else {
-                    // Vectors are almost parallel in the same direction.
-                    self_.lerp(other, t)
-                };
-
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, T, A>::slerp_backend(self, other, t))
     }
 
     /// Rotates `self` towards `target` by at most `max_angle` (in radians).
@@ -981,117 +876,9 @@ where
     #[must_use]
     #[track_caller]
     pub fn rotate_towards(self, target: Self, max_angle: T) -> Self {
-        let self_length = self.length();
-        let target_length = target.length();
-
-        debug_assert!(
-            target_length >= T::as_from(1e-7),
-            "target is zero: {self:?}.rotate_towards({target:?}, {max_angle:?})"
-        );
-
-        if self == Self::ZERO {
-            return self;
-        }
-
-        match N {
-            2 => {
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                let target =
-                    unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(target) };
-
-                let target_angle = (self_.dot(target) / self_length / target_length).acos_approx();
-                let angle_sign = self_.wedge(target).signum();
-                let angle = if max_angle < target_angle - T::PI {
-                    target_angle - T::PI
-                } else if max_angle > target_angle {
-                    target_angle
-                } else {
-                    max_angle
-                } * angle_sign;
-
-                let result = self_.rotate(angle);
-
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
-            }
-            3 => {
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                let target =
-                    unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(target) };
-
-                // Ported from `https://github.com/bitshifter/glam-rs`.
-
-                let target_angle =
-                    (self_.dot(target) / (self_length * target_length)).acos_approx();
-                let angle = if max_angle < target_angle - T::PI {
-                    target_angle - T::PI
-                } else if max_angle > target_angle {
-                    target_angle
-                } else {
-                    max_angle
-                };
-                let axis = self_
-                    .cross(target)
-                    .try_normalize()
-                    .unwrap_or_else(|| self_.any_orthonormal_vector());
-
-                let result = self_ * Quaternion::<T, A>::from_axis_angle(axis, angle);
-
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
-            }
-            4 => {
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                let target =
-                    unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(target) };
-
-                let target_angle_cos = self_.dot(target) / (self_length * target_length);
-                let target_angle = target_angle_cos.acos_approx();
-                let angle = if max_angle < target_angle - T::PI {
-                    target_angle - T::PI
-                } else if max_angle > target_angle {
-                    target_angle
-                } else {
-                    max_angle
-                };
-
-                if angle == T::ZERO {
-                    return self;
-                }
-
-                // If `target_angle_cos` is close to `1` or `-1` or is NaN the
-                // normal calculation breaks down.
-                let result = if target_angle_cos.abs() <= T::as_from(1.0 - 3e-7) {
-                    let self_factor = PrimitiveFloatUtils::sin(target_angle - angle);
-                    let target_factor = PrimitiveFloatUtils::sin(angle);
-
-                    (self_ * self_factor + target * (self_length / target_length) * target_factor)
-                        .normalize()
-                        * self_length
-                } else if target_angle_cos.is_sign_negative() {
-                    // Vectors are almost parallel in opposing directions.
-
-                    let axis = self_.any_orthogonal_vector().normalize();
-                    let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
-
-                    let result_dir = self_ * cos + axis * sin;
-                    result_dir * (self_length / result_dir.length())
-                } else {
-                    // Vectors are almost parallel in the same direction.
-                    target / target_length * self_length
-                };
-
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, T, A>::rotate_towards_backend(
+            self, target, max_angle
+        ))
     }
 
     /// Returns the length/magnitude of `self`.
@@ -1633,51 +1420,7 @@ where
     #[inline]
     #[must_use]
     pub fn any_orthogonal_vector(self) -> Self {
-        match N {
-            2 => {
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
-
-                let result = self_.perp();
-
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
-            }
-            3 => {
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
-
-                let result = if self_.x.abs() > self_.y.abs() {
-                    Vector::<3, T, A>::new(-self_.z, T::ZERO, self_.x)
-                } else {
-                    Vector::<3, T, A>::new(T::ZERO, self_.z, -self_.y)
-                };
-
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
-            }
-            4 => {
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
-
-                let self_abs = self_.abs();
-                let result = if self_abs.x > self_abs.y {
-                    if self_abs.x > self_abs.z {
-                        Vector::<4, T, A>::new(-self_.w, T::ZERO, T::ZERO, self_.x)
-                    } else {
-                        Vector::<4, T, A>::new(T::ZERO, T::ZERO, -self_.w, self_.z)
-                    }
-                } else if self_abs.y > self_abs.z {
-                    Vector::<4, T, A>::new(T::ZERO, -self_.w, T::ZERO, self_.y)
-                } else {
-                    Vector::<4, T, A>::new(T::ZERO, T::ZERO, -self_.w, self_.z)
-                };
-
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, T, A>::any_orthogonal_vector_backend(self))
     }
 
     /// Returns some unit vector that is orthogonal to `self`.
@@ -1702,40 +1445,7 @@ where
             "vector is not normalized: {self:?}.any_orthonormal_vector()"
         );
 
-        match N {
-            2 => {
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<2, T, A>>(self) };
-
-                let result = self_.perp();
-
-                // SAFETY: Because `N = 2`, `Vector<N, T, A> = Vector<2, T, A>`.
-                unsafe { transmute_generic::<Vector<2, T, A>, Vector<N, T, A>>(result) }
-            }
-            3 => {
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<3, T, A>>(self) };
-
-                // Ported from https://github.com/bitshifter/glam-rs.
-                let sign = self_.z.signum();
-                let a = T::NEG_ONE / (sign + self_.z);
-                let b = self_.x * self_.y * a;
-                let result = Vector::<3, T, A>::new(b, sign + self_.y * self_.y * a, -self_.y);
-
-                // SAFETY: Because `N = 3`, `Vector<N, T, A> = Vector<3, T, A>`.
-                unsafe { transmute_generic::<Vector<3, T, A>, Vector<N, T, A>>(result) }
-            }
-            4 => {
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                let self_ = unsafe { transmute_generic::<Vector<N, T, A>, Vector<4, T, A>>(self) };
-
-                let result = self_.any_orthogonal_vector().normalize();
-
-                // SAFETY: Because `N = 4`, `Vector<N, T, A> = Vector<4, T, A>`.
-                unsafe { transmute_generic::<Vector<4, T, A>, Vector<N, T, A>>(result) }
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, T, A>::any_orthonormal_vector_backend(self))
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -1910,6 +1620,63 @@ where
             self.x * angle_sin + self.y * angle_cos,
         )
     }
+
+    #[track_caller]
+    #[inline(always)]
+    fn slerp_backend(self, other: Self, t: T) -> Self {
+        let self_length = self.length();
+        let other_length = other.length();
+
+        debug_assert!(
+            self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7),
+            "zero vector: {self:?}.slerp({other:?})"
+        );
+
+        let self_normalized = self / self_length;
+        let angle_cos = self_normalized.dot(other) / other_length;
+        let angle = angle_cos.acos_approx() * self_normalized.wedge(other).signum();
+
+        let result_length = self_length.lerp(other_length, t);
+        self_normalized.rotate(angle * t) * result_length
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
+        let self_length = self.length();
+        let target_length = target.length();
+
+        debug_assert!(
+            target_length >= T::as_from(1e-7),
+            "target is zero: {self:?}.rotate_towards({target:?}, {max_angle:?})"
+        );
+
+        if self == Self::ZERO {
+            return self;
+        }
+
+        let target_angle = (self.dot(target) / self_length / target_length).acos_approx();
+        let angle_sign = self.wedge(target).signum();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        } * angle_sign;
+
+        self.rotate(angle)
+    }
+
+    #[inline(always)]
+    fn any_orthogonal_vector_backend(self) -> Self {
+        self.perp()
+    }
+
+    #[inline(always)]
+    fn any_orthonormal_vector_backend(self) -> Self {
+        self.perp()
+    }
 }
 
 impl<T, A: Alignment> Vector<3, T, A>
@@ -2016,6 +1783,226 @@ where
             ),
             Self::new(b, sign + self.y * self.y * a, -self.y),
         )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn slerp_backend(self, other: Self, t: T) -> Self {
+        // Ported from `https://github.com/bitshifter/glam-rs`.
+
+        let self_length = self.length();
+        let other_length = other.length();
+
+        debug_assert!(
+            self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7),
+            "zero vector: {self:?}.slerp({other:?})"
+        );
+
+        let angle_cos = self.dot(other) / (self_length * other_length);
+
+        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+        // calculation breaks down.
+        if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+            let angle = angle_cos.acos_approx();
+            let angle_sin = PrimitiveFloatUtils::sin(angle);
+            let self_factor = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
+            let other_factor = PrimitiveFloatUtils::sin(angle * t);
+
+            let result_length = self_length.lerp(other_length, t);
+
+            (self * (result_length / self_length) * self_factor
+                + other * (result_length / other_length) * other_factor)
+                / angle_sin
+        } else if angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let rotation = Quaternion::<T, A>::from_axis_angle(axis, t * T::PI);
+
+            let result_length = self_length.lerp(other_length, t);
+            self * rotation * (result_length / self_length)
+        } else {
+            // Vectors are almost parallel in the same direction.
+            self.lerp(other, t)
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
+        // Ported from `https://github.com/bitshifter/glam-rs`.
+
+        let self_length = self.length();
+        let target_length = target.length();
+
+        debug_assert!(
+            target_length >= T::as_from(1e-7),
+            "target is zero: {self:?}.rotate_towards({target:?}, {max_angle:?})"
+        );
+
+        if self == Self::ZERO {
+            return self;
+        }
+
+        let target_angle = (self.dot(target) / (self_length * target_length)).acos_approx();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        };
+        let axis = self
+            .cross(target)
+            .try_normalize()
+            .unwrap_or_else(|| self.any_orthonormal_vector());
+
+        self * Quaternion::<T, A>::from_axis_angle(axis, angle)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn any_orthogonal_vector_backend(self) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        if self.x.abs() > self.y.abs() {
+            Self::new(-self.z, T::ZERO, self.x)
+        } else {
+            Self::new(T::ZERO, self.z, -self.y)
+        }
+    }
+
+    #[inline(always)]
+    fn any_orthonormal_vector_backend(self) -> Self {
+        // Ported from https://github.com/bitshifter/glam-rs.
+
+        let sign = self.z.signum();
+        let a = T::NEG_ONE / (sign + self.z);
+        let b = self.x * self.y * a;
+
+        Self::new(b, sign + self.y * self.y * a, -self.y)
+    }
+}
+
+impl<T, A: Alignment> Vector<4, T, A>
+where
+    T: PrimitiveFloat,
+{
+    #[track_caller]
+    #[inline(always)]
+    fn slerp_backend(self, other: Self, t: T) -> Self {
+        // Ported from `https://github.com/bitshifter/glam-rs`.
+
+        let self_length = self.length();
+        let other_length = other.length();
+
+        debug_assert!(
+            self_length >= T::as_from(1e-7) && other_length >= T::as_from(1e-7),
+            "zero vector: {self:?}.slerp({other:?})"
+        );
+
+        let angle_cos = self.dot(other) / (self_length * other_length);
+
+        // If `angle_cos` is close to `1` or `-1` or is NaN the normal
+        // calculation breaks down.
+        if angle_cos.abs() < T::as_from(1.0 - 3e-7) {
+            let angle = angle_cos.acos_approx();
+            let angle_sin = PrimitiveFloatUtils::sin(angle);
+            let t1 = PrimitiveFloatUtils::sin(angle * (T::ONE - t));
+            let t2 = PrimitiveFloatUtils::sin(angle * t);
+
+            let result_length = self_length.lerp(other_length, t);
+
+            (self * (result_length / self_length) * t1
+                + other * (result_length / other_length) * t2)
+                / angle_sin
+        } else if angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let (sin, cos) = PrimitiveFloatUtils::sin_cos(t * T::PI);
+
+            let result_dir = self * cos + axis * sin;
+            let result_length = self_length.lerp(other_length, t);
+            result_dir * (result_length / result_dir.length())
+        } else {
+            // Vectors are almost parallel in the same direction.
+            self.lerp(other, t)
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn rotate_towards_backend(self, target: Self, max_angle: T) -> Self {
+        let self_length = self.length();
+        let target_length = target.length();
+
+        debug_assert!(
+            target_length >= T::as_from(1e-7),
+            "target is zero: {self:?}.rotate_towards({target:?}, {max_angle:?})"
+        );
+
+        if self == Self::ZERO {
+            return self;
+        }
+
+        let target_angle_cos = self.dot(target) / (self_length * target_length);
+        let target_angle = target_angle_cos.acos_approx();
+        let angle = if max_angle < target_angle - T::PI {
+            target_angle - T::PI
+        } else if max_angle > target_angle {
+            target_angle
+        } else {
+            max_angle
+        };
+
+        if angle == T::ZERO {
+            return self;
+        }
+
+        // If `target_angle_cos` is close to `1` or `-1` or is NaN the
+        // normal calculation breaks down.
+        if target_angle_cos.abs() <= T::as_from(1.0 - 3e-7) {
+            let self_factor = PrimitiveFloatUtils::sin(target_angle - angle);
+            let target_factor = PrimitiveFloatUtils::sin(angle);
+
+            (self * self_factor + target * (self_length / target_length) * target_factor)
+                .normalize()
+                * self_length
+        } else if target_angle_cos.is_sign_negative() {
+            // Vectors are almost parallel in opposing directions.
+
+            let axis = self.any_orthogonal_vector().normalize();
+            let (sin, cos) = PrimitiveFloatUtils::sin_cos(angle);
+
+            let result_dir = self * cos + axis * sin;
+            result_dir * (self_length / result_dir.length())
+        } else {
+            // Vectors are almost parallel in the same direction.
+            target / target_length * self_length
+        }
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn any_orthogonal_vector_backend(self) -> Self {
+        let self_abs = self.abs();
+        if self_abs.x > self_abs.y {
+            if self_abs.x > self_abs.z {
+                Self::new(-self.w, T::ZERO, T::ZERO, self.x)
+            } else {
+                Self::new(T::ZERO, T::ZERO, -self.w, self.z)
+            }
+        } else if self_abs.y > self_abs.z {
+            Self::new(T::ZERO, -self.w, T::ZERO, self.y)
+        } else {
+            Self::new(T::ZERO, T::ZERO, -self.w, self.z)
+        }
+    }
+
+    #[inline(always)]
+    fn any_orthonormal_vector_backend(self) -> Self {
+        self.any_orthogonal_vector().normalize()
     }
 }
 

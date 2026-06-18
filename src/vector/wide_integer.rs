@@ -3,7 +3,7 @@ use wide::{
     u16x8, u16x16, u16x32, u32x4, u32x8, u32x16, u64x2, u64x4, u64x8,
 };
 
-use crate::{Alignment, Length, SupportedLength, Vector};
+use crate::{Alignment, Length, SupportedLength, Vector, utils::specialize};
 
 macro_rules! wide_integer_impl {
     ($Wide:ident) => {
@@ -26,7 +26,7 @@ macro_rules! wide_integer_impl {
             #[inline]
             #[must_use]
             pub fn saturating_add(self, rhs: Self) -> Self {
-                Self::from_fn(|i| self[i].saturating_add(rhs[i]))
+                specialize!(Vector::<N, $Wide, A>::saturating_add_backend(self, rhs))
             }
 
             /// Computes `self - rhs`, saturating at the numeric bounds instead
@@ -34,7 +34,7 @@ macro_rules! wide_integer_impl {
             #[inline]
             #[must_use]
             pub fn saturating_sub(self, rhs: Self) -> Self {
-                Self::from_fn(|i| self[i].saturating_sub(rhs[i]))
+                specialize!(Vector::<N, $Wide, A>::saturating_sub_backend(self, rhs))
             }
 
             /// Computes `self * rhs`, saturating at the numeric bounds instead
@@ -42,7 +42,7 @@ macro_rules! wide_integer_impl {
             #[inline]
             #[must_use]
             pub fn saturating_mul(self, rhs: Self) -> Self {
-                Self::from_fn(|i| self[i].saturating_mul(rhs[i]))
+                specialize!(Vector::<N, $Wide, A>::saturating_mul_backend(self, rhs))
             }
 
             /// Computes `self / rhs`, saturating at the numeric bounds instead
@@ -55,7 +55,7 @@ macro_rules! wide_integer_impl {
             #[must_use]
             #[track_caller]
             pub fn saturating_div(self, rhs: Self) -> Self {
-                Self::from_fn(|i| self[i].saturating_div(rhs[i]))
+                specialize!(Vector::<N, $Wide, A>::saturating_div_backend(self, rhs))
             }
 
             /// Returns the maximum elements between `self` and `other`.
@@ -64,7 +64,7 @@ macro_rules! wide_integer_impl {
             #[inline]
             #[must_use]
             pub fn max(self, other: Self) -> Self {
-                Self::from_fn(|i| self[i].max(other[i]))
+                specialize!(Vector::<N, $Wide, A>::max_backend(self, other))
             }
 
             /// Returns the minimum elements between `self` and `other`.
@@ -73,7 +73,7 @@ macro_rules! wide_integer_impl {
             #[inline]
             #[must_use]
             pub fn min(self, other: Self) -> Self {
-                Self::from_fn(|i| self[i].min(other[i]))
+                specialize!(Vector::<N, $Wide, A>::min_backend(self, other))
             }
 
             /// Clamps the elements of `self` between the elements of `min` and
@@ -96,12 +96,7 @@ macro_rules! wide_integer_impl {
             #[inline]
             #[must_use]
             pub fn max_element(self) -> $Wide {
-                match N {
-                    2 => self[0].max(self[1]),
-                    3 => self[0].max(self[1]).max(self[2]),
-                    4 => self[0].max(self[1]).max(self[2]).max(self[3]),
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::max_element_backend(self))
             }
 
             /// Returns the minimum between the elements of `self`.
@@ -110,12 +105,187 @@ macro_rules! wide_integer_impl {
             #[inline]
             #[must_use]
             pub fn min_element(self) -> $Wide {
-                match N {
-                    2 => self[0].min(self[1]),
-                    3 => self[0].min(self[1]).min(self[2]),
-                    4 => self[0].min(self[1]).min(self[2]).min(self[3]),
-                    _ => unreachable!(),
-                }
+                specialize!(Vector::<N, $Wide, A>::min_element_backend(self))
+            }
+        }
+
+        impl<A: Alignment> Vector<2, $Wide, A> {
+            #[inline(always)]
+            fn saturating_add_backend(self, rhs: Self) -> Self {
+                Self::new(self.x.saturating_add(rhs.x), self.y.saturating_add(rhs.y))
+            }
+
+            #[inline(always)]
+            fn saturating_sub_backend(self, rhs: Self) -> Self {
+                Self::new(self.x.saturating_sub(rhs.x), self.y.saturating_sub(rhs.y))
+            }
+
+            #[inline(always)]
+            fn saturating_mul_backend(self, rhs: Self) -> Self {
+                Self::new(self.x.saturating_mul(rhs.x), self.y.saturating_mul(rhs.y))
+            }
+
+            #[inline(always)]
+            fn saturating_div_backend(self, rhs: Self) -> Self {
+                Self::new(self.x.saturating_div(rhs.x), self.y.saturating_div(rhs.y))
+            }
+
+            #[inline(always)]
+            fn max_backend(self, other: Self) -> Self {
+                Self::new(self.x.max(other.x), self.y.max(other.y))
+            }
+
+            #[inline(always)]
+            fn min_backend(self, other: Self) -> Self {
+                Self::new(self.x.min(other.x), self.y.min(other.y))
+            }
+
+            #[inline(always)]
+            fn max_element_backend(self) -> $Wide {
+                self.x.max(self.y)
+            }
+
+            #[inline(always)]
+            fn min_element_backend(self) -> $Wide {
+                self.x.min(self.y)
+            }
+        }
+
+        impl<A: Alignment> Vector<3, $Wide, A> {
+            #[inline(always)]
+            fn saturating_add_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_add(rhs.x),
+                    self.y.saturating_add(rhs.y),
+                    self.z.saturating_add(rhs.z),
+                )
+            }
+
+            #[inline(always)]
+            fn saturating_sub_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_sub(rhs.x),
+                    self.y.saturating_sub(rhs.y),
+                    self.z.saturating_sub(rhs.z),
+                )
+            }
+
+            #[inline(always)]
+            fn saturating_mul_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_mul(rhs.x),
+                    self.y.saturating_mul(rhs.y),
+                    self.z.saturating_mul(rhs.z),
+                )
+            }
+
+            #[inline(always)]
+            fn saturating_div_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_div(rhs.x),
+                    self.y.saturating_div(rhs.y),
+                    self.z.saturating_div(rhs.z),
+                )
+            }
+
+            #[inline(always)]
+            fn max_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.max(other.x),
+                    self.y.max(other.y),
+                    self.z.max(other.z),
+                )
+            }
+
+            #[inline(always)]
+            fn min_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.min(other.x),
+                    self.y.min(other.y),
+                    self.z.min(other.z),
+                )
+            }
+
+            #[inline(always)]
+            fn max_element_backend(self) -> $Wide {
+                self.x.max(self.y).max(self.z)
+            }
+
+            #[inline(always)]
+            fn min_element_backend(self) -> $Wide {
+                self.x.min(self.y).min(self.z)
+            }
+        }
+
+        impl<A: Alignment> Vector<4, $Wide, A> {
+            #[inline(always)]
+            fn saturating_add_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_add(rhs.x),
+                    self.y.saturating_add(rhs.y),
+                    self.z.saturating_add(rhs.z),
+                    self.w.saturating_add(rhs.w),
+                )
+            }
+
+            #[inline(always)]
+            fn saturating_sub_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_sub(rhs.x),
+                    self.y.saturating_sub(rhs.y),
+                    self.z.saturating_sub(rhs.z),
+                    self.w.saturating_sub(rhs.w),
+                )
+            }
+
+            #[inline(always)]
+            fn saturating_mul_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_mul(rhs.x),
+                    self.y.saturating_mul(rhs.y),
+                    self.z.saturating_mul(rhs.z),
+                    self.w.saturating_mul(rhs.w),
+                )
+            }
+
+            #[inline(always)]
+            fn saturating_div_backend(self, rhs: Self) -> Self {
+                Self::new(
+                    self.x.saturating_div(rhs.x),
+                    self.y.saturating_div(rhs.y),
+                    self.z.saturating_div(rhs.z),
+                    self.w.saturating_div(rhs.w),
+                )
+            }
+
+            #[inline(always)]
+            fn max_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.max(other.x),
+                    self.y.max(other.y),
+                    self.z.max(other.z),
+                    self.w.max(other.w),
+                )
+            }
+
+            #[inline(always)]
+            fn min_backend(self, other: Self) -> Self {
+                Self::new(
+                    self.x.min(other.x),
+                    self.y.min(other.y),
+                    self.z.min(other.z),
+                    self.w.min(other.w),
+                )
+            }
+
+            #[inline(always)]
+            fn max_element_backend(self) -> $Wide {
+                self.x.max(self.y).max(self.z).max(self.w)
+            }
+
+            #[inline(always)]
+            fn min_element_backend(self) -> $Wide {
+                self.x.min(self.y).min(self.z).min(self.w)
             }
         }
     };

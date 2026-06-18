@@ -10,7 +10,7 @@ use core::{
 
 use crate::{
     Affine, Aligned, Alignment, Length, One, Scalar, SupportedLength, Unaligned, Vector, Zero,
-    utils::{Repr3, Repr4, transmute_generic, transmute_mut, transmute_ref},
+    utils::{Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -859,7 +859,7 @@ where
     #[inline]
     #[must_use]
     pub fn transpose(&self) -> Self {
-        Self::from_row_fn(|i| self.column(i))
+        specialize!(Matrix::<N, T, A>::transpose_backend(self))
     }
 
     /// Transforms `vector` by the transpose of `self`.
@@ -873,7 +873,9 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        Vector::from_fn(|i| self[i].dot(vector))
+        specialize!(Matrix::<N, T, A>::transpose_mul_vector_backend(
+            self, vector
+        ))
     }
 
     /// Returns the diagonal of `self`.
@@ -942,7 +944,7 @@ where
     where
         T: Mul<Output = T>,
     {
-        Self::from_row_fn(|i| self[i] * scale[i])
+        specialize!(Matrix::<N, T, A>::prepend_diagonal_backend(self, scale))
     }
 
     /// Returns the determinant of `self`.
@@ -967,42 +969,7 @@ where
     where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
-        match N {
-            2 => {
-                // SAFETY: Because `N == 2`, `Matrix<N, T, A>` is `Matrix<2, T, A>`.
-                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self) };
-
-                matrix.x_axis.x * matrix.y_axis.y - matrix.x_axis.y * matrix.y_axis.x
-            }
-            3 => {
-                // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is `Matrix<3, T, A>`.
-                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self) };
-
-                matrix.x_axis.cross(matrix.y_axis).dot(matrix.z_axis)
-            }
-            4 => {
-                // SAFETY: Because `N == 4`, `Matrix<N, T, A>` is `Matrix<4, T, A>`.
-                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self) };
-
-                let [m00, m01, m02, m03] = matrix.x_axis.to_array();
-                let [m10, m11, m12, m13] = matrix.y_axis.to_array();
-                let [m20, m21, m22, m23] = matrix.z_axis.to_array();
-                let [m30, m31, m32, m33] = matrix.w_axis.to_array();
-
-                let a2323 = m22 * m33 - m23 * m32;
-                let a1323 = m21 * m33 - m23 * m31;
-                let a1223 = m21 * m32 - m22 * m31;
-                let a0323 = m20 * m33 - m23 * m30;
-                let a0223 = m20 * m32 - m22 * m30;
-                let a0123 = m20 * m31 - m21 * m30;
-
-                m00 * (m11 * a2323 - m12 * a1323 + m13 * a1223)
-                    - m01 * (m10 * a2323 - m12 * a0323 + m13 * a0223)
-                    + m02 * (m10 * a1323 - m11 * a0323 + m13 * a0123)
-                    - m03 * (m10 * a1223 - m11 * a0223 + m12 * a0123)
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Matrix::<N, T, A>::determinant_backend(self))
     }
 }
 
@@ -1027,6 +994,38 @@ where
             Vector::<2, T, A>::new(array[0], array[1]),
             Vector::<2, T, A>::new(array[2], array[3]),
         ])
+    }
+
+    #[inline(always)]
+    fn transpose_backend(&self) -> Self {
+        Self(self.0.xzyw())
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn transpose_mul_vector_backend(&self, vector: Vector<2, T, A>) -> Vector<2, T, A>
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Vector::<2, T, A>::new(self.x_axis.dot(vector), self.y_axis.dot(vector))
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn prepend_diagonal_backend(&self, scale: Vector<2, T, A>) -> Self
+    where
+        T: Mul<Output = T>,
+    {
+        Self(self.0 * scale.xxyy())
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn determinant_backend(&self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        self.x_axis.x * self.y_axis.y - self.x_axis.y * self.y_axis.x
     }
 }
 
@@ -1262,6 +1261,50 @@ where
             (2, 2) => Matrix::from_rows(&[self.x_axis.xy(), self.y_axis.xy()]),
             _ => panic!("index out of bounds"),
         }
+    }
+
+    #[inline(always)]
+    fn transpose_backend(&self) -> Self {
+        Self::from_rows(&[
+            Vector::<3, T, A>::new(self.x_axis.x, self.y_axis.x, self.z_axis.x),
+            Vector::<3, T, A>::new(self.x_axis.y, self.y_axis.y, self.z_axis.y),
+            Vector::<3, T, A>::new(self.x_axis.z, self.y_axis.z, self.z_axis.z),
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn transpose_mul_vector_backend(&self, vector: Vector<3, T, A>) -> Vector<3, T, A>
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Vector::<3, T, A>::new(
+            self.x_axis.dot(vector),
+            self.y_axis.dot(vector),
+            self.z_axis.dot(vector),
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn prepend_diagonal_backend(&self, scale: Vector<3, T, A>) -> Self
+    where
+        T: Mul<Output = T>,
+    {
+        Self::from_rows(&[
+            self.x_axis * scale.x,
+            self.y_axis * scale.y,
+            self.z_axis * scale.z,
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn determinant_backend(&self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        self.x_axis.cross(self.y_axis).dot(self.z_axis)
     }
 }
 
@@ -1545,6 +1588,68 @@ where
             (3, 3) => Matrix::from_rows(&[self.x_axis.xyz(), self.y_axis.xyz(), self.z_axis.xyz()]),
             _ => panic!("index out of bounds"),
         }
+    }
+
+    #[inline(always)]
+    fn transpose_backend(&self) -> Self {
+        Self::from_rows(&[
+            Vector::<4, T, A>::new(self.x_axis.x, self.y_axis.x, self.z_axis.x, self.w_axis.x),
+            Vector::<4, T, A>::new(self.x_axis.y, self.y_axis.y, self.z_axis.y, self.w_axis.y),
+            Vector::<4, T, A>::new(self.x_axis.z, self.y_axis.z, self.z_axis.z, self.w_axis.z),
+            Vector::<4, T, A>::new(self.x_axis.w, self.y_axis.w, self.z_axis.w, self.w_axis.w),
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn transpose_mul_vector_backend(&self, vector: Vector<4, T, A>) -> Vector<4, T, A>
+    where
+        T: Add<Output = T> + Mul<Output = T>,
+    {
+        Vector::<4, T, A>::new(
+            self.x_axis.dot(vector),
+            self.y_axis.dot(vector),
+            self.z_axis.dot(vector),
+            self.w_axis.dot(vector),
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn prepend_diagonal_backend(&self, scale: Vector<4, T, A>) -> Self
+    where
+        T: Mul<Output = T>,
+    {
+        Self::from_rows(&[
+            self.x_axis * scale.x,
+            self.y_axis * scale.y,
+            self.z_axis * scale.z,
+            self.w_axis * scale.w,
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn determinant_backend(&self) -> T
+    where
+        T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
+    {
+        let [m00, m01, m02, m03] = self.x_axis.to_array();
+        let [m10, m11, m12, m13] = self.y_axis.to_array();
+        let [m20, m21, m22, m23] = self.z_axis.to_array();
+        let [m30, m31, m32, m33] = self.w_axis.to_array();
+
+        let a2323 = m22 * m33 - m23 * m32;
+        let a1323 = m21 * m33 - m23 * m31;
+        let a1223 = m21 * m32 - m22 * m31;
+        let a0323 = m20 * m33 - m23 * m30;
+        let a0223 = m20 * m32 - m22 * m30;
+        let a0123 = m20 * m31 - m21 * m30;
+
+        m00 * (m11 * a2323 - m12 * a1323 + m13 * a1223)
+            - m01 * (m10 * a2323 - m12 * a0323 + m13 * a0223)
+            + m02 * (m10 * a1323 - m11 * a0323 + m13 * a0123)
+            - m03 * (m10 * a1223 - m11 * a0223 + m12 * a0123)
     }
 }
 

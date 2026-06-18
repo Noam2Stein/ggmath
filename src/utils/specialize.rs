@@ -79,6 +79,28 @@ macro_rules! specialize {
             )
         })($($arg),*)
     };
+    ($Struct:ident::<$N:tt, $T:ident, $A:tt>::$f:ident($($arg:expr),*$(,)?)) => {
+        (const {
+            $crate::utils::specialize_helper::<
+                $N,
+                $A,
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+                $crate::utils::specialize!(@fn($($arg),*)),
+            >(
+                <$Struct::<2, $T, $crate::Aligned>>::$f,
+                <$Struct::<3, $T, $crate::Aligned>>::$f,
+                <$Struct::<4, $T, $crate::Aligned>>::$f,
+                <$Struct::<2, $T, $crate::Unaligned>>::$f,
+                <$Struct::<3, $T, $crate::Unaligned>>::$f,
+                <$Struct::<4, $T, $crate::Unaligned>>::$f,
+            )
+        })($($arg),*)
+    };
 
     (@fn()) => {
         fn() -> _
@@ -356,6 +378,24 @@ unsafe impl<T, T2, const N: usize, const N2: usize, A: Alignment, A2: Alignment>
 where
     T: Specialize<T2, N, N2, A, A2>,
     Length<N>: SupportedLength,
+    Length<N2>: SupportedLength,
+{
+}
+
+// SAFETY: `T == T2` => `&[T; N] == &[T2; N]`.
+unsafe impl<
+    'a,
+    T,
+    T2,
+    const N: usize,
+    const N1: usize,
+    const N2: usize,
+    A: Alignment,
+    A2: Alignment,
+> Specialize<&'a [T2; N], N1, N2, A, A2> for &'a [T; N]
+where
+    T: Specialize<T2, N1, N2, A, A2>,
+    Length<N1>: SupportedLength,
     Length<N2>: SupportedLength,
 {
 }

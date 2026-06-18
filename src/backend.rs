@@ -700,11 +700,51 @@ where
     }
 
     #[inline]
+    fn vector_powf(vector: Vector<N, Self, A>, n: Self) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveFloat,
+    {
+        vector.map(|x| PrimitiveFloatUtils::powf(x, n))
+    }
+
+    #[inline]
     fn vector_sqrt(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
         Self: PrimitiveFloat,
     {
         vector.map(PrimitiveFloatUtils::sqrt)
+    }
+
+    #[inline]
+    fn vector_exp(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveFloat,
+    {
+        vector.map(PrimitiveFloatUtils::exp)
+    }
+
+    #[inline]
+    fn vector_exp2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveFloat,
+    {
+        vector.map(PrimitiveFloatUtils::exp2)
+    }
+
+    #[inline]
+    fn vector_ln(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveFloat,
+    {
+        vector.map(PrimitiveFloatUtils::ln)
+    }
+
+    #[inline]
+    fn vector_log2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
+    where
+        Self: PrimitiveFloat,
+    {
+        vector.map(PrimitiveFloatUtils::log2)
     }
 
     #[inline]
@@ -1060,6 +1100,174 @@ where
     type Mask = Repr2<bool>;
 
     #[inline]
+    fn vector_eq(vector: &Vector<2, Self, A>, other: &Vector<2, Self, A>) -> bool
+    where
+        Self: PartialEq,
+    {
+        vector.x == other.x && vector.y == other.y
+    }
+
+    #[inline]
+    fn vector_neg(vector: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Neg<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(-vector.x, -vector.y)
+    }
+
+    #[inline]
+    fn vector_not(vector: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Not<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(!vector.x, !vector.y)
+    }
+
+    #[inline]
+    fn vector_add(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Add<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x + rhs.x, vector.y + rhs.y)
+    }
+
+    #[inline]
+    fn vector_sub(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Sub<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x - rhs.x, vector.y - rhs.y)
+    }
+
+    #[inline]
+    fn vector_mul(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Mul<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x * rhs.x, vector.y * rhs.y)
+    }
+
+    #[inline]
+    fn vector_div(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Div<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x / rhs.x, vector.y / rhs.y)
+    }
+
+    #[inline]
+    fn vector_rem(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Rem<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x % rhs.x, vector.y % rhs.y)
+    }
+
+    #[inline]
+    fn vector_shl(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Shl<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x << rhs.x, vector.y << rhs.y)
+    }
+
+    #[inline]
+    fn vector_shr(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: Shr<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x >> rhs.x, vector.y >> rhs.y)
+    }
+
+    #[inline]
+    fn vector_bitand(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: BitAnd<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x & rhs.x, vector.y & rhs.y)
+    }
+
+    #[inline]
+    fn vector_bitor(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: BitOr<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x | rhs.x, vector.y | rhs.y)
+    }
+
+    #[inline]
+    fn vector_bitxor(vector: Vector<2, Self, A>, rhs: Vector<2, Self, A>) -> Vector<2, Self, A>
+    where
+        Self: BitXor<Output = Self>,
+    {
+        Vector::<2, Self, A>::new(vector.x ^ rhs.x, vector.y ^ rhs.y)
+    }
+
+    #[inline]
+    fn vector_element_sum(vector: Vector<2, Self, A>) -> Self
+    where
+        Self: Add<Output = Self>,
+    {
+        vector.x + vector.y
+    }
+
+    #[inline]
+    fn vector_element_product(vector: Vector<2, Self, A>) -> Self
+    where
+        Self: Mul<Output = Self>,
+    {
+        vector.x * vector.y
+    }
+
+    #[inline]
+    fn vector_eq_mask(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Mask<2, Self, A>
+    where
+        Self: PartialEq,
+    {
+        Mask::<2, Self, A>::new(vector.x == other.x, vector.y == other.y)
+    }
+
+    #[inline]
+    fn vector_ne_mask(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Mask<2, Self, A>
+    where
+        Self: PartialEq,
+    {
+        Mask::<2, Self, A>::new(vector.x != other.x, vector.y != other.y)
+    }
+
+    #[inline]
+    fn vector_lt_mask(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Mask<2, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<2, Self, A>::new(vector.x < other.x, vector.y < other.y)
+    }
+
+    #[inline]
+    fn vector_gt_mask(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Mask<2, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<2, Self, A>::new(vector.x > other.x, vector.y > other.y)
+    }
+
+    #[inline]
+    fn vector_le_mask(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Mask<2, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<2, Self, A>::new(vector.x <= other.x, vector.y <= other.y)
+    }
+
+    #[inline]
+    fn vector_ge_mask(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Mask<2, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<2, Self, A>::new(vector.x >= other.x, vector.y >= other.y)
+    }
+
+    #[inline]
     fn mask_from_array(array: [bool; 2]) -> Mask<2, Self, A> {
         Mask::from_inner(Repr2(array[0], array[1]))
     }
@@ -1093,6 +1301,26 @@ where
     }
 
     #[inline]
+    fn mask_select(
+        mask: Mask<2, Self, A>,
+        if_true: Vector<2, Self, A>,
+        if_false: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            if mask.inner().0 {
+                if_true.x
+            } else {
+                if_false.x
+            },
+            if mask.inner().1 {
+                if_true.y
+            } else {
+                if_false.y
+            },
+        )
+    }
+
+    #[inline]
     fn mask_get(mask: Mask<2, Self, A>, index: usize) -> bool {
         match index {
             0 => mask.inner().0,
@@ -1114,6 +1342,35 @@ where
     fn mask_eq(mask: &Mask<2, Self, A>, other: &Mask<2, Self, A>) -> bool {
         mask.inner() == other.inner()
     }
+
+    #[inline]
+    fn mask_not(mask: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(!mask.inner().0, !mask.inner().1)
+    }
+
+    #[inline]
+    fn mask_bitand(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(
+            mask.inner().0 & rhs.inner().0,
+            mask.inner().1 & rhs.inner().1,
+        )
+    }
+
+    #[inline]
+    fn mask_bitor(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(
+            mask.inner().0 | rhs.inner().0,
+            mask.inner().1 | rhs.inner().1,
+        )
+    }
+
+    #[inline]
+    fn mask_bitxor(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(
+            mask.inner().0 ^ rhs.inner().0,
+            mask.inner().1 ^ rhs.inner().1,
+        )
+    }
 }
 
 // SAFETY: All associated types uphold requirements.
@@ -1123,6 +1380,190 @@ where
 {
     type Vector = Repr3<T>;
     type Mask = Repr3<bool>;
+
+    #[inline]
+    fn vector_eq(vector: &Vector<3, Self, A>, other: &Vector<3, Self, A>) -> bool
+    where
+        Self: PartialEq,
+    {
+        vector.x == other.x && vector.y == other.y && vector.z == other.z
+    }
+
+    #[inline]
+    fn vector_neg(vector: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Neg<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(-vector.x, -vector.y, -vector.z)
+    }
+
+    #[inline]
+    fn vector_not(vector: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Not<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(!vector.x, !vector.y, !vector.z)
+    }
+
+    #[inline]
+    fn vector_add(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Add<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x + rhs.x, vector.y + rhs.y, vector.z + rhs.z)
+    }
+
+    #[inline]
+    fn vector_sub(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Sub<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x - rhs.x, vector.y - rhs.y, vector.z - rhs.z)
+    }
+
+    #[inline]
+    fn vector_mul(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Mul<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x * rhs.x, vector.y * rhs.y, vector.z * rhs.z)
+    }
+
+    #[inline]
+    fn vector_div(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Div<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x / rhs.x, vector.y / rhs.y, vector.z / rhs.z)
+    }
+
+    #[inline]
+    fn vector_rem(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Rem<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x % rhs.x, vector.y % rhs.y, vector.z % rhs.z)
+    }
+
+    #[inline]
+    fn vector_shl(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Shl<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x << rhs.x, vector.y << rhs.y, vector.z << rhs.z)
+    }
+
+    #[inline]
+    fn vector_shr(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: Shr<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x >> rhs.x, vector.y >> rhs.y, vector.z >> rhs.z)
+    }
+
+    #[inline]
+    fn vector_bitand(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: BitAnd<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x & rhs.x, vector.y & rhs.y, vector.z & rhs.z)
+    }
+
+    #[inline]
+    fn vector_bitor(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: BitOr<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x | rhs.x, vector.y | rhs.y, vector.z | rhs.z)
+    }
+
+    #[inline]
+    fn vector_bitxor(vector: Vector<3, Self, A>, rhs: Vector<3, Self, A>) -> Vector<3, Self, A>
+    where
+        Self: BitXor<Output = Self>,
+    {
+        Vector::<3, Self, A>::new(vector.x ^ rhs.x, vector.y ^ rhs.y, vector.z ^ rhs.z)
+    }
+
+    #[inline]
+    fn vector_element_sum(vector: Vector<3, Self, A>) -> Self
+    where
+        Self: Add<Output = Self>,
+    {
+        vector.x + vector.y + vector.z
+    }
+
+    #[inline]
+    fn vector_element_product(vector: Vector<3, Self, A>) -> Self
+    where
+        Self: Mul<Output = Self>,
+    {
+        vector.x * vector.y * vector.z
+    }
+
+    #[inline]
+    fn vector_eq_mask(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Mask<3, Self, A>
+    where
+        Self: PartialEq,
+    {
+        Mask::<3, Self, A>::new(
+            vector.x == other.x,
+            vector.y == other.y,
+            vector.z == other.z,
+        )
+    }
+
+    #[inline]
+    fn vector_ne_mask(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Mask<3, Self, A>
+    where
+        Self: PartialEq,
+    {
+        Mask::<3, Self, A>::new(
+            vector.x != other.x,
+            vector.y != other.y,
+            vector.z != other.z,
+        )
+    }
+
+    #[inline]
+    fn vector_lt_mask(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Mask<3, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<3, Self, A>::new(vector.x < other.x, vector.y < other.y, vector.z < other.z)
+    }
+
+    #[inline]
+    fn vector_gt_mask(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Mask<3, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<3, Self, A>::new(vector.x > other.x, vector.y > other.y, vector.z > other.z)
+    }
+
+    #[inline]
+    fn vector_le_mask(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Mask<3, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<3, Self, A>::new(
+            vector.x <= other.x,
+            vector.y <= other.y,
+            vector.z <= other.z,
+        )
+    }
+
+    #[inline]
+    fn vector_ge_mask(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Mask<3, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<3, Self, A>::new(
+            vector.x >= other.x,
+            vector.y >= other.y,
+            vector.z >= other.z,
+        )
+    }
 
     #[inline]
     fn mask_from_array(array: [bool; 3]) -> Mask<3, Self, A> {
@@ -1158,6 +1599,31 @@ where
     }
 
     #[inline]
+    fn mask_select(
+        mask: Mask<3, Self, A>,
+        if_true: Vector<3, Self, A>,
+        if_false: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            if mask.inner().0 {
+                if_true.x
+            } else {
+                if_false.x
+            },
+            if mask.inner().1 {
+                if_true.y
+            } else {
+                if_false.y
+            },
+            if mask.inner().2 {
+                if_true.z
+            } else {
+                if_false.z
+            },
+        )
+    }
+
+    #[inline]
     fn mask_get(mask: Mask<3, Self, A>, index: usize) -> bool {
         match index {
             0 => mask.inner().0,
@@ -1181,6 +1647,38 @@ where
     fn mask_eq(mask: &Mask<3, Self, A>, other: &Mask<3, Self, A>) -> bool {
         mask.inner() == other.inner()
     }
+
+    #[inline]
+    fn mask_not(mask: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(!mask.inner().0, !mask.inner().1, !mask.inner().2)
+    }
+
+    #[inline]
+    fn mask_bitand(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            mask.inner().0 & rhs.inner().0,
+            mask.inner().1 & rhs.inner().1,
+            mask.inner().2 & rhs.inner().2,
+        )
+    }
+
+    #[inline]
+    fn mask_bitor(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            mask.inner().0 | rhs.inner().0,
+            mask.inner().1 | rhs.inner().1,
+            mask.inner().2 | rhs.inner().2,
+        )
+    }
+
+    #[inline]
+    fn mask_bitxor(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            mask.inner().0 ^ rhs.inner().0,
+            mask.inner().1 ^ rhs.inner().1,
+            mask.inner().2 ^ rhs.inner().2,
+        )
+    }
 }
 
 // SAFETY: All associated types uphold requirements.
@@ -1190,6 +1688,254 @@ where
 {
     type Vector = Repr4<T>;
     type Mask = Repr4<bool>;
+
+    #[inline]
+    fn vector_eq(vector: &Vector<4, Self, A>, other: &Vector<4, Self, A>) -> bool
+    where
+        Self: PartialEq,
+    {
+        vector.x == other.x && vector.y == other.y && vector.z == other.z && vector.w == other.w
+    }
+
+    #[inline]
+    fn vector_neg(vector: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Neg<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(-vector.x, -vector.y, -vector.z, -vector.w)
+    }
+
+    #[inline]
+    fn vector_not(vector: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Not<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(!vector.x, !vector.y, !vector.z, !vector.w)
+    }
+
+    #[inline]
+    fn vector_add(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Add<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x + rhs.x,
+            vector.y + rhs.y,
+            vector.z + rhs.z,
+            vector.w + rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_sub(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Sub<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x - rhs.x,
+            vector.y - rhs.y,
+            vector.z - rhs.z,
+            vector.w - rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_mul(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Mul<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x * rhs.x,
+            vector.y * rhs.y,
+            vector.z * rhs.z,
+            vector.w * rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_div(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Div<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x / rhs.x,
+            vector.y / rhs.y,
+            vector.z / rhs.z,
+            vector.w / rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_rem(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Rem<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x % rhs.x,
+            vector.y % rhs.y,
+            vector.z % rhs.z,
+            vector.w % rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_shl(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Shl<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x << rhs.x,
+            vector.y << rhs.y,
+            vector.z << rhs.z,
+            vector.w << rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_shr(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: Shr<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x >> rhs.x,
+            vector.y >> rhs.y,
+            vector.z >> rhs.z,
+            vector.w >> rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_bitand(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: BitAnd<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x & rhs.x,
+            vector.y & rhs.y,
+            vector.z & rhs.z,
+            vector.w & rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_bitor(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: BitOr<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x | rhs.x,
+            vector.y | rhs.y,
+            vector.z | rhs.z,
+            vector.w | rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_bitxor(vector: Vector<4, Self, A>, rhs: Vector<4, Self, A>) -> Vector<4, Self, A>
+    where
+        Self: BitXor<Output = Self>,
+    {
+        Vector::<4, Self, A>::new(
+            vector.x ^ rhs.x,
+            vector.y ^ rhs.y,
+            vector.z ^ rhs.z,
+            vector.w ^ rhs.w,
+        )
+    }
+
+    #[inline]
+    fn vector_element_sum(vector: Vector<4, Self, A>) -> Self
+    where
+        Self: Add<Output = Self>,
+    {
+        vector.x + vector.y + (vector.z + vector.w)
+    }
+
+    #[inline]
+    fn vector_element_product(vector: Vector<4, Self, A>) -> Self
+    where
+        Self: Mul<Output = Self>,
+    {
+        vector.x * vector.y * (vector.z * vector.w)
+    }
+
+    #[inline]
+    fn vector_eq_mask(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Mask<4, Self, A>
+    where
+        Self: PartialEq,
+    {
+        Mask::<4, Self, A>::new(
+            vector.x == other.x,
+            vector.y == other.y,
+            vector.z == other.z,
+            vector.w == other.w,
+        )
+    }
+
+    #[inline]
+    fn vector_ne_mask(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Mask<4, Self, A>
+    where
+        Self: PartialEq,
+    {
+        Mask::<4, Self, A>::new(
+            vector.x != other.x,
+            vector.y != other.y,
+            vector.z != other.z,
+            vector.w != other.w,
+        )
+    }
+
+    #[inline]
+    fn vector_lt_mask(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Mask<4, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<4, Self, A>::new(
+            vector.x < other.x,
+            vector.y < other.y,
+            vector.z < other.z,
+            vector.w < other.w,
+        )
+    }
+
+    #[inline]
+    fn vector_gt_mask(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Mask<4, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<4, Self, A>::new(
+            vector.x > other.x,
+            vector.y > other.y,
+            vector.z > other.z,
+            vector.w > other.w,
+        )
+    }
+
+    #[inline]
+    fn vector_le_mask(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Mask<4, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<4, Self, A>::new(
+            vector.x <= other.x,
+            vector.y <= other.y,
+            vector.z <= other.z,
+            vector.w <= other.w,
+        )
+    }
+
+    #[inline]
+    fn vector_ge_mask(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Mask<4, Self, A>
+    where
+        Self: PartialOrd,
+    {
+        Mask::<4, Self, A>::new(
+            vector.x >= other.x,
+            vector.y >= other.y,
+            vector.z >= other.z,
+            vector.w >= other.w,
+        )
+    }
 
     #[inline]
     fn mask_from_array(array: [bool; 4]) -> Mask<4, Self, A> {
@@ -1230,6 +1976,36 @@ where
     }
 
     #[inline]
+    fn mask_select(
+        mask: Mask<4, Self, A>,
+        if_true: Vector<4, Self, A>,
+        if_false: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            if mask.inner().0 {
+                if_true.x
+            } else {
+                if_false.x
+            },
+            if mask.inner().1 {
+                if_true.y
+            } else {
+                if_false.y
+            },
+            if mask.inner().2 {
+                if_true.z
+            } else {
+                if_false.z
+            },
+            if mask.inner().3 {
+                if_true.w
+            } else {
+                if_false.w
+            },
+        )
+    }
+
+    #[inline]
     fn mask_get(mask: Mask<4, Self, A>, index: usize) -> bool {
         match index {
             0 => mask.inner().0,
@@ -1255,25 +2031,1681 @@ where
     fn mask_eq(mask: &Mask<4, Self, A>, other: &Mask<4, Self, A>) -> bool {
         mask.inner() == other.inner()
     }
+
+    #[inline]
+    fn mask_not(mask: Mask<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            !mask.inner().0,
+            !mask.inner().1,
+            !mask.inner().2,
+            !mask.inner().3,
+        )
+    }
+
+    #[inline]
+    fn mask_bitand(mask: Mask<4, Self, A>, rhs: Mask<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            mask.inner().0 & rhs.inner().0,
+            mask.inner().1 & rhs.inner().1,
+            mask.inner().2 & rhs.inner().2,
+            mask.inner().3 & rhs.inner().3,
+        )
+    }
+
+    #[inline]
+    fn mask_bitor(mask: Mask<4, Self, A>, rhs: Mask<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            mask.inner().0 | rhs.inner().0,
+            mask.inner().1 | rhs.inner().1,
+            mask.inner().2 | rhs.inner().2,
+            mask.inner().3 | rhs.inner().3,
+        )
+    }
+
+    #[inline]
+    fn mask_bitxor(mask: Mask<4, Self, A>, rhs: Mask<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            mask.inner().0 ^ rhs.inner().0,
+            mask.inner().1 ^ rhs.inner().1,
+            mask.inner().2 ^ rhs.inner().2,
+            mask.inner().3 ^ rhs.inner().3,
+        )
+    }
 }
 
-impl<const N: usize, T, A: Alignment> PrimitiveFloatBackend<N, A> for T
+impl<T, A: Alignment> PrimitiveFloatBackend<2, A> for T
 where
-    Length<N>: SupportedLength,
-    T: PrimitiveFloat + DefaultBackend<N, A>,
+    T: PrimitiveFloat + DefaultBackend<2, A>,
 {
+    #[inline]
+    fn vector_nan_mask(vector: Vector<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(vector.x.is_nan(), vector.y.is_nan())
+    }
+
+    #[inline]
+    fn vector_finite_mask(vector: Vector<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(vector.x.is_finite(), vector.y.is_finite())
+    }
+
+    #[inline]
+    fn vector_sign_positive_mask(vector: Vector<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(vector.x.is_sign_positive(), vector.y.is_sign_positive())
+    }
+
+    #[inline]
+    fn vector_sign_negative_mask(vector: Vector<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(vector.x.is_sign_negative(), vector.y.is_sign_negative())
+    }
+
+    #[inline]
+    fn vector_max(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            if vector.x > other.x {
+                vector.x
+            } else {
+                other.x
+            },
+            if vector.y > other.y {
+                vector.y
+            } else {
+                other.y
+            },
+        )
+    }
+
+    #[inline]
+    fn vector_min(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            if vector.x < other.x {
+                vector.x
+            } else {
+                other.x
+            },
+            if vector.y < other.y {
+                vector.y
+            } else {
+                other.y
+            },
+        )
+    }
+
+    #[inline]
+    fn vector_max_element(vector: Vector<2, Self, A>) -> Self {
+        if vector.x > vector.y {
+            vector.x
+        } else {
+            vector.y
+        }
+    }
+
+    #[inline]
+    fn vector_min_element(vector: Vector<2, Self, A>) -> Self {
+        if vector.x < vector.y {
+            vector.x
+        } else {
+            vector.y
+        }
+    }
+
+    #[inline]
+    fn vector_abs(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.abs(), vector.y.abs())
+    }
+
+    #[inline]
+    fn vector_signum(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.signum(), vector.y.signum())
+    }
+
+    #[inline]
+    fn vector_copysign(vector: Vector<2, Self, A>, sign: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.copysign(sign.x), vector.y.copysign(sign.y))
+    }
+
+    #[inline]
+    fn vector_floor(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::floor(vector.x),
+            PrimitiveFloatUtils::floor(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_ceil(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::ceil(vector.x),
+            PrimitiveFloatUtils::ceil(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_round(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::round(vector.x),
+            PrimitiveFloatUtils::round(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_trunc(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::trunc(vector.x),
+            PrimitiveFloatUtils::trunc(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_mul_add(
+        vector: Vector<2, Self, A>,
+        a: Vector<2, Self, A>,
+        b: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::mul_add(vector.x, a.x, b.x),
+            PrimitiveFloatUtils::mul_add(vector.y, a.y, b.y),
+        )
+    }
+
+    #[inline]
+    fn vector_div_euclid(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::div_euclid(vector.x, rhs.x),
+            PrimitiveFloatUtils::div_euclid(vector.y, rhs.y),
+        )
+    }
+
+    #[inline]
+    fn vector_rem_euclid(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::rem_euclid(vector.x, rhs.x),
+            PrimitiveFloatUtils::rem_euclid(vector.y, rhs.y),
+        )
+    }
+
+    #[inline]
+    fn vector_powf(vector: Vector<2, Self, A>, n: Self) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::powf(vector.x, n),
+            PrimitiveFloatUtils::powf(vector.y, n),
+        )
+    }
+
+    #[inline]
+    fn vector_sqrt(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::sqrt(vector.x),
+            PrimitiveFloatUtils::sqrt(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_exp(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::exp(vector.x),
+            PrimitiveFloatUtils::exp(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_exp2(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::exp2(vector.x),
+            PrimitiveFloatUtils::exp2(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_ln(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::ln(vector.x),
+            PrimitiveFloatUtils::ln(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_log2(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::log2(vector.x),
+            PrimitiveFloatUtils::log2(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_sin(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::sin(vector.x),
+            PrimitiveFloatUtils::sin(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_cos(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::cos(vector.x),
+            PrimitiveFloatUtils::cos(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_tan(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::tan(vector.x),
+            PrimitiveFloatUtils::tan(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_asin(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::asin(vector.x),
+            PrimitiveFloatUtils::asin(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_acos(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::acos(vector.x),
+            PrimitiveFloatUtils::acos(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_atan(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            PrimitiveFloatUtils::atan(vector.x),
+            PrimitiveFloatUtils::atan(vector.y),
+        )
+    }
+
+    #[inline]
+    fn vector_sin_cos(vector: Vector<2, Self, A>) -> (Vector<2, Self, A>, Vector<2, Self, A>) {
+        let x_sin_cos = PrimitiveFloatUtils::sin_cos(vector.x);
+        let y_sin_cos = PrimitiveFloatUtils::sin_cos(vector.y);
+
+        (
+            Vector::<2, Self, A>::new(x_sin_cos.0, y_sin_cos.0),
+            Vector::<2, Self, A>::new(x_sin_cos.1, y_sin_cos.1),
+        )
+    }
 }
 
-impl<const N: usize, T, A: Alignment> PrimitiveIntegerBackend<N, A> for T
+impl<T, A: Alignment> PrimitiveFloatBackend<3, A> for T
 where
-    Length<N>: SupportedLength,
-    T: PrimitiveInteger + DefaultBackend<N, A>,
+    T: PrimitiveFloat + DefaultBackend<3, A>,
 {
+    #[inline]
+    fn vector_nan_mask(vector: Vector<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(vector.x.is_nan(), vector.y.is_nan(), vector.z.is_nan())
+    }
+
+    #[inline]
+    fn vector_finite_mask(vector: Vector<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            vector.x.is_finite(),
+            vector.y.is_finite(),
+            vector.z.is_finite(),
+        )
+    }
+
+    #[inline]
+    fn vector_sign_positive_mask(vector: Vector<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            vector.x.is_sign_positive(),
+            vector.y.is_sign_positive(),
+            vector.z.is_sign_positive(),
+        )
+    }
+
+    #[inline]
+    fn vector_sign_negative_mask(vector: Vector<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            vector.x.is_sign_negative(),
+            vector.y.is_sign_negative(),
+            vector.z.is_sign_negative(),
+        )
+    }
+
+    #[inline]
+    fn vector_max(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            if vector.x > other.x {
+                vector.x
+            } else {
+                other.x
+            },
+            if vector.y > other.y {
+                vector.y
+            } else {
+                other.y
+            },
+            if vector.z > other.z {
+                vector.z
+            } else {
+                other.z
+            },
+        )
+    }
+
+    #[inline]
+    fn vector_min(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            if vector.x < other.x {
+                vector.x
+            } else {
+                other.x
+            },
+            if vector.y < other.y {
+                vector.y
+            } else {
+                other.y
+            },
+            if vector.z < other.z {
+                vector.z
+            } else {
+                other.z
+            },
+        )
+    }
+
+    #[inline]
+    fn vector_max_element(vector: Vector<3, Self, A>) -> Self {
+        let mut result = vector.x;
+        if vector.y > result {
+            result = vector.y;
+        }
+        if vector.z > result {
+            result = vector.z;
+        }
+        result
+    }
+
+    #[inline]
+    fn vector_min_element(vector: Vector<3, Self, A>) -> Self {
+        let mut result = vector.x;
+        if vector.y < result {
+            result = vector.y;
+        }
+        if vector.z < result {
+            result = vector.z;
+        }
+        result
+    }
+
+    #[inline]
+    fn vector_abs(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(vector.x.abs(), vector.y.abs(), vector.z.abs())
+    }
+
+    #[inline]
+    fn vector_signum(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(vector.x.signum(), vector.y.signum(), vector.z.signum())
+    }
+
+    #[inline]
+    fn vector_copysign(vector: Vector<3, Self, A>, sign: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.copysign(sign.x),
+            vector.y.copysign(sign.y),
+            vector.z.copysign(sign.z),
+        )
+    }
+
+    #[inline]
+    fn vector_floor(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::floor(vector.x),
+            PrimitiveFloatUtils::floor(vector.y),
+            PrimitiveFloatUtils::floor(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_ceil(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::ceil(vector.x),
+            PrimitiveFloatUtils::ceil(vector.y),
+            PrimitiveFloatUtils::ceil(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_round(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::round(vector.x),
+            PrimitiveFloatUtils::round(vector.y),
+            PrimitiveFloatUtils::round(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_trunc(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::trunc(vector.x),
+            PrimitiveFloatUtils::trunc(vector.y),
+            PrimitiveFloatUtils::trunc(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_mul_add(
+        vector: Vector<3, Self, A>,
+        a: Vector<3, Self, A>,
+        b: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::mul_add(vector.x, a.x, b.x),
+            PrimitiveFloatUtils::mul_add(vector.y, a.y, b.y),
+            PrimitiveFloatUtils::mul_add(vector.z, a.z, b.z),
+        )
+    }
+
+    #[inline]
+    fn vector_div_euclid(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::div_euclid(vector.x, rhs.x),
+            PrimitiveFloatUtils::div_euclid(vector.y, rhs.y),
+            PrimitiveFloatUtils::div_euclid(vector.z, rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_rem_euclid(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::rem_euclid(vector.x, rhs.x),
+            PrimitiveFloatUtils::rem_euclid(vector.y, rhs.y),
+            PrimitiveFloatUtils::rem_euclid(vector.z, rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_powf(vector: Vector<3, Self, A>, n: Self) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::powf(vector.x, n),
+            PrimitiveFloatUtils::powf(vector.y, n),
+            PrimitiveFloatUtils::powf(vector.z, n),
+        )
+    }
+
+    #[inline]
+    fn vector_sqrt(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::sqrt(vector.x),
+            PrimitiveFloatUtils::sqrt(vector.y),
+            PrimitiveFloatUtils::sqrt(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_exp(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::exp(vector.x),
+            PrimitiveFloatUtils::exp(vector.y),
+            PrimitiveFloatUtils::exp(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_exp2(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::exp2(vector.x),
+            PrimitiveFloatUtils::exp2(vector.y),
+            PrimitiveFloatUtils::exp2(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_ln(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::ln(vector.x),
+            PrimitiveFloatUtils::ln(vector.y),
+            PrimitiveFloatUtils::ln(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_log2(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::log2(vector.x),
+            PrimitiveFloatUtils::log2(vector.y),
+            PrimitiveFloatUtils::log2(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_sin(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::sin(vector.x),
+            PrimitiveFloatUtils::sin(vector.y),
+            PrimitiveFloatUtils::sin(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_cos(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::cos(vector.x),
+            PrimitiveFloatUtils::cos(vector.y),
+            PrimitiveFloatUtils::cos(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_tan(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::tan(vector.x),
+            PrimitiveFloatUtils::tan(vector.y),
+            PrimitiveFloatUtils::tan(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_asin(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::asin(vector.x),
+            PrimitiveFloatUtils::asin(vector.y),
+            PrimitiveFloatUtils::asin(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_acos(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::acos(vector.x),
+            PrimitiveFloatUtils::acos(vector.y),
+            PrimitiveFloatUtils::acos(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_atan(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            PrimitiveFloatUtils::atan(vector.x),
+            PrimitiveFloatUtils::atan(vector.y),
+            PrimitiveFloatUtils::atan(vector.z),
+        )
+    }
+
+    #[inline]
+    fn vector_sin_cos(vector: Vector<3, Self, A>) -> (Vector<3, Self, A>, Vector<3, Self, A>) {
+        let x_sin_cos = PrimitiveFloatUtils::sin_cos(vector.x);
+        let y_sin_cos = PrimitiveFloatUtils::sin_cos(vector.y);
+        let z_sin_cos = PrimitiveFloatUtils::sin_cos(vector.z);
+
+        (
+            Vector::<3, Self, A>::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0),
+            Vector::<3, Self, A>::new(x_sin_cos.1, y_sin_cos.1, z_sin_cos.1),
+        )
+    }
 }
 
-impl<const N: usize, T, A: Alignment> PrimitiveSignedBackend<N, A> for T
+impl<T, A: Alignment> PrimitiveFloatBackend<4, A> for T
 where
-    Length<N>: SupportedLength,
-    T: PrimitiveSigned + DefaultBackend<N, A>,
+    T: PrimitiveFloat + DefaultBackend<4, A>,
 {
+    #[inline]
+    fn vector_nan_mask(vector: Vector<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            vector.x.is_nan(),
+            vector.y.is_nan(),
+            vector.z.is_nan(),
+            vector.w.is_nan(),
+        )
+    }
+
+    #[inline]
+    fn vector_finite_mask(vector: Vector<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            vector.x.is_finite(),
+            vector.y.is_finite(),
+            vector.z.is_finite(),
+            vector.w.is_finite(),
+        )
+    }
+
+    #[inline]
+    fn vector_sign_positive_mask(vector: Vector<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            vector.x.is_sign_positive(),
+            vector.y.is_sign_positive(),
+            vector.z.is_sign_positive(),
+            vector.w.is_sign_positive(),
+        )
+    }
+
+    #[inline]
+    fn vector_sign_negative_mask(vector: Vector<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            vector.x.is_sign_negative(),
+            vector.y.is_sign_negative(),
+            vector.z.is_sign_negative(),
+            vector.w.is_sign_negative(),
+        )
+    }
+
+    #[inline]
+    fn vector_max(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            if vector.x > other.x {
+                vector.x
+            } else {
+                other.x
+            },
+            if vector.y > other.y {
+                vector.y
+            } else {
+                other.y
+            },
+            if vector.z > other.z {
+                vector.z
+            } else {
+                other.z
+            },
+            if vector.w > other.w {
+                vector.w
+            } else {
+                other.w
+            },
+        )
+    }
+
+    #[inline]
+    fn vector_min(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            if vector.x < other.x {
+                vector.x
+            } else {
+                other.x
+            },
+            if vector.y < other.y {
+                vector.y
+            } else {
+                other.y
+            },
+            if vector.z < other.z {
+                vector.z
+            } else {
+                other.z
+            },
+            if vector.w < other.w {
+                vector.w
+            } else {
+                other.w
+            },
+        )
+    }
+
+    #[inline]
+    fn vector_max_element(vector: Vector<4, Self, A>) -> Self {
+        let mut result = vector.x;
+        if vector.y > result {
+            result = vector.y;
+        }
+        if vector.z > result {
+            result = vector.z;
+        }
+        if vector.w > result {
+            result = vector.w;
+        }
+        result
+    }
+
+    #[inline]
+    fn vector_min_element(vector: Vector<4, Self, A>) -> Self {
+        let mut result = vector.x;
+        if vector.y < result {
+            result = vector.y;
+        }
+        if vector.z < result {
+            result = vector.z;
+        }
+        if vector.w < result {
+            result = vector.w;
+        }
+        result
+    }
+
+    #[inline]
+    fn vector_abs(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.abs(),
+            vector.y.abs(),
+            vector.z.abs(),
+            vector.w.abs(),
+        )
+    }
+
+    #[inline]
+    fn vector_signum(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.signum(),
+            vector.y.signum(),
+            vector.z.signum(),
+            vector.w.signum(),
+        )
+    }
+
+    #[inline]
+    fn vector_copysign(vector: Vector<4, Self, A>, sign: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.copysign(sign.x),
+            vector.y.copysign(sign.y),
+            vector.z.copysign(sign.z),
+            vector.w.copysign(sign.w),
+        )
+    }
+
+    #[inline]
+    fn vector_floor(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::floor(vector.x),
+            PrimitiveFloatUtils::floor(vector.y),
+            PrimitiveFloatUtils::floor(vector.z),
+            PrimitiveFloatUtils::floor(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_ceil(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::ceil(vector.x),
+            PrimitiveFloatUtils::ceil(vector.y),
+            PrimitiveFloatUtils::ceil(vector.z),
+            PrimitiveFloatUtils::ceil(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_round(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::round(vector.x),
+            PrimitiveFloatUtils::round(vector.y),
+            PrimitiveFloatUtils::round(vector.z),
+            PrimitiveFloatUtils::round(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_trunc(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::trunc(vector.x),
+            PrimitiveFloatUtils::trunc(vector.y),
+            PrimitiveFloatUtils::trunc(vector.z),
+            PrimitiveFloatUtils::trunc(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_mul_add(
+        vector: Vector<4, Self, A>,
+        a: Vector<4, Self, A>,
+        b: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::mul_add(vector.x, a.x, b.x),
+            PrimitiveFloatUtils::mul_add(vector.y, a.y, b.y),
+            PrimitiveFloatUtils::mul_add(vector.z, a.z, b.z),
+            PrimitiveFloatUtils::mul_add(vector.w, a.w, b.w),
+        )
+    }
+
+    #[inline]
+    fn vector_div_euclid(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::div_euclid(vector.x, rhs.x),
+            PrimitiveFloatUtils::div_euclid(vector.y, rhs.y),
+            PrimitiveFloatUtils::div_euclid(vector.z, rhs.z),
+            PrimitiveFloatUtils::div_euclid(vector.w, rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_rem_euclid(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::rem_euclid(vector.x, rhs.x),
+            PrimitiveFloatUtils::rem_euclid(vector.y, rhs.y),
+            PrimitiveFloatUtils::rem_euclid(vector.z, rhs.z),
+            PrimitiveFloatUtils::rem_euclid(vector.w, rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_powf(vector: Vector<4, Self, A>, n: Self) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::powf(vector.x, n),
+            PrimitiveFloatUtils::powf(vector.y, n),
+            PrimitiveFloatUtils::powf(vector.z, n),
+            PrimitiveFloatUtils::powf(vector.w, n),
+        )
+    }
+
+    #[inline]
+    fn vector_sqrt(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::sqrt(vector.x),
+            PrimitiveFloatUtils::sqrt(vector.y),
+            PrimitiveFloatUtils::sqrt(vector.z),
+            PrimitiveFloatUtils::sqrt(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_exp(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::exp(vector.x),
+            PrimitiveFloatUtils::exp(vector.y),
+            PrimitiveFloatUtils::exp(vector.z),
+            PrimitiveFloatUtils::exp(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_exp2(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::exp2(vector.x),
+            PrimitiveFloatUtils::exp2(vector.y),
+            PrimitiveFloatUtils::exp2(vector.z),
+            PrimitiveFloatUtils::exp2(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_ln(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::ln(vector.x),
+            PrimitiveFloatUtils::ln(vector.y),
+            PrimitiveFloatUtils::ln(vector.z),
+            PrimitiveFloatUtils::ln(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_log2(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::log2(vector.x),
+            PrimitiveFloatUtils::log2(vector.y),
+            PrimitiveFloatUtils::log2(vector.z),
+            PrimitiveFloatUtils::log2(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_sin(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::sin(vector.x),
+            PrimitiveFloatUtils::sin(vector.y),
+            PrimitiveFloatUtils::sin(vector.z),
+            PrimitiveFloatUtils::sin(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_cos(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::cos(vector.x),
+            PrimitiveFloatUtils::cos(vector.y),
+            PrimitiveFloatUtils::cos(vector.z),
+            PrimitiveFloatUtils::cos(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_tan(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::tan(vector.x),
+            PrimitiveFloatUtils::tan(vector.y),
+            PrimitiveFloatUtils::tan(vector.z),
+            PrimitiveFloatUtils::tan(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_asin(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::asin(vector.x),
+            PrimitiveFloatUtils::asin(vector.y),
+            PrimitiveFloatUtils::asin(vector.z),
+            PrimitiveFloatUtils::asin(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_acos(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::acos(vector.x),
+            PrimitiveFloatUtils::acos(vector.y),
+            PrimitiveFloatUtils::acos(vector.z),
+            PrimitiveFloatUtils::acos(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_atan(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            PrimitiveFloatUtils::atan(vector.x),
+            PrimitiveFloatUtils::atan(vector.y),
+            PrimitiveFloatUtils::atan(vector.z),
+            PrimitiveFloatUtils::atan(vector.w),
+        )
+    }
+
+    #[inline]
+    fn vector_sin_cos(vector: Vector<4, Self, A>) -> (Vector<4, Self, A>, Vector<4, Self, A>) {
+        let x_sin_cos = PrimitiveFloatUtils::sin_cos(vector.x);
+        let y_sin_cos = PrimitiveFloatUtils::sin_cos(vector.y);
+        let z_sin_cos = PrimitiveFloatUtils::sin_cos(vector.z);
+        let w_sin_cos = PrimitiveFloatUtils::sin_cos(vector.w);
+
+        (
+            Vector::<4, Self, A>::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0, w_sin_cos.0),
+            Vector::<4, Self, A>::new(x_sin_cos.1, y_sin_cos.1, z_sin_cos.1, w_sin_cos.1),
+        )
+    }
+}
+
+impl<T, A: Alignment> PrimitiveIntegerBackend<2, A> for T
+where
+    T: PrimitiveInteger + DefaultBackend<2, A>,
+{
+    #[inline]
+    fn vector_max(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.max(other.x), vector.y.max(other.y))
+    }
+
+    #[inline]
+    fn vector_min(vector: Vector<2, Self, A>, other: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.min(other.x), vector.y.min(other.y))
+    }
+
+    #[inline]
+    fn vector_max_element(vector: Vector<2, Self, A>) -> Self {
+        vector.x.max(vector.y)
+    }
+
+    #[inline]
+    fn vector_min_element(vector: Vector<2, Self, A>) -> Self {
+        vector.x.min(vector.y)
+    }
+
+    #[inline]
+    fn vector_checked_add(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Option<Vector<2, Self, A>> {
+        Some(Vector::<2, Self, A>::new(
+            vector.x.checked_add(rhs.x)?,
+            vector.y.checked_add(rhs.y)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_sub(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Option<Vector<2, Self, A>> {
+        Some(Vector::<2, Self, A>::new(
+            vector.x.checked_sub(rhs.x)?,
+            vector.y.checked_sub(rhs.y)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_mul(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Option<Vector<2, Self, A>> {
+        Some(Vector::<2, Self, A>::new(
+            vector.x.checked_mul(rhs.x)?,
+            vector.y.checked_mul(rhs.y)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_div(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Option<Vector<2, Self, A>> {
+        Some(Vector::<2, Self, A>::new(
+            vector.x.checked_div(rhs.x)?,
+            vector.y.checked_div(rhs.y)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_rem(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Option<Vector<2, Self, A>> {
+        Some(Vector::<2, Self, A>::new(
+            vector.x.checked_rem(rhs.x)?,
+            vector.y.checked_rem(rhs.y)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_saturating_add(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            vector.x.saturating_add(rhs.x),
+            vector.y.saturating_add(rhs.y),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_sub(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            vector.x.saturating_sub(rhs.x),
+            vector.y.saturating_sub(rhs.y),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_mul(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            vector.x.saturating_mul(rhs.x),
+            vector.y.saturating_mul(rhs.y),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_div(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            vector.x.saturating_div(rhs.x),
+            vector.y.saturating_div(rhs.y),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_add(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.wrapping_add(rhs.x), vector.y.wrapping_add(rhs.y))
+    }
+
+    #[inline]
+    fn vector_wrapping_sub(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.wrapping_sub(rhs.x), vector.y.wrapping_sub(rhs.y))
+    }
+
+    #[inline]
+    fn vector_wrapping_mul(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.wrapping_mul(rhs.x), vector.y.wrapping_mul(rhs.y))
+    }
+
+    #[inline]
+    fn vector_wrapping_div(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.wrapping_div(rhs.x), vector.y.wrapping_div(rhs.y))
+    }
+
+    #[inline]
+    fn vector_wrapping_rem(
+        vector: Vector<2, Self, A>,
+        rhs: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(vector.x.wrapping_rem(rhs.x), vector.y.wrapping_rem(rhs.y))
+    }
+}
+
+impl<T, A: Alignment> PrimitiveIntegerBackend<3, A> for T
+where
+    T: PrimitiveInteger + DefaultBackend<3, A>,
+{
+    #[inline]
+    fn vector_max(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.max(other.x),
+            vector.y.max(other.y),
+            vector.z.max(other.z),
+        )
+    }
+
+    #[inline]
+    fn vector_min(vector: Vector<3, Self, A>, other: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.min(other.x),
+            vector.y.min(other.y),
+            vector.z.min(other.z),
+        )
+    }
+
+    #[inline]
+    fn vector_max_element(vector: Vector<3, Self, A>) -> Self {
+        vector.x.max(vector.y).max(vector.z)
+    }
+
+    #[inline]
+    fn vector_min_element(vector: Vector<3, Self, A>) -> Self {
+        vector.x.min(vector.y).min(vector.z)
+    }
+
+    #[inline]
+    fn vector_checked_add(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Option<Vector<3, Self, A>> {
+        Some(Vector::<3, Self, A>::new(
+            vector.x.checked_add(rhs.x)?,
+            vector.y.checked_add(rhs.y)?,
+            vector.z.checked_add(rhs.z)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_sub(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Option<Vector<3, Self, A>> {
+        Some(Vector::<3, Self, A>::new(
+            vector.x.checked_sub(rhs.x)?,
+            vector.y.checked_sub(rhs.y)?,
+            vector.z.checked_sub(rhs.z)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_mul(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Option<Vector<3, Self, A>> {
+        Some(Vector::<3, Self, A>::new(
+            vector.x.checked_mul(rhs.x)?,
+            vector.y.checked_mul(rhs.y)?,
+            vector.z.checked_mul(rhs.z)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_div(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Option<Vector<3, Self, A>> {
+        Some(Vector::<3, Self, A>::new(
+            vector.x.checked_div(rhs.x)?,
+            vector.y.checked_div(rhs.y)?,
+            vector.z.checked_div(rhs.z)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_rem(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Option<Vector<3, Self, A>> {
+        Some(Vector::<3, Self, A>::new(
+            vector.x.checked_rem(rhs.x)?,
+            vector.y.checked_rem(rhs.y)?,
+            vector.z.checked_rem(rhs.z)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_saturating_add(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.saturating_add(rhs.x),
+            vector.y.saturating_add(rhs.y),
+            vector.z.saturating_add(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_sub(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.saturating_sub(rhs.x),
+            vector.y.saturating_sub(rhs.y),
+            vector.z.saturating_sub(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_mul(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.saturating_mul(rhs.x),
+            vector.y.saturating_mul(rhs.y),
+            vector.z.saturating_mul(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_div(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.saturating_div(rhs.x),
+            vector.y.saturating_div(rhs.y),
+            vector.z.saturating_div(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_add(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.wrapping_add(rhs.x),
+            vector.y.wrapping_add(rhs.y),
+            vector.z.wrapping_add(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_sub(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.wrapping_sub(rhs.x),
+            vector.y.wrapping_sub(rhs.y),
+            vector.z.wrapping_sub(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_mul(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.wrapping_mul(rhs.x),
+            vector.y.wrapping_mul(rhs.y),
+            vector.z.wrapping_mul(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_div(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.wrapping_div(rhs.x),
+            vector.y.wrapping_div(rhs.y),
+            vector.z.wrapping_div(rhs.z),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_rem(
+        vector: Vector<3, Self, A>,
+        rhs: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            vector.x.wrapping_rem(rhs.x),
+            vector.y.wrapping_rem(rhs.y),
+            vector.z.wrapping_rem(rhs.z),
+        )
+    }
+}
+
+impl<T, A: Alignment> PrimitiveIntegerBackend<4, A> for T
+where
+    T: PrimitiveInteger + DefaultBackend<4, A>,
+{
+    #[inline]
+    fn vector_max(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.max(other.x),
+            vector.y.max(other.y),
+            vector.z.max(other.z),
+            vector.w.max(other.w),
+        )
+    }
+
+    #[inline]
+    fn vector_min(vector: Vector<4, Self, A>, other: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.min(other.x),
+            vector.y.min(other.y),
+            vector.z.min(other.z),
+            vector.w.min(other.w),
+        )
+    }
+
+    #[inline]
+    fn vector_max_element(vector: Vector<4, Self, A>) -> Self {
+        vector.x.max(vector.y).max(vector.z.max(vector.w))
+    }
+
+    #[inline]
+    fn vector_min_element(vector: Vector<4, Self, A>) -> Self {
+        vector.x.min(vector.y).min(vector.z.min(vector.w))
+    }
+
+    #[inline]
+    fn vector_checked_add(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Option<Vector<4, Self, A>> {
+        Some(Vector::<4, Self, A>::new(
+            vector.x.checked_add(rhs.x)?,
+            vector.y.checked_add(rhs.y)?,
+            vector.z.checked_add(rhs.z)?,
+            vector.w.checked_add(rhs.w)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_sub(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Option<Vector<4, Self, A>> {
+        Some(Vector::<4, Self, A>::new(
+            vector.x.checked_sub(rhs.x)?,
+            vector.y.checked_sub(rhs.y)?,
+            vector.z.checked_sub(rhs.z)?,
+            vector.w.checked_sub(rhs.w)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_mul(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Option<Vector<4, Self, A>> {
+        Some(Vector::<4, Self, A>::new(
+            vector.x.checked_mul(rhs.x)?,
+            vector.y.checked_mul(rhs.y)?,
+            vector.z.checked_mul(rhs.z)?,
+            vector.w.checked_mul(rhs.w)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_div(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Option<Vector<4, Self, A>> {
+        Some(Vector::<4, Self, A>::new(
+            vector.x.checked_div(rhs.x)?,
+            vector.y.checked_div(rhs.y)?,
+            vector.z.checked_div(rhs.z)?,
+            vector.w.checked_div(rhs.w)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_checked_rem(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Option<Vector<4, Self, A>> {
+        Some(Vector::<4, Self, A>::new(
+            vector.x.checked_rem(rhs.x)?,
+            vector.y.checked_rem(rhs.y)?,
+            vector.z.checked_rem(rhs.z)?,
+            vector.w.checked_rem(rhs.w)?,
+        ))
+    }
+
+    #[inline]
+    fn vector_saturating_add(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.saturating_add(rhs.x),
+            vector.y.saturating_add(rhs.y),
+            vector.z.saturating_add(rhs.z),
+            vector.w.saturating_add(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_sub(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.saturating_sub(rhs.x),
+            vector.y.saturating_sub(rhs.y),
+            vector.z.saturating_sub(rhs.z),
+            vector.w.saturating_sub(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_mul(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.saturating_mul(rhs.x),
+            vector.y.saturating_mul(rhs.y),
+            vector.z.saturating_mul(rhs.z),
+            vector.w.saturating_mul(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_saturating_div(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.saturating_div(rhs.x),
+            vector.y.saturating_div(rhs.y),
+            vector.z.saturating_div(rhs.z),
+            vector.w.saturating_div(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_add(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.wrapping_add(rhs.x),
+            vector.y.wrapping_add(rhs.y),
+            vector.z.wrapping_add(rhs.z),
+            vector.w.wrapping_add(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_sub(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.wrapping_sub(rhs.x),
+            vector.y.wrapping_sub(rhs.y),
+            vector.z.wrapping_sub(rhs.z),
+            vector.w.wrapping_sub(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_mul(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.wrapping_mul(rhs.x),
+            vector.y.wrapping_mul(rhs.y),
+            vector.z.wrapping_mul(rhs.z),
+            vector.w.wrapping_mul(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_div(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.wrapping_div(rhs.x),
+            vector.y.wrapping_div(rhs.y),
+            vector.z.wrapping_div(rhs.z),
+            vector.w.wrapping_div(rhs.w),
+        )
+    }
+
+    #[inline]
+    fn vector_wrapping_rem(
+        vector: Vector<4, Self, A>,
+        rhs: Vector<4, Self, A>,
+    ) -> Vector<4, Self, A> {
+        Vector::<4, Self, A>::new(
+            vector.x.wrapping_rem(rhs.x),
+            vector.y.wrapping_rem(rhs.y),
+            vector.z.wrapping_rem(rhs.z),
+            vector.w.wrapping_rem(rhs.w),
+        )
+    }
+}
+
+impl<T, A: Alignment> PrimitiveSignedBackend<2, A> for T
+where
+    T: PrimitiveSigned + DefaultBackend<2, A>,
+{
+    #[inline]
+    fn vector_wrapping_abs(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, T, A>::new(vector.x.wrapping_abs(), vector.y.wrapping_abs())
+    }
+
+    #[inline]
+    fn vector_signum(vector: Vector<2, Self, A>) -> Vector<2, Self, A> {
+        Vector::<2, T, A>::new(vector.x.signum(), vector.y.signum())
+    }
+
+    #[inline]
+    fn vector_positive_mask(vector: Vector<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(vector.x.is_positive(), vector.y.is_positive())
+    }
+
+    #[inline]
+    fn vector_negative_mask(vector: Vector<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(vector.x.is_negative(), vector.y.is_negative())
+    }
+}
+
+impl<T, A: Alignment> PrimitiveSignedBackend<3, A> for T
+where
+    T: PrimitiveSigned + DefaultBackend<3, A>,
+{
+    #[inline]
+    fn vector_wrapping_abs(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, T, A>::new(
+            vector.x.wrapping_abs(),
+            vector.y.wrapping_abs(),
+            vector.z.wrapping_abs(),
+        )
+    }
+
+    #[inline]
+    fn vector_signum(vector: Vector<3, Self, A>) -> Vector<3, Self, A> {
+        Vector::<3, T, A>::new(vector.x.signum(), vector.y.signum(), vector.z.signum())
+    }
+
+    #[inline]
+    fn vector_positive_mask(vector: Vector<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            vector.x.is_positive(),
+            vector.y.is_positive(),
+            vector.z.is_positive(),
+        )
+    }
+
+    #[inline]
+    fn vector_negative_mask(vector: Vector<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            vector.x.is_negative(),
+            vector.y.is_negative(),
+            vector.z.is_negative(),
+        )
+    }
+}
+
+impl<T, A: Alignment> PrimitiveSignedBackend<4, A> for T
+where
+    T: PrimitiveSigned + DefaultBackend<4, A>,
+{
+    #[inline]
+    fn vector_wrapping_abs(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, T, A>::new(
+            vector.x.wrapping_abs(),
+            vector.y.wrapping_abs(),
+            vector.z.wrapping_abs(),
+            vector.w.wrapping_abs(),
+        )
+    }
+
+    #[inline]
+    fn vector_signum(vector: Vector<4, Self, A>) -> Vector<4, Self, A> {
+        Vector::<4, T, A>::new(
+            vector.x.signum(),
+            vector.y.signum(),
+            vector.z.signum(),
+            vector.w.signum(),
+        )
+    }
+
+    #[inline]
+    fn vector_positive_mask(vector: Vector<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            vector.x.is_positive(),
+            vector.y.is_positive(),
+            vector.z.is_positive(),
+            vector.w.is_positive(),
+        )
+    }
+
+    #[inline]
+    fn vector_negative_mask(vector: Vector<4, Self, A>) -> Mask<4, Self, A> {
+        Mask::<4, Self, A>::new(
+            vector.x.is_negative(),
+            vector.y.is_negative(),
+            vector.z.is_negative(),
+            vector.w.is_negative(),
+        )
+    }
 }

@@ -1,9 +1,7 @@
-use core::convert::identity;
-
 use crate::{
     Alignment, EulerRot, FloatExt, Length, Matrix, PrimitiveFloat, Quaternion, SupportedLength,
     Vector,
-    utils::{PrimitiveFloatUtils, transmute_generic, transmute_ref},
+    utils::{PrimitiveFloatUtils, specialize},
 };
 
 impl<const N: usize, T, A: Alignment> Matrix<N, T, A>
@@ -38,14 +36,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_nan(&self) -> bool {
-        match N {
-            // SAFETY: `Matrix<N, T, A>` is `Matrix<2, T, A>` which has the
-            // memory layout of `Vector<4, T, A>`.
-            2 => unsafe { transmute_ref::<Matrix<N, T, A>, Vector<4, T, A>>(self).is_nan() },
-            3 => self[0].is_nan() || self[1].is_nan() || self[2].is_nan(),
-            4 => self[0].is_nan() || self[1].is_nan() || self[2].is_nan() || self[3].is_nan(),
-            _ => unreachable!(),
-        }
+        specialize!(Matrix::<N, T, A>::is_nan_backend(self))
     }
 
     /// Returns `true` if all elements are neither infinite nor NaN.
@@ -72,161 +63,7 @@ where
     #[inline]
     #[must_use]
     pub fn is_finite(&self) -> bool {
-        match N {
-            // SAFETY: `Matrix<N, T, A>` is `Matrix<2, T, A>` which has the
-            // memory layout of `Vector<4, T, A>`.
-            2 => unsafe { transmute_ref::<Matrix<N, T, A>, Vector<4, T, A>>(self).is_finite() },
-            3 => self[0].is_finite() && self[1].is_finite() && self[2].is_finite(),
-            4 => {
-                self[0].is_finite()
-                    && self[1].is_finite()
-                    && self[2].is_finite()
-                    && self[3].is_finite()
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    #[inline(always)]
-    #[track_caller]
-    fn generic_inverse<Output, W, C>(&self, wrap_result: W, check_determinant: C) -> Output
-    where
-        W: FnOnce(Self) -> Output,
-        C: FnOnce(T) -> Result<(), Output>,
-    {
-        match N {
-            2 => {
-                // SAFETY: Because `N == 2`, `Matrix<N, T, A>` is `Matrix<2, T, A>`.
-                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<2, T, A>>(self) };
-
-                let determinant = matrix.determinant();
-                if let Err(error) = check_determinant(determinant) {
-                    return error;
-                }
-
-                let determinant_recip = determinant.recip();
-                let result = Matrix::<2, T, A>::from_row_array(&[
-                    matrix.y_axis.y * determinant_recip,
-                    matrix.x_axis.y * -determinant_recip,
-                    matrix.y_axis.x * -determinant_recip,
-                    matrix.x_axis.x * determinant_recip,
-                ]);
-
-                // SAFETY: Because `N == 2`, `Matrix<2, T, A>` is `Matrix<N, T, A>`.
-                wrap_result(unsafe {
-                    transmute_generic::<Matrix<2, T, A>, Matrix<N, T, A>>(result)
-                })
-            }
-            3 => {
-                // SAFETY: Because `N == 3`, `Matrix<N, T, A>` is `Matrix<3, T, A>`.
-                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<3, T, A>>(self) };
-
-                let y_cross_z = matrix.y_axis.cross(matrix.z_axis);
-                let z_cross_x = matrix.z_axis.cross(matrix.x_axis);
-                let x_cross_y = matrix.x_axis.cross(matrix.y_axis);
-
-                let determinant = matrix.z_axis.dot(x_cross_y);
-                if let Err(error) = check_determinant(determinant) {
-                    return error;
-                }
-
-                let determinant_recip = Vector::<3, T, A>::splat(determinant.recip());
-                let result = Matrix::<3, T, A>::from_rows(&[
-                    y_cross_z * determinant_recip,
-                    z_cross_x * determinant_recip,
-                    x_cross_y * determinant_recip,
-                ])
-                .transpose();
-
-                // SAFETY: Because `N == 3`, `Matrix<3, T, A>` is `Matrix<N, T, A>`.
-                wrap_result(unsafe {
-                    transmute_generic::<Matrix<3, T, A>, Matrix<N, T, A>>(result)
-                })
-            }
-            4 => {
-                // SAFETY: Because `N == 4`, `Matrix<N, T, A>` is `Matrix<4, T, A>`.
-                let matrix = unsafe { transmute_ref::<Matrix<N, T, A>, Matrix<4, T, A>>(self) };
-
-                let [m00, m01, m02, m03] = matrix.x_axis.to_array();
-                let [m10, m11, m12, m13] = matrix.y_axis.to_array();
-                let [m20, m21, m22, m23] = matrix.z_axis.to_array();
-                let [m30, m31, m32, m33] = matrix.w_axis.to_array();
-
-                let coef00 = m22 * m33 - m32 * m23;
-                let coef02 = m12 * m33 - m32 * m13;
-                let coef03 = m12 * m23 - m22 * m13;
-
-                let coef04 = m21 * m33 - m31 * m23;
-                let coef06 = m11 * m33 - m31 * m13;
-                let coef07 = m11 * m23 - m21 * m13;
-
-                let coef08 = m21 * m32 - m31 * m22;
-                let coef10 = m11 * m32 - m31 * m12;
-                let coef11 = m11 * m22 - m21 * m12;
-
-                let coef12 = m20 * m33 - m30 * m23;
-                let coef14 = m10 * m33 - m30 * m13;
-                let coef15 = m10 * m23 - m20 * m13;
-
-                let coef16 = m20 * m32 - m30 * m22;
-                let coef18 = m10 * m32 - m30 * m12;
-                let coef19 = m10 * m22 - m20 * m12;
-
-                let coef20 = m20 * m31 - m30 * m21;
-                let coef22 = m10 * m31 - m30 * m11;
-                let coef23 = m10 * m21 - m20 * m11;
-
-                let fac0 = Vector::<4, T, A>::new(coef00, coef00, coef02, coef03);
-                let fac1 = Vector::<4, T, A>::new(coef04, coef04, coef06, coef07);
-                let fac2 = Vector::<4, T, A>::new(coef08, coef08, coef10, coef11);
-                let fac3 = Vector::<4, T, A>::new(coef12, coef12, coef14, coef15);
-                let fac4 = Vector::<4, T, A>::new(coef16, coef16, coef18, coef19);
-                let fac5 = Vector::<4, T, A>::new(coef20, coef20, coef22, coef23);
-
-                let vec0 = Vector::<4, T, A>::new(m10, m00, m00, m00);
-                let vec1 = Vector::<4, T, A>::new(m11, m01, m01, m01);
-                let vec2 = Vector::<4, T, A>::new(m12, m02, m02, m02);
-                let vec3 = Vector::<4, T, A>::new(m13, m03, m03, m03);
-
-                let inv0 = vec1 * fac0 - vec2 * fac1 + vec3 * fac2;
-                let inv1 = vec0 * fac0 - vec2 * fac3 + vec3 * fac4;
-                let inv2 = vec0 * fac1 - vec1 * fac3 + vec3 * fac5;
-                let inv3 = vec0 * fac2 - vec1 * fac4 + vec2 * fac5;
-
-                let sign_a = Vector::<4, T, A>::new(T::ONE, T::NEG_ONE, T::ONE, T::NEG_ONE);
-                let sign_b = Vector::<4, T, A>::new(T::NEG_ONE, T::ONE, T::NEG_ONE, T::ONE);
-
-                let inverse = Matrix::<4, T, A>::from_rows(&[
-                    inv0 * sign_a,
-                    inv1 * sign_b,
-                    inv2 * sign_a,
-                    inv3 * sign_b,
-                ]);
-
-                let col0 = Vector::<4, T, A>::new(
-                    inverse.x_axis.x,
-                    inverse.y_axis.x,
-                    inverse.z_axis.x,
-                    inverse.w_axis.x,
-                );
-
-                let dot0 = matrix.x_axis * col0;
-                let dot1 = dot0.x + dot0.y + dot0.z + dot0.w;
-
-                if let Err(error) = check_determinant(dot1) {
-                    return error;
-                }
-
-                let determinant_recip = dot1.recip();
-                let result = inverse * determinant_recip;
-
-                // SAFETY: Because `N == 4`, `Matrix<4, T, A>` is `Matrix<N, T, A>`.
-                wrap_result(unsafe {
-                    transmute_generic::<Matrix<4, T, A>, Matrix<N, T, A>>(result)
-                })
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Matrix::<N, T, A>::is_finite_backend(self))
     }
 
     /// Returns the inverse of `self`.
@@ -243,59 +80,53 @@ where
     pub fn inverse(&self) -> Self {
         #[cfg(debug_assertions)]
         {
-            let mut determinant_is_zero = false;
-            let result = self.generic_inverse(identity, |determinant| {
-                determinant_is_zero = determinant == T::ZERO;
-                Ok(())
-            });
+            let (inverse, determinant) = self.inverse_and_determinant();
 
-            if determinant_is_zero {
+            if determinant == T::ZERO {
                 panic!("matrix is not invertable: {self:?}.inverse()");
             }
 
-            result
+            inverse
         }
         #[cfg(not(debug_assertions))]
         {
-            self.generic_inverse(identity, |_| Ok(()))
+            self.inverse_and_determinant().0
         }
     }
 
     /// Returns the inverse of `self` or `None` if `self` is not invertable.
     #[must_use]
     pub fn try_inverse(&self) -> Option<Self> {
-        self.generic_inverse(Some, |determinant| {
-            if determinant == T::ZERO {
-                Err(None)
-            } else {
-                Ok(())
-            }
-        })
+        let (inverse, determinant) = self.inverse_and_determinant();
+        (determinant != T::ZERO).then_some(inverse)
     }
 
     /// Returns the inverse of `self` or `fallback` if `self` is not invertable.
     #[must_use]
     pub fn inverse_or(&self, fallback: &Self) -> Self {
-        self.generic_inverse(identity, |determinant| {
-            if determinant == T::ZERO {
-                Err(*fallback)
-            } else {
-                Ok(())
-            }
-        })
+        let (inverse, determinant) = self.inverse_and_determinant();
+        if determinant == T::ZERO {
+            *fallback
+        } else {
+            inverse
+        }
     }
 
     /// Returns the inverse of `self` or the zero matrix if `self` is not
     /// invertable.
     #[must_use]
     pub fn inverse_or_zero(&self) -> Self {
-        self.generic_inverse(identity, |determinant| {
-            if determinant == T::ZERO {
-                Err(Self::ZERO)
-            } else {
-                Ok(())
-            }
-        })
+        let (inverse, determinant) = self.inverse_and_determinant();
+        if determinant == T::ZERO {
+            Self::ZERO
+        } else {
+            inverse
+        }
+    }
+
+    #[inline]
+    fn inverse_and_determinant(&self) -> (Self, T) {
+        specialize!(Matrix::<N, T, A>::inverse_and_determinant_backend(self))
     }
 
     /// Returns the element-wise reciprocal (inverse) of a matrix, `1 / self`.
@@ -323,15 +154,7 @@ where
     #[inline]
     #[must_use]
     pub fn recip(&self) -> Self {
-        match N {
-            // SAFETY: `Matrix<N, T, A>` is `Matrix<2, T, A>` which has the
-            // memory layout of `Vector<4, T, A>`.
-            2 => unsafe {
-                let matrix = transmute_ref::<Matrix<N, T, A>, Vector<4, T, A>>(self);
-                transmute_generic::<Vector<4, T, A>, Matrix<N, T, A>>(matrix.recip())
-            },
-            _ => Self::from_row_fn(|i| self[i].recip()),
-        }
+        specialize!(Matrix::<N, T, A>::recip_backend(self))
     }
 
     /// Returns the absolute values of the elements of `self`.
@@ -361,15 +184,7 @@ where
     #[inline]
     #[must_use]
     pub fn abs(&self) -> Self {
-        match N {
-            // SAFETY: `Matrix<N, T, A>` is `Matrix<2, T, A>` which has the
-            // memory layout of `Vector<4, T, A>`.
-            2 => unsafe {
-                let matrix = transmute_ref::<Matrix<N, T, A>, Vector<4, T, A>>(self);
-                transmute_generic::<Vector<4, T, A>, Matrix<N, T, A>>(matrix.abs())
-            },
-            _ => Self::from_row_fn(|i| self[i].abs()),
-        }
+        specialize!(Matrix::<N, T, A>::abs_backend(self))
     }
 
     /// Returns `true` if the absolute difference of all elements between `self`
@@ -380,28 +195,11 @@ where
     #[inline]
     #[must_use]
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: T) -> bool {
-        match N {
-            // SAFETY: `Matrix<N, T, A>` is `Matrix<2, T, A>` which has the
-            // memory layout of `Vector<4, T, A>`.
-            2 => unsafe {
-                let matrix = transmute_ref::<Matrix<N, T, A>, Vector<4, T, A>>(self);
-                let other = transmute_ref::<Matrix<N, T, A>, Vector<4, T, A>>(other);
-
-                matrix.abs_diff_eq(*other, max_abs_diff)
-            },
-            3 => {
-                self[0].abs_diff_eq(other[0], max_abs_diff)
-                    && self[1].abs_diff_eq(other[1], max_abs_diff)
-                    && self[2].abs_diff_eq(other[2], max_abs_diff)
-            }
-            4 => {
-                self[0].abs_diff_eq(other[0], max_abs_diff)
-                    && self[1].abs_diff_eq(other[1], max_abs_diff)
-                    && self[2].abs_diff_eq(other[2], max_abs_diff)
-                    && self[3].abs_diff_eq(other[3], max_abs_diff)
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Matrix::<N, T, A>::abs_diff_eq_backend(
+            self,
+            other,
+            max_abs_diff
+        ))
     }
 }
 
@@ -467,6 +265,46 @@ where
         let angle = PrimitiveFloatUtils::atan2(-self.y_axis.x, self.y_axis.y);
 
         (scale, angle)
+    }
+
+    #[inline(always)]
+    fn is_nan_backend(&self) -> bool {
+        self.0.is_nan()
+    }
+
+    #[inline(always)]
+    fn is_finite_backend(&self) -> bool {
+        self.0.is_finite()
+    }
+
+    #[inline(always)]
+    fn inverse_and_determinant_backend(&self) -> (Self, T) {
+        let determinant = self.determinant();
+
+        let determinant_recip = determinant.recip();
+        let inverse = Self::from_row_array(&[
+            self.y_axis.y * determinant_recip,
+            self.x_axis.y * -determinant_recip,
+            self.y_axis.x * -determinant_recip,
+            self.x_axis.x * determinant_recip,
+        ]);
+
+        (inverse, determinant)
+    }
+
+    #[inline(always)]
+    fn recip_backend(&self) -> Self {
+        Self(self.0.recip())
+    }
+
+    #[inline(always)]
+    fn abs_backend(&self) -> Self {
+        Self(self.0.abs())
+    }
+
+    #[inline(always)]
+    fn abs_diff_eq_backend(&self, other: &Self, max_abs_diff: T) -> bool {
+        self.0.abs_diff_eq(other.0, max_abs_diff)
     }
 }
 
@@ -1155,6 +993,56 @@ where
         );
 
         self.x_axis.xy() * vector.x + self.y_axis.xy() * vector.y
+    }
+
+    #[inline(always)]
+    fn is_nan_backend(&self) -> bool {
+        self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan()
+    }
+
+    #[inline(always)]
+    fn is_finite_backend(&self) -> bool {
+        self.x_axis.is_finite() && self.y_axis.is_finite() && self.z_axis.is_finite()
+    }
+
+    #[inline(always)]
+    fn inverse_and_determinant_backend(&self) -> (Self, T) {
+        let y_cross_z = self.y_axis.cross(self.z_axis);
+        let z_cross_x = self.z_axis.cross(self.x_axis);
+        let x_cross_y = self.x_axis.cross(self.y_axis);
+
+        let determinant = x_cross_y.dot(self.z_axis);
+
+        let determinant_recip = Vector::<3, T, A>::splat(determinant.recip());
+        let inverse = Matrix::<3, T, A>::from_rows(&[
+            y_cross_z * determinant_recip,
+            z_cross_x * determinant_recip,
+            x_cross_y * determinant_recip,
+        ])
+        .transpose();
+
+        (inverse, determinant)
+    }
+
+    #[inline(always)]
+    fn recip_backend(&self) -> Self {
+        Self::from_rows(&[
+            self.x_axis.recip(),
+            self.y_axis.recip(),
+            self.z_axis.recip(),
+        ])
+    }
+
+    #[inline(always)]
+    fn abs_backend(&self) -> Self {
+        Self::from_rows(&[self.x_axis.abs(), self.y_axis.abs(), self.z_axis.abs()])
+    }
+
+    #[inline(always)]
+    fn abs_diff_eq_backend(&self, other: &Self, max_abs_diff: T) -> bool {
+        self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
+            && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
+            && self.z_axis.abs_diff_eq(other.z_axis, max_abs_diff)
     }
 }
 
@@ -2273,6 +2161,118 @@ where
             self.x_axis * point.x + self.y_axis * point.y + self.z_axis * point.z + self.w_axis;
 
         (result / result.w).xyz()
+    }
+
+    #[inline(always)]
+    fn is_nan_backend(&self) -> bool {
+        self.x_axis.is_nan() || self.y_axis.is_nan() || self.z_axis.is_nan() || self.w_axis.is_nan()
+    }
+
+    #[inline(always)]
+    fn is_finite_backend(&self) -> bool {
+        self.x_axis.is_finite()
+            && self.y_axis.is_finite()
+            && self.z_axis.is_finite()
+            && self.w_axis.is_finite()
+    }
+
+    #[inline(always)]
+    fn inverse_and_determinant_backend(&self) -> (Self, T) {
+        let [m00, m01, m02, m03] = self.x_axis.to_array();
+        let [m10, m11, m12, m13] = self.y_axis.to_array();
+        let [m20, m21, m22, m23] = self.z_axis.to_array();
+        let [m30, m31, m32, m33] = self.w_axis.to_array();
+
+        let coef00 = m22 * m33 - m32 * m23;
+        let coef02 = m12 * m33 - m32 * m13;
+        let coef03 = m12 * m23 - m22 * m13;
+
+        let coef04 = m21 * m33 - m31 * m23;
+        let coef06 = m11 * m33 - m31 * m13;
+        let coef07 = m11 * m23 - m21 * m13;
+
+        let coef08 = m21 * m32 - m31 * m22;
+        let coef10 = m11 * m32 - m31 * m12;
+        let coef11 = m11 * m22 - m21 * m12;
+
+        let coef12 = m20 * m33 - m30 * m23;
+        let coef14 = m10 * m33 - m30 * m13;
+        let coef15 = m10 * m23 - m20 * m13;
+
+        let coef16 = m20 * m32 - m30 * m22;
+        let coef18 = m10 * m32 - m30 * m12;
+        let coef19 = m10 * m22 - m20 * m12;
+
+        let coef20 = m20 * m31 - m30 * m21;
+        let coef22 = m10 * m31 - m30 * m11;
+        let coef23 = m10 * m21 - m20 * m11;
+
+        let fac0 = Vector::<4, T, A>::new(coef00, coef00, coef02, coef03);
+        let fac1 = Vector::<4, T, A>::new(coef04, coef04, coef06, coef07);
+        let fac2 = Vector::<4, T, A>::new(coef08, coef08, coef10, coef11);
+        let fac3 = Vector::<4, T, A>::new(coef12, coef12, coef14, coef15);
+        let fac4 = Vector::<4, T, A>::new(coef16, coef16, coef18, coef19);
+        let fac5 = Vector::<4, T, A>::new(coef20, coef20, coef22, coef23);
+
+        let vec0 = Vector::<4, T, A>::new(m10, m00, m00, m00);
+        let vec1 = Vector::<4, T, A>::new(m11, m01, m01, m01);
+        let vec2 = Vector::<4, T, A>::new(m12, m02, m02, m02);
+        let vec3 = Vector::<4, T, A>::new(m13, m03, m03, m03);
+
+        let inv0 = vec1 * fac0 - vec2 * fac1 + vec3 * fac2;
+        let inv1 = vec0 * fac0 - vec2 * fac3 + vec3 * fac4;
+        let inv2 = vec0 * fac1 - vec1 * fac3 + vec3 * fac5;
+        let inv3 = vec0 * fac2 - vec1 * fac4 + vec2 * fac5;
+
+        let sign_a = Vector::<4, T, A>::new(T::ONE, T::NEG_ONE, T::ONE, T::NEG_ONE);
+        let sign_b = Vector::<4, T, A>::new(T::NEG_ONE, T::ONE, T::NEG_ONE, T::ONE);
+
+        let inverse = Matrix::<4, T, A>::from_rows(&[
+            inv0 * sign_a,
+            inv1 * sign_b,
+            inv2 * sign_a,
+            inv3 * sign_b,
+        ]);
+
+        let inverse_column_0 = Vector::<4, T, A>::new(
+            inverse.x_axis.x,
+            inverse.y_axis.x,
+            inverse.z_axis.x,
+            inverse.w_axis.x,
+        );
+
+        let determinant = self.x_axis.dot(inverse_column_0);
+        let inverse = inverse / determinant;
+
+        (inverse, determinant)
+    }
+
+    #[inline(always)]
+    fn recip_backend(&self) -> Self {
+        Self::from_rows(&[
+            self.x_axis.recip(),
+            self.y_axis.recip(),
+            self.z_axis.recip(),
+            self.w_axis.recip(),
+        ])
+    }
+
+    #[inline(always)]
+    fn abs_backend(&self) -> Self {
+        Self::from_rows(&[
+            self.x_axis.abs(),
+            self.y_axis.abs(),
+            self.z_axis.abs(),
+            self.w_axis.abs(),
+        ])
+    }
+
+    #[inline(always)]
+    fn abs_diff_eq_backend(&self, other: &Self, max_abs_diff: T) -> bool {
+        self.x_axis.abs_diff_eq(other.x_axis, max_abs_diff)
+            && self.y_axis.abs_diff_eq(other.y_axis, max_abs_diff)
+            && self.z_axis.abs_diff_eq(other.z_axis, max_abs_diff)
+            && self.w_axis.abs_diff_eq(other.w_axis, max_abs_diff)
     }
 }
 

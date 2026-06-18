@@ -1,4 +1,7 @@
-use crate::{Alignment, Length, Scalar, SupportedLength, Vector, utils::WideTy};
+use crate::{
+    Alignment, Length, Scalar, SupportedLength, Vector,
+    utils::{WideTy, specialize},
+};
 
 #[expect(private_bounds)]
 impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Vector<N, Wide, A>
@@ -34,7 +37,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_lanes(lanes: &[Vector<N, T, A>; LANES]) -> Self {
-        Self::from_fn(|i| Wide::new(lanes.map(|lane| lane[i])))
+        specialize!(Vector::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
     /// Creates an SoA (Structure of Arrays) vector by calling function
@@ -126,7 +129,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn lane(self, lane: usize) -> Vector<N, T, A> {
-        Vector::from_fn(|i| self[i].to_array()[lane])
+        specialize!(Vector::<N, Wide, A>::lane_backend(self, lane))
     }
 
     /// Takes an SoA (Structure of Arrays) vector and sets the lane at
@@ -161,33 +164,21 @@ where
     #[inline]
     #[track_caller]
     pub fn set_lane(&mut self, lane: usize, value: Vector<N, T, A>) {
-        for i in 0..N {
-            self[i].as_mut_array()[lane] = value[i];
-        }
+        specialize!(Vector::<N, Wide, A>::set_lane_backend(self, lane, value))
     }
 
     /// For each lane, returns `true` if all elements of `self` are `true`.
     #[inline]
     #[must_use]
     pub fn all(self) -> Wide {
-        match N {
-            2 => self[0] & self[1],
-            3 => self[0] & self[1] & self[2],
-            4 => self[0] & self[1] & self[2] & self[3],
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, Wide, A>::all_backend(self))
     }
 
     /// For each lane, returns `true` if any element of `self` is `true`.
     #[inline]
     #[must_use]
     pub fn any(self) -> Wide {
-        match N {
-            2 => self[0] | self[1],
-            3 => self[0] | self[1] | self[2],
-            4 => self[0] | self[1] | self[2] | self[3],
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, Wide, A>::any_backend(self))
     }
 
     /// For each lane, selects between the elements of `if_true` and `if_false`
@@ -195,7 +186,7 @@ where
     #[inline]
     #[must_use]
     pub fn blend(self, if_true: Self, if_false: Self) -> Self {
-        Vector::from_fn(|i| self[i].blend(if_true[i], if_false[i]))
+        specialize!(Vector::<N, Wide, A>::blend_backend(self, if_true, if_false))
     }
 
     /// For each lane, returns `true` if `self` is equal to `other`.
@@ -205,17 +196,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_eq(self, other: Self) -> Wide {
-        match N {
-            2 => self[0].simd_eq(other[0]) & self[1].simd_eq(other[1]),
-            3 => self[0].simd_eq(other[0]) & self[1].simd_eq(other[1]) & self[2].simd_eq(other[2]),
-            4 => {
-                self[0].simd_eq(other[0])
-                    & self[1].simd_eq(other[1])
-                    & self[2].simd_eq(other[2])
-                    & self[3].simd_eq(other[3])
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, Wide, A>::simd_eq_backend(self, other))
     }
 
     /// For each lane, returns `true` if `self` is not equal to `other`.
@@ -225,17 +206,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_ne(self, other: Self) -> Wide {
-        match N {
-            2 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]),
-            3 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]) | self[2].simd_ne(other[2]),
-            4 => {
-                self[0].simd_ne(other[0])
-                    | self[1].simd_ne(other[1])
-                    | self[2].simd_ne(other[2])
-                    | self[3].simd_ne(other[3])
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Vector::<N, Wide, A>::simd_ne_backend(self, other))
     }
 
     /// For each lane, returns a vector mask where each element is `true` if the
@@ -246,7 +217,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_eq_mask(self, other: Self) -> Self {
-        Self::from_fn(|i| self[i].simd_eq(other[i]))
+        specialize!(Vector::<N, Wide, A>::simd_eq_mask_backend(self, other))
     }
 
     /// For each lane, returns a vector mask where each element is `true` if the
@@ -256,7 +227,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_ne_mask(self, other: Self) -> Self {
-        Self::from_fn(|i| self[i].simd_ne(other[i]))
+        specialize!(Vector::<N, Wide, A>::simd_ne_mask_backend(self, other))
     }
 
     /// For each lane, returns a vector mask where each element is `true` if the
@@ -267,7 +238,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_lt_mask(self, other: Self) -> Self {
-        Self::from_fn(|i| self[i].simd_lt(other[i]))
+        specialize!(Vector::<N, Wide, A>::simd_lt_mask_backend(self, other))
     }
 
     /// For each lane, returns a vector mask where each element is `true` if the
@@ -278,7 +249,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_gt_mask(self, other: Self) -> Self {
-        Self::from_fn(|i| self[i].simd_gt(other[i]))
+        specialize!(Vector::<N, Wide, A>::simd_gt_mask_backend(self, other))
     }
 
     /// For each lane, returns a vector mask where each element is `true` if the
@@ -290,7 +261,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_le_mask(self, other: Self) -> Self {
-        Self::from_fn(|i| self[i].simd_le(other[i]))
+        specialize!(Vector::<N, Wide, A>::simd_le_mask_backend(self, other))
     }
 
     /// For each lane, returns a vector mask where each element is `true` if the
@@ -302,7 +273,343 @@ where
     #[inline]
     #[must_use]
     pub fn simd_ge_mask(self, other: Self) -> Self {
-        Self::from_fn(|i| self[i].simd_ge(other[i]))
+        specialize!(Vector::<N, Wide, A>::simd_ge_mask_backend(self, other))
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Vector<2, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Vector<2, T, A>; LANES]) -> Self {
+        Self::new(
+            Wide::new(lanes.map(|lane| lane.x)),
+            Wide::new(lanes.map(|lane| lane.y)),
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(self, lane: usize) -> Vector<2, T, A> {
+        Vector::<2, T, A>::new(self.x.as_array()[lane], self.y.as_array()[lane])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Vector<2, T, A>) {
+        self.x.as_mut_array()[lane] = value.x;
+        self.y.as_mut_array()[lane] = value.y;
+    }
+
+    #[inline(always)]
+    fn all_backend(self) -> Wide {
+        self.x & self.y
+    }
+
+    #[inline(always)]
+    fn any_backend(self) -> Wide {
+        self.x | self.y
+    }
+
+    #[inline(always)]
+    fn blend_backend(self, if_true: Self, if_false: Self) -> Self {
+        Self::new(
+            self.x.blend(if_true.x, if_false.x),
+            self.y.blend(if_true.y, if_false.y),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_eq_backend(self, other: Self) -> Wide {
+        self.x.simd_eq(other.x) & self.y.simd_eq(other.y)
+    }
+
+    #[inline(always)]
+    fn simd_ne_backend(self, other: Self) -> Wide {
+        self.x.simd_ne(other.x) | self.y.simd_ne(other.y)
+    }
+
+    #[inline(always)]
+    fn simd_eq_mask_backend(self, other: Self) -> Self {
+        Self::new(self.x.simd_eq(other.x), self.y.simd_eq(other.y))
+    }
+
+    #[inline(always)]
+    fn simd_ne_mask_backend(self, other: Self) -> Self {
+        Self::new(self.x.simd_ne(other.x), self.y.simd_ne(other.y))
+    }
+
+    #[inline(always)]
+    fn simd_lt_mask_backend(self, other: Self) -> Self {
+        Self::new(self.x.simd_lt(other.x), self.y.simd_lt(other.y))
+    }
+
+    #[inline(always)]
+    fn simd_gt_mask_backend(self, other: Self) -> Self {
+        Self::new(self.x.simd_gt(other.x), self.y.simd_gt(other.y))
+    }
+
+    #[inline(always)]
+    fn simd_le_mask_backend(self, other: Self) -> Self {
+        Self::new(self.x.simd_le(other.x), self.y.simd_le(other.y))
+    }
+
+    #[inline(always)]
+    fn simd_ge_mask_backend(self, other: Self) -> Self {
+        Self::new(self.x.simd_ge(other.x), self.y.simd_ge(other.y))
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Vector<3, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Vector<3, T, A>; LANES]) -> Self {
+        Self::new(
+            Wide::new(lanes.map(|lane| lane.x)),
+            Wide::new(lanes.map(|lane| lane.y)),
+            Wide::new(lanes.map(|lane| lane.z)),
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(self, lane: usize) -> Vector<3, T, A> {
+        Vector::<3, T, A>::new(
+            self.x.as_array()[lane],
+            self.y.as_array()[lane],
+            self.z.as_array()[lane],
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Vector<3, T, A>) {
+        self.x.as_mut_array()[lane] = value.x;
+        self.y.as_mut_array()[lane] = value.y;
+        self.z.as_mut_array()[lane] = value.z;
+    }
+
+    #[inline(always)]
+    fn all_backend(self) -> Wide {
+        self.x & self.y & self.z
+    }
+
+    #[inline(always)]
+    fn any_backend(self) -> Wide {
+        self.x | self.y | self.z
+    }
+
+    #[inline(always)]
+    fn blend_backend(self, if_true: Self, if_false: Self) -> Self {
+        Self::new(
+            self.x.blend(if_true.x, if_false.x),
+            self.y.blend(if_true.y, if_false.y),
+            self.z.blend(if_true.z, if_false.z),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_eq_backend(self, other: Self) -> Wide {
+        self.x.simd_eq(other.x) & self.y.simd_eq(other.y) & self.z.simd_eq(other.z)
+    }
+
+    #[inline(always)]
+    fn simd_ne_backend(self, other: Self) -> Wide {
+        self.x.simd_ne(other.x) | self.y.simd_ne(other.y) | self.z.simd_ne(other.z)
+    }
+
+    #[inline(always)]
+    fn simd_eq_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_eq(other.x),
+            self.y.simd_eq(other.y),
+            self.z.simd_eq(other.z),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_ne_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_ne(other.x),
+            self.y.simd_ne(other.y),
+            self.z.simd_ne(other.z),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_lt_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_lt(other.x),
+            self.y.simd_lt(other.y),
+            self.z.simd_lt(other.z),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_gt_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_gt(other.x),
+            self.y.simd_gt(other.y),
+            self.z.simd_gt(other.z),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_le_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_le(other.x),
+            self.y.simd_le(other.y),
+            self.z.simd_le(other.z),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_ge_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_ge(other.x),
+            self.y.simd_ge(other.y),
+            self.z.simd_ge(other.z),
+        )
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Vector<4, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Vector<4, T, A>; LANES]) -> Self {
+        Self::new(
+            Wide::new(lanes.map(|lane| lane.x)),
+            Wide::new(lanes.map(|lane| lane.y)),
+            Wide::new(lanes.map(|lane| lane.z)),
+            Wide::new(lanes.map(|lane| lane.w)),
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(self, lane: usize) -> Vector<4, T, A> {
+        Vector::<4, T, A>::new(
+            self.x.as_array()[lane],
+            self.y.as_array()[lane],
+            self.z.as_array()[lane],
+            self.w.as_array()[lane],
+        )
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Vector<4, T, A>) {
+        self.x.as_mut_array()[lane] = value.x;
+        self.y.as_mut_array()[lane] = value.y;
+        self.z.as_mut_array()[lane] = value.z;
+        self.w.as_mut_array()[lane] = value.w;
+    }
+
+    #[inline(always)]
+    fn all_backend(self) -> Wide {
+        self.x & self.y & self.z & self.w
+    }
+
+    #[inline(always)]
+    fn any_backend(self) -> Wide {
+        self.x | self.y | self.z | self.w
+    }
+
+    #[inline(always)]
+    fn blend_backend(self, if_true: Self, if_false: Self) -> Self {
+        Self::new(
+            self.x.blend(if_true.x, if_false.x),
+            self.y.blend(if_true.y, if_false.y),
+            self.z.blend(if_true.z, if_false.z),
+            self.w.blend(if_true.w, if_false.w),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_eq_backend(self, other: Self) -> Wide {
+        self.x.simd_eq(other.x)
+            & self.y.simd_eq(other.y)
+            & self.z.simd_eq(other.z)
+            & self.w.simd_eq(other.w)
+    }
+
+    #[inline(always)]
+    fn simd_ne_backend(self, other: Self) -> Wide {
+        self.x.simd_ne(other.x)
+            | self.y.simd_ne(other.y)
+            | self.z.simd_ne(other.z)
+            | self.w.simd_ne(other.w)
+    }
+
+    #[inline(always)]
+    fn simd_eq_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_eq(other.x),
+            self.y.simd_eq(other.y),
+            self.z.simd_eq(other.z),
+            self.w.simd_eq(other.w),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_ne_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_ne(other.x),
+            self.y.simd_ne(other.y),
+            self.z.simd_ne(other.z),
+            self.w.simd_ne(other.w),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_lt_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_lt(other.x),
+            self.y.simd_lt(other.y),
+            self.z.simd_lt(other.z),
+            self.w.simd_lt(other.w),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_gt_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_gt(other.x),
+            self.y.simd_gt(other.y),
+            self.z.simd_gt(other.z),
+            self.w.simd_gt(other.w),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_le_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_le(other.x),
+            self.y.simd_le(other.y),
+            self.z.simd_le(other.z),
+            self.w.simd_le(other.w),
+        )
+    }
+
+    #[inline(always)]
+    fn simd_ge_mask_backend(self, other: Self) -> Self {
+        Self::new(
+            self.x.simd_ge(other.x),
+            self.y.simd_ge(other.y),
+            self.z.simd_ge(other.z),
+            self.w.simd_ge(other.w),
+        )
     }
 }
 

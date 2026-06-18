@@ -1,4 +1,7 @@
-use crate::{Alignment, Length, Matrix, Scalar, SupportedLength, Vector, utils::WideTy};
+use crate::{
+    Alignment, Length, Matrix, Scalar, SupportedLength, Vector,
+    utils::{WideTy, specialize},
+};
 
 #[expect(private_bounds)]
 impl<const N: usize, Wide, T, const LANES: usize, A: Alignment> Matrix<N, Wide, A>
@@ -35,7 +38,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_lanes(lanes: &[Matrix<N, T, A>; LANES]) -> Self {
-        Self::from_row_fn(|i| Vector::from_lane_fn(|lane| lanes[lane][i]))
+        specialize!(Matrix::<N, Wide, A>::from_lanes_backend(lanes))
     }
 
     /// Creates an SoA (Structure of Arrays) matrix by calling function `f` for
@@ -129,7 +132,7 @@ where
     #[must_use]
     #[track_caller]
     pub fn lane(&self, lane: usize) -> Matrix<N, T, A> {
-        Matrix::from_row_fn(|i| self[i].lane(lane))
+        specialize!(Matrix::<N, Wide, A>::lane_backend(self, lane))
     }
 
     /// Takes an SoA (Structure of Arrays) matrix and sets the lane at the given
@@ -166,9 +169,7 @@ where
     #[inline]
     #[track_caller]
     pub fn set_lane(&mut self, lane: usize, value: Matrix<N, T, A>) {
-        for i in 0..N {
-            self[i].set_lane(lane, value[i]);
-        }
+        specialize!(Matrix::<N, Wide, A>::set_lane_backend(self, lane, value))
     }
 
     /// For each lane, returns `true` if `self` is equal to `other`.
@@ -178,17 +179,7 @@ where
     #[inline]
     #[must_use]
     pub fn simd_eq(&self, other: &Self) -> Wide {
-        match N {
-            2 => self[0].simd_eq(other[0]) & self[1].simd_eq(other[1]),
-            3 => self[0].simd_eq(other[0]) & self[1].simd_eq(other[1]) & self[2].simd_eq(other[2]),
-            4 => {
-                self[0].simd_eq(other[0])
-                    & self[1].simd_eq(other[1])
-                    & self[2].simd_eq(other[2])
-                    & self[3].simd_eq(other[3])
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Matrix::<N, Wide, A>::simd_eq_backend(self, other))
     }
 
     /// For each lane, returns `true` if `self` is not equal to `other`.
@@ -198,17 +189,154 @@ where
     #[inline]
     #[must_use]
     pub fn simd_ne(&self, other: &Self) -> Wide {
-        match N {
-            2 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]),
-            3 => self[0].simd_ne(other[0]) | self[1].simd_ne(other[1]) | self[2].simd_ne(other[2]),
-            4 => {
-                self[0].simd_ne(other[0])
-                    | self[1].simd_ne(other[1])
-                    | self[2].simd_ne(other[2])
-                    | self[3].simd_ne(other[3])
-            }
-            _ => unreachable!(),
-        }
+        specialize!(Matrix::<N, Wide, A>::simd_ne_backend(self, other))
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Matrix<2, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Matrix<2, T, A>; LANES]) -> Self {
+        Self::from_row_array(&[
+            Wide::new(core::array::from_fn(|lane| lanes[lane].x_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].x_axis.y)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].y_axis.x)),
+            Wide::new(core::array::from_fn(|lane| lanes[lane].y_axis.y)),
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(&self, lane: usize) -> Matrix<2, T, A> {
+        Matrix::from_rows(&[self.x_axis.lane(lane), self.y_axis.lane(lane)])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Matrix<2, T, A>) {
+        self.x_axis.set_lane(lane, value.x_axis);
+        self.y_axis.set_lane(lane, value.y_axis);
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_eq_backend(&self, other: &Self) -> Wide {
+        self.x_axis.simd_eq(other.x_axis) & self.y_axis.simd_eq(other.y_axis)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_ne_backend(&self, other: &Self) -> Wide {
+        self.x_axis.simd_ne(other.x_axis) | self.y_axis.simd_ne(other.y_axis)
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Matrix<3, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Matrix<3, T, A>; LANES]) -> Self {
+        Self::from_rows(&[
+            Vector::from_lane_fn(|lane| lanes[lane].x_axis),
+            Vector::from_lane_fn(|lane| lanes[lane].y_axis),
+            Vector::from_lane_fn(|lane| lanes[lane].z_axis),
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(&self, lane: usize) -> Matrix<3, T, A> {
+        Matrix::from_rows(&[
+            self.x_axis.lane(lane),
+            self.y_axis.lane(lane),
+            self.z_axis.lane(lane),
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Matrix<3, T, A>) {
+        self.x_axis.set_lane(lane, value.x_axis);
+        self.y_axis.set_lane(lane, value.y_axis);
+        self.z_axis.set_lane(lane, value.z_axis);
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_eq_backend(&self, other: &Self) -> Wide {
+        self.x_axis.simd_eq(other.x_axis)
+            & self.y_axis.simd_eq(other.y_axis)
+            & self.z_axis.simd_eq(other.z_axis)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_ne_backend(&self, other: &Self) -> Wide {
+        self.x_axis.simd_ne(other.x_axis)
+            | self.y_axis.simd_ne(other.y_axis)
+            | self.z_axis.simd_ne(other.z_axis)
+    }
+}
+
+#[expect(private_bounds)]
+impl<Wide, T, const LANES: usize, A: Alignment> Matrix<4, Wide, A>
+where
+    Wide: WideTy<Array = [T; LANES]>,
+    T: Scalar,
+{
+    #[inline(always)]
+    fn from_lanes_backend(lanes: &[Matrix<4, T, A>; LANES]) -> Self {
+        Self::from_rows(&[
+            Vector::from_lane_fn(|lane| lanes[lane].x_axis),
+            Vector::from_lane_fn(|lane| lanes[lane].y_axis),
+            Vector::from_lane_fn(|lane| lanes[lane].z_axis),
+            Vector::from_lane_fn(|lane| lanes[lane].w_axis),
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn lane_backend(&self, lane: usize) -> Matrix<4, T, A> {
+        Matrix::from_rows(&[
+            self.x_axis.lane(lane),
+            self.y_axis.lane(lane),
+            self.z_axis.lane(lane),
+            self.w_axis.lane(lane),
+        ])
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn set_lane_backend(&mut self, lane: usize, value: Matrix<4, T, A>) {
+        self.x_axis.set_lane(lane, value.x_axis);
+        self.y_axis.set_lane(lane, value.y_axis);
+        self.z_axis.set_lane(lane, value.z_axis);
+        self.w_axis.set_lane(lane, value.w_axis);
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_eq_backend(&self, other: &Self) -> Wide {
+        self.x_axis.simd_eq(other.x_axis)
+            & self.y_axis.simd_eq(other.y_axis)
+            & self.z_axis.simd_eq(other.z_axis)
+            & self.w_axis.simd_eq(other.w_axis)
+    }
+
+    #[track_caller]
+    #[inline(always)]
+    fn simd_ne_backend(&self, other: &Self) -> Wide {
+        self.x_axis.simd_ne(other.x_axis)
+            | self.y_axis.simd_ne(other.y_axis)
+            | self.z_axis.simd_ne(other.z_axis)
+            | self.w_axis.simd_ne(other.w_axis)
     }
 }
 
