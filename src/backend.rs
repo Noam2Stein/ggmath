@@ -99,7 +99,7 @@ mod sse2;
 /// [`mask_from_array`]: Self::mask_from_array
 /// [`mask_to_array`]: Self::mask_to_array
 #[diagnostic::on_unimplemented(
-    message = "`{Self}` is missing an implementation for `ggmath::Backend`",
+    message = "`ggmath::Scalar` cannot be implemented directly",
     note = "see the documentation for `ggmath::Scalar`"
 )]
 pub(crate) unsafe trait Backend<const N: usize, A: Alignment>

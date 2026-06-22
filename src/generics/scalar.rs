@@ -1,29 +1,27 @@
-use crate::{Aligned, Unaligned, backend::Backend};
+use crate::{
+    Aligned, Alignment, Unaligned,
+    backend::{Backend, DefaultBackend},
+};
 
 /// A trait for elements of vectors.
 ///
-/// This requires [`Copy`], and due to type system limitations, the [`Backend`]
-/// trait which controls the internal implementation of vectors. To simply
-/// implement [`Scalar`], use the [`DefaultBackend`] trait:
+/// This requires [`Copy`].
+///
+/// Due to type system limitations, this trait cannot be implemented directly.
+/// Instead implement the [`CustomScalar`] trait:
 ///
 /// ```
-/// use ggmath::{Alignment, DefaultBackend, Scalar, Vec2};
+/// use ggmath::{Alignment, CustomScalar, Vec2};
 ///
 /// #[derive(Debug, Clone, Copy)]
 /// struct Foo(i32);
 ///
-/// impl Scalar for Foo {}
-///
-/// impl<const N: usize, A: Alignment> DefaultBackend<N, A> for Foo {}
+/// impl CustomScalar for Foo {}
 ///
 /// // `Foo` can then be stored inside vectors.
 /// println!("{:?}", Vec2::new(Foo(1), Foo(2)));
 /// ```
-///
-/// Manual implementations of [`Backend`] should only exist to make
-/// optimizations.
-///
-/// [`DefaultBackend`]: crate::DefaultBackend
+#[expect(private_bounds)]
 pub trait Scalar:
     Copy
     + Backend<2, Aligned>
@@ -34,6 +32,30 @@ pub trait Scalar:
     + Backend<4, Unaligned>
 {
 }
+
+/// A trait to implement [`Scalar`] for downstream types.
+///
+/// Due to type system limitations, the [`Scalar`] trait cannot be implemented
+/// directly. Instead implement this trait:
+///
+/// ```
+/// use ggmath::{Alignment, CustomScalar, Vec2};
+///
+/// #[derive(Debug, Clone, Copy)]
+/// struct Foo(i32);
+///
+/// impl CustomScalar for Foo {}
+///
+/// // `Foo` can then be stored inside vectors.
+/// println!("{:?}", Vec2::new(Foo(1), Foo(2)));
+/// ```
+pub trait CustomScalar: Copy {}
+
+#[diagnostic::do_not_recommend]
+impl<T> Scalar for T where T: CustomScalar {}
+
+#[diagnostic::do_not_recommend]
+impl<T, const N: usize, A: Alignment> DefaultBackend<N, A> for T where T: CustomScalar {}
 
 impl Scalar for f32 {}
 
