@@ -388,13 +388,6 @@ where
         specialize!(<T as Backend<N, A>>::mask_set(self, index, value))
     }
 
-    /// Creates a vector mask from its internal representation.
-    ///
-    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the input type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
     pub(crate) const fn from_inner(inner: <T as Backend<N, A>>::Mask) -> Self
@@ -406,13 +399,6 @@ where
         unsafe { transmute_generic::<<T as Backend<N, A>>::Mask, Mask<N, T, A>>(inner) }
     }
 
-    /// Returns the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
     pub(crate) const fn inner(self) -> <T as Backend<N, A>>::Mask
@@ -424,13 +410,6 @@ where
         unsafe { transmute_generic::<Mask<N, T, A>, <T as Backend<N, A>>::Mask>(self) }
     }
 
-    /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
     pub(crate) const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Mask

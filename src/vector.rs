@@ -862,13 +862,6 @@ where
         (self - other).length_squared()
     }
 
-    /// Creates a vector from its internal representation.
-    ///
-    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the input type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
     #[allow(
@@ -899,13 +892,6 @@ where
         })
     }
 
-    /// Returns the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
     #[allow(
@@ -921,13 +907,6 @@ where
         unsafe { transmute_generic::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
     }
 
-    /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
     #[allow(
