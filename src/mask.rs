@@ -7,7 +7,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Scalar, SupportedLength, Unaligned, Vector,
+    Aligned, Alignment, Length, Scalar, SupportedLength, Unaligned, Vector,
+    backend::Backend,
     utils::{specialize, transmute_generic, transmute_mut},
 };
 

@@ -6,7 +6,7 @@ use wide::{
     u64x4, u64x8,
 };
 
-use crate::{Alignment, DefaultBackend, NegOne, One, Scalar, Zero};
+use crate::{Alignment, NegOne, One, Scalar, Zero, backend::DefaultBackend};
 
 macro_rules! float_impl {
     ($T:ident, $F:ident, $N:literal) => {
