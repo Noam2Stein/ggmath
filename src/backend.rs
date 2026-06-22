@@ -102,7 +102,7 @@ mod sse2;
     message = "`{Self}` is missing an implementation for `ggmath::Backend`",
     note = "see the documentation for `ggmath::Scalar`"
 )]
-pub unsafe trait Backend<const N: usize, A: Alignment>
+pub(crate) unsafe trait Backend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
@@ -527,7 +527,7 @@ where
 ///
 /// Manual implementations of [`Backend`] should only exist to make
 /// optimizations.
-pub trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
+pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
 
 pub(crate) trait PrimitiveFloatBackend<const N: usize, A: Alignment>
 where
