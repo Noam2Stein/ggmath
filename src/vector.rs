@@ -871,7 +871,11 @@ where
     /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn from_inner(inner: <T as Backend<N, A>>::Vector) -> Self
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn from_inner(inner: <T as Backend<N, A>>::Vector) -> Self
     where
         T: Backend<N, A>,
     {
@@ -904,7 +908,11 @@ where
     /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner(self) -> <T as Backend<N, A>>::Vector
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn inner(self) -> <T as Backend<N, A>>::Vector
     where
         T: Backend<N, A>,
     {
@@ -922,7 +930,11 @@ where
     /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Vector
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Vector
     where
         T: Backend<N, A>,
     {

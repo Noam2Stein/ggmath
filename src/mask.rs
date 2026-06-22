@@ -397,7 +397,7 @@ where
     /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn from_inner(inner: <T as Backend<N, A>>::Mask) -> Self
+    pub(crate) const fn from_inner(inner: <T as Backend<N, A>>::Mask) -> Self
     where
         T: Backend<N, A>,
     {
@@ -415,7 +415,7 @@ where
     /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner(self) -> <T as Backend<N, A>>::Mask
+    pub(crate) const fn inner(self) -> <T as Backend<N, A>>::Mask
     where
         T: Backend<N, A>,
     {
@@ -433,7 +433,7 @@ where
     /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Mask
+    pub(crate) const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Mask
     where
         T: Backend<N, A>,
     {
