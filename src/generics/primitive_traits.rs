@@ -5,8 +5,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, NegOne, One, PrimitiveFloatBackend, PrimitiveIntegerBackend, PrimitiveSignedBackend,
-    Scalar, Unaligned, Zero,
+    Aligned, NegOne, One, Scalar, Unaligned, Zero,
+    backend::{PrimitiveFloatBackend, PrimitiveIntegerBackend, PrimitiveSignedBackend},
     utils::{FloatUtils, PrimitiveFloatUtils, PrimitiveIntegerUtils, PrimitiveSignedUtils},
 };
 

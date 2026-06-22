@@ -1,5 +1,6 @@
 use crate::{
-    Alignment, Length, Mask, PrimitiveSigned, PrimitiveSignedBackend, SupportedLength, Vector,
+    Alignment, Length, Mask, PrimitiveSigned, SupportedLength, Vector,
+    backend::PrimitiveSignedBackend,
     utils::{specialize, transmute_generic},
 };
 

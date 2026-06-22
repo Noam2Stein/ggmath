@@ -1,4 +1,4 @@
-use crate::{Aligned, DefaultBackend};
+use crate::{Aligned, backend::DefaultBackend};
 
 impl DefaultBackend<3, Aligned> for f32 {}
 

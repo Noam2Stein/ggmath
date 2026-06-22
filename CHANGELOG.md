@@ -84,8 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed matrices and affine transforms from `Backend`.
 
-- Changed the design of `ScalarBackend` and renamed it to `Backend`. Includes
-  other changes related to implementing optimizations.
+- Removed `ScalarBackend` and added `CustomScalar`.
 
 - Fixed rare panic in quaternion function `from_scaled_axis`.
 

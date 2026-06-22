@@ -18,91 +18,19 @@ mod sse2;
 /// alignment `A`.
 ///
 /// This is automatically implemented for types implementing
-/// [`DefaultBackend<N, A>`]. Manual implementations should only exist to make
+/// [`DefaultBackend<N, A>`]. Manual implementations exist to make
 /// optimizations.
-///
-/// All associated functions have default implementations, except for
-/// [`mask_from_array`] and [`mask_to_array`], because masks do not have a
-/// consistent internal representation.
 ///
 /// # Safety
 ///
 /// The associated types [`Vector`](Backend::Vector) and [`Mask`](Backend::Mask)
 /// control internal representations. See their documentation for specific
 /// guarantees that implementations must uphold.
-///
-/// # Example
-///
-/// ```
-/// use core::ops::Add;
-///
-/// use ggmath::{
-///     Affine, Aligned, Backend, DefaultBackend, Length, Mask, Matrix, Scalar, SupportedLength,
-///     Unaligned, Vec3, Vector,
-/// };
-///
-/// #[repr(transparent)]
-/// #[derive(Debug, Clone, Copy, PartialEq)]
-/// struct Foo(f32);
-///
-/// impl Add for Foo {
-///     type Output = Self;
-///
-///     #[inline]
-///     fn add(self, rhs: Self) -> Self::Output {
-///         Self(self.0 + rhs.0)
-///     }
-/// }
-///
-/// impl Scalar for Foo {}
-///
-/// impl<const N: usize> DefaultBackend<N, Unaligned> for Foo {}
-///
-/// // SAFETY: `Foo` is a transparent wrapper over `f32`. They both accept all
-/// // bit-patterns. Any internal representation used for `f32` is also valid
-/// // for `Foo`.
-/// unsafe impl<const N: usize> Backend<N, Aligned> for Foo
-/// where
-///     Length<N>: SupportedLength,
-/// {
-///     // This uses whatever SIMD alignment `f32` types use.
-///     type Vector = Vector<N, f32, Aligned>;
-///     type Mask = Mask<N, f32, Aligned>;
-///
-///     #[inline]
-///     fn vector_add(
-///         vector: Vector<N, Self, Aligned>,
-///         rhs: Vector<N, Self, Aligned>,
-///     ) -> Vector<N, Self, Aligned> {
-///         // This uses whatever SIMD implementation `f32` vectors use.
-///         Vector::from_inner(vector.inner() + rhs.inner())
-///     }
-///
-///     // This function does not have a default implementation.
-///     #[inline]
-///     fn mask_from_array(array: [bool; N]) -> Mask<N, Self, Aligned> {
-///         Mask::from_inner(Mask::from_array(array))
-///     }
-///
-///     // This function does not have a default implementation.
-///     #[inline]
-///     fn mask_to_array(mask: Mask<N, Self, Aligned>) -> [bool; N] {
-///         mask.inner().to_array()
-///     }
-/// }
-///
-/// let vector = Vec3::new(Foo(1.0), Foo(2.0), Foo(3.0));
-/// let rhs = Vec3::new(Foo(4.0), Foo(5.0), Foo(6.0));
-/// assert_eq!(vector + rhs, Vec3::new(Foo(5.0), Foo(7.0), Foo(9.0)));
-/// ```
-///
-/// [`mask_from_array`]: Self::mask_from_array
-/// [`mask_to_array`]: Self::mask_to_array
 #[diagnostic::on_unimplemented(
-    message = "`{Self}` is missing an implementation for `ggmath::Backend`",
+    message = "`ggmath::Scalar` cannot be implemented directly",
     note = "see the documentation for `ggmath::Scalar`"
 )]
-pub unsafe trait Backend<const N: usize, A: Alignment>
+pub(crate) unsafe trait Backend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
@@ -135,7 +63,6 @@ where
     /// bit-pattern.
     type Mask: Send + Sync + Copy;
 
-    /// Overridable implementation for the `vector == vector` operation.
     #[inline]
     fn vector_eq(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
@@ -144,7 +71,6 @@ where
         (0..N).all(|i| vector[i] == other[i])
     }
 
-    /// Overridable implementation for the `vector != vector` operation.
     #[inline]
     fn vector_ne(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
@@ -153,7 +79,6 @@ where
         !Self::vector_eq(vector, other)
     }
 
-    /// Overridable implementation for the unary `-vector` operation.
     #[inline]
     #[track_caller]
     fn vector_neg(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -163,7 +88,6 @@ where
         vector.map(Self::neg)
     }
 
-    /// Overridable implementation for the unary `!vector` operation.
     #[inline]
     #[track_caller]
     fn vector_not(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -173,7 +97,6 @@ where
         vector.map(Self::not)
     }
 
-    /// Overridable implementation for the `vector + vector` operation.
     #[inline]
     #[track_caller]
     fn vector_add(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -183,7 +106,6 @@ where
         Vector::from_fn(|i| vector[i] + rhs[i])
     }
 
-    /// Overridable implementation for the `vector - vector` operation.
     #[inline]
     #[track_caller]
     fn vector_sub(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -193,7 +115,6 @@ where
         Vector::from_fn(|i| vector[i] - rhs[i])
     }
 
-    /// Overridable implementation for the `vector * vector` operation.
     #[inline]
     #[track_caller]
     fn vector_mul(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -203,7 +124,6 @@ where
         Vector::from_fn(|i| vector[i] * rhs[i])
     }
 
-    /// Overridable implementation for the `vector / vector` operation.
     #[inline]
     #[track_caller]
     fn vector_div(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -213,7 +133,6 @@ where
         Vector::from_fn(|i| vector[i] / rhs[i])
     }
 
-    /// Overridable implementation for the `vector % vector` operation.
     #[inline]
     #[track_caller]
     fn vector_rem(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -223,7 +142,6 @@ where
         Vector::from_fn(|i| vector[i] % rhs[i])
     }
 
-    /// Overridable implementation for the `vector << vector` operation.
     #[inline]
     #[track_caller]
     fn vector_shl(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -233,7 +151,6 @@ where
         Vector::from_fn(|i| vector[i] << rhs[i])
     }
 
-    /// Overridable implementation for the `vector >> vector` operation.
     #[inline]
     #[track_caller]
     fn vector_shr(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -243,7 +160,6 @@ where
         Vector::from_fn(|i| vector[i] >> rhs[i])
     }
 
-    /// Overridable implementation for the `vector & vector` operation.
     #[inline]
     #[track_caller]
     fn vector_bitand(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -253,7 +169,6 @@ where
         Vector::from_fn(|i| vector[i] & rhs[i])
     }
 
-    /// Overridable implementation for the `vector | vector` operation.
     #[inline]
     #[track_caller]
     fn vector_bitor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -263,7 +178,6 @@ where
         Vector::from_fn(|i| vector[i] | rhs[i])
     }
 
-    /// Overridable implementation for the `vector ^ vector` operation.
     #[inline]
     #[track_caller]
     fn vector_bitxor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
@@ -273,7 +187,6 @@ where
         Vector::from_fn(|i| vector[i] ^ rhs[i])
     }
 
-    /// Overridable implementation for [`Vector::element_sum`].
     #[inline]
     #[track_caller]
     fn vector_element_sum(vector: Vector<N, Self, A>) -> Self
@@ -288,7 +201,6 @@ where
         }
     }
 
-    /// Overridable implementation for [`Vector::element_product`].
     #[inline]
     #[track_caller]
     fn vector_element_product(vector: Vector<N, Self, A>) -> Self
@@ -303,7 +215,6 @@ where
         }
     }
 
-    /// Overridable implementation for [`Vector::eq_mask`].
     #[inline]
     fn vector_eq_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -312,7 +223,6 @@ where
         Mask::from_fn(|i| vector[i] == other[i])
     }
 
-    /// Overridable implementation for [`Vector::ne_mask`].
     #[inline]
     fn vector_ne_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -321,7 +231,6 @@ where
         Mask::from_fn(|i| vector[i] != other[i])
     }
 
-    /// Overridable implementation for [`Vector::lt_mask`].
     #[inline]
     fn vector_lt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -330,7 +239,6 @@ where
         Mask::from_fn(|i| vector[i] < other[i])
     }
 
-    /// Overridable implementation for [`Vector::gt_mask`].
     #[inline]
     fn vector_gt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -339,7 +247,6 @@ where
         Mask::from_fn(|i| vector[i] > other[i])
     }
 
-    /// Overridable implementation for [`Vector::le_mask`].
     #[inline]
     fn vector_le_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -348,7 +255,6 @@ where
         Mask::from_fn(|i| vector[i] <= other[i])
     }
 
-    /// Overridable implementation for [`Vector::ge_mask`].
     #[inline]
     fn vector_ge_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -357,12 +263,10 @@ where
         Mask::from_fn(|i| vector[i] >= other[i])
     }
 
-    /// Controls the implementation of [`Mask::from_array`].
     fn mask_from_array(array: [bool; N]) -> Mask<N, Self, A>
     where
         Self: Scalar;
 
-    /// Overridable implementation for [`Mask::splat`].
     #[inline]
     fn mask_splat(value: bool) -> Mask<N, Self, A>
     where
@@ -371,7 +275,6 @@ where
         Self::mask_from_array([value; N])
     }
 
-    /// Overridable implementation for [`Mask::from_fn`].
     #[inline]
     #[track_caller]
     fn mask_from_fn<F>(f: F) -> Mask<N, Self, A>
@@ -382,12 +285,10 @@ where
         Self::mask_from_array(core::array::from_fn(f))
     }
 
-    /// Controls the implementation of [`Mask::to_array`].
     fn mask_to_array(mask: Mask<N, Self, A>) -> [bool; N]
     where
         Self: Scalar;
 
-    /// Overridable implementation for [`Mask::all`].
     #[inline]
     fn mask_all(mask: Mask<N, Self, A>) -> bool
     where
@@ -401,7 +302,6 @@ where
         }
     }
 
-    /// Overridable implementation for [`Mask::any`].
     #[inline]
     fn mask_any(mask: Mask<N, Self, A>) -> bool
     where
@@ -415,7 +315,6 @@ where
         }
     }
 
-    /// Overridable implementation for [`Mask::select`].
     #[inline]
     fn mask_select(
         mask: Mask<N, Self, A>,
@@ -428,7 +327,6 @@ where
         Vector::from_fn(|i| if mask.get(i) { if_true[i] } else { if_false[i] })
     }
 
-    /// Overridable implementation for [`Mask::get`].
     #[inline]
     #[track_caller]
     fn mask_get(mask: Mask<N, Self, A>, index: usize) -> bool
@@ -438,7 +336,6 @@ where
         mask.to_array()[index]
     }
 
-    /// Overridable implementation for [`Mask::set`].
     #[inline]
     #[track_caller]
     fn mask_set(mask: &mut Mask<N, Self, A>, index: usize, value: bool)
@@ -450,7 +347,6 @@ where
         *mask = Mask::from_array(array);
     }
 
-    /// Overridable implementation for `mask == mask`.
     #[inline]
     fn mask_eq(mask: &Mask<N, Self, A>, other: &Mask<N, Self, A>) -> bool
     where
@@ -459,7 +355,6 @@ where
         mask.to_array() == other.to_array()
     }
 
-    /// Overridable implementation for `mask != mask`.
     #[inline]
     fn mask_ne(mask: &Mask<N, Self, A>, other: &Mask<N, Self, A>) -> bool
     where
@@ -468,7 +363,6 @@ where
         !Self::mask_eq(mask, other)
     }
 
-    /// Overridable implementation for `!mask`.
     #[inline]
     fn mask_not(mask: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -477,7 +371,6 @@ where
         Mask::from_fn(|i| !mask.get(i))
     }
 
-    /// Overridable implementation for `mask & mask`.
     #[inline]
     fn mask_bitand(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -486,7 +379,6 @@ where
         Mask::from_fn(|i| mask.get(i) & rhs.get(i))
     }
 
-    /// Overridable implementation for `mask | mask`.
     #[inline]
     fn mask_bitor(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -495,7 +387,6 @@ where
         Mask::from_fn(|i| mask.get(i) | rhs.get(i))
     }
 
-    /// Overridable implementation for `mask ^ mask`.
     #[inline]
     fn mask_bitxor(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
@@ -505,29 +396,7 @@ where
     }
 }
 
-/// A trait for implementing [`Scalar`] without boilerplate.
-///
-/// Due to type system limitations, [`Scalar`] requires the [`Backend`] trait
-/// which controls the internal implementation of vectors. To simply implement
-/// [`Scalar`], use the [`DefaultBackend`] trait:
-///
-/// ```
-/// use ggmath::{Alignment, DefaultBackend, Scalar, Vec2};
-///
-/// #[derive(Debug, Clone, Copy)]
-/// struct Foo(i32);
-///
-/// impl Scalar for Foo {}
-///
-/// impl<const N: usize, A: Alignment> DefaultBackend<N, A> for Foo {}
-///
-/// // `Foo` can then be stored inside vectors.
-/// println!("{:?}", Vec2::new(Foo(1), Foo(2)));
-/// ```
-///
-/// Manual implementations of [`Backend`] should only exist to make
-/// optimizations.
-pub trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
+pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
 
 pub(crate) trait PrimitiveFloatBackend<const N: usize, A: Alignment>
 where

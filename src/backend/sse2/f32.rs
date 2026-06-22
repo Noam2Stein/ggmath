@@ -4,7 +4,8 @@ use core::arch::x86::*;
 use core::arch::x86_64::*;
 
 use crate::{
-    Aligned, Backend, Mask, Mask3A, Mask4A, PrimitiveFloatBackend, Vec3A, Vec4A, Vector,
+    Aligned, Mask, Mask3A, Mask4A, Vec3A, Vec4A, Vector,
+    backend::{Backend, PrimitiveFloatBackend},
     utils::safe_arch,
 };
 

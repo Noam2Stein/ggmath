@@ -1,8 +1,8 @@
 use core::cmp::Ordering;
 
 use crate::{
-    Alignment, FloatExt, Length, Mask, PrimitiveFloat, PrimitiveFloatBackend, Quaternion,
-    SupportedLength, Vector,
+    Alignment, FloatExt, Length, Mask, PrimitiveFloat, Quaternion, SupportedLength, Vector,
+    backend::PrimitiveFloatBackend,
     utils::{PrimitiveFloatUtils, specialize, transmute_generic},
 };
 

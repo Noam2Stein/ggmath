@@ -1,5 +1,5 @@
 use crate::{
-    Alignment, Length, PrimitiveInteger, PrimitiveIntegerBackend, SupportedLength, Vector,
+    Alignment, Length, PrimitiveInteger, SupportedLength, Vector, backend::PrimitiveIntegerBackend,
     utils::specialize,
 };
 

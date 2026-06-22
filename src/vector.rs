@@ -10,8 +10,8 @@ use core::{
 };
 
 use crate::{
-    Aligned, Alignment, Backend, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned,
-    Zero,
+    Aligned, Alignment, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned, Zero,
+    backend::Backend,
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -862,16 +862,13 @@ where
         (self - other).length_squared()
     }
 
-    /// Creates a vector from its internal representation.
-    ///
-    /// The input type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the input type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn from_inner(inner: <T as Backend<N, A>>::Vector) -> Self
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn from_inner(inner: <T as Backend<N, A>>::Vector) -> Self
     where
         T: Backend<N, A>,
     {
@@ -895,16 +892,13 @@ where
         })
     }
 
-    /// Returns the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner(self) -> <T as Backend<N, A>>::Vector
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn inner(self) -> <T as Backend<N, A>>::Vector
     where
         T: Backend<N, A>,
     {
@@ -913,16 +907,13 @@ where
         unsafe { transmute_generic::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
     }
 
-    /// Returns a mutable reference to the internal representation of `self`.
-    ///
-    /// The resulting type is specified by [`<T as Backend<N, A>>`]. This should
-    /// only be called from the crate defining `T`, else the resulting type may
-    /// change silently as it is considered an implementation detail.
-    ///
-    /// [`<T as Backend<N, A>>`]: Backend
     #[inline]
     #[must_use]
-    pub const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Vector
+    #[allow(
+        dead_code,
+        reason = "this will likely be used for fixed-point numbers (TODO)"
+    )]
+    pub(crate) const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Vector
     where
         T: Backend<N, A>,
     {

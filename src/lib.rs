@@ -131,7 +131,6 @@ mod matrix;
 mod quaternion;
 mod vector;
 pub use affine::*;
-pub use backend::*;
 pub use euler_rot::*;
 pub use float_ext::*;
 pub use generics::*;
