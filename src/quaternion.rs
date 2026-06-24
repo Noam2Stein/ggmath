@@ -332,7 +332,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        self.to_vector().dot(rhs.to_vector())
+        self.0.dot(rhs.0)
     }
 
     /// Computes the squared length/magnitude of `self`.
@@ -352,7 +352,7 @@ where
     where
         T: Add<Output = T> + Mul<Output = T>,
     {
-        self.to_vector().length_squared()
+        self.0.length_squared()
     }
 }
 

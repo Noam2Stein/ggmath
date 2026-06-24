@@ -34,7 +34,7 @@ where
     #[inline]
     #[must_use]
     pub fn from_lanes(lanes: &[Quaternion<T, A>; LANES]) -> Self {
-        Self::from_vector(Vector::from_lane_fn(|lane| lanes[lane].to_vector()))
+        Self(Vector::from_lane_fn(|lane| lanes[lane].0))
     }
 
     /// Creates an SoA (Structure of Arrays) quaternion by calling function `f`
