@@ -1634,22 +1634,77 @@ where
     where
         T: Neg<Output = T> + Add<Output = T> + Sub<Output = T> + Mul<Output = T>,
     {
-        let [m00, m01, m02, m03] = self.x_axis.to_array();
-        let [m10, m11, m12, m13] = self.y_axis.to_array();
-        let [m20, m21, m22, m23] = self.z_axis.to_array();
-        let [m30, m31, m32, m33] = self.w_axis.to_array();
+        if const { align_of::<Vector<4, T, A>>() > align_of::<T>() } {
+            // Ported from `https://docs.rs/glam/0.33.1/src/glam/f32/sse2/mat4.rs.html#649-685`.
+            // Based on https://github.com/g-truc/glm `glm_mat4_determinant_lowp`.
 
-        let a2323 = m22 * m33 - m23 * m32;
-        let a1323 = m21 * m33 - m23 * m31;
-        let a1223 = m21 * m32 - m22 * m31;
-        let a0323 = m20 * m33 - m23 * m30;
-        let a0223 = m20 * m32 - m22 * m30;
-        let a0123 = m20 * m31 - m21 * m30;
+            // `[det_23_23, det_13_23, det_12_23, det_03_23]`
+            let dets_23_1234 =
+                self.z_axis.zyyx() * self.w_axis.wwzw() - self.z_axis.wwzw() * self.w_axis.zyyx();
 
-        m00 * (m11 * a2323 - m12 * a1323 + m13 * a1223)
-            - m01 * (m10 * a2323 - m12 * a0323 + m13 * a0223)
-            + m02 * (m10 * a1323 - m11 * a0323 + m13 * a0123)
-            - m03 * (m10 * a1223 - m11 * a0223 + m12 * a0123)
+            // `[det_02_23, det_01_23, _, _]`
+            let dets_23_56 = {
+                // `[m02 * m23, m02 * m13, m22 * m03, m12 * m03]`
+                let products = self.z_axis.xxzy() * self.w_axis.zyxx();
+
+                // `[m02 * m23 - m22 * m03, m02 * m13 - m12 * m03, _, _]`
+                products - products.zwxx()
+            };
+
+            // `[det_123_123, det_023_123, det_013_123, det_012_123]`
+            let dets_123 = {
+                // `[det_23_23, det_23_23, det_13_23, det_12_23]`
+                let dets_23_1123 = dets_23_1234.xxyz();
+
+                // `[det_13_23, det_03_23, det_03_23, det_02_23]`
+                let dets_23_2445 = Vector::<4, T, A>::new(
+                    dets_23_1234.y,
+                    dets_23_1234.w,
+                    dets_23_56.x,
+                    dets_23_56.x,
+                )
+                .xyyw();
+
+                // `[det_12_23, det_02_23, det_01_23, det_01_23]`
+                let dets_23_3566 = Vector::<4, T, A>::new(
+                    dets_23_1234.z,
+                    dets_23_1234.z,
+                    dets_23_56.x,
+                    dets_23_56.y,
+                )
+                .xzww();
+
+                self.y_axis.yxxx() * dets_23_1123 - self.y_axis.zzyy() * dets_23_2445
+                    + self.y_axis.wwwz() * dets_23_3566
+            };
+
+            let cofactors = self.x_axis * dets_123;
+            let cofactors =
+                Vector::<4, T, A>::new(cofactors.x, -cofactors.y, cofactors.z, -cofactors.w);
+
+            cofactors.element_sum()
+        } else {
+            // Ported from `https://docs.rs/glam/0.33.1/src/glam/f64/dmat4.rs.html#629-646`.
+
+            let [m00, m10, m20, m30] = self.x_axis.to_array();
+            let [m01, m11, m21, m31] = self.y_axis.to_array();
+            let [m02, m12, m22, m32] = self.z_axis.to_array();
+            let [m03, m13, m23, m33] = self.w_axis.to_array();
+
+            let det_23_23 = m22 * m33 - m32 * m23;
+            let det_13_23 = m12 * m33 - m32 * m13;
+            let det_12_23 = m12 * m23 - m22 * m13;
+            let det_03_23 = m02 * m33 - m32 * m03;
+            let det_02_23 = m02 * m23 - m22 * m03;
+            let det_01_23 = m02 * m13 - m12 * m03;
+
+            let det_123_123 = m11 * det_23_23 - m21 * det_13_23 + m31 * det_12_23;
+            let det_023_123 = m01 * det_23_23 - m21 * det_03_23 + m31 * det_02_23;
+            let det_013_123 = m01 * det_13_23 - m11 * det_03_23 + m31 * det_01_23;
+            let det_012_123 = m01 * det_12_23 - m11 * det_02_23 + m21 * det_01_23;
+
+            m00 * det_123_123 - m10 * det_023_123 + m20 * det_013_123 - m30 * det_012_123
+        }
     }
 }
 
