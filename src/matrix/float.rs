@@ -1021,19 +1021,51 @@ where
 
     #[inline(always)]
     fn inverse_and_determinant_backend(&self) -> (Self, T) {
-        let y_cross_z = self.y_axis.cross(self.z_axis);
-        let z_cross_x = self.z_axis.cross(self.x_axis);
         let x_cross_y = self.x_axis.cross(self.y_axis);
-
         let determinant = x_cross_y.dot(self.z_axis);
 
-        let determinant_recip = Vector::<3, T, A>::splat(determinant.recip());
-        let inverse = Matrix::<3, T, A>::from_rows(&[
-            y_cross_z * determinant_recip,
-            z_cross_x * determinant_recip,
-            x_cross_y * determinant_recip,
-        ])
-        .transpose();
+        // Compute cross products but avoid the `.zxy()` at the end.
+        let y_cross_z_yzx = self.y_axis.zxy() * self.z_axis - self.y_axis * self.z_axis.zxy();
+        let z_cross_x_yzx = self.z_axis.zxy() * self.x_axis - self.z_axis * self.x_axis.zxy();
+
+        // Simultaneously perform `{cross-product-yzx}.zxy()` and `{matrix}.transpose()`.
+        let adjugate = if const { align_of::<Self>() > align_of::<T>() } {
+            // SIMD shuffles usually support taking elements from two input
+            // registers. These intermediate shuffles help the optimizer.
+
+            let shuffle_1 = Vector::<4, T, A>::new(
+                y_cross_z_yzx.x,
+                y_cross_z_yzx.y,
+                z_cross_x_yzx.x,
+                z_cross_x_yzx.y,
+            );
+            let shuffle_2 = Vector::<4, T, A>::new(
+                y_cross_z_yzx.z,
+                y_cross_z_yzx.z,
+                z_cross_x_yzx.z,
+                z_cross_x_yzx.z,
+            );
+
+            Self::from_rows(&[
+                Vector::<3, T, A>::new(shuffle_2.x, shuffle_2.z, x_cross_y.x),
+                Vector::<3, T, A>::new(shuffle_1.x, shuffle_1.z, x_cross_y.y),
+                Vector::<3, T, A>::new(shuffle_1.y, shuffle_1.w, x_cross_y.z),
+            ])
+        } else {
+            Self::from_row_array(&[
+                y_cross_z_yzx.z,
+                z_cross_x_yzx.z,
+                x_cross_y.x,
+                y_cross_z_yzx.x,
+                z_cross_x_yzx.x,
+                x_cross_y.y,
+                y_cross_z_yzx.y,
+                z_cross_x_yzx.y,
+                x_cross_y.z,
+            ])
+        };
+
+        let inverse = adjugate * determinant.recip();
 
         (inverse, determinant)
     }
