@@ -279,17 +279,31 @@ where
 
     #[inline(always)]
     fn inverse_and_determinant_backend(&self) -> (Self, T) {
-        let determinant = self.determinant();
+        if const { align_of::<Self>() > align_of::<T>() } {
+            // `[a*d, b*c, b*c, a*d]`
+            let products = self.0 * self.0.wzyx();
 
-        let determinant_recip = determinant.recip();
-        let inverse = Self::from_row_array(&[
-            self.y_axis.y * determinant_recip,
-            self.x_axis.y * -determinant_recip,
-            self.y_axis.x * -determinant_recip,
-            self.x_axis.x * determinant_recip,
-        ]);
+            // `[a*d-b*c, b*c-a*d, b*c-a*d, a*d-b*c]`
+            // `[det, -det, -det, det]`
+            let determinant = products - products.yxxy();
 
-        (inverse, determinant)
+            let determinant_recip = determinant.recip();
+            let inverse = Self(self.0.wyzx() * determinant_recip);
+
+            (inverse, determinant.x)
+        } else {
+            let determinant = self.determinant();
+
+            let determinant_recip = determinant.recip();
+            let inverse = Self::from_row_array(&[
+                self.y_axis.y * determinant_recip,
+                self.x_axis.y * -determinant_recip,
+                self.y_axis.x * -determinant_recip,
+                self.x_axis.x * determinant_recip,
+            ]);
+
+            (inverse, determinant)
+        }
     }
 
     #[inline(always)]
