@@ -16,6 +16,16 @@ bench!(
 );
 
 bench!(
+    mul,
+    ARRAY_LEN,
+    (unaligned, <Affine3<f32> as Mul>::mul),
+    (unaligned_glam, <glam::Affine3 as Mul>::mul),
+    (aligned, <Affine3A<f32> as Mul>::mul),
+    (aligned_glam, <glam::Affine3A as Mul>::mul),
+    (x4_unaligned, <Affine3<f32x4> as Mul>::mul),
+);
+
+bench!(
     transform_point,
     ARRAY_LEN,
     (unaligned, |a: Affine3<f32>, p| a.transform_point(p)),
@@ -49,14 +59,4 @@ bench!(
         x4_unaligned,
         |points: [Vec3<f32x4>; BATCH_LEN], a: Affine3<f32x4>| points.map(|p| a.transform_point(p))
     ),
-);
-
-bench!(
-    mul,
-    ARRAY_LEN,
-    (unaligned, <Affine3<f32> as Mul>::mul),
-    (unaligned_glam, <glam::Affine3 as Mul>::mul),
-    (aligned, <Affine3A<f32> as Mul>::mul),
-    (aligned_glam, <glam::Affine3A as Mul>::mul),
-    (x4_unaligned, <Affine3<f32x4> as Mul>::mul),
 );

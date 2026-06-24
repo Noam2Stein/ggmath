@@ -15,6 +15,15 @@ bench!(
 );
 
 bench!(
+    mul,
+    ARRAY_LEN,
+    (unaligned, <Affine2<f32> as Mul>::mul),
+    (aligned, <Affine2A<f32> as Mul>::mul),
+    (aligned_glam, <glam::Affine2 as Mul>::mul),
+    (x4_unaligned, <Affine2<f32x4> as Mul>::mul),
+);
+
+bench!(
     transform_point,
     ARRAY_LEN,
     (unaligned, |a: Affine2<f32>, p| a.transform_point(p)),
@@ -42,13 +51,4 @@ bench!(
         x4_unaligned,
         |points: [Vec2<f32x4>; BATCH_LEN], a: Affine2<f32x4>| points.map(|p| a.transform_point(p))
     ),
-);
-
-bench!(
-    mul,
-    ARRAY_LEN,
-    (unaligned, <Affine2<f32> as Mul>::mul),
-    (aligned, <Affine2A<f32> as Mul>::mul),
-    (aligned_glam, <glam::Affine2 as Mul>::mul),
-    (x4_unaligned, <Affine2<f32x4> as Mul>::mul),
 );

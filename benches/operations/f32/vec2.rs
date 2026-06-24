@@ -6,14 +6,6 @@ use wide::f32x4;
 use crate::{ARRAY_LEN, bench};
 
 bench!(
-    neg,
-    ARRAY_LEN,
-    (unaligned, Vec2::<f32>::neg),
-    (unaligned_glam, glam::Vec2::neg),
-    (x4_unaligned, Vec2::<f32x4>::neg),
-);
-
-bench!(
     add,
     ARRAY_LEN,
     (unaligned, <Vec2::<f32> as Add>::add),
@@ -22,19 +14,11 @@ bench!(
 );
 
 bench!(
-    sub,
+    clamp_length,
     ARRAY_LEN,
-    (unaligned, <Vec2::<f32> as Sub>::sub),
-    (unaligned_glam, <glam::Vec2 as Sub>::sub),
-    (x4_unaligned, <Vec2::<f32x4> as Sub>::sub),
-);
-
-bench!(
-    mul,
-    ARRAY_LEN,
-    (unaligned, <Vec2::<f32> as Mul>::mul),
-    (unaligned_glam, <glam::Vec2 as Mul>::mul),
-    (x4_unaligned, <Vec2::<f32x4> as Mul>::mul),
+    (unaligned, Vec2::<f32>::clamp_length),
+    (unaligned_glam, glam::Vec2::clamp_length),
+    (x4_unaligned, Vec2::<f32x4>::clamp_length),
 );
 
 bench!(
@@ -46,11 +30,11 @@ bench!(
 );
 
 bench!(
-    rem,
+    dot,
     ARRAY_LEN,
-    (unaligned, <Vec2::<f32> as Rem>::rem),
-    (unaligned_glam, <glam::Vec2 as Rem>::rem),
-    (x4_unaligned, <Vec2::<f32x4> as Rem>::rem),
+    (unaligned, Vec2::<f32>::dot),
+    (unaligned_glam, glam::Vec2::dot),
+    (x4_unaligned, Vec2::<f32x4>::dot),
 );
 
 bench!(
@@ -62,6 +46,30 @@ bench!(
 );
 
 bench!(
+    move_towards,
+    ARRAY_LEN,
+    (unaligned, Vec2::<f32>::move_towards),
+    (unaligned_glam, glam::Vec2::move_towards),
+    (x4_unaligned, Vec2::<f32x4>::move_towards),
+);
+
+bench!(
+    mul,
+    ARRAY_LEN,
+    (unaligned, <Vec2::<f32> as Mul>::mul),
+    (unaligned_glam, <glam::Vec2 as Mul>::mul),
+    (x4_unaligned, <Vec2::<f32x4> as Mul>::mul),
+);
+
+bench!(
+    neg,
+    ARRAY_LEN,
+    (unaligned, Vec2::<f32>::neg),
+    (unaligned_glam, glam::Vec2::neg),
+    (x4_unaligned, Vec2::<f32x4>::neg),
+);
+
+bench!(
     normalize,
     ARRAY_LEN,
     (unaligned, Vec2::<f32>::normalize),
@@ -70,27 +78,11 @@ bench!(
 );
 
 bench!(
-    dot,
-    ARRAY_LEN,
-    (unaligned, Vec2::<f32>::dot),
-    (unaligned_glam, glam::Vec2::dot),
-    (x4_unaligned, Vec2::<f32x4>::dot),
-);
-
-bench!(
     project_onto,
     ARRAY_LEN,
     (unaligned, Vec2::<f32>::project_onto),
     (unaligned_glam, glam::Vec2::project_onto),
     (x4_unaligned, Vec2::<f32x4>::project_onto),
-);
-
-bench!(
-    reject_from,
-    ARRAY_LEN,
-    (unaligned, Vec2::<f32>::reject_from),
-    (unaligned_glam, glam::Vec2::reject_from),
-    (x4_unaligned, Vec2::<f32x4>::reject_from),
 );
 
 bench!(
@@ -110,11 +102,27 @@ bench!(
 );
 
 bench!(
-    move_towards,
+    reject_from,
     ARRAY_LEN,
-    (unaligned, Vec2::<f32>::move_towards),
-    (unaligned_glam, glam::Vec2::move_towards),
-    (x4_unaligned, Vec2::<f32x4>::move_towards),
+    (unaligned, Vec2::<f32>::reject_from),
+    (unaligned_glam, glam::Vec2::reject_from),
+    (x4_unaligned, Vec2::<f32x4>::reject_from),
+);
+
+bench!(
+    rem,
+    ARRAY_LEN,
+    (unaligned, <Vec2::<f32> as Rem>::rem),
+    (unaligned_glam, <glam::Vec2 as Rem>::rem),
+    (x4_unaligned, <Vec2::<f32x4> as Rem>::rem),
+);
+
+bench!(
+    rotate_towards,
+    ARRAY_LEN,
+    (unaligned, Vec2::<f32>::rotate_towards),
+    (unaligned_glam, glam::Vec2::rotate_towards),
+    (x4_unaligned, Vec2::<f32x4>::rotate_towards),
 );
 
 bench!(
@@ -126,11 +134,11 @@ bench!(
 );
 
 bench!(
-    rotate_towards,
+    sub,
     ARRAY_LEN,
-    (unaligned, Vec2::<f32>::rotate_towards),
-    (unaligned_glam, glam::Vec2::rotate_towards),
-    (x4_unaligned, Vec2::<f32x4>::rotate_towards),
+    (unaligned, <Vec2::<f32> as Sub>::sub),
+    (unaligned_glam, <glam::Vec2 as Sub>::sub),
+    (x4_unaligned, <Vec2::<f32x4> as Sub>::sub),
 );
 
 bench!(
@@ -147,12 +155,4 @@ bench!(
     (unaligned, Vec2::<f32>::with_min_length),
     (unaligned_glam, glam::Vec2::clamp_length_min),
     (x4_unaligned, Vec2::<f32x4>::with_min_length),
-);
-
-bench!(
-    clamp_length,
-    ARRAY_LEN,
-    (unaligned, Vec2::<f32>::clamp_length),
-    (unaligned_glam, glam::Vec2::clamp_length),
-    (x4_unaligned, Vec2::<f32x4>::clamp_length),
 );

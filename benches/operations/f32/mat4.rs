@@ -24,6 +24,15 @@ bench!(
 );
 
 bench!(
+    mul,
+    ARRAY_LEN,
+    (unaligned, <Mat4<f32> as Mul>::mul),
+    (aligned, <Mat4A<f32> as Mul>::mul),
+    (aligned_glam, <glam::Mat4 as Mul>::mul),
+    (x4_unaligned, <Mat4<f32x4> as Mul>::mul),
+);
+
+bench!(
     vector_mul,
     ARRAY_LEN,
     (unaligned, <Vec4<f32> as Mul<Mat4<f32>>>::mul),
@@ -51,13 +60,4 @@ bench!(
         x4_unaligned,
         |vectors: [Vec4<f32x4>; BATCH_LEN], m: Mat4<f32x4>| vectors.map(|v| v * m)
     ),
-);
-
-bench!(
-    mul,
-    ARRAY_LEN,
-    (unaligned, <Mat4<f32> as Mul>::mul),
-    (aligned, <Mat4A<f32> as Mul>::mul),
-    (aligned_glam, <glam::Mat4 as Mul>::mul),
-    (x4_unaligned, <Mat4<f32x4> as Mul>::mul),
 );
