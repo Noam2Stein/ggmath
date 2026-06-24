@@ -234,3 +234,63 @@ bench!(
     (aligned_glam, glam::Vec3A::fract),
     (x4_unaligned, Vec3::<f32x4>::fract),
 );
+
+bench!(
+    move_towards,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::move_towards),
+    (unaligned_glam, glam::Vec3::move_towards),
+    (aligned, Vec3A::<f32>::move_towards),
+    (aligned_glam, glam::Vec3A::move_towards),
+    (x4_unaligned, Vec3::<f32x4>::move_towards),
+);
+
+bench!(
+    slerp,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::slerp),
+    (unaligned_glam, glam::Vec3::slerp),
+    (aligned, Vec3A::<f32>::slerp),
+    (aligned_glam, glam::Vec3A::slerp),
+    (x4_unaligned, Vec3::<f32x4>::slerp),
+);
+
+bench!(
+    rotate_towards,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::rotate_towards),
+    (unaligned_glam, glam::Vec3::rotate_towards),
+    (aligned, Vec3A::<f32>::rotate_towards),
+    (aligned_glam, glam::Vec3A::rotate_towards),
+    (x4_unaligned, Vec3::<f32x4>::rotate_towards),
+);
+
+bench!(
+    with_max_length,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::with_max_length),
+    (unaligned_glam, glam::Vec3::clamp_length_max),
+    (aligned, Vec3A::<f32>::with_max_length),
+    (aligned_glam, glam::Vec3A::clamp_length_max),
+    (x4_unaligned, Vec3::<f32x4>::with_max_length),
+);
+
+bench!(
+    with_min_length,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::with_min_length),
+    (unaligned_glam, glam::Vec3::clamp_length_min),
+    (aligned, Vec3A::<f32>::with_min_length),
+    (aligned_glam, glam::Vec3A::clamp_length_min),
+    (x4_unaligned, Vec3::<f32x4>::with_min_length),
+);
+
+bench!(
+    clamp_length,
+    ARRAY_LEN,
+    (unaligned, Vec3::<f32>::clamp_length),
+    (unaligned_glam, glam::Vec3::clamp_length),
+    (aligned, Vec3A::<f32>::clamp_length),
+    (aligned_glam, glam::Vec3A::clamp_length),
+    (x4_unaligned, Vec3::<f32x4>::clamp_length),
+);

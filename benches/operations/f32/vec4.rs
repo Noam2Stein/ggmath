@@ -130,3 +130,111 @@ bench!(
     (aligned_glam, glam::Vec4::fract),
     (x4_unaligned, Vec4::<f32x4>::fract),
 );
+
+bench!(
+    move_towards,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::move_towards),
+    (aligned, Vec4A::<f32>::move_towards),
+    (aligned_glam, glam::Vec4::move_towards),
+    (x4_unaligned, Vec4::<f32x4>::move_towards),
+);
+
+bench!(
+    slerp,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::slerp),
+    (aligned, Vec4A::<f32>::slerp),
+    // This function is not in `glam`.
+    (x4_unaligned, Vec4::<f32x4>::slerp),
+);
+
+bench!(
+    rotate_towards,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::rotate_towards),
+    (aligned, Vec4A::<f32>::rotate_towards),
+    // This function is not in `glam`.
+    (x4_unaligned, Vec4::<f32x4>::rotate_towards),
+);
+
+bench!(
+    with_max_length,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::with_max_length),
+    (aligned, Vec4A::<f32>::with_max_length),
+    (aligned_glam, glam::Vec4::clamp_length_max),
+    (x4_unaligned, Vec4::<f32x4>::with_max_length),
+);
+
+bench!(
+    with_min_length,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::with_min_length),
+    (aligned, Vec4A::<f32>::with_min_length),
+    (aligned_glam, glam::Vec4::clamp_length_min),
+    (x4_unaligned, Vec4::<f32x4>::with_min_length),
+);
+
+bench!(
+    clamp_length,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::clamp_length),
+    (aligned, Vec4A::<f32>::clamp_length),
+    (aligned_glam, glam::Vec4::clamp_length),
+    (x4_unaligned, Vec4::<f32x4>::clamp_length),
+);
+
+bench!(
+    sin,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::sin),
+    (aligned, Vec4A::<f32>::sin),
+    (aligned_glam, glam::Vec4::sin),
+    (x4_unaligned, Vec4::<f32x4>::sin),
+);
+
+bench!(
+    cos,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::cos),
+    (aligned, Vec4A::<f32>::cos),
+    (aligned_glam, glam::Vec4::cos),
+    (x4_unaligned, Vec4::<f32x4>::cos),
+);
+
+bench!(
+    tan,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::tan),
+    (aligned, Vec4A::<f32>::tan),
+    // This function is not in `glam`.
+    (x4_unaligned, Vec4::<f32x4>::tan),
+);
+
+bench!(
+    asin,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::asin),
+    (aligned, Vec4A::<f32>::asin),
+    // This function is not in `glam`.
+    (x4_unaligned, Vec4::<f32x4>::asin),
+);
+
+bench!(
+    acos,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::acos),
+    (aligned, Vec4A::<f32>::acos),
+    // This function is not in `glam`.
+    (x4_unaligned, Vec4::<f32x4>::acos),
+);
+
+bench!(
+    atan,
+    ARRAY_LEN,
+    (unaligned, Vec4::<f32>::atan),
+    (aligned, Vec4A::<f32>::atan),
+    // This function is not in `glam`.
+    (x4_unaligned, Vec4::<f32x4>::atan),
+);
