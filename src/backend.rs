@@ -275,16 +275,6 @@ where
         Self::mask_from_array([value; N])
     }
 
-    #[inline]
-    #[track_caller]
-    fn mask_from_fn<F>(f: F) -> Mask<N, Self, A>
-    where
-        Self: Scalar,
-        F: FnMut(usize) -> bool,
-    {
-        Self::mask_from_array(core::array::from_fn(f))
-    }
-
     fn mask_to_array(mask: Mask<N, Self, A>) -> [bool; N]
     where
         Self: Scalar;
@@ -1147,14 +1137,6 @@ where
     }
 
     #[inline]
-    fn mask_from_fn<F>(mut f: F) -> Mask<2, Self, A>
-    where
-        F: FnMut(usize) -> bool,
-    {
-        Mask::from_inner(Repr2(f(0), f(1)))
-    }
-
-    #[inline]
     fn mask_to_array(mask: Mask<2, Self, A>) -> [bool; 2] {
         [mask.inner().0, mask.inner().1]
     }
@@ -1442,14 +1424,6 @@ where
     #[inline]
     fn mask_splat(value: bool) -> Mask<3, Self, A> {
         Mask::from_inner(Repr3(value, value, value))
-    }
-
-    #[inline]
-    fn mask_from_fn<F>(mut f: F) -> Mask<3, Self, A>
-    where
-        F: FnMut(usize) -> bool,
-    {
-        Mask::from_inner(Repr3(f(0), f(1), f(2)))
     }
 
     #[inline]
@@ -1814,14 +1788,6 @@ where
     #[inline]
     fn mask_splat(value: bool) -> Mask<4, Self, A> {
         Mask::from_inner(Repr4(value, value, value, value))
-    }
-
-    #[inline]
-    fn mask_from_fn<F>(mut f: F) -> Mask<4, Self, A>
-    where
-        F: FnMut(usize) -> bool,
-    {
-        Mask::from_inner(Repr4(f(0), f(1), f(2), f(3)))
     }
 
     #[inline]

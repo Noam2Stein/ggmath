@@ -172,43 +172,31 @@ where
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn from_fn<F>(f: F) -> Self
+    pub fn from_fn<F>(mut f: F) -> Self
     where
         F: FnMut(usize) -> bool,
     {
-        (const {
-            // SAFETY: All transmutations are between types that are previously
-            // checked to be the same type.
-            unsafe {
-                match (N, A::IS_ALIGNED) {
-                    (2, true) => transmute::<fn(F) -> Mask<2, T, Aligned>, fn(F) -> Mask<N, T, A>>(
-                        <T as Backend<2, Aligned>>::mask_from_fn,
-                    ),
-                    (3, true) => transmute::<fn(F) -> Mask<3, T, Aligned>, fn(F) -> Mask<N, T, A>>(
-                        <T as Backend<3, Aligned>>::mask_from_fn,
-                    ),
-                    (4, true) => transmute::<fn(F) -> Mask<4, T, Aligned>, fn(F) -> Mask<N, T, A>>(
-                        <T as Backend<4, Aligned>>::mask_from_fn,
-                    ),
-                    (2, false) => {
-                        transmute::<fn(F) -> Mask<2, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
-                            <T as Backend<2, Unaligned>>::mask_from_fn,
-                        )
-                    }
-                    (3, false) => {
-                        transmute::<fn(F) -> Mask<3, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
-                            <T as Backend<3, Unaligned>>::mask_from_fn,
-                        )
-                    }
-                    (4, false) => {
-                        transmute::<fn(F) -> Mask<4, T, Unaligned>, fn(F) -> Mask<N, T, A>>(
-                            <T as Backend<4, Unaligned>>::mask_from_fn,
-                        )
-                    }
-                    _ => unreachable!(),
-                }
+        // SAFETY: All transmutations are between a type to itself.
+        unsafe {
+            match N {
+                2 => transmute_generic::<Mask<2, T, A>, Mask<N, T, A>>(Mask::<2, T, A>::new(
+                    f(0),
+                    f(1),
+                )),
+                3 => transmute_generic::<Mask<3, T, A>, Mask<N, T, A>>(Mask::<3, T, A>::new(
+                    f(0),
+                    f(1),
+                    f(2),
+                )),
+                4 => transmute_generic::<Mask<4, T, A>, Mask<N, T, A>>(Mask::<4, T, A>::new(
+                    f(0),
+                    f(1),
+                    f(2),
+                    f(3),
+                )),
+                _ => unreachable!(),
             }
-        })(f)
+        }
     }
 
     /// Conversion between [`Aligned`] and [`Unaligned`] storage.

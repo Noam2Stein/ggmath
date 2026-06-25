@@ -198,14 +198,6 @@ unsafe impl Backend<3, Aligned> for f32 {
             Mask(_mm_xor_ps(mask.0, rhs.0))
         }
     }
-
-    #[inline]
-    fn mask_from_fn<F>(mut f: F) -> Mask3A<f32>
-    where
-        F: FnMut(usize) -> bool,
-    {
-        Mask::from_array([f(0), f(1), f(2)])
-    }
 }
 
 // SAFETY: All associated types uphold requirements.
@@ -401,14 +393,6 @@ unsafe impl Backend<4, Aligned> for f32 {
         fn mask_bitxor(mask: Mask4A<f32>, rhs: Mask4A<f32>) -> Mask4A<f32> {
             Mask(_mm_xor_ps(mask.0, rhs.0))
         }
-    }
-
-    #[inline]
-    fn mask_from_fn<F>(mut f: F) -> Mask4A<f32>
-    where
-        F: FnMut(usize) -> bool,
-    {
-        Mask::from_array([f(0), f(1), f(2), f(3)])
     }
 }
 
