@@ -764,16 +764,12 @@ fn trunc(vector: __m128) -> __m128 {
     let result = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
 
     // Large value, infinity, and NaN need special handling.
-    let in_bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
         _mm_castps_si128(abs(vector)),
         _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
     ));
 
-    select(
-        _mm_and_ps(in_bounds_mask, _mm_set1_ps(f32::from_bits(0x7fffffff))),
-        result,
-        vector,
-    )
+    select(abs(bounds_mask), result, vector)
 }
 
 #[cfg(target_feature = "sse4.1")]
