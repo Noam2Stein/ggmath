@@ -700,11 +700,36 @@ fn ceil(v: __m128) -> __m128 {
     )
 }
 
+#[cfg(not(target_feature = "sse4.1"))]
 #[inline]
 #[target_feature(enable = "sse2")]
 fn round(vector: __m128) -> __m128 {
     let vector_abs = abs(vector);
     let result_abs = _mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_add_ps(vector_abs, _mm_set1_ps(0.5))));
+
+    // The addition breaks for `0.5.next_down()` which incorrectly rounds to
+    // `1.0`. This resets `result` to `0.0`.
+    let result_abs = _mm_and_ps(
+        result_abs,
+        _mm_cmpneq_ps(vector_abs, _mm_set1_ps(0.5_f32.next_down())),
+    );
+
+    // Large value, infinity and NaN need special handling.
+    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+        _mm_castps_si128(vector_abs),
+        _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
+    ));
+
+    // `abs` keeps the original sign.
+    select(abs(bounds_mask), result_abs, vector)
+}
+
+#[cfg(target_feature = "sse4.1")]
+#[inline]
+#[target_feature(enable = "sse2,sse4.1")]
+fn round(vector: __m128) -> __m128 {
+    let vector_abs = abs(vector);
+    let result_abs = _mm_round_ps::<_MM_FROUND_TO_ZERO>(_mm_add_ps(vector_abs, _mm_set1_ps(0.5)));
 
     // The addition breaks for `0.5.next_down()` which incorrectly rounds to
     // `1.0`. This resets `result` to `0.0`.
