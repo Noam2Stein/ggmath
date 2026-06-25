@@ -581,200 +581,183 @@ impl PrimitiveFloatBackend<4, Aligned> for f32 {
     }
 }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn neg(vector: __m128) -> __m128 {
-    _mm_xor_ps(vector, _mm_set1_ps(-0.0))
-}
+safe_target_feature! {
+    #[inline]
+    fn neg(vector: __m128) -> __m128 {
+        _mm_xor_ps(vector, _mm_set1_ps(-0.0))
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-#[cfg_attr(target_feature = "sse4.1", target_feature(enable = "sse4.1"))]
-fn rem(vector: __m128, rhs: __m128) -> __m128 {
-    let result = _mm_sub_ps(vector, _mm_mul_ps(trunc(_mm_div_ps(vector, rhs)), rhs));
+    #[inline]
+    fn rem(vector: __m128, rhs: __m128) -> __m128 {
+        let result = _mm_sub_ps(vector, _mm_mul_ps(trunc(_mm_div_ps(vector, rhs)), rhs));
 
-    let inf_mask = _mm_cmpeq_ps(abs(rhs), _mm_set1_ps(f32::INFINITY));
-    let zero_mask = _mm_cmpeq_ps(rhs, _mm_set1_ps(0.0));
-    let result = select(_mm_or_ps(inf_mask, _mm_set1_ps(-0.0)), vector, result);
+        let inf_mask = _mm_cmpeq_ps(abs(rhs), _mm_set1_ps(f32::INFINITY));
+        let zero_mask = _mm_cmpeq_ps(rhs, _mm_set1_ps(0.0));
+        let result = select(_mm_or_ps(inf_mask, _mm_set1_ps(-0.0)), vector, result);
 
-    select(zero_mask, _mm_set1_ps(f32::NAN), result)
-}
+        select(zero_mask, _mm_set1_ps(f32::NAN), result)
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn nan_mask(vector: __m128) -> __m128 {
-    _mm_cmpneq_ps(vector, vector)
-}
+    #[inline]
+    fn nan_mask(vector: __m128) -> __m128 {
+        _mm_cmpneq_ps(vector, vector)
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn finite_mask(vector: __m128) -> __m128 {
-    _mm_cmplt_ps(abs(vector), _mm_set1_ps(f32::INFINITY))
-}
+    #[inline]
+    fn finite_mask(vector: __m128) -> __m128 {
+        _mm_cmplt_ps(abs(vector), _mm_set1_ps(f32::INFINITY))
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn sign_positive_mask(vector: __m128) -> __m128 {
-    _mm_castsi128_ps(_mm_cmpeq_epi32(
-        _mm_castps_si128(vector),
-        _mm_castps_si128(abs(vector)),
-    ))
-}
+    #[inline]
+    fn sign_positive_mask(vector: __m128) -> __m128 {
+        _mm_castsi128_ps(_mm_cmpeq_epi32(
+            _mm_castps_si128(vector),
+            _mm_castps_si128(abs(vector)),
+        ))
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn sign_negative_mask(vector: __m128) -> __m128 {
-    _mm_castsi128_ps(_mm_cmpeq_epi32(
-        _mm_castps_si128(vector),
-        _mm_castps_si128(_mm_or_ps(_mm_set1_ps(-0.0), vector)),
-    ))
-}
+    #[inline]
+    fn sign_negative_mask(vector: __m128) -> __m128 {
+        _mm_castsi128_ps(_mm_cmpeq_epi32(
+            _mm_castps_si128(vector),
+            _mm_castps_si128(_mm_or_ps(_mm_set1_ps(-0.0), vector)),
+        ))
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn abs(vector: __m128) -> __m128 {
-    _mm_and_ps(_mm_set1_ps(f32::from_bits(0x7fffffff)), vector)
-}
+    #[inline]
+    fn abs(vector: __m128) -> __m128 {
+        _mm_and_ps(_mm_set1_ps(f32::from_bits(0x7fffffff)), vector)
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn signum(vector: __m128) -> __m128 {
-    let result = _mm_or_ps(_mm_set1_ps(1.0), _mm_and_ps(vector, _mm_set1_ps(-0.0)));
-    let nan_mask = _mm_cmpneq_ps(vector, vector);
+    #[inline]
+    fn signum(vector: __m128) -> __m128 {
+        let result = _mm_or_ps(_mm_set1_ps(1.0), _mm_and_ps(vector, _mm_set1_ps(-0.0)));
+        let nan_mask = _mm_cmpneq_ps(vector, vector);
 
-    select(nan_mask, vector, result)
-}
+        select(nan_mask, vector, result)
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn copysign(vector: __m128, sign: __m128) -> __m128 {
-    select(_mm_set1_ps(-0.0), sign, vector)
-}
+    #[inline]
+    fn copysign(vector: __m128, sign: __m128) -> __m128 {
+        select(_mm_set1_ps(-0.0), sign, vector)
+    }
 
-#[inline]
-#[target_feature(enable = "sse2")]
-fn select(mask: __m128, if_true: __m128, if_false: __m128) -> __m128 {
-    _mm_or_ps(_mm_and_ps(mask, if_true), _mm_andnot_ps(mask, if_false))
-}
+    #[inline]
+    fn select(mask: __m128, if_true: __m128, if_false: __m128) -> __m128 {
+        _mm_or_ps(_mm_and_ps(mask, if_true), _mm_andnot_ps(mask, if_false))
+    }
 
-#[cfg(not(target_feature = "sse4.1"))]
-#[inline]
-#[target_feature(enable = "sse2")]
-fn floor(vector: __m128) -> __m128 {
-    let trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
-    let greater_mask = _mm_cmpgt_ps(trunc, vector);
-    // 0 -> 0, 0xffffffff -> -1.0f
-    let offset = _mm_cvtepi32_ps(_mm_castps_si128(greater_mask));
-    let result = _mm_add_ps(trunc, offset);
+    #[cfg(not(target_feature = "sse4.1"))]
+    #[inline]
+    fn floor(vector: __m128) -> __m128 {
+        let trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
+        let greater_mask = _mm_cmpgt_ps(trunc, vector);
+        // 0 -> 0, 0xffffffff -> -1.0f
+        let offset = _mm_cvtepi32_ps(_mm_castps_si128(greater_mask));
+        let result = _mm_add_ps(trunc, offset);
 
-    // Handle large values, inf, and NaN
-    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(abs(vector)),
-        _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
-    ));
+        // Handle large values, inf, and NaN
+        let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+            _mm_castps_si128(abs(vector)),
+            _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
+        ));
 
-    select(abs(bounds_mask), result, vector)
-}
+        select(abs(bounds_mask), result, vector)
+    }
 
-#[cfg(target_feature = "sse4.1")]
-#[inline]
-#[target_feature(enable = "sse2,sse4.1")]
-fn floor(vector: __m128) -> __m128 {
-    _mm_floor_ps(vector)
-}
+    #[cfg(target_feature = "sse4.1")]
+    #[inline]
+    fn floor(vector: __m128) -> __m128 {
+        _mm_floor_ps(vector)
+    }
 
-#[cfg(not(target_feature = "sse4.1"))]
-#[inline]
-#[target_feature(enable = "sse2")]
-fn ceil(vector: __m128) -> __m128 {
-    let trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
-    let less_mask = _mm_cmplt_ps(trunc, vector);
-    // 0 -> 0, 0xffffffff -> -1.0f
-    let neg_offset = _mm_cvtepi32_ps(_mm_castps_si128(less_mask));
-    let result = _mm_sub_ps(trunc, neg_offset);
+    #[cfg(not(target_feature = "sse4.1"))]
+    #[inline]
+    fn ceil(vector: __m128) -> __m128 {
+        let trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
+        let less_mask = _mm_cmplt_ps(trunc, vector);
+        // 0 -> 0, 0xffffffff -> -1.0f
+        let neg_offset = _mm_cvtepi32_ps(_mm_castps_si128(less_mask));
+        let result = _mm_sub_ps(trunc, neg_offset);
 
-    // Handle large values, inf, and NaN
-    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(abs(vector)),
-        _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
-    ));
+        // Handle large values, inf, and NaN
+        let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+            _mm_castps_si128(abs(vector)),
+            _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
+        ));
 
-    select(abs(bounds_mask), result, vector)
-}
+        select(abs(bounds_mask), result, vector)
+    }
 
-#[cfg(target_feature = "sse4.1")]
-#[inline]
-#[target_feature(enable = "sse2,sse4.1")]
-fn ceil(vector: __m128) -> __m128 {
-    _mm_ceil_ps(vector)
-}
+    #[cfg(target_feature = "sse4.1")]
+    #[inline]
+    fn ceil(vector: __m128) -> __m128 {
+        _mm_ceil_ps(vector)
+    }
 
-#[cfg(not(target_feature = "sse4.1"))]
-#[inline]
-#[target_feature(enable = "sse2")]
-fn round(vector: __m128) -> __m128 {
-    let vector_abs = abs(vector);
-    let result_abs = _mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_add_ps(vector_abs, _mm_set1_ps(0.5))));
+    #[cfg(not(target_feature = "sse4.1"))]
+    #[inline]
+    fn round(vector: __m128) -> __m128 {
+        let vector_abs = abs(vector);
+        let result_abs = _mm_cvtepi32_ps(_mm_cvttps_epi32(_mm_add_ps(vector_abs, _mm_set1_ps(0.5))));
 
-    // The addition breaks for `0.5.next_down()` which incorrectly rounds to
-    // `1.0`. This resets `result` to `0.0`.
-    let result_abs = _mm_and_ps(
-        result_abs,
-        _mm_cmpneq_ps(vector_abs, _mm_set1_ps(0.5_f32.next_down())),
-    );
+        // The addition breaks for `0.5.next_down()` which incorrectly rounds to
+        // `1.0`. This resets `result` to `0.0`.
+        let result_abs = _mm_and_ps(
+            result_abs,
+            _mm_cmpneq_ps(vector_abs, _mm_set1_ps(0.5_f32.next_down())),
+        );
 
-    // Large value, infinity and NaN need special handling.
-    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(vector_abs),
-        _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
-    ));
+        // Large value, infinity and NaN need special handling.
+        let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+            _mm_castps_si128(vector_abs),
+            _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
+        ));
 
-    // `abs` keeps the original sign.
-    select(abs(bounds_mask), result_abs, vector)
-}
+        // `abs` keeps the original sign.
+        select(abs(bounds_mask), result_abs, vector)
+    }
 
-#[cfg(target_feature = "sse4.1")]
-#[inline]
-#[target_feature(enable = "sse2,sse4.1")]
-fn round(vector: __m128) -> __m128 {
-    let vector_abs = abs(vector);
-    let result_abs = _mm_round_ps::<_MM_FROUND_TO_ZERO>(_mm_add_ps(vector_abs, _mm_set1_ps(0.5)));
+    #[cfg(target_feature = "sse4.1")]
+    #[inline]
+    fn round(vector: __m128) -> __m128 {
+        let vector_abs = abs(vector);
+        let result_abs = _mm_round_ps::<_MM_FROUND_TO_ZERO>(_mm_add_ps(vector_abs, _mm_set1_ps(0.5)));
 
-    // The addition breaks for `0.5.next_down()` which incorrectly rounds to
-    // `1.0`. This resets `result` to `0.0`.
-    let result_abs = _mm_and_ps(
-        result_abs,
-        _mm_cmpneq_ps(vector_abs, _mm_set1_ps(0.5_f32.next_down())),
-    );
+        // The addition breaks for `0.5.next_down()` which incorrectly rounds to
+        // `1.0`. This resets `result` to `0.0`.
+        let result_abs = _mm_and_ps(
+            result_abs,
+            _mm_cmpneq_ps(vector_abs, _mm_set1_ps(0.5_f32.next_down())),
+        );
 
-    // Large value, infinity and NaN need special handling.
-    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(vector_abs),
-        _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
-    ));
+        // Large value, infinity and NaN need special handling.
+        let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+            _mm_castps_si128(vector_abs),
+            _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
+        ));
 
-    // `abs` keeps the original sign.
-    select(abs(bounds_mask), result_abs, vector)
-}
+        // `abs` keeps the original sign.
+        select(abs(bounds_mask), result_abs, vector)
+    }
 
-#[cfg(not(target_feature = "sse4.1"))]
-#[inline]
-#[target_feature(enable = "sse2")]
-fn trunc(vector: __m128) -> __m128 {
-    let result = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
+    #[cfg(not(target_feature = "sse4.1"))]
+    #[inline]
+    fn trunc(vector: __m128) -> __m128 {
+        let result = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
 
-    // Large value, infinity, and NaN need special handling.
-    let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(abs(vector)),
-        _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
-    ));
+        // Large value, infinity, and NaN need special handling.
+        let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
+            _mm_castps_si128(abs(vector)),
+            _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
+        ));
 
-    select(abs(bounds_mask), result, vector)
-}
+        select(abs(bounds_mask), result, vector)
+    }
 
-#[cfg(target_feature = "sse4.1")]
-#[inline]
-#[target_feature(enable = "sse2,sse4.1")]
-fn trunc(vector: __m128) -> __m128 {
-    _mm_round_ps::<_MM_FROUND_TO_ZERO>(vector)
+    #[cfg(target_feature = "sse4.1")]
+    #[inline]
+    fn trunc(vector: __m128) -> __m128 {
+        _mm_round_ps::<_MM_FROUND_TO_ZERO>(vector)
+    }
 }
