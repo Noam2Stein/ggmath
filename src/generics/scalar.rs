@@ -1,6 +1,6 @@
 use crate::{
     Aligned, Alignment, Unaligned,
-    backend::{Backend, DefaultBackend},
+    backend::{DefaultBackend, MaskBackend, VectorBackend},
 };
 
 /// A trait for elements of vectors.
@@ -24,12 +24,18 @@ use crate::{
 #[expect(private_bounds)]
 pub trait Scalar:
     Copy
-    + Backend<2, Aligned>
-    + Backend<3, Aligned>
-    + Backend<4, Aligned>
-    + Backend<2, Unaligned>
-    + Backend<3, Unaligned>
-    + Backend<4, Unaligned>
+    + VectorBackend<2, Aligned>
+    + VectorBackend<3, Aligned>
+    + VectorBackend<4, Aligned>
+    + VectorBackend<2, Unaligned>
+    + VectorBackend<3, Unaligned>
+    + VectorBackend<4, Unaligned>
+    + MaskBackend<2, Aligned>
+    + MaskBackend<3, Aligned>
+    + MaskBackend<4, Aligned>
+    + MaskBackend<2, Unaligned>
+    + MaskBackend<3, Unaligned>
+    + MaskBackend<4, Unaligned>
 {
 }
 

@@ -11,7 +11,7 @@ use core::{
 
 use crate::{
     Aligned, Alignment, Length, Mask, NegOne, One, Scalar, SupportedLength, Unaligned, Zero,
-    backend::Backend,
+    backend::VectorBackend,
     utils::{Repr2, Repr3, Repr4, specialize, transmute_generic, transmute_mut, transmute_ref},
 };
 
@@ -81,14 +81,14 @@ pub struct Vector<const N: usize, T, A: Alignment>(
     #[expect(clippy::type_complexity)]
     pub(crate)  <A as Alignment>::Select<
         <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Aligned>>::Vector,
-            <T as Backend<3, Aligned>>::Vector,
-            <T as Backend<4, Aligned>>::Vector,
+            <T as VectorBackend<2, Aligned>>::Inner,
+            <T as VectorBackend<3, Aligned>>::Inner,
+            <T as VectorBackend<4, Aligned>>::Inner,
         >,
         <Length<N> as SupportedLength>::Select<
-            <T as Backend<2, Unaligned>>::Vector,
-            <T as Backend<3, Unaligned>>::Vector,
-            <T as Backend<4, Unaligned>>::Vector,
+            <T as VectorBackend<2, Unaligned>>::Inner,
+            <T as VectorBackend<3, Unaligned>>::Inner,
+            <T as VectorBackend<4, Unaligned>>::Inner,
         >,
     >,
 )
@@ -611,7 +611,7 @@ where
     where
         T: Add<Output = T>,
     {
-        specialize!(<T as Backend<N, A>>::vector_element_sum(self))
+        specialize!(<T as VectorBackend<N, A>>::vector_element_sum(self))
     }
 
     /// Computes the product of the elements of `self`.
@@ -634,7 +634,7 @@ where
     where
         T: Mul<Output = T>,
     {
-        specialize!(<T as Backend<N, A>>::vector_element_product(self))
+        specialize!(<T as VectorBackend<N, A>>::vector_element_product(self))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -657,7 +657,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as Backend<N, A>>::vector_eq_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_eq_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -680,7 +680,7 @@ where
     where
         T: PartialEq,
     {
-        specialize!(<T as Backend<N, A>>::vector_ne_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_ne_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -703,7 +703,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_lt_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_lt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -726,7 +726,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_gt_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_gt_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -750,7 +750,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_le_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_le_mask(self, other))
     }
 
     /// Returns a vector mask where each element is `true` if the corresponding
@@ -774,7 +774,7 @@ where
     where
         T: PartialOrd,
     {
-        specialize!(<T as Backend<N, A>>::vector_ge_mask(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_ge_mask(self, other))
     }
 
     /// Computes the dot product of `self` and `rhs`.
@@ -868,24 +868,24 @@ where
         dead_code,
         reason = "this will likely be used for fixed-point numbers (TODO)"
     )]
-    pub(crate) const fn from_inner(inner: <T as Backend<N, A>>::Vector) -> Self
+    pub(crate) const fn from_inner(inner: <T as VectorBackend<N, A>>::Inner) -> Self
     where
-        T: Backend<N, A>,
+        T: VectorBackend<N, A>,
     {
         // SAFETY: These always correspond to the same type.
         Self(unsafe {
             transmute_generic::<
-                <T as Backend<N, A>>::Vector,
+                <T as VectorBackend<N, A>>::Inner,
                 <A as Alignment>::Select<
                     <Length<N> as SupportedLength>::Select<
-                        <T as Backend<2, Aligned>>::Vector,
-                        <T as Backend<3, Aligned>>::Vector,
-                        <T as Backend<4, Aligned>>::Vector,
+                        <T as VectorBackend<2, Aligned>>::Inner,
+                        <T as VectorBackend<3, Aligned>>::Inner,
+                        <T as VectorBackend<4, Aligned>>::Inner,
                     >,
                     <Length<N> as SupportedLength>::Select<
-                        <T as Backend<2, Unaligned>>::Vector,
-                        <T as Backend<3, Unaligned>>::Vector,
-                        <T as Backend<4, Unaligned>>::Vector,
+                        <T as VectorBackend<2, Unaligned>>::Inner,
+                        <T as VectorBackend<3, Unaligned>>::Inner,
+                        <T as VectorBackend<4, Unaligned>>::Inner,
                     >,
                 >,
             >(inner)
@@ -898,13 +898,13 @@ where
         dead_code,
         reason = "this will likely be used for fixed-point numbers (TODO)"
     )]
-    pub(crate) const fn inner(self) -> <T as Backend<N, A>>::Vector
+    pub(crate) const fn inner(self) -> <T as VectorBackend<N, A>>::Inner
     where
-        T: Backend<N, A>,
+        T: VectorBackend<N, A>,
     {
         // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Vector`.
-        unsafe { transmute_generic::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
+        // `<T as VectorBackend<N, A>>::Inner`.
+        unsafe { transmute_generic::<Vector<N, T, A>, <T as VectorBackend<N, A>>::Inner>(self) }
     }
 
     #[inline]
@@ -913,13 +913,13 @@ where
         dead_code,
         reason = "this will likely be used for fixed-point numbers (TODO)"
     )]
-    pub(crate) const fn inner_mut(&mut self) -> &mut <T as Backend<N, A>>::Vector
+    pub(crate) const fn inner_mut(&mut self) -> &mut <T as VectorBackend<N, A>>::Inner
     where
-        T: Backend<N, A>,
+        T: VectorBackend<N, A>,
     {
         // SAFETY: `Vector<N, T, A>` is a transparent wrapper over
-        // `<T as Backend<N, A>>::Vector`.
-        unsafe { transmute_mut::<Vector<N, T, A>, <T as Backend<N, A>>::Vector>(self) }
+        // `<T as VectorBackend<N, A>>::Inner`.
+        unsafe { transmute_mut::<Vector<N, T, A>, <T as VectorBackend<N, A>>::Inner>(self) }
     }
 }
 
@@ -1548,13 +1548,13 @@ where
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::vector_eq(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_eq(self, other))
     }
 
     #[expect(clippy::partialeq_ne_impl)]
     #[inline]
     fn ne(&self, other: &Self) -> bool {
-        specialize!(<T as Backend<N, A>>::vector_ne(self, other))
+        specialize!(<T as VectorBackend<N, A>>::vector_ne(self, other))
     }
 }
 
@@ -1600,7 +1600,7 @@ macro_rules! impl_unary_operator {
             #[inline]
             #[track_caller]
             fn $op(self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::$vector_op(self))
+                specialize!(<T as VectorBackend<N, A>>::$vector_op(self))
             }
         }
 
@@ -1669,7 +1669,7 @@ macro_rules! impl_binary_operator {
             #[inline]
             #[track_caller]
             fn $op(self, rhs: Self) -> Self::Output {
-                specialize!(<T as Backend<N, A>>::$vector_op(self, rhs))
+                specialize!(<T as VectorBackend<N, A>>::$vector_op(self, rhs))
             }
         }
 

@@ -11,26 +11,15 @@ mod fallback;
 #[cfg(target_feature = "sse2")]
 mod sse2;
 
-/// A trait for optimizing the implementation of vectors.
-///
-/// More specifically, [`Backend<N, A>`] controls the internal representation
-/// and function implementations of vectors and vector masks of length `N` and
-/// alignment `A`.
-///
-/// This is automatically implemented for types implementing
-/// [`DefaultBackend<N, A>`]. Manual implementations exist to make
-/// optimizations.
-///
 /// # Safety
 ///
-/// The associated types [`Vector`](Backend::Vector) and [`Mask`](Backend::Mask)
-/// control internal representations. See their documentation for specific
-/// guarantees that implementations must uphold.
+/// [`Self::Inner`] must be implemented correctly. All other items are safe to
+/// implement.
 #[diagnostic::on_unimplemented(
     message = "`ggmath::Scalar` cannot be implemented directly",
     note = "see the documentation for `ggmath::Scalar`"
 )]
-pub(crate) unsafe trait Backend<const N: usize, A: Alignment>
+pub(crate) unsafe trait VectorBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
@@ -53,15 +42,7 @@ where
     /// or `[T; 4]` and may have additional alignment. If this type has the size
     /// of `[T; 4]` the padding must be initialized memory accept all
     /// bit-patterns.
-    type Vector: Copy;
-
-    /// Controls the internal representation of [`Mask<N, Self, A>`].
-    ///
-    /// # Safety
-    ///
-    /// This type must only have initialized memory and must accept the zero
-    /// bit-pattern.
-    type Mask: Send + Sync + Copy;
+    type Inner: Copy;
 
     #[inline]
     fn vector_eq(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
@@ -262,6 +243,27 @@ where
     {
         Mask::from_fn(|i| vector[i] >= other[i])
     }
+}
+
+/// # Safety
+///
+/// [`Self::Inner`] must be implemented correctly. All other items are safe to
+/// implement.
+#[diagnostic::on_unimplemented(
+    message = "`ggmath::Scalar` cannot be implemented directly",
+    note = "see the documentation for `ggmath::Scalar`"
+)]
+pub(crate) unsafe trait MaskBackend<const N: usize, A: Alignment>
+where
+    Length<N>: SupportedLength,
+{
+    /// Controls the internal representation of [`Mask<N, Self, A>`].
+    ///
+    /// # Safety
+    ///
+    /// This type must only have initialized memory and must accept the zero
+    /// bit-pattern.
+    type Inner: Send + Sync + Copy;
 
     fn mask_from_array(array: [bool; N]) -> Mask<N, Self, A>
     where
@@ -950,13 +952,12 @@ impl<const N: usize, A: Alignment> DefaultBackend<N, A> for usize {}
 
 impl<const N: usize, A: Alignment> DefaultBackend<N, A> for bool {}
 
-// SAFETY: All associated types uphold requirements.
-unsafe impl<T, A: Alignment> Backend<2, A> for T
+// SAFETY: `Inner` follows its requirements.
+unsafe impl<T, A: Alignment> VectorBackend<2, A> for T
 where
     T: DefaultBackend<2, A>,
 {
-    type Vector = Repr2<T>;
-    type Mask = Repr2<bool>;
+    type Inner = Repr2<T>;
 
     #[inline]
     fn vector_eq(vector: &Vector<2, Self, A>, other: &Vector<2, Self, A>) -> bool
@@ -1125,112 +1126,14 @@ where
     {
         Mask::<2, Self, A>::new(vector.x >= other.x, vector.y >= other.y)
     }
-
-    #[inline]
-    fn mask_from_array(array: [bool; 2]) -> Mask<2, Self, A> {
-        Mask::from_inner(Repr2(array[0], array[1]))
-    }
-
-    #[inline]
-    fn mask_splat(value: bool) -> Mask<2, Self, A> {
-        Mask::from_inner(Repr2(value, value))
-    }
-
-    #[inline]
-    fn mask_to_array(mask: Mask<2, Self, A>) -> [bool; 2] {
-        [mask.inner().0, mask.inner().1]
-    }
-
-    #[inline]
-    fn mask_all(mask: Mask<2, Self, A>) -> bool {
-        mask.inner().0 && mask.inner().1
-    }
-
-    #[inline]
-    fn mask_any(mask: Mask<2, Self, A>) -> bool {
-        mask.inner().0 || mask.inner().1
-    }
-
-    #[inline]
-    fn mask_select(
-        mask: Mask<2, Self, A>,
-        if_true: Vector<2, Self, A>,
-        if_false: Vector<2, Self, A>,
-    ) -> Vector<2, Self, A> {
-        Vector::<2, Self, A>::new(
-            if mask.inner().0 {
-                if_true.x
-            } else {
-                if_false.x
-            },
-            if mask.inner().1 {
-                if_true.y
-            } else {
-                if_false.y
-            },
-        )
-    }
-
-    #[inline]
-    fn mask_get(mask: Mask<2, Self, A>, index: usize) -> bool {
-        match index {
-            0 => mask.inner().0,
-            1 => mask.inner().1,
-            _ => panic!("index out of bounds"),
-        }
-    }
-
-    #[inline]
-    fn mask_set(mask: &mut Mask<2, Self, A>, index: usize, value: bool) {
-        match index {
-            0 => mask.inner_mut().0 = value,
-            1 => mask.inner_mut().1 = value,
-            _ => panic!("index out of bounds"),
-        }
-    }
-
-    #[inline]
-    fn mask_eq(mask: &Mask<2, Self, A>, other: &Mask<2, Self, A>) -> bool {
-        mask.inner() == other.inner()
-    }
-
-    #[inline]
-    fn mask_not(mask: Mask<2, Self, A>) -> Mask<2, Self, A> {
-        Mask::<2, Self, A>::new(!mask.inner().0, !mask.inner().1)
-    }
-
-    #[inline]
-    fn mask_bitand(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
-        Mask::<2, Self, A>::new(
-            mask.inner().0 & rhs.inner().0,
-            mask.inner().1 & rhs.inner().1,
-        )
-    }
-
-    #[inline]
-    fn mask_bitor(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
-        Mask::<2, Self, A>::new(
-            mask.inner().0 | rhs.inner().0,
-            mask.inner().1 | rhs.inner().1,
-        )
-    }
-
-    #[inline]
-    fn mask_bitxor(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
-        Mask::<2, Self, A>::new(
-            mask.inner().0 ^ rhs.inner().0,
-            mask.inner().1 ^ rhs.inner().1,
-        )
-    }
 }
 
-// SAFETY: All associated types uphold requirements.
-unsafe impl<T, A: Alignment> Backend<3, A> for T
+// SAFETY: `Inner` follows its requirements.
+unsafe impl<T, A: Alignment> VectorBackend<3, A> for T
 where
     T: DefaultBackend<3, A>,
 {
-    type Vector = Repr3<T>;
-    type Mask = Repr3<bool>;
+    type Inner = Repr3<T>;
 
     #[inline]
     fn vector_eq(vector: &Vector<3, Self, A>, other: &Vector<3, Self, A>) -> bool
@@ -1415,122 +1318,14 @@ where
             vector.z >= other.z,
         )
     }
-
-    #[inline]
-    fn mask_from_array(array: [bool; 3]) -> Mask<3, Self, A> {
-        Mask::from_inner(Repr3(array[0], array[1], array[2]))
-    }
-
-    #[inline]
-    fn mask_splat(value: bool) -> Mask<3, Self, A> {
-        Mask::from_inner(Repr3(value, value, value))
-    }
-
-    #[inline]
-    fn mask_to_array(mask: Mask<3, Self, A>) -> [bool; 3] {
-        [mask.inner().0, mask.inner().1, mask.inner().2]
-    }
-
-    #[inline]
-    fn mask_all(mask: Mask<3, Self, A>) -> bool {
-        mask.inner().0 && mask.inner().1 && mask.inner().2
-    }
-
-    #[inline]
-    fn mask_any(mask: Mask<3, Self, A>) -> bool {
-        mask.inner().0 || mask.inner().1 || mask.inner().2
-    }
-
-    #[inline]
-    fn mask_select(
-        mask: Mask<3, Self, A>,
-        if_true: Vector<3, Self, A>,
-        if_false: Vector<3, Self, A>,
-    ) -> Vector<3, Self, A> {
-        Vector::<3, Self, A>::new(
-            if mask.inner().0 {
-                if_true.x
-            } else {
-                if_false.x
-            },
-            if mask.inner().1 {
-                if_true.y
-            } else {
-                if_false.y
-            },
-            if mask.inner().2 {
-                if_true.z
-            } else {
-                if_false.z
-            },
-        )
-    }
-
-    #[inline]
-    fn mask_get(mask: Mask<3, Self, A>, index: usize) -> bool {
-        match index {
-            0 => mask.inner().0,
-            1 => mask.inner().1,
-            2 => mask.inner().2,
-            _ => panic!("index out of bounds"),
-        }
-    }
-
-    #[inline]
-    fn mask_set(mask: &mut Mask<3, Self, A>, index: usize, value: bool) {
-        match index {
-            0 => mask.inner_mut().0 = value,
-            1 => mask.inner_mut().1 = value,
-            2 => mask.inner_mut().2 = value,
-            _ => panic!("index out of bounds"),
-        }
-    }
-
-    #[inline]
-    fn mask_eq(mask: &Mask<3, Self, A>, other: &Mask<3, Self, A>) -> bool {
-        mask.inner() == other.inner()
-    }
-
-    #[inline]
-    fn mask_not(mask: Mask<3, Self, A>) -> Mask<3, Self, A> {
-        Mask::<3, Self, A>::new(!mask.inner().0, !mask.inner().1, !mask.inner().2)
-    }
-
-    #[inline]
-    fn mask_bitand(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
-        Mask::<3, Self, A>::new(
-            mask.inner().0 & rhs.inner().0,
-            mask.inner().1 & rhs.inner().1,
-            mask.inner().2 & rhs.inner().2,
-        )
-    }
-
-    #[inline]
-    fn mask_bitor(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
-        Mask::<3, Self, A>::new(
-            mask.inner().0 | rhs.inner().0,
-            mask.inner().1 | rhs.inner().1,
-            mask.inner().2 | rhs.inner().2,
-        )
-    }
-
-    #[inline]
-    fn mask_bitxor(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
-        Mask::<3, Self, A>::new(
-            mask.inner().0 ^ rhs.inner().0,
-            mask.inner().1 ^ rhs.inner().1,
-            mask.inner().2 ^ rhs.inner().2,
-        )
-    }
 }
 
-// SAFETY: All associated types uphold requirements.
-unsafe impl<T, A: Alignment> Backend<4, A> for T
+// SAFETY: `Inner` follows its requirements.
+unsafe impl<T, A: Alignment> VectorBackend<4, A> for T
 where
     T: DefaultBackend<4, A>,
 {
-    type Vector = Repr4<T>;
-    type Mask = Repr4<bool>;
+    type Inner = Repr4<T>;
 
     #[inline]
     fn vector_eq(vector: &Vector<4, Self, A>, other: &Vector<4, Self, A>) -> bool
@@ -1779,6 +1574,234 @@ where
             vector.w >= other.w,
         )
     }
+}
+
+// SAFETY: `Inner` follows its requirements.
+unsafe impl<T, A: Alignment> MaskBackend<2, A> for T
+where
+    T: DefaultBackend<2, A>,
+{
+    type Inner = Repr2<bool>;
+
+    #[inline]
+    fn mask_from_array(array: [bool; 2]) -> Mask<2, Self, A> {
+        Mask::from_inner(Repr2(array[0], array[1]))
+    }
+
+    #[inline]
+    fn mask_splat(value: bool) -> Mask<2, Self, A> {
+        Mask::from_inner(Repr2(value, value))
+    }
+
+    #[inline]
+    fn mask_to_array(mask: Mask<2, Self, A>) -> [bool; 2] {
+        [mask.inner().0, mask.inner().1]
+    }
+
+    #[inline]
+    fn mask_all(mask: Mask<2, Self, A>) -> bool {
+        mask.inner().0 && mask.inner().1
+    }
+
+    #[inline]
+    fn mask_any(mask: Mask<2, Self, A>) -> bool {
+        mask.inner().0 || mask.inner().1
+    }
+
+    #[inline]
+    fn mask_select(
+        mask: Mask<2, Self, A>,
+        if_true: Vector<2, Self, A>,
+        if_false: Vector<2, Self, A>,
+    ) -> Vector<2, Self, A> {
+        Vector::<2, Self, A>::new(
+            if mask.inner().0 {
+                if_true.x
+            } else {
+                if_false.x
+            },
+            if mask.inner().1 {
+                if_true.y
+            } else {
+                if_false.y
+            },
+        )
+    }
+
+    #[inline]
+    fn mask_get(mask: Mask<2, Self, A>, index: usize) -> bool {
+        match index {
+            0 => mask.inner().0,
+            1 => mask.inner().1,
+            _ => panic!("index out of bounds"),
+        }
+    }
+
+    #[inline]
+    fn mask_set(mask: &mut Mask<2, Self, A>, index: usize, value: bool) {
+        match index {
+            0 => mask.inner_mut().0 = value,
+            1 => mask.inner_mut().1 = value,
+            _ => panic!("index out of bounds"),
+        }
+    }
+
+    #[inline]
+    fn mask_eq(mask: &Mask<2, Self, A>, other: &Mask<2, Self, A>) -> bool {
+        mask.inner() == other.inner()
+    }
+
+    #[inline]
+    fn mask_not(mask: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(!mask.inner().0, !mask.inner().1)
+    }
+
+    #[inline]
+    fn mask_bitand(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(
+            mask.inner().0 & rhs.inner().0,
+            mask.inner().1 & rhs.inner().1,
+        )
+    }
+
+    #[inline]
+    fn mask_bitor(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(
+            mask.inner().0 | rhs.inner().0,
+            mask.inner().1 | rhs.inner().1,
+        )
+    }
+
+    #[inline]
+    fn mask_bitxor(mask: Mask<2, Self, A>, rhs: Mask<2, Self, A>) -> Mask<2, Self, A> {
+        Mask::<2, Self, A>::new(
+            mask.inner().0 ^ rhs.inner().0,
+            mask.inner().1 ^ rhs.inner().1,
+        )
+    }
+}
+
+// SAFETY: `Inner` follows its requirements.
+unsafe impl<T, A: Alignment> MaskBackend<3, A> for T
+where
+    T: DefaultBackend<3, A>,
+{
+    type Inner = Repr3<bool>;
+
+    #[inline]
+    fn mask_from_array(array: [bool; 3]) -> Mask<3, Self, A> {
+        Mask::from_inner(Repr3(array[0], array[1], array[2]))
+    }
+
+    #[inline]
+    fn mask_splat(value: bool) -> Mask<3, Self, A> {
+        Mask::from_inner(Repr3(value, value, value))
+    }
+
+    #[inline]
+    fn mask_to_array(mask: Mask<3, Self, A>) -> [bool; 3] {
+        [mask.inner().0, mask.inner().1, mask.inner().2]
+    }
+
+    #[inline]
+    fn mask_all(mask: Mask<3, Self, A>) -> bool {
+        mask.inner().0 && mask.inner().1 && mask.inner().2
+    }
+
+    #[inline]
+    fn mask_any(mask: Mask<3, Self, A>) -> bool {
+        mask.inner().0 || mask.inner().1 || mask.inner().2
+    }
+
+    #[inline]
+    fn mask_select(
+        mask: Mask<3, Self, A>,
+        if_true: Vector<3, Self, A>,
+        if_false: Vector<3, Self, A>,
+    ) -> Vector<3, Self, A> {
+        Vector::<3, Self, A>::new(
+            if mask.inner().0 {
+                if_true.x
+            } else {
+                if_false.x
+            },
+            if mask.inner().1 {
+                if_true.y
+            } else {
+                if_false.y
+            },
+            if mask.inner().2 {
+                if_true.z
+            } else {
+                if_false.z
+            },
+        )
+    }
+
+    #[inline]
+    fn mask_get(mask: Mask<3, Self, A>, index: usize) -> bool {
+        match index {
+            0 => mask.inner().0,
+            1 => mask.inner().1,
+            2 => mask.inner().2,
+            _ => panic!("index out of bounds"),
+        }
+    }
+
+    #[inline]
+    fn mask_set(mask: &mut Mask<3, Self, A>, index: usize, value: bool) {
+        match index {
+            0 => mask.inner_mut().0 = value,
+            1 => mask.inner_mut().1 = value,
+            2 => mask.inner_mut().2 = value,
+            _ => panic!("index out of bounds"),
+        }
+    }
+
+    #[inline]
+    fn mask_eq(mask: &Mask<3, Self, A>, other: &Mask<3, Self, A>) -> bool {
+        mask.inner() == other.inner()
+    }
+
+    #[inline]
+    fn mask_not(mask: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(!mask.inner().0, !mask.inner().1, !mask.inner().2)
+    }
+
+    #[inline]
+    fn mask_bitand(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            mask.inner().0 & rhs.inner().0,
+            mask.inner().1 & rhs.inner().1,
+            mask.inner().2 & rhs.inner().2,
+        )
+    }
+
+    #[inline]
+    fn mask_bitor(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            mask.inner().0 | rhs.inner().0,
+            mask.inner().1 | rhs.inner().1,
+            mask.inner().2 | rhs.inner().2,
+        )
+    }
+
+    #[inline]
+    fn mask_bitxor(mask: Mask<3, Self, A>, rhs: Mask<3, Self, A>) -> Mask<3, Self, A> {
+        Mask::<3, Self, A>::new(
+            mask.inner().0 ^ rhs.inner().0,
+            mask.inner().1 ^ rhs.inner().1,
+            mask.inner().2 ^ rhs.inner().2,
+        )
+    }
+}
+
+// SAFETY: `Inner` follows its requirements.
+unsafe impl<T, A: Alignment> MaskBackend<4, A> for T
+where
+    T: DefaultBackend<4, A>,
+{
+    type Inner = Repr4<bool>;
 
     #[inline]
     fn mask_from_array(array: [bool; 4]) -> Mask<4, Self, A> {

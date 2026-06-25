@@ -5,14 +5,13 @@ use core::arch::x86_64::*;
 
 use crate::{
     Aligned, Mask, Mask3A, Mask4A, Vec3A, Vec4A, Vector,
-    backend::{Backend, PrimitiveFloatBackend},
+    backend::{MaskBackend, PrimitiveFloatBackend, VectorBackend},
     utils::safe_target_feature,
 };
 
-// SAFETY: All associated types uphold requirements.
-unsafe impl Backend<3, Aligned> for f32 {
-    type Vector = __m128;
-    type Mask = __m128;
+// `Self::Inner` follows its requirements.
+unsafe impl VectorBackend<3, Aligned> for f32 {
+    type Inner = __m128;
 
     safe_target_feature! {
         #[inline]
@@ -102,6 +101,14 @@ unsafe impl Backend<3, Aligned> for f32 {
         fn vector_ge_mask(vector: Vec3A<f32>, other: Vec3A<f32>) -> Mask3A<f32> {
             Mask(_mm_cmpge_ps(vector.0, other.0))
         }
+    }
+}
+
+// `Self::Inner` follows its requirements.
+unsafe impl MaskBackend<3, Aligned> for f32 {
+    type Inner = __m128;
+
+    safe_target_feature! {
         #[inline]
         fn mask_from_array(array: [bool; 3]) -> Mask3A<f32> {
             Mask(_mm_castsi128_ps(_mm_set_epi32(
@@ -198,10 +205,9 @@ unsafe impl Backend<3, Aligned> for f32 {
     }
 }
 
-// SAFETY: All associated types uphold requirements.
-unsafe impl Backend<4, Aligned> for f32 {
-    type Vector = __m128;
-    type Mask = __m128;
+// `Self::Inner` follows its requirements.
+unsafe impl VectorBackend<4, Aligned> for f32 {
+    type Inner = __m128;
 
     safe_target_feature! {
         #[inline]
@@ -298,7 +304,14 @@ unsafe impl Backend<4, Aligned> for f32 {
         fn vector_ge_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmpge_ps(vector.0, other.0))
         }
+    }
+}
 
+// `Self::Inner` follows its requirements.
+unsafe impl MaskBackend<4, Aligned> for f32 {
+    type Inner = __m128;
+
+    safe_target_feature! {
         #[inline]
         fn mask_from_array(array: [bool; 4]) -> Mask4A<f32> {
             Mask(_mm_castsi128_ps(_mm_set_epi32(
