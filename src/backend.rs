@@ -11,6 +11,8 @@ mod fallback;
 #[cfg(target_feature = "sse2")]
 mod sse2;
 
+pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
+
 /// # Safety
 ///
 /// [`Self::Inner`] must be implemented correctly. All other items are safe to
@@ -387,8 +389,6 @@ where
         Mask::from_fn(|i| mask.get(i) ^ rhs.get(i))
     }
 }
-
-pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
 
 pub(crate) trait PrimitiveFloatBackend<const N: usize, A: Alignment>
 where
