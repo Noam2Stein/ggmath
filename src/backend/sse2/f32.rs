@@ -589,6 +589,7 @@ fn neg(vector: __m128) -> __m128 {
 
 #[inline]
 #[target_feature(enable = "sse2")]
+#[cfg_attr(target_feature = "sse4.1", target_feature(enable = "sse4.1"))]
 fn rem(vector: __m128, rhs: __m128) -> __m128 {
     let result = _mm_sub_ps(vector, _mm_mul_ps(trunc(_mm_div_ps(vector, rhs)), rhs));
 
@@ -656,6 +657,7 @@ fn select(mask: __m128, if_true: __m128, if_false: __m128) -> __m128 {
     _mm_or_ps(_mm_and_ps(mask, if_true), _mm_andnot_ps(mask, if_false))
 }
 
+#[cfg(not(target_feature = "sse4.1"))]
 #[inline]
 #[target_feature(enable = "sse2")]
 fn floor(vector: __m128) -> __m128 {
@@ -674,6 +676,14 @@ fn floor(vector: __m128) -> __m128 {
     select(abs(bounds_mask), result, vector)
 }
 
+#[cfg(target_feature = "sse4.1")]
+#[inline]
+#[target_feature(enable = "sse2,sse4.1")]
+fn floor(vector: __m128) -> __m128 {
+    _mm_floor_ps(vector)
+}
+
+#[cfg(not(target_feature = "sse4.1"))]
 #[inline]
 #[target_feature(enable = "sse2")]
 fn ceil(vector: __m128) -> __m128 {
@@ -690,6 +700,13 @@ fn ceil(vector: __m128) -> __m128 {
     ));
 
     select(abs(bounds_mask), result, vector)
+}
+
+#[cfg(target_feature = "sse4.1")]
+#[inline]
+#[target_feature(enable = "sse2,sse4.1")]
+fn ceil(vector: __m128) -> __m128 {
+    _mm_ceil_ps(vector)
 }
 
 #[cfg(not(target_feature = "sse4.1"))]
@@ -740,6 +757,7 @@ fn round(vector: __m128) -> __m128 {
     select(abs(bounds_mask), result_abs, vector)
 }
 
+#[cfg(not(target_feature = "sse4.1"))]
 #[inline]
 #[target_feature(enable = "sse2")]
 fn trunc(vector: __m128) -> __m128 {
@@ -756,4 +774,11 @@ fn trunc(vector: __m128) -> __m128 {
         result,
         vector,
     )
+}
+
+#[cfg(target_feature = "sse4.1")]
+#[inline]
+#[target_feature(enable = "sse2,sse4.1")]
+fn trunc(vector: __m128) -> __m128 {
+    _mm_round_ps::<_MM_FROUND_TO_ZERO>(vector)
 }
