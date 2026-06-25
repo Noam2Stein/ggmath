@@ -8,7 +8,7 @@ mod primitive_traits;
 mod random_iter;
 mod repr;
 #[cfg(target_feature = "sse2")]
-mod safe_arch;
+mod safe_target_feature;
 mod specialize;
 #[cfg(test)]
 mod test_eq;
@@ -25,7 +25,7 @@ pub(crate) use primitive_traits::*;
 pub(crate) use random_iter::*;
 pub(crate) use repr::*;
 #[cfg(target_feature = "sse2")]
-pub(crate) use safe_arch::*;
+pub(crate) use safe_target_feature::*;
 pub(crate) use specialize::*;
 #[cfg(test)]
 pub(crate) use test_eq::*;

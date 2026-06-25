@@ -5,7 +5,7 @@
 /// support more.
 ///
 /// The input syntax is a sequence of function declarations.
-macro_rules! safe_arch {
+macro_rules! safe_target_feature {
     ($(
         $(#[$meta:meta])*
         fn $f:ident($($param:ident: $Param:ty),* $(,)?) $(-> $Ret:ty)? $body:block
@@ -24,4 +24,4 @@ macro_rules! safe_arch {
         }
     )*};
 }
-pub(crate) use safe_arch;
+pub(crate) use safe_target_feature;

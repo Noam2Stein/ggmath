@@ -6,7 +6,7 @@ use core::arch::x86_64::*;
 use crate::{
     Aligned, Mask, Mask3A, Mask4A, Vec3A, Vec4A, Vector,
     backend::{Backend, PrimitiveFloatBackend},
-    utils::safe_arch,
+    utils::safe_target_feature,
 };
 
 // SAFETY: All associated types uphold requirements.
@@ -14,7 +14,7 @@ unsafe impl Backend<3, Aligned> for f32 {
     type Vector = __m128;
     type Mask = __m128;
 
-    safe_arch! {
+    safe_target_feature! {
         #[inline]
         fn vector_eq(vector: &Vec3A<f32>, other: &Vec3A<f32>) -> bool {
             _mm_movemask_ps(_mm_cmpeq_ps(vector.0, other.0)) as u32 & 0b111 == 0b111
@@ -203,7 +203,7 @@ unsafe impl Backend<4, Aligned> for f32 {
     type Vector = __m128;
     type Mask = __m128;
 
-    safe_arch! {
+    safe_target_feature! {
         #[inline]
         fn vector_eq(vector: &Vec4A<f32>, other: &Vec4A<f32>) -> bool {
             _mm_movemask_ps(_mm_cmpeq_ps(vector.0, other.0)) as u32 == 0xf
@@ -393,7 +393,7 @@ unsafe impl Backend<4, Aligned> for f32 {
 }
 
 impl PrimitiveFloatBackend<3, Aligned> for f32 {
-    safe_arch! {
+    safe_target_feature! {
         #[inline]
         fn vector_nan_mask(vector: Vec3A<f32>) -> Mask3A<f32> {
             Mask(nan_mask(vector.0))
@@ -483,7 +483,7 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
 }
 
 impl PrimitiveFloatBackend<4, Aligned> for f32 {
-    safe_arch! {
+    safe_target_feature! {
         #[inline]
         fn vector_nan_mask(vector: Vec4A<f32>) -> Mask4A<f32> {
             Mask(nan_mask(vector.0))
