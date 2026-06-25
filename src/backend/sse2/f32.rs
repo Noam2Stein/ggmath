@@ -658,46 +658,38 @@ fn select(mask: __m128, if_true: __m128, if_false: __m128) -> __m128 {
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn floor(v: __m128) -> __m128 {
-    let trunc_v = _mm_cvtepi32_ps(_mm_cvttps_epi32(v));
-    let greater_mask = _mm_cmpgt_ps(trunc_v, v);
+fn floor(vector: __m128) -> __m128 {
+    let trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
+    let greater_mask = _mm_cmpgt_ps(trunc, vector);
     // 0 -> 0, 0xffffffff -> -1.0f
     let offset = _mm_cvtepi32_ps(_mm_castps_si128(greater_mask));
-    let result = _mm_add_ps(trunc_v, offset);
+    let result = _mm_add_ps(trunc, offset);
 
     // Handle large values, inf, and NaN
     let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(abs(v)),
+        _mm_castps_si128(abs(vector)),
         _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
     ));
 
-    select(
-        _mm_and_ps(bounds_mask, _mm_set1_ps(f32::from_bits(0x7fffffff))),
-        result,
-        v,
-    )
+    select(abs(bounds_mask), result, vector)
 }
 
 #[inline]
 #[target_feature(enable = "sse2")]
-fn ceil(v: __m128) -> __m128 {
-    let trunc_v = _mm_cvtepi32_ps(_mm_cvttps_epi32(v));
-    let less_mask = _mm_cmplt_ps(trunc_v, v);
+fn ceil(vector: __m128) -> __m128 {
+    let trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(vector));
+    let less_mask = _mm_cmplt_ps(trunc, vector);
     // 0 -> 0, 0xffffffff -> -1.0f
     let neg_offset = _mm_cvtepi32_ps(_mm_castps_si128(less_mask));
-    let result = _mm_sub_ps(trunc_v, neg_offset);
+    let result = _mm_sub_ps(trunc, neg_offset);
 
     // Handle large values, inf, and NaN
     let bounds_mask = _mm_castsi128_ps(_mm_cmplt_epi32(
-        _mm_castps_si128(abs(v)),
+        _mm_castps_si128(abs(vector)),
         _mm_set1_epi32(8388608.0_f32.to_bits() as i32),
     ));
 
-    select(
-        _mm_and_ps(bounds_mask, _mm_set1_ps(f32::from_bits(0x7fffffff))),
-        result,
-        v,
-    )
+    select(abs(bounds_mask), result, vector)
 }
 
 #[cfg(not(target_feature = "sse4.1"))]
