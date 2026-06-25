@@ -5,7 +5,6 @@
 /// support more.
 ///
 /// The input syntax is a sequence of function declarations.
-#[allow(unused_macros)]
 macro_rules! safe_arch {
     ($(
         $(#[$meta:meta])*
@@ -25,5 +24,4 @@ macro_rules! safe_arch {
         }
     )*};
 }
-#[allow(unused_imports)]
 pub(crate) use safe_arch;
