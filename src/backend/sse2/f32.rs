@@ -5,7 +5,7 @@ use core::arch::x86_64::*;
 
 use crate::{
     Aligned, Mask, Mask3A, Mask4A, Vec3A, Vec4A, Vector,
-    backend::{MaskBackend, PrimitiveFloatBackend, VectorBackend},
+    backend::{FloatVectorBackend, MaskBackend, VectorBackend},
     utils::safe_target_feature,
 };
 
@@ -414,7 +414,7 @@ unsafe impl MaskBackend<4, Aligned> for f32 {
     }
 }
 
-impl PrimitiveFloatBackend<3, Aligned> for f32 {
+impl FloatVectorBackend<3, Aligned> for f32 {
     safe_target_feature! {
         #[inline]
         fn vector_nan_mask(vector: Vec3A<f32>) -> Mask3A<f32> {
@@ -504,7 +504,7 @@ impl PrimitiveFloatBackend<3, Aligned> for f32 {
     }
 }
 
-impl PrimitiveFloatBackend<4, Aligned> for f32 {
+impl FloatVectorBackend<4, Aligned> for f32 {
     safe_target_feature! {
         #[inline]
         fn vector_nan_mask(vector: Vec4A<f32>) -> Mask4A<f32> {

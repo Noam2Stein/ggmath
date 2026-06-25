@@ -390,7 +390,7 @@ where
     }
 }
 
-pub(crate) trait PrimitiveFloatBackend<const N: usize, A: Alignment>
+pub(crate) trait FloatVectorBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
@@ -670,7 +670,7 @@ where
     }
 }
 
-pub(crate) trait PrimitiveIntegerBackend<const N: usize, A: Alignment>
+pub(crate) trait IntegerVectorBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
@@ -883,7 +883,7 @@ where
     }
 }
 
-pub(crate) trait PrimitiveSignedBackend<const N: usize, A: Alignment>
+pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
@@ -1931,7 +1931,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveFloatBackend<2, A> for T
+impl<T, A: Alignment> FloatVectorBackend<2, A> for T
 where
     T: PrimitiveFloat + DefaultBackend<2, A>,
 {
@@ -2194,7 +2194,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveFloatBackend<3, A> for T
+impl<T, A: Alignment> FloatVectorBackend<3, A> for T
 where
     T: PrimitiveFloat + DefaultBackend<3, A>,
 {
@@ -2509,7 +2509,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveFloatBackend<4, A> for T
+impl<T, A: Alignment> FloatVectorBackend<4, A> for T
 where
     T: PrimitiveFloat + DefaultBackend<4, A>,
 {
@@ -2879,7 +2879,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveIntegerBackend<2, A> for T
+impl<T, A: Alignment> IntegerVectorBackend<2, A> for T
 where
     T: PrimitiveInteger + DefaultBackend<2, A>,
 {
@@ -3043,7 +3043,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveIntegerBackend<3, A> for T
+impl<T, A: Alignment> IntegerVectorBackend<3, A> for T
 where
     T: PrimitiveInteger + DefaultBackend<3, A>,
 {
@@ -3244,7 +3244,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveIntegerBackend<4, A> for T
+impl<T, A: Alignment> IntegerVectorBackend<4, A> for T
 where
     T: PrimitiveInteger + DefaultBackend<4, A>,
 {
@@ -3461,7 +3461,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveSignedBackend<2, A> for T
+impl<T, A: Alignment> SignedVectorBackend<2, A> for T
 where
     T: PrimitiveSigned + DefaultBackend<2, A>,
 {
@@ -3486,7 +3486,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveSignedBackend<3, A> for T
+impl<T, A: Alignment> SignedVectorBackend<3, A> for T
 where
     T: PrimitiveSigned + DefaultBackend<3, A>,
 {
@@ -3523,7 +3523,7 @@ where
     }
 }
 
-impl<T, A: Alignment> PrimitiveSignedBackend<4, A> for T
+impl<T, A: Alignment> SignedVectorBackend<4, A> for T
 where
     T: PrimitiveSigned + DefaultBackend<4, A>,
 {
