@@ -137,112 +137,6 @@ unsafe impl VectorBackend<3, Aligned> for f32 {
 }
 
 // `Self::Inner` follows its requirements.
-unsafe impl MaskBackend<3, Aligned> for f32 {
-    type Inner = __m128;
-
-    safe_target_feature! {
-        #[inline]
-        fn mask_from_array(array: [bool; 3]) -> Mask3A<f32> {
-            Mask(_mm_castsi128_ps(_mm_set_epi32(
-                -(array[2] as i32),
-                -(array[2] as i32),
-                -(array[1] as i32),
-                -(array[0] as i32),
-            )))
-        }
-
-        #[inline]
-        fn mask_splat(value: bool) -> Mask3A<f32> {
-            Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32))))
-        }
-
-        #[inline]
-        fn mask_to_array(mask: Mask3A<f32>) -> [bool; 3] {
-            let bits = _mm_movemask_ps(mask.0);
-            [bits & 0x1 != 0, bits & 0x2 != 0, bits & 0x4 != 0]
-        }
-
-        #[inline]
-        fn mask_all(mask: Mask3A<f32>) -> bool {
-            _mm_movemask_ps(mask.0) & 0x7 == 0x7
-        }
-
-        #[inline]
-        fn mask_any(mask: Mask3A<f32>) -> bool {
-            _mm_movemask_ps(mask.0) & 0x7 != 0
-        }
-
-        #[inline]
-        fn mask_select(mask: Mask3A<f32>, if_true: Vec3A<f32>, if_false: Vec3A<f32>) -> Vec3A<f32> {
-            Vector(_mm_or_ps(
-                _mm_andnot_ps(mask.0, if_false.0),
-                _mm_and_ps(if_true.0, mask.0),
-            ))
-        }
-
-        #[inline]
-        fn mask_get(mask: Mask3A<f32>, index: usize) -> bool {
-            match index {
-                0 => _mm_movemask_ps(mask.0) & 0x1 != 0,
-                1 => _mm_movemask_ps(mask.0) & 0x2 != 0,
-                2 => _mm_movemask_ps(mask.0) & 0x4 != 0,
-                _ => panic!("index out of bounds"),
-            }
-        }
-
-        #[inline]
-        fn mask_set(mask: &mut Mask3A<f32>, index: usize, value: bool) {
-            if index < 3 {
-                // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
-                // `index` is valid because it was just checked to be less then 3,
-                // and the result is a pointer to a valid `i32`.
-                let slot = unsafe {
-                    core::ptr::from_mut::<__m128>(&mut mask.0)
-                        .cast::<i32>()
-                        .add(index)
-                        .as_mut()
-                        .unwrap_unchecked()
-                };
-
-                *slot = -(value as i32);
-            } else {
-                panic!("index out of bounds")
-            }
-        }
-
-        #[inline]
-        fn mask_eq(mask: &Mask3A<f32>, other: &Mask3A<f32>) -> bool {
-            _mm_movemask_ps(mask.0) & 0x7 == _mm_movemask_ps(other.0) & 0x7
-        }
-
-        #[inline]
-        fn mask_ne(mask: &Mask3A<f32>, other: &Mask3A<f32>) -> bool {
-            !(mask == other)
-        }
-
-        #[inline]
-        fn mask_not(mask: Mask3A<f32>) -> Mask3A<f32> {
-            Mask(_mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))))
-        }
-
-        #[inline]
-        fn mask_bitand(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
-            Mask(_mm_and_ps(mask.0, rhs.0))
-        }
-
-        #[inline]
-        fn mask_bitor(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
-            Mask(_mm_or_ps(mask.0, rhs.0))
-        }
-
-        #[inline]
-        fn mask_bitxor(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
-            Mask(_mm_xor_ps(mask.0, rhs.0))
-        }
-    }
-}
-
-// `Self::Inner` follows its requirements.
 unsafe impl VectorBackend<4, Aligned> for f32 {
     type Inner = __m128;
 
@@ -370,6 +264,112 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
         #[inline]
         fn vector_ge_mask(vector: Vec4A<f32>, other: Vec4A<f32>) -> Mask4A<f32> {
             Mask(_mm_cmpge_ps(vector.0, other.0))
+        }
+    }
+}
+
+// `Self::Inner` follows its requirements.
+unsafe impl MaskBackend<3, Aligned> for f32 {
+    type Inner = __m128;
+
+    safe_target_feature! {
+        #[inline]
+        fn mask_from_array(array: [bool; 3]) -> Mask3A<f32> {
+            Mask(_mm_castsi128_ps(_mm_set_epi32(
+                -(array[2] as i32),
+                -(array[2] as i32),
+                -(array[1] as i32),
+                -(array[0] as i32),
+            )))
+        }
+
+        #[inline]
+        fn mask_splat(value: bool) -> Mask3A<f32> {
+            Mask(_mm_castsi128_ps(_mm_set1_epi32(-(value as i32))))
+        }
+
+        #[inline]
+        fn mask_to_array(mask: Mask3A<f32>) -> [bool; 3] {
+            let bits = _mm_movemask_ps(mask.0);
+            [bits & 0x1 != 0, bits & 0x2 != 0, bits & 0x4 != 0]
+        }
+
+        #[inline]
+        fn mask_all(mask: Mask3A<f32>) -> bool {
+            _mm_movemask_ps(mask.0) & 0x7 == 0x7
+        }
+
+        #[inline]
+        fn mask_any(mask: Mask3A<f32>) -> bool {
+            _mm_movemask_ps(mask.0) & 0x7 != 0
+        }
+
+        #[inline]
+        fn mask_select(mask: Mask3A<f32>, if_true: Vec3A<f32>, if_false: Vec3A<f32>) -> Vec3A<f32> {
+            Vector(_mm_or_ps(
+                _mm_andnot_ps(mask.0, if_false.0),
+                _mm_and_ps(if_true.0, mask.0),
+            ))
+        }
+
+        #[inline]
+        fn mask_get(mask: Mask3A<f32>, index: usize) -> bool {
+            match index {
+                0 => _mm_movemask_ps(mask.0) & 0x1 != 0,
+                1 => _mm_movemask_ps(mask.0) & 0x2 != 0,
+                2 => _mm_movemask_ps(mask.0) & 0x4 != 0,
+                _ => panic!("index out of bounds"),
+            }
+        }
+
+        #[inline]
+        fn mask_set(mask: &mut Mask3A<f32>, index: usize, value: bool) {
+            if index < 3 {
+                // SAFETY: `*mut __m128` is valid as `*mut i32` for 4 values. Adding
+                // `index` is valid because it was just checked to be less then 3,
+                // and the result is a pointer to a valid `i32`.
+                let slot = unsafe {
+                    core::ptr::from_mut::<__m128>(&mut mask.0)
+                        .cast::<i32>()
+                        .add(index)
+                        .as_mut()
+                        .unwrap_unchecked()
+                };
+
+                *slot = -(value as i32);
+            } else {
+                panic!("index out of bounds")
+            }
+        }
+
+        #[inline]
+        fn mask_eq(mask: &Mask3A<f32>, other: &Mask3A<f32>) -> bool {
+            _mm_movemask_ps(mask.0) & 0x7 == _mm_movemask_ps(other.0) & 0x7
+        }
+
+        #[inline]
+        fn mask_ne(mask: &Mask3A<f32>, other: &Mask3A<f32>) -> bool {
+            !(mask == other)
+        }
+
+        #[inline]
+        fn mask_not(mask: Mask3A<f32>) -> Mask3A<f32> {
+            Mask(_mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))))
+        }
+
+        #[inline]
+        fn mask_bitand(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
+            Mask(_mm_and_ps(mask.0, rhs.0))
+        }
+
+        #[inline]
+        fn mask_bitor(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
+            Mask(_mm_or_ps(mask.0, rhs.0))
+        }
+
+        #[inline]
+        fn mask_bitxor(mask: Mask3A<f32>, rhs: Mask3A<f32>) -> Mask3A<f32> {
+            Mask(_mm_xor_ps(mask.0, rhs.0))
         }
     }
 }
