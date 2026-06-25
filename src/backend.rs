@@ -46,205 +46,107 @@ where
     /// bit-patterns.
     type Inner: Copy;
 
-    #[inline]
     fn vector_eq(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
-        Self: Scalar + PartialEq,
-    {
-        (0..N).all(|i| vector[i] == other[i])
-    }
+        Self: Scalar + PartialEq;
 
-    #[inline]
     fn vector_ne(vector: &Vector<N, Self, A>, other: &Vector<N, Self, A>) -> bool
     where
-        Self: Scalar + PartialEq,
-    {
-        !Self::vector_eq(vector, other)
-    }
+        Self: Scalar + PartialEq;
 
-    #[inline]
     #[track_caller]
     fn vector_neg(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Neg<Output = Self>,
-    {
-        vector.map(Self::neg)
-    }
+        Self: Scalar + Neg<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_not(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Not<Output = Self>,
-    {
-        vector.map(Self::not)
-    }
+        Self: Scalar + Not<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_add(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Add<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] + rhs[i])
-    }
+        Self: Scalar + Add<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_sub(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Sub<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] - rhs[i])
-    }
+        Self: Scalar + Sub<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_mul(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Mul<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] * rhs[i])
-    }
+        Self: Scalar + Mul<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_div(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Div<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] / rhs[i])
-    }
+        Self: Scalar + Div<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_rem(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Rem<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] % rhs[i])
-    }
+        Self: Scalar + Rem<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_shl(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Shl<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] << rhs[i])
-    }
+        Self: Scalar + Shl<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_shr(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + Shr<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] >> rhs[i])
-    }
+        Self: Scalar + Shr<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_bitand(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + BitAnd<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] & rhs[i])
-    }
+        Self: Scalar + BitAnd<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_bitor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + BitOr<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] | rhs[i])
-    }
+        Self: Scalar + BitOr<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_bitxor(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: Scalar + BitXor<Output = Self>,
-    {
-        Vector::from_fn(|i| vector[i] ^ rhs[i])
-    }
+        Self: Scalar + BitXor<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_element_sum(vector: Vector<N, Self, A>) -> Self
     where
-        Self: Scalar + Add<Output = Self>,
-    {
-        match N {
-            2 => vector[0] + vector[1],
-            3 => vector[0] + vector[1] + vector[2],
-            4 => vector[0] + vector[1] + (vector[2] + vector[3]),
-            _ => unreachable!(),
-        }
-    }
+        Self: Scalar + Add<Output = Self>;
 
-    #[inline]
     #[track_caller]
     fn vector_element_product(vector: Vector<N, Self, A>) -> Self
     where
-        Self: Scalar + Mul<Output = Self>,
-    {
-        match N {
-            2 => vector[0] * vector[1],
-            3 => vector[0] * vector[1] * vector[2],
-            4 => vector[0] * vector[1] * (vector[2] * vector[3]),
-            _ => unreachable!(),
-        }
-    }
+        Self: Scalar + Mul<Output = Self>;
 
-    #[inline]
     fn vector_eq_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialEq,
-    {
-        Mask::from_fn(|i| vector[i] == other[i])
-    }
+        Self: Scalar + PartialEq;
 
-    #[inline]
     fn vector_ne_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialEq,
-    {
-        Mask::from_fn(|i| vector[i] != other[i])
-    }
+        Self: Scalar + PartialEq;
 
-    #[inline]
     fn vector_lt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd,
-    {
-        Mask::from_fn(|i| vector[i] < other[i])
-    }
+        Self: Scalar + PartialOrd;
 
-    #[inline]
     fn vector_gt_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd,
-    {
-        Mask::from_fn(|i| vector[i] > other[i])
-    }
+        Self: Scalar + PartialOrd;
 
-    #[inline]
     fn vector_le_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd,
-    {
-        Mask::from_fn(|i| vector[i] <= other[i])
-    }
+        Self: Scalar + PartialOrd;
 
-    #[inline]
     fn vector_ge_mask(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar + PartialOrd,
-    {
-        Mask::from_fn(|i| vector[i] >= other[i])
-    }
+        Self: Scalar + PartialOrd;
 }
 
 /// # Safety
@@ -271,653 +173,339 @@ where
     where
         Self: Scalar;
 
-    #[inline]
     fn mask_splat(value: bool) -> Mask<N, Self, A>
     where
-        Self: Scalar,
-    {
-        Self::mask_from_array([value; N])
-    }
+        Self: Scalar;
 
     fn mask_to_array(mask: Mask<N, Self, A>) -> [bool; N]
     where
         Self: Scalar;
 
-    #[inline]
     fn mask_all(mask: Mask<N, Self, A>) -> bool
     where
-        Self: Scalar,
-    {
-        match N {
-            2 => mask.get(0) && mask.get(1),
-            3 => mask.get(0) && mask.get(1) && mask.get(2),
-            4 => mask.get(0) && mask.get(1) && mask.get(2) && mask.get(3),
-            _ => unreachable!(),
-        }
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_any(mask: Mask<N, Self, A>) -> bool
     where
-        Self: Scalar,
-    {
-        match N {
-            2 => mask.get(0) || mask.get(1),
-            3 => mask.get(0) || mask.get(1) || mask.get(2),
-            4 => mask.get(0) || mask.get(1) || mask.get(2) || mask.get(3),
-            _ => unreachable!(),
-        }
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_select(
         mask: Mask<N, Self, A>,
         if_true: Vector<N, Self, A>,
         if_false: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: Scalar,
-    {
-        Vector::from_fn(|i| if mask.get(i) { if_true[i] } else { if_false[i] })
-    }
+        Self: Scalar;
 
-    #[inline]
     #[track_caller]
     fn mask_get(mask: Mask<N, Self, A>, index: usize) -> bool
     where
-        Self: Scalar,
-    {
-        mask.to_array()[index]
-    }
+        Self: Scalar;
 
-    #[inline]
     #[track_caller]
     fn mask_set(mask: &mut Mask<N, Self, A>, index: usize, value: bool)
     where
-        Self: Scalar,
-    {
-        let mut array = mask.to_array();
-        array[index] = value;
-        *mask = Mask::from_array(array);
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_eq(mask: &Mask<N, Self, A>, other: &Mask<N, Self, A>) -> bool
     where
-        Self: Scalar,
-    {
-        mask.to_array() == other.to_array()
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_ne(mask: &Mask<N, Self, A>, other: &Mask<N, Self, A>) -> bool
     where
-        Self: Scalar,
-    {
-        !Self::mask_eq(mask, other)
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_not(mask: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar,
-    {
-        Mask::from_fn(|i| !mask.get(i))
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_bitand(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar,
-    {
-        Mask::from_fn(|i| mask.get(i) & rhs.get(i))
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_bitor(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar,
-    {
-        Mask::from_fn(|i| mask.get(i) | rhs.get(i))
-    }
+        Self: Scalar;
 
-    #[inline]
     fn mask_bitxor(mask: Mask<N, Self, A>, rhs: Mask<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: Scalar,
-    {
-        Mask::from_fn(|i| mask.get(i) ^ rhs.get(i))
-    }
+        Self: Scalar;
 }
 
 pub(crate) trait FloatVectorBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
-    #[inline]
     fn vector_nan_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_nan())
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_finite_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_finite())
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_sign_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_sign_positive())
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_sign_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Mask::from_fn(|i| vector[i].is_sign_negative())
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| {
-            if vector[i] > other[i] {
-                vector[i]
-            } else {
-                other[i]
-            }
-        })
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| {
-            if vector[i] < other[i] {
-                vector[i]
-            } else {
-                other[i]
-            }
-        })
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_max_element(vector: Vector<N, Self, A>) -> Self
     where
-        Self: PrimitiveFloat,
-    {
-        vector
-            .iter()
-            .reduce(|a, b| if a > b { a } else { b })
-            .unwrap()
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_min_element(vector: Vector<N, Self, A>) -> Self
     where
-        Self: PrimitiveFloat,
-    {
-        vector
-            .iter()
-            .reduce(|a, b| if a < b { a } else { b })
-            .unwrap()
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::abs)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(Self::signum)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_copysign(vector: Vector<N, Self, A>, sign: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| vector[i].copysign(sign[i]))
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_floor(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::floor)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_ceil(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::ceil)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_round(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::round)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_trunc(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::trunc)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_mul_add(
         vector: Vector<N, Self, A>,
         a: Vector<N, Self, A>,
         b: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| PrimitiveFloatUtils::mul_add(vector[i], a[i], b[i]))
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_div_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| PrimitiveFloatUtils::div_euclid(vector[i], rhs[i]))
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_rem_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        Vector::from_fn(|i| PrimitiveFloatUtils::rem_euclid(vector[i], rhs[i]))
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_powf(vector: Vector<N, Self, A>, n: Self) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(|x| PrimitiveFloatUtils::powf(x, n))
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_sqrt(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::sqrt)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_exp(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::exp)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_exp2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::exp2)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_ln(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::ln)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_log2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::log2)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_sin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::sin)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_cos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::cos)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_tan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::tan)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_asin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::asin)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_acos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::acos)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_atan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveFloat,
-    {
-        vector.map(PrimitiveFloatUtils::atan)
-    }
+        Self: PrimitiveFloat;
 
-    #[inline]
     fn vector_sin_cos(vector: Vector<N, Self, A>) -> (Vector<N, Self, A>, Vector<N, Self, A>)
     where
-        Self: PrimitiveFloat,
-    {
-        let array = vector.to_array().map(PrimitiveFloatUtils::sin_cos);
-
-        (
-            Vector::from_fn(|i| array[i].0),
-            Vector::from_fn(|i| array[i].1),
-        )
-    }
+        Self: PrimitiveFloat;
 }
 
 pub(crate) trait IntegerVectorBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
-    #[inline]
     fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].max(other[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].min(other[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_max_element(vector: Vector<N, Self, A>) -> Self
     where
-        Self: PrimitiveInteger,
-    {
-        vector.iter().reduce(Self::max).unwrap()
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_min_element(vector: Vector<N, Self, A>) -> Self
     where
-        Self: PrimitiveInteger,
-    {
-        vector.iter().reduce(Self::min).unwrap()
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_checked_add(
-        mut vector: Vector<N, Self, A>,
+        vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Option<Vector<N, Self, A>>
     where
-        Self: PrimitiveInteger,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_add(rhs[i])?;
-        }
+        Self: PrimitiveInteger;
 
-        Some(vector)
-    }
-
-    #[inline]
     fn vector_checked_sub(
-        mut vector: Vector<N, Self, A>,
+        vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Option<Vector<N, Self, A>>
     where
-        Self: PrimitiveInteger,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_sub(rhs[i])?;
-        }
+        Self: PrimitiveInteger;
 
-        Some(vector)
-    }
-
-    #[inline]
     fn vector_checked_mul(
-        mut vector: Vector<N, Self, A>,
+        vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Option<Vector<N, Self, A>>
     where
-        Self: PrimitiveInteger,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_mul(rhs[i])?;
-        }
+        Self: PrimitiveInteger;
 
-        Some(vector)
-    }
-
-    #[inline]
     fn vector_checked_div(
-        mut vector: Vector<N, Self, A>,
+        vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Option<Vector<N, Self, A>>
     where
-        Self: PrimitiveInteger,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_div(rhs[i])?;
-        }
+        Self: PrimitiveInteger;
 
-        Some(vector)
-    }
-
-    #[inline]
     fn vector_checked_rem(
-        mut vector: Vector<N, Self, A>,
+        vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Option<Vector<N, Self, A>>
     where
-        Self: PrimitiveInteger,
-    {
-        for i in 0..N {
-            vector[i] = vector[i].checked_rem(rhs[i])?;
-        }
-        Some(vector)
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_saturating_add(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].saturating_add(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_saturating_sub(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].saturating_sub(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_saturating_mul(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].saturating_mul(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     #[track_caller]
     fn vector_saturating_div(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].saturating_div(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_wrapping_add(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_add(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_wrapping_sub(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_sub(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     fn vector_wrapping_mul(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_mul(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     #[track_caller]
     fn vector_wrapping_div(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_div(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 
-    #[inline]
     #[track_caller]
     fn vector_wrapping_rem(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
     ) -> Vector<N, Self, A>
     where
-        Self: PrimitiveInteger,
-    {
-        Vector::from_fn(|i| vector[i].wrapping_rem(rhs[i]))
-    }
+        Self: PrimitiveInteger;
 }
 
 pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>
 where
     Length<N>: SupportedLength,
 {
-    #[inline]
     fn vector_wrapping_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveSigned,
-    {
-        vector.map(Self::wrapping_abs)
-    }
+        Self: PrimitiveSigned;
 
-    #[inline]
     fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
     where
-        Self: PrimitiveSigned,
-    {
-        vector.map(Self::signum)
-    }
+        Self: PrimitiveSigned;
 
-    #[inline]
     fn vector_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: PrimitiveSigned,
-    {
-        Mask::from_fn(|i| vector[i].is_positive())
-    }
+        Self: PrimitiveSigned;
 
-    #[inline]
     fn vector_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
     where
-        Self: PrimitiveSigned,
-    {
-        Mask::from_fn(|i| vector[i].is_negative())
-    }
+        Self: PrimitiveSigned;
 }
 
 impl DefaultBackend<2, Aligned> for f32 {}
@@ -965,6 +553,14 @@ where
         Self: PartialEq,
     {
         vector.x == other.x && vector.y == other.y
+    }
+
+    #[inline]
+    fn vector_ne(vector: &Vector<2, Self, A>, other: &Vector<2, Self, A>) -> bool
+    where
+        Self: PartialEq,
+    {
+        !(vector == other)
     }
 
     #[inline]
@@ -1141,6 +737,14 @@ where
         Self: PartialEq,
     {
         vector.x == other.x && vector.y == other.y && vector.z == other.z
+    }
+
+    #[inline]
+    fn vector_ne(vector: &Vector<3, Self, A>, other: &Vector<3, Self, A>) -> bool
+    where
+        Self: PartialEq,
+    {
+        !(vector == other)
     }
 
     #[inline]
@@ -1333,6 +937,14 @@ where
         Self: PartialEq,
     {
         vector.x == other.x && vector.y == other.y && vector.z == other.z && vector.w == other.w
+    }
+
+    #[inline]
+    fn vector_ne(vector: &Vector<4, Self, A>, other: &Vector<4, Self, A>) -> bool
+    where
+        Self: Scalar + PartialEq,
+    {
+        !(vector == other)
     }
 
     #[inline]
@@ -1652,6 +1264,14 @@ where
     }
 
     #[inline]
+    fn mask_ne(mask: &Mask<2, Self, A>, other: &Mask<2, Self, A>) -> bool
+    where
+        Self: Scalar,
+    {
+        !(mask == other)
+    }
+
+    #[inline]
     fn mask_not(mask: Mask<2, Self, A>) -> Mask<2, Self, A> {
         Mask::<2, Self, A>::new(!mask.inner().0, !mask.inner().1)
     }
@@ -1761,6 +1381,14 @@ where
     #[inline]
     fn mask_eq(mask: &Mask<3, Self, A>, other: &Mask<3, Self, A>) -> bool {
         mask.inner() == other.inner()
+    }
+
+    #[inline]
+    fn mask_ne(mask: &Mask<3, Self, A>, other: &Mask<3, Self, A>) -> bool
+    where
+        Self: Scalar,
+    {
+        !(mask == other)
     }
 
     #[inline]
@@ -1888,6 +1516,14 @@ where
     #[inline]
     fn mask_eq(mask: &Mask<4, Self, A>, other: &Mask<4, Self, A>) -> bool {
         mask.inner() == other.inner()
+    }
+
+    #[inline]
+    fn mask_ne(mask: &Mask<4, Self, A>, other: &Mask<4, Self, A>) -> bool
+    where
+        Self: Scalar,
+    {
+        !(mask == other)
     }
 
     #[inline]

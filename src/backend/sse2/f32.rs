@@ -3,6 +3,8 @@ use core::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use core::arch::x86_64::*;
 
+#[allow(unused_imports, reason = "rustc incorrectly thinks this is unused")]
+use crate::utils::PrimitiveFloatUtils;
 use crate::{
     Aligned, Mask, Mask3A, Mask4A, Vec3A, Vec4A, Vector,
     backend::{FloatVectorBackend, MaskBackend, VectorBackend},
@@ -30,6 +32,11 @@ unsafe impl VectorBackend<3, Aligned> for f32 {
         }
 
         #[inline]
+        fn vector_not(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vector(_mm_xor_ps(vector.0, _mm_set1_ps(f32::from_bits(!0))))
+        }
+
+        #[inline]
         fn vector_add(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_add_ps(vector.0, rhs.0))
         }
@@ -52,6 +59,31 @@ unsafe impl VectorBackend<3, Aligned> for f32 {
         #[inline]
         fn vector_rem(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
             Vector(rem(vector.0, rhs.0))
+        }
+
+        #[inline]
+        fn vector_shl(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::<f32>::from_bits(vector.to_bits() << rhs.to_bits())
+        }
+
+        #[inline]
+        fn vector_shr(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::<f32>::from_bits(vector.to_bits() >> rhs.to_bits())
+        }
+
+        #[inline]
+        fn vector_bitand(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
+            Vector(_mm_and_ps(vector.0, rhs.0))
+        }
+
+        #[inline]
+        fn vector_bitor(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
+            Vector(_mm_or_ps(vector.0, rhs.0))
+        }
+
+        #[inline]
+        fn vector_bitxor(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
+            Vector(_mm_xor_ps(vector.0, rhs.0))
         }
 
         #[inline]
@@ -184,6 +216,11 @@ unsafe impl MaskBackend<3, Aligned> for f32 {
         }
 
         #[inline]
+        fn mask_ne(mask: &Mask3A<f32>, other: &Mask3A<f32>) -> bool {
+            !(mask == other)
+        }
+
+        #[inline]
         fn mask_not(mask: Mask3A<f32>) -> Mask3A<f32> {
             Mask(_mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))))
         }
@@ -226,6 +263,11 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
         }
 
         #[inline]
+        fn vector_not(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vector(_mm_xor_ps(vector.0, _mm_set1_ps(f32::from_bits(!0))))
+        }
+
+        #[inline]
         fn vector_add(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_add_ps(vector.0, rhs.0))
         }
@@ -248,6 +290,31 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
         #[inline]
         fn vector_rem(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
             Vector(rem(vector.0, rhs.0))
+        }
+
+        #[inline]
+        fn vector_shl(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::<f32>::from_bits(vector.to_bits() << rhs.to_bits())
+        }
+
+        #[inline]
+        fn vector_shr(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::<f32>::from_bits(vector.to_bits() >> rhs.to_bits())
+        }
+
+        #[inline]
+        fn vector_bitand(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
+            Vector(_mm_and_ps(vector.0, rhs.0))
+        }
+
+        #[inline]
+        fn vector_bitor(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
+            Vector(_mm_or_ps(vector.0, rhs.0))
+        }
+
+        #[inline]
+        fn vector_bitxor(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
+            Vector(_mm_xor_ps(vector.0, rhs.0))
         }
 
         #[cfg(not(target_feature = "ssse3"))]
@@ -393,6 +460,11 @@ unsafe impl MaskBackend<4, Aligned> for f32 {
         }
 
         #[inline]
+        fn mask_ne(mask: &Mask4A<f32>, other: &Mask4A<f32>) -> bool {
+            !(mask == other)
+        }
+
+        #[inline]
         fn mask_not(mask: Mask4A<f32>) -> Mask4A<f32> {
             Mask(_mm_xor_ps(mask.0, _mm_set1_ps(f32::from_bits(!0))))
         }
@@ -498,8 +570,101 @@ impl FloatVectorBackend<3, Aligned> for f32 {
         }
 
         #[inline(always)]
+        fn vector_mul_add(vector: Vec3A<f32>, a: Vec3A<f32>, b: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(
+                vector.x.mul_add(a.x, b.x),
+                vector.y.mul_add(a.y, b.y),
+                vector.z.mul_add(a.z, b.z),
+            )
+        }
+
+        #[inline(always)]
+        fn vector_div_euclid(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(
+                vector.x.div_euclid(rhs.x),
+                vector.y.div_euclid(rhs.y),
+                vector.z.div_euclid(rhs.z),
+            )
+        }
+
+        #[inline(always)]
+        fn vector_rem_euclid(vector: Vec3A<f32>, rhs: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(
+                vector.x.rem_euclid(rhs.x),
+                vector.y.rem_euclid(rhs.y),
+                vector.z.rem_euclid(rhs.z),
+            )
+        }
+
+        #[inline(always)]
+        fn vector_powf(vector: Vec3A<f32>, n: f32) -> Vec3A<f32> {
+            Vec3A::new(vector.x.powf(n), vector.y.powf(n), vector.z.powf(n))
+        }
+
+        #[inline(always)]
         fn vector_sqrt(vector: Vec3A<f32>) -> Vec3A<f32> {
             Vector(_mm_sqrt_ps(vector.0))
+        }
+
+        #[inline(always)]
+        fn vector_exp(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.exp(), vector.y.exp(), vector.z.exp())
+        }
+
+        #[inline(always)]
+        fn vector_exp2(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.exp2(), vector.y.exp2(), vector.z.exp2())
+        }
+
+        #[inline(always)]
+        fn vector_ln(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.ln(), vector.y.ln(), vector.z.ln())
+        }
+
+        #[inline(always)]
+        fn vector_log2(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.log2(), vector.y.log2(), vector.z.log2())
+        }
+
+        #[inline(always)]
+        fn vector_sin(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.sin(), vector.y.sin(), vector.z.sin())
+        }
+
+        #[inline(always)]
+        fn vector_cos(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.cos(), vector.y.cos(), vector.z.cos())
+        }
+
+        #[inline(always)]
+        fn vector_tan(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.tan(), vector.y.tan(), vector.z.tan())
+        }
+
+        #[inline(always)]
+        fn vector_asin(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.asin(), vector.y.asin(), vector.z.asin())
+        }
+
+        #[inline(always)]
+        fn vector_acos(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.acos(), vector.y.acos(), vector.z.acos())
+        }
+
+        #[inline(always)]
+        fn vector_atan(vector: Vec3A<f32>) -> Vec3A<f32> {
+            Vec3A::new(vector.x.atan(), vector.y.atan(), vector.z.atan())
+        }
+
+        #[inline(always)]
+        fn vector_sin_cos(vector: Vec3A<f32>) -> (Vec3A<f32>, Vec3A<f32>) {
+            let x_sin_cos = vector.x.sin_cos();
+            let y_sin_cos = vector.y.sin_cos();
+            let z_sin_cos = vector.z.sin_cos();
+            (
+                Vec3A::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0),
+                Vec3A::new(x_sin_cos.1, y_sin_cos.1, z_sin_cos.1),
+            )
         }
     }
 }
@@ -588,8 +753,105 @@ impl FloatVectorBackend<4, Aligned> for f32 {
         }
 
         #[inline(always)]
+        fn vector_mul_add(vector: Vec4A<f32>, a: Vec4A<f32>, b: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(
+                vector.x.mul_add(a.x, b.x),
+                vector.y.mul_add(a.y, b.y),
+                vector.z.mul_add(a.z, b.z),
+                vector.w.mul_add(a.w, b.w),
+            )
+        }
+
+        #[inline(always)]
+        fn vector_div_euclid(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(
+                vector.x.div_euclid(rhs.x),
+                vector.y.div_euclid(rhs.y),
+                vector.z.div_euclid(rhs.z),
+                vector.w.div_euclid(rhs.w),
+            )
+        }
+
+        #[inline(always)]
+        fn vector_rem_euclid(vector: Vec4A<f32>, rhs: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(
+                vector.x.rem_euclid(rhs.x),
+                vector.y.rem_euclid(rhs.y),
+                vector.z.rem_euclid(rhs.z),
+                vector.w.rem_euclid(rhs.w),
+            )
+        }
+
+        #[inline(always)]
+        fn vector_powf(vector: Vec4A<f32>, n: f32) -> Vec4A<f32> {
+            Vec4A::new(vector.x.powf(n), vector.y.powf(n), vector.z.powf(n), vector.w.powf(n))
+        }
+
+        #[inline(always)]
         fn vector_sqrt(vector: Vec4A<f32>) -> Vec4A<f32> {
             Vector(_mm_sqrt_ps(vector.0))
+        }
+
+        #[inline(always)]
+        fn vector_exp(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.exp(), vector.y.exp(), vector.z.exp(), vector.w.exp())
+        }
+
+        #[inline(always)]
+        fn vector_exp2(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.exp2(), vector.y.exp2(), vector.z.exp2(), vector.w.exp2())
+        }
+
+        #[inline(always)]
+        fn vector_ln(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.ln(), vector.y.ln(), vector.z.ln(), vector.w.ln())
+        }
+
+        #[inline(always)]
+        fn vector_log2(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.log2(), vector.y.log2(), vector.z.log2(), vector.w.log2())
+        }
+
+        #[inline(always)]
+        fn vector_sin(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.sin(), vector.y.sin(), vector.z.sin(), vector.w.sin())
+        }
+
+        #[inline(always)]
+        fn vector_cos(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.cos(), vector.y.cos(), vector.z.cos(), vector.w.cos())
+        }
+
+        #[inline(always)]
+        fn vector_tan(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.tan(), vector.y.tan(), vector.z.tan(), vector.w.tan())
+        }
+
+        #[inline(always)]
+        fn vector_asin(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.asin(), vector.y.asin(), vector.z.asin(), vector.w.asin())
+        }
+
+        #[inline(always)]
+        fn vector_acos(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.acos(), vector.y.acos(), vector.z.acos(), vector.w.acos())
+        }
+
+        #[inline(always)]
+        fn vector_atan(vector: Vec4A<f32>) -> Vec4A<f32> {
+            Vec4A::new(vector.x.atan(), vector.y.atan(), vector.z.atan(), vector.w.atan())
+        }
+
+        #[inline(always)]
+        fn vector_sin_cos(vector: Vec4A<f32>) -> (Vec4A<f32>, Vec4A<f32>) {
+            let x_sin_cos = vector.x.sin_cos();
+            let y_sin_cos = vector.y.sin_cos();
+            let z_sin_cos = vector.z.sin_cos();
+            let w_sin_cos = vector.w.sin_cos();
+            (
+                Vec4A::new(x_sin_cos.0, y_sin_cos.0, z_sin_cos.0, w_sin_cos.0),
+                Vec4A::new(x_sin_cos.1, y_sin_cos.1, z_sin_cos.1, w_sin_cos.1),
+            )
         }
     }
 }
