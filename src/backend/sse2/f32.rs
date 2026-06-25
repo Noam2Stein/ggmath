@@ -244,12 +244,21 @@ unsafe impl Backend<4, Aligned> for f32 {
             Vector(rem(vector.0, rhs.0))
         }
 
+        #[cfg(not(target_feature = "ssse3"))]
         #[inline]
         fn vector_element_sum(vector: Vec4A<f32>) -> f32 {
             let vector = vector.0;
             let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_11_00_01));
             let vector = _mm_add_ps(vector, _mm_shuffle_ps(vector, vector, 0b00_00_00_10));
             _mm_cvtss_f32(vector)
+        }
+
+        #[cfg(target_feature = "ssse3")]
+        #[inline]
+        fn vector_element_sum(vector: Vec4A<f32>) -> f32 {
+            let reduce_2 = _mm_hadd_ps(vector.0, vector.0);
+            let reduce_1 = _mm_hadd_ps(reduce_2, reduce_2);
+            _mm_cvtss_f32(reduce_1)
         }
 
         #[inline]

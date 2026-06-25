@@ -15,6 +15,7 @@ macro_rules! safe_target_feature {
             // Use this pattern to add more features. Make sure to keep the
             // cfg correct, else there will be unsoundness.
             #[cfg_attr(target_feature = "sse2", target_feature(enable = "sse2"))]
+            #[cfg_attr(target_feature = "ssse3", target_feature(enable = "ssse3"))]
             #[inline]
             fn $f($($param: $Param),*) $(-> $Ret)? $body
 
