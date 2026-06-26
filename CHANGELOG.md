@@ -133,6 +133,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `NAN` constant for `wide` types was previously incorrect.
 
+- Fixed `Vec4::<{wide-float}>::rotate_towards` edge case.
+
 ### Removed
 
 - `Quaternion::canonical`.

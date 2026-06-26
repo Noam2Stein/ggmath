@@ -1820,7 +1820,8 @@ macro_rules! impl_wide_float {
                         ),
                     );
 
-                Self::splat(self.simd_eq(Self::ZERO)).blend(self, result)
+                Self::splat(self.simd_eq(Self::ZERO) | angle.simd_eq($Wide::ZERO))
+                    .blend(self, result)
             }
 
             #[inline(always)]
