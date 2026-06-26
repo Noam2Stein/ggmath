@@ -232,280 +232,176 @@ where
         Self: Scalar;
 }
 
-pub(crate) trait FloatVectorBackend<const N: usize, A: Alignment>
+pub(crate) trait FloatVectorBackend<const N: usize, A: Alignment>: Scalar
 where
     Length<N>: SupportedLength,
 {
-    fn vector_nan_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_nan_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>;
 
-    fn vector_finite_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_finite_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>;
 
-    fn vector_sign_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_sign_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>;
 
-    fn vector_sign_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_sign_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>;
 
-    fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_max_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveFloat;
+    fn vector_max_element(vector: Vector<N, Self, A>) -> Self;
 
-    fn vector_min_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveFloat;
+    fn vector_min_element(vector: Vector<N, Self, A>) -> Self;
 
-    fn vector_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_copysign(vector: Vector<N, Self, A>, sign: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_copysign(vector: Vector<N, Self, A>, sign: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_floor(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_floor(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_ceil(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_ceil(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_round(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_round(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_trunc(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_trunc(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
     fn vector_mul_add(
         vector: Vector<N, Self, A>,
         a: Vector<N, Self, A>,
         b: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    ) -> Vector<N, Self, A>;
 
-    fn vector_div_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_div_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>)
+    -> Vector<N, Self, A>;
 
-    fn vector_rem_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_rem_euclid(vector: Vector<N, Self, A>, rhs: Vector<N, Self, A>)
+    -> Vector<N, Self, A>;
 
-    fn vector_powf(vector: Vector<N, Self, A>, n: Self) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_powf(vector: Vector<N, Self, A>, n: Self) -> Vector<N, Self, A>;
 
-    fn vector_sqrt(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_sqrt(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_exp(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_exp(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_exp2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_exp2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_ln(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_ln(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_log2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_log2(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_sin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_sin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_cos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_cos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_tan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_tan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_asin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_asin(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_acos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_acos(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_atan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveFloat;
+    fn vector_atan(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_sin_cos(vector: Vector<N, Self, A>) -> (Vector<N, Self, A>, Vector<N, Self, A>)
-    where
-        Self: PrimitiveFloat;
+    fn vector_sin_cos(vector: Vector<N, Self, A>) -> (Vector<N, Self, A>, Vector<N, Self, A>);
 }
 
-pub(crate) trait IntegerVectorBackend<const N: usize, A: Alignment>
+pub(crate) trait IntegerVectorBackend<const N: usize, A: Alignment>: Scalar
 where
     Length<N>: SupportedLength,
 {
-    fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    fn vector_max(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    fn vector_min(vector: Vector<N, Self, A>, other: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_max_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveInteger;
+    fn vector_max_element(vector: Vector<N, Self, A>) -> Self;
 
-    fn vector_min_element(vector: Vector<N, Self, A>) -> Self
-    where
-        Self: PrimitiveInteger;
+    fn vector_min_element(vector: Vector<N, Self, A>) -> Self;
 
     fn vector_checked_add(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveInteger;
+    ) -> Option<Vector<N, Self, A>>;
 
     fn vector_checked_sub(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveInteger;
+    ) -> Option<Vector<N, Self, A>>;
 
     fn vector_checked_mul(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveInteger;
+    ) -> Option<Vector<N, Self, A>>;
 
     fn vector_checked_div(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveInteger;
+    ) -> Option<Vector<N, Self, A>>;
 
     fn vector_checked_rem(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Option<Vector<N, Self, A>>
-    where
-        Self: PrimitiveInteger;
+    ) -> Option<Vector<N, Self, A>>;
 
     fn vector_saturating_add(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     fn vector_saturating_sub(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     fn vector_saturating_mul(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     #[track_caller]
     fn vector_saturating_div(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     fn vector_wrapping_add(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     fn vector_wrapping_sub(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     fn vector_wrapping_mul(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     #[track_caller]
     fn vector_wrapping_div(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 
     #[track_caller]
     fn vector_wrapping_rem(
         vector: Vector<N, Self, A>,
         rhs: Vector<N, Self, A>,
-    ) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveInteger;
+    ) -> Vector<N, Self, A>;
 }
 
-pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>
+pub(crate) trait SignedVectorBackend<const N: usize, A: Alignment>: Scalar
 where
     Length<N>: SupportedLength,
 {
-    fn vector_wrapping_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned;
+    fn vector_wrapping_abs(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>
-    where
-        Self: PrimitiveSigned;
+    fn vector_signum(vector: Vector<N, Self, A>) -> Vector<N, Self, A>;
 
-    fn vector_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveSigned;
+    fn vector_positive_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>;
 
-    fn vector_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>
-    where
-        Self: PrimitiveSigned;
+    fn vector_negative_mask(vector: Vector<N, Self, A>) -> Mask<N, Self, A>;
 }
 
 impl DefaultBackend<2, Aligned> for f32 {}
