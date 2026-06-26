@@ -20,6 +20,7 @@ jobs:
         rust:
         - { target: i686-pc-windows-msvc, os: windows-latest }
         - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
+        - { target: aarch64-apple-darwin, os: macos-latest }
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@master
@@ -50,6 +51,7 @@ jobs:
         rust:
         - { target: i686-pc-windows-msvc, os: windows-latest }
         - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest }
+        - { target: aarch64-apple-darwin, os: macos-latest }
 
         command:
         - rustflags: -C debug-assertions=off -C overflow-checks=off
