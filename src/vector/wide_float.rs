@@ -1820,7 +1820,8 @@ macro_rules! impl_wide_float {
                         ),
                     );
 
-                Self::splat(self.simd_eq(Self::ZERO)).blend(self, result)
+                Self::splat(self.simd_eq(Self::ZERO) | angle.simd_eq($Wide::ZERO))
+                    .blend(self, result)
             }
 
             #[inline(always)]
@@ -2342,8 +2343,7 @@ mod tests {
                     & target.is_finite()
                     & vector.length().simd_lt(1e6)
                     & target.length().simd_lt(1e6);
-                let [vector, target] = [vector, target]
-                    .map(|v| Vector::<N, Wide, Unaligned>::splat(condition).blend(v, Vector::ZERO));
+                let [vector, target] = [vector, target].map(|v| v & condition);
 
                 assert_test_eq_or_panic!(
                     vector.rotate_towards(target, max_delta),
@@ -2351,7 +2351,8 @@ mod tests {
                         .lane(lane)
                         .rotate_towards(target.lane(lane), max_delta.to_array()[lane])),
                     abs <= vector.length().max(target.length()) * 1e-3 + 1e-3,
-                    0.0 = -0.0
+                    0.0 = -0.0,
+                    "  vector: {vector:?}\n  target: {target:?}\nmax_delta: {max_delta:?}"
                 );
             }
         });
