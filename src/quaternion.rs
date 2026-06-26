@@ -6,7 +6,8 @@ use core::{
 
 use crate::{
     Aligned, Alignment, One, Scalar, Unaligned, Vector, Zero,
-    utils::{transmute_mut, transmute_ref},
+    backend::QuaternionBackend,
+    utils::{specialize, transmute_mut, transmute_ref},
 };
 
 mod float;
@@ -51,7 +52,7 @@ mod wide_float;
 ///
 /// `Quaternion<T, A>` is a transparent wrapper around `Vector<4, T, A>`.
 #[repr(transparent)]
-pub struct Quaternion<T, A: Alignment>(Vector<4, T, A>)
+pub struct Quaternion<T, A: Alignment>(pub(crate) Vector<4, T, A>)
 where
     T: Scalar;
 
@@ -557,15 +558,7 @@ where
     #[inline]
     #[track_caller]
     fn mul(self, rhs: Self) -> Self::Output {
-        let [x0, y0, z0, w0] = self.to_array();
-        let [x1, y1, z1, w1] = rhs.to_array();
-
-        Self::from_xyzw(
-            x0 * w1 + w0 * x1 + z0 * y1 - y0 * z1,
-            y0 * w1 - z0 * x1 + w0 * y1 + x0 * z1,
-            z0 * w1 + y0 * x1 - x0 * y1 + w0 * z1,
-            w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1,
-        )
+        specialize!(<T as QuaternionBackend<A>>::quat_mul(self, rhs))
     }
 }
 
