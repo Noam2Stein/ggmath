@@ -2969,7 +2969,11 @@ mod tests {
 
                 assert_test_eq!(vector.xy().element_product(), x * y);
                 assert_test_eq!(vector.xyz().element_product(), x * y * z);
-                assert_test_eq!(vector.element_product(), x * y * (z * w));
+                assert_test_eq!(
+                    vector.element_product(),
+                    x * y * (z * w),
+                    "  vector: {vector:?}"
+                );
             }
         });
         for_types!(|T: PrimitiveInteger, A| {
