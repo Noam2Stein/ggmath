@@ -325,7 +325,7 @@ unsafe impl MaskBackend<3, Aligned> for f32 {
             const MASK: uint32x4_t = unsafe { transmute::<[u32; 4], uint32x4_t>([0b001, 0b010, 0b100, 0]) };
 
             let masked = vandq_u32(mask.0, MASK);
-            let reduce_2 = vand_u32(vget_low_u32(masked), vget_high_u32(masked));
+            let reduce_2 = vorr_u32(vget_low_u32(masked), vget_high_u32(masked));
             let bitmask = vget_lane_u32::<0>(reduce_2) | vget_lane_u32::<1>(reduce_2);
 
             bitmask == 0b111
@@ -337,7 +337,7 @@ unsafe impl MaskBackend<3, Aligned> for f32 {
             const MASK: uint32x4_t = unsafe { transmute::<[u32; 4], uint32x4_t>([0b001, 0b010, 0b100, 0]) };
 
             let masked = vandq_u32(mask.0, MASK);
-            let reduce_2 = vand_u32(vget_low_u32(masked), vget_high_u32(masked));
+            let reduce_2 = vorr_u32(vget_low_u32(masked), vget_high_u32(masked));
             let bitmask = vget_lane_u32::<0>(reduce_2) | vget_lane_u32::<1>(reduce_2);
 
             bitmask != 0
@@ -375,7 +375,7 @@ unsafe impl MaskBackend<3, Aligned> for f32 {
             const MASK: uint32x4_t = unsafe { transmute::<[u32; 4], uint32x4_t>([0b001, 0b010, 0b100, 0]) };
 
             let masked = vandq_u32(vceqq_u32(mask.0, other.0), MASK);
-            let reduce_2 = vand_u32(vget_low_u32(masked), vget_high_u32(masked));
+            let reduce_2 = vorr_u32(vget_low_u32(masked), vget_high_u32(masked));
             let bitmask = vget_lane_u32::<0>(reduce_2) | vget_lane_u32::<1>(reduce_2);
 
             bitmask == 0b111
@@ -447,7 +447,7 @@ unsafe impl MaskBackend<4, Aligned> for f32 {
             const MASK: uint32x4_t = unsafe { transmute::<[u32; 4], uint32x4_t>([0b0001, 0b0010, 0b0100, 0b1000]) };
 
             let masked = vandq_u32(mask.0, MASK);
-            let reduce_2 = vand_u32(vget_low_u32(masked), vget_high_u32(masked));
+            let reduce_2 = vorr_u32(vget_low_u32(masked), vget_high_u32(masked));
             let bitmask = vget_lane_u32::<0>(reduce_2) | vget_lane_u32::<1>(reduce_2);
 
             bitmask == 0b1111
@@ -459,7 +459,7 @@ unsafe impl MaskBackend<4, Aligned> for f32 {
             const MASK: uint32x4_t = unsafe { transmute::<[u32; 4], uint32x4_t>([0b0001, 0b0010, 0b0100, 0b1000]) };
 
             let masked = vandq_u32(mask.0, MASK);
-            let reduce_2 = vand_u32(vget_low_u32(masked), vget_high_u32(masked));
+            let reduce_2 = vorr_u32(vget_low_u32(masked), vget_high_u32(masked));
             let bitmask = vget_lane_u32::<0>(reduce_2) | vget_lane_u32::<1>(reduce_2);
 
             bitmask != 0
@@ -499,7 +499,7 @@ unsafe impl MaskBackend<4, Aligned> for f32 {
             const MASK: uint32x4_t = unsafe { transmute::<[u32; 4], uint32x4_t>([0b0001, 0b0010, 0b0100, 0b1000]) };
 
             let masked = vandq_u32(vceqq_u32(mask.0, other.0), MASK);
-            let reduce_2 = vand_u32(vget_low_u32(masked), vget_high_u32(masked));
+            let reduce_2 = vorr_u32(vget_low_u32(masked), vget_high_u32(masked));
             let bitmask = vget_lane_u32::<0>(reduce_2) | vget_lane_u32::<1>(reduce_2);
 
             bitmask == 0b1111
