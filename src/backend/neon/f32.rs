@@ -582,12 +582,12 @@ impl FloatVectorBackend<3, Aligned> for f32 {
 
         #[inline]
         fn vector_max_element(vector: Vec3A<f32>) -> f32 {
-            vmaxvq_f32(vsetq_lane_f32::<3>(f32::NEG_INFINITY, vector.0))
+            vmaxvq_f32(vsetq_lane_f32::<3>(f32::NAN, vector.0))
         }
 
         #[inline]
         fn vector_min_element(vector: Vec3A<f32>) -> f32 {
-            vminvq_f32(vsetq_lane_f32::<3>(f32::INFINITY, vector.0))
+            vminvq_f32(vsetq_lane_f32::<3>(f32::NAN, vector.0))
         }
 
         #[inline(always)]
