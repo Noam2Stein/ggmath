@@ -612,7 +612,7 @@ impl FloatVectorBackend<3, Aligned> for f32 {
 
         #[inline(always)]
         fn vector_mul_add(vector: Vec3A<f32>, a: Vec3A<f32>, b: Vec3A<f32>) -> Vec3A<f32> {
-            Vector(vfmaq_f32(vector.0, a.0, b.0))
+            Vector(vfmaq_f32(b.0, vector.0, a.0))
         }
 
         #[inline(always)]
@@ -785,7 +785,7 @@ impl FloatVectorBackend<4, Aligned> for f32 {
 
         #[inline(always)]
         fn vector_mul_add(vector: Vec4A<f32>, a: Vec4A<f32>, b: Vec4A<f32>) -> Vec4A<f32> {
-            Vector(vfmaq_f32(vector.0, a.0, b.0))
+            Vector(vfmaq_f32(b.0, vector.0, a.0))
         }
 
         #[inline(always)]
