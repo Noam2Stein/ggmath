@@ -228,12 +228,9 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vector_element_product(vector: Vec4A<f32>) -> f32 {
-            // (a, c) * (b, d)
-            let reduce_2 = vmul_f32(
-                vget_low_f32(vzip1q_f32(vector.0, vector.0)),
-                vget_low_f32(vzip2q_f32(vector.0, vector.0)),
-            );
-            vget_lane_f32::<0>(reduce_2) * vget_lane_f32::<1>(reduce_2)
+            let bcda = vextq_f32::<1>(vector.0, vector.0);
+            let temp = vmulq_f32(vector.0, bcda);
+            vgetq_lane_f32::<0>(temp) * vgetq_lane_f32::<2>(temp)
         }
 
         #[inline]
