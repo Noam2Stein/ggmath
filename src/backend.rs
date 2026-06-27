@@ -6,10 +6,17 @@ use crate::{
     utils::{PrimitiveFloatUtils, Repr2, Repr3, Repr4},
 };
 
-#[cfg(not(target_feature = "sse2"))]
-mod fallback;
-#[cfg(target_feature = "sse2")]
-mod sse2;
+cfg_select! {
+    target_feature = "sse2" => {
+        mod sse2;
+    }
+    all(target_arch = "aarch64", target_feature = "neon") => {
+        mod neon;
+    }
+    _ => {
+        mod fallback;
+    }
+}
 
 pub(crate) trait DefaultBackend<const N: usize, A: Alignment>: Scalar {}
 
