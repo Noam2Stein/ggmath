@@ -602,7 +602,7 @@ impl FloatVectorBackend<3, Aligned> for f32 {
 
         #[inline(always)]
         fn vector_round(vector: Vec3A<f32>) -> Vec3A<f32> {
-            Vector(vrndnq_f32(vector.0))
+            Vector(vrndaq_f32(vector.0))
         }
 
         #[inline(always)]
@@ -775,7 +775,7 @@ impl FloatVectorBackend<4, Aligned> for f32 {
 
         #[inline(always)]
         fn vector_round(vector: Vec4A<f32>) -> Vec4A<f32> {
-            Vector(vrndnq_f32(vector.0))
+            Vector(vrndaq_f32(vector.0))
         }
 
         #[inline(always)]
