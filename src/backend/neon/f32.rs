@@ -222,14 +222,15 @@ unsafe impl VectorBackend<4, Aligned> for f32 {
 
         #[inline]
         fn vector_element_sum(vector: Vec4A<f32>) -> f32 {
-            // sum((a, c) + (b, d))
-            vaddv_f32(vadd_f32(vget_low_f32(vector.0), vget_high_f32(vector.0)))
+            // (a + b) + (c + d)
+            vaddv_f32(vpadd_f32(vget_low_f32(vector.0), vget_high_f32(vector.0)))
         }
 
         #[inline]
         fn vector_element_product(vector: Vec4A<f32>) -> f32 {
+            let acbd = vrev64q_f32(vector.0);
             // (a, c) * (b, d)
-            let reduce_2 = vmul_f32(vget_low_f32(vector.0), vget_high_f32(vector.0));
+            let reduce_2 = vmul_f32(vget_low_f32(acbd), vget_high_f32(acbd));
             vget_lane_f32::<0>(reduce_2) * vget_lane_f32::<1>(reduce_2)
         }
 
