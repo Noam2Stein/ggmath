@@ -7,7 +7,10 @@ mod primitive_traits;
 #[cfg(test)]
 mod random_iter;
 mod repr;
-#[cfg(target_feature = "sse2")]
+#[cfg(any(
+    target_feature = "sse2",
+    all(target_arch = "aarch64", target_feature = "neon")
+))]
 mod safe_target_feature;
 mod specialize;
 #[cfg(test)]
@@ -24,7 +27,10 @@ pub(crate) use primitive_traits::*;
 #[cfg(test)]
 pub(crate) use random_iter::*;
 pub(crate) use repr::*;
-#[cfg(target_feature = "sse2")]
+#[cfg(any(
+    target_feature = "sse2",
+    all(target_arch = "aarch64", target_feature = "neon")
+))]
 pub(crate) use safe_target_feature::*;
 pub(crate) use specialize::*;
 #[cfg(test)]
