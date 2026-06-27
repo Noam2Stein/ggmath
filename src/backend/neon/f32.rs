@@ -927,7 +927,7 @@ safe_target_feature! {
     #[inline]
     fn signum(vector: float32x4_t) -> float32x4_t {
         vreinterpretq_f32_u32(vorrq_u32(
-            vdupq_n_u32(1f32.to_bits()),
+            vorrq_u32(vdupq_n_u32(1f32.to_bits()), nan_mask(vector)),
             vandq_u32(vreinterpretq_u32_f32(vector), vdupq_n_u32((-0.0f32).to_bits())),
         ))
     }
